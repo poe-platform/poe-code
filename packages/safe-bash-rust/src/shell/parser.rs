@@ -1,5 +1,5 @@
-use std::collections::{BTreeMap, BTreeSet};
 use crate::shell::lexer::{DupOrigin, Token, tokenize_shell_with_extglob};
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RedirectKind {
@@ -35,6 +35,7 @@ pub enum RedirectKind {
 pub struct Redirect {
     pub kind: RedirectKind,
     pub target: String,
+    pub variable: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -168,66 +169,60 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                         continue;
                     }
                 }
-                1 => {
-                    match tokens.get(idx) {
-                        Some(Token::Newline) => {
-                            at_cmd_start = false;
-                            idx += 1;
-                            continue;
-                        }
-                        Some(Token::Word(w)) if w == "in" => {
-                            *state = 2;
-                            at_cmd_start = false;
-                            idx += 1;
-                            continue;
-                        }
-                        _ => {}
+                1 => match tokens.get(idx) {
+                    Some(Token::Newline) => {
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
                     }
-                }
-                2 => {
-                    match tokens.get(idx) {
-                        Some(Token::Newline) => {
+                    Some(Token::Word(w)) if w == "in" => {
+                        *state = 2;
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
+                    }
+                    _ => {}
+                },
+                2 => match tokens.get(idx) {
+                    Some(Token::Newline) => {
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
+                    }
+                    Some(Token::LParen) => {
+                        *state = 3;
+                        paren_depth += 1;
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
+                    }
+                    Some(Token::Word(w)) => {
+                        if w == "esac" {
+                            case_depth -= 1;
+                            case_stack.pop();
                             at_cmd_start = false;
-                            idx += 1;
-                            continue;
-                        }
-                        Some(Token::LParen) => {
+                        } else {
                             *state = 3;
-                            paren_depth += 1;
                             at_cmd_start = false;
-                            idx += 1;
-                            continue;
                         }
-                        Some(Token::Word(w)) => {
-                            if w == "esac" {
-                                case_depth -= 1;
-                                case_stack.pop();
-                                at_cmd_start = false;
-                            } else {
-                                *state = 3;
-                                at_cmd_start = false;
-                            }
-                            idx += 1;
-                            continue;
-                        }
-                        _ => {}
+                        idx += 1;
+                        continue;
                     }
-                }
-                3 => {
-                    match tokens.get(idx) {
-                        Some(Token::RParen) => {
-                            *state = 4;
-                            at_cmd_start = true;
-                            idx += 1;
-                            continue;
-                        }
-                        _ => {
-                            at_cmd_start = false;
-                            idx += 1;
-                            continue;
-                        }
+                    _ => {}
+                },
+                3 => match tokens.get(idx) {
+                    Some(Token::RParen) => {
+                        *state = 4;
+                        at_cmd_start = true;
+                        idx += 1;
+                        continue;
                     }
-                }
+                    _ => {
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
+                    }
+                },
                 4 => {
                     if matches!(tokens.get(idx), Some(Token::Semi))
                         && matches!(tokens.get(idx + 1), Some(Token::Semi))
@@ -528,7 +523,7 @@ impl AliasTokenState {
                 self.expect_redirect_target = true;
                 self.prev_was_lparen = false;
             }
-            Token::RedirectHereDoc { .. } => {
+            Token::RedirectHereDoc { .. } | Token::RedirectName(_) => {
                 self.prev_was_lparen = false;
             }
             Token::Word(w) => {
@@ -728,10 +723,15 @@ pub fn is_incomplete_shell_unit_with_extglob(
             return true;
         }
     }
-    if tokens
-        .iter()
-        .any(|t| matches!(t, Token::RedirectHereDoc { eof_warning: Some(_), .. }))
-    {
+    if tokens.iter().any(|t| {
+        matches!(
+            t,
+            Token::RedirectHereDoc {
+                eof_warning: Some(_),
+                ..
+            }
+        )
+    }) {
         return true;
     }
     let non_nl: Vec<&Token> = tokens
@@ -828,7 +828,6 @@ pub fn is_incomplete_shell_unit_with_extglob(
     pending_do > 0 || in_db
 }
 
-
 fn is_valid_loop_ident(s: &str) -> bool {
     let mut chars = s.chars();
     let Some(first) = chars.next() else {
@@ -886,7 +885,10 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
     let mut lists = Vec::new();
     loop {
         skip_newlines(tokens, pos);
-        if *pos >= tokens.len() || matches!(tokens.get(*pos), Some(Token::RParen)) || is_stop_word(tokens.get(*pos), stops) {
+        if *pos >= tokens.len()
+            || matches!(tokens.get(*pos), Some(Token::RParen))
+            || is_stop_word(tokens.get(*pos), stops)
+        {
             break;
         }
         let prev_pos = *pos;
@@ -903,7 +905,10 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
             }
             break;
         }
-        while matches!(tokens.get(*pos), Some(Token::Semi | Token::Newline | Token::Background)) {
+        while matches!(
+            tokens.get(*pos),
+            Some(Token::Semi | Token::Newline | Token::Background)
+        ) {
             *pos += 1;
         }
     }
@@ -938,7 +943,11 @@ fn parse_and_or(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<And
         }
         rest.push((op, next));
     }
-    Ok(AndOrList { first, rest, background: false })
+    Ok(AndOrList {
+        first,
+        rest,
+        background: false,
+    })
 }
 
 fn parse_pipeline(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Pipeline, String> {
@@ -976,46 +985,84 @@ fn parse_pipeline(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<P
 fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Redirect>, String> {
     let mut redirects = Vec::new();
     while let Some(tok) = tokens.get(*pos) {
+        let variable = if let Token::RedirectName(name) = tok {
+            Some(name.clone())
+        } else {
+            None
+        };
+        let tok = if variable.is_some() {
+            *pos += 1;
+            tokens.get(*pos).ok_or("Syntax error: expected redirect")?
+        } else {
+            tok
+        };
         let r = match tok {
             Token::RedirectOut(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Out(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::Out(f),
+                    target,
+                }
             }
             Token::RedirectAppend(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Append(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::Append(f),
+                    target,
+                }
             }
             Token::RedirectClobber(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Clobber(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::Clobber(f),
+                    target,
+                }
             }
             Token::RedirectIn(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::In(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::In(f),
+                    target,
+                }
             }
             Token::RedirectReadWrite(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::ReadWrite(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::ReadWrite(f),
+                    target,
+                }
             }
             Token::RedirectHereString(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::HereString(f), target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::HereString(f),
+                    target,
+                }
             }
             Token::RedirectHereDoc {
                 fd,
-                quoted, delimiter, spelling, strip_tabs,
+                quoted,
+                delimiter,
+                spelling,
+                strip_tabs,
                 body,
                 eof_warning,
                 ..
@@ -1028,9 +1075,13 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                     token_line(tokens, *pos) + b.bytes().filter(|&ch| ch == b'\n').count() + 1;
                 *pos += 1;
                 Redirect {
+                    variable,
                     kind: RedirectKind::HereDoc {
                         fd: f,
-                        quoted: q, delimiter: delimiter.clone(), spelling: spelling.clone(), strip_tabs: *strip_tabs,
+                        quoted: q,
+                        delimiter: delimiter.clone(),
+                        spelling: spelling.clone(),
+                        strip_tabs: *strip_tabs,
                         eof_warning: w,
                         doc_line,
                     },
@@ -1043,6 +1094,7 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 let target = expect_word(tokens, pos)?;
                 let raw_move = is_raw_move_word(&target);
                 Redirect {
+                    variable,
                     kind: RedirectKind::DupOut {
                         fd: f,
                         origin: *origin,
@@ -1057,6 +1109,7 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 let target = expect_word(tokens, pos)?;
                 let raw_move = is_raw_move_word(&target);
                 Redirect {
+                    variable,
                     kind: RedirectKind::DupIn { fd: f, raw_move },
                     target,
                 }
@@ -1064,12 +1117,20 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
             Token::RedirectBothOut => {
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::BothOut, target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::BothOut,
+                    target,
+                }
             }
             Token::RedirectBothAppend => {
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::BothAppend, target }
+                Redirect {
+                    variable,
+                    kind: RedirectKind::BothAppend,
+                    target,
+                }
             }
             _ => break,
         };
@@ -1101,7 +1162,11 @@ fn expect_word(tokens: &[Token], pos: &mut usize) -> Result<String, String> {
     }
 }
 
-fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Option<CommandNode>, String> {
+fn parse_command(
+    tokens: &[Token],
+    pos: &mut usize,
+    stops: &[&str],
+) -> Result<Option<CommandNode>, String> {
     if *pos >= tokens.len() || is_stop_word(tokens.get(*pos), stops) {
         return Ok(None);
     }
@@ -1214,12 +1279,16 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 let is_select = kw == "select";
                 *pos += 1;
                 // C-style `for ((init; cond; step)); do ... done`
-                if matches!(tokens.get(*pos), Some(Token::LParen)) && matches!(tokens.get(*pos + 1), Some(Token::LParen)) {
+                if matches!(tokens.get(*pos), Some(Token::LParen))
+                    && matches!(tokens.get(*pos + 1), Some(Token::LParen))
+                {
                     *pos += 2;
                     let mut clauses = vec![String::new(), String::new(), String::new()];
                     let mut c_idx = 0usize;
                     while *pos < tokens.len() {
-                        if matches!(tokens.get(*pos), Some(Token::RParen)) && matches!(tokens.get(*pos + 1), Some(Token::RParen)) {
+                        if matches!(tokens.get(*pos), Some(Token::RParen))
+                            && matches!(tokens.get(*pos + 1), Some(Token::RParen))
+                        {
                             *pos += 2;
                             break;
                         }
@@ -1241,7 +1310,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                     }
                     skip_newlines(tokens, pos);
                     if !is_stop_word(tokens.get(*pos), &["do"]) {
-                        return Err("Syntax error: expected `do` in arithmetic for loop".to_string());
+                        return Err(
+                            "Syntax error: expected `do` in arithmetic for loop".to_string()
+                        );
                     }
                     *pos += 1;
                     let body = parse_tokens(tokens, pos, &["done"])?;
@@ -1368,7 +1439,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                         }
                         *pos += 1;
                     }
-                    let mut arm_tokens: Vec<Token> = (1..token_line(tokens, *pos)).map(|_| Token::Newline).collect();
+                    let mut arm_tokens: Vec<Token> = (1..token_line(tokens, *pos))
+                        .map(|_| Token::Newline)
+                        .collect();
                     let mut term = CaseTerminator::Break;
                     let mut nested_case_depth = 0usize;
                     let mut arm_at_cmd_start = true;
@@ -1400,7 +1473,14 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                                     if arm_at_cmd_start
                                         && matches!(
                                             w.as_str(),
-                                            "if" | "then" | "elif" | "else" | "while" | "until" | "do" | "{" | "!"
+                                            "if" | "then"
+                                                | "elif"
+                                                | "else"
+                                                | "while"
+                                                | "until"
+                                                | "do"
+                                                | "{"
+                                                | "!"
                                         ) =>
                                 {
                                     arm_at_cmd_start = true;
@@ -1411,7 +1491,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                             }
                         }
                         if nested_case_depth == 0 {
-                            if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Semi)) {
+                            if matches!(tokens.get(*pos), Some(Token::Semi))
+                                && matches!(tokens.get(*pos + 1), Some(Token::Semi))
+                            {
                                 if matches!(tokens.get(*pos + 2), Some(Token::Background)) {
                                     *pos += 3;
                                     term = CaseTerminator::ContinueTesting;
@@ -1421,7 +1503,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                                 }
                                 break;
                             }
-                            if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Background)) {
+                            if matches!(tokens.get(*pos), Some(Token::Semi))
+                                && matches!(tokens.get(*pos + 1), Some(Token::Background))
+                            {
                                 *pos += 2;
                                 term = CaseTerminator::Fallthrough;
                                 break;
@@ -1473,9 +1557,13 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
     if let Some((fn_name, next_pos)) = func_header {
         *pos = next_pos;
         skip_newlines(tokens, pos);
-        if is_stop_word(tokens.get(*pos), &["{"]) || matches!(tokens.get(*pos), Some(Token::LParen)) {
+        if is_stop_word(tokens.get(*pos), &["{"]) || matches!(tokens.get(*pos), Some(Token::LParen))
+        {
             let body = parse_command(tokens, pos, stops)?.expect("compound function body");
-            return Ok(Some(CommandNode::FuncDef { name: fn_name, body: Box::new(body) }));
+            return Ok(Some(CommandNode::FuncDef {
+                name: fn_name,
+                body: Box::new(body),
+            }));
         }
     }
 
@@ -1499,7 +1587,8 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 | Token::RParen,
             ) => break,
             Some(
-                Token::RedirectOut(_)
+                Token::RedirectName(_)
+                | Token::RedirectOut(_)
                 | Token::RedirectAppend(_)
                 | Token::RedirectClobber(_)
                 | Token::RedirectIn(_)
@@ -1782,7 +1871,9 @@ mod tests {
     fn arithmetic_for_header_ends_before_an_adjacent_do() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for separator in ["", " ", "; ", "\n"] {
-            let source = format!(r#"for ((i=0;i<(1+1);i++)){separator}do for ((j=0;j<1;j++))do echo "$i:$j"; done; done"#);
+            let source = format!(
+                r#"for ((i=0;i<(1+1);i++)){separator}do for ((j=0;j<1;j++))do echo "$i:$j"; done; done"#
+            );
             let r = shell.exec(&source).unwrap();
             assert_eq!(
                 (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
@@ -1797,10 +1888,9 @@ mod tests {
         validate_basic_syntax("if [ 1 -eq 1 ]; then echo ok; fi").unwrap();
         assert!(validate_basic_syntax("if [ 1 -eq 1 ]; then echo unclosed").is_err());
 
-        let parsed = parse_script(
-            "FOO=bar arr+=(1 2); for x in a b; do echo \"$x\"; done && (exit 0)",
-        )
-        .unwrap();
+        let parsed =
+            parse_script("FOO=bar arr+=(1 2); for x in a b; do echo \"$x\"; done && (exit 0)")
+                .unwrap();
         assert!(!parsed.lists.is_empty());
     }
 
@@ -1872,7 +1962,9 @@ mod tests {
         let parsed = parse_script(script).unwrap();
         assert_eq!(parsed.lists.len(), 2);
         match &parsed.lists[0].first.commands[0] {
-            CommandNode::ArithCommand { expr, redirects, .. } => {
+            CommandNode::ArithCommand {
+                expr, redirects, ..
+            } => {
                 assert_eq!(expr.trim(), "x = 42");
                 assert_eq!(redirects.len(), 2);
             }

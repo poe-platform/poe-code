@@ -56,11 +56,13 @@ struct Header<'a> {
     id: u64,
     kind: u64,
     default_ns: u64,
+    default: bool,
     codec: String,
     private: &'a [u8],
     language: String,
     width: Option<u32>,
     height: Option<u32>,
+    field_order: Option<&'static str>,
     rate: Option<u32>,
     channels: Option<u32>,
     bits: u32,
@@ -71,11 +73,13 @@ impl<'a> Header<'a> {
             id,
             kind: 1,
             default_ns: 0,
+            default: true,
             codec: "V_MPEG4/ISO/AVC".into(),
             private: &[],
             language: "und".into(),
             width: None,
             height: None,
+            field_order: None,
             rate: None,
             channels: None,
             bits: 16,
@@ -85,6 +89,7 @@ impl<'a> Header<'a> {
                 0xd7 => h.id = uint(b),
                 0x83 => h.kind = uint(b),
                 0x23e383 => h.default_ns = uint(b),
+                0x88 => h.default = uint(b) != 0,
                 0x86 => h.codec = string(b),
                 0x63a2 => h.private = b,
                 0x22b59c => h.language = string(b),
@@ -93,6 +98,16 @@ impl<'a> Header<'a> {
                         match (id, field) {
                             (0xe0, 0xb0) => h.width = Some(uint(v) as u32),
                             (0xe0, 0xba) => h.height = Some(uint(v) as u32),
+                            (0xe0, 0x9a) if uint(v) == 2 => h.field_order = Some("progressive"),
+                            (0xe0, 0x9d) => {
+                                h.field_order = match uint(v) {
+                                    1 => Some("tt"),
+                                    6 => Some("bb"),
+                                    9 => Some("tb"),
+                                    14 => Some("bt"),
+                                    _ => h.field_order,
+                                }
+                            }
                             (0xe1, 0xb5) => h.rate = Some(float(v).round() as u32),
                             (0xe1, 0x9f) => h.channels = Some(uint(v) as u32),
                             (0xe1, 0x6264) => h.bits = uint(v) as u32,
@@ -107,7 +122,9 @@ impl<'a> Header<'a> {
     }
     fn codec(&self, scale: u32) -> (Codec, Option<String>) {
         if self.kind == 1 {
-            let tag = if self.codec.contains("V_MPEGH/ISO/HEVC") {
+            let tag = if self.codec == "V_MS/VFW/FOURCC" && matches!(self.private.get(16..20), Some(b"MPNG" | b"png ")) {
+                b"png "
+            } else if self.codec.contains("V_MPEGH/ISO/HEVC") {
                 b"hvc1"
             } else if self.codec.contains("V_VP8") {
                 b"vp08"
@@ -124,7 +141,10 @@ impl<'a> Header<'a> {
             (
                 Codec::Video {
                     tag,
-                    width: self.width.or_else(|| seq.as_ref().map(|s| s.width)).map(i64::from),
+                    width: self
+                        .width
+                        .or_else(|| seq.as_ref().map(|s| s.width))
+                        .map(i64::from),
                     height: self.height.or_else(|| seq.as_ref().map(|s| s.height)),
                 },
                 seq.map(|s| s.profile),
@@ -138,6 +158,8 @@ impl<'a> Header<'a> {
                 b"vorb"
             } else if self.codec.contains("A_MPEG/L3") {
                 b".mp3"
+            } else if self.codec == "A_WAVPACK4" {
+                b"wvpk"
             } else if self.codec.contains("A_FLAC") {
                 b"fLaC"
             } else if self.codec.contains("A_PCM") {
@@ -164,7 +186,13 @@ impl<'a> Header<'a> {
         } else {
             (
                 Codec::Subtitle {
-                    webvtt: self.codec.contains("WEBVTT"),
+                    name: if self.codec == "S_TEXT/ASS" {
+                        "ass"
+                    } else if self.codec.contains("WEBVTT") {
+                        "webvtt"
+                    } else {
+                        "subrip"
+                    },
                 },
                 None,
             )
@@ -172,7 +200,10 @@ impl<'a> Header<'a> {
     }
 }
 pub(super) struct Block<'a> {
+    pos: u64,
+    size: u64,
     pub dts: i64,
+    pub cluster: u64,
     pub ticks: f64,
     pub data: &'a [u8],
     pub key: bool,
@@ -186,6 +217,7 @@ struct Movie<'a> {
     title: Option<String>,
     encoder: Option<String>,
     tags: BTreeMap<String, String>,
+    chapters: Vec<(i64, u64, u64, Option<String>)>,
     budget: usize,
 }
 impl<'a> Movie<'a> {
@@ -204,7 +236,7 @@ impl<'a> Movie<'a> {
                 continue;
             };
             match id {
-                0x1a45dfa3 | 0x18538067 | 0x1549a966 | 0x1654ae6b | 0x1254c367 | 0x7373 => {
+                0x1a45dfa3 | 0x18538067 | 0x1549a966 | 0x1654ae6b | 0x1254c367 | 0x7373 | 0x1043a770 | 0x45b9 => {
                     let children = elements(b, true);
                     if parents.len() >= self.budget / size_of_val(&children) {
                         return Err("element index exceeds memory budget");
@@ -220,6 +252,22 @@ impl<'a> Movie<'a> {
                 0x4489 => self.duration = float(b),
                 0x7ba9 => self.title = Some(string(b)),
                 0x5741 => self.encoder = Some(string(b)),
+                0xb6 => {
+                    let (mut id, mut start, mut end) = (0, 0, 0);
+                    let mut title = None;
+                    for (key, value) in elements(b, false) {
+                        match key {
+                            0x73c4 => id = uint(value) as i64,
+                            0x91 => start = uint(value),
+                            0x92 => end = uint(value),
+                            0x80 => title = elements(value, false).find(|(key, _)| *key == 0x85).map(|(_, bytes)| string(bytes)),
+                            _ => (),
+                        }
+                    }
+                    if id == 0 || self.chapters.last().is_some_and(|c| c.1 != 0 && start <= c.1) { continue; }
+                    self.charge(2 * size_of::<(i64, u64, u64, Option<String>)>() + title.as_ref().map_or(0, String::capacity))?;
+                    self.chapters.push((id, start, end, title));
+                }
                 0x67c8 => {
                     let (mut name, mut value) = (&[][..], &[][..]);
                     for (k, v) in elements(b, false) {
@@ -276,13 +324,30 @@ impl<'a> Movie<'a> {
                         if let Some((track, _)) = vint(&mut block, true)
                             && let [hi, lo, flags, data @ ..] = block
                         {
+                            // A malformed WebVTT block makes FFmpeg resync at the next cluster.
+                            if self
+                                .headers
+                                .get(&track)
+                                .is_some_and(|h| h.codec.starts_with("D_WEBVTT/"))
+                                && data.splitn(3, |&b| b == b'\n').nth(2).is_none_or(|text| {
+                                    text.iter().all(|b| matches!(b, b'\r' | b'\n'))
+                                })
+                            {
+                                break;
+                            }
+                            if data.is_empty() {
+                                continue;
+                            }
                             self.charge(size_of::<Block>())?;
                             let dts = (i128::from(time)
                                 + i128::from(i16::from_be_bytes([*hi, *lo])))
                             .clamp(0, i128::from(i64::MAX))
                                 as i64;
                             self.blocks.entry(track).or_default().push(Block {
+                                pos: (v.as_ptr() as usize - bytes.as_ptr() as usize) as u64,
+                                size: data.len() as u64,
                                 dts,
+                                cluster: time,
                                 ticks,
                                 data,
                                 key: k == 0xa0 || flags & 128 != 0,
@@ -297,6 +362,10 @@ impl<'a> Movie<'a> {
     }
 }
 pub(super) struct Track<'a> {
+    pub default: bool,
+    channel_layout: Option<&'static str>,
+    pub field_order: Option<&'static str>,
+    pub codec_id: String,
     pub sample_rate: Option<u32>,
     pub private: &'a [u8],
     pub info: StreamInfo,
@@ -306,12 +375,20 @@ pub(super) struct Track<'a> {
     ordinal: usize,
 }
 impl<'a> Track<'a> {
+    pub(super) fn wavpack(&self, limit: usize) -> Result<Vec<u8>, &'static str> {
+        let mut out = Vec::new();
+        for block in &self.blocks {
+            super::super::wavpack::unpack_matroska(block.data, self.private, &mut out, limit)?;
+        }
+        Ok(out)
+    }
+
     pub(super) fn packets(&self) -> impl Iterator<Item = (Packet, &'a [u8])> + '_ {
         let (mut pos, mut cursor) = (0, 0);
         self.blocks.iter().flat_map(move |b| {
             let mut dts = b.dts;
             let mut ticks = b.ticks;
-            let mut size = b.data.len() as u64;
+            let mut size = b.size;
             let mut gap = None;
             if self.wrap {
                 dts = dts.max(cursor);
@@ -335,7 +412,11 @@ impl<'a> Track<'a> {
                 dts,
                 ticks,
                 size,
-                pos,
+                pos: if self.codec_id == "A_WAVPACK4" {
+                    b.pos
+                } else {
+                    pos
+                },
                 key: self.wrap || b.key,
             };
             pos += size;
@@ -365,6 +446,7 @@ pub(super) struct Document<'a> {
     pub tracks: Vec<Track<'a>>,
     pub tags: Vec<(&'static str, String)>,
     pub duration: f64,
+    pub chapters: Vec<(i64, u64, u64, Option<String>)>,
 }
 pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static str> {
     check_header(bytes)?;
@@ -377,6 +459,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static
         title: None,
         encoder: None,
         tags: BTreeMap::new(),
+        chapters: Vec::new(),
         budget: limit,
     };
     movie.read(bytes)?;
@@ -390,10 +473,34 @@ pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static
         let mut previous =
             (f64::from(scale) / if h.kind == 1 { 30. } else { 44100. / 1024. }).max(1.);
         let mut end = 0f64;
+        let mut channel_layout = None;
         for i in 0..blocks.len() {
             let delta = blocks.get(i + 1).map_or(0, |b| b.dts - blocks[i].dts);
             let b = &mut blocks[i];
-            if b.ticks == 0. {
+            if h.codec == "A_WAVPACK4" {
+                if b.data.len() < 12 {
+                    return Err("Invalid Matroska WavPack packet");
+                }
+                let mut encoded = Vec::new();
+                let frames = super::super::wavpack::unpack_matroska(
+                    b.data,
+                    h.private,
+                    &mut encoded,
+                    movie.budget,
+                )?;
+                b.size = encoded.len() as u64;
+                let doc = super::super::wavpack::Document::read(
+                    &encoded,
+                    movie.budget.saturating_sub(encoded.capacity()),
+                )?;
+                channel_layout = doc.channel_layout();
+                b.ticks =
+                    f64::from(frames) * f64::from(scale) / f64::from(h.rate.unwrap_or(8000).max(1));
+            } else if h.codec.starts_with("A_PCM/") {
+                let stride = u64::from(h.channels.unwrap_or(1)).saturating_mul(u64::from(h.bits / 8));
+                if stride == 0 { return Err("Invalid Matroska PCM sample size"); }
+                b.ticks = (b.data.len() as u64 / stride) as f64 * f64::from(scale) / f64::from(h.rate.unwrap_or(8000).max(1));
+            } else if b.ticks == 0. && h.kind != 17 {
                 b.ticks = if h.default_ns != 0 {
                     h.default_ns as f64 / movie.scale as f64
                 } else if delta > 0 {
@@ -418,10 +525,15 @@ pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static
             _ => ("subtitle", 2),
         };
         let wrap = k == 2
+            && h.codec != "S_TEXT/ASS"
+            && !h.codec.contains("WEBVTT")
             && blocks.iter().any(|b| {
                 b.data.len() < 2 || usize::from(super::u16_at(b.data, 0)) != b.data.len() - 2
             });
         let mut t = Track {
+            default: h.default,
+            channel_layout,
+            field_order: h.field_order,
             sample_rate: match codec {
                 Codec::Audio { rate, .. }
                     if h.rate.is_some()
@@ -454,6 +566,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static
             wrap,
             kind,
             ordinal: ordinals[k],
+            codec_id: h.codec,
         };
         let (mut start, mut count, mut ticks, mut payload) = (0, 0, 0., 0);
         for (p, _) in t.packets() {
@@ -496,6 +609,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static
         tracks,
         tags,
         duration,
+        chapters: movie.chapters,
     })
 }
 pub(in super::super) fn report(
@@ -508,20 +622,129 @@ pub(in super::super) fn report(
         tracks,
         tags,
         duration,
+        chapters,
         ..
     } = parse(bytes, limit)?;
     let (select, counts) = (opts.select, opts.counts);
+    if opts.show.contains("frame") || counts.1 {
+        for (_, t) in tracks.iter().enumerate().filter(|(i, t)| {
+            t.codec_id == "A_WAVPACK4" && media_probe::selected(select, t.kind, *i, t.ordinal)
+        }) {
+            let encoded = t.wavpack(limit)?;
+            let remaining = limit.saturating_sub(encoded.capacity());
+            super::super::wavpack::Document::read(&encoded, remaining)?.decode(remaining,super::super::ffmpeg_pcm::Format::Float(64,false))?;
+        }
+    }
     media_probe::report(opts, |section| match section {
-        "packet" | "frame" => Box::new(tracks.iter().enumerate().flat_map(move |(i, t)| {
-            t.packets()
-                .map(move |(p, _)| t.info.codec.record(i, t.info.scale, p, section == "frame"))
+        "chapter" => Box::new(chapters.iter().map(|(id, start, end, title)| {
+            use JVal::{Number, Object, Str};
+            let mut row = vec![
+                ("id", Number(*id as f64, Some(id.to_string().into_boxed_str()))),
+                ("time_base", Str("1/1000000000".into())),
+                ("start", Number(*start as f64, Some(start.to_string().into_boxed_str()))),
+                ("start_time", Str(format!("{:.6}", *start as f64 / 1e9))),
+                ("end", Number(*end as f64, Some(end.to_string().into_boxed_str()))),
+                ("end_time", Str(format!("{:.6}", *end as f64 / 1e9))),
+            ];
+            if let Some(title) = title { row.push(("tags", Object(vec![("title".into(), Str(title.clone()))]))); }
+            row
+        })),
+        "packet" | "frame" => Box::new(tracks.iter().enumerate().filter(|(i, t)| media_probe::selected(select, t.kind, *i, t.ordinal)).flat_map(move |(i, t)| {
+            t.packets().map(move |(p, data)| {
+                let frame = section == "frame";
+                let mut row = t.info.codec.record(i, t.info.scale, p, frame);
+                if t.codec_id == "A_WAVPACK4" {
+                    row.retain(|(key, _)| {
+                        !matches!(
+                            *key,
+                            "duration" | "duration_time" | "pkt_duration" | "pkt_duration_time"
+                        )
+                    });
+                    if !frame {
+                        for (key, value) in &mut row {
+                            if *key == "flags" {
+                                *value = JVal::Str("K__".into());
+                            }
+                        }
+                    }
+                    if frame {
+                        let flags = u32::from_le_bytes(data[4..8].try_into().unwrap());
+                        for (key, value) in &mut row {
+                            match *key {
+                                "nb_samples" => {
+                                    *value = JVal::Number(
+                                        u32::from_le_bytes(data[..4].try_into().unwrap()).into(),
+                                        None,
+                                    )
+                                }
+                                "sample_fmt" => {
+                                    *value = JVal::Str(
+                                        if flags & 128 != 0 {
+                                            "fltp"
+                                        } else if flags & 3 <= 1 {
+                                            "s16p"
+                                        } else {
+                                            "s32p"
+                                        }
+                                        .into(),
+                                    )
+                                }
+                                _ => (),
+                            }
+                        }
+                        row.push(("pkt_pos", JVal::Str(p.pos.to_string())));
+                        if let Some(layout) = t.channel_layout {
+                            row.push(("channel_layout", JVal::Str(layout.into())));
+                        }
+                    }
+                }
+                row
+            })
         })),
         "stream" => Box::new(
             tracks
                 .iter()
                 .enumerate()
                 .filter(|(i, t)| media_probe::selected(select, t.kind, *i, t.ordinal))
-                .map(|(i, t)| t.info.stream(i, counts)),
+                .map(|(i, t)| {
+                    let mut row = t.info.stream(i, counts);
+                    if t.codec_id == "A_WAVPACK4" {
+                        let flags = t
+                            .blocks
+                            .first()
+                            .and_then(|b| b.data.get(4..8))
+                            .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
+                            .unwrap_or(1);
+                        let bits = ((flags & 3) + 1) * 8;
+                        for (key, value) in &mut row {
+                            match *key {
+                                "codec_tag_string" => *value = JVal::Str("[0][0][0][0]".into()),
+                                "codec_tag" => *value = JVal::Str("0x0000".into()),
+                                "sample_fmt" => {
+                                    *value = JVal::Str(
+                                        if flags & 128 != 0 {
+                                            "fltp"
+                                        } else if bits <= 16 {
+                                            "s16p"
+                                        } else {
+                                            "s32p"
+                                        }
+                                        .into(),
+                                    )
+                                }
+                                "bits_per_sample" => *value = JVal::Number(0., None),
+                                _ => (),
+                            }
+                        }
+                        row.retain(|(key, _)| *key != "channel_layout");
+                        if let Some(layout) = t.channel_layout {
+                            row.push(("channel_layout", JVal::Str(layout.into())));
+                        }
+                        row.push(("bits_per_raw_sample", JVal::Str(bits.to_string())));
+                        row.push(("extradata_size", JVal::Number(t.private.len() as f64, None)));
+                    }
+                    row
+                }),
         ),
         "format" => Box::new(std::iter::once(media_probe::format_row(
             name,

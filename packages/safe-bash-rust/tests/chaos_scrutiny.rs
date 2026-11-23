@@ -106,8 +106,14 @@ fn chaos_env_unset_and_special_characters_propagate_accurately() {
         .unwrap();
     assert_eq!(out.exit_code, 0);
     assert_eq!(out.stdout.trim(), "updated 🚀 🦀");
-    assert_eq!(shell.env().get("KEEP_ME").map(String::as_str), Some("updated 🚀 🦀"));
-    assert_eq!(shell.env().get("MULTILINE").map(String::as_str), Some("line1\nline2"));
+    assert_eq!(
+        shell.env().get("KEEP_ME").map(String::as_str),
+        Some("updated 🚀 🦀")
+    );
+    assert_eq!(
+        shell.env().get("MULTILINE").map(String::as_str),
+        Some("line1\nline2")
+    );
     assert!(
         !shell.env().contains_key("REMOVE_ME"),
         "unset variable REMOVE_ME should be removed from Rust shell env"
@@ -157,7 +163,9 @@ fn chaos_infinite_loop_is_terminated_by_timeout() {
         "Infinite loop was not aborted promptly (took {elapsed:?})"
     );
     match res {
-        Err(msg) => assert!(msg.to_lowercase().contains("timed out") || msg.to_lowercase().contains("abort")),
+        Err(msg) => assert!(
+            msg.to_lowercase().contains("timed out") || msg.to_lowercase().contains("abort")
+        ),
         Ok(out) => assert_ne!(out.exit_code, 0),
     }
 }

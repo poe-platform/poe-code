@@ -1,0 +1,1253 @@
+{
+  "reference": "LibreOffice 24.8.7.2 native CSV; raw UTF-16 delimiter units, surrogate encoding, numeric collisions, disabled versus empty separators and whole-field normalization",
+  "inputs": {
+    "units.xlsx": {
+      "docProps/app.xml": "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\"><Application>Microsoft Excel</Application><AppVersion>3.0</AppVersion></Properties>",
+      "docProps/core.xml": "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\"><dc:creator xmlns:dc=\"http://purl.org/dc/elements/1.1/\">openpyxl</dc:creator><dcterms:created xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"dcterms:W3CDTF\">2026-11-16T20:23:32Z</dcterms:created><dcterms:modified xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"dcterms:W3CDTF\">2026-11-16T20:23:32Z</dcterms:modified></cp:coreProperties>",
+      "xl/worksheets/sheet1.xml": "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetPr><outlinePr summaryBelow=\"1\" summaryRight=\"1\"/><pageSetUpPr/></sheetPr><dimension ref=\"A1:P2\"/><sheetViews><sheetView workbookViewId=\"0\"><selection activeCell=\"A1\" sqref=\"A1\"/></sheetView></sheetViews><sheetFormatPr baseColWidth=\"8\" defaultRowHeight=\"15\"/><sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>plain</t></is></c><c r=\"B1\" t=\"inlineStr\"><is><t>a,b</t></is></c><c r=\"C1\" t=\"inlineStr\"><is><t>a\"b</t></is></c><c r=\"D1\" t=\"inlineStr\"><is><t>?</t></is></c><c r=\"E1\" t=\"inlineStr\"><is><t>&#128512;</t></is></c><c r=\"F1\" t=\"inlineStr\"><is><t>&#100352;</t></is></c><c r=\"G1\" t=\"inlineStr\"><is><t>&#1114111;</t></is></c><c r=\"H1\" t=\"inlineStr\"><is><t>&#61825;&#61760;</t></is></c><c r=\"I1\" t=\"inlineStr\"><is><t>&#256;</t></is></c><c r=\"J1\" t=\"inlineStr\"><is><t>&#290;</t></is></c><c r=\"K1\" t=\"inlineStr\"><is><t>&#300;</t></is></c><c r=\"L1\" t=\"n\"><v>12.5</v></c><c r=\"M1\" t=\"n\"><v>123</v></c><c r=\"N1\" t=\"inlineStr\"><is><t>12.5</t></is></c><c r=\"O1\" t=\"inlineStr\"><is><t xml:space=\"preserve\"> a </t></is></c><c r=\"P1\" t=\"inlineStr\"><is><t>a\nb</t></is></c></row><row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>&#65536;</t></is></c><c r=\"B2\" t=\"inlineStr\"><is><t>&#65570;</t></is></c><c r=\"C2\" t=\"inlineStr\"><is><t>&#65585;</t></is></c><c r=\"D2\" t=\"inlineStr\"><is><t>&#100386;</t></is></c><c r=\"E2\" t=\"inlineStr\"><is><t>&#128546;</t></is></c><c r=\"F2\" t=\"inlineStr\"><is><t>&#1113088;</t></is></c><c r=\"G2\" t=\"inlineStr\"><is><t>&#61696;</t></is></c><c r=\"H2\" t=\"inlineStr\"><is><t>&#61730;</t></is></c><c r=\"I2\" t=\"inlineStr\"><is><t>&#61745;</t></is></c><c r=\"J2\" t=\"inlineStr\"><is><t>&#61740;</t></is></c><c r=\"K2\" t=\"n\"><v>0</v></c><c r=\"L2\" t=\"n\"><v>-12.5</v></c><c r=\"M2\" t=\"inlineStr\"></c></row></sheetData><pageMargins left=\"0.75\" right=\"0.75\" top=\"1\" bottom=\"1\" header=\"0.5\" footer=\"0.5\"/></worksheet>",
+      "xl/styles.xml": "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"0\"/><fonts count=\"1\"><font><name val=\"Calibri\"/><family val=\"2\"/><color theme=\"1\"/><sz val=\"11\"/><scheme val=\"minor\"/></font></fonts><fills count=\"2\"><fill><patternFill/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" pivotButton=\"0\" quotePrefix=\"0\" xfId=\"0\"/></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\" hidden=\"0\"/></cellStyles><tableStyles count=\"0\" defaultTableStyle=\"TableStyleMedium9\" defaultPivotStyle=\"PivotStyleLight16\"/><colors><indexedColors><rgbColor rgb=\"00000000\"/><rgbColor rgb=\"00FFFFFF\"/><rgbColor rgb=\"00FF0000\"/><rgbColor rgb=\"0000FF00\"/><rgbColor rgb=\"000000FF\"/><rgbColor rgb=\"00FFFF00\"/><rgbColor rgb=\"00FF00FF\"/><rgbColor rgb=\"0000FFFF\"/><rgbColor rgb=\"00000000\"/><rgbColor rgb=\"00FFFFFF\"/><rgbColor rgb=\"00FF0000\"/><rgbColor rgb=\"0000FF00\"/><rgbColor rgb=\"000000FF\"/><rgbColor rgb=\"00FFFF00\"/><rgbColor rgb=\"00FF00FF\"/><rgbColor rgb=\"0000FFFF\"/><rgbColor rgb=\"00800000\"/><rgbColor rgb=\"00008000\"/><rgbColor rgb=\"00000080\"/><rgbColor rgb=\"00808000\"/><rgbColor rgb=\"00800080\"/><rgbColor rgb=\"00008080\"/><rgbColor rgb=\"00C0C0C0\"/><rgbColor rgb=\"00808080\"/><rgbColor rgb=\"009999FF\"/><rgbColor rgb=\"00993366\"/><rgbColor rgb=\"00FFFFCC\"/><rgbColor rgb=\"00CCFFFF\"/><rgbColor rgb=\"00660066\"/><rgbColor rgb=\"00FF8080\"/><rgbColor rgb=\"000066CC\"/><rgbColor rgb=\"00CCCCFF\"/><rgbColor rgb=\"00000080\"/><rgbColor rgb=\"00FF00FF\"/><rgbColor rgb=\"00FFFF00\"/><rgbColor rgb=\"0000FFFF\"/><rgbColor rgb=\"00800080\"/><rgbColor rgb=\"00800000\"/><rgbColor rgb=\"00008080\"/><rgbColor rgb=\"000000FF\"/><rgbColor rgb=\"0000CCFF\"/><rgbColor rgb=\"00CCFFFF\"/><rgbColor rgb=\"00CCFFCC\"/><rgbColor rgb=\"00FFFF99\"/><rgbColor rgb=\"0099CCFF\"/><rgbColor rgb=\"00FF99CC\"/><rgbColor rgb=\"00CC99FF\"/><rgbColor rgb=\"00FFCC99\"/><rgbColor rgb=\"003366FF\"/><rgbColor rgb=\"0033CCCC\"/><rgbColor rgb=\"0099CC00\"/><rgbColor rgb=\"00FFCC00\"/><rgbColor rgb=\"00FF9900\"/><rgbColor rgb=\"00FF6600\"/><rgbColor rgb=\"00666699\"/><rgbColor rgb=\"00969696\"/><rgbColor rgb=\"00003366\"/><rgbColor rgb=\"00339966\"/><rgbColor rgb=\"00003300\"/><rgbColor rgb=\"00333300\"/><rgbColor rgb=\"00993300\"/><rgbColor rgb=\"00993366\"/><rgbColor rgb=\"00333399\"/><rgbColor rgb=\"00333333\"/></indexedColors></colors></styleSheet>",
+      "_rels/.rels": "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\" Id=\"rId1\"/><Relationship Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\" Id=\"rId2\"/><Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\" Id=\"rId3\"/></Relationships>",
+      "xl/workbook.xml": "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><workbookPr/><workbookProtection/><bookViews><workbookView visibility=\"visible\" minimized=\"0\" showHorizontalScroll=\"1\" showVerticalScroll=\"1\" showSheetTabs=\"1\" tabRatio=\"600\" firstSheet=\"0\" activeTab=\"0\" autoFilterDateGrouping=\"1\"/></bookViews><sheets><sheet xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" name=\"Sheet\" sheetId=\"1\" state=\"visible\" r:id=\"rId1\"/></sheets><definedNames/><calcPr calcId=\"124519\" fullCalcOnLoad=\"1\"/></workbook>",
+      "xl/_rels/workbook.xml.rels": "<ns0:Relationships xmlns:ns0=\"http://schemas.openxmlformats.org/package/2006/relationships\"><ns0:Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"/xl/worksheets/sheet1.xml\" Id=\"rId1\" /><ns0:Relationship Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\" Id=\"rId2\" /></ns0:Relationships>",
+      "[Content_Types].xml": "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/xl/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/></Types>"
+    },
+    "text.ods": {
+      "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+      "styles.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-styles xmlns:presentation=\"urn:oasis:names:tc:opendocument:xmlns:presentation:1.0\" xmlns:css3t=\"http://www.w3.org/TR/css3-text/\" xmlns:grddl=\"http://www.w3.org/2003/g/data-view#\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\" xmlns:dom=\"http://www.w3.org/2001/xml-events\" xmlns:script=\"urn:oasis:names:tc:opendocument:xmlns:script:1.0\" xmlns:form=\"urn:oasis:names:tc:opendocument:xmlns:form:1.0\" xmlns:math=\"http://www.w3.org/1998/Math/MathML\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" xmlns:fo=\"urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0\" xmlns:ooow=\"http://openoffice.org/2004/writer\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:drawooo=\"http://openoffice.org/2010/draw\" xmlns:oooc=\"http://openoffice.org/2004/calc\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:calcext=\"urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" xmlns:tableooo=\"http://openoffice.org/2009/table\" xmlns:draw=\"urn:oasis:names:tc:opendocument:xmlns:drawing:1.0\" xmlns:dr3d=\"urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0\" xmlns:rpt=\"http://openoffice.org/2005/report\" xmlns:svg=\"urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0\" xmlns:chart=\"urn:oasis:names:tc:opendocument:xmlns:chart:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:loext=\"urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0\" xmlns:number=\"urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0\" xmlns:field=\"urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0\" office:version=\"1.3\"><office:font-face-decls><style:font-face style:name=\"Calibri\" svg:font-family=\"Calibri\" style:font-family-generic=\"swiss\"/><style:font-face style:name=\"Liberation Sans\" svg:font-family=\"&apos;Liberation Sans&apos;\" style:font-family-generic=\"swiss\" style:font-pitch=\"variable\"/><style:font-face style:name=\"Noto Sans\" svg:font-family=\"&apos;Noto Sans&apos;\" style:font-family-generic=\"system\" style:font-pitch=\"variable\"/></office:font-face-decls><office:styles><style:default-style style:family=\"table-cell\"><style:paragraph-properties style:tab-stop-distance=\"0.5in\"/><style:text-properties style:font-name=\"Liberation Sans\" fo:font-size=\"10pt\" fo:language=\"en\" fo:country=\"US\" style:font-name-asian=\"Noto Sans\" style:font-size-asian=\"10pt\" style:language-asian=\"zh\" style:country-asian=\"CN\" style:font-name-complex=\"Noto Sans\" style:font-size-complex=\"10pt\" style:language-complex=\"hi\" style:country-complex=\"IN\"/></style:default-style><style:default-style style:family=\"graphic\"><style:graphic-properties svg:stroke-color=\"#3465a4\" draw:fill-color=\"#729fcf\" fo:wrap-option=\"no-wrap\" draw:shadow-offset-x=\"0.1181in\" draw:shadow-offset-y=\"0.1181in\" style:writing-mode=\"page\"/><style:paragraph-properties style:text-autospace=\"ideograph-alpha\" style:punctuation-wrap=\"simple\" style:line-break=\"strict\" style:writing-mode=\"page\" style:font-independent-line-spacing=\"false\"><style:tab-stops/></style:paragraph-properties><style:text-properties style:use-window-font-color=\"true\" loext:opacity=\"0%\" fo:font-family=\"&apos;Liberation Serif&apos;\" style:font-family-generic=\"roman\" style:font-pitch=\"variable\" fo:font-size=\"12pt\" fo:language=\"en\" fo:country=\"US\" style:letter-kerning=\"true\" style:font-family-asian=\"&apos;DejaVu Sans&apos;\" style:font-family-generic-asian=\"system\" style:font-pitch-asian=\"variable\" style:font-size-asian=\"12pt\" style:language-asian=\"zh\" style:country-asian=\"CN\" style:font-name-complex=\"Noto Sans\" style:font-size-complex=\"12pt\" style:language-complex=\"hi\" style:country-complex=\"IN\"/></style:default-style><style:style style:name=\"Default\" style:family=\"graphic\"/><style:style style:name=\"Note\" style:family=\"graphic\" style:parent-style-name=\"Default\"><style:graphic-properties draw:stroke=\"solid\" draw:marker-start=\"Arrowheads_20_1\" draw:marker-start-width=\"0.0787in\" draw:marker-start-center=\"false\" draw:fill=\"solid\" draw:fill-color=\"#ffffc0\" draw:auto-grow-height=\"true\" draw:auto-grow-width=\"false\" fo:padding-top=\"0.0394in\" fo:padding-bottom=\"0.0394in\" fo:padding-left=\"0.0394in\" fo:padding-right=\"0.0394in\" draw:shadow=\"visible\" draw:shadow-offset-x=\"0.0394in\" draw:shadow-offset-y=\"0.0394in\"/><style:text-properties style:font-name=\"Liberation Sans\" fo:font-family=\"&apos;Liberation Sans&apos;\" style:font-family-generic=\"swiss\" style:font-pitch=\"variable\" fo:font-size=\"10pt\" style:font-name-asian=\"Noto Sans\" style:font-family-asian=\"&apos;Noto Sans&apos;\" style:font-family-generic-asian=\"system\" style:font-pitch-asian=\"variable\" style:font-size-asian=\"10pt\" style:font-name-complex=\"Noto Sans\" style:font-family-complex=\"&apos;Noto Sans&apos;\" style:font-family-generic-complex=\"system\" style:font-pitch-complex=\"variable\" style:font-size-complex=\"10pt\"/></style:style><number:number-style style:name=\"N0\"><number:number number:min-integer-digits=\"1\"/></number:number-style><number:currency-style style:name=\"N129P0\" style:volatile=\"true\"><number:currency-symbol/><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N129\"><number:text>(</number:text><number:currency-symbol/><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N129P0\"/></number:currency-style><number:currency-style style:name=\"N130P0\" style:volatile=\"true\"><number:currency-symbol/><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N130\"><style:text-properties fo:color=\"#ff0000\"/><number:text>(</number:text><number:currency-symbol/><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N130P0\"/></number:currency-style><number:currency-style style:name=\"N131P0\" style:volatile=\"true\"><number:currency-symbol/><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N131\"><number:text>(</number:text><number:currency-symbol/><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N131P0\"/></number:currency-style><number:currency-style style:name=\"N132P0\" style:volatile=\"true\"><number:currency-symbol/><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N132\"><style:text-properties fo:color=\"#ff0000\"/><number:text>(</number:text><number:currency-symbol/><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N132P0\"/></number:currency-style><number:date-style style:name=\"N133\"><number:month/><number:text>/</number:text><number:day/><number:text>/</number:text><number:year number:style=\"long\"/></number:date-style><number:date-style style:name=\"N134\"><number:day/><number:text>-</number:text><number:month number:textual=\"true\"/><number:text>-</number:text><number:year/></number:date-style><number:date-style style:name=\"N135\"><number:day/><number:text>-</number:text><number:month number:textual=\"true\"/></number:date-style><number:date-style style:name=\"N136\"><number:month number:textual=\"true\"/><number:text>-</number:text><number:year/></number:date-style><number:time-style style:name=\"N137\"><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/><number:text> </number:text><number:am-pm/></number:time-style><number:time-style style:name=\"N138\"><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/><number:text>:</number:text><number:seconds number:style=\"long\"/><number:text> </number:text><number:am-pm/></number:time-style><number:time-style style:name=\"N139\"><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/></number:time-style><number:time-style style:name=\"N140\"><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/><number:text>:</number:text><number:seconds number:style=\"long\"/></number:time-style><number:date-style style:name=\"N141\"><number:month/><number:text>/</number:text><number:day/><number:text>/</number:text><number:year number:style=\"long\"/><number:text> </number:text><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/></number:date-style><number:number-style style:name=\"N142P0\" style:volatile=\"true\"><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:number-style><number:number-style style:name=\"N142\"><style:text-properties fo:color=\"#ff0000\"/><number:text>(</number:text><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N142P0\"/></number:number-style><number:number-style style:name=\"N143P0\" style:volatile=\"true\"><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:number-style><number:number-style style:name=\"N143\"><style:text-properties fo:color=\"#ff0000\"/><number:text>(</number:text><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text><style:map style:condition=\"value()&gt;=0\" style:apply-style-name=\"N143P0\"/></number:number-style><number:number-style style:name=\"N144P0\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:number-style><number:number-style style:name=\"N144P1\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:text>(</number:text><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text></number:number-style><number:number-style style:name=\"N144P2\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:text loext:blank-width-char=\")1\">- </number:text></number:number-style><number:text-style style:name=\"N144\"><number:text loext:blank-width-char=\"(\"> </number:text><number:text-content/><number:text loext:blank-width-char=\")\"> </number:text><style:map style:condition=\"value()&gt;0\" style:apply-style-name=\"N144P0\"/><style:map style:condition=\"value()&lt;0\" style:apply-style-name=\"N144P1\"/><style:map style:condition=\"value()=0\" style:apply-style-name=\"N144P2\"/></number:text-style><number:currency-style style:name=\"N145P0\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N145P1\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:text>(</number:text><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text></number:currency-style><number:currency-style style:name=\"N145P2\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:text loext:blank-width-char=\")1\">- </number:text></number:currency-style><number:text-style style:name=\"N145\"><number:text loext:blank-width-char=\"(\"> </number:text><number:text-content/><number:text loext:blank-width-char=\")\"> </number:text><style:map style:condition=\"value()&gt;0\" style:apply-style-name=\"N145P0\"/><style:map style:condition=\"value()&lt;0\" style:apply-style-name=\"N145P1\"/><style:map style:condition=\"value()=0\" style:apply-style-name=\"N145P2\"/></number:text-style><number:number-style style:name=\"N146P0\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:number-style><number:number-style style:name=\"N146P1\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:text>(</number:text><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text></number:number-style><number:number-style style:name=\"N146P2\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:fill-character> </number:fill-character><number:text>-</number:text><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"2\" loext:max-blank-integer-digits=\"2\"/><number:text loext:blank-width-char=\")\"> </number:text></number:number-style><number:text-style style:name=\"N146\"><number:text loext:blank-width-char=\"(\"> </number:text><number:text-content/><number:text loext:blank-width-char=\")\"> </number:text><style:map style:condition=\"value()&gt;0\" style:apply-style-name=\"N146P0\"/><style:map style:condition=\"value()&lt;0\" style:apply-style-name=\"N146P1\"/><style:map style:condition=\"value()=0\" style:apply-style-name=\"N146P2\"/></number:text-style><number:currency-style style:name=\"N147P0\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:currency-style style:name=\"N147P1\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:text>(</number:text><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\" number:grouping=\"true\"/><number:text>)</number:text></number:currency-style><number:currency-style style:name=\"N147P2\" style:volatile=\"true\"><number:text loext:blank-width-char=\"(\"> </number:text><number:currency-symbol/><number:fill-character> </number:fill-character><number:text>-</number:text><number:number number:decimal-places=\"0\" number:min-decimal-places=\"0\" number:min-integer-digits=\"2\" loext:max-blank-integer-digits=\"2\"/><number:text loext:blank-width-char=\")\"> </number:text></number:currency-style><number:text-style style:name=\"N147\"><number:text loext:blank-width-char=\"(\"> </number:text><number:text-content/><number:text loext:blank-width-char=\")\"> </number:text><style:map style:condition=\"value()&gt;0\" style:apply-style-name=\"N147P0\"/><style:map style:condition=\"value()&lt;0\" style:apply-style-name=\"N147P1\"/><style:map style:condition=\"value()=0\" style:apply-style-name=\"N147P2\"/></number:text-style><number:time-style style:name=\"N148\"><number:minutes number:style=\"long\"/><number:text>:</number:text><number:seconds number:style=\"long\"/></number:time-style><number:time-style style:name=\"N149\" number:truncate-on-overflow=\"false\"><number:hours/><number:text>:</number:text><number:minutes number:style=\"long\"/><number:text>:</number:text><number:seconds number:style=\"long\"/></number:time-style><number:time-style style:name=\"N150\"><number:minutes number:style=\"long\"/><number:text>:</number:text><number:seconds number:style=\"long\" number:decimal-places=\"1\"/></number:time-style><number:number-style style:name=\"N151\"><number:scientific-number number:decimal-places=\"1\" number:min-decimal-places=\"1\" number:min-integer-digits=\"1\" number:min-exponent-digits=\"1\" number:exponent-interval=\"3\" number:forced-exponent-sign=\"true\"/></number:number-style><number:number-style style:name=\"N152\"><number:number number:decimal-places=\"3\" number:min-decimal-places=\"3\" number:min-integer-digits=\"1\"/></number:number-style><style:style style:name=\"Default\" style:family=\"table-cell\"><style:table-cell-properties style:rotation-align=\"none\" style:vertical-align=\"bottom\"/><style:text-properties fo:color=\"#000000\" style:font-name=\"Calibri\" fo:font-family=\"Calibri\" style:font-family-generic=\"swiss\" fo:font-size=\"11pt\" style:font-size-asian=\"11pt\" style:font-size-complex=\"11pt\"><loext:char-complex-color loext:theme-type=\"dark1\" loext:color-type=\"theme\"/></style:text-properties></style:style><style:style style:name=\"Heading\" style:family=\"table-cell\" style:parent-style-name=\"Default\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:font-size=\"24pt\" fo:font-style=\"normal\" fo:font-weight=\"bold\" style:font-size-asian=\"24pt\" style:font-style-asian=\"normal\" style:font-weight-asian=\"bold\" style:font-size-complex=\"24pt\" style:font-style-complex=\"normal\" style:font-weight-complex=\"bold\"/></style:style><style:style style:name=\"Heading_20_1\" style:display-name=\"Heading 1\" style:family=\"table-cell\" style:parent-style-name=\"Heading\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:font-size=\"18pt\" style:font-size-asian=\"18pt\" style:font-size-complex=\"18pt\"/></style:style><style:style style:name=\"Heading_20_2\" style:display-name=\"Heading 2\" style:family=\"table-cell\" style:parent-style-name=\"Heading\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:font-size=\"12pt\" style:font-size-asian=\"12pt\" style:font-size-complex=\"12pt\"/></style:style><style:style style:name=\"Text\" style:family=\"table-cell\" style:parent-style-name=\"Default\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/></style:style><style:style style:name=\"Note\" style:family=\"table-cell\" style:parent-style-name=\"Text\"><style:table-cell-properties fo:background-color=\"#ffffcc\" style:diagonal-bl-tr=\"none\" style:diagonal-tl-br=\"none\" fo:wrap-option=\"no-wrap\" fo:border=\"0.74pt solid #808080\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#333333\"/></style:style><style:style style:name=\"Footnote\" style:family=\"table-cell\" style:parent-style-name=\"Text\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#808080\" fo:font-style=\"italic\" style:font-style-asian=\"italic\" style:font-style-complex=\"italic\"/></style:style><style:style style:name=\"Hyperlink\" style:family=\"table-cell\" style:parent-style-name=\"Text\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#0000ee\" style:text-underline-style=\"solid\" style:text-underline-width=\"auto\" style:text-underline-color=\"#0000ee\"/></style:style><style:style style:name=\"Status\" style:family=\"table-cell\" style:parent-style-name=\"Default\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/></style:style><style:style style:name=\"Good\" style:family=\"table-cell\" style:parent-style-name=\"Status\"><style:table-cell-properties fo:background-color=\"#ccffcc\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#006600\"/></style:style><style:style style:name=\"Neutral\" style:family=\"table-cell\" style:parent-style-name=\"Status\"><style:table-cell-properties fo:background-color=\"#ffffcc\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#996600\"/></style:style><style:style style:name=\"Bad\" style:family=\"table-cell\" style:parent-style-name=\"Status\"><style:table-cell-properties fo:background-color=\"#ffcccc\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#cc0000\"/></style:style><style:style style:name=\"Warning\" style:family=\"table-cell\" style:parent-style-name=\"Status\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#cc0000\"/></style:style><style:style style:name=\"Error\" style:family=\"table-cell\" style:parent-style-name=\"Status\"><style:table-cell-properties fo:background-color=\"#cc0000\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#ffffff\" fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style><style:style style:name=\"Accent\" style:family=\"table-cell\" style:parent-style-name=\"Default\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style><style:style style:name=\"Accent_20_1\" style:display-name=\"Accent 1\" style:family=\"table-cell\" style:parent-style-name=\"Accent\"><style:table-cell-properties fo:background-color=\"#000000\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#ffffff\"/></style:style><style:style style:name=\"Accent_20_2\" style:display-name=\"Accent 2\" style:family=\"table-cell\" style:parent-style-name=\"Accent\"><style:table-cell-properties fo:background-color=\"#808080\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:color=\"#ffffff\"/></style:style><style:style style:name=\"Accent_20_3\" style:display-name=\"Accent 3\" style:family=\"table-cell\" style:parent-style-name=\"Accent\"><style:table-cell-properties fo:background-color=\"#dddddd\" fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/></style:style><style:style style:name=\"Result\" style:family=\"table-cell\" style:parent-style-name=\"Default\"><style:table-cell-properties fo:wrap-option=\"no-wrap\" style:shrink-to-fit=\"false\"/><style:text-properties fo:font-style=\"italic\" style:text-underline-style=\"solid\" style:text-underline-width=\"auto\" style:text-underline-color=\"font-color\" fo:font-weight=\"bold\" style:font-style-asian=\"italic\" style:font-weight-asian=\"bold\" style:font-style-complex=\"italic\" style:font-weight-complex=\"bold\"/></style:style><draw:marker draw:name=\"Arrowheads_20_1\" draw:display-name=\"Arrowheads 1\" svg:viewBox=\"0 0 20 30\" svg:d=\"M10 0l-10 30h20z\"/><loext:theme loext:name=\"Office Theme\"><loext:theme-colors loext:name=\"Office\"><loext:color loext:name=\"dark1\" loext:color=\"#000000\"/><loext:color loext:name=\"light1\" loext:color=\"#ffffff\"/><loext:color loext:name=\"dark2\" loext:color=\"#1f497d\"/><loext:color loext:name=\"light2\" loext:color=\"#eeece1\"/><loext:color loext:name=\"accent1\" loext:color=\"#4f81bd\"/><loext:color loext:name=\"accent2\" loext:color=\"#c0504d\"/><loext:color loext:name=\"accent3\" loext:color=\"#9bbb59\"/><loext:color loext:name=\"accent4\" loext:color=\"#8064a2\"/><loext:color loext:name=\"accent5\" loext:color=\"#4bacc6\"/><loext:color loext:name=\"accent6\" loext:color=\"#f79646\"/><loext:color loext:name=\"hyperlink\" loext:color=\"#0000ff\"/><loext:color loext:name=\"followed-hyperlink\" loext:color=\"#800080\"/></loext:theme-colors></loext:theme></office:styles><office:automatic-styles><number:number-style style:name=\"N2\"><number:number number:decimal-places=\"2\" number:min-decimal-places=\"2\" number:min-integer-digits=\"1\"/></number:number-style><style:page-layout style:name=\"Mpm1\"><style:page-layout-properties style:first-page-number=\"continue\" style:writing-mode=\"lr-tb\"/><style:header-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-bottom=\"0.0984in\"/></style:header-style><style:footer-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-top=\"0.0984in\"/></style:footer-style></style:page-layout><style:page-layout style:name=\"Mpm2\"><style:page-layout-properties style:writing-mode=\"lr-tb\"/><style:header-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-bottom=\"0.0984in\" fo:border=\"1.5pt solid #000000\" fo:padding=\"0.0071in\" fo:background-color=\"#c0c0c0\"><style:background-image/></style:header-footer-properties></style:header-style><style:footer-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-top=\"0.0984in\" fo:border=\"1.5pt solid #000000\" fo:padding=\"0.0071in\" fo:background-color=\"#c0c0c0\"><style:background-image/></style:header-footer-properties></style:footer-style></style:page-layout><style:page-layout style:name=\"Mpm3\"><style:page-layout-properties style:num-format=\"1\" style:print-orientation=\"portrait\" fo:margin-top=\"1in\" fo:margin-bottom=\"1in\" fo:margin-left=\"0.75in\" fo:margin-right=\"0.75in\" style:print-page-order=\"ttb\" style:first-page-number=\"continue\" style:scale-to=\"100%\" style:writing-mode=\"lr-tb\" style:print=\"charts drawings objects zero-values\"/><style:header-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-bottom=\"0.0984in\"/></style:header-style><style:footer-style><style:header-footer-properties fo:min-height=\"0.2953in\" fo:margin-left=\"0in\" fo:margin-right=\"0in\" fo:margin-top=\"0.0984in\"/></style:footer-style></style:page-layout></office:automatic-styles><office:master-styles><style:master-page style:name=\"Default\" style:page-layout-name=\"Mpm1\"><style:header><text:p><text:sheet-name>???</text:sheet-name></text:p></style:header><style:header-left style:display=\"false\"/><style:header-first style:display=\"false\"/><style:footer><text:p>Page <text:page-number>1</text:page-number></text:p></style:footer><style:footer-left style:display=\"false\"/><style:footer-first style:display=\"false\"/></style:master-page><style:master-page style:name=\"Report\" style:page-layout-name=\"Mpm2\"><style:header><style:region-left><text:p><text:sheet-name>???</text:sheet-name><text:s/>(<text:title>???</text:title>)</text:p></style:region-left><style:region-right><text:p><text:date style:data-style-name=\"N2\" text:date-value=\"2026-11-16\">00/00/0000</text:date>, <text:time>00:00:00</text:time></text:p></style:region-right></style:header><style:header-left style:display=\"false\"/><style:header-first style:display=\"false\"/><style:footer><text:p>Page <text:page-number>1</text:page-number><text:s/>/ <text:page-count>99</text:page-count></text:p></style:footer><style:footer-left style:display=\"false\"/><style:footer-first style:display=\"false\"/></style:master-page><style:master-page style:name=\"PageStyle_5f_Sheet\" style:display-name=\"PageStyle_Sheet\" style:page-layout-name=\"Mpm3\"><style:header style:display=\"false\"/><style:header-left style:display=\"false\"/><style:header-first style:display=\"false\"/><style:footer style:display=\"false\"/><style:footer-left style:display=\"false\"/><style:footer-first style:display=\"false\"/></style:master-page></office:master-styles></office:document-styles>",
+      "manifest.rdf": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n  <rdf:Description rdf:about=\"styles.xml\">\n    <rdf:type rdf:resource=\"http://docs.oasis-open.org/ns/office/1.2/meta/odf#StylesFile\"/>\n  </rdf:Description>\n  <rdf:Description rdf:about=\"\">\n    <ns0:hasPart xmlns:ns0=\"http://docs.oasis-open.org/ns/office/1.2/meta/pkg#\" rdf:resource=\"styles.xml\"/>\n  </rdf:Description>\n  <rdf:Description rdf:about=\"content.xml\">\n    <rdf:type rdf:resource=\"http://docs.oasis-open.org/ns/office/1.2/meta/odf#ContentFile\"/>\n  </rdf:Description>\n  <rdf:Description rdf:about=\"\">\n    <ns0:hasPart xmlns:ns0=\"http://docs.oasis-open.org/ns/office/1.2/meta/pkg#\" rdf:resource=\"content.xml\"/>\n  </rdf:Description>\n  <rdf:Description rdf:about=\"\">\n    <rdf:type rdf:resource=\"http://docs.oasis-open.org/ns/office/1.2/meta/pkg#Document\"/>\n  </rdf:Description>\n</rdf:RDF>\n",
+      "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell office:value-type=\"string\"><text:p>Café € Ж Ł 中文 日本語 한국어 😀 𠀡 ¥\\～〜‖∥－− </text:p></table:table-cell><table:table-cell office:value-type=\"float\" office:value=\"12.5\"/></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>",
+      "meta.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-meta xmlns:grddl=\"http://www.w3.org/2003/g/data-view#\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ooo=\"http://openoffice.org/2004/office\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" office:version=\"1.3\"><office:meta><meta:initial-creator>openpyxl</meta:initial-creator><meta:creation-date>2026-11-16T17:05:54</meta:creation-date><dc:date>2026-11-16T17:05:54</dc:date><meta:generator>LibreOffice/24.8.7.2$Linux_X86_64 LibreOffice_project/e07d0a63a46349d29051da79b1fde8160bab2a89</meta:generator><meta:document-statistic meta:table-count=\"1\" meta:cell-count=\"32\" meta:object-count=\"0\"/><meta:user-defined meta:name=\"AppVersion\">3.0</meta:user-defined></office:meta></office:document-meta>",
+      "settings.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-settings xmlns:config=\"urn:oasis:names:tc:opendocument:xmlns:config:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ooo=\"http://openoffice.org/2004/office\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" office:version=\"1.3\"><office:settings><config:config-item-set config:name=\"ooo:view-settings\"><config:config-item config:name=\"VisibleAreaTop\" config:type=\"int\">0</config:config-item><config:config-item config:name=\"VisibleAreaLeft\" config:type=\"int\">0</config:config-item><config:config-item config:name=\"VisibleAreaWidth\" config:type=\"int\">16986</config:config-item><config:config-item config:name=\"VisibleAreaHeight\" config:type=\"int\">2429</config:config-item></config:config-item-set><config:config-item-set config:name=\"ooo:configuration-settings\"><config:config-item config:name=\"AllowPrintJobCancel\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ApplyUserData\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"AutoCalculate\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"CharacterCompressionType\" config:type=\"short\">0</config:config-item><config:config-item config:name=\"EmbedAsianScriptFonts\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"EmbedComplexScriptFonts\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"EmbedFonts\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"EmbedLatinScriptFonts\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"EmbedOnlyUsedFonts\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"GridColor\" config:type=\"int\">-1</config:config-item><config:config-item config:name=\"HasColumnRowHeaders\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"HasSheetTabs\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ImagePreferredDPI\" config:type=\"int\">0</config:config-item><config:config-item config:name=\"IsDocumentShared\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"IsKernAsianPunctuation\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"IsOutlineSymbolsSet\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"IsRasterAxisSynchronized\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"IsSnapToRaster\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"LinkUpdateMode\" config:type=\"short\">3</config:config-item><config:config-item config:name=\"LoadReadonly\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"PrinterName\" config:type=\"string\"/><config:config-item config:name=\"PrinterPaperFromSetup\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"PrinterSetup\" config:type=\"base64Binary\"/><config:config-item config:name=\"RasterIsVisible\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"RasterResolutionX\" config:type=\"int\">1270</config:config-item><config:config-item config:name=\"RasterResolutionY\" config:type=\"int\">1270</config:config-item><config:config-item config:name=\"RasterSubdivisionX\" config:type=\"int\">1</config:config-item><config:config-item config:name=\"RasterSubdivisionY\" config:type=\"int\">1</config:config-item><config:config-item config:name=\"SaveThumbnail\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"SaveVersionOnClose\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"ShowFormulasMarks\" config:type=\"boolean\">false</config:config-item><config:config-item config:name=\"ShowGrid\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ShowNoteAuthor\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ShowNotes\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ShowPageBreaks\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"ShowZeroValues\" config:type=\"boolean\">true</config:config-item><config:config-item config:name=\"SyntaxStringRef\" config:type=\"short\">2</config:config-item><config:config-item config:name=\"UpdateFromTemplate\" config:type=\"boolean\">true</config:config-item></config:config-item-set></office:settings></office:document-settings>",
+      "META-INF/manifest.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.3\" xmlns:loext=\"urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0\">\n <manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/>\n <manifest:file-entry manifest:full-path=\"Configurations2/\" manifest:media-type=\"application/vnd.sun.xml.ui.configuration\"/>\n <manifest:file-entry manifest:full-path=\"styles.xml\" manifest:media-type=\"text/xml\"/>\n <manifest:file-entry manifest:full-path=\"manifest.rdf\" manifest:media-type=\"application/rdf+xml\"/>\n <manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/>\n <manifest:file-entry manifest:full-path=\"meta.xml\" manifest:media-type=\"text/xml\"/>\n <manifest:file-entry manifest:full-path=\"settings.xml\" manifest:media-type=\"text/xml\"/>\n <manifest:file-entry manifest:full-path=\"Thumbnails/thumbnail.png\" manifest:media-type=\"image/png\"/>\n</manifest:manifest>"
+    },
+    "plain.csv": "plain,12.5,?,😀,Ā\n"
+  },
+  "cases": [
+    {
+      "name": "65535-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,65535,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,65535,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "65535-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "65535-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,65535,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "65535-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,65535,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "65535-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "97-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,97,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,97,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,97,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "97-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,97,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "97-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,97,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "97-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,97,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "97-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,97,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "76-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,76,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,76,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,76,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "76-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,76,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "76-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,76,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "76-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,76,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "76-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,76,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "1-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,1,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,1,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,1,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "1-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,1,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "1-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,1,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "1-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,1,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "1-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,1,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "12-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,12,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,12,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,12,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "12-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,12,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "12-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,12,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "12-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,12,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "12-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,12,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "64-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,64,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,64,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,64,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "64-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,64,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "64-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,64,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "64-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,64,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "64-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,64,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "68-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,68,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,68,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,68,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "68-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,68,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "68-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,68,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "68-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,68,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "68-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,68,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "86-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,86,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,86,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,86,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "86-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,86,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "86-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,86,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "86-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,86,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "86-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,86,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "85-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,85,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,85,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,85,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "85-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,85,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "85-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,85,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "85-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,85,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "85-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,85,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "69-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,69,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,69,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,69,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "69-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,69,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "69-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,69,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "69-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,69,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "69-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,69,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "71-quote-55296",
+      "input": "units.xlsx",
+      "options": "44,55296,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdefbfbdf0908080efbfbd2cefbfbdefbfbdf09080a2efbfbd2cefbfbdefbfbdf09080b1efbfbd2cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-55330",
+      "input": "units.xlsx",
+      "options": "44,55330,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdefbfbdf098a080efbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cefbfbdefbfbdf098a0a2efbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-55345",
+      "input": "units.xlsx",
+      "options": "44,55345,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-55357",
+      "input": "units.xlsx",
+      "options": "44,55357,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdefbfbdf09f9880efbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cefbfbdefbfbdf09f98a2efbfbd2cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-56319",
+      "input": "units.xlsx",
+      "options": "44,56319,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdefbfbdf48fbfbfefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdefbfbdf48fb080efbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-56320",
+      "input": "units.xlsx",
+      "options": "44,56320,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cefbfbdf098a080efbfbdefbfbd2cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0aefbfbdf0908080efbfbdefbfbd2cf09080a22cf09080b12cf098a0a22cf09f98a22cefbfbdf48fb080efbfbdefbfbd2cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-56354",
+      "input": "units.xlsx",
+      "options": "44,56354,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cefbfbdf09080a2efbfbdefbfbd2cf09080b12cefbfbdf098a0a2efbfbdefbfbd2cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-56832",
+      "input": "units.xlsx",
+      "options": "44,56832,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cefbfbdf09f9880efbfbdefbfbd2cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-quote-57343",
+      "input": "units.xlsx",
+      "options": "44,57343,71,1,,0,false,true,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cefbfbdf48fbfbfefbfbdefbfbd2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-separator-0",
+      "input": "units.xlsx",
+      "options": "0,34,71,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-separator-55296",
+      "input": "units.xlsx",
+      "options": "55296,34,71,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "71-separator-56320",
+      "input": "units.xlsx",
+      "options": "56320,34,71,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbd22f098a08022efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbdf09080a2efbfbdf09080b1efbfbdf098a0a2efbfbdf09f98a2efbfbd22f48fb08022efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "71-quote-all",
+      "input": "units.xlsx",
+      "options": "44,55330,71,1,,0,true,true,false",
+      "hex": "efbfbd706c61696eefbfbd2cefbfbd612c62efbfbd2cefbfbd612262efbfbd2cefbfbd3fefbfbd2cefbfbdf09f9880efbfbd2cefbfbdefbfbdf098a080efbfbd2cefbfbdf48fbfbfefbfbd2cefbfbdef8681ef8580efbfbd2cefbfbdc480efbfbd2cefbfbdc4a2efbfbd2cefbfbdc4acefbfbd2cefbfbd31322e35efbfbd2cefbfbd313233efbfbd2cefbfbd31322e35efbfbd2cefbfbd206120efbfbd2cefbfbd610a62efbfbd0aefbfbdf0908080efbfbd2cefbfbdf09080a2efbfbd2cefbfbdf09080b1efbfbd2cefbfbdefbfbdf098a0a2efbfbd2cefbfbdf09f98a2efbfbd2cefbfbdf48fb080efbfbd2cefbfbdef8480efbfbd2cefbfbdef84a2efbfbd2cefbfbdef84b1efbfbd2cefbfbdef84acefbfbd2cefbfbd30efbfbd2cefbfbd2d31322e35efbfbd2cefbfbdefbfbd0a"
+    },
+    {
+      "name": "71-forced-number",
+      "input": "units.xlsx",
+      "options": "44,55345,71,1,,0,false,false,false",
+      "hex": "706c61696e2cefbfbd612c62efbfbd2c6122622c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202cefbfbd610a62efbfbd0af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "71-disabled-quote",
+      "input": "units.xlsx",
+      "options": "55296,0,71,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-55296/59/44",
+      "input": "units.xlsx",
+      "options": "55296/59/44,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-55296/9/59",
+      "input": "units.xlsx",
+      "options": "55296/9/59,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-55296/59/32",
+      "input": "units.xlsx",
+      "options": "55296/59/32,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-55296/32",
+      "input": "units.xlsx",
+      "options": "55296/32,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-55296/56320",
+      "input": "units.xlsx",
+      "options": "55296/56320,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list-0/55296",
+      "input": "units.xlsx",
+      "options": "0/55296,34,65535,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "separator-list-65536/56320",
+      "input": "units.xlsx",
+      "options": "65536/56320,34,65535,1,,0,false,true,false",
+      "hex": "706c61696e00612c6200226122226222003f00f09f988000f098a08000f48fbfbf00ef8681ef858000c48000c4a200c4ac0031322e35003132330031322e35002061200022610a62220af090808000f09080a200f09080b100f098a0a200f09f98a200f48fb08000ef848000ef84a200ef84b100ef84ac0030002d31322e35000a"
+    },
+    {
+      "name": "separator-list--10240",
+      "input": "units.xlsx",
+      "options": "-10240,34,65535,1,,0,false,true,false",
+      "hex": "706c61696e2c22612c62222c2261222262222c3f2cf09f98802cf098a0802cf48fbfbf2cef8681ef85802cc4802cc4a22cc4ac2c31322e352c3132332c31322e352c2061202c22610a62220af09080802cf09080a22cf09080b12cf098a0a22cf09f98a22cf48fb0802cef84802cef84a22cef84b12cef84ac2c302c2d31322e352c0a"
+    },
+    {
+      "name": "separator-list-120832",
+      "input": "units.xlsx",
+      "options": "120832,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "separator-list- 55296suffix",
+      "input": "units.xlsx",
+      "options": " 55296suffix,34,65535,1,,0,false,true,false",
+      "hex": "706c61696eefbfbd612c62efbfbd226122226222efbfbd3fefbfbdf09f9880efbfbdf098a080efbfbdf48fbfbfefbfbdef8681ef8580efbfbdc480efbfbdc4a2efbfbdc4acefbfbd31322e35efbfbd313233efbfbd31322e35efbfbd206120efbfbd22610a62220a22f090808022efbfbd22f09080a222efbfbd22f09080b122efbfbdf098a0a2efbfbdf09f98a2efbfbdf48fb080efbfbdef8480efbfbdef84a2efbfbdef84b1efbfbdef84acefbfbd30efbfbd2d31322e35efbfbd0a"
+    },
+    {
+      "name": "text.ods-65535-55330",
+      "input": "text.ods",
+      "options": "44,55330,65535,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-65535-56354",
+      "input": "text.ods",
+      "options": "44,56354,65535,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-97-55330",
+      "input": "text.ods",
+      "options": "44,55330,97,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-97-56354",
+      "input": "text.ods",
+      "options": "44,56354,97,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-76-55330",
+      "input": "text.ods",
+      "options": "44,55330,76,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-76-56354",
+      "input": "text.ods",
+      "options": "44,56354,76,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-64-55330",
+      "input": "text.ods",
+      "options": "44,55330,64,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "text.ods-64-56354",
+      "input": "text.ods",
+      "options": "44,56354,64,1,,0,false,true,false",
+      "hex": "efbfbd436166c3a920e282ac20d09620c58120e4b8ade6968720e697a5e69cace8aa9e20ed959ceab5adec96b420f09f988020f0a080a120c2a55cefbd9ee3809ce28096e288a5efbc8de2889220ef8681ef8580efbfbd2c31322e350a"
+    },
+    {
+      "name": "plain.csv-65535-55330",
+      "input": "plain.csv",
+      "options": "44,55330,65535,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-65535-56354",
+      "input": "plain.csv",
+      "options": "44,56354,65535,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-97-55330",
+      "input": "plain.csv",
+      "options": "44,55330,97,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-97-56354",
+      "input": "plain.csv",
+      "options": "44,56354,97,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-76-55330",
+      "input": "plain.csv",
+      "options": "44,55330,76,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-76-56354",
+      "input": "plain.csv",
+      "options": "44,56354,76,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-64-55330",
+      "input": "plain.csv",
+      "options": "44,55330,64,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    },
+    {
+      "name": "plain.csv-64-56354",
+      "input": "plain.csv",
+      "options": "44,56354,64,1,,0,false,true,false",
+      "hex": "706c61696e2c31322e352c3f2cf09f98802cc4800a"
+    }
+  ],
+  "surrogate_encodings": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    42,
+    43,
+    44,
+    47,
+    51,
+    52,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    74,
+    76,
+    79,
+    84,
+    85,
+    86,
+    87,
+    88,
+    93,
+    95,
+    96,
+    97
+  ],
+  "directCsvProductionParity": "Direct CSV-input cases captured from current production runSofficeCli on 2026-11-21; archive-input native references and XLSX cell expectations retained.",
+  "xlsxCsvProductionParity": "XLSX CSV expectations recaptured with current runSofficeFileCli public-command filesystem path, 2026-11-21; non-CSV outputs retained.",
+  "odsCsvProductionParity": "Direct ODS CSV output recaptured through runSofficeFileCli; stored values are exported without formula recalculation."
+}

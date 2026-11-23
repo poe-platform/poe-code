@@ -1,7 +1,12 @@
 use super::*;
 use crate::vfs::dirname_posix_path;
 
-pub(super) fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_rm(
+    args: &[String],
+    stdin: CommandInput,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut force = false;
     let mut interactive = "never";
     let mut recursive = false;
@@ -102,7 +107,14 @@ pub(super) fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn S
         stderr.push(' ');
         let accepted = match answers.yes(true) {
             Ok(v) => v,
-            Err(e) => { stderr.push_str(&format!("rm: {e}\n")); return BuiltinOutcome { stdout, stderr, exit_code: 1 }; }
+            Err(e) => {
+                stderr.push_str(&format!("rm: {e}\n"));
+                return BuiltinOutcome {
+                    stdout,
+                    stderr,
+                    exit_code: 1,
+                };
+            }
         };
         if !accepted {
             return BuiltinOutcome {
@@ -115,48 +127,104 @@ pub(super) fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn S
 
     let plain = fs.link_free_memory();
     let direct = interactive == "never" && plain;
-    let mut rm = Remove { fs, cwd, plain, force, recursive, dir_mode, verbose,
-        prompt: interactive == "always", answers, stdout, stderr };
+    let mut rm = Remove {
+        fs,
+        cwd,
+        plain,
+        force,
+        recursive,
+        dir_mode,
+        verbose,
+        prompt: interactive == "always",
+        answers,
+        stdout,
+        stderr,
+    };
     let single = targets.len() == 1 && !verbose && (recursive || !dir_mode);
     let mut code = 0;
     if !direct {
         for operand in &targets {
-            let Ok(path) = command_operand(cwd,operand) else { continue; };
+            let Ok(path) = command_operand(cwd, operand) else {
+                continue;
+            };
             if let Err(e) = rm.preflight(&path)
-                && (e.starts_with("ENOTSUP:") || e.starts_with("EROFS:") || e.starts_with("ENOTEMPTY:") || e.contains("Execution aborted:")) {
+                && (e.starts_with("ENOTSUP:")
+                    || e.starts_with("EROFS:")
+                    || e.starts_with("ENOTEMPTY:")
+                    || e.contains("Execution aborted:"))
+            {
                 rm.stderr.push_str(&format!("rm: {e}\n"));
-                return BuiltinOutcome { stdout: rm.stdout, stderr: rm.stderr, exit_code: 1 };
+                return BuiltinOutcome {
+                    stdout: rm.stdout,
+                    stderr: rm.stderr,
+                    exit_code: 1,
+                };
             }
         }
     }
     for operand in targets {
-        let path = match command_operand(cwd,&operand) {
-            Ok(p) => p, Err(e) => { rm.stderr.push_str(&format!("rm: {e}\n")); code = 1; continue; }
+        let path = match command_operand(cwd, &operand) {
+            Ok(p) => p,
+            Err(e) => {
+                rm.stderr.push_str(&format!("rm: {e}\n"));
+                code = 1;
+                continue;
+            }
         };
-        let result = if path == "/" || matches!(operand.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
-            Err(format!("EBUSY: refusing to remove root, '.' or '..' '{path}'"))
-        } else if direct { rm.direct(&operand, &path, single) } else { rm.guarded(&operand, &path) };
+        let result = if path == "/"
+            || matches!(
+                operand.trim_end_matches('/').rsplit('/').next(),
+                Some("." | "..")
+            ) {
+            Err(format!(
+                "EBUSY: refusing to remove root, '.' or '..' '{path}'"
+            ))
+        } else if direct {
+            rm.direct(&operand, &path, single)
+        } else {
+            rm.guarded(&operand, &path)
+        };
         if let Err(e) = result {
             rm.stderr.push_str(&format!("rm: {e}\n"));
             code = 1;
-            if e.contains("Execution aborted:") { break; }
+            if e.contains("Execution aborted:") {
+                break;
+            }
         }
     }
-    BuiltinOutcome { stdout: rm.stdout, stderr: rm.stderr, exit_code: code }
+    BuiltinOutcome {
+        stdout: rm.stdout,
+        stderr: rm.stderr,
+        exit_code: code,
+    }
 }
 
-struct Remove<'a,'b> {
-    fs: &'a dyn SafeBashFs, cwd: &'a str, plain: bool, force: bool, recursive: bool, dir_mode: bool,
-    verbose: bool, prompt: bool, answers: PromptAnswers<'b>, stdout: String, stderr: String,
+struct Remove<'a, 'b> {
+    fs: &'a dyn SafeBashFs,
+    cwd: &'a str,
+    plain: bool,
+    force: bool,
+    recursive: bool,
+    dir_mode: bool,
+    verbose: bool,
+    prompt: bool,
+    answers: PromptAnswers<'b>,
+    stdout: String,
+    stderr: String,
 }
 
 impl Remove<'_, '_> {
     fn inspect(&self, path: &str) -> Result<Option<FileStat>, String> {
-        if self.plain && !path.ends_with('/') && self.fs.indexed_directory_entry(path) == Some(false) { return Ok(None); }
+        if self.plain
+            && !path.ends_with('/')
+            && self.fs.indexed_directory_entry(path) == Some(false)
+        {
+            return Ok(None);
+        }
         match self.fs.inspect_command_entry(path, false, "lstat") {
             Ok((_, st)) => Ok(Some(st)),
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
-            Err(e) => Err(copy_error(&e,"lstat",path)),
+            Err(e) => Err(copy_error(&e, "lstat", path)),
         }
     }
 
@@ -164,42 +232,73 @@ impl Remove<'_, '_> {
         let mut candidate = path.to_owned();
         if self.plain && path != "/dev" && !path.starts_with("/dev/") {
             let clean = normalize_posix_path(path);
-            if direct_memory_capabilities(self.fs, path) { return Ok(()); }
+            if direct_memory_capabilities(self.fs, path) {
+                return Ok(());
+            }
             candidate = clean;
         }
         loop {
-            match self.fs.inspect_command_entry(&candidate, true, "capabilitiesFor") {
+            match self
+                .fs
+                .inspect_command_entry(&candidate, true, "capabilitiesFor")
+            {
                 Ok((_, st)) => {
-                    if st.mode & 0o170000 == 0o020000 || st.kind == VfsEntryKind::Directory
-                        && matches!(st.identity,Some(EntryIdentity::Memory(..) | EntryIdentity::OverlayDirectory{..}))
-                        && st.filesystem_type.is_none() {
+                    if st.mode & 0o170000 == 0o020000
+                        || st.kind == VfsEntryKind::Directory
+                            && matches!(
+                                st.identity,
+                                Some(
+                                    EntryIdentity::Memory(..)
+                                        | EntryIdentity::OverlayDirectory { .. }
+                                )
+                            )
+                            && st.filesystem_type.is_none()
+                    {
                         if directory && st.uid.is_none() {
                             self.fs.command_descriptor_op()?;
                             self.fs.command_descriptor_op()?;
-                            if !self.fs.list_dir(path)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty, rmdir '{path}'")); }
+                            if !self.fs.list_dir(path)?.is_empty() {
+                                return Err(format!(
+                                    "ENOTEMPTY: directory not empty, rmdir '{path}'"
+                                ));
+                            }
                         }
-                        return Err(format!("ENOTSUP: operation not supported, {} '{path}'",if directory {"rmdir"} else {"rm"}));
+                        return Err(format!(
+                            "ENOTSUP: operation not supported, {} '{path}'",
+                            if directory { "rmdir" } else { "rm" }
+                        ));
                     }
                     return Ok(());
                 }
-                Err(e) if e.starts_with("ENOENT:") && candidate != "/" => candidate = dirname_posix_path(&candidate),
-                Err(e) => return Err(if e.contains(", ") { e } else { copy_error(&e,"lstat",path) }),
+                Err(e) if e.starts_with("ENOENT:") && candidate != "/" => {
+                    candidate = dirname_posix_path(&candidate)
+                }
+                Err(e) => {
+                    return Err(if e.contains(", ") {
+                        e
+                    } else {
+                        copy_error(&e, "lstat", path)
+                    });
+                }
             }
         }
     }
 
-    fn preflight(&self, path: &str) -> Result<(),String> {
+    fn preflight(&self, path: &str) -> Result<(), String> {
         if let Some(st) = self.inspect(path)? {
             let dir = st.kind == VfsEntryKind::Directory && !self.recursive;
-            if dir { self.inspect(path)?; }
+            if dir {
+                self.inspect(path)?;
+            }
             self.admit(path, dir)?;
         }
         Ok(())
     }
 
-    fn direct(&mut self, operand: &str, path: &str, single: bool) -> Result<bool,String> {
-        if single && path != "/dev" && !path.starts_with("/dev/") && !operand.ends_with(['.','/']) {
-            self.admit(path,false)?;
+    fn direct(&mut self, operand: &str, path: &str, single: bool) -> Result<bool, String> {
+        if single && path != "/dev" && !path.starts_with("/dev/") && !operand.ends_with(['.', '/'])
+        {
+            self.admit(path, false)?;
         }
         let dir = if self.dir_mode && !self.recursive {
             match self.inspect(path)? {
@@ -207,68 +306,133 @@ impl Remove<'_, '_> {
                 None => return Err(format!("ENOENT: no such file or directory '{path}'")),
                 Some(st) => st.kind == VfsEntryKind::Directory,
             }
-        } else { false };
-        if (path == "/dev" || path.starts_with("/dev/")) && self.fs.lstat(path).is_ok_and(|s| s.allocated_bytes == Some(0)) {
+        } else {
+            false
+        };
+        if (path == "/dev" || path.starts_with("/dev/"))
+            && self
+                .fs
+                .lstat(path)
+                .is_ok_and(|s| s.allocated_bytes == Some(0))
+        {
             self.fs.command_descriptor_op()?;
             return Err(format!("EBUSY: resource busy or locked '{path}'"));
         }
-        let result = if self.recursive { self.fs.command_descriptor_op().and_then(|_| self.fs.remove_path(path)) }
-            else { self.fs.remove_one(path,dir) };
-        if let Err(e) = result && !(self.force && e.starts_with("ENOENT:")) {
-            return Err(copy_error(&e,if dir {"rmdir"} else {"rm"},path));
+        let result = if self.recursive {
+            self.fs
+                .command_descriptor_op()
+                .and_then(|_| self.fs.remove_path(path))
+        } else {
+            self.fs.remove_one(path, dir)
+        };
+        if let Err(e) = result
+            && !(self.force && e.starts_with("ENOENT:"))
+        {
+            return Err(copy_error(&e, if dir { "rmdir" } else { "rm" }, path));
         }
         self.removed(operand);
         Ok(true)
     }
 
     fn removed(&mut self, operand: &str) {
-        if self.verbose { self.stdout.push_str(&format!("removed {}\n",display_operand(operand))); }
+        if self.verbose {
+            self.stdout
+                .push_str(&format!("removed {}\n", display_operand(operand)));
+        }
     }
 
-    fn guarded(&mut self, operand: &str, path: &str) -> Result<bool,String> {
+    fn guarded(&mut self, operand: &str, path: &str) -> Result<bool, String> {
         let Some(st) = self.inspect(path)? else {
-            return if self.force { Ok(true) } else { Err(format!("ENOENT: no such file or directory '{path}'")) };
+            return if self.force {
+                Ok(true)
+            } else {
+                Err(format!("ENOENT: no such file or directory '{path}'"))
+            };
         };
         let dir = st.kind == VfsEntryKind::Directory;
-        if dir && !self.recursive && !self.dir_mode { return Err(format!("EISDIR: illegal operation on a directory '{path}'")); }
+        if dir && !self.recursive && !self.dir_mode {
+            return Err(format!("EISDIR: illegal operation on a directory '{path}'"));
+        }
         if self.prompt {
             if dir && self.recursive {
                 self.fs.command_descriptor_op()?;
-                let names = self.fs.list_dir(path).map_err(|e| copy_error(&e,"readdir",path))?;
+                let names = self
+                    .fs
+                    .list_dir(path)
+                    .map_err(|e| copy_error(&e, "readdir", path))?;
                 if !names.is_empty() {
-                    self.stderr.push_str(&format!("rm: descend into directory {}? ",display_operand(operand)));
-                    if !self.answers.yes(true)? { return Ok(false); }
+                    self.stderr.push_str(&format!(
+                        "rm: descend into directory {}? ",
+                        display_operand(operand)
+                    ));
+                    if !self.answers.yes(true)? {
+                        return Ok(false);
+                    }
                     let mut removed = true;
                     for name in names {
-                        let child = child_disp_path(operand.trim_end_matches('/'),&name);
+                        let child = child_disp_path(operand.trim_end_matches('/'), &name);
                         removed &= self.guarded(&child, &absolute_operand(self.cwd, &child))?;
                     }
-                    if !removed { return Ok(false); }
+                    if !removed {
+                        return Ok(false);
+                    }
                 }
             }
-            let kind = if dir { "directory" } else if st.kind == VfsEntryKind::Symlink { "symbolic link" }
-                else if st.size == 0 { "regular empty file" } else { "regular file" };
-            self.stderr.push_str(&format!("rm: remove {kind} {}? ",display_operand(operand)));
-            if !self.answers.yes(true)? { return Ok(false); }
+            let kind = if dir {
+                "directory"
+            } else if st.kind == VfsEntryKind::Symlink {
+                "symbolic link"
+            } else if st.size == 0 {
+                "regular empty file"
+            } else {
+                "regular file"
+            };
+            self.stderr
+                .push_str(&format!("rm: remove {kind} {}? ", display_operand(operand)));
+            if !self.answers.yes(true)? {
+                return Ok(false);
+            }
         }
         if dir && (!self.recursive || self.prompt) {
             self.inspect(path)?;
-            self.admit(path,true)?;
-            self.fs.remove_one(path,true).map_err(|e| copy_error(&e,"rmdir",path))?;
+            self.admit(path, true)?;
+            self.fs
+                .remove_one(path, true)
+                .map_err(|e| copy_error(&e, "rmdir", path))?;
         } else {
-            let parent = self.fs.access_path(&dirname_posix_path(path),true)?;
-            let canonical = child_disp_path(&parent,&basename_posix_path(path));
-            let current = if self.plain && canonical == path { st.clone() } else {
-                self.inspect(&canonical)?.filter(|s| s.identity == st.identity && s.kind == st.kind && s.revision == st.revision)
-                    .ok_or_else(|| format!("EAGAIN: resource temporarily unavailable, rm '{path}'"))?
+            let parent = self.fs.access_path(&dirname_posix_path(path), true)?;
+            let canonical = child_disp_path(&parent, &basename_posix_path(path));
+            let current = if self.plain && canonical == path {
+                st.clone()
+            } else {
+                self.inspect(&canonical)?
+                    .filter(|s| {
+                        s.identity == st.identity && s.kind == st.kind && s.revision == st.revision
+                    })
+                    .ok_or_else(|| {
+                        format!("EAGAIN: resource temporarily unavailable, rm '{path}'")
+                    })?
             };
-            let mut parent_stat = self.fs.inspect_command_entry("/",false,"lstat")?.1;
-            for (end, _) in parent.match_indices('/').skip(1).chain((parent != "/").then_some((parent.len(),""))) {
-                parent_stat = self.fs.inspect_command_entry(&parent[..end],false,"lstat")?.1;
+            let mut parent_stat = self.fs.inspect_command_entry("/", false, "lstat")?.1;
+            for (end, _) in parent
+                .match_indices('/')
+                .skip(1)
+                .chain((parent != "/").then_some((parent.len(), "")))
+            {
+                parent_stat = self
+                    .fs
+                    .inspect_command_entry(&parent[..end], false, "lstat")?
+                    .1;
             }
-            let result = if dir { self.fs.command_descriptor_op().and_then(|_| self.fs.remove_path(&canonical)) }
-                else { self.fs.remove_command_entry(&canonical,&parent_stat,&current,self.force) };
-            result.map_err(|e| copy_error(&e,"rm",&canonical))?;
+            let result = if dir {
+                self.fs
+                    .command_descriptor_op()
+                    .and_then(|_| self.fs.remove_path(&canonical))
+            } else {
+                self.fs
+                    .remove_command_entry(&canonical, &parent_stat, &current, self.force)
+            };
+            result.map_err(|e| copy_error(&e, "rm", &canonical))?;
         }
         self.removed(operand);
         Ok(true)

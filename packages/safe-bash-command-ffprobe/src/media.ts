@@ -484,9 +484,14 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
       for (const [key, value] of Object.entries(probe.format.tags)) {
         const selected = fields === null || fields?.has(key) || fields === undefined &&
           (entries.size === 0 || parent === null || parent?.has("tags") || opts.showFormat && parent === undefined);
-        if (!selected) { tags[key] = value; continue; }
-        const text = isProbeText(value) ? value.chunks : value;
-        if (await validation.accepts(key, text)) tags[validation.replace(key)] = { kind: "text", chunks: () => validation.text(text) };
+        let name = key, field = value;
+        if (selected) {
+          const text = isProbeText(value) ? value.chunks : value;
+          if (!await validation.accepts(key, text)) continue;
+          name = validation.replace(key);
+          field = { kind: "text", chunks: () => validation.text(text) };
+        }
+        Object.defineProperty(tags, name, { value: field, enumerable: true, configurable: true, writable: true });
       }
       probe = { ...probe, format: { ...probe.format, tags } };
     }

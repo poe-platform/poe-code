@@ -336,7 +336,7 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
   if (group) throw new Error("Incomplete WavPack block group");
   if (!samples.length) throw new Error("WavPack input has no audio blocks");
   const total = view.getUint32(12, true);
-  if (total !== 0xffffffff && total !== duration) throw new Error("Truncated WavPack audio");
+  if (total !== 0 && total !== 0xffffffff && total !== duration) throw new Error("Truncated WavPack audio");
   let channelData: Float64Array[] | undefined;
   if (options.decodeAudio !== false) {
     budget.allocateMemory(duration * channels * 8);

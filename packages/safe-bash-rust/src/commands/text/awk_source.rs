@@ -1,4 +1,6 @@
-use super::{AwkCond, AwkFuncMap, AwkRule, awk_decimal_len, split_awk_statements, split_awk_top_args};
+use super::{
+    AwkCond, AwkFuncMap, AwkRule, awk_decimal_len, split_awk_statements, split_awk_top_args,
+};
 
 fn builtin(name: &str, ordchr: bool) -> Option<(usize, usize)> {
     Some(match name {
@@ -12,17 +14,36 @@ fn builtin(name: &str, ordchr: bool) -> Option<(usize, usize)> {
         "mktime" | "asort" | "asorti" => (1, 2),
         "sprintf" => (1, usize::MAX),
         "and" | "or" | "xor" => (2, usize::MAX),
-        "int" | "sqrt" | "exp" | "log" | "sin" | "cos" | "close" | "strtonum" |
-        "tolower" | "toupper" | "compl" => (1, 1),
+        "int" | "sqrt" | "exp" | "log" | "sin" | "cos" | "close" | "strtonum" | "tolower"
+        | "toupper" | "compl" => (1, 1),
         "chr" | "ord" if ordchr => (1, 1),
         _ => return None,
     })
 }
 
 fn keyword(name: &str) -> bool {
-    matches!(name, "BEGIN" | "END" | "function" | "if" | "else" | "while" | "do" |
-        "for" | "break" | "continue" | "next" | "nextfile" | "return" | "exit" |
-        "delete" | "print" | "printf" | "getline" | "in")
+    matches!(
+        name,
+        "BEGIN"
+            | "END"
+            | "function"
+            | "if"
+            | "else"
+            | "while"
+            | "do"
+            | "for"
+            | "break"
+            | "continue"
+            | "next"
+            | "nextfile"
+            | "return"
+            | "exit"
+            | "delete"
+            | "print"
+            | "printf"
+            | "getline"
+            | "in"
+    )
 }
 
 fn skip_space(bytes: &[u8], mut pos: usize) -> usize {
@@ -30,7 +51,13 @@ fn skip_space(bytes: &[u8], mut pos: usize) -> usize {
         match bytes.get(pos) {
             Some(b' ' | b'\t' | b'\r') => pos += 1,
             Some(b'\\') if bytes.get(pos + 1) == Some(&b'\n') => pos += 2,
-            Some(b'#') => return pos + bytes[pos..].iter().position(|&b| b == b'\n').unwrap_or(bytes.len() - pos),
+            Some(b'#') => {
+                return pos
+                    + bytes[pos..]
+                        .iter()
+                        .position(|&b| b == b'\n')
+                        .unwrap_or(bytes.len() - pos);
+            }
             _ => return pos,
         }
     }
@@ -39,12 +66,27 @@ fn skip_space(bytes: &[u8], mut pos: usize) -> usize {
 fn name_at<'a>(source: &'a str, at: &mut usize) -> Result<&'a str, String> {
     let start = skip_space(source.as_bytes(), *at);
     *at = start;
-    if source.as_bytes().get(start).is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_') {
-        while source.as_bytes().get(*at).is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_') { *at += 1; }
+    if source
+        .as_bytes()
+        .get(start)
+        .is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_')
+    {
+        while source
+            .as_bytes()
+            .get(*at)
+            .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
+        {
+            *at += 1;
+        }
         let name = &source[start..*at];
-        if !keyword(name) { return Ok(name); }
+        if !keyword(name) {
+            return Ok(name);
+        }
     }
-    Err(format!("expected an identifier at byte {}", crate::vfs::stream_byte_len(&source[..start])))
+    Err(format!(
+        "expected an identifier at byte {}",
+        crate::vfs::stream_byte_len(&source[..start])
+    ))
 }
 
 struct Group<'a> {
@@ -85,7 +127,11 @@ impl Group<'_> {
         if self.has_arg {
             format!("expected '{}' at byte {offset}", char::from(self.close))
         } else {
-            let token = source[at..].chars().next().map(String::from).unwrap_or_default();
+            let token = source[at..]
+                .chars()
+                .next()
+                .map(String::from)
+                .unwrap_or_default();
             format!("unsupported expression '{token}' at byte {offset}")
         }
     }
@@ -93,7 +139,10 @@ impl Group<'_> {
 
 // Read the complete source before handing any actions to the evaluator. Only
 // structural braces and separators outside literals delimit rules.
-pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, AwkFuncMap), String> {
+pub(super) fn parse_rules(
+    source: &str,
+    ordchr: bool,
+) -> Result<(Vec<AwkRule>, AwkFuncMap), String> {
     let (mut rules, mut funcs) = (Vec::new(), AwkFuncMap::new());
     let mut head = String::new();
     let mut part = String::new();
@@ -110,36 +159,57 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
         let start = at;
         let c = bytes[at];
         at += 1;
-        if definition.is_some() && braces == 0 && !matches!(c, b'{' | b' ' | b'\t' | b'\r' | b'\n' | b'#')
-            && !(c == b'\\' && bytes.get(at) == Some(&b'\n')) {
-            return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(&source[..start])));
+        if definition.is_some()
+            && braces == 0
+            && !matches!(c, b'{' | b' ' | b'\t' | b'\r' | b'\n' | b'#')
+            && !(c == b'\\' && bytes.get(at) == Some(&b'\n'))
+        {
+            return Err(format!(
+                "expected '{{' at byte {}",
+                crate::vfs::stream_byte_len(&source[..start])
+            ));
         }
         if let Some(group) = groups.last_mut() {
             match c {
-                b' ' | b'\t' | b'\r' | b'#' | b'\\' => {},
+                b' ' | b'\t' | b'\r' | b'#' | b'\\' => {}
                 b'\n' => {
-                    if group.call.is_some() && operand { group.awaiting_close = true; }
+                    if group.call.is_some() && operand {
+                        group.awaiting_close = true;
+                    }
                 }
-                _ if group.awaiting_close && c != group.close => return Err(group.error(source, start)),
+                _ if group.awaiting_close && c != group.close => {
+                    return Err(group.error(source, start));
+                }
                 b',' if !group.has_arg => return Err(group.error(source, start)),
                 b',' => {
                     group.finish_arg(&mut part);
-                    group.commas += 1; group.has_arg = false;
+                    group.commas += 1;
+                    group.has_arg = false;
                     group.arg_start = part.len() + 1;
                 }
-                b')' | b']' if c != group.close || !(group.has_arg || group.call.is_some() && group.commas == 0) => {
+                b')' | b']'
+                    if c != group.close
+                        || !(group.has_arg || group.call.is_some() && group.commas == 0) =>
+                {
                     return Err(group.error(source, start));
                 }
-                b')' | b']' => { if group.has_arg { group.finish_arg(&mut part); } },
+                b')' | b']' => {
+                    if group.has_arg {
+                        group.finish_arg(&mut part);
+                    }
+                }
                 b'{' | b'}' => return Err(group.error(source, start)),
                 b';' if !group.control => return Err(group.error(source, start)),
                 _ => group.has_arg = true,
             }
         }
         match c {
-            b' ' | b'\t' | b'\r' => {},
+            b' ' | b'\t' | b'\r' => {}
             b'#' => {
-                at += bytes[at..].iter().position(|&b| b == b'\n').unwrap_or(bytes.len() - at);
+                at += bytes[at..]
+                    .iter()
+                    .position(|&b| b == b'\n')
+                    .unwrap_or(bytes.len() - at);
                 continue;
             }
             b'\\' if bytes.get(at) == Some(&b'\n') => {
@@ -153,27 +223,43 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 let mut from = start;
                 loop {
                     let Some(&b) = bytes.get(at) else {
-                        return Err(if string { "unterminated string literal" } else { "unterminated regular expression literal" }.into());
+                        return Err(if string {
+                            "unterminated string literal"
+                        } else {
+                            "unterminated regular expression literal"
+                        }
+                        .into());
                     };
                     at += 1;
                     if b == b'\\' {
                         if let Some(&next) = bytes.get(at) {
                             at += 1;
                             if string && next == b'\n' {
-                                part.push_str(&source[from..at-2]); from = at;
+                                part.push_str(&source[from..at - 2]);
+                                from = at;
                             }
                         }
-                    } else if b == c && !bracket { break; }
-                    else if b == b'\n' {
-                        return Err(if string { "newline in string literal" } else { "newline in regular expression literal" }.into());
+                    } else if b == c && !bracket {
+                        break;
+                    } else if b == b'\n' {
+                        return Err(if string {
+                            "newline in string literal"
+                        } else {
+                            "newline in regular expression literal"
+                        }
+                        .into());
                     } else if !string {
                         match b {
                             b'[' => bracket = true,
                             b']' => bracket = false,
                             // The evaluator also scans slash-delimited expressions.
                             // Quote a class slash so it can't be mistaken for the end.
-                            b'/' => { part.push_str(&source[from..at-1]); part.push('\\'); from = at-1; },
-                            _ => {},
+                            b'/' => {
+                                part.push_str(&source[from..at - 1]);
+                                part.push('\\');
+                                from = at - 1;
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -183,7 +269,12 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 continue;
             }
             b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
-                while bytes.get(at).is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_') { at += 1; }
+                while bytes
+                    .get(at)
+                    .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
+                {
+                    at += 1;
+                }
                 let word = &source[start..at];
                 if word == "function" && braces == 0 && part.trim().is_empty() {
                     let name = name_at(source, &mut at)?;
@@ -192,7 +283,10 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                     }
                     at = skip_space(bytes, at);
                     if bytes.get(at) != Some(&b'(') {
-                        return Err(format!("expected '(' at byte {}", crate::vfs::stream_byte_len(&source[..at])));
+                        return Err(format!(
+                            "expected '(' at byte {}",
+                            crate::vfs::stream_byte_len(&source[..at])
+                        ));
                     }
                     at = skip_space(bytes, at + 1);
                     let mut params = Vec::new();
@@ -200,14 +294,24 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                         loop {
                             params.push(name_at(source, &mut at)?.to_owned());
                             at = skip_space(bytes, at);
-                            if bytes.get(at) != Some(&b',') { break; }
+                            if bytes.get(at) != Some(&b',') {
+                                break;
+                            }
                             at += 1;
                         }
                     }
                     if bytes.get(at) != Some(&b')') {
-                        return Err(format!("expected ')' at byte {}", crate::vfs::stream_byte_len(&source[..at])));
+                        return Err(format!(
+                            "expected ')' at byte {}",
+                            crate::vfs::stream_byte_len(&source[..at])
+                        ));
                     }
-                    if params.iter().collect::<std::collections::BTreeSet<_>>().len() != params.len() {
+                    if params
+                        .iter()
+                        .collect::<std::collections::BTreeSet<_>>()
+                        .len()
+                        != params.len()
+                    {
                         return Err("duplicate function parameter".into());
                     }
                     if params.iter().any(|p| builtin(p, ordchr).is_some()) {
@@ -224,97 +328,181 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                         next_call = Some(word);
                         part.push_str(word);
                         at = next;
-                        control = false; operand = true;
+                        control = false;
+                        operand = true;
                         continue;
                     } else if builtin && word != "length" {
                         return Err(format!("reserved variable '{word}'"));
                     } else if word == "length" && bytes.get(next) != Some(&b'[') {
                         part.push_str("length()");
-                        control = false; operand = true;
+                        control = false;
+                        operand = true;
                         continue;
                     }
                 }
                 control = matches!(word, "if" | "for" | "while");
-                operand = !control && !matches!(word, "print" | "printf" | "return" | "exit" | "in" | "else" | "do");
+                operand = !control
+                    && !matches!(
+                        word,
+                        "print" | "printf" | "return" | "exit" | "in" | "else" | "do"
+                    );
             }
             b'0'..=b'9' | b'.' if c != b'.' || bytes.get(at).is_some_and(u8::is_ascii_digit) => {
                 at = start + awk_decimal_len(&bytes[start..]);
                 if !source[start..at].parse::<f64>().is_ok_and(f64::is_finite) {
                     return Err("non-finite numeric literal".into());
                 }
-                operand = true; control = false;
+                operand = true;
+                control = false;
             }
             b'(' | b'[' => {
-                groups.push(Group { close: if c == b'(' { b')' } else { b']' }, control, awaiting_close: false, call: next_call.take(), commas: 0, arg_start: part.len() + 1, array_error: None, has_arg: false });
-                control = false; operand = false;
+                groups.push(Group {
+                    close: if c == b'(' { b')' } else { b']' },
+                    control,
+                    awaiting_close: false,
+                    call: next_call.take(),
+                    commas: 0,
+                    arg_start: part.len() + 1,
+                    array_error: None,
+                    has_arg: false,
+                });
+                control = false;
+                operand = false;
             }
             b',' => {
-                control = false; operand = false;
+                control = false;
+                operand = false;
             }
             b')' | b']' => {
                 let group = groups.pop();
                 operand = !group.as_ref().is_some_and(|g| g.control);
-                if let Some(group) = group && let Some(name) = group.call {
-                    calls.push((name, group.commas + usize::from(group.has_arg), group.array_error));
+                if let Some(group) = group
+                    && let Some(name) = group.call
+                {
+                    calls.push((
+                        name,
+                        group.commas + usize::from(group.has_arg),
+                        group.array_error,
+                    ));
                 }
                 control = false;
             }
-            b'+' | b'-' if bytes.get(at) == Some(&c) => { at += 1; control = false; }
+            b'+' | b'-' if bytes.get(at) == Some(&c) => {
+                at += 1;
+                control = false;
+            }
             b'{' => {
-                braces += 1; operand = false; control = false;
-                if braces == 1 { std::mem::swap(&mut head, &mut part); continue; }
+                braces += 1;
+                operand = false;
+                control = false;
+                if braces == 1 {
+                    std::mem::swap(&mut head, &mut part);
+                    continue;
+                }
             }
             b'}' => {
-                if braces == 0 { return Err(format!("unsupported expression '}}' at byte {}", crate::vfs::stream_byte_len(&source[..start]))); }
-                braces -= 1; operand = false; control = false;
+                if braces == 0 {
+                    return Err(format!(
+                        "unsupported expression '}}' at byte {}",
+                        crate::vfs::stream_byte_len(&source[..start])
+                    ));
+                }
+                braces -= 1;
+                operand = false;
+                control = false;
                 if braces == 0 {
                     if let Some((name, params)) = definition.take() {
                         funcs.insert(name.to_owned(), (params, std::mem::take(&mut part)));
                     } else {
                         add_rule(head.trim(), &part, &mut rules);
                     }
-                    head.clear(); part.clear(); continue;
+                    head.clear();
+                    part.clear();
+                    continue;
                 }
             }
             b'\n' | b';' => {
-                operand = false; control = false;
+                operand = false;
+                control = false;
                 if braces == 0 && groups.is_empty() {
                     let rule = part.trim();
                     if c == b'\n' && (matches!(rule, "BEGIN" | "END") || definition.is_some()) {
-                        part.push(' '); continue;
+                        part.push(' ');
+                        continue;
                     }
-                    if !rule.is_empty() { add_rule(rule, "print", &mut rules); }
-                    part.clear(); continue;
+                    if !rule.is_empty() {
+                        add_rule(rule, "print", &mut rules);
+                    }
+                    part.clear();
+                    continue;
                 }
             }
-            b'&' if bytes.get(at) == Some(&b'&') => { at += 1; operand = false; control = false; }
-            b'$' | b'+' | b'-' | b'*' | b'/' | b'%' | b'^' | b'=' | b'!' | b'<' | b'>' | b'~' | b'?' | b':' | b'|' => {
-                operand = false; control = false;
+            b'&' if bytes.get(at) == Some(&b'&') => {
+                at += 1;
+                operand = false;
+                control = false;
+            }
+            b'$' | b'+' | b'-' | b'*' | b'/' | b'%' | b'^' | b'=' | b'!' | b'<' | b'>' | b'~'
+            | b'?' | b':' | b'|' => {
+                operand = false;
+                control = false;
             }
             _ => {
                 let offset = crate::vfs::stream_byte_len(&source[..start]);
-                let byte = crate::vfs::stream_string_to_bytes(&source[start..]).first().copied().unwrap_or(c);
-                return Err(format!("unsupported token '{}' at byte {offset}", char::from(byte)));
+                let byte = crate::vfs::stream_string_to_bytes(&source[start..])
+                    .first()
+                    .copied()
+                    .unwrap_or(c);
+                return Err(format!(
+                    "unsupported token '{}' at byte {offset}",
+                    char::from(byte)
+                ));
             }
         }
         part.push_str(&source[start..at]);
     }
-    if let Some(group) = groups.last() { return Err(group.error(source, source.len())); }
+    if let Some(group) = groups.last() {
+        return Err(group.error(source, source.len()));
+    }
     if braces != 0 {
-        if !part.trim_end_matches([' ', '\t', '\r']).ends_with([';', '\n', '{', '}']) && !part.trim().is_empty() {
-            return Err(format!("expected statement separator at byte {}", crate::vfs::stream_byte_len(source)));
+        if !part
+            .trim_end_matches([' ', '\t', '\r'])
+            .ends_with([';', '\n', '{', '}'])
+            && !part.trim().is_empty()
+        {
+            return Err(format!(
+                "expected statement separator at byte {}",
+                crate::vfs::stream_byte_len(source)
+            ));
         }
         return Err("unterminated action block".into());
     }
     let rule = part.trim();
-    if matches!(rule, "BEGIN" | "END") { return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(source))); }
-    if !rule.is_empty() { add_rule(rule, "print", &mut rules); }
-    if definition.is_some() { return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(source))); }
+    if matches!(rule, "BEGIN" | "END") {
+        return Err(format!(
+            "expected '{{' at byte {}",
+            crate::vfs::stream_byte_len(source)
+        ));
+    }
+    if !rule.is_empty() {
+        add_rule(rule, "print", &mut rules);
+    }
+    if definition.is_some() {
+        return Err(format!(
+            "expected '{{' at byte {}",
+            crate::vfs::stream_byte_len(source)
+        ));
+    }
     for (name, count, array_error) in calls {
-        let (min, max) = builtin(name, ordchr).or_else(|| funcs.get(name).map(|(params, _)| (0, params.len())))
+        let (min, max) = builtin(name, ordchr)
+            .or_else(|| funcs.get(name).map(|(params, _)| (0, params.len())))
             .ok_or_else(|| format!("unsupported function '{name}'"))?;
-        if !(min..=max).contains(&count) { return Err(format!("invalid argument count for '{name}'")); }
-        if let Some(message) = array_error { return Err(message.into()); }
+        if !(min..=max).contains(&count) {
+            return Err(format!("invalid argument count for '{name}'"));
+        }
+        if let Some(message) = array_error {
+            return Err(message.into());
+        }
     }
     Ok((rules, funcs))
 }
@@ -325,13 +513,20 @@ fn add_rule(head: &str, body: &str, rules: &mut Vec<AwkRule>) {
         "BEGIN" => AwkCond::Begin,
         "END" => AwkCond::End,
         other => {
-            if other.trim_start_matches(['+', '-']).starts_with(|c: char| c.is_ascii_digit() || c == '.')
-                && let Ok(n) = other.parse::<f64>() && n.is_finite() {
+            if other
+                .trim_start_matches(['+', '-'])
+                .starts_with(|c: char| c.is_ascii_digit() || c == '.')
+                && let Ok(n) = other.parse::<f64>()
+                && n.is_finite()
+            {
                 AwkCond::Constant(n != 0.0)
             } else {
                 let parts = split_awk_top_args(other);
-                if parts.len() == 2 { AwkCond::Range(parts[0].clone(), parts[1].clone()) }
-                else { AwkCond::Expr(other.to_string()) }
+                if parts.len() == 2 {
+                    AwkCond::Range(parts[0].clone(), parts[1].clone())
+                } else {
+                    AwkCond::Expr(other.to_string())
+                }
             }
         }
     };
@@ -361,7 +556,11 @@ mod tests {
             ("BEGIN{x ()}", "unsupported expression ')' at byte 9"),
             ("BEGIN{a[]}", "unsupported expression ']' at byte 8"),
         ] {
-            assert_eq!(parse_rules(source, false).err().as_deref(), Some(error), "{source}");
+            assert_eq!(
+                parse_rules(source, false).err().as_deref(),
+                Some(error),
+                "{source}"
+            );
         }
         for source in [
             "function f(a,b){} BEGIN{f(\n# comment\n)}",

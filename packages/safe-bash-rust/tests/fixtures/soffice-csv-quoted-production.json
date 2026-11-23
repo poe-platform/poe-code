@@ -1,0 +1,511 @@
+{
+  "reference": "Current production runSofficeCli; quoted CSV numeric fields remain text; 2026-11-21",
+  "cases": [
+    {
+      "name": "1",
+      "input": "\"1\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "10000000000000000"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "001",
+      "input": "\"001\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "001"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "10000000000000000"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "name": "-2",
+      "input": "\"-2\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "-2"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "-20000000000000000"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "-1"
+        }
+      ]
+    },
+    {
+      "name": "0.1234567891234567",
+      "input": "\"0.1234567891234567\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "0.1234567891234567"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "1234567891234567"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "1.1234567891234568"
+        }
+      ]
+    },
+    {
+      "name": "1e15",
+      "input": "\"1e15\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1e15"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "1e+31"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "1000000000000001"
+        }
+      ]
+    },
+    {
+      "name": "1,234",
+      "input": "\"1,234\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1,234"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "e",
+          "value": "#VALUE!"
+        },
+        {
+          "position": "F2",
+          "type": "e",
+          "value": "#VALUE!"
+        }
+      ]
+    },
+    {
+      "name": " 42 ",
+      "input": "\" 42 \",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": " 42 "
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "420000000000000000"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "43"
+        }
+      ]
+    },
+    {
+      "name": "0",
+      "input": "\"0\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "0"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "0"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "1e-316",
+      "input": "\"1e-316\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1e-316"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "n",
+          "value": "9.999999836597145e-301"
+        },
+        {
+          "position": "F2",
+          "type": "n",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "1e309",
+      "input": "\"1e309\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1e309"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "e",
+          "value": "#VALUE!"
+        },
+        {
+          "position": "F2",
+          "type": "e",
+          "value": "#VALUE!"
+        }
+      ]
+    },
+    {
+      "name": "1\"2",
+      "input": "\"1\"\"2\",2\n\"=SUM(A1:B1)\",\"=AVERAGE(A1:B1)\",\"=ISTEXT(A1)\",\"=ISNUMBER(A1)\",\"=A1*10000000000000000\",\"=A1+1\"\n",
+      "cells": [
+        {
+          "position": "A1",
+          "type": "inlineStr",
+          "value": "1\"2"
+        },
+        {
+          "position": "B1",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "A2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "B2",
+          "type": "n",
+          "value": "2"
+        },
+        {
+          "position": "C2",
+          "type": "b",
+          "value": "1"
+        },
+        {
+          "position": "D2",
+          "type": "b",
+          "value": "0"
+        },
+        {
+          "position": "E2",
+          "type": "e",
+          "value": "#VALUE!"
+        },
+        {
+          "position": "F2",
+          "type": "e",
+          "value": "#VALUE!"
+        }
+      ]
+    }
+  ]
+}

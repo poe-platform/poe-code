@@ -7,6 +7,7 @@ type Result<T> = std::result::Result<T, &'static str>;
 struct Ebml {
     bytes: Vec<u8>,
     limit: usize,
+    crc: bool,
 }
 
 fn size(n: usize) -> ([u8; 8], usize) {
@@ -30,15 +31,24 @@ impl Ebml {
 
     fn element(&mut self, id: u32, payload: &[u8]) -> Result<()> {
         self.id(id)?;
-        let (len, start) = size(payload.len());
+        let crc = self.crc
+            && matches!(
+                id,
+                0x1549a966 | 0x1654ae6b | 0x1254c367 | 0x1f43b675 | 0x114d9b74 | 0x1c53bb6b | 0x1043a770
+            );
+        let (len, start) = size(payload.len() + if crc { 6 } else { 0 });
         self.append(&len[start..])?;
+        if crc {
+            self.append(&[0xbf, 0x84])?;
+            self.append(&super::super::super::crc32_ieee(payload).to_le_bytes())?;
+        }
         self.append(payload)
     }
 
-    fn uint(&mut self, id: u32, n: u32) -> Result<()> {
+    fn uint(&mut self, id: u32, n: u64) -> Result<()> {
         self.element(
             id,
-            &n.to_be_bytes()[(n.leading_zeros() / 8).min(3) as usize..],
+            &n.to_be_bytes()[(n.leading_zeros() / 8).min(7) as usize..],
         )
     }
 
@@ -46,7 +56,19 @@ impl Ebml {
         self.id(id)?;
         let pos = self.bytes.len();
         self.append(&[0])?;
+        let crc = self.crc
+            && matches!(
+                id,
+                0x1549a966 | 0x1654ae6b | 0x1254c367 | 0x1f43b675 | 0x114d9b74 | 0x1c53bb6b | 0x1043a770
+            );
+        if crc {
+            self.append(&[0xbf, 0x84, 0, 0, 0, 0])?;
+        }
         children(self)?;
+        if crc {
+            let checksum = super::super::super::crc32_ieee(&self.bytes[pos + 7..]);
+            self.bytes[pos + 3..pos + 7].copy_from_slice(&checksum.to_le_bytes());
+        }
         let (len, start) = size(self.bytes.len() - pos - 1);
         if 7 - start > self.limit - self.bytes.len() {
             return Err("output byte limit exceeded");
@@ -62,26 +84,31 @@ struct Block<'a> {
     duration: u64,
     track: usize,
     key: bool,
-    data: &'a [u8],
+    data: std::borrow::Cow<'a, [u8]>,
 }
 
 pub(super) fn write(
     tracks: &[Track<'_>],
     seconds: f64,
     webm: bool,
+    write_crc: bool,
     metadata: &BTreeMap<String, String>,
     audio: &Options,
     source_tags: &[super::Original<'_>],
+    chapters: &[super::super::super::ffmpeg_input::Chapter],
 ) -> Result<Vec<u8>> {
     let mut out = Ebml {
         bytes: Vec::new(),
         limit: audio.limit,
+        crc: write_crc && !webm,
     };
     let mut blocks = Vec::new();
+    let mut packet_bytes = 0usize;
     let mut duration = (seconds * 1000.).round() as u64;
     let mut entries = Ebml {
         bytes: Vec::new(),
         limit: audio.limit,
+        crc: false,
     };
     for (i, t) in tracks.iter().enumerate() {
         let (fourcc, entry) = atoms(t.stsd.get(8..).unwrap_or_default())
@@ -92,10 +119,10 @@ pub(super) fn write(
             _ => None,
         };
         let mut channels = 2;
-        let mut timescale = t.scale;
+        let mut timescale = original.map_or(t.scale, |o| o.info.scale);
         entries.group(0xae, |w| {
-            w.uint(0xd7, i as u32 + 1)?;
-            w.uint(0x73c5, i as u32 + 1)?;
+            w.uint(0xd7, i as u64 + 1)?;
+            w.uint(0x73c5, i as u64 + 1)?;
             w.uint(
                 0x83,
                 match t.kind {
@@ -112,11 +139,13 @@ pub(super) fn write(
             let (indication, asc) =
                 decoder_config(child(entry.get(offset..).unwrap_or_default(), b"esds"));
             let codec: &[u8] = match (t.kind, fourcc) {
+                ("video", b"png ") => b"V_MS/VFW/FOURCC",
                 ("video", b"vp08") => b"V_VP8",
                 ("video", b"vp09") => b"V_VP9",
                 ("video", b"av01") => b"V_AV1",
                 ("video", b"hvc1" | b"hev1") => b"V_MPEGH/ISO/HEVC",
                 ("video", _) => b"V_MPEG4/ISO/AVC",
+                ("audio", b"wvpk") => b"A_WAVPACK4",
                 ("audio", _) if audio.clear_samples => b"A_AAC",
                 ("audio", b"vorb") => b"A_VORBIS",
                 ("audio", b"Opus") => b"A_OPUS",
@@ -124,25 +153,51 @@ pub(super) fn write(
                 ("audio", b".mp3") => b"A_MPEG/L3",
                 ("audio", b"mp4a") if matches!(indication, 0x69 | 0x6b) => b"A_MPEG/L3",
                 ("audio", _) => b"A_AAC",
+                ("subtitle", b"ass ") => b"S_TEXT/ASS",
+                ("subtitle", b"wvtt") => b"D_WEBVTT/SUBTITLES",
                 _ if webm => b"S_TEXT/WEBVTT",
                 _ => b"S_TEXT/UTF8",
             };
             w.element(0x86, codec)?;
+            if codec == b"S_TEXT/ASS" {
+                w.element(0x63a2, entry.get(8..).unwrap_or_default())?;
+            }
             let lang = [10, 5, 0].map(|shift| ((t.language >> shift) & 31) as u8 + 96);
             w.element(
                 0x22b59c,
                 original.map_or(lang.as_slice(), |t| t.info.language.as_bytes()),
             )?;
-            if !matches!(codec, b"A_AAC" | b"V_MPEG4/ISO/AVC")
+            if !matches!(codec, b"A_AAC" | b"A_WAVPACK4" | b"V_MPEG4/ISO/AVC" | b"V_MS/VFW/FOURCC")
                 && t.kind != "subtitle"
                 && let Some(o) = original
                 && !o.private.is_empty()
             {
                 w.element(0x63a2, o.private)?;
             }
+            w.uint(0x88, u64::from(t.enabled))?;
+            if codec == b"A_WAVPACK4" {
+                w.element(0x63a2, original.map_or_else(|| t.samples.first().and_then(|s|s.data.get(8..10)).unwrap_or(&[0x10, 0x04]), |t| t.private))?;
+            }
             if t.kind == "video" {
+                if codec == b"V_MS/VFW/FOURCC" {
+                    if let Some(first)=t.samples.first().filter(|s|s.duration>0) && t.samples.iter().all(|s|s.duration==first.duration) {
+                        w.uint(0x23e383,u64::from(first.duration)*1_000_000_000/u64::from(t.scale))?;
+                    }
+                    let mut header = [0u8;40];
+                    header[..4].copy_from_slice(&40u32.to_le_bytes());
+                    header[4..8].copy_from_slice(&t.width.to_le_bytes());
+                    header[8..12].copy_from_slice(&t.height.to_le_bytes());
+                    header[12..14].copy_from_slice(&1u16.to_le_bytes());
+                    header[14..16].copy_from_slice(&24u16.to_le_bytes());
+                    header[16..20].copy_from_slice(b"png ");
+                    w.element(0x63a2,&header)?;
+                }
                 if codec == b"V_MPEG4/ISO/AVC" {
-                    let avcc = source_tags[i].avcc(entry).unwrap_or_default();
+                    let avcc = if matches!(fourcc, b"avc1" | b"avc3") {
+                        source_tags[i].avcc(entry).unwrap_or_default()
+                    } else {
+                        &[]
+                    };
                     let generated;
                     let avcc = if avcc.is_empty() {
                         generated = h264::configuration(i64::from(t.width), t.height, 30)?;
@@ -157,9 +212,34 @@ pub(super) fn write(
                         0xb0,
                         source_tags[i]
                             .avi()
-                            .map_or(t.width, |a| a.width.max(0) as u32),
+                            .map_or(t.width, |a| a.width.max(0) as u32)
+                            .into(),
                     )?;
-                    w.uint(0xba, t.height)
+                    w.uint(0xba, u64::from(t.height))?;
+                    if let Some(order) = original.map_or_else(
+                        || {
+                            if source_tags[i].avi().is_some() {
+                                None
+                            } else {
+                                t.field_order
+                            }
+                        },
+                        |t| t.field_order,
+                    ) {
+                        w.uint(0x9a, if order == "progressive" { 2 } else { 1 })?;
+                        if order != "progressive" {
+                            w.uint(
+                                0x9d,
+                                match order {
+                                    "tt" => 1,
+                                    "bb" => 6,
+                                    "tb" => 9,
+                                    _ => 14,
+                                },
+                            )?;
+                        }
+                    }
+                    Ok(())
                 })?;
             } else if t.kind == "audio" {
                 let (rate, ch) = asc
@@ -167,7 +247,16 @@ pub(super) fn write(
                         let (_, r, c) = super::super::audio_config(b);
                         (r, u32::from(c))
                     })
-                    .unwrap_or_else(|| (u32_at(entry, 24) >> 16, u32::from(u16_at(entry, 16))));
+                    .unwrap_or_else(|| {
+                        (
+                            if fourcc == b"wvpk" {
+                                t.scale
+                            } else {
+                                u32_at(entry, 24) >> 16
+                            },
+                            u32::from(u16_at(entry, 16)),
+                        )
+                    });
                 let rate = audio
                     .rate
                     .unwrap_or(original.map_or(rate, |t| t.sample_rate.unwrap_or(t.info.scale)));
@@ -193,13 +282,18 @@ pub(super) fn write(
                 }
                 w.group(0xe1, |w| {
                     w.element(0xb5, &f64::from(rate).to_be_bytes())?;
-                    w.uint(0x9f, channels)?;
-                    w.uint(0x6264, u32::from(u16_at(entry, 18)))
+                    w.uint(0x9f, u64::from(channels))?;
+                    w.uint(0x6264, u64::from(u16_at(entry, 18)))
                 })?;
             }
             Ok(())
         })?;
         let mut sample = |pts: f64, ticks: f64, data, key| -> Result<()> {
+            let data = if fourcc == b"wvpk" && original.is_none() {
+                let packet = super::super::super::wavpack::pack_matroska(data, audio.limit.saturating_sub(packet_bytes))?;
+                if let std::borrow::Cow::Owned(bytes) = &packet { packet_bytes += bytes.capacity(); }
+                packet
+            } else { std::borrow::Cow::Borrowed(data) };
             if blocks.len() >= audio.limit / size_of::<Block>() {
                 return Err("sample index exceeds memory budget");
             }
@@ -208,7 +302,8 @@ pub(super) fn write(
             duration = duration.max(((pts + ticks) / scale * 1000.).round() as u64);
             blocks.push(Block {
                 ms,
-                duration: ((ticks / scale * 1000.).round() as u64).max(1),
+                duration: ((ticks / scale * 1000.).round() as u64)
+                    .max(u64::from(t.kind != "subtitle")),
                 track: i,
                 key,
                 data,
@@ -224,11 +319,7 @@ pub(super) fn write(
                 sample(p.pts as f64, p.ticks, &s.data, s.key)?;
             }
         } else if let Some(o) = original {
-            for b in o.blocks.iter().take(if t.kind == "video" {
-                t.samples.len()
-            } else {
-                o.blocks.len()
-            }) {
+            for b in o.blocks.iter().take(t.samples.len()) {
                 sample(b.dts as f64, b.ticks, b.data, b.key)?;
             }
         } else {
@@ -245,6 +336,7 @@ pub(super) fn write(
             }
         }
     }
+    out.limit = out.limit.checked_sub(packet_bytes).ok_or("WavPack packets exceed memory budget")?;
     blocks.sort_by_key(|b| (b.ms, b.track));
     out.group(0x1a45dfa3, |w| {
         for (id, n) in [(0x4286, 1), (0x42f7, 1), (0x42f2, 4), (0x42f3, 8)] {
@@ -254,7 +346,33 @@ pub(super) fn write(
         w.uint(0x4287, 4)?;
         w.uint(0x4285, 2)
     })?;
+    let cue_count = blocks
+        .iter()
+        .filter(|b| b.key && tracks[b.track].kind == "video")
+        .count();
+    let cue_bytes = cue_count
+        .checked_mul(size_of::<(u64, usize, usize, usize)>())
+        .ok_or("sample index exceeds memory budget")?;
+    out.limit = out
+        .limit
+        .checked_sub(cue_bytes)
+        .ok_or("sample index exceeds memory budget")?;
+    let mut cues = Vec::with_capacity(cue_count);
     out.group(0x18538067, |w| {
+        let segment_start = w.bytes.len();
+        let mut seek_payload = 0;
+        let mut seek_position = 0;
+        if cue_count > 0 {
+            w.group(0x114d9b74, |w| {
+                seek_payload = w.bytes.len();
+                w.group(0x4dbb, |w| {
+                    w.element(0x53ab, &0x1c53bb6bu32.to_be_bytes())?;
+                    w.element(0x53ac, &[0; 8])?;
+                    seek_position = w.bytes.len() - 8;
+                    Ok(())
+                })
+            })?;
+        }
         w.group(0x1549a966, |w| {
             w.uint(0x2ad7b1, 1000000)?;
             w.element(0x4489, &(duration.max(1) as f64).to_be_bytes())?;
@@ -271,12 +389,34 @@ pub(super) fn write(
             Ok(())
         })?;
         w.element(0x1654ae6b, &entries.bytes)?;
-        let mut tags = [
-            "title", "artist", "album", "date", "comment", "genre", "encoder",
-        ]
-        .into_iter()
-        .filter_map(|k| metadata.get(k).filter(|v| !v.is_empty()).map(|v| (k, v)))
-        .peekable();
+        if !chapters.is_empty() {
+            let new_ids = chapters.iter().any(|c| c.id == 0);
+            w.group(0x1043a770, |w| w.group(0x45b9, |w| {
+                if !webm { w.uint(0x45db, 1)?; }
+                for (i, c) in chapters.iter().enumerate() {
+                    let start = super::super::super::lrc::rescale(c.start, (1, i64::from(c.scale)), 1_000_000_000);
+                    let end = super::super::super::lrc::rescale(c.end, (1, i64::from(c.scale)), 1_000_000_000);
+                    if start < 0 || end < start { return Err("Invalid chapter start or end"); }
+                    w.group(0xb6, |w| {
+                        w.uint(0x73c4, if new_ids {i as u64 + 1} else {c.id as u64})?;
+                        w.uint(0x91, start as u64)?;
+                        w.uint(0x92, end as u64)?;
+                        if let Some(title) = &c.title {
+                            w.group(0x80, |w| {
+                                w.element(0x85, title.as_bytes())?;
+                                w.element(0x437c, b"und")
+                            })?;
+                        }
+                        Ok(())
+                    })?;
+                }
+                Ok(())
+            }))?;
+        }
+        let mut tags = ["artist", "album", "date", "comment", "genre", "encoder"]
+            .into_iter()
+            .filter_map(|k| metadata.get(k).filter(|v| !v.is_empty()).map(|v| (k, v)))
+            .peekable();
         if tags.peek().is_some() {
             w.group(0x1254c367, |w| {
                 w.group(0x7373, |w| {
@@ -294,9 +434,19 @@ pub(super) fn write(
         let mut blocks = blocks.into_iter().peekable();
         while let Some(first) = blocks.peek() {
             let start = first.ms;
+            let cluster_position = w.bytes.len() - segment_start;
             w.group(0x1f43b675, |w| {
-                w.uint(0xe7, start as u32)?;
-                while let Some(b) = blocks.next_if(|b| b.ms - start <= 30000) {
+                let cluster_start = w.bytes.len() - if w.crc { 6 } else { 0 };
+                w.uint(0xe7, start)?;
+                while let Some(b) = blocks.next_if(|b| b.ms - start <= 5000) {
+                    if b.key && tracks[b.track].kind == "video" {
+                        cues.push((
+                            b.ms,
+                            b.track + 1,
+                            cluster_position,
+                            w.bytes.len() - cluster_start,
+                        ));
+                    }
                     let sub = tracks[b.track].kind == "subtitle";
                     let block = |w: &mut Ebml| {
                         w.group(if sub { 0xa1 } else { 0xa3 }, |w| {
@@ -307,17 +457,47 @@ pub(super) fn write(
                                 c,
                                 if b.key && !sub { 128 } else { 0 },
                             ])?;
-                            w.append(b.data)
+                            if tracks[b.track].stsd.get(12..16) == Some(b"wvtt")
+                                && !source_tags[b.track]
+                                    .matroska()
+                                    .is_some_and(|t| t.codec_id.starts_with("D_WEBVTT/"))
+                            {
+                                w.append(b"\n\n")?;
+                            }
+                            w.append(&b.data)
                         })
                     };
                     if sub {
                         w.group(0xa0, |w| {
                             block(w)?;
-                            w.uint(0x9b, b.duration as u32)
+                            w.uint(0x9b, b.duration)
                         })?;
                     } else {
                         block(w)?;
                     }
+                }
+                Ok(())
+            })?;
+        }
+        if cue_count > 0 {
+            let position = (w.bytes.len() - segment_start) as u64;
+            w.bytes[seek_position..seek_position + 8].copy_from_slice(&position.to_be_bytes());
+            if w.crc {
+                let crc =
+                    super::super::super::crc32_ieee(&w.bytes[seek_payload..seek_position + 8]);
+                w.bytes[seek_payload - 4..seek_payload].copy_from_slice(&crc.to_le_bytes());
+            }
+            cues.sort_by_key(|&(time, track, _, _)| (time, track));
+            w.group(0x1c53bb6b, |w| {
+                for (time, track, position, relative) in cues {
+                    w.group(0xbb, |w| {
+                        w.uint(0xb3, time)?;
+                        w.group(0xb7, |w| {
+                            w.uint(0xf7, track as u64)?;
+                            w.uint(0xf1, position as u64)?;
+                            w.uint(0xf0, relative as u64)
+                        })
+                    })?;
                 }
                 Ok(())
             })?;
@@ -392,11 +572,11 @@ pub(super) fn as_mp4(
                     0,
                 )
             }
-            Codec::Subtitle { .. } => (
+            Codec::Subtitle { name } => (
                 "subtitle",
                 *b"sbtl",
                 b"SubtitleHandler".as_slice(),
-                subtitle_entry(),
+                subtitle_entry(name, t.private),
                 0,
                 0,
             ),
@@ -409,8 +589,23 @@ pub(super) fn as_mp4(
             .take(3)
             .fold(0, |n, c| (n << 5) | c.saturating_sub(96).clamp(1, 26));
         let mut samples = Vec::with_capacity(info.count);
+        let wavpack = t.codec_id == "A_WAVPACK4";
+        let track_scale = if wavpack { t.sample_rate.unwrap_or(44100) } else { info.scale };
+        let mut wavpack_index = 0u32;
         for (p, data) in t.packets() {
-            let data = if p.size > data.len() as u64 {
+            let data = if t.codec_id == "A_WAVPACK4" {
+                let mut packet = Vec::new();
+                let count = super::super::super::wavpack::unpack_matroska(data, t.private, &mut packet, remaining)?;
+                wavpack_index = wavpack_index.checked_add(count).ok_or("WavPack sample count exceeds limit")?;
+                remaining = remaining.checked_sub(packet.capacity()).ok_or("sample index exceeds memory budget")?;
+                Cow::Owned(packet)
+            } else if t.codec_id.starts_with("D_WEBVTT/") {
+                Cow::Borrowed(
+                    data.splitn(3, |&b| b == b'\n')
+                        .nth(2)
+                        .ok_or("invalid Matroska WebVTT packet")?,
+                )
+            } else if p.size > data.len() as u64 {
                 remaining = remaining
                     .checked_sub(p.size as usize)
                     .ok_or("sample index exceeds memory budget")?;
@@ -421,26 +616,27 @@ pub(super) fn as_mp4(
             } else {
                 Cow::Borrowed(data)
             };
+            let duration = if wavpack { u32::from_le_bytes(data[20..24].try_into().unwrap()) } else { p.ticks.round() as u32 };
             samples.push(Sample {
                 data,
-                duration: p.ticks.round() as u32,
+                duration,
                 cts: 0,
                 key: p.key,
                 description: 1,
             });
         }
-        let ticks = if info.count == 0 {
+        let ticks = if wavpack { f64::from(wavpack_index) } else if info.count == 0 {
             info.ticks
         } else {
             info.sample_ticks
         };
         tracks.push(Track {
             id: info.id as u32,
-            scale: info.scale,
+            scale: track_scale,
             media_ticks: ticks as u32,
-            movie_ticks: (ticks / f64::from(info.scale) * 1000.).round() as u32,
+            movie_ticks: (ticks / f64::from(track_scale) * 1000.).round() as u32,
             samples,
-            first_dts: info.start as u64,
+            first_dts: (info.start as f64 / f64::from(info.scale) * f64::from(track_scale)).round() as u64,
             fragment_sample_size: None,
             stsd: stsd.into(),
             edits: vec![],
@@ -450,7 +646,8 @@ pub(super) fn as_mp4(
             width,
             height,
             volume: if kind == "audio" { 256 } else { 0 },
-            enabled: true,
+            enabled: t.default,
+            field_order: None,
             language,
             matrix: MATRIX,
         });
@@ -466,6 +663,7 @@ pub(super) fn as_mp4(
             .collect(),
         &[],
         false,
+        true,
         limit,
     )
 }

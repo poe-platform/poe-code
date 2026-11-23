@@ -5,6 +5,7 @@ import { rawAudioAsts } from "./raw-audio.js";
 import { parseImaQt } from "./aiff-ima.js";
 import { encodeImaQt } from "./aiff-ima-encoder.js";
 import { parseId3 } from "@poe-code/audio-ast";
+import { mp4ProbeMetadataKeys } from "../mp4-metadata.js";
 
 const pcm = rawAudioAsts();
 const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be", "pcm_alaw", "pcm_mulaw", "adpcm_ima_qt"];
@@ -61,11 +62,15 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       channelMask = tag === 0x10000 && bitmap > 0 && bitmap < 0x40000 ? bitmap : undefined;
       channelLayout = tag === 0x00640001 ? "mono" : tag === 0x00650002 ? "stereo" : undefined;
     } else if (id === "ID3 ") {
-      Object.assign(metadata, parseId3(bytes.subarray(start, start + size)).tags);
+      for (const [name, value] of Object.entries(parseId3(bytes.subarray(start, start + size)).tags)) {
+        const key = name === "track" ? "trackNumber" : name === "disc" ? "discNumber" : name;
+        const target = Object.hasOwn(mp4ProbeMetadataKeys, key) ? metadata : (metadata.custom ??= {});
+        Object.defineProperty(target, key, { value, enumerable: true, configurable: true, writable: true });
+      }
     } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
       const value = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0]!;
       if (id === "NAME") metadata.title = value;
-      else if (id === "AUTH") metadata.custom = { author: value };
+      else if (id === "AUTH") metadata.custom = { ...metadata.custom, author: value };
       else if (id === "(c) ") metadata.copyright = value;
       else metadata.comment = value;
     } else if (id === "SSND") {
@@ -131,8 +136,12 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const version = options.id3v2Version ?? 4;
   if (version !== 3 && version !== 4) throw new Error("Invalid AIFF ID3v2 version: expected 3 or 4");
-  const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata)
-    .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+  const metadata = options.metadata ?? doc.metadata;
+  const tags = Object.fromEntries([
+    ...Object.entries(metadata.custom ?? {}),
+    ...Object.entries(metadata).filter((entry): entry is [string, string] => typeof entry[1] === "string")
+  ].filter(([, value]) => value !== "")
+    .map(([key, value]) => [key === "trackNumber" ? "track" : key === "discNumber" ? "disc" : key, value]));
   const id3 = options.writeId3v2 ? encodeId3(tags, [], [], version) : undefined;
   const track = doc.tracks.find(item => item.type === "audio");
   if (!track) throw new Error("AIFF output requires an audio stream");
@@ -168,7 +177,6 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
       !Number.isSafeInteger(sampleRate) || sampleRate < 1 || sampleRate > 0xffffffff || frames > 0xffffffff) {
     throw new Error("Invalid AIFF audio dimensions");
   }
-  const metadata = options.metadata ?? doc.metadata;
   const textChunks = [
     ["NAME", metadata.title], ["AUTH", metadata.custom?.author],
     ["(c) ", metadata.copyright], ["ANNO", metadata.comment]

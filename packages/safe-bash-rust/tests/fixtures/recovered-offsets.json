@@ -1,0 +1,340 @@
+{
+  "source": "qpdf 12.4.2",
+  "cases": {
+    "bad-row.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDAwMDEgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDEKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo=",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": ""
+        },
+        "--show-object=8": {
+          "status": 3,
+          "stdout": "PDwgL0NvbnRlbnRzIDcgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8IC9Gb250IDw8ID4+ID4+IC9UeXBlIC9QYWdlID4+Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=3": {
+          "status": 0,
+          "stdout": "PDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgL1RpdGxlIDxmZWZmMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZlYT4gPj4K",
+          "stderr": ""
+        },
+        "--show-encryption": {
+          "status": 0,
+          "stdout": "RmlsZSBpcyBub3QgZW5jcnlwdGVkCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check --show-xref": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjk5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gODI1Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-pages": {
+          "status": 3,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "wrong-object.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA1OTUgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU5NQo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": ""
+        },
+        "--show-object=8": {
+          "status": 3,
+          "stdout": "PDwgL0NvbnRlbnRzIDcgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8IC9Gb250IDw8ID4+ID4+IC9UeXBlIC9QYWdlID4+Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=3": {
+          "status": 0,
+          "stdout": "PDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgL1RpdGxlIDxmZWZmMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZlYT4gPj4K",
+          "stderr": ""
+        },
+        "--show-encryption": {
+          "status": 0,
+          "stdout": "RmlsZSBpcyBub3QgZW5jcnlwdGVkCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check --show-xref": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjk5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gODI1Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-pages": {
+          "status": 3,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 595): expected 8 0 obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "zero-offset.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDAwMDAgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDAKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo=",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": ""
+        },
+        "--show-object=8": {
+          "status": 3,
+          "stdout": "bnVsbAo=",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=3": {
+          "status": 0,
+          "stdout": "PDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgL1RpdGxlIDxmZWZmMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZlYT4gPj4K",
+          "stderr": ""
+        },
+        "--show-encryption": {
+          "status": 0,
+          "stdout": "RmlsZSBpcyBub3QgZW5jcnlwdGVkCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check --show-xref": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDAKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo=",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-pages": {
+          "status": 3,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgo=",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 8 0): object has offset 0 - a common error handled correctly by qpdf and most other applications\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+        }
+      }
+    },
+    "absent-page.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgolIDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDAwMDEgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDEKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo=",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": ""
+        },
+        "--show-object=8": {
+          "status": 3,
+          "stdout": "bnVsbAo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=3": {
+          "status": 0,
+          "stdout": "PDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgL1RpdGxlIDxmZWZmMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZlYT4gPj4K",
+          "stderr": ""
+        },
+        "--show-encryption": {
+          "status": 0,
+          "stdout": "RmlsZSBpcyBub3QgZW5jcnlwdGVkCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check --show-xref": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo5OS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDgyNQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-pages": {
+          "status": 3,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 8 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: object 8 0 not found in file after regenerating cross reference table\nWARNING: object 8 0: Pages tree includes non-dictionary object; ignoring\nqpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+        }
+      }
+    },
+    "bad-info.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDAwMSAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA2NzQgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMQo0LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjQyCjUvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAzNjgKNi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDQ5Nwo3LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNTk1CjgvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA2NzQKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDc5Mwo=",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=8": {
+          "status": 0,
+          "stdout": "PDwgL0NvbnRlbnRzIDcgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8IC9Gb250IDw8ID4+ID4+IC9UeXBlIC9QYWdlID4+Cg==",
+          "stderr": ""
+        },
+        "--show-object=3": {
+          "status": 3,
+          "stdout": "PDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgL1RpdGxlIDxmZWZmMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZlYT4gPj4K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-encryption": {
+          "status": 0,
+          "stdout": "RmlsZSBpcyBub3QgZW5jcnlwdGVkCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check --show-xref": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjk5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gODI1Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": ""
+        },
+        "--show-pages": {
+          "status": 0,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+          "stderr": ""
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (object 3 0, offset 1): expected n n obj\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "declared-count.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCA5Ci9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDAwMDEgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "OQo=",
+          "stderr": ""
+        }
+      }
+    }
+  }
+}

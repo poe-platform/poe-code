@@ -36,7 +36,7 @@ pub(in crate::commands::archive) fn render_svg(
     format: &str,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let root = parse_svg_xml_impl(source, false)?;
+    let root = parse_svg_xml_impl(source, false, 10_000, 128)?;
     let root_local = root.name.rsplit(':').next().unwrap_or(&root.name);
     if root_local != "svg" {
         return Err("Expected SVG document".to_string());

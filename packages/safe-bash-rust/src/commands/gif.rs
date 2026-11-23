@@ -12,6 +12,7 @@ pub(super) fn dimensions(bytes: &[u8]) -> Result<(u32, u32), &'static str> {
 
 #[derive(Clone, Copy, Default)]
 pub(super) struct Timing<'a> {
+    pub flags: u8,
     pub delays: &'a [u16],
     pub repeat: Option<u16>,
     pub explicit_delay: bool,
@@ -33,6 +34,7 @@ pub(super) fn encode_first_frame(
         im.height,
         &im.pixels,
         Timing {
+            flags: 0,
             delays: first.as_slice(),
             repeat,
             explicit_delay: false,
@@ -66,8 +68,13 @@ pub(super) fn encode(
     let mut used = BTreeSet::new();
     let mut missing = Vec::new();
     let mut seen = BTreeSet::new();
+    let mut transparent_color = false;
     for &[r, g, b, a] in pixels {
         if a < 128 {
+            if !transparent_color {
+                palette[255] = [r, g, b];
+                transparent_color = true;
+            }
             continue;
         }
         let rgb = [r, g, b];
@@ -78,10 +85,17 @@ pub(super) fn encode(
         }
     }
     if used.len() + missing.len() <= 254 {
-        let mut slots = (1..254).filter(|i| !used.contains(i));
-        for (color, i) in missing.into_iter().zip(&mut slots) {
-            colors.insert(color, i);
-            palette[usize::from(i)] = color;
+        let mut slot = 1u8;
+        for color in missing {
+            while slot < 254 && used.contains(&slot) {
+                slot += 1;
+            }
+            if slot == 254 {
+                break;
+            }
+            used.insert(slot);
+            colors.insert(color, slot);
+            palette[usize::from(slot)] = color;
         }
     }
     let n = w * h;
@@ -103,7 +117,15 @@ pub(super) fn encode(
     let dims = [(w as u16).to_le_bytes(), (h as u16).to_le_bytes()].concat();
     out.extend_from_slice(b"GIF89a");
     out.extend_from_slice(&dims);
-    out.extend_from_slice(&[247, 0, 0]);
+    out.extend_from_slice(&[
+        247,
+        if used.len() == 1 {
+            *used.first().unwrap()
+        } else {
+            0
+        },
+        0,
+    ]);
     out.extend_from_slice(palette.as_flattened());
     if let Some(repeat) = repeat {
         out.extend_from_slice(b"\x21\xff\x0bNETSCAPE2.0\x03\x01");
@@ -111,6 +133,41 @@ pub(super) fn encode(
         out.push(0);
     }
     for (index, frame) in pixels.chunks_exact(n).enumerate() {
+        let previous = (index > 0).then(|| &pixels[(index - 1) * n..index * n]);
+        let transdiff = timing.flags & 2 != 0 && previous.is_some();
+        let (mut left, mut top, mut width, mut height) = (0, 0, w, h);
+        let mut empty = false;
+        if timing.flags & 1 != 0 {
+            left = w;
+            top = h;
+            let (mut right, mut bottom) = (0, 0);
+            for (i, pixel) in frame.iter().enumerate() {
+                if previous.map_or(pixel[3] >= 128, |p| pixel != &p[i]) {
+                    left = left.min(i % w);
+                    top = top.min(i / w);
+                    right = right.max(i % w + 1);
+                    bottom = bottom.max(i / w + 1);
+                }
+            }
+            empty = right == 0;
+            if empty {
+                left = 0;
+                top = 0;
+                width = 1;
+                height = 1;
+            } else {
+                width = right - left;
+                height = bottom - top;
+            }
+        }
+        let transparent = empty
+            || transdiff
+            || (0..height).any(|y| {
+                frame[(top + y) * w + left..(top + y) * w + left + width]
+                    .iter()
+                    .any(|p| p[3] < 128)
+            });
+        let gce = animated || timing.explicit_delay || transparent;
         if gce {
             let delay = timing
                 .delays
@@ -123,15 +180,23 @@ pub(super) fn encode(
                 33,
                 249,
                 4,
-                if animated { 5 } else { 1 },
+                (if animated || timing.flags & 1 != 0 {
+                    4
+                } else {
+                    0
+                }) | u8::from(transparent),
                 delay[0],
                 delay[1],
                 255,
                 0,
             ]);
         }
-        out.extend_from_slice(&[44, 0, 0, 0, 0]);
-        out.extend_from_slice(&dims);
+        out.push(44);
+        for value in [left, top, width, height] {
+            out.extend_from_slice(&(value as u16).to_le_bytes());
+        }
+        let count = width * height;
+        let len = ((count + count.div_ceil(120) + 1) * 9).div_ceil(8);
         out.extend_from_slice(&[0, 8]);
         let mut remaining = 0;
         let mut bytes_left = len;
@@ -155,18 +220,21 @@ pub(super) fn encode(
                 bits -= 8;
             }
         };
-        for (i, &[r, g, b, a]) in frame.iter().enumerate() {
+        for i in 0..count {
+            let at = (top + i / width) * w + left + i % width;
+            let [r, g, b, a] = frame[at];
             if i % 120 == 0 {
                 code(256);
             }
-            let index = if a < 128 {
-                255
-            } else {
-                colors
-                    .get(&[r, g, b])
-                    .copied()
-                    .unwrap_or_else(|| ((r & 224) | ((g >> 3) & 28) | (b >> 6)).min(254))
-            };
+            let index =
+                if a < 128 || empty || transdiff && previous.is_some_and(|p| p[at] == frame[at]) {
+                    255
+                } else {
+                    colors
+                        .get(&[r, g, b])
+                        .copied()
+                        .unwrap_or_else(|| ((r & 224) | ((g >> 3) & 28) | (b >> 6)).min(254))
+                };
             code(u16::from(index));
         }
         code(257);
@@ -176,6 +244,7 @@ pub(super) fn encode(
         out.push(0);
     }
     out.push(59);
+
     Ok(out)
 }
 
@@ -294,6 +363,7 @@ pub(super) fn edit_frames(
         dims.1,
         &pixels,
         Timing {
+            flags: 0,
             delays: if inherit_timing && !timing.explicit_delay {
                 &delays
             } else {
@@ -519,6 +589,7 @@ mod tests {
             2,
             &pixels,
             Timing {
+                flags: 0,
                 delays: &[4, 8, 12],
                 repeat: Some(3),
                 explicit_delay: true,

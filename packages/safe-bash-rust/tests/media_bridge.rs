@@ -4,9 +4,18 @@ use std::sync::Arc;
 fn fixture(mode: BackendMode) -> (Shell, MemoryVfs) {
     let fs = MemoryVfs::new();
     fs.mkdir_all("/work").unwrap();
-    fs.write_file("/work/red.ppm", b"P6\n2 1\n255\n\xff\x00\x00\xff\x00\x00").unwrap();
-    fs.write_file("/work/blue.ppm", b"P6\n2 1\n255\n\x00\x00\xff\x00\x00\xff").unwrap();
-    let shell = Shell::new(Arc::new(fs.clone()), ShellOptions { cwd: Some("/work".into()), mode, ..Default::default() });
+    fs.write_file("/work/red.ppm", b"P6\n2 1\n255\n\xff\x00\x00\xff\x00\x00")
+        .unwrap();
+    fs.write_file("/work/blue.ppm", b"P6\n2 1\n255\n\x00\x00\xff\x00\x00\xff")
+        .unwrap();
+    let shell = Shell::new(
+        Arc::new(fs.clone()),
+        ShellOptions {
+            cwd: Some("/work".into()),
+            mode,
+            ..Default::default()
+        },
+    );
     (shell, fs)
 }
 
@@ -17,7 +26,10 @@ fn hybrid_montage_retains_real_pixels_without_replaying_prior_commands() {
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     assert_eq!(fs.read_file("/work/visits").unwrap(), b"once");
     assert_eq!(result.stdout, "after");
-    assert_eq!(fs.read_file("/work/sheet with space.ppm").unwrap(), b"P6\n4 1\n255\n\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\xff");
+    assert_eq!(
+        fs.read_file("/work/sheet with space.ppm").unwrap(),
+        b"P6\n4 1\n255\n\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\xff"
+    );
     assert!(result.used_typescript_bridge);
     assert!(!shell.exec("printf native").unwrap().used_typescript_bridge);
 }
@@ -25,9 +37,14 @@ fn hybrid_montage_retains_real_pixels_without_replaying_prior_commands() {
 #[test]
 fn native_only_image_conversion_round_trips_pixels_and_preserves_output_on_invalid_input() {
     let (mut shell, fs) = fixture(BackendMode::NativeOnly);
-    let result = shell.exec("convert red.ppm output.png && convert output.png recovered.ppm").unwrap();
+    let result = shell
+        .exec("convert red.ppm output.png && convert output.png recovered.ppm")
+        .unwrap();
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
-    assert_eq!(fs.read_file("/work/recovered.ppm").unwrap(), fs.read_file("/work/red.ppm").unwrap());
+    assert_eq!(
+        fs.read_file("/work/recovered.ppm").unwrap(),
+        fs.read_file("/work/red.ppm").unwrap()
+    );
     let original = fs.read_file("/work/output.png").unwrap();
     fs.write_file("/work/bad.ppm", b"P6\n2 1\n255\n").unwrap();
     let result = shell.exec("convert bad.ppm output.png").unwrap();
@@ -38,10 +55,42 @@ fn native_only_image_conversion_round_trips_pixels_and_preserves_output_on_inval
 }
 
 #[test]
+fn office_aliases_convert_documents_and_spreadsheets_through_the_shell() {
+    let mut reference = None;
+    for mode in [BackendMode::Hybrid, BackendMode::NativeOnly] {
+        let (mut shell, fs) = fixture(mode);
+        fs.write_file("/work/source sheet.csv", b"Name,Value,Total\nAda,2,=B2+3\n")
+            .unwrap();
+        fs.write_file("/work/note.html", b"<h1>Report</h1><p>Two &amp; three</p>")
+            .unwrap();
+        let result = shell.exec("printf once >> visits; soffice --headless --convert-to xlsx --outdir exports 'source sheet.csv' && libreoffice --convert-to csv --outdir reopened 'exports/source sheet.xlsx' && soffice --convert-to docx --outdir exports note.html && libreoffice --cat exports/note.docx").unwrap();
+        assert_eq!(result.exit_code, 0, "{mode:?}: {}", result.stderr);
+        assert_eq!(result.used_typescript_bridge, mode == BackendMode::Hybrid);
+        assert_eq!(fs.read_file("/work/visits").unwrap(), b"once");
+        let csv = fs.read_file("/work/reopened/source sheet.csv").unwrap();
+        assert_eq!(csv, b"Name,Value,Total\nAda,2,5\n");
+        assert_eq!(
+            fs.read_file("/work/source sheet.csv").unwrap(),
+            b"Name,Value,Total\nAda,2,=B2+3\n"
+        );
+        assert!(result.stdout.ends_with("\u{feff}Report\nTwo & three\n"));
+        let actual = (result.stdout, result.stderr, csv);
+        if let Some(expected) = &reference {
+            assert_eq!(&actual, expected);
+        } else {
+            reference = Some(actual);
+        }
+    }
+}
+
+#[test]
 fn hybrid_ffmpeg_preserves_audio_samples() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
     let samples = [0i16, 1200, -2400, 3600, -4800, 6000];
-    let pcm: Vec<u8> = samples.iter().flat_map(|sample| sample.to_le_bytes()).collect();
+    let pcm: Vec<u8> = samples
+        .iter()
+        .flat_map(|sample| sample.to_le_bytes())
+        .collect();
     let mut wav = b"RIFF".to_vec();
     wav.extend_from_slice(&(36u32 + pcm.len() as u32).to_le_bytes());
     wav.extend_from_slice(b"WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00");
@@ -81,11 +130,19 @@ fn bridge_usage_propagates_through_command_substitution_and_preserves_quoted_pat
 #[test]
 fn image_pipes_preserve_binary_bytes_across_the_bridge() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
-    fs.hard_link("/work/red.ppm", "/work/red-alias.ppm").unwrap();
-    for command in ["magick red.ppm ppm:- > result.ppm", "cat red.ppm | magick ppm:- result.ppm"] {
+    fs.hard_link("/work/red.ppm", "/work/red-alias.ppm")
+        .unwrap();
+    for command in [
+        "magick red.ppm ppm:- > result.ppm",
+        "cat red.ppm | magick ppm:- result.ppm",
+    ] {
         let result = shell.exec(command).unwrap();
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
-        assert_eq!(fs.read_file("/work/result.ppm").unwrap(), fs.read_file("/work/red.ppm").unwrap(), "{command}");
+        assert_eq!(
+            fs.read_file("/work/result.ppm").unwrap(),
+            fs.read_file("/work/red.ppm").unwrap(),
+            "{command}"
+        );
         assert!(result.used_typescript_bridge);
     }
 }
@@ -93,17 +150,36 @@ fn image_pipes_preserve_binary_bytes_across_the_bridge() {
 #[test]
 fn hybrid_pandoc_writes_wordprocessingml_and_reads_document_content() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
-    fs.write_file("/work/guide.md", b"# Welcome\n\nMeet Maya at 09:00.\n").unwrap();
-    let result = shell.exec("pandoc guide.md -f markdown -t docx -o guide.docx").unwrap();
+    fs.write_file("/work/guide.md", b"# Welcome\n\nMeet Maya at 09:00.\n")
+        .unwrap();
+    let result = shell
+        .exec("pandoc guide.md -f markdown -t docx -o guide.docx")
+        .unwrap();
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     let document = shell.exec("unzip -p guide.docx word/document.xml").unwrap();
-    assert!(document.stdout.contains("http://schemas.openxmlformats.org/wordprocessingml/2006/main"), "{}", document.stdout);
+    assert!(
+        document
+            .stdout
+            .contains("http://schemas.openxmlformats.org/wordprocessingml/2006/main"),
+        "{}",
+        document.stdout
+    );
     assert!(document.stdout.contains("Meet Maya at 09:00."));
     let relationships = shell.exec("unzip -p guide.docx _rels/.rels").unwrap();
-    assert!(relationships.stdout.contains("relationships/officeDocument"), "{}", relationships.stderr);
+    assert!(
+        relationships
+            .stdout
+            .contains("relationships/officeDocument"),
+        "{}",
+        relationships.stderr
+    );
     let text = shell.exec("pandoc guide.docx -t plain").unwrap();
     assert_eq!(text.exit_code, 0, "{}", text.stderr);
-    assert!(text.stdout.contains("Welcome") && text.stdout.contains("Meet Maya at 09:00."), "{}", text.stdout);
+    assert!(
+        text.stdout.contains("Welcome") && text.stdout.contains("Meet Maya at 09:00."),
+        "{}",
+        text.stdout
+    );
     assert!(result.used_typescript_bridge && text.used_typescript_bridge);
 }
 
@@ -111,12 +187,15 @@ fn hybrid_pandoc_writes_wordprocessingml_and_reads_document_content() {
 fn native_only_pandoc_preserves_existing_document() {
     let (mut shell, fs) = fixture(BackendMode::NativeOnly);
     fs.write_file("/work/guide.md", b"# Welcome\n").unwrap();
-    let created = shell.exec("pandoc guide.md -o guide.docx && pandoc guide.docx -t plain").unwrap();
+    let created = shell
+        .exec("pandoc guide.md -o guide.docx && pandoc guide.docx -t plain")
+        .unwrap();
     assert_eq!(created.exit_code, 0, "{}", created.stderr);
     assert!(created.stdout.contains("Welcome"));
     assert!(!created.used_typescript_bridge);
     let original = fs.read_file("/work/guide.docx").unwrap();
-    fs.write_file("/work/bad.docx", b"invalid Word document").unwrap();
+    fs.write_file("/work/bad.docx", b"invalid Word document")
+        .unwrap();
     let result = shell.exec("pandoc bad.docx -o guide.docx").unwrap();
     assert_ne!(result.exit_code, 0);
     assert!(result.stderr.contains("couldn't parse docx"));
@@ -125,20 +204,34 @@ fn native_only_pandoc_preserves_existing_document() {
 }
 
 #[test]
-fn hybrid_rsvg_convert_renders_files_and_piped_svg() {
-    for mode in [BackendMode::Hybrid, BackendMode::TypeScriptOnly] {
+fn rsvg_convert_renders_files_and_piped_svg_in_every_backend() {
+    for mode in [
+        BackendMode::NativeOnly,
+        BackendMode::Hybrid,
+        BackendMode::TypeScriptOnly,
+    ] {
         let (mut shell, fs) = fixture(mode);
-        fs.write_file("/work/input.svg", b"<svg width=\"2\" height=\"1\"><rect width=\"2\" height=\"1\" fill=\"red\"/></svg>").unwrap();
+        fs.write_file(
+            "/work/input.svg",
+            b"<svg width=\"2\" height=\"1\"><rect width=\"2\" height=\"1\" fill=\"red\"/></svg>",
+        )
+        .unwrap();
         for command in [
             "rsvg-convert input.svg -o 'output image.png'",
             "cat input.svg | rsvg-convert -o 'output image.png'",
         ] {
             let result = shell.exec(command).unwrap();
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
-            assert!(result.used_typescript_bridge);
+            assert_eq!(
+                result.used_typescript_bridge,
+                mode != BackendMode::NativeOnly
+            );
             let result = shell.exec("convert 'output image.png' output.ppm").unwrap();
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
-            assert_eq!(fs.read_file("/work/output.ppm").unwrap(), b"P6\n2 1\n255\n\xff\x00\x00\xff\x00\x00");
+            assert_eq!(
+                fs.read_file("/work/output.ppm").unwrap(),
+                b"P6\n2 1\n255\n\xff\x00\x00\xff\x00\x00"
+            );
         }
     }
 }
@@ -146,11 +239,23 @@ fn hybrid_rsvg_convert_renders_files_and_piped_svg() {
 #[test]
 fn hybrid_rsvg_convert_reports_renderer_errors_without_replacing_output() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
-    fs.write_file("/work/input.svg", b"<svg width=\"2\" height=\"1\"><image/></svg>").unwrap();
-    fs.write_file("/work/output.png", b"existing output").unwrap();
+    fs.write_file(
+        "/work/input.svg",
+        b"<svg width=\"2\" height=\"1\"><image/></svg>",
+    )
+    .unwrap();
+    fs.write_file("/work/output.png", b"existing output")
+        .unwrap();
     let result = shell.exec("rsvg-convert input.svg -o output.png").unwrap();
     assert_ne!(result.exit_code, 0);
-    assert!(result.stderr.contains("Unsupported SVG element image"), "{}", result.stderr);
-    assert_eq!(fs.read_file("/work/output.png").unwrap(), b"existing output");
+    assert!(
+        result.stderr.contains("Unsupported SVG element image"),
+        "{}",
+        result.stderr
+    );
+    assert_eq!(
+        fs.read_file("/work/output.png").unwrap(),
+        b"existing output"
+    );
     assert!(result.used_typescript_bridge);
 }

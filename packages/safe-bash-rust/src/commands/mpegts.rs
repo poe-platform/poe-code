@@ -313,7 +313,7 @@ pub(super) fn as_mp4(
             width: w,
             height: h,
             volume: if s.kind == "audio" { 256 } else { 0 },
-            enabled: true,
+            enabled: true, field_order: None,
             language: 0x55c4,
             matrix: MATRIX,
         });
@@ -325,6 +325,7 @@ pub(super) fn as_mp4(
         &Default::default(),
         &[],
         false,
+        true,
         limit,
     )?;
     let descriptions = streams

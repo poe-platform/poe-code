@@ -1,4 +1,7 @@
 // H.264 sequence parameters use MSB-first bits and unsigned/signed Exp-Golomb codes.
+#[path = "h264_concat.rs"]
+pub(super) mod concat;
+
 struct Bits<'a, const PAD: bool> {
     bytes: &'a [u8],
     at: usize,
@@ -48,12 +51,13 @@ pub(super) struct Sequence {
     pub height: u32,
     pub sar: (u32, u32),
     pub fps: Option<f64>,
+    pub reorder: Option<usize>,
     pub pix_fmt: &'static str,
     pub profile: String,
     id: u32,
     frame_num: u32,
     poc: Option<u32>,
-    frame_only: bool,
+    pub(super) frame_only: bool,
     mb_width: u64,
     mb_height: u64,
     crop_left: u32,
@@ -211,7 +215,28 @@ impl Sequence {
             }
             let units = b.read(32)?;
             let scale = b.read(32)?;
+            b.read(1)?;
             (units != 0 && scale != 0).then(|| f64::from(scale) / (2. * f64::from(units)))
+        })();
+        let reorder = (|| {
+            if !vui { return None; }
+            let mut hrd = false;
+            for _ in 0..2 {
+                if b.read(1)? == 0 { continue; }
+                hrd = true;
+                let count = b.ue()?;
+                if count > 31 { return None; }
+                b.read(8)?;
+                for _ in 0..=count { b.ue()?; b.ue()?; b.read(1)?; }
+                b.read(20)?;
+            }
+            if hrd { b.read(1)?; }
+            b.read(1)?;
+            if b.read(1)? == 0 { return None; }
+            b.read(1)?;
+            for _ in 0..4 { b.ue()?; }
+            let count = b.ue()? as usize;
+            (count <= 16).then_some(count)
         })();
         let pix_fmt = match (chroma, depth > 0) {
             (0, _) => "gray",
@@ -238,6 +263,7 @@ impl Sequence {
             height,
             sar,
             fps,
+            reorder,
             pix_fmt,
             profile,
             id,
@@ -750,6 +776,43 @@ fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
     let (&n, mut rest) = bytes.split_first().unwrap_or((&0, &[]));
     (sps, take(&mut rest, usize::from(n)))
 }
+// H.264 parsing can override a container's sync flag. Recovery-point SEI
+// permits an open-GOP entry even when its first slice is not an IDR.
+pub(super) fn keyframe(mut data: &[u8], length: usize) -> Option<bool> {
+    let mut recovery = false;
+    while !data.is_empty() {
+        let (prefix, rest) = data.split_at_checked(length)?;
+        let size = prefix.iter().fold(0usize, |n,&b| n << 8 | usize::from(b));
+        let (nal, rest) = rest.split_at_checked(size)?;
+        data = rest;
+        let kind = *nal.first()? & 31;
+        if kind == 5 { return Some(true); }
+        if kind == 1 { return Some(recovery); }
+        if kind != 6 { continue; }
+        let mut zeros = 0;
+        let mut bytes = nal[1..].iter().copied().filter(move |&b| {
+            if zeros == 2 && b == 3 { zeros = 0; return false; }
+            zeros = if b == 0 { (zeros + 1).min(2) } else { 0 };
+            true
+        }).peekable();
+        while let Some(&first) = bytes.peek() {
+            if first == 128 && bytes.clone().nth(1).is_none() { break; }
+            let mut fields = [0usize; 2];
+            for field in &mut fields {
+                loop {
+                    let b = bytes.next()?;
+                    *field = field.checked_add(usize::from(b))?;
+                    if b != 255 { break; }
+                }
+            }
+            let [kind, size] = fields;
+            if size > 0 { bytes.nth(size - 1)?; }
+            if kind == 6 && size > 0 { recovery = true; break; }
+        }
+    }
+    None
+}
+
 pub(super) struct AnnexB<'a> {
     length: usize,
     sets: Vec<&'a [u8]>,

@@ -23,7 +23,9 @@ struct Diagnostic {
 
 impl JqInputs<'_> {
     pub fn publish_staged(&mut self, fd: u32, text: &mut String) -> bool {
-        if let Some(publish) = &mut self.publish && !text.is_empty() {
+        if let Some(publish) = &mut self.publish
+            && !text.is_empty()
+        {
             let ok = publish(fd, text);
             text.clear();
             return ok;
@@ -34,16 +36,27 @@ impl JqInputs<'_> {
     pub fn report(&mut self, error: &str, null_input: bool) -> Result<(), std::fmt::Error> {
         let mut text = String::from("jq: error (at ");
         let mut pending = None;
-        if let Some(v) = &mut self.reader && let Some(name) = &v.bytes.name {
+        if let Some(v) = &mut self.reader
+            && let Some(name) = &v.bytes.name
+        {
             text.push_str(&diagnostic(name, usize::MAX));
             let b = &mut v.bytes;
             text.push(':');
             let start = text.len();
-            let newline = if b.at == 0 { b.more_newlines == Some(true) }
-                else { b.chunk[b.at - 1] != b'\n' && b.segment_newline };
+            let newline = if b.at == 0 {
+                b.more_newlines == Some(true)
+            } else {
+                b.chunk[b.at - 1] != b'\n' && b.segment_newline
+            };
             let line = b.line + usize::from(newline);
             write!(text, "{line}")?;
-            if !null_input && !v.raw && !v.eof && !newline && b.at != 0 && b.chunk[b.at - 1] != b'\n' {
+            if !null_input
+                && !v.raw
+                && !v.eof
+                && !newline
+                && b.at != 0
+                && b.chunk[b.at - 1] != b'\n'
+            {
                 let observed = b.pending_line.get_or_insert_with(Rc::default).clone();
                 pending = Some((start..text.len(), observed));
             }
@@ -51,22 +64,40 @@ impl JqInputs<'_> {
             text.push_str("<unknown>");
         }
         writeln!(text, "): {}", diagnostic(error, 1000))?;
-        self.remaining_output = self.remaining_output.checked_sub(text.len()).ok_or(std::fmt::Error)?;
-        self.errors.push_back(Diagnostic { text, line: pending });
+        self.remaining_output = self
+            .remaining_output
+            .checked_sub(text.len())
+            .ok_or(std::fmt::Error)?;
+        self.errors.push_back(Diagnostic {
+            text,
+            line: pending,
+        });
         Ok(())
     }
 
-    pub fn flush_errors(&mut self, stderr: &mut String, force: bool) -> Result<(), std::fmt::Error> {
+    pub fn flush_errors(
+        &mut self,
+        stderr: &mut String,
+        force: bool,
+    ) -> Result<(), std::fmt::Error> {
         while let Some(error) = self.errors.front() {
-            if let Some((range, observed)) = &error.line && let Some(n) = observed.get() {
+            if let Some((range, observed)) = &error.line
+                && let Some(n) = observed.get()
+            {
                 let old = stderr.len();
                 stderr.push_str(&error.text[..range.start]);
                 write!(stderr, "{n}")?;
                 stderr.push_str(&error.text[range.end..]);
                 let extra = stderr.len() - old - error.text.len();
-                self.remaining_output = self.remaining_output.checked_sub(extra).ok_or(std::fmt::Error)?;
-            } else if !force && error.line.is_some() { break; }
-            else { stderr.push_str(&error.text); }
+                self.remaining_output = self
+                    .remaining_output
+                    .checked_sub(extra)
+                    .ok_or(std::fmt::Error)?;
+            } else if !force && error.line.is_some() {
+                break;
+            } else {
+                stderr.push_str(&error.text);
+            }
             self.errors.pop_front();
         }
         Ok(())
@@ -76,7 +107,11 @@ impl JqInputs<'_> {
         let Some(values) = &mut self.reader else {
             return Ok(None);
         };
-        let mut result = values.pull(&mut self.warnings, &mut self.remaining_output, &mut self.publish);
+        let mut result = values.pull(
+            &mut self.warnings,
+            &mut self.remaining_output,
+            &mut self.publish,
+        );
         if result.is_err() {
             values.done = true;
         }
@@ -94,16 +129,28 @@ impl JqInputs<'_> {
                 _ => None,
             };
             if let Some(description) = description {
-                let warning = format!("jq: error: Could not open file {}: {description}\n", diagnostic(name, usize::MAX));
+                let warning = format!(
+                    "jq: error: Could not open file {}: {description}\n",
+                    diagnostic(name, usize::MAX)
+                );
                 let fs = values.bytes.fs;
-                self.remaining_output = self.remaining_output.checked_sub(warning.len())
-                    .ok_or_else(|| (5, fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes)))?;
+                self.remaining_output = self
+                    .remaining_output
+                    .checked_sub(warning.len())
+                    .ok_or_else(|| {
+                        (
+                            5,
+                            fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes),
+                        )
+                    })?;
                 self.warnings.push_str(&warning);
                 self.file_input_failed = true;
                 if let Some(publish) = &mut self.publish {
                     let ok = publish(2, &self.warnings);
                     self.warnings.clear();
-                    if !ok { return Err((2, String::new())); }
+                    if !ok {
+                        return Err((2, String::new()));
+                    }
                 }
                 // jq's input source reports an open failure, then XML sees an empty document.
                 result = Err((1, "Invalid XML: incomplete document".into()));
@@ -131,6 +178,7 @@ struct Bytes<'a> {
     remaining: usize,
     single_chunk: bool,
     raw: bool,
+    file_input_failed: bool,
     stdin: Source<'a>,
     cwd: &'a str,
     fs: &'a dyn SafeBashFs,
@@ -147,11 +195,22 @@ struct Bytes<'a> {
 }
 
 // A raw value may join file tails, but each file decodes its own bytes.
-fn input_file<'a>(fs: &'a dyn SafeBashFs, path: String, shell_text: bool, raw: bool) -> Result<ChunkReader<'a>, String> {
-    let opened = fs.access_path(&path, true).and_then(|entry| fs.open_chunks(&entry));
+fn input_file<'a>(
+    fs: &'a dyn SafeBashFs,
+    path: String,
+    shell_text: bool,
+    raw: bool,
+) -> Result<ChunkReader<'a>, String> {
+    let opened = fs
+        .access_path(&path, true)
+        .and_then(|entry| fs.open_chunks(&entry));
     let read_error = move |e| {
         let e = super::super::coreutils::stream_file_error(e, "readStream", &path);
-        if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }
+        if shell_text {
+            crate::vfs::host_text(&e).into_owned()
+        } else {
+            e
+        }
     };
     let mut next = opened.map_err(&read_error)?;
     let next: ChunkReader = Box::new(move |chunk| next(chunk).map_err(&read_error));
@@ -170,15 +229,22 @@ fn raw_lines<'a>(mut next: ChunkReader<'a>, fs: &'a dyn SafeBashFs) -> ChunkRead
             if at == chunk.len() {
                 next(&mut chunk)?;
                 at = 0;
-                if chunk.is_empty() { eof = true; break; }
+                if chunk.is_empty() {
+                    eof = true;
+                    break;
+                }
             }
             let rest = &chunk[at..];
             let newline = rest.iter().position(|b| *b == b'\n');
             let count = newline.map_or(rest.len(), |n| n + 1);
-            if count > limit.saturating_sub(line.len()) { return Err(fs.limit_error("maxMemoryBytes", limit)); }
+            if count > limit.saturating_sub(line.len()) {
+                return Err(fs.limit_error("maxMemoryBytes", limit));
+            }
             line.extend_from_slice(&rest[..count]);
             at += count;
-            if newline.is_some() { break; }
+            if newline.is_some() {
+                break;
+            }
         }
         Ok(())
     })
@@ -192,7 +258,11 @@ impl Bytes<'_> {
             let newline = self.chunk[self.at..end].iter().position(|&c| c == b'\n');
             self.segment_end = newline.map_or(end, |n| self.at + n + 1);
             self.segment_newline = newline.is_some();
-            if self.segment_newline && let Some(line) = self.pending_line.take() { line.set(Some(self.line + 1)); }
+            if self.segment_newline
+                && let Some(line) = self.pending_line.take()
+            {
+                line.set(Some(self.line + 1));
+            }
         }
         self.at += 1;
         if b == b'\n' {
@@ -201,15 +271,26 @@ impl Bytes<'_> {
         }
     }
     fn has_newline(&mut self) -> bool {
-        *self.more_newlines.get_or_insert_with(|| self.chunk[self.at..].contains(&b'\n'))
+        *self
+            .more_newlines
+            .get_or_insert_with(|| self.chunk[self.at..].contains(&b'\n'))
     }
 
-    fn next_json_byte(&mut self) -> Result<Option<u8>, (i32, String)> {
+    fn next_json_byte(
+        &mut self,
+        warnings: &mut String,
+        remaining: &mut usize,
+        publish: &mut Option<Box<Publisher<'_>>>,
+    ) -> Result<Option<u8>, (i32, String)> {
         if let Some(prefix) = &mut self.nul_prefix {
-            if let Some(b) = prefix.next() { return Ok(Some(b)); }
+            if let Some(b) = prefix.next() {
+                return Ok(Some(b));
+            }
             self.nul_prefix = None;
         }
-        let Some(b) = self.peek()? else { return Ok(None); };
+        let Some(b) = self.peek(warnings, remaining, publish)? else {
+            return Ok(None);
+        };
         if b == 0 && !self.has_newline() {
             // jq ignores an unterminated NUL suffix. Later operands may
             // terminate it, so only retain the prefix that might need replay.
@@ -218,15 +299,25 @@ impl Bytes<'_> {
             loop {
                 let rest = &self.chunk[self.at..];
                 self.at = self.chunk.len();
-                if self.files.len() == 0 && self.reader.is_none() { return Ok(None); }
-                if let Some(saved) = &mut prefix {
-                    if rest.len() <= limit.saturating_sub(saved.len()) { saved.extend_from_slice(rest); }
-                    else if self.reader.is_some() { return Err((5, self.fs.limit_error("maxMemoryBytes", limit))); }
-                    else { prefix = None; }
+                if self.files.len() == 0 && self.reader.is_none() {
+                    return Ok(None);
                 }
-                if self.peek()?.is_none() { return Ok(None); }
+                if let Some(saved) = &mut prefix {
+                    if rest.len() <= limit.saturating_sub(saved.len()) {
+                        saved.extend_from_slice(rest);
+                    } else if self.reader.is_some() {
+                        return Err((5, self.fs.limit_error("maxMemoryBytes", limit)));
+                    } else {
+                        prefix = None;
+                    }
+                }
+                if self.peek(warnings, remaining, publish)?.is_none() {
+                    return Ok(None);
+                }
                 if self.has_newline() {
-                    let mut saved = prefix.ok_or_else(|| (5, self.fs.limit_error("maxMemoryBytes", limit)))?.into_iter();
+                    let mut saved = prefix
+                        .ok_or_else(|| (5, self.fs.limit_error("maxMemoryBytes", limit)))?
+                        .into_iter();
                     let first = saved.next();
                     self.nul_prefix = Some(saved);
                     return Ok(first);
@@ -237,7 +328,12 @@ impl Bytes<'_> {
         Ok(Some(b))
     }
 
-    fn peek(&mut self) -> Result<Option<u8>, (i32, String)> {
+    fn peek(
+        &mut self,
+        warnings: &mut String,
+        remaining: &mut usize,
+        publish: &mut Option<Box<Publisher<'_>>>,
+    ) -> Result<Option<u8>, (i32, String)> {
         while self.at == self.chunk.len() {
             if let Some(next) = &mut self.reader {
                 next(self.chunk.to_mut()).map_err(|e| (2, e))?;
@@ -245,21 +341,30 @@ impl Bytes<'_> {
                 self.more_newlines = None;
                 self.segment_end = 0;
                 self.segment_newline = false;
-                if !self.chunk.is_empty() { break; }
+                if !self.chunk.is_empty() {
+                    break;
+                }
                 self.reader = None;
                 self.pending_line = None;
             }
             let Some(path) = self.files.next() else {
                 return Ok(None);
             };
-            if self.raw && path == "-" && matches!(self.stdin, Source::Xml(None) | Source::Stream(None)) {
+            if self.raw
+                && path == "-"
+                && matches!(self.stdin, Source::Xml(None) | Source::Stream(None))
+            {
                 continue;
             }
             let shell_text = !matches!(self.stdin, Source::Json(_));
             self.name = Some(if path == "-" {
                 "<stdin>".into()
             } else {
-                if shell_text { crate::vfs::host_text(&path).into_owned() } else { path.clone() }
+                if shell_text {
+                    crate::vfs::host_text(&path).into_owned()
+                } else {
+                    path.clone()
+                }
             });
             self.at = 0;
             self.line = 0;
@@ -269,36 +374,121 @@ impl Bytes<'_> {
             self.chunk = Cow::Borrowed(&[]);
             self.chunk = match &mut self.stdin {
                 Source::Xml(input) => {
-                    let full = (path != "-").then(|| crate::vfs::path::absolute_operand(self.cwd, &path));
+                    let full =
+                        (path != "-").then(|| crate::vfs::path::absolute_operand(self.cwd, &path));
                     let parser = super::xml::Parser::new(Some("UTF-8"), None, true);
-                    let dom = super::read_xml_operand(self.fs, full.as_deref().map(|p| (p, usize::MAX)), input, &mut self.remaining, parser)
-                        .map_err(|(code, msg)| if code == 2 { (code, crate::vfs::host_text(&msg).into_owned()) } else { (code,msg) })?;
+                    let mut sink_failed = false;
+                    let parsed = super::read_xml_operand(
+                        self.fs,
+                        full.as_deref().map(|p| (p, usize::MAX)),
+                        input,
+                        &mut self.remaining,
+                        parser,
+                        |error| {
+                            let Some((code, reason)) = error.split_once(": ") else {
+                                return Err(error);
+                            };
+                            if code == "EPIPE"
+                                || !code.starts_with('E')
+                                || !code.bytes().all(|b| b.is_ascii_uppercase())
+                            {
+                                return Err(error);
+                            }
+                            self.file_input_failed = true;
+                            let reason = if code == "ELOOP" {
+                                "too many symbolic links encountered"
+                            } else {
+                                reason.split_once(", ").map_or(reason, |(reason, _)| reason)
+                            };
+                            let mut chars = reason.chars();
+                            let first = chars
+                                .next()
+                                .map_or_else(String::new, |c| c.to_uppercase().collect());
+                            let mut sink = super::json_format::LimitedText {
+                                text: warnings,
+                                remaining,
+                            };
+                            writeln!(
+                                sink,
+                                "jq: error: Could not open file {}: {first}{}",
+                                diagnostic(&crate::vfs::host_text(&path), usize::MAX),
+                                chars.as_str()
+                            )
+                            .map_err(|_| {
+                                self.fs.limit_error(
+                                    "maxOutputBytes",
+                                    self.fs.shell_limits().max_output_bytes,
+                                )
+                            })?;
+                            if let Some(write) = publish {
+                                sink_failed = !write(2, warnings);
+                                warnings.clear();
+                                if sink_failed {
+                                    return Err(String::new());
+                                }
+                            }
+                            Ok(())
+                        },
+                    );
+                    if sink_failed {
+                        return Err((2, String::new()));
+                    }
+                    let dom = parsed.map_err(|(code, msg)| {
+                        if code == 2 {
+                            (code, crate::vfs::host_text(&msg).into_owned())
+                        } else {
+                            (code, msg)
+                        }
+                    })?;
                     let mut json = super::xml::to_json(&dom.nodes, false);
                     json.push('\n');
                     Cow::Owned(json.into_bytes())
                 }
                 Source::Stream(input) if path == "-" => {
                     if let Some(next) = input.take() {
-                        self.reader = Some(if self.raw { raw_lines(next, self.fs) } else { next });
+                        self.reader = Some(if self.raw {
+                            raw_lines(next, self.fs)
+                        } else {
+                            next
+                        });
                     }
                     continue;
                 }
-                Source::Json(input) if path == "-" => Cow::Borrowed(input.take().unwrap_or_default().as_bytes()),
+                Source::Json(input) if path == "-" => {
+                    Cow::Borrowed(input.take().unwrap_or_default().as_bytes())
+                }
                 Source::ShellJson(input) if path == "-" => {
                     let text = input.take().unwrap_or_default();
-                    if text.contains(crate::vfs::is_stream_byte) { Cow::Owned(crate::vfs::stream_string_to_bytes(text)) }
-                    else { Cow::Borrowed(text.as_bytes()) }
+                    if text.contains(crate::vfs::is_stream_byte) {
+                        Cow::Owned(crate::vfs::stream_string_to_bytes(text))
+                    } else {
+                        Cow::Borrowed(text.as_bytes())
+                    }
                 }
                 Source::Json(_) | Source::ShellJson(_) | Source::Stream(_) => {
                     let full = crate::vfs::path::absolute_operand(self.cwd, &path);
-                    if self.single_chunk && self.fs.supplies_single_chunk_input() && full != "/dev" && !full.starts_with("/dev/") {
+                    if self.single_chunk
+                        && self.fs.supplies_single_chunk_input()
+                        && full != "/dev"
+                        && !full.starts_with("/dev/")
+                    {
                         let bytes = self.fs.read_single_chunk_input(&full, None).map_err(|e| {
-                            let e = super::super::coreutils::stream_file_error(e, "readStream", &full);
-                            (2, if shell_text { crate::vfs::host_text(&e).into_owned() } else { e })
+                            let e =
+                                super::super::coreutils::stream_file_error(e, "readStream", &full);
+                            (
+                                2,
+                                if shell_text {
+                                    crate::vfs::host_text(&e).into_owned()
+                                } else {
+                                    e
+                                },
+                            )
                         })?;
                         Cow::Owned(bytes)
                     } else {
-                        self.reader = Some(input_file(self.fs, full, shell_text, self.raw).map_err(|e| (2, e))?);
+                        self.reader = Some(
+                            input_file(self.fs, full, shell_text, self.raw).map_err(|e| (2, e))?,
+                        );
                         continue;
                     }
                 }
@@ -325,34 +515,54 @@ struct Values<'a> {
 }
 
 impl Values<'_> {
-    fn value(&mut self, warnings: &mut String, remaining: &mut usize, publish: &mut Option<Box<Publisher<'_>>>) -> Result<Option<JVal>, (i32, String)> {
+    fn value(
+        &mut self,
+        warnings: &mut String,
+        remaining: &mut usize,
+        publish: &mut Option<Box<Publisher<'_>>>,
+    ) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
             let mut line = String::new();
             let limit = self.bytes.fs.shell_limits().max_memory_bytes;
-            while self.bytes.peek()?.is_some() {
+            while self.bytes.peek(warnings, remaining, publish)?.is_some() {
                 let b = &mut self.bytes;
                 let rest = &b.chunk[b.at..];
-                let newline = if b.reader.is_some() { rest.ends_with(b"\n").then(|| rest.len() - 1) }
-                    else { rest.iter().position(|&byte| byte == b'\n') };
+                let newline = if b.reader.is_some() {
+                    rest.ends_with(b"\n").then(|| rest.len() - 1)
+                } else {
+                    rest.iter().position(|&byte| byte == b'\n')
+                };
                 let end = newline.map_or(rest.len(), |n| n + usize::from(self.slurp));
                 let mut text = &rest[..end];
                 // The raw reader decodes each line or file tail in 64 KiB
                 // blocks, carrying a possible code point into the next block.
                 while text.len() > 65536 {
                     let mut lead = 65536;
-                    while lead > 65533 && text[lead] & 0xc0 == 0x80 { lead -= 1; }
-                    let n = if lead + super::jq_json::utf8_width(text[lead]) > 65536 { lead } else { 65536 };
+                    while lead > 65533 && text[lead] & 0xc0 == 0x80 {
+                        lead -= 1;
+                    }
+                    let n = if lead + super::jq_json::utf8_width(text[lead]) > 65536 {
+                        lead
+                    } else {
+                        65536
+                    };
                     super::jq_json::push_utf8(&mut line, &text[..n]);
-                    if line.len() > limit { return Err((5, b.fs.limit_error("maxMemoryBytes", limit))); }
+                    if line.len() > limit {
+                        return Err((5, b.fs.limit_error("maxMemoryBytes", limit)));
+                    }
                     text = &text[n..];
                 }
                 super::jq_json::push_utf8(&mut line, text);
-                if line.len() > limit { return Err((5, b.fs.limit_error("maxMemoryBytes", limit))); }
+                if line.len() > limit {
+                    return Err((5, b.fs.limit_error("maxMemoryBytes", limit)));
+                }
                 b.at += newline.map_or(rest.len(), |n| n + 1);
                 if newline.is_some() {
                     b.line += 1;
                     b.more_newlines = None;
-                    if !self.slurp { break; }
+                    if !self.slurp {
+                        break;
+                    }
                 }
             }
             return Ok(Some(JVal::Str(line)));
@@ -365,7 +575,7 @@ impl Values<'_> {
             if self.eof {
                 return Ok(None);
             }
-            let byte = self.bytes.next_json_byte()?;
+            let byte = self.bytes.next_json_byte(warnings, remaining, publish)?;
             let separator = self.sequence && byte == Some(0x1e);
             if let Some(b) = byte {
                 if b == b'\n' {
@@ -403,17 +613,34 @@ impl Values<'_> {
                             JVal::Array(self.parser.path()),
                         ]));
                     } else if self.sequence {
-                        let suffix = if separator || self.eof { "" } else { " (need RS to resync)" };
+                        let suffix = if separator || self.eof {
+                            ""
+                        } else {
+                            " (need RS to resync)"
+                        };
                         use std::fmt::Write;
-                        let mut sink = super::json_format::LimitedText { text: warnings, remaining };
-                        writeln!(sink, "jq: ignoring parse error: {message}{suffix}").map_err(|_| {
-                            let fs = self.bytes.fs;
-                            (5, fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes))
-                        })?;
+                        let mut sink = super::json_format::LimitedText {
+                            text: warnings,
+                            remaining,
+                        };
+                        writeln!(sink, "jq: ignoring parse error: {message}{suffix}").map_err(
+                            |_| {
+                                let fs = self.bytes.fs;
+                                (
+                                    5,
+                                    fs.limit_error(
+                                        "maxOutputBytes",
+                                        fs.shell_limits().max_output_bytes,
+                                    ),
+                                )
+                            },
+                        )?;
                         if let Some(write) = publish {
                             let ok = write(2, warnings);
                             warnings.clear();
-                            if !ok { return Err((2, String::new())); }
+                            if !ok {
+                                return Err((2, String::new()));
+                            }
                         }
                     } else {
                         return Err((5, format!("parse error: {message}")));
@@ -432,7 +659,12 @@ impl Values<'_> {
             }
         }
     }
-    fn pull(&mut self, warnings: &mut String, remaining: &mut usize, publish: &mut Option<Box<Publisher<'_>>>) -> Result<Option<JVal>, (i32, String)> {
+    fn pull(
+        &mut self,
+        warnings: &mut String,
+        remaining: &mut usize,
+        publish: &mut Option<Box<Publisher<'_>>>,
+    ) -> Result<Option<JVal>, (i32, String)> {
         if self.done {
             return Ok(None);
         }
@@ -447,7 +679,7 @@ impl Values<'_> {
             }
             return Ok(Some(JVal::Array(all)));
         }
-        if self.raw && self.bytes.peek()?.is_none() {
+        if self.raw && self.bytes.peek(warnings, remaining, publish)?.is_none() {
             return Ok(None);
         }
         self.value(warnings, remaining, publish)
@@ -469,13 +701,20 @@ pub(super) fn files<'a>(
         files.push("-".into());
     }
     // yq consumes the JSON internally before formatting its own output.
-    let remaining_output = if matches!(&stdin, Source::Json(_)) { usize::MAX } else { fs.remaining_output_bytes() };
+    let remaining_output = if matches!(&stdin, Source::Json(_)) {
+        usize::MAX
+    } else {
+        fs.remaining_output_bytes()
+    };
     let values = Values {
         bytes: Bytes {
-            single_chunk: !raw && files.len() == 1 && matches!(stdin, Source::ShellJson(Some(_)) | Source::Stream(Some(_))),
+            single_chunk: !raw
+                && files.len() == 1
+                && matches!(stdin, Source::ShellJson(Some(_)) | Source::Stream(Some(_))),
             files: files.into_iter(),
             remaining: fs.max_input_bytes(),
             raw,
+            file_input_failed: false,
             stdin,
             cwd,
             fs,

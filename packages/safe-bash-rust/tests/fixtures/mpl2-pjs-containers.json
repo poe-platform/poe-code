@@ -1,0 +1,483 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "pjs-None-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "out.mkv"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n/italic\r\n\\\\bold\r\n_underline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "pjs-subrip-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n/italic\r\n\\\\bold\r\n_underline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "pjs-webvtt-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n/italic\r\n\\\\bold\r\n_underline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "pjs-None-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "out.webm"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n/italic\r\n\\\\bold\r\n_underline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "pjs-mov_text-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n/italic\r\n\\\\bold\r\n_underline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "pjs-copy-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "pjs-copy-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "pjs-copy-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "pjs-subrip-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "pjs",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.webm"
+      ],
+      "input": "10,35,\"/italic|\\bold|_underline\"\n40,60,\"Second\"\n70,80,\"End\"\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "mpl2-None-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "out.mkv"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n<i>italic</i>\r\n<b>bold</b>\r\n<u>underline</u>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "mpl2-subrip-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n<i>italic</i>\r\n<b>bold</b>\r\n<u>underline</u>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "mpl2-webvtt-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n<i>italic</i>\r\n<b>bold</b>\r\n<u>underline</u>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "mpl2-None-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "out.webm"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n<i>italic</i>\r\n<b>bold</b>\r\n<u>underline</u>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "mpl2-mov_text-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,500\n<i>italic\r\n</i><b>bold\r\n</b><u>underline</u>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n3\n00:00:07,000 --> 00:00:08,000\nEnd\n\n"
+    },
+    {
+      "name": "mpl2-copy-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "mpl2-copy-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "mpl2-copy-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "mpl2-subrip-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "mpl2",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.webm"
+      ],
+      "input": "[10][35]/italic|\\bold|_underline\n[40][60]Second\n[70][80]End\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    }
+  ]
+}

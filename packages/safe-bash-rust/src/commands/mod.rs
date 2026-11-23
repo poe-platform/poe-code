@@ -1,11 +1,11 @@
+pub mod archive;
+pub mod codecs;
+pub mod coreutils;
 #[path = "../document/mod.rs"]
 pub mod document;
-pub mod codecs;
+pub mod fs;
 mod gh_config;
 pub mod integrations;
-pub mod archive;
-pub mod coreutils;
-pub mod fs;
 pub mod search;
 pub mod structured;
 pub mod text;
@@ -16,15 +16,51 @@ use std::cell::{Cell, RefCell};
 use std::collections::BTreeMap;
 
 fn js_number(value: &str, empty: f64) -> f64 {
-    let s=value.trim();
-    if s.is_empty() {return empty;}
-    for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
-        if s.get(..2).is_some_and(|p|p.eq_ignore_ascii_case(prefix)) {
-            return u64::from_str_radix(&s[2..],radix).map_or(f64::NAN,|v|v as f64);
+    let s = value.trim_matches(|c: char| c == '\u{feff}' || c != '\u{85}' && c.is_whitespace());
+    if s.is_empty() {
+        return empty;
+    }
+    for (prefix, radix) in [("0x", 16u32), ("0o", 8), ("0b", 2)] {
+        if s.get(..2).is_some_and(|p| p.eq_ignore_ascii_case(prefix)) {
+            if s.len() == 2 {
+                return f64::NAN;
+            }
+            // Keep 53 significand bits, the rounding bit and whether any later
+            // bit is set. Accumulating directly in f64 would round repeatedly.
+            let (mut significand, mut bits, mut trailing) = (0u64, 0i32, false);
+            for c in s[2..].chars() {
+                let Some(digit) = c.to_digit(radix) else {
+                    return f64::NAN;
+                };
+                for shift in (0..radix.ilog2()).rev() {
+                    let bit = (digit >> shift) & 1;
+                    if bits == 0 && bit == 0 {
+                        continue;
+                    }
+                    if bits < 54 {
+                        significand = (significand << 1) | u64::from(bit);
+                    } else {
+                        trailing |= bit != 0;
+                    }
+                    // Still validate every digit after the value overflows.
+                    bits = (bits + 1).min(1025);
+                }
+            }
+            if bits <= 53 {
+                return significand as f64;
+            }
+            if bits > 1024 {
+                return f64::INFINITY;
+            }
+            let rounded = (significand >> 1)
+                + u64::from(significand & 1 != 0 && (trailing || significand & 2 != 0));
+            return rounded as f64 * 2.0f64.powi(bits - 53);
         }
     }
     let unsigned = s.strip_prefix(['+', '-']).unwrap_or(s);
-    if unsigned.starts_with(['i', 'I']) && unsigned != "Infinity" { return f64::NAN; }
+    if unsigned.starts_with(['i', 'I']) && unsigned != "Infinity" {
+        return f64::NAN;
+    }
     s.parse().unwrap_or(f64::NAN)
 }
 
@@ -57,7 +93,9 @@ impl FileInputPosition {
     pub(crate) fn consume(&mut self, remaining: usize) {
         let used = self.remaining.saturating_sub(remaining);
         let needed = used.saturating_sub(self.buffered);
-        let pulled = needed.next_multiple_of(65536).min(self.remaining.saturating_sub(self.buffered));
+        let pulled = needed
+            .next_multiple_of(65536)
+            .min(self.remaining.saturating_sub(self.buffered));
         self.offset += pulled;
         self.pulled += pulled;
         self.buffered = (self.buffered + pulled).saturating_sub(used);
@@ -65,7 +103,8 @@ impl FileInputPosition {
     }
 }
 
-pub(crate) type StdinChunks = dyn FnMut(&crate::budget::ExecutionBudget) -> Option<Result<Vec<u8>, String>>;
+pub(crate) type StdinChunks =
+    dyn FnMut(&crate::budget::ExecutionBudget) -> Option<Result<Vec<u8>, String>>;
 
 #[derive(Clone, Copy)]
 pub(crate) enum InputSource<'a> {
@@ -88,7 +127,12 @@ impl FileCommandInput<'_> {
             pos.bounded_reads = true;
             self.position.set(pos);
             if pos.pulled > self.budget.limits.max_input_bytes {
-                return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxInputBytes", self.budget.limits.max_input_bytes)));
+                return Err(self
+                    .budget
+                    .record_exceeded(crate::budget::ShellLimits::limit_error(
+                        "maxInputBytes",
+                        self.budget.limits.max_input_bytes,
+                    )));
             }
         }
         Ok(())
@@ -96,7 +140,9 @@ impl FileCommandInput<'_> {
 
     pub(crate) fn materialize(&self, text: &mut String) -> Result<(), String> {
         let mut pos = self.position.get();
-        if pos.stopped { return Ok(()); }
+        if pos.stopped {
+            return Ok(());
+        }
         let (handle, path) = match self.source {
             InputSource::File(handle, path) if !handle.is_stream() => (handle, path),
             _ => {
@@ -114,9 +160,15 @@ impl FileCommandInput<'_> {
             }
         };
         let revision = handle.revision();
-        if revision.is_some() && revision == pos.revision { return Ok(()); }
+        if revision.is_some() && revision == pos.revision {
+            return Ok(());
+        }
         pos.consume(crate::vfs::stream_byte_len(text));
-        let available = self.budget.limits.max_input_bytes.saturating_sub(pos.pulled);
+        let available = self
+            .budget
+            .limits
+            .max_input_bytes
+            .saturating_sub(pos.pulled);
         self.budget.tick_fs_op()?;
         let tail = handle.read_at(pos.offset, available.saturating_add(1))?;
         if tail.len() > available {
@@ -128,33 +180,52 @@ impl FileCommandInput<'_> {
         Ok(())
     }
 
-    pub(crate) fn read(&self, text: &mut String, mut maximum: usize,
+    pub(crate) fn read(
+        &self,
+        text: &mut String,
+        mut maximum: usize,
         mut consume: impl FnMut(&[u8], bool) -> Result<(bool, usize), String>,
     ) -> Result<(), String> {
         use crate::vfs::{bytes_to_stream_string, stream_byte_len, stream_string_to_bytes};
         let mut pos = self.position.get();
         pos.consume(stream_byte_len(text));
         // Keep bytes already fetched by another reader. Its speculative tail can be reread from the handle.
-        let mut bytes = if pos.buffered == 0 { Vec::new() } else { stream_string_to_bytes(text) };
+        let mut bytes = if pos.buffered == 0 {
+            Vec::new()
+        } else {
+            stream_string_to_bytes(text)
+        };
         bytes.truncate(pos.buffered);
         let mut start = 0;
         let limit = self.budget.limits.max_input_bytes;
         let result = (|| {
             while maximum != 0 {
                 if start == bytes.len() {
-                    if pos.stopped { consume(&[], true)?; break; }
+                    if pos.stopped {
+                        consume(&[], true)?;
+                        break;
+                    }
                     let size = maximum.min(65536);
                     match self.source {
                         InputSource::File(handle, path) => {
                             let available = limit.saturating_sub(pos.pulled);
                             self.budget.tick_fs_op()?;
-                            bytes = handle.read_at(pos.offset, size.min(limit.max(1)).min(available.saturating_add(1))).map_err(|error| {
-                                if handle.is_stream() {
-                                    pos.stopped = true;
-                                    if error.starts_with("EIO:") { return format!("EIO: input/output error, read '{path}'"); }
-                                }
-                                error
-                            })?;
+                            bytes = handle
+                                .read_at(
+                                    pos.offset,
+                                    size.min(limit.max(1)).min(available.saturating_add(1)),
+                                )
+                                .map_err(|error| {
+                                    if handle.is_stream() {
+                                        pos.stopped = true;
+                                        if error.starts_with("EIO:") {
+                                            return format!(
+                                                "EIO: input/output error, read '{path}'"
+                                            );
+                                        }
+                                    }
+                                    error
+                                })?;
                             start = 0;
                             pos.offset += bytes.len();
                             if bytes.len() > available {
@@ -163,7 +234,9 @@ impl FileCommandInput<'_> {
                                 return Err(format!("EFBIG: file too large, read '{path}'"));
                             }
                             pos.pulled += bytes.len();
-                            if bytes.is_empty() && handle.is_stream() { pos.stopped = true; }
+                            if bytes.is_empty() && handle.is_stream() {
+                                pos.stopped = true;
+                            }
                         }
                         InputSource::Chunks(source) => {
                             self.budget.check_cancelled()?;
@@ -175,23 +248,38 @@ impl FileCommandInput<'_> {
                                     pos.pulled = pos.pulled.saturating_add(chunk.len());
                                     if pos.bounded_reads && pos.pulled > limit {
                                         pos.stopped = true;
-                                        return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxInputBytes", limit)));
+                                        return Err(self.budget.record_exceeded(
+                                            crate::budget::ShellLimits::limit_error(
+                                                "maxInputBytes",
+                                                limit,
+                                            ),
+                                        ));
                                     }
-                                    if chunk.is_empty() { continue; }
+                                    if chunk.is_empty() {
+                                        continue;
+                                    }
                                     bytes = chunk;
                                 }
-                                Some(Err(e)) => { pos.stopped = true; return Err(e); }
+                                Some(Err(e)) => {
+                                    pos.stopped = true;
+                                    return Err(e);
+                                }
                                 None => pos.stopped = true,
                             }
                         }
                     }
-                    if bytes.is_empty() { consume(&[], true)?; break; }
+                    if bytes.is_empty() {
+                        consume(&[], true)?;
+                        break;
+                    }
                 }
                 let end = bytes.len().min(start.saturating_add(maximum));
                 let (more, used) = consume(&bytes[start..end], false)?;
                 start += used;
                 maximum -= used;
-                if !more { break; }
+                if !more {
+                    break;
+                }
             }
             Ok(())
         })();
@@ -211,7 +299,9 @@ pub(crate) struct CommandInput<'a> {
 
 impl<'a> CommandInput<'a> {
     fn buffered(self) -> Result<&'a mut String, String> {
-        if let Some(source) = self.file { source.materialize(self.text)?; }
+        if let Some(source) = self.file {
+            source.materialize(self.text)?;
+        }
         Ok(self.text)
     }
 }
@@ -263,7 +353,9 @@ pub(crate) fn with_execution_clock<T>(run: impl FnOnce() -> T) -> (T, u32) {
     impl Drop for Finish {
         fn drop(&mut self) {
             VIRTUAL_CLOCK.with_borrow_mut(|active| {
-                if let Some(caller) = active.caller.take() && caller.caller.is_some() {
+                if let Some(caller) = active.caller.take()
+                    && caller.caller.is_some()
+                {
                     *active = *caller;
                 }
             });
@@ -281,7 +373,9 @@ pub(crate) fn suspend_execution_clock() -> impl Drop {
     struct Resume(Option<Box<VirtualClock>>);
     impl Drop for Resume {
         fn drop(&mut self) {
-            if let Some(clock) = self.0.take() { VirtualClock::enter(clock); }
+            if let Some(clock) = self.0.take() {
+                VirtualClock::enter(clock);
+            }
         }
     }
     Resume(VIRTUAL_CLOCK.with_borrow_mut(|active| {
@@ -467,12 +561,7 @@ const MAX_SAFE_INT_U128: u128 = 9_007_199_254_740_991;
 fn trim_leading_ascii_ws(raw: &str) -> &str {
     let bytes = raw.as_bytes();
     let mut i = 0usize;
-    while i < bytes.len()
-        && matches!(
-            bytes[i],
-            b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c
-        )
-    {
+    while i < bytes.len() && matches!(bytes[i], b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c) {
         i += 1;
     }
     &raw[i..]
@@ -509,7 +598,10 @@ pub fn parse_sleep_interval(raw: &str) -> Result<SleepInterval, SleepParseError>
         return Err(SleepParseError::Invalid);
     }
     let is_hex_no_p = {
-        let r = s.strip_prefix('-').or_else(|| s.strip_prefix('+')).unwrap_or(s);
+        let r = s
+            .strip_prefix('-')
+            .or_else(|| s.strip_prefix('+'))
+            .unwrap_or(s);
         (r.starts_with("0x") || r.starts_with("0X")) && !r.contains('p') && !r.contains('P')
     };
     let (body, multiplier) = if let Some(b) = s.strip_suffix('s') {
@@ -560,9 +652,7 @@ pub fn parse_sleep_interval(raw: &str) -> Result<SleepInterval, SleepParseError>
             Some(es) => parse_signed_i128(es).ok_or(SleepParseError::Invalid)?,
             None => 0i128,
         };
-        let digits: String = format!("{whole}{frac}")
-            .trim_start_matches('0')
-            .to_string();
+        let digits: String = format!("{whole}{frac}").trim_start_matches('0').to_string();
         if digits.is_empty() {
             return Ok(SleepInterval::Millis(0));
         }
@@ -751,7 +841,10 @@ fn parse_timeout_duration_ms(raw: &str) -> Option<f64> {
         return None;
     }
     let lower = after_sign.to_ascii_lowercase();
-    if let Some(rest_inf) = lower.strip_prefix("infinity").or_else(|| lower.strip_prefix("inf")) {
+    if let Some(rest_inf) = lower
+        .strip_prefix("infinity")
+        .or_else(|| lower.strip_prefix("inf"))
+    {
         if neg {
             return None;
         }
@@ -817,7 +910,11 @@ fn parse_timeout_duration_ms(raw: &str) -> Option<f64> {
             return Some(f64::INFINITY);
         }
         let ms = (val * mult).ceil();
-        return Some(if ms.is_finite() { ms.max(1.0) } else { f64::MAX });
+        return Some(if ms.is_finite() {
+            ms.max(1.0)
+        } else {
+            f64::MAX
+        });
     }
 
     let (mant, exp_s) = if let Some((m, e)) = body.split_once('e') {
@@ -860,7 +957,11 @@ fn parse_timeout_duration_ms(raw: &str) -> Option<f64> {
         return Some(f64::INFINITY);
     }
     let ms = (val * mult).ceil();
-    Some(if ms.is_finite() { ms.max(1.0) } else { f64::MAX })
+    Some(if ms.is_finite() {
+        ms.max(1.0)
+    } else {
+        f64::MAX
+    })
 }
 
 pub fn try_run_command<F>(
@@ -875,9 +976,21 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, false, &mut capture_write,
-        |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
-        .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
+    try_run_command_with_input(
+        cmd,
+        args,
+        CommandInput {
+            text: &mut stdin.to_owned(),
+            file: None,
+        },
+        cwd,
+        env,
+        fs,
+        false,
+        &mut capture_write,
+        |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))),
+    )
+    .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
 }
 
 pub(crate) enum ChildIo<'a> {
@@ -887,7 +1000,9 @@ pub(crate) enum ChildIo<'a> {
 
 impl ChildIo<'_> {
     fn captured(self, mut out: BuiltinOutcome) -> BuiltinOutcome {
-        if let Self::Inherit { stderr_before } = self { out.stderr.insert_str(0, stderr_before); }
+        if let Self::Inherit { stderr_before } = self {
+            out.stderr.insert_str(0, stderr_before);
+        }
         out
     }
 }
@@ -915,7 +1030,11 @@ impl CommandFailure {
 type CommandWriter<'a> = dyn FnMut(u32, &str, &mut BuiltinOutcome) -> bool + 'a;
 
 fn capture_write(fd: u32, data: &str, out: &mut BuiltinOutcome) -> bool {
-    if fd == 1 { out.stdout.push_str(data); } else { out.stderr.push_str(data); }
+    if fd == 1 {
+        out.stdout.push_str(data);
+    } else {
+        out.stderr.push_str(data);
+    }
     true
 }
 
@@ -932,76 +1051,228 @@ pub(crate) fn try_run_command_with_input<F>(
     mut exec_sub: F,
 ) -> Result<Option<BuiltinOutcome>, CommandFailure>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
+    F: FnMut(
+        &[String],
+        &mut String,
+        &mut String,
+        &mut BTreeMap<String, String>,
+        ChildIo,
+    ) -> ChildRun,
 {
     let CommandInput { text: stdin, file } = input;
     if cmd == "env" {
-        return Ok(Some(run_env_command(args, stdin, cwd, env, fs, |words, input, cwd, env, stderr_before| {
-            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before }).unwrap_or_else(std::convert::identity)
-        })));
+        return Ok(Some(run_env_command(
+            args,
+            stdin,
+            cwd,
+            env,
+            fs,
+            |words, input, cwd, env, stderr_before| {
+                exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before })
+                    .unwrap_or_else(std::convert::identity)
+            },
+        )));
     }
 
     if cmd == "timeout" {
-        return Ok(Some(run_timeout_command(args, stdin, cwd, env, |words, input, cwd, env| {
-            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before: "" }).unwrap_or_else(std::convert::identity)
-        })));
+        return Ok(Some(run_timeout_command(
+            args,
+            stdin,
+            cwd,
+            env,
+            |words, input, cwd, env| {
+                exec_sub(
+                    words,
+                    input,
+                    cwd,
+                    env,
+                    ChildIo::Inherit { stderr_before: "" },
+                )
+                .unwrap_or_else(std::convert::identity)
+            },
+        )));
     }
 
-    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write)? {
+    if let Some(out) = coreutils::try_run_coreutil_with_input(
+        cmd,
+        args,
+        CommandInput { text: stdin, file },
+        cwd,
+        env,
+        fs,
+        write,
+    )? {
         return Ok(Some(out));
     }
-    if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
+    if let Some(out) =
+        fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs)
+    {
         return Ok(Some(out));
     }
     if matches!(cmd, "awk" | "gawk" | "mawk") {
-        return Ok(Some(text::cmd_awk(args, CommandInput { text: stdin, file }, cwd, env, fs, write)));
+        return Ok(Some(text::cmd_awk(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            env,
+            fs,
+            write,
+        )));
     }
     if matches!(cmd, "jq" | "xq") {
-        return structured::cmd_jq(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);
+        return structured::cmd_jq(
+            cmd,
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            env,
+            fs,
+            write,
+        )
+        .map(Some);
     }
     if cmd == "ssh" {
         return Ok(Some(archive::cmd_ssh(args, fs)));
     }
     if archive::is_compression_command(cmd) {
-        return Ok(Some(archive::cmd_gzip(cmd, args, CommandInput { text: stdin, file }, cwd, fs)));
+        return Ok(Some(archive::cmd_gzip(
+            cmd,
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
     }
     if let Some(algorithm) = archive::checksum_algorithm(cmd) {
-        return Ok(Some(archive::run_checksum(algorithm, args, CommandInput { text: stdin, file }, cwd, fs, write)));
+        return Ok(Some(archive::run_checksum(
+            algorithm,
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+            write,
+        )));
     }
     if matches!(cmd, "base64" | "base32") {
-        return Ok(Some(archive::run_base_cmd(cmd, args, CommandInput { text: stdin, file }, cwd, fs, write)));
+        return Ok(Some(archive::run_base_cmd(
+            cmd,
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+            write,
+        )));
     }
     if cmd == "od" {
-        return Ok(Some(archive::cmd_od(args, CommandInput { text: stdin, file }, cwd, fs, write)));
+        return Ok(Some(archive::cmd_od(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+            write,
+        )));
     }
     if cmd == "xxd" {
-        return Ok(Some(archive::cmd_xxd(args, CommandInput { text: stdin, file }, cwd, env, fs, write)));
+        return Ok(Some(archive::cmd_xxd(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            env,
+            fs,
+            write,
+        )));
     }
     if cmd == "ffmpeg" {
-        return Ok(Some(archive::cmd_ffmpeg(args, CommandInput { text: stdin, file }, cwd, fs)));
+        return Ok(Some(archive::cmd_ffmpeg(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
     }
     if cmd == "ffprobe" {
-        return Ok(Some(archive::cmd_ffprobe(args, CommandInput { text: stdin, file }, cwd, fs)));
+        return Ok(Some(archive::cmd_ffprobe(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
+    }
+    if cmd == "pdfdetach" {
+        return Ok(Some(archive::cmd_pdfdetach(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
+    }
+    if cmd == "rsvg-convert" {
+        return Ok(Some(archive::cmd_rsvg_convert(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
     }
     if cmd == "xmllint" {
-        return Ok(Some(structured::cmd_xmllint(args, CommandInput { text: stdin, file }, cwd, fs)));
+        return Ok(Some(structured::cmd_xmllint(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+        )));
     }
-    if !search::is_known_command(cmd) { return Ok(None); }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write, &mut exec_sub) {
+    if !search::is_known_command(cmd) {
+        return Ok(None);
+    }
+    if let Some(res) = search::try_run_search_command_with_input(
+        cmd,
+        args,
+        CommandInput { text: stdin, file },
+        cwd,
+        env,
+        fs,
+        write,
+        &mut exec_sub,
+    ) {
         return Ok(Some(res));
     }
-    let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
-        exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
-    };
+    let mut exec_with_copy =
+        |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
+            exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture)
+                .unwrap_or_else(std::convert::identity)
+        };
     if cmd == "zip" {
-        return Ok(Some(archive::cmd_zip(args, CommandInput { text:stdin,file }, cwd, fs, seekable_stdout, write, &mut |words| {
-            exec_with_copy(words, "", &mut cwd.clone(), &mut env.clone()).exit_code == 0
-        })));
+        return Ok(Some(archive::cmd_zip(
+            args,
+            CommandInput { text: stdin, file },
+            cwd,
+            fs,
+            seekable_stdout,
+            write,
+            &mut |words| {
+                exec_with_copy(words, "", &mut cwd.clone(), &mut env.clone()).exit_code == 0
+            },
+        )));
     }
-    if let Some(source) = file && let Err(error) = source.materialize(stdin) {
-        return Ok(Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 }));
+    if let Some(source) = file
+        && let Err(error) = source.materialize(stdin)
+    {
+        return Ok(Some(BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{cmd}: {error}\n"),
+            exit_code: 1,
+        }));
     }
-    if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
+    if let Some(res) = integrations::try_run_integration_command(
+        cmd,
+        args,
+        stdin,
+        cwd,
+        env,
+        fs,
+        &mut exec_with_copy,
+    ) {
         return Ok(Some(res));
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {
@@ -1115,9 +1386,7 @@ fn parse_env_options(
                 "split-string" => 'S',
                 "debug" => 'v',
                 _ => {
-                    return Err(EnvError::Usage(format!(
-                        "unrecognized option '{argument}'"
-                    )));
+                    return Err(EnvError::Usage(format!("unrecognized option '{argument}'")));
                 }
             };
             let required = matches!(key, 'a' | 'u' | 'C' | 'S');
@@ -1195,10 +1464,18 @@ fn parse_env_options(
 // BTreeMap has no insertion order. An env child receives the order its parent
 // would print, but only for names which remain exported at the time of use.
 fn exported_env_names(env: &BTreeMap<String, String>) -> Vec<&str> {
-    let exported = env.keys().map(String::as_str).filter(|k| crate::shell::is_exported_scalar(env, k));
-    let Some(order) = env.get("\0env_order") else { return exported.collect() };
+    let exported = env
+        .keys()
+        .map(String::as_str)
+        .filter(|k| crate::shell::is_exported_scalar(env, k));
+    let Some(order) = env.get("\0env_order") else {
+        return exported.collect();
+    };
     let mut remaining: std::collections::BTreeSet<&str> = exported.collect();
-    let mut names: Vec<_> = order.split_terminator('\0').filter_map(|name| remaining.take(name)).collect();
+    let mut names: Vec<_> = order
+        .split_terminator('\0')
+        .filter_map(|name| remaining.take(name))
+        .collect();
     names.extend(remaining);
     names
 }
@@ -1212,7 +1489,13 @@ fn run_env_command<F>(
     mut exec_sub: F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, &str) -> BuiltinOutcome,
+    F: FnMut(
+        &[String],
+        &mut String,
+        &mut String,
+        &mut BTreeMap<String, String>,
+        &str,
+    ) -> BuiltinOutcome,
 {
     if args.first().map(|s| s.as_str()) == Some("--help") {
         return BuiltinOutcome {
@@ -1279,7 +1562,10 @@ where
         }
     }
 
-    let inherited_names: Vec<String> = exported_env_names(&sub_env).into_iter().map(str::to_owned).collect();
+    let inherited_names: Vec<String> = exported_env_names(&sub_env)
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
     let mut added_names: Vec<String> = Vec::new();
     let mut offset = 0usize;
     while offset < parsed.operands.len() && parsed.operands[offset].contains('=') {
@@ -1301,8 +1587,8 @@ where
         if parsed.debug {
             debug_stderr.push_str(&format!("setenv:   {assignment}\n"));
         }
-        let existed = inherited_names.iter().any(|k| k == name)
-            || added_names.iter().any(|k| k == name);
+        let existed =
+            inherited_names.iter().any(|k| k == name) || added_names.iter().any(|k| k == name);
         if !existed {
             added_names.push(name.to_string());
         }
@@ -1379,7 +1665,13 @@ where
             order.push('\0');
         }
         sub_env.insert("\0env_order".to_string(), order);
-        return exec_sub(&parsed.operands[offset..], stdin, &mut exec_cwd, &mut sub_env, &debug_stderr);
+        return exec_sub(
+            &parsed.operands[offset..],
+            stdin,
+            &mut exec_cwd,
+            &mut sub_env,
+            &debug_stderr,
+        );
     }
 
     let sep = if parsed.null_sep { "\0" } else { "\n" };
@@ -1511,7 +1803,11 @@ fn split_env_string(
             break;
         }
         if ch == '\'' && quote != Some('"') {
-            quote = if quote == Some('\'') { None } else { Some('\'') };
+            quote = if quote == Some('\'') {
+                None
+            } else {
+                Some('\'')
+            };
             start(&mut active, work)?;
             i += 1;
             continue;
@@ -1567,7 +1863,9 @@ fn split_env_string(
                 || chars[i + 1] != '{'
                 || !(chars[i + 2].is_ascii_alphabetic() || chars[i + 2] == '_')
             {
-                return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
+                return Err(format!(
+                    "only ${{VARNAME}} expansion is supported, error at: {tail}"
+                ));
             }
             let mut end = i + 3;
             while end < chars.len() && (chars[end].is_ascii_alphanumeric() || chars[end] == '_') {
@@ -1575,7 +1873,9 @@ fn split_env_string(
                 end += 1;
             }
             if end >= chars.len() || chars[end] != '}' {
-                return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
+                return Err(format!(
+                    "only ${{VARNAME}} expansion is supported, error at: {tail}"
+                ));
             }
             let vname: String = chars[i + 2..end].iter().collect();
             if crate::shell::is_exported_scalar(env, &vname)
@@ -1677,7 +1977,11 @@ where
             let Some(ms) = parse_timeout_duration_ms(val) else {
                 return timeout_err("invalid duration");
             };
-            kill_after_ms = if ms > 0.0 && ms.is_finite() { Some(ms) } else { None };
+            kill_after_ms = if ms > 0.0 && ms.is_finite() {
+                Some(ms)
+            } else {
+                None
+            };
             idx += 1;
             continue;
         }
@@ -1688,7 +1992,11 @@ where
             let Some(ms) = parse_timeout_duration_ms(val) else {
                 return timeout_err("invalid duration");
             };
-            kill_after_ms = if ms > 0.0 && ms.is_finite() { Some(ms) } else { None };
+            kill_after_ms = if ms > 0.0 && ms.is_finite() {
+                Some(ms)
+            } else {
+                None
+            };
             idx += 2;
             continue;
         }
@@ -1739,7 +2047,11 @@ where
                     let Some(ms) = parse_timeout_duration_ms(&val) else {
                         return timeout_err("invalid duration");
                     };
-                    kill_after_ms = if ms > 0.0 && ms.is_finite() { Some(ms) } else { None };
+                    kill_after_ms = if ms > 0.0 && ms.is_finite() {
+                        Some(ms)
+                    } else {
+                        None
+                    };
                     break;
                 }
                 _ => {
@@ -1846,6 +2158,52 @@ mod tests {
     use super::*;
 
     #[test]
+    fn js_numbers_match_javascript() {
+        use structured::{JVal, parse_json_stream};
+        let data = parse_json_stream(include_str!("../../tests/fixtures/js-number.json")).unwrap();
+        let JVal::Object(root) = &data[0] else {
+            panic!("fixture object");
+        };
+        let JVal::Array(cases) = &root.iter().find(|(key, _)| key == "cases").unwrap().1 else {
+            panic!("fixture cases");
+        };
+        let mut failures = Vec::new();
+        for case in cases {
+            let JVal::Array(parts) = case else {
+                panic!("fixture case");
+            };
+            let [JVal::Str(input), JVal::Str(expected)] = parts.as_slice() else {
+                panic!("fixture strings");
+            };
+            let value = js_number(input, 0.);
+            let matches = if expected == "NaN" {
+                value.is_nan()
+            } else {
+                value.to_bits() == u64::from_str_radix(expected, 16).unwrap()
+            };
+            if !matches {
+                failures.push(format!(
+                    "{input:?}: {:016x}, expected {expected}",
+                    value.to_bits()
+                ));
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "{} mismatches:\n{}",
+            failures.len(),
+            failures
+                .iter()
+                .take(12)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+        assert_eq!(js_number(" ", 17.), 17.);
+        assert!(js_number("", f64::NAN).is_nan());
+    }
+
+    #[test]
     fn overlapping_host_reads_resume_their_own_virtual_clock() {
         let env = BTreeMap::new();
         let (_, a_ms) = with_execution_clock(|| {
@@ -1895,26 +2253,32 @@ mod tests {
             "1s".to_string(),
             "work".to_string(),
         ];
-        let out = run_timeout_command(&args, &mut String::new(), &mut cwd, &mut env, |sub_words, stdin, sub_cwd, sub_env| {
-            // Inner timeout call
-            let inner_args: Vec<String> = sub_words[1..].to_vec();
-            run_timeout_command(&inner_args, stdin, sub_cwd, sub_env, |_, _, _, env2| {
-                advance_virtual_clock(500.0, env2);
-                if is_timeout_expired() {
-                    BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: String::new(),
-                        exit_code: 0,
+        let out = run_timeout_command(
+            &args,
+            &mut String::new(),
+            &mut cwd,
+            &mut env,
+            |sub_words, stdin, sub_cwd, sub_env| {
+                // Inner timeout call
+                let inner_args: Vec<String> = sub_words[1..].to_vec();
+                run_timeout_command(&inner_args, stdin, sub_cwd, sub_env, |_, _, _, env2| {
+                    advance_virtual_clock(500.0, env2);
+                    if is_timeout_expired() {
+                        BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        }
+                    } else {
+                        BuiltinOutcome {
+                            stdout: "late\n".to_string(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        }
                     }
-                } else {
-                    BuiltinOutcome {
-                        stdout: "late\n".to_string(),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    }
-                }
-            })
-        });
+                })
+            },
+        );
         assert_eq!(out.exit_code, 124);
         assert_eq!(out.stdout, "");
         assert!((virtual_clock_elapsed_ms() - 100.0).abs() < 1e-6);
@@ -1928,14 +2292,20 @@ mod tests {
             "0.05s".to_string(),
             "slow".to_string(),
         ];
-        let out_ps = run_timeout_command(&args_ps, &mut String::new(), &mut cwd, &mut env, |_, _, _, sub_env| {
-            advance_virtual_clock(200.0, sub_env);
-            BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-            }
-        });
+        let out_ps = run_timeout_command(
+            &args_ps,
+            &mut String::new(),
+            &mut cwd,
+            &mut env,
+            |_, _, _, sub_env| {
+                advance_virtual_clock(200.0, sub_env);
+                BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                }
+            },
+        );
         assert_eq!(out_ps.exit_code, 130);
     }
 
@@ -1953,7 +2323,13 @@ mod tests {
         .unwrap();
         assert_eq!(
             tokens,
-            vec!["A=hello_world", "B=two	three", "C=alpha beta", "D=one", "two"]
+            vec![
+                "A=hello_world",
+                "B=two	three",
+                "C=alpha beta",
+                "D=one",
+                "two"
+            ]
         );
 
         let tokens_c = split_env_string(
@@ -1968,8 +2344,8 @@ mod tests {
             split_env_string(r#"BAD="\c""#, &env, &mut EnvSplitWork::default()).unwrap_err();
         assert!(err_c_quote.contains("must not appear in double-quoted -S string"));
 
-        let err_var =
-            split_env_string(r#"X=${BAD:-default}"#, &env, &mut EnvSplitWork::default()).unwrap_err();
+        let err_var = split_env_string(r#"X=${BAD:-default}"#, &env, &mut EnvSplitWork::default())
+            .unwrap_err();
         assert!(err_var.contains("only ${VARNAME} expansion is supported"));
     }
 
@@ -1978,11 +2354,17 @@ mod tests {
         let mut cwd = "/".to_string();
         let mut env = BTreeMap::new();
         let args = vec!["not_a_duration".to_string(), "echo".to_string()];
-        let out = run_timeout_command(&args, &mut String::new(), &mut cwd, &mut env, |_, _, _, _| BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        });
+        let out = run_timeout_command(
+            &args,
+            &mut String::new(),
+            &mut cwd,
+            &mut env,
+            |_, _, _, _| BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        );
         assert_eq!(out.exit_code, 125);
     }
 

@@ -1,6 +1,7 @@
 use super::super::png_pixels::Raster;
 use super::{
-    pdf_office::{LayoutBlock, TextStyle, render_blocks},
+    pdf_office::{LayoutBlock, TextStyle},
+    pdf_document::render_layout as render_blocks,
     pdf_pptx::{archive, document, elements, relationships},
 };
 use crate::commands::structured::xml;
@@ -26,7 +27,14 @@ pub(in super::super) fn render_docx(
     limit: usize,
 ) -> Option<Vec<u8>> {
     let entries = archive(bytes, limit)?;
+    if !entries.contains_key("word/document.xml") {
+        return render_blocks(Vec::new(), title, filter, limit, (612., 792.));
+    }
     let doc = document(&entries, "word/document.xml")?;
+    let source = super::super::office_xml::decode(entries.get("word/document.xml")?).ok()?;
+    let numbering = entries.get("word/numbering.xml")
+        .map(|bytes| super::super::office_xml::decode(bytes)).transpose().ok()?.unwrap_or_default();
+    let mut markers = super::super::office_docx::paragraph_markers(&source, &numbering).ok()?.into_iter();
     let mut heading_styles = std::collections::BTreeSet::from(["title".to_owned(), "subtitle".to_owned()]);
     if let Some(styles) = document(&entries, "word/styles.xml") {
         for style in elements(&styles.nodes, "style") {
@@ -83,11 +91,12 @@ pub(in super::super) fn render_docx(
                             }
                         }
                         text.trim().to_owned()
-                    }).collect()
-                }).collect();
+                    }).collect::<Vec<_>>()
+                }).filter(|row| !row.is_empty()).collect();
                 if !rows.is_empty() {
                     blocks.push(LayoutBlock::Table(rows));
                 }
+                for _ in elements(&paragraph.children, "p") { markers.next(); }
                 continue;
             }
             Some("p") => {},
@@ -109,7 +118,8 @@ pub(in super::super) fn render_docx(
             }
         }
         let first_block = blocks.len();
-        let mut text = String::new();
+        let marker = markers.next().unwrap_or_default();
+        let mut text = if marker.is_empty() { String::new() } else { marker + " " };
         let mut styles = Vec::new();
         let mut pending: Vec<_> = paragraph.children.iter().rev().map(|node| (node, false, false)).collect();
         while let Some((node, mut bold, mut italic)) = pending.pop() {

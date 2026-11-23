@@ -1,0 +1,2105 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "matroska-default-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6f6e65"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6669727374"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c6c617374"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 1000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6f6e65"
+        },
+        {
+          "pts": 2000,
+          "duration": 3000,
+          "data": "312c302c44656661756c742c2c302c302c302c2c"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "322c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-space",
+      "input": "[00:01.00]   space \t\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c73706163652009"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-duplicate",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 2000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "312c302c44656661756c742c2c302c302c302c2c776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 4294967295,
+          "data": "322c302c44656661756c742c2c302c302c302c2c6e657874"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6f6e65"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-cut",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "4",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6f6e65"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-output-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-eof",
+      "input": "[00:01.00]one",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4294967295,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6f6e65"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-default-markup",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "302c302c44656661756c742c2c302c302c302c2c3c623e626f6c643c2f623e2026616d703b205c5c4e205c7b5c5c69315c7d74657874"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "312c302c44656661756c742c2c302c302c302c2c656e64"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    },
+    {
+      "name": "matroska-subrip-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "6f6e65"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "6669727374"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "6c617374"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 1000,
+          "data": "6f6e65"
+        },
+        {
+          "pts": 2000,
+          "duration": 3000,
+          "data": ""
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-space",
+      "input": "[00:01.00]   space \t\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "73706163652009"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-duplicate",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 2000,
+          "data": "776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 4294967295,
+          "data": "6e657874"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "6f6e65"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-cut",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-t",
+        "4",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "6f6e65"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-output-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-ss",
+        "2",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-eof",
+      "input": "[00:01.00]one",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4294967295,
+          "data": "6f6e65"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-subrip-markup",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "subrip",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "3c623e626f6c643c2f623e2026616d703b205c0d0a205c3c693e746578743c2f693e"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "656e64"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "6f6e650a"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "66697273740a"
+        },
+        {
+          "pts": 4000,
+          "duration": 0,
+          "data": "6c6173740a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 1000,
+          "data": "6f6e650a"
+        },
+        {
+          "pts": 2000,
+          "duration": 3000,
+          "data": "0a"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-space",
+      "input": "[00:01.00]   space \t\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "737061636520090a"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-duplicate",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 2000,
+          "data": "776f72640a"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "776f72640a"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "6e6578740a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "6f6e650a"
+        },
+        {
+          "pts": 4000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-cut",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-t",
+        "4",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "6f6e650a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-output-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-ss",
+        "2",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-eof",
+      "input": "[00:01.00]one",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 0,
+          "data": "6f6e6500"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-empty-eof",
+      "input": "[00:01.00]",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 0,
+          "data": "00"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "matroska-copy-markup",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "subrip",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "3c623e626f6c643c2f623e2026616d703b205c4e207b5c69317d746578740a"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "656e640a"
+        }
+      ],
+      "codecId": "S_TEXT/UTF8"
+    },
+    {
+      "name": "webm-default-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "0a0a6f6e65"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "0a0a6669727374"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "0a0a6c617374"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 1000,
+          "data": "0a0a6f6e65"
+        },
+        {
+          "pts": 2000,
+          "duration": 3000,
+          "data": "0a0a"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-space",
+      "input": "[00:01.00]   space \t\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "0a0a73706163652009"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-duplicate",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 2000,
+          "data": "0a0a776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "0a0a776f7264"
+        },
+        {
+          "pts": 3000,
+          "duration": 4294967295,
+          "data": "0a0a6e657874"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 4000,
+          "data": "0a0a6f6e65"
+        },
+        {
+          "pts": 4000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-cut",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "4",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "0a0a6f6e65"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-output-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-eof",
+      "input": "[00:01.00]one",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4294967295,
+          "data": "0a0a6f6e65"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-default-markup",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "webvtt",
+      "packets": [
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "0a0a3c623e626f6c643c2f623e2026616d703b205c0a205c3c693e746578743c2f693e"
+        },
+        {
+          "pts": 5000,
+          "duration": 4294967295,
+          "data": "0a0a656e64"
+        }
+      ],
+      "codecId": "D_WEBVTT/SUBTITLES"
+    },
+    {
+      "name": "webm-copy-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "webm",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-default-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-space",
+      "input": "[00:01.00]   space \t\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-duplicate",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-cut",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "00036f6e65"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-mov_text-output-seek",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-ss",
+        "2",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-eof",
+      "input": "[00:01.00]one",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-mov_text-empty-eof",
+      "input": "[00:01.00]",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 0,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-mov_text-markup",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-copy-basic",
+      "input": "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 234
+    },
+    {
+      "name": "mp4-bounded-negative",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "2",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 5000,
+          "data": "00056669727374"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 4000,
+          "mediaTime": 1000000,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-empty",
+      "input": "[00:01.00]one\n[00:02.00]\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 1000,
+          "data": "00036f6e65"
+        },
+        {
+          "pts": 2000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 2000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-spaces",
+      "input": "[00:01.00]  word \t\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "0006776f72642009"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-duplicate",
+      "input": "[00:01.00][00:03.00]one\n[00:03.00]two\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 2000,
+          "data": "00036f6e65"
+        },
+        {
+          "pts": 3000,
+          "duration": 0,
+          "data": "00036f6e65"
+        },
+        {
+          "pts": 3000,
+          "duration": 0.001,
+          "data": "0000"
+        },
+        {
+          "pts": 3000.001,
+          "duration": 2000,
+          "data": "000374776f"
+        },
+        {
+          "pts": 5000.001,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5001,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-html",
+      "input": "[00:01.00]<b>bold</b>&amp;\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "00103c623e626f6c643c2f623e26616d703b"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-ass",
+      "input": "[00:01.00]{\\i1}text\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 1000,
+          "data": "0000"
+        },
+        {
+          "pts": 1000,
+          "duration": 4000,
+          "data": "00055c74657874000000167374796c00010001000500010210ffffffff"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-seek",
+      "input": "[00:01.00]one\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-t",
+        "2",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 5000,
+          "data": "00036f6e65"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 4000,
+          "mediaTime": 1000000,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "mp4-bounded-output-seek",
+      "input": "[00:01.00]one\n[00:03.00]two\n[00:05.00]last\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "-ss",
+        "2",
+        "-to",
+        "4",
+        "-f",
+        "mp4",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "mov_text",
+      "packets": [
+        {
+          "pts": 0,
+          "duration": 3000,
+          "data": "0000"
+        },
+        {
+          "pts": 3000,
+          "duration": 2000,
+          "data": "000374776f"
+        },
+        {
+          "pts": 5000,
+          "duration": 0,
+          "data": "0000"
+        }
+      ],
+      "edits": [
+        {
+          "segmentDuration": 5000,
+          "mediaTime": 0,
+          "mediaRateInteger": 1,
+          "mediaRateFraction": 0
+        }
+      ]
+    },
+    {
+      "name": "matroska-default-nul",
+      "input": "[00:01.00]\u0000\n[00:03.00]next\n",
+      "args": [
+        "-y",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "matroska",
+        "output"
+      ],
+      "exitCode": 0,
+      "codec": "ass",
+      "packets": [
+        {
+          "pts": 3000,
+          "duration": 4294967295,
+          "data": "302c302c44656661756c742c2c302c302c302c2c6e657874"
+        }
+      ],
+      "codecId": "S_TEXT/ASS"
+    }
+  ],
+  "assHeader": "[Script Info]\r\n; Script generated by FFmpeg/Lavc61.3.100\r\nScriptType: v4.00+\r\nPlayResX: 384\r\nPlayResY: 288\r\nScaledBorderAndShadow: yes\r\nYCbCr Matrix: None\r\n\r\n[V4+ Styles]\r\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\r\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\r\n\r\n[Events]\r\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\r\n"
+}

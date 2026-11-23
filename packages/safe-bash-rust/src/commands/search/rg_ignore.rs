@@ -7,9 +7,15 @@ pub(super) struct Rules {
     pub(super) repository: bool,
 }
 
-pub(super) fn read(fs: &dyn SafeBashFs, path: &str, base: &str, priority: u8) -> Result<IgnoreFile, RuleError> {
+pub(super) fn read(
+    fs: &dyn SafeBashFs,
+    path: &str,
+    base: &str,
+    priority: u8,
+) -> Result<IgnoreFile, RuleError> {
     let bytes = super::rg_auxiliary_bytes(fs, path, priority == 0).map_err(RuleError::Read)?;
-    IgnoreFile::parse(String::from_utf8_lossy(&bytes).lines(), base, priority).map_err(RuleError::Pattern)
+    IgnoreFile::parse(String::from_utf8_lossy(&bytes).lines(), base, priority)
+        .map_err(RuleError::Pattern)
 }
 
 pub(super) struct Local {
@@ -18,15 +24,21 @@ pub(super) struct Local {
 }
 
 impl Rules {
-    pub(super) fn has_explicit(&self) -> bool { !self.files.is_empty() }
+    pub(super) fn has_explicit(&self) -> bool {
+        !self.files.is_empty()
+    }
 
-    pub(super) fn add(&mut self, file: IgnoreFile) { Rc::make_mut(&mut self.files).push(Rc::new(file)); }
+    pub(super) fn add(&mut self, file: IgnoreFile) {
+        Rc::make_mut(&mut self.files).push(Rc::new(file));
+    }
 
     pub(super) fn selected(&self, path: &str, directory: bool) -> Option<bool> {
         let mut selected = None;
         let mut priority = 0;
         for file in self.files.iter() {
-            if file.priority >= priority && let Some(include) = file.include_within(path, directory) {
+            if file.priority >= priority
+                && let Some(include) = file.include_within(path, directory)
+            {
                 selected = Some(include);
                 priority = file.priority;
             }
@@ -34,37 +46,61 @@ impl Rules {
         selected
     }
 
-    pub(super) fn load(&mut self, options: &RgFiles, fs: &dyn SafeBashFs, directory: &str, entries: Option<&[(String, u32)]>,
-        cache: &mut BTreeMap<(String, bool), Local>, errors: &mut Vec<String>) {
-        let local = cache.entry((directory.to_owned(), self.repository)).or_insert_with(|| {
-            let path = |name: &str| format!("{}/{name}", directory.trim_end_matches('/'));
-            let present = |name: &str| entries.map(|names| names.binary_search_by(|s| s.0.as_str().cmp(name)).is_ok())
-                .or_else(|| fs.indexed_directory_entry(&path(name)));
-            let root = present(".git").unwrap_or_else(|| repository_marker(fs, directory));
-            let mut files = Vec::new();
-            if options.respect_ignore {
-                for (priority, name) in [(1, ".gitignore"), (2, ".ignore"), (3, ".rgignore")] {
-                    if (priority == 1 && (options.no_ignore_vcs || options.require_git && !(self.repository || root)))
-                        || (priority != 1 && options.no_ignore_dot) || present(name) == Some(false) { continue; }
-                    match read(fs, &path(name), directory, priority) {
-                        Ok(file) => files.push(Rc::new(file)),
-                        Err(RuleError::Read(e)) if e.starts_with("ENOENT:") => {}
-                        Err(e) => errors.push(e.message()),
+    pub(super) fn load(
+        &mut self,
+        options: &RgFiles,
+        fs: &dyn SafeBashFs,
+        directory: &str,
+        entries: Option<&[(String, u32)]>,
+        cache: &mut BTreeMap<(String, bool), Local>,
+        errors: &mut Vec<String>,
+    ) {
+        let local = cache
+            .entry((directory.to_owned(), self.repository))
+            .or_insert_with(|| {
+                let path = |name: &str| format!("{}/{name}", directory.trim_end_matches('/'));
+                let present = |name: &str| {
+                    entries
+                        .map(|names| names.binary_search_by(|s| s.0.as_str().cmp(name)).is_ok())
+                        .or_else(|| fs.indexed_directory_entry(&path(name)))
+                };
+                let root = present(".git").unwrap_or_else(|| repository_marker(fs, directory));
+                let mut files = Vec::new();
+                if options.respect_ignore {
+                    for (priority, name) in [(1, ".gitignore"), (2, ".ignore"), (3, ".rgignore")] {
+                        if (priority == 1
+                            && (options.no_ignore_vcs
+                                || options.require_git && !(self.repository || root)))
+                            || (priority != 1 && options.no_ignore_dot)
+                            || present(name) == Some(false)
+                        {
+                            continue;
+                        }
+                        match read(fs, &path(name), directory, priority) {
+                            Ok(file) => files.push(Rc::new(file)),
+                            Err(RuleError::Read(e)) if e.starts_with("ENOENT:") => {}
+                            Err(e) => errors.push(e.message()),
+                        }
                     }
                 }
-            }
-            Local { root, files }
-        });
+                Local { root, files }
+            });
         if local.root {
             self.repository = true;
-            if self.files.iter().any(|f| f.priority == 1) { Rc::make_mut(&mut self.files).retain(|f| f.priority != 1); }
+            if self.files.iter().any(|f| f.priority == 1) {
+                Rc::make_mut(&mut self.files).retain(|f| f.priority != 1);
+            }
         }
-        if !local.files.is_empty() { Rc::make_mut(&mut self.files).extend(local.files.iter().cloned()); }
+        if !local.files.is_empty() {
+            Rc::make_mut(&mut self.files).extend(local.files.iter().cloned());
+        }
     }
 }
 
 pub(super) fn repository_marker(fs: &dyn SafeBashFs, directory: &str) -> bool {
     let path = format!("{}/.git", directory.trim_end_matches('/'));
-    if fs.indexed_directory_entry(&path).is_none() && fs.command_descriptor_op().is_err() { return false; }
+    if fs.indexed_directory_entry(&path).is_none() && fs.command_descriptor_op().is_err() {
+        return false;
+    }
     fs.inspect_command_entry(&path, false, "lstat").is_ok()
 }

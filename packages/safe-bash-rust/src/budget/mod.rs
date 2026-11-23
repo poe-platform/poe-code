@@ -1,8 +1,8 @@
 pub mod alloc;
 
 pub use alloc::AllocationGuard;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
 
@@ -32,7 +32,11 @@ impl ShellLimits {
 
     pub(crate) fn check_path(&self, path: &str) -> Result<(), String> {
         if path.len() > self.max_pathname_components
-            && path.split('/').filter(|s| !s.is_empty()).nth(self.max_pathname_components).is_some()
+            && path
+                .split('/')
+                .filter(|s| !s.is_empty())
+                .nth(self.max_pathname_components)
+                .is_some()
         {
             return Err(format!("ENAMETOOLONG: name too long, resolve '{path}'"));
         }
@@ -167,7 +171,12 @@ impl ExecutionBudget {
 
     pub(crate) fn remaining_timeout_ms(&self) -> Option<u64> {
         #[cfg(not(target_arch = "wasm32"))]
-        return self.deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()).as_millis().clamp(1, u64::MAX as u128) as u64);
+        return self.deadline.map(|deadline| {
+            deadline
+                .saturating_duration_since(Instant::now())
+                .as_millis()
+                .clamp(1, u64::MAX as u128) as u64
+        });
         #[cfg(target_arch = "wasm32")]
         None
     }
@@ -243,7 +252,9 @@ impl ExecutionBudget {
     }
 
     pub(crate) fn remaining_output_bytes(&self) -> usize {
-        self.limits.max_output_bytes.saturating_sub(self.output_bytes.load(Ordering::Relaxed))
+        self.limits
+            .max_output_bytes
+            .saturating_sub(self.output_bytes.load(Ordering::Relaxed))
     }
 
     pub(crate) fn refund_file_output(&self, bytes: usize) {
@@ -256,7 +267,10 @@ impl ExecutionBudget {
         }
         let prev = self.output_bytes.fetch_add(bytes, Ordering::Relaxed);
         if prev.saturating_add(bytes) > self.limits.max_output_bytes {
-            return Err(self.record_exceeded(ShellLimits::limit_error("maxOutputBytes", self.limits.max_output_bytes)));
+            return Err(self.record_exceeded(ShellLimits::limit_error(
+                "maxOutputBytes",
+                self.limits.max_output_bytes,
+            )));
         }
         Ok(())
     }
@@ -278,7 +292,9 @@ impl ExecutionBudget {
     }
 
     pub(crate) fn remaining_fs_ops(&self) -> usize {
-        self.limits.max_filesystem_operations.saturating_sub(self.fs_ops.load(Ordering::Relaxed))
+        self.limits
+            .max_filesystem_operations
+            .saturating_sub(self.fs_ops.load(Ordering::Relaxed))
     }
 
     pub(crate) fn charge_fs_ops(&self, count: usize) -> Result<(), String> {
@@ -318,34 +334,64 @@ mod tests {
         let budget_cmd = ExecutionBudget::new(limits.clone(), None);
         budget_cmd.tick_command().unwrap();
         budget_cmd.tick_command().unwrap();
-        assert!(budget_cmd.tick_command().unwrap_err().contains("maxCommands (2)"));
+        assert!(
+            budget_cmd
+                .tick_command()
+                .unwrap_err()
+                .contains("maxCommands (2)")
+        );
 
         let budget_out = ExecutionBudget::new(limits.clone(), None);
         budget_out.record_stdout(6).unwrap();
         budget_out.record_stderr(4).unwrap();
-        assert!(budget_out.record_stdout(1).unwrap_err().contains("maxOutputBytes (10)"));
+        assert!(
+            budget_out
+                .record_stdout(1)
+                .unwrap_err()
+                .contains("maxOutputBytes (10)")
+        );
 
         let budget_rec = ExecutionBudget::new(limits.clone(), None);
         budget_rec.enter_recursion().unwrap();
         budget_rec.enter_recursion().unwrap();
-        assert!(budget_rec.enter_recursion().unwrap_err().contains("maxFunctionDepth (2)"));
+        assert!(
+            budget_rec
+                .enter_recursion()
+                .unwrap_err()
+                .contains("maxFunctionDepth (2)")
+        );
         budget_rec.leave_recursion();
 
         let budget_sub = ExecutionBudget::new(limits.clone(), None);
         budget_sub.enter_substitution().unwrap();
         budget_sub.enter_substitution().unwrap();
-        assert!(budget_sub.enter_substitution().unwrap_err().contains("maxSubstitutionDepth (2)"));
+        assert!(
+            budget_sub
+                .enter_substitution()
+                .unwrap_err()
+                .contains("maxSubstitutionDepth (2)")
+        );
         budget_sub.leave_substitution();
 
         let budget_fs = ExecutionBudget::new(limits.clone(), None);
         budget_fs.tick_fs_op().unwrap();
         budget_fs.tick_fs_op().unwrap();
-        assert!(budget_fs.tick_fs_op().unwrap_err().contains("maxFileSystemOperations (2)"));
+        assert!(
+            budget_fs
+                .tick_fs_op()
+                .unwrap_err()
+                .contains("maxFileSystemOperations (2)")
+        );
 
         let budget_cancel = ExecutionBudget::new(limits, None);
         budget_cancel.cancel_token.cancel();
         assert!(budget_cancel.cancel_token.is_cancelled());
-        assert!(budget_cancel.check_cancelled().unwrap_err().contains("cancelled"));
+        assert!(
+            budget_cancel
+                .check_cancelled()
+                .unwrap_err()
+                .contains("cancelled")
+        );
     }
 
     #[test]

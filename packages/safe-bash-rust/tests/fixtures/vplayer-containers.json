@@ -1,0 +1,242 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "None-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "out.mkv"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subrip-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "copy-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "None-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "out.webm"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "webvtt-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "webvtt",
+        "out.webm"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "copy-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "None-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "out.mp4"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "mov_text-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "copy-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    }
+  ]
+}

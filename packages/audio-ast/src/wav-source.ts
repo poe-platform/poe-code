@@ -58,7 +58,7 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
           await options.onTag!({ ...span, offset: start + span.offset });
         } } : {})
       });
-      Object.assign(tags, id3.tags);
+      Object.defineProperties(tags, Object.getOwnPropertyDescriptors(id3.tags));
     }
     else if (type === "LIST" && size >= 4 && (await read(start, 4)).text(0, 4) === "INFO") {
       for (let pos = start + 4; pos < start + size;) {

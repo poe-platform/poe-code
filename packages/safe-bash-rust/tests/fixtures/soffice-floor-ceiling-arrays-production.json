@@ -1,0 +1,9800 @@
+[
+  {
+    "formula": "FLOOR({-2.5,0,2.5})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},2)",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},-2)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},-2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{-2,0,2})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{-2,0,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(-2.5,{-2,0,2})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR(-2.5,{-2,0,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      },
+      {
+        "kind": "number",
+        "value": -4
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({\"-2.5\",\"0\",\"2.5\"},2)",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "FLOOR({\"-2.5\",\"0\",\"2.5\"},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({TRUE,FALSE,#N/A},2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "FLOOR({TRUE,FALSE,#N/A},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,#N/A,2.5},{2,#DIV/0!,\"text\"})",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "FLOOR({-2.5,#N/A,2.5},{2,#DIV/0!,\"text\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},Z1000)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},Z1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},Z1000:AB1000)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},Z1000:AB1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{\"\",2,2})",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{\"\",2,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{2;2;2})",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{2;2;2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{2,2})",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "FLOOR({-2.5,0,2.5},{2,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(1e308,1e-300*1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "FLOOR(1e308,1e-300*1e-8)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(-1e308,1e-300*1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "FLOOR(-1e308,1e-300*1e-8)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(0,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "FLOOR(0,#N/A)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(0,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "FLOOR(0,\"text\")",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(#N/A,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "FLOOR(#N/A,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "FLOOR(-0.00000000000000000001,2)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "FLOOR(-0.00000000000000000001,2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": -2
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5})",
+    "kind": "number",
+    "value": -3
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -3
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},)",
+    "kind": "number",
+    "value": -3
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -3
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},2)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},-2)",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},-2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{-2,0,2})",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{-2,0,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(-2.5,{-2,0,2})",
+    "kind": "number",
+    "value": -4
+  },
+  {
+    "formula": "CEILING(-2.5,{-2,0,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -4
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": -2
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({\"-2.5\",\"0\",\"2.5\"},2)",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "CEILING({\"-2.5\",\"0\",\"2.5\"},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({TRUE,FALSE,#N/A},2)",
+    "kind": "number",
+    "value": 2
+  },
+  {
+    "formula": "CEILING({TRUE,FALSE,#N/A},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,#N/A,2.5},{2,#DIV/0!,\"text\"})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "CEILING({-2.5,#N/A,2.5},{2,#DIV/0!,\"text\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},Z1000)",
+    "kind": "number",
+    "value": -3
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},Z1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -3
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},Z1000:AB1000)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},Z1000:AB1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{\"\",2,2})",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{\"\",2,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{2;2;2})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{2;2;2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{2,2})",
+    "kind": "number",
+    "value": -2
+  },
+  {
+    "formula": "CEILING({-2.5,0,2.5},{2,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(1e308,1e-300*1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "CEILING(1e308,1e-300*1e-8)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(-1e308,1e-300*1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "CEILING(-1e308,1e-300*1e-8)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(0,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "CEILING(0,#N/A)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(0,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "CEILING(0,\"text\")",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(#N/A,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "CEILING(#N/A,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "CEILING(-0.00000000000000000001,2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "CEILING(-0.00000000000000000001,2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(FALSE()>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(FALSE()>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(FALSE()>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(FALSE()>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(TRUE()<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(TRUE()>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(TRUE()>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(TRUE()>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(0>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(0>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(0=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(0>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(0>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(1<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(1>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(1=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(1>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(1>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\"<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"\">Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\"<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"\">=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\"=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\"<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\"<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\">#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\"<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\"<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"\">=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"\">=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\">FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\">=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\">TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\">=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\">\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\"<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(\"a\"<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(\"a\">=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\"=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\"<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\"<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\">#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\"<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\"<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(\"a\">=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(\"a\">=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>FALSE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=FALSE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=TRUE(),1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=TRUE(),1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>0,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=0,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=1,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=1,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>\"\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=\"\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=\"a\",1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=\"a\",1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>Z1000,1,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "IF(Z1000>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=Z1000,1,0)",
+    "kind": "number",
+    "value": 1
+  },
+  {
+    "formula": "IF(Z1000>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(Z1000>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(Z1000>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=FALSE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=FALSE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=TRUE(),1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=TRUE(),1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=0,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=0,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=1,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=1,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=\"\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=\"\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=\"a\",1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=\"a\",1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=Z1000,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=Z1000,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A<=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A<=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "IF(#N/A>=#N/A,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "IF(#N/A>=#N/A,1,0)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  }
+]

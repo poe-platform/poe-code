@@ -107,7 +107,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
         codingHistory: r.text(start + 602, size - 602)
       };
     } else if (type === "id3 " || type === "ID3 ") {
-      Object.assign(tags, parseId3(node.data).tags);
+      Object.defineProperties(tags, Object.getOwnPropertyDescriptors(parseId3(node.data).tags));
     } else if (type === "LIST" && size >= 4 && r.text(start, 4) === "INFO") {
       node.children = [];
       for (let pos = start + 4; pos < start + size; ) {

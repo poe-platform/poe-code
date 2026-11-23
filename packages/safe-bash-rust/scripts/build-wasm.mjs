@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { adapterBytes } from "../src/stream-adapter.js";
 import { resolveCargoTargetDirectory } from "../../mcp-protocol-rust/scripts/cargo-target.mjs";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { cpSync, copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -65,3 +65,27 @@ for (const license of ["LICENSE.Liberation", "LICENSE.DejaVu", "LICENSE.NotoSans
   copyFileSync(path.join(pkgDir, "../pdf-ast-rust/src/fonts", license), path.join(distDir, license));
 }
 copyFileSync(path.join(pkgDir, "../terminal-png-rust/LICENSE.FONT"), path.join(distDir, "LICENSE.JetBrainsMono"));
+copyFileSync(path.join(pkgDir, "LICENSE.WAVPACK"), path.join(distDir, "LICENSE.WAVPACK"));
+copyFileSync(path.join(pkgDir, "LICENSE.EXR"), path.join(distDir, "LICENSE.EXR"));
+copyFileSync(path.join(pkgDir, "LICENSE.AAC"), path.join(distDir, "LICENSE.AAC"));
+copyFileSync(path.join(pkgDir, "LICENSE.AMR"), path.join(distDir, "LICENSE.AMR"));
+copyFileSync(path.join(pkgDir, "LICENSE.GNUMERIC"), path.join(distDir, "LICENSE.GNUMERIC"));
+copyFileSync(path.join(pkgDir, "LICENSE.GLIB"), path.join(distDir, "LICENSE.GLIB"));
+// LGPL recipients can rebuild and replace the linked Rust library, including
+// its internal path dependencies, without access to this checkout.
+const metadata = spawnSync("cargo", ["metadata", "--format-version", "1", "--locked", "--manifest-path", manifest], {cwd: pkgDir, encoding: "utf8"});
+if (metadata.status !== 0) throw new Error(metadata.stderr || "Cargo source metadata failed");
+const sourceDir = path.join(distDir, "rust-source");
+rmSync(sourceDir, {recursive: true, force: true});
+for (const pkg of JSON.parse(metadata.stdout).packages) {
+  if (pkg.source !== null) throw new Error("Rust source distribution requires internal crates only");
+  const from = path.dirname(pkg.manifest_path);
+  const to = path.join(sourceDir, path.relative(repoRoot, from));
+  mkdirSync(to, {recursive: true});
+  for (const file of ["Cargo.toml", "Cargo.lock", "build.rs", "src", ...readdirSync(from).filter(name => name === "LICENSE" || name.startsWith("LICENSE."))]) {
+    if (existsSync(path.join(from, file))) cpSync(path.join(from, file), path.join(to, file), {recursive: true});
+  }
+}
+const ghDefaults = "packages/safe-bash-command-gh/src/config-defaults.json";
+mkdirSync(path.dirname(path.join(sourceDir, ghDefaults)), {recursive: true});
+copyFileSync(path.join(repoRoot, ghDefaults), path.join(sourceDir, ghDefaults));

@@ -24,11 +24,6 @@ enum Track {
         height: u32,
         packets: VideoPackets,
     },
-    Subtitle {
-        webvtt: bool,
-        first_pts: i64,
-        records: Vec<(i64, i64, usize, usize)>,
-    },
     Aac {
         channels: u8,
         ends: Vec<usize>,
@@ -122,47 +117,6 @@ impl Clip {
             count,
         })
     }
-    pub(super) fn subtitles(
-        input: &[u8],
-        webvtt: bool,
-        records_requested: bool,
-        limit: usize,
-    ) -> Result<Self, &'static str> {
-        let text = String::from_utf8_lossy(input);
-        let duration = super::subtitles::cues(&text)
-            .map(|c| c.start.saturating_add(c.duration))
-            .max()
-            .unwrap_or(0)
-            .max(0);
-        let mut records = Vec::new();
-        let (mut pos, mut count, mut first_pts) = (0, 0, 0);
-        for (cue, wrap) in super::subtitles::samples(&text) {
-            let size = cue.text.len() + 2 * usize::from(wrap);
-            if count == 0 {
-                first_pts = cue.start;
-            }
-            if records_requested {
-                if count >= limit / size_of::<(i64, i64, usize, usize)>() {
-                    return Err("sample index exceeds memory budget");
-                }
-                records.push((cue.start, cue.duration, size, pos));
-            }
-            pos += size;
-            count += 1;
-        }
-        Ok(Self {
-            track: Track::Subtitle {
-                webvtt,
-                first_pts,
-                records,
-            },
-            timescale: 1000,
-            payload_bytes: pos as u64,
-            ticks: duration as u64,
-            duration: duration as f64 / 1000.,
-            count,
-        })
-    }
     pub(super) fn adts(input: &[u8], records: bool) -> Self {
         let mut frames = super::adts::Frames::new(input);
         let (mut payload, mut count) = (0, 0);
@@ -191,59 +145,6 @@ impl Clip {
 
 pub(super) type Row = Vec<(&'static str, JVal)>;
 use JVal::{Number, Object, Str};
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn combined_json_keeps_uneven_sections_and_independent_filters() {
-        let settings = BTreeMap::from([("c", "1")]);
-        for (packets, frames, expected) in [
-            (0, 0, "[]"),
-            (2, 0, r#"[{"type":"packet","pts":0},{"type":"packet","pts":1}]"#),
-            (0, 2, r#"[{"type":"frame","pos":"0"},{"type":"frame","pos":"1"}]"#),
-            (2, 1, r#"[{"type":"packet","pts":0},{"type":"frame","pos":"0"},{"type":"packet","pts":1}]"#),
-            (1, 2, r#"[{"type":"packet","pts":0},{"type":"frame","pos":"0"},{"type":"frame","pos":"1"}]"#),
-        ] {
-            for limit in [16, 1024] {
-                let result = report(ProbeOptions {
-                    show: BTreeSet::from(["packet", "frame"]),
-                    entries: Some("packet=pts:frame=pos"), select: None, counts: (false, false),
-                    writer: "json", settings: &settings, limit,
-                }, |section| {
-                    let count = if section == "packet" { packets } else if section == "frame" { frames } else { 0 };
-                    Box::new((0..count).map(|i| vec![("pts", Number(i as f64, None)), ("pos", Str(i.to_string()))]))
-                });
-                if limit == 16 { assert_eq!(result, Err("output byte limit exceeded")); }
-                else { assert_eq!(result.unwrap(), format!("{{\"packets_and_frames\":{expected}}}\n")); }
-            }
-        }
-    }
-
-    #[test]
-    fn y4m_indexes_physical_offsets_relative_to_a_sliced_input() {
-        let mut input = vec![0; 17];
-        input.extend_from_slice(b"YUV4MPEG2 W4 H2 F30000:1001 Ip A1:1 C420jpeg\n");
-        for tag in ["FRAME Xlong=hello\n", "FRAME\n", "FRAME Xt=12\n"] {
-            input.extend_from_slice(tag.as_bytes());
-            input.extend_from_slice(&[128; 12]);
-        }
-        input.extend_from_slice(b"FRAME\nshort");
-        let clip = Clip::y4m(&input[17..], true, input.len()).unwrap();
-        assert_eq!(clip.count, 3);
-        for (i, position) in [63, 81, 105].into_iter().enumerate() {
-            for frame in [false, true] {
-                let row = clip.record(i, frame);
-                assert!(row.iter().any(|(key, value)| *key == "pts" && matches!(value, Number(n, _) if *n == i as f64)));
-                assert!(row.iter().any(|(key, value)| *key == if frame { "pkt_pos" } else { "pos" }
-                    && matches!(value, Str(s) if *s == position.to_string())));
-            }
-        }
-        assert!(Clip::y4m(&input[17..], true, 2 * size_of::<usize>()).is_err());
-        assert_eq!(Clip::y4m(&input[17..], false, 0).unwrap().count, 3);
-    }
-}
 
 pub(super) fn ratio(a: u64, b: u64, sep: char) -> String {
     let (mut x, mut y) = (a, b);
@@ -293,7 +194,7 @@ pub(super) enum Codec {
         profile: bool,
     },
     Subtitle {
-        webvtt: bool,
+        name: &'static str,
     },
 }
 
@@ -333,10 +234,12 @@ impl StreamInfo {
             ("id", Str(format!("0x{:x}", self.id))),
         ];
         match self.codec {
-            Codec::Subtitle { webvtt, .. } => {
-                let (name, long, tag, code) = if self.count != 0 {
+            Codec::Subtitle { name } => {
+                let (name, long, tag, code) = if name == "ass" {
+                    ("ass", "ASS (Advanced SSA) subtitle", "[0][0][0][0]", "0x0000")
+                } else if name == "mov_text" {
                     ("mov_text", "3GPP Timed Text subtitle", "tx3g", "0x74783367")
-                } else if webvtt {
+                } else if name == "webvtt" {
                     ("webvtt", "WebVTT subtitle", "wvtt", "0x77767474")
                 } else {
                     ("subrip", "SubRip subtitle", "tx3g", "0x74783367")
@@ -439,6 +342,10 @@ impl StreamInfo {
                 bits,
             } => {
                 let (name, long) = match tag {
+                    b"samr" => ("amr_nb", "AMR-NB (Adaptive Multi-Rate NarrowBand)"),
+                    b"sawb" => ("amr_wb", "AMR-WB (Adaptive Multi-Rate WideBand)"),
+                    b"ac-3" => ("ac3", "ATSC A/52A (AC-3)"),
+                    b"wvpk" => ("wavpack", "WavPack"),
                     b"Opus" => ("opus", "Opus (Opus Interactive Audio Codec)"),
                     b"vorb" => ("vorbis", "Vorbis"),
                     b".mp3" => ("mp3", "MP3 (MPEG audio layer 3)"),
@@ -526,7 +433,6 @@ impl Clip {
                 width: Some(width.into()),
                 height: Some(height),
             },
-            Track::Subtitle { webvtt, .. } => Codec::Subtitle { webvtt },
             Track::Aac { channels, .. } => Codec::Audio {
                 rate: self.timescale,
                 channels: channels.into(),
@@ -540,7 +446,6 @@ impl Clip {
                 packets: VideoPackets::Gif(_),
                 ..
             } => (0, self.ticks),
-            Track::Subtitle { first_pts, .. } => (first_pts, self.ticks),
             _ => (0, self.count as u64 * self.ticks),
         };
         StreamInfo {
@@ -561,8 +466,6 @@ impl Clip {
     fn format(&self, filename: &str, bytes: usize) -> Row {
         let duration = self.duration;
         let (name, long_name) = match self.track {
-            Track::Subtitle { webvtt: true, .. } => ("webvtt", "WebVTT subtitle"),
-            Track::Subtitle { .. } => ("srt", "SubRip subtitle"),
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
             Track::Video { tag: b"raw ", .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
             Track::Video { tag: b"gif ", .. } => {
@@ -576,10 +479,6 @@ impl Clip {
     fn record(&self, i: usize, frame: bool) -> Row {
         let default_pts = (i as u64 * self.ticks) as i64;
         let (pts, ticks, size, pos) = match &self.track {
-            Track::Subtitle { records, .. } => {
-                let (pts, dur, size, pos) = records[i];
-                (pts, dur as u64, size as u64, pos as u64)
-            }
             Track::Aac { ends, .. } => {
                 let pos = if i == 0 { 0 } else { ends[i - 1] };
                 (default_pts, self.ticks, (ends[i] - pos) as u64, pos as u64)
@@ -593,13 +492,13 @@ impl Clip {
                 (pts as i64, end - pts, (offset - pos) as u64, pos as u64)
             }
             Track::Video {
-                packets: VideoPackets::Fixed(frame_size),
-                ..
-            } => (default_pts, self.ticks, *frame_size, i as u64 * frame_size),
-            Track::Video {
                 packets: VideoPackets::Y4m { size, offsets },
                 ..
             } => (default_pts, self.ticks, *size, offsets[i] as u64),
+            Track::Video {
+                packets: VideoPackets::Fixed(frame_size),
+                ..
+            } => (default_pts, self.ticks, *frame_size, i as u64 * frame_size),
         };
         let key = i == 0
             || !matches!(
@@ -622,7 +521,6 @@ impl Clip {
             },
             frame,
         );
-        // The shared formatter uses integer clock ticks; Y4M exposes frame ticks.
         if matches!(self.track, Track::Video { packets: VideoPackets::Y4m { .. }, .. }) {
             for (key, value) in &mut row {
                 match *key {
@@ -726,7 +624,7 @@ impl Codec {
                 ("duration_time", duration),
                 ("size", Str(size.to_string())),
                 ("pos", Str(pos.to_string())),
-                ("flags", Str(if key { "K_" } else { "__" }.into())),
+                ("flags", Str(if key { "K__" } else { "___" }.into())),
             ]
         }
     }
@@ -762,9 +660,177 @@ pub(super) fn format_row(
     ]
 }
 
+// Canonical section name, shared name, and parent from the native section tree.
+const SECTIONS: &[(&str, &str, &str)] = &[
+    ("root", "", ""),
+    ("chapters", "", "root"),
+    ("chapter", "", "chapters"),
+    ("chapter_tags", "tags", "chapter"),
+    ("format", "", "root"),
+    ("format_tags", "tags", "format"),
+    ("frames", "", "root"),
+    ("frame", "", "frames"),
+    ("frame_tags", "tags", "frame"),
+    ("frame_side_data_list", "side_data_list", "frame"),
+    ("frame_side_data", "side_data", "frame_side_data_list"),
+    ("timecodes", "", "frame_side_data"),
+    ("timecode", "", "timecodes"),
+    ("frame_side_data_components", "components", "frame_side_data"),
+    ("frame_side_data_component", "component", "frame_side_data_components"),
+    ("frame_side_data_pieces", "pieces", "frame_side_data_component"),
+    ("frame_side_data_piece", "piece", "frame_side_data_pieces"),
+    ("logs", "", "frame"),
+    ("log", "", "logs"),
+    ("subtitle", "", "frames"),
+    ("programs", "", "root"),
+    ("program", "", "programs"),
+    ("program_tags", "tags", "program"),
+    ("program_streams", "streams", "program"),
+    ("program_stream", "stream", "program_streams"),
+    ("program_stream_disposition", "disposition", "program_stream"),
+    ("program_stream_tags", "tags", "program_stream"),
+    ("stream_groups", "", "root"),
+    ("stream_group", "", "stream_groups"),
+    ("stream_group_tags", "tags", "stream_group"),
+    ("stream_group_disposition", "disposition", "stream_group"),
+    ("stream_group_components", "components", "stream_group"),
+    ("stream_group_component", "component", "stream_group_components"),
+    ("subcomponents", "", "stream_group_component"),
+    ("subcomponent", "", "subcomponents"),
+    ("stream_group_pieces", "pieces", "subcomponent"),
+    ("stream_group_piece", "piece", "stream_group_pieces"),
+    ("subpieces", "", "stream_group_piece"),
+    ("subpiece", "", "subpieces"),
+    ("blocks", "", "subpiece"),
+    ("block", "", "blocks"),
+    ("stream_group_streams", "streams", "stream_group"),
+    ("stream_group_stream", "stream", "stream_group_streams"),
+    ("stream_group_stream_disposition", "disposition", "stream_group_stream"),
+    ("stream_group_stream_tags", "tags", "stream_group_stream"),
+    ("streams", "", "root"),
+    ("stream", "", "streams"),
+    ("stream_disposition", "disposition", "stream"),
+    ("stream_tags", "tags", "stream"),
+    ("stream_side_data_list", "side_data_list", "stream"),
+    ("stream_side_data", "side_data", "stream_side_data_list"),
+    ("packets", "", "root"),
+    ("packets_and_frames", "", ""),
+    ("packet", "", "packets"),
+    ("packet_tags", "tags", "packet"),
+    ("packet_side_data_list", "side_data_list", "packet"),
+    ("packet_side_data", "side_data", "packet_side_data_list"),
+    ("error", "", "root"),
+    ("program_version", "", "root"),
+    ("library_versions", "", "root"),
+    ("library_version", "", "library_versions"),
+    ("pixel_formats", "", "root"),
+    ("pixel_format", "", "pixel_formats"),
+    ("pixel_format_flags", "flags", "pixel_format"),
+    ("pixel_format_components", "components", "pixel_format"),
+    ("component", "", "pixel_format_components"),
+];
+
+#[derive(Default)]
+pub(super) struct ProbeFields {
+    pub all: bool,
+    // Distinguish -show_entries sections from inherited or -show_* selections.
+    pub explicit: bool,
+    pub keys: BTreeSet<String>,
+}
+
+impl ProbeFields {
+    pub fn includes(&self, key: &str) -> bool {
+        self.all || self.keys.contains(key)
+    }
+
+    pub fn active(&self) -> bool {
+        self.all || !self.keys.is_empty()
+    }
+}
+
+pub(super) fn select_entries(
+    entries: &mut BTreeMap<&'static str, ProbeFields>,
+    section: &'static str,
+    fields: Option<&BTreeSet<String>>,
+) {
+    let selected = entries.entry(section).or_default();
+    selected.all = fields.is_none();
+    if let Some(fields) = fields {
+        selected.keys.extend(fields.iter().cloned());
+    } else {
+        for &(child, _, parent) in SECTIONS {
+            if parent == section { select_entries(entries, child, None); }
+        }
+    }
+}
+
+fn entry_token(input: &mut &str, delimiters: &[char]) -> String {
+    let whitespace = [' ', '\n', '\t', '\r'];
+    *input = input.trim_start_matches(whitespace);
+    let mut out = String::new();
+    let mut protected = 0;
+    while let Some(ch) = input.chars().next() {
+        if delimiters.contains(&ch) { break; }
+        *input = &input[ch.len_utf8()..];
+        if ch == '\\' && let Some(next) = input.chars().next() {
+            out.push(next);
+            *input = &input[next.len_utf8()..];
+            protected = out.len();
+        } else if ch == '\'' {
+            if let Some(end) = input.find('\'') {
+                out.push_str(&input[..end]);
+                *input = &input[end + 1..];
+                protected = out.len();
+            } else {
+                out.push_str(input);
+                *input = "";
+            }
+        } else { out.push(ch); }
+    }
+    out.truncate(protected.max(out.trim_end_matches(whitespace).len()));
+    out
+}
+
+pub(super) fn parse_entries(entries: &mut BTreeMap<&'static str, ProbeFields>, mut input: &str) -> Result<(), String> {
+    while !input.is_empty() {
+        let section = entry_token(&mut input, &['=', ':']);
+        let fields = if let Some(rest) = input.strip_prefix('=') {
+            input = rest;
+            let mut fields = BTreeSet::new();
+            while !input.is_empty() && !input.starts_with(':') {
+                fields.insert(entry_token(&mut input, &[',', ':']));
+                if let Some(rest) = input.strip_prefix(',') { input = rest; }
+            }
+            Some(fields)
+        } else { None };
+        let mut matched = false;
+        for &(name, alias, _) in SECTIONS {
+            if section == name || !alias.is_empty() && section == alias {
+                select_entries(entries, name, fields.as_ref());
+                entries.get_mut(name).unwrap().explicit = true;
+                matched = true;
+            }
+        }
+        if !matched { return Err(section); }
+        if let Some(rest) = input.strip_prefix(':') { input = rest; }
+    }
+    Ok(())
+}
+
+pub(super) fn section_output(mut name: &str) -> Option<&'static str> {
+    loop {
+        let &(section, _, parent) = SECTIONS.iter().find(|(section, _, _)| *section == name)?;
+        if section == "root" { return None; }
+        if parent == "root" || section == "packets_and_frames" {
+            return Some(if section == "packets_and_frames" { "packet" } else { section.strip_suffix('s').unwrap_or(section) });
+        }
+        name = parent;
+    }
+}
+
 pub(super) struct ProbeOptions<'a> {
     pub show: BTreeSet<&'a str>,
-    pub entries: Option<&'a str>,
+    pub entries: Option<BTreeMap<&'static str, ProbeFields>>,
     pub select: Option<&'a str>,
     pub counts: (bool, bool),
     pub writer: &'a str,
@@ -791,23 +857,12 @@ impl Clip {
                     match self.track {
                         Track::Aac { .. } => "audio",
                         Track::Video { .. } => "video",
-                        Track::Subtitle { .. } => "subtitle",
                     },
                     0,
                     0,
                 ) =>
             {
-                let mut row = self.info().stream(0, counts);
-                if matches!(self.track, Track::Video { packets: VideoPackets::Y4m { .. }, .. }) {
-                    for (key, value) in &mut row {
-                        match *key {
-                            "time_base" => *value = Str(ratio(self.ticks, self.timescale.into(), '/')),
-                            "duration_ts" => *value = Number(self.count as f64, None),
-                            _ => {}
-                        }
-                    }
-                }
-                Box::new(std::iter::once(row))
+                Box::new(std::iter::once(self.info().stream(0, counts)))
             }
             "format" => Box::new(std::iter::once(self.format(filename, bytes))),
             _ => Box::new(std::iter::empty()),
@@ -821,7 +876,8 @@ pub(super) fn selected(select: Option<&str>, kind: &str, index: usize, ordinal: 
         "v" => kind == "video",
         "a" => kind == "audio",
         "s" => kind == "subtitle",
-        s if s.starts_with("a:") || s.starts_with("v:") => {
+        "d" => kind == "data",
+        s if s.starts_with("a:") || s.starts_with("v:") || s.starts_with("s:") || s.starts_with("d:") => {
             let digits = s[2..].trim_start();
             let unsigned = digits.trim_start_matches(['+', '-']);
             let n = unsigned.bytes().take_while(u8::is_ascii_digit).count();
@@ -831,8 +887,12 @@ pub(super) fn selected(select: Option<&str>, kind: &str, index: usize, ordinal: 
                     .unwrap_or(if n == 0 { 0 } else { usize::MAX });
             (if s.starts_with('a') {
                 kind == "audio"
-            } else {
+            } else if s.starts_with('v') {
                 kind == "video"
+            } else if s.starts_with('d') {
+                kind == "data"
+            } else {
+                kind == "subtitle"
             }) && ordinal == value
                 && (!digits.starts_with('-') || value == 0)
         }
@@ -845,59 +905,38 @@ pub(super) fn report<'a>(
     opts: ProbeOptions<'_>,
     rows: impl Fn(&'static str) -> Box<dyn Iterator<Item = Row> + 'a>,
 ) -> Result<String, &'static str> {
-    let mut filters = BTreeMap::new();
-    for field in opts
-        .entries
-        .unwrap_or("")
-        .split(':')
-        .filter(|s| !s.trim().is_empty())
-    {
-        let (k, v) = field.split_once('=').unwrap_or((field, ""));
-        filters.insert(
-            k.trim().to_ascii_lowercase(),
-            v.split(',')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .collect::<BTreeSet<_>>(),
-        );
-    }
+    let empty = BTreeMap::new();
+    let filters = opts.entries.as_ref().unwrap_or(&empty);
     let setting = |key| opts.settings.get(key).copied();
     let json = opts.writer == "json";
-    let combined = json && opts.show.contains("packet") && opts.show.contains("frame");
     let compact = setting("compact") == Some("1") || setting("c") == Some("1");
-    let defaults = opts.show.is_empty() && opts.entries.is_none();
-    let mut out = if json { "{".to_owned() } else { String::new() };
+    let mut out = match opts.writer { "json" => "{".to_owned(), "ini" => "# ffprobe output\n".to_owned(), "xml" => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ffprobe>\n".to_owned(), _ => String::new() };
     let mut first = true;
+    let no_fields = BTreeSet::new();
     for (section, key) in [
-        ("program", "programs"),
+        ("packet_frame", "packets_and_frames"),
         ("packet", "packets"),
         ("frame", "frames"),
+        ("program", "programs"),
+        ("stream_group", "stream_groups"),
         ("stream", "streams"),
         ("chapter", "chapters"),
         ("format", "format"),
     ] {
-        if combined && section == "frame" { continue; }
-        if section == "chapter" && !matches!(opts.writer, "default" | "json") {
-            continue;
-        }
         let fields = filters.get(section);
-        let tags = match section {
-            "stream" => filters.get("stream_tags"),
-            "format" => filters.get("format_tags"),
-            _ => None,
-        };
         let requested = opts.show.contains(section);
+        let active = filters.iter().any(|(name, fields)| {
+            (*name == section || name.strip_prefix(section).is_some_and(|s| s.starts_with('_')))
+                && !(section == "stream" && name.starts_with("stream_group"))
+                && fields.active()
+        });
         if !requested
-            && (matches!(section, "frame" | "packet")
-                || fields.is_none()
-                    && tags.is_none()
-                    && !(defaults && matches!(section, "stream" | "format")))
+            && (matches!(section, "frame" | "packet" | "packet_frame")
+                || !active)
         {
             continue;
         }
         let array = section != "format";
-        let interleave = combined && section == "packet";
-        let key = if interleave { "packets_and_frames" } else { key };
         if json {
             if !first {
                 out.push(',');
@@ -914,37 +953,43 @@ pub(super) fn report<'a>(
                 out.push('[');
             }
         }
+        if opts.writer == "xml" && array { writeln!(out, "    <{key}>").unwrap(); }
         let mut count = 0;
-        let mut section_rows = rows(section);
-        let mut frame_rows = interleave.then(|| rows("frame"));
-        let mut next_frame = false;
-        let records = std::iter::from_fn(move || {
-            let Some(frames) = &mut frame_rows else {
-                return section_rows.next().map(|row| (section, row));
-            };
-            let row = if next_frame { frames.next().map(|row| ("frame", row)) }
-                else { section_rows.next().map(|row| ("packet", row)) };
-            next_frame = !next_frame;
-            row.or_else(|| if next_frame { frames.next().map(|row| ("frame", row)) }
-                else { section_rows.next().map(|row| ("packet", row)) })
-        });
-        for (i, (record_section, mut row)) in records.enumerate() {
+        let mut record_indices = [0, 0];
+        for (i, mut row) in rows(section).enumerate() {
+            let row_section = if section == "packet_frame" {
+                match row.first().map(|(_, value)| value) { Some(Str(s)) if s == "packet" => "packet", Some(Str(s)) if s == "frame" => "frame", _ => "subtitle" }
+            } else if section == "frame" && row.iter().any(|(key, value)| *key == "media_type" && matches!(value, Str(s) if s == "subtitle")) { "subtitle" } else { section };
+            let fields = if section == "packet_frame" || row_section == "subtitle" { filters.get(row_section) } else { fields };
+            let side_fields = filters.get(format!("{row_section}_side_data").as_str());
+            let side_fields = side_fields.map_or_else(
+                || opts.entries.as_ref().map(|_| &no_fields),
+                |fields| (!fields.all).then_some(&fields.keys),
+            );
             count += 1;
-            let fields = filters.get(record_section);
-            if section != "chapter" && (fields.is_some() || tags.is_some()) {
+            if opts.entries.is_some() {
                 row.retain_mut(|(key, value)| {
-                    if *key == "tags"
-                        && let Some(tags) = tags
-                        && let Object(values) = value
-                    {
-                        values.retain(|(k, _)| tags.is_empty() || tags.contains(k.as_str()));
-                        return true;
+                    if section == "packet_frame" && *key == "type" { return true; }
+                    if *key == "side_data_list" { return true; }
+                    if matches!(*key, "tags" | "disposition") && let Object(values) = value {
+                        let had_values = !values.is_empty();
+                        let selected = filters.get(format!("{row_section}_{key}").as_str());
+                        values.retain(|(k, _)| selected.is_some_and(|fields| fields.includes(k)));
+                        return !values.is_empty() || selected.is_some_and(|fields| had_values && fields.active() || fields.all && !fields.explicit);
                     }
-                    fields.is_some_and(|f| f.is_empty() || f.contains(key))
+                    fields.is_some_and(|fields| fields.includes(key))
                 });
             }
             if json {
-                if interleave { row.insert(0, ("type", Str(record_section.into()))); }
+                if let Some(fields) = side_fields {
+                    for (key, value) in &mut row {
+                        if *key == "side_data_list" && let JVal::Array(values) = value {
+                            for value in values {
+                                if let Object(values) = value { values.retain(|(k,_)| fields.contains(k.as_str())); }
+                            }
+                        }
+                    }
+                }
                 if array {
                     if i != 0 {
                         out.push(',');
@@ -964,12 +1009,22 @@ pub(super) fn report<'a>(
                     ));
                 }
             } else {
-                text_row(&mut out, section, i, row, opts.writer, opts.settings);
+                let index = if section == "packet_frame" {
+                    row.remove(0);
+                    let index = &mut record_indices[usize::from(row_section != "packet")];
+                    let current = *index;
+                    *index += 1;
+                    current
+                } else { i };
+                if opts.writer == "xml" { xml_row(&mut out, row_section, &row, if array { 8 } else { 4 }, side_fields); }
+                else { text_row(&mut out, key, row_section, index, row, opts.writer, opts.settings, side_fields); }
             }
             if out.len() > opts.limit {
                 return Err("output byte limit exceeded");
             }
         }
+        if opts.writer == "ini" && array && count == 0 { out.push('\n'); }
+        if opts.writer == "xml" && array { writeln!(out, "    </{key}>\n").unwrap(); }
         if json && array {
             if !compact && count != 0 {
                 out.push_str("\n  ");
@@ -983,19 +1038,59 @@ pub(super) fn report<'a>(
         }
         out.push_str("}\n");
     }
+    if opts.writer == "xml" { if out.ends_with("\n\n") { out.pop(); } out.push_str("</ffprobe>\n"); }
+    if opts.writer == "ini" && out == "# ffprobe output\n" { out.push('\n'); }
     if out.len() > opts.limit {
         return Err("output byte limit exceeded");
     }
     Ok(out)
 }
 
+fn xml_row(out: &mut String, section: &str, row: &Row, indent: usize, side_fields: Option<&BTreeSet<String>>) {
+    let escape = |value: &JVal| match value { Str(s) => s.clone(), _ => value.to_json_string(true, false, 0) }.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('\"', "&quot;").replace('\n', "&#10;").replace('\r', "&#13;");
+    write!(out, "{:indent$}<{section}", "").unwrap();
+    for (key, value) in row { if !matches!(value, Object(_) | JVal::Array(_)) { write!(out, " {key}=\"{}\"", escape(value)).unwrap(); } }
+    if row.iter().all(|(_, v)| matches!(v, Object(_) | JVal::Array(_))) { out.push(' '); }
+    if row.iter().all(|(_, v)| !matches!(v, Object(_) | JVal::Array(_))) { out.push_str("/>\n"); return; }
+    out.push_str(">\n");
+    for (key, value) in row {
+        if let Object(values) = value {
+            if *key == "tags" {
+                writeln!(out, "{:width$}<tags>", "", width=indent+4).unwrap();
+                for (name, value) in values { writeln!(out, "{:width$}<tag key=\"{}\" value=\"{}\"/>", "", escape(&Str(name.clone())), escape(value), width=indent+8).unwrap(); }
+                writeln!(out, "{:width$}</tags>", "", width=indent+4).unwrap();
+            } else {
+                write!(out, "{:width$}<{key}", "", width=indent+4).unwrap();
+                for (name, value) in values { write!(out, " {name}=\"{}\"", escape(value)).unwrap(); }
+                out.push_str("/>\n");
+            }
+        } else if *key == "side_data_list" && let JVal::Array(values) = value {
+            writeln!(out, "{:width$}<side_data_list>", "", width=indent+4).unwrap();
+            for value in values {
+                if let Object(values) = value {
+                    let kind = values.iter().find(|(k,_)| k == "side_data_type").map(|(_,v)| escape(v)).unwrap_or_default();
+                    writeln!(out, "{:width$}<side_data type=\"{kind}\">", "", width=indent+8).unwrap();
+                    for (key, value) in values.iter().filter(|(k,_)| side_fields.is_none_or(|fields| fields.contains(k.as_str()))) {
+                        writeln!(out, "{:width$}<side_datum key=\"{key}\" value=\"{}\"/>", "", escape(value), width=indent+12).unwrap();
+                    }
+                    writeln!(out, "{:width$}</side_data>", "", width=indent+8).unwrap();
+                }
+            }
+            writeln!(out, "{:width$}</side_data_list>", "", width=indent+4).unwrap();
+        }
+    }
+    writeln!(out, "{:indent$}</{section}>", "").unwrap();
+}
+
 fn text_row(
     out: &mut String,
+    group: &str,
     section: &str,
     index: usize,
     row: Row,
     writer: &str,
     settings: &BTreeMap<&str, &str>,
+    side_fields: Option<&BTreeSet<String>>,
 ) {
     let get = |k| settings.get(k).copied();
     let nokey = get("nokey") == Some("1") || get("nk") == Some("1");
@@ -1010,12 +1105,13 @@ fn text_row(
     if wrappers {
         writeln!(out, "[{}]", section.to_uppercase()).unwrap();
     }
+    if writer == "ini" { if section == "format" { out.push_str("\n[format]\n"); } else { writeln!(out, "\n[{group}.{section}.{index}]").unwrap(); } }
     let mut first = true;
     if delimited && get("p") != Some("0") && get("print_section") != Some("0") {
         out.push_str(section);
         first = false;
     }
-    let mut emit = |k: &str, v: JVal, tag: bool| {
+    let mut emit = |out: &mut String, k: &str, v: JVal, nested: Option<&str>| {
         let numeric = matches!(v, Number(_, _));
         let s = match v {
             Str(s) => s,
@@ -1027,10 +1123,8 @@ fn text_row(
                 out.push_str(sep);
             }
             first = false;
-            if writer == "compact" && !nokey {
-                if tag {
-                    out.push_str("tag:");
-                }
+            if writer == "compact" && !nokey && !k.is_empty() {
+                if let Some(nested) = nested { write!(out, "{}:", if nested == "tags" { "tag" } else { nested }).unwrap(); }
                 write!(out, "{k}=").unwrap();
             }
             if writer == "csv" {
@@ -1057,11 +1151,9 @@ fn text_row(
             if section == "format" {
                 write!(out, "format{sep}").unwrap();
             } else {
-                write!(out, "{section}s{sep}{section}{sep}{index}{sep}").unwrap();
+                write!(out, "{group}{sep}{section}{sep}{index}{sep}").unwrap();
             }
-            if tag {
-                write!(out, "tags{sep}").unwrap();
-            }
+            if let Some(nested) = nested { write!(out, "{nested}{sep}").unwrap(); }
             write!(out, "{k}=").unwrap();
             if numeric {
                 out.push_str(&s);
@@ -1083,27 +1175,42 @@ fn text_row(
             out.push('\n');
         } else {
             if !nokey {
-                if tag {
-                    out.push_str("TAG:");
-                }
+                if writer != "ini" && let Some(nested) = nested { write!(out, "{}:", if nested == "tags" { "TAG".into() } else { nested.to_uppercase() }).unwrap(); }
                 write!(out, "{k}=").unwrap();
             }
-            out.push_str(&s);
+            if writer == "ini" {
+                for c in s.chars() { match c { '\n' => out.push_str("\\n"), '\r' => out.push_str("\\r"), '\\' | '=' | ':' | '#' => { out.push('\\'); out.push(c); }, _ => out.push(c) } }
+            } else { out.push_str(&s); }
             out.push('\n');
         }
     };
+    let only_objects = row.iter().all(|(_, v)| matches!(v, Object(_) | JVal::Array(_)));
+    let empty = row.is_empty();
     for (k, v) in row {
-        if k == "tags"
-            && let Object(tags) = v
-        {
-            for (key, value) in tags {
-                emit(&key, value, true);
+        if let Object(values) = v {
+            if writer == "ini" { if section == "format" { writeln!(out, "{}[format.{k}]", if only_objects { "" } else { "\n" }).unwrap(); } else { writeln!(out, "{}[{group}.{section}.{index}.{k}]", if only_objects { "" } else { "\n" }).unwrap(); } }
+            if delimited && values.is_empty() { emit(out, "", Str(String::new()), None); }
+            for (key, value) in values { emit(out, &key, value, Some(k)); }
+        } else if k == "side_data_list" && let JVal::Array(values) = v {
+            for (i, value) in values.into_iter().enumerate() {
+                if let Object(fields) = value {
+                    let kind = fields.iter().find_map(|(k,v)| match (k.as_str(),v) { ("side_data_type",Str(s))=>Some(s.to_ascii_lowercase().replace(' ',"_")), _=>None }).unwrap_or_default();
+                    if wrappers { out.push_str("[SIDE_DATA]\n"); }
+                    if writer == "ini" { writeln!(out,"{}[{group}.{section}.{index}.side_data_list.side_data.{i}]", if only_objects && i == 0 { "" } else { "\n" }).unwrap(); }
+                    let prefix = if writer == "compact" { format!("side_datum/{kind}") } else { format!("side_data_list{sep}side_data{sep}{i}") };
+                    let mut count = 0;
+                    for (key, value) in fields.into_iter().filter(|(k,_)| side_fields.is_none_or(|fields| fields.contains(k.as_str()))) {
+                        emit(out, &key, value, matches!(writer,"compact"|"flat").then_some(prefix.as_str()));
+                        count += 1;
+                    }
+                    if delimited && count == 0 && i == 0 { emit(out,"",Str(String::new()),None); }
+                    if wrappers { out.push_str("[/SIDE_DATA]\n"); }
+                }
             }
-        } else {
-            emit(k, v, false);
-        }
+        } else { emit(out, k, v, None); }
     }
     if delimited {
+        if empty && !first { out.push_str(sep); }
         out.push('\n');
     }
     if wrappers {

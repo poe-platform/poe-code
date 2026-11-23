@@ -129,7 +129,9 @@ function parseFrames(r: Reader, pos: number, version: number, flags: number, off
       else if (id === "TXXX" || id === "TXX") {
         const encoding = data[0]!, end = terminated(data, 1, encoding),
           width = encoding === 1 || encoding === 2 ? 2 : 1;
-        tags[text(data.subarray(1, end), encoding)] = text(data.subarray(end + width), encoding);
+        Object.defineProperty(tags, text(data.subarray(1, end), encoding), {
+          value: text(data.subarray(end + width), encoding), enumerable: true, configurable: true, writable: true
+        });
       } else if (id === "PRIV") {
         const end = terminated(data, 0, 0);
         let owner = "";

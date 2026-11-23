@@ -202,8 +202,9 @@ pub(super) fn cmd_mv(
         return err_out("mv: missing operand\n", 2);
     }
     let dst_raw = eff_operands.last().unwrap();
-    let dst_base = match command_operand(cwd,dst_raw) {
-        Ok(p) => p, Err(e) => return err_out(&format!("mv: {e}\n"),1),
+    let dst_base = match command_operand(cwd, dst_raw) {
+        Ok(p) => p,
+        Err(e) => return err_out(&format!("mv: {e}\n"), 1),
     };
     let inspect_dest = |follow| {
         let op = if follow { "stat" } else { "lstat" };
@@ -263,15 +264,19 @@ pub(super) fn cmd_mv(
     let mut answers = PromptAnswers::new(stdin);
 
     let paths = |src_raw: &str| {
-        let src = command_operand(cwd,src_raw)?;
+        let src = command_operand(cwd, src_raw)?;
         let name = basename_posix_path(&src);
         let target = if dst_is_dir {
             child_disp_path(&dst_base, &name)
         } else {
             dst_base.clone()
         };
-        let display = if dst_is_dir {child_disp_path(dst_raw, &name)} else {dst_raw.clone()};
-        Ok::<_,&str>((src, display, target))
+        let display = if dst_is_dir {
+            child_disp_path(dst_raw, &name)
+        } else {
+            dst_raw.clone()
+        };
+        Ok::<_, &str>((src, display, target))
     };
     let plain = fs.link_free_memory();
     let sources = &eff_operands[..eff_operands.len() - 1];
@@ -291,48 +296,75 @@ pub(super) fn cmd_mv(
         if a != b {
             let (_, left) = fs.inspect_command_entry(&a, true, "stat")?;
             let (_, right) = fs.inspect_command_entry(&b, true, "stat")?;
-            if left.identity.is_some() && right.identity.is_some() && left.identity != right.identity { return Ok(true); }
+            if left.identity.is_some()
+                && right.identity.is_some()
+                && left.identity != right.identity
+            {
+                return Ok(true);
+            }
         }
         let src_name = basename_posix_path(src);
         let dst_name = basename_posix_path(target);
-        if src_name == dst_name { return Ok(false); }
+        if src_name == dst_name {
+            return Ok(false);
+        }
         fs.command_descriptor_op()?;
         let names = fs.list_dir(&a)?;
-        if !names.contains(&src_name) { return Ok(false); }
-        if a == b { return Ok(names.contains(&dst_name)); }
+        if !names.contains(&src_name) {
+            return Ok(false);
+        }
+        if a == b {
+            return Ok(names.contains(&dst_name));
+        }
         fs.command_descriptor_op()?;
         Ok(fs.list_dir(&b)?.contains(&dst_name))
     };
-    let check_pair = |src: &str, target: &str, from: &crate::vfs::FileStat, to: &crate::vfs::FileStat, operand: &str, display: &str| -> Result<(), String> {
-        if src == target || from.identity.is_some() && from.identity == to.identity &&
-            (backup_mode == BackupMode::None || from.kind == VfsEntryKind::Directory || !distinct_entries(src, target)?) {
-            return Err(format!("{} and {} are the same file", shell_quoted_operand(operand), shell_quoted_operand(display)));
+    let check_pair = |src: &str,
+                      target: &str,
+                      from: &crate::vfs::FileStat,
+                      to: &crate::vfs::FileStat,
+                      operand: &str,
+                      display: &str|
+     -> Result<(), String> {
+        if src == target
+            || from.identity.is_some()
+                && from.identity == to.identity
+                && (backup_mode == BackupMode::None
+                    || from.kind == VfsEntryKind::Directory
+                    || !distinct_entries(src, target)?)
+        {
+            return Err(format!(
+                "{} and {} are the same file",
+                shell_quoted_operand(operand),
+                shell_quoted_operand(display)
+            ));
         }
         Ok(())
     };
-    let should_skip = |src: &str, target: &str, operand: &str, display: &str| -> Result<bool, String> {
-        if !no_clobber && !update_only {
-            return Ok(false);
-        }
-        let Some(to) = maybe_stat(target)? else {
-            return Ok(false);
+    let should_skip =
+        |src: &str, target: &str, operand: &str, display: &str| -> Result<bool, String> {
+            if !no_clobber && !update_only {
+                return Ok(false);
+            }
+            let Some(to) = maybe_stat(target)? else {
+                return Ok(false);
+            };
+            if no_clobber {
+                return Ok(true);
+            }
+            let from = inspect(src)?;
+            if from.kind == VfsEntryKind::Directory
+                || to.kind == VfsEntryKind::Directory
+                || from
+                    .mtime_ms
+                    .partial_cmp(&to.mtime_ms)
+                    .is_none_or(|o| o.is_gt())
+            {
+                return Ok(false);
+            }
+            check_pair(src, target, &from, &to, operand, display)?;
+            Ok(true)
         };
-        if no_clobber {
-            return Ok(true);
-        }
-        let from = inspect(src)?;
-        if from.kind == VfsEntryKind::Directory
-            || to.kind == VfsEntryKind::Directory
-            || from
-                .mtime_ms
-                .partial_cmp(&to.mtime_ms)
-                .is_none_or(|o| o.is_gt())
-        {
-            return Ok(false);
-        }
-        check_pair(src, target, &from, &to, operand, display)?;
-        Ok(true)
-    };
     let admit_pair = |src: &str, target: &str| -> Result<(), String> {
         if plain
             && [src, target]
@@ -345,7 +377,9 @@ pub(super) fn cmd_mv(
         admit_rename(fs, target)
     };
     for operand in sources {
-        let Ok((src, display, target)) = paths(operand) else { continue; };
+        let Ok((src, display, target)) = paths(operand) else {
+            continue;
+        };
         let check = || -> Result<(), String> {
             if !should_skip(&src, &target, operand, &display)? {
                 admit_pair(&src, &target)?;
@@ -366,7 +400,11 @@ pub(super) fn cmd_mv(
     for src_raw in sources {
         let (src, disp_target, target) = match paths(src_raw) {
             Ok(paths) => paths,
-            Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; }
+            Err(e) => {
+                stderr.push_str(&format!("mv: {e}\n"));
+                code = 1;
+                continue;
+            }
         };
         let mut run = || -> Result<(), String> {
             let mut backup = None;
@@ -412,18 +450,31 @@ pub(super) fn cmd_mv(
                     };
                     return Err(format!("{reason} '{target}'"));
                 }
-                let backup_conflict = || format!("backing up {} might destroy source;  {} not moved", shell_quoted_operand(&disp_target), shell_quoted_operand(src_raw));
+                let backup_conflict = || {
+                    format!(
+                        "backing up {} might destroy source;  {} not moved",
+                        shell_quoted_operand(&disp_target),
+                        shell_quoted_operand(src_raw)
+                    )
+                };
                 if backup_mode != BackupMode::Numbered {
                     let (simple, _) = backup_path(&target, BackupMode::Simple, &backup_suffix, fs)?;
-                    if basename_posix_path(&src) == basename_posix_path(&simple) && !distinct_entries(&src, &simple)? { return Err(backup_conflict()); }
+                    if basename_posix_path(&src) == basename_posix_path(&simple)
+                        && !distinct_entries(&src, &simple)?
+                    {
+                        return Err(backup_conflict());
+                    }
                 }
                 if backup_mode != BackupMode::Simple {
                     fs.command_descriptor_op()?;
                 }
                 let (bak, _) = backup_path(&target, backup_mode, &backup_suffix, fs)?;
-                if bak == src || bak == target { return Err(backup_conflict()); }
+                if bak == src || bak == target {
+                    return Err(backup_conflict());
+                }
                 if let Some(st) = maybe_stat(&bak)?
-                    && (st.identity.is_none() || source_stat.identity == st.identity && !distinct_entries(&src, &bak)?)
+                    && (st.identity.is_none()
+                        || source_stat.identity == st.identity && !distinct_entries(&src, &bak)?)
                 {
                     return Err(backup_conflict());
                 }
@@ -442,7 +493,9 @@ pub(super) fn cmd_mv(
                     }
                     result => result,
                 }
-            } else { fs.rename(&src, &target, no_clobber) };
+            } else {
+                fs.rename(&src, &target, no_clobber)
+            };
             let result = match rename {
                 Err(e) if !no_clobber && e.starts_with("EXDEV:") => {
                     fs.move_across_devices(&src, &target, None)
@@ -459,11 +512,18 @@ pub(super) fn cmd_mv(
                 return Err(e);
             }
             if verbose {
-                let suffix = backup.as_ref().map(|bak| {
-                    let name = format!("{disp_target}{}", &bak[target.len()..]);
-                    format!(" (backup: {})", shell_quoted_operand(&name))
-                }).unwrap_or_default();
-                stdout.push_str(&format!("renamed {} -> {}{suffix}\n", shell_quoted_operand(src_raw), shell_quoted_operand(&disp_target)));
+                let suffix = backup
+                    .as_ref()
+                    .map(|bak| {
+                        let name = format!("{disp_target}{}", &bak[target.len()..]);
+                        format!(" (backup: {})", shell_quoted_operand(&name))
+                    })
+                    .unwrap_or_default();
+                stdout.push_str(&format!(
+                    "renamed {} -> {}{suffix}\n",
+                    shell_quoted_operand(src_raw),
+                    shell_quoted_operand(&disp_target)
+                ));
             }
             Ok(())
         };

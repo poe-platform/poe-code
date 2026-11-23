@@ -1,6 +1,6 @@
 import { PdfError, PdfFileSource, PdfRetainedDocument, copyRetainedPagesChunks, dictGet } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
-import { FsError } from "safe-bash-contracts/errors";
+import { FsError, isFsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -79,11 +79,25 @@ export async function executeRetainedUnite(context: CommandContext, argv: readon
 async function publish(context: CommandContext, path: string, chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<void> {
   const fs = context.fs;
   const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
-  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry ||
-      !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) {
+  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup ||
+      !fs.createStagedFile || !fs.publishStagedFile) {
     throw new FsError("ENOTSUP", { path, message: "PDF output requires retained atomic staging" });
   }
-  const resolution = await fs.prepareStagingResolution(path, { signal });
+  // Remote providers can atomically compare parent and destination receipts,
+  // even though they cannot execute a synchronous JavaScript commit callback.
+  const resolution = capabilities.atomicStagingAncestry && fs.prepareStagingResolution
+    ? await fs.prepareStagingResolution(path, { signal })
+    : await (async () => {
+      if (!fs.realpath) throw new FsError("ENOTSUP", { path });
+      const parentPath = await fs.realpath(resolvePath(path, ".."), { signal });
+      const target = resolvePath(parentPath, path.slice(path.lastIndexOf("/") + 1));
+      const parent = await fs.stat(parentPath, { signal });
+      let destination = null;
+      try { destination = await fs.lstat(target, { signal }); }
+      catch (error) { if (!isFsError(error, "ENOENT")) throw error; }
+      if (destination && destination.type !== "file") throw new FsError("EINVAL", { path });
+      return { path: target, parent, destination, ancestors: undefined, validate: undefined };
+    })();
   const directory = resolvePath(resolution.path, "..");
   const staging = await fs.createStagedFile(`${directory}/.pdf-${crypto.randomUUID()}`, "output", { type: "file", data: new Uint8Array() },
     { parent: resolution.parent, retainCleanup: true, signal });
@@ -93,7 +107,7 @@ async function publish(context: CommandContext, path: string, chunks: AsyncItera
     for await (const bytes of chunks) await writeFileOutput({ ...context, signal }, bytes, data => staging.writer!.write(data, { signal }));
     const stat = await staging.writer.finish({ signal });
     await fs.publishStagedFile({ ...staging, file: { ...staging.file, stat } }, resolution.path,
-      { parent: resolution.parent, destination: resolution.destination, ancestors: resolution.ancestors, commitGuard: resolution.validate, signal });
+      { parent: resolution.parent, destination: resolution.destination, ...(resolution.ancestors && resolution.validate ? { ancestors: resolution.ancestors, commitGuard: resolution.validate } : {}), signal });
   } catch (failure) { failed = true; throw failure; } finally {
     const cleanup = async () => { try { await staging.cleanup?.remove(); } finally { await staging.cleanup?.close(); } };
     await cleanup().catch(failure => { if (!failed) throw failure; });

@@ -188,7 +188,7 @@ pub(super) fn write(
 }
 
 use super::super::super::avi_input::Description;
-pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Description>)> {
+pub(super) fn as_mp4(bytes: &[u8], limit: usize, copy_video: bool) -> Result<(Vec<u8>, Vec<Description>)> {
     use super::super::super::{avi_input, media_probe::Codec};
     use super::{
         MATRIX, Sample, VideoCodec, audio_sample_entry, audio_specific_config, video_entry,
@@ -216,7 +216,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
         let direct = t.extra.len() >= 7 && t.extra[0] == 1;
         let video = matches!(t.info.codec, Codec::Video { .. });
         for (p, body) in t.packets.iter().zip(t.bodies) {
-            let data = if video && h264::annex_b(body) {
+            let data = if video && (!copy_video || matches!(t.info.codec, Codec::Video { tag: b"avc1", .. })) && h264::annex_b(body) {
                 let mut payload = Vec::new();
                 for nal in h264::nals(body) {
                     match nal[0] & 31 {
@@ -238,6 +238,8 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
                 } else {
                     Cow::Owned(payload)
                 }
+            } else if video {
+                Cow::Borrowed(body)
             } else {
                 Cow::Borrowed(&body[body.len() - p.size as usize..])
             };
@@ -323,7 +325,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
             width,
             height,
             volume: if video { 0 } else { 256 },
-            enabled: true,
+            enabled: true, field_order: None,
             language: 0x55c4,
             matrix: MATRIX,
         });
@@ -335,6 +337,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
         &Default::default(),
         &[],
         false,
+        true,
         limit,
     )?;
     Ok((bytes, descriptions))

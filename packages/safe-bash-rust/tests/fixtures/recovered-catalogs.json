@@ -1,0 +1,905 @@
+{
+  "source": "qpdf 12.4.2",
+  "cases": {
+    "missing.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 9 0, offset 910): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        }
+      }
+    },
+    "revised.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgolIDkwIDAgb2JqIHRydWUgZW5kb2JqCjM2IDEgb2JqIChmaXJzdCkgZW5kb2JqCjM3IDAgb2JqIChzZWNvbmQpIGVuZG9iagozNiAyIG9iaiAobGF0ZXN0KSBlbmRvYmoK",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 869): recovered trailer has no /Root entry\nWARNING: in.pdf (object 36 2, offset 1008): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 836 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        }
+      }
+    },
+    "packed.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo3IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggOAo+PgpzdHJlYW0KeJwDAAAAAAEKZW5kc3RyZWFtCmVuZG9iagoKOSAwIG9iago8PAovTGVuZ3RoIDY3Cj4+CnN0cmVhbQo5OSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyA+PiBlbmRvYmoKdHJhaWxlciA8PCAvRW5jcnlwdCAxMjMgMCBSID4+CmVuZHN0cmVhbQplbmRvYmoKCjEwIDAgb2JqCjw8Ci9UeXBlIC9PYmpTdG0KL04gNgovRmlyc3QgMzIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCAyNzMKPj4Kc3RyZWFtCnicrZBNS8QwEIbv+RVz1MMySdptt1CKu0uLIMKyCh7EQ2xjCZSkNKnov3dSLIp7lXxMMpl5ed4I4CAhSSGBXQpbEHkKGchdDjtIsoKVJcPHz1EDHlVQg+sZnlSvPTVxOLOq+lWxPDA8utkGkAzvTOfhmUSpkuTi/rJ2nCbXza2e4OpmdHrTuk7j2L1tlA/XpGfCoKFs6qbhPJecZ1uKnKKgVfzkspRzyYus3leXLBF10pFlYcV73Rl1cB/ExGlkQkJeSGLCs/ZunlqyFRUaRz3LQdBffNukSc5sID0P6aX52MTwYX4NyzUmBcOD8nqRw1s9vOtgWsWwtmTX2B7wydi99WZN/L+Fv+D5Cv4FZfaFrgplbmRzdHJlYW0KZW5kb2JqCgoxMSAwIG9iago8PAovVHlwZSAvWFJlZgovU2l6ZSAxMgovVyBbIDEgNCAyIF0KL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA1NAo+PgpzdHJlYW0KeJxjYACC//+ZgCQXAwOEYoRQTIxASgQmyAyhWECCk2CCrCDeQwYGIMUYDqaYzjMwAADYfgULCmVuZHN0cmVhbQplbmRvYmoKCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf (object 11 0, offset 904): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: in.pdf, object 99 0 at offset 268 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        }
+      }
+    },
+    "empty": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAgPj4gZW5kb2JqCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 46): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        }
+      }
+    },
+    "dangling": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMTIgMCBSID4+IGVuZG9iago=",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 59): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        }
+      }
+    },
+    "inline": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFs8PCAvVHlwZSAvUGFnZSAvTWVkaWFCb3ggWzAgMCAxMCAyMF0gPj5dID4+ID4+IGVuZG9iago=",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 119): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        }
+      }
+    },
+    "truncated.pdf": {
+      "pdf": "JVBERi0xLjcKMTIgMCBvYmogPDwgL1RpdGxlIChubyBjYXRhbG9nKSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxMiAwIFIgPj4=",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nWARNING: in.pdf, object 12 0 at offset 20 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        }
+      }
+    },
+    "zero-pages": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMiAwIFIgL01lZGlhQm94IFswIDAgMTAgMjBdID4+IGVuZG9iagp0cmFpbGVyIDw8IC9Sb290IDEgMCBSIC9TaXplIDQgPj4K",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        }
+      }
+    },
+    "latest-trailer-no-root": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSA0ID4+CnRyYWlsZXIgPDwgL0luZm8gMSAwIFIgPj4K",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "latest-trailer-bad-root": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSA0ID4+CnRyYWlsZXIgPDwgL1Jvb3QgOSAwIFIgPj4K",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "latest-trailer-empty-root": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSA0ID4+CnRyYWlsZXIgPDwgL1Jvb3QgbnVsbCA+Pgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 242): recovered trailer has no /Root entry\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "invalid-root-type": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvT3RoZXIgL1BhZ2VzIDIgMCBSID4+IGVuZG9iagoyIDAgb2JqIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbMyAwIFJdIC9Db3VudCAxID4+IGVuZG9iagozIDAgb2JqIDw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMiAwIFIgL1Jlc291cmNlcyA8PCA+PiAvTWVkaWFCb3ggWzAgMCAxMCAyMF0gPj4gZW5kb2JqCnRyYWlsZXIgPDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU2CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTMK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "catalog-without-trailer": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgPj4K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "xref-stream": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo3IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggOAo+PgpzdHJlYW0KeJwDAAAAAAEKZW5kc3RyZWFtCmVuZG9iagoKOSAwIG9iago8PAovTGVuZ3RoIDY3Cj4+CnN0cmVhbQo5OSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyA+PiBlbmRvYmoKdHJhaWxlciA8PCAvRW5jcnlwdCAxMjMgMCBSID4+CmVuZHN0cmVhbQplbmRvYmoKCjEwIDAgb2JqCjw8Ci9UeXBlIC9PYmpTdG0KL04gNgovRmlyc3QgMzIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCAyNzMKPj4Kc3RyZWFtCnicrZBNS8QwEIbv+RVz1MMySdptt1CKu0uLIMKyCh7EQ2xjCZSkNKnov3dSLIp7lXxMMpl5ed4I4CAhSSGBXQpbEHkKGchdDjtIsoKVJcPHz1EDHlVQg+sZnlSvPTVxOLOq+lWxPDA8utkGkAzvTOfhmUSpkuTi/rJ2nCbXza2e4OpmdHrTuk7j2L1tlA/XpGfCoKFs6qbhPJecZ1uKnKKgVfzkspRzyYus3leXLBF10pFlYcV73Rl1cB/ExGlkQkJeSGLCs/ZunlqyFRUaRz3LQdBffNukSc5sID0P6aX52MTwYX4NyzUmBcOD8nqRw1s9vOtgWsWwtmTX2B7wydi99WZN/L+Fv+D5Cv4FZfaFrgplbmRzdHJlYW0KZW5kb2JqCgoxMSAwIG9iago8PAovVHlwZSAvWFJlZgovU2l6ZSAxMgovVyBbIDEgNCAyIF0KL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA1NAo+PgpzdHJlYW0KeJxjYACC//+ZgCQXAwOEYoRQTIxASgQmyAyhWECCk2CCrCDeQwYGIMUYDqaYzjMwAADYfgULCmVuZHN0cmVhbQplbmRvYmoKCiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "Mgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiBjb21wcmVzc2VkOyBzdHJlYW0gPSAxMCwgaW5kZXggPSAwCjIvMDogY29tcHJlc3NlZDsgc3RyZWFtID0gMTAsIGluZGV4ID0gMQozLzA6IGNvbXByZXNzZWQ7IHN0cmVhbSA9IDEwLCBpbmRleCA9IDIKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjUvMDogY29tcHJlc3NlZDsgc3RyZWFtID0gMTAsIGluZGV4ID0gMwo2LzA6IGNvbXByZXNzZWQ7IHN0cmVhbSA9IDEwLCBpbmRleCA9IDQKNy8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDE0Ngo4LzA6IGNvbXByZXNzZWQ7IHN0cmVhbSA9IDEwLCBpbmRleCA9IDUKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIyNQoxMC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM0MwoxMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDcxOQo5OS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDI1Nwo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (trailer, offset 301): recovered trailer has no /Root entry\nWARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (99)\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "prefixed": {
+      "pdf": "cHJlZml4CiVQREYtMS7/CjEgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: can't find PDF header\nWARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 1 0, offset 52): EOF after endobj\nqpdf: in.pdf: unable to find trailer dictionary while recovering damaged file\n"
+        }
+      }
+    },
+    "no-trailer-valid-pages": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAxMCAyMF0gPj4gZW5kb2JqCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 3 0, offset 184): EOF after endobj\nWARNING: in.pdf: unable to find trailer dictionary while recovering damaged file\nWARNING: object 3 0: Pages tree includes non-dictionary object; ignoring\nqpdf: in.pdf: unable to find any pages while recovering damaged file\n"
+        }
+      }
+    },
+    "same-line-header": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqIDIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAxMCAyMF0gPj4gZW5kb2JqCnRyYWlsZXIgPDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: object 2 0: operation for dictionary attempted on object of type null: returning false for a key containment request\nqpdf: in.pdf: root of pages tree has no /Kids array\n"
+        }
+      }
+    },
+    "prefixed.pdf": {
+      "pdf": "bGVhZGluZyBieXRlcwolUERGLTEuNwolwoHCgcKBwoEKCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBSCj4+CmVuZG9iagoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0NvdW50IDIKL0tpZHMgWyA1IDAgUiA4IDAgUiBdCj4+CmVuZG9iagoKMyAwIG9iago8PAovUHJvZHVjZXIgKEBwb2UtY29kZS9wZGYtYXN0KQovVGl0bGUgPEZFRkYwMDcyMDA2NTAwNzAwMDYxMDA2OTAwNzIwMDY1MDA2NDAwMjA5NkVBPgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA1NAo+PgpzdHJlYW0KeJwr5DJQAMGidC6nEC59N0MFQyOFkDQuQ7AokKcA5OZyaaRlFhWXaCqEZHG5hnAFAgA2awwBCmVuZHN0cmVhbQplbmRvYmoKCjUgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0YxIDYgMCBSCj4+Cj4+Ci9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjYgMCBvYmoKPDwKL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvSGVsdmV0aWNhCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCj4+CmVuZG9iagoKNyAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDgKPj4Kc3RyZWFtCnicAwAAAAABCmVuZHN0cmVhbQplbmRvYmoKCjggMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKPj4KPj4KL0NvbnRlbnRzIDcgMCBSCj4+CmVuZG9iagoKOSAwIG9iago8PAovTGVuZ3RoIDY3Cj4+CnN0cmVhbQo5OSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyA+PiBlbmRvYmoKdHJhaWxlciA8PCAvRW5jcnlwdCAxMjMgMCBSID4+CmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCAxMAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTM2IDAwMDAwIG4gCjAwMDAwMDAyNDIgMDAwMDAgbiAKMDAwMDAwMDM2OCAwMDAwMCBuIAowMDAwMDAwNDk3IDAwMDAwIG4gCjAwMDAwMDA1OTUgMDAwMDAgbiAKMDAwMDAwMDY3NCAwMDAwMCBuIAowMDAwMDAwNzkzIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgMTAKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgo5MTEKJSVFT0Y=",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 0,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+          "stderr": ""
+        },
+        "--show-pages": {
+          "status": 0,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": ""
+        },
+        "out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    "partial.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA2NzQgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9GCjg4IDAgb2JqICh1bmluZGV4ZWQpIGVuZG9iagp4cmVmCjggMQowMDAwMDAwMDAxIDAwMDAwIG4gCjkgMQowMDAwMDAwMDAwIDAwMDAxIGYgCnRyYWlsZXIgPDwgL1ByZXYgOTExIC9TaXplIDg5ID4+CnN0YXJ0eHJlZgoxMjE3CiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (89) is not one plus the highest object number (9)\nqpdf: in.pdf: unable to find /Root dictionary\n"
+        }
+      }
+    },
+    "wrong-root.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA2NzQgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDIgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        }
+      }
+    },
+    "missing-root.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA2NzQgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Gb29YIDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTExCiUlRU9G",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--json --json-key=pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-xref": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-pages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        }
+      }
+    },
+    "bad-pointer.pdf": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsgNSAwIFIgOCAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKL1RpdGxlIDxGRUZGMDA3MjAwNjUwMDcwMDA2MTAwNjkwMDcyMDA2NTAwNjQwMDIwOTZFQT4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggNTQKPj4Kc3RyZWFtCnicK+QyUADBonQupxAufTdDBUMjhZA0LkOwKJCnAOTmcmmkZRYVl2gqhGRxuYZwBQIANmsMAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+PgovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKCjcgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo4IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKCjkgMCBvYmoKPDwKL0xlbmd0aCA2Nwo+PgpzdHJlYW0KOTkgMCBvYmogPDwgL1R5cGUgL0NhdGFsb2cgPj4gZW5kb2JqCnRyYWlsZXIgPDwgL0VuY3J5cHQgMTIzIDAgUiA+PgplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzNiAwMDAwMCBuIAowMDAwMDAwMjQyIDAwMDAwIG4gCjAwMDAwMDAzNjggMDAwMDAgbiAKMDAwMDAwMDQ5NyAwMDAwMCBuIAowMDAwMDAwNTk1IDAwMDAwIG4gCjAwMDAwMDA2NzQgMDAwMDAgbiAKMDAwMDAwMDc5MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKOTk5OTk5OTkKJSVFT0Y=",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "Mgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjk5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gODI1Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-pages": {
+          "status": 3,
+          "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 2,1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf (offset 99999999): xref not found\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    }
+  }
+}

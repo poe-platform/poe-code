@@ -1,4 +1,4 @@
-use super::{magick_resize::Kernel, png_pixels::Raster};
+use super::png_pixels::Raster;
 
 pub(super) struct Filter<'a> {
     name: &'a str,
@@ -47,11 +47,33 @@ impl<'a> Filter<'a> {
                 .pixels
                 .iter_mut()
                 .for_each(|p| p[..3].iter_mut().for_each(|v| *v = 255 - *v)),
+            "format" if self.param(&["pix_fmts"], 0).is_some_and(|s| s.split('|').all(|f| matches!(f, "rgb24" | "rgba"))) => {
+                let formats = self.param(&["pix_fmts"], 0).unwrap();
+                let current = if im.alpha { "rgba" } else { "rgb24" };
+                let selected = if formats.split('|').any(|f| f == current) {
+                    current
+                } else {
+                    formats.split('|').next().unwrap()
+                };
+                im.alpha = selected == "rgba";
+                im.gray = false;
+                if !im.alpha {
+                    for p in &mut im.pixels { p[3] = 255; }
+                }
+            }
             "format" if self.raw.contains("gray") => {
                 for p in &mut im.pixels {
-                    let g = super::magick_color::gray(p[0], p[1], p[2]);
+                    let [r, g, b, _] = p.map(i32::from);
+                    // FFmpeg first rounds BT.601 luma to six fractional bits,
+                    // then expands the limited range before rounding to gray8.
+                    let limited = (8414*r + 16519*g + 3208*b + (16<<15) + 256) >> 9;
+                    let full = (limited*2*19078 - 39084288) >> 14;
+                    let g = ((full + 64) >> 7).clamp(0, 255) as u8;
                     p[..3].fill(g);
+                    p[3] = 255;
                 }
+                im.alpha = false;
+                im.gray = true;
             }
             "transpose" | "rotate" => im.remap(ih, iw, |im, x, y| {
                 if self.name == "transpose" && self.param(&["dir"], 0) == Some("2") {
@@ -118,11 +140,49 @@ impl<'a> Filter<'a> {
                 } else if dh < 0 && dw > 0 {
                     dh = auto(dh, dw, ih, iw);
                 }
-                im.resize(
-                    &format!("{}x{}!", dw.max(2), dh.max(2)),
-                    Kernel::Lanczos3,
-                    limit,
-                )?;
+                if !im.alpha {
+                    im.resize(&format!("{}x{}!", dw.max(2), dh.max(2)), super::magick_resize::Kernel::Lanczos3, limit)?;
+                    return Ok(());
+                }
+                let (width, height) = (dw.max(2) as usize, dh.max(2) as usize);
+                let size = width.checked_mul(height).filter(|&n| n <= limit / 4).ok_or("image exceeds memory budget")?;
+                let tap_count = |source: usize, target: usize| if source == target { 1 } else { source.saturating_sub(2).min(1 + (4. * (source as f64 / target as f64).max(1.)).ceil() as usize).max(1) };
+                let weights = |source: usize, target: usize| {
+                    let step = (source as f64 * 65536. / target as f64).round();
+                    let taps = tap_count(source, target);
+                    (0..target).map(|destination| {
+                        let center = (destination as f64 + 0.5) * step / 65536. - 0.5;
+                        let start = (center - (taps as f64 - 2.) / 2.).trunc() as i64;
+                        let mut row = (0..taps).map(|tap| {
+                            let distance = (start as f64 + tap as f64 - center).abs() * (target as f64 / source as f64).min(1.);
+                            let weight = if distance < 1. { 1. + distance * distance * (1.4 * distance - 2.4) } else if distance < 2. { 0.6 * (4. + distance * (-8. + distance * (5. - distance))) } else { 0. };
+                            ((start + tap as i64).clamp(0, source as i64 - 1) as usize, weight)
+                        }).collect::<Vec<_>>();
+                        let sum = row.iter().map(|t| t.1).sum::<f64>();
+                        for tap in &mut row { tap.1 /= sum; }
+                        row
+                    }).collect::<Vec<_>>()
+                };
+                let horizontal_size = width.saturating_mul(tap_count(iw, width));
+                let vertical_size = height.saturating_mul(tap_count(ih, height));
+                let allocation = horizontal_size.saturating_add(vertical_size).saturating_mul(size_of::<(usize, f64)>()).saturating_add(width.saturating_add(height).saturating_mul(size_of::<Vec<(usize, f64)>>())).saturating_add(size.saturating_mul(4));
+                if allocation > limit { return Err("image exceeds memory budget".into()); }
+                if horizontal_size.saturating_mul(vertical_size) > limit.saturating_mul(32) { return Err("image scaling work limit exceeded".into()); }
+                let horizontal = weights(iw, width);
+                let vertical = weights(ih, height);
+                let mut pixels = Vec::with_capacity(size);
+                for row in &vertical {
+                    for column in &horizontal {
+                        let mut pixel = [0.; 4];
+                        for &(y, wy) in row {
+                            for &(x, wx) in column {
+                                for (out, &value) in pixel.iter_mut().zip(&im.pixels[y * iw + x]) { *out += f64::from(value) * (wy * wx); }
+                            }
+                        }
+                        pixels.push(pixel.map(|v| v.round().clamp(0., 255.) as u8));
+                    }
+                }
+                im.pixels = pixels; im.width = width; im.height = height;
             }
             _ => {}
         }

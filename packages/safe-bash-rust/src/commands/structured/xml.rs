@@ -78,7 +78,7 @@ fn xml_json_space(c: char) -> bool {
 }
 
 #[derive(Clone, Copy)]
-pub(super) enum Escaping {
+pub(in crate::commands) enum Escaping {
     Ascii,
     Unicode,
     Canonical,
@@ -127,7 +127,7 @@ impl Escaping {
     }
 }
 
-pub(super) struct EncodedOutput<'a> {
+pub(in crate::commands) struct EncodedOutput<'a> {
     pub bytes: Vec<u8>,
     pub encoding: Option<&'a str>,
     pub limit: usize,

@@ -1,0 +1,430 @@
+{
+  "source": "qpdf 12.4.2",
+  "cases": {
+    "named-and-associated": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgovTmFtZXMgPDwKL0VtYmVkZGVkRmlsZXMgPDwKL0tpZHMgWyAxMiAwIFIgXQo+Pgo+PgovQUYgWyAxMSAwIFIgXQo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNSAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggOAo+PgpzdHJlYW0KeJwDAAAAAAEKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbIDAgMCAzMCA0MCBdCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKPj4KPj4KL0NvbnRlbnRzIDQgMCBSCi9BRiBbIDE0IDAgUiBdCi9Bbm5vdHMgWyA8PAovU3VidHlwZSAvRmlsZUF0dGFjaG1lbnQKL0ZTIDE2IDAgUgo+PiBdCj4+CmVuZG9iagoKNiAwIG9iago8PAovTGVuZ3RoIDMKPj4Kc3RyZWFtCgAB/wplbmRzdHJlYW0KZW5kb2JqCgo3IDAgb2JqCjw8Ci9VRiAocGF5bG9hZC5iaW4pCi9FRiA8PAovVUYgNiAwIFIKPj4KPj4KZW5kb2JqCgo4IDAgb2JqCjw8Ci9MZW5ndGggMwo+PgpzdHJlYW0KAAL/CmVuZHN0cmVhbQplbmRvYmoKCjkgMCBvYmoKPDwKL1VGIChwYXlsb2FkLmJpbikKL0VGIDw8Ci9VRiA4IDAgUgo+Pgo+PgplbmRvYmoKCjEwIDcgb2JqCjw8Ci9MZW5ndGggMwo+PgpzdHJlYW0KAAP/CmVuZHN0cmVhbQplbmRvYmoKCjExIDAgb2JqCjw8Ci9VRiAoYWYuYmluKQovRUYgPDwKL1VGIDEwIDcgUgo+Pgo+PgplbmRvYmoKCjEyIDAgb2JqCjw8Ci9OYW1lcyBbIChmaXJzdCkgNyAwIFIgKHNlY29uZCkgOSAwIFIgKGZpcnN0KSA5IDAgUiBdCj4+CmVuZG9iagoKMTMgMCBvYmoKPDwKL0xlbmd0aCAzCj4+CnN0cmVhbQoABP8KZW5kc3RyZWFtCmVuZG9iagoKMTQgMCBvYmoKPDwKL1VGIChwYWdlLW9ubHkpCi9FRiA8PAovVUYgMTMgMCBSCj4+Cj4+CmVuZG9iagoKMTUgMCBvYmoKPDwKL0xlbmd0aCAzCj4+CnN0cmVhbQoABf8KZW5kc3RyZWFtCmVuZG9iagoKMTYgMCBvYmoKPDwKL1VGIChhbm5vdC5iaW4pCi9FRiA8PAovVUYgMTUgMCBSCj4+Cj4+CmVuZG9iagoKeHJlZgowIDE3CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMTM2IDAwMDAwIG4gCjAwMDAwMDAxOTYgMDAwMDAgbiAKMDAwMDAwMDI0OCAwMDAwMCBuIAowMDAwMDAwMzI3IDAwMDAwIG4gCjAwMDAwMDA1MTMgMDAwMDAgbiAKMDAwMDAwMDU2NiAwMDAwMCBuIAowMDAwMDAwNjI2IDAwMDAwIG4gCjAwMDAwMDA2NzkgMDAwMDAgbiAKMDAwMDAwMDczOSAwMDAwNyBuIAowMDAwMDAwNzkzIDAwMDAwIG4gCjAwMDAwMDA4NTAgMDAwMDAgbiAKMDAwMDAwMDkyNyAwMDAwMCBuIAowMDAwMDAwOTgxIDAwMDAwIG4gCjAwMDAwMDEwNDEgMDAwMDAgbiAKMDAwMDAwMTA5NSAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDE3Ci9Sb290IDEgMCBSCi9JbmZvIDMgMCBSCj4+CgpzdGFydHhyZWYKMTE1NQolJUVPRg==",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "Zmlyc3QgLT4gOCwwCnNlY29uZCAtPiA4LDAK",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=first": {
+          "status": 3,
+          "stdout": "AAL/",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=second": {
+          "status": 3,
+          "stdout": "AAL/",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=payload.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nqpdf: attachment payload.bin not found\n"
+        },
+        "--show-attachment=af.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nqpdf: attachment af.bin not found\n"
+        },
+        "--show-attachment=annot.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nqpdf: attachment annot.bin not found\n"
+        },
+        "--show-attachment=page-only": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nqpdf: attachment page-only not found\n"
+        },
+        "--show-attachment=none": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nqpdf: attachment none not found\n"
+        },
+        "--list-attachments --show-attachment=second": {
+          "status": 3,
+          "stdout": "AAL/",
+          "stderr": "WARNING: in.pdf (Name/Number tree node): attempting to repair after error: in.pdf (Name/Number tree node): keys are not sorted in validate\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nfirst -> 8,0\nsecond -> 8,0\nWARNING: in.pdf, object 9 0 at offset 689: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        }
+      }
+    },
+    "sorted": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSA1IDAgUiAoYmV0YSkgNyAwIFJdID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAob3RoZXIuYmluKSAvRUYgPDwgL0YgOCAwIFIgPj4gPj4KZW5kb2JqCjggMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpYWVoKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA5MyAwMDAwMCBuIAowMDAwMDAwMTUwIDAwMDAwIG4gCjAwMDAwMDAyMzUgMDAwMDAgbiAKMDAwMDAwMDI4NyAwMDAwMCBuIAowMDAwMDAwMzU5IDAwMDAwIG4gCjAwMDAwMDA0MTYgMDAwMDAgbiAKMDAwMDAwMDQ4NyAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDkgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjUzOQolJUVPRgo=",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 0,
+          "stdout": "QUJD",
+          "stderr": ""
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 0,
+          "stdout": "QUJD",
+          "stderr": "alpha -> 4,0\nbeta -> 8,0\n"
+        }
+      }
+    },
+    "duplicates": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSA1IDAgUiAoYWxwaGEpIDcgMCBSXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM1OSAwMDAwMCBuIAowMDAwMDAwNDE3IDAwMDAwIG4gCjAwMDAwMDA0ODggMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1NDAKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YWxwaGEgLT4gOCwwCg==",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 3,
+          "stdout": "WFla",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 3,
+          "stdout": "WFla",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nalpha -> 8,0\nqpdf: operation succeeded with warnings\n"
+        }
+      }
+    },
+    "unsorted": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGJldGEpIDcgMCBSIChhbHBoYSkgNSAwIFJdID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAob3RoZXIuYmluKSAvRUYgPDwgL0YgOCAwIFIgPj4gPj4KZW5kb2JqCjggMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpYWVoKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA5MyAwMDAwMCBuIAowMDAwMDAwMTUwIDAwMDAwIG4gCjAwMDAwMDAyMzUgMDAwMDAgbiAKMDAwMDAwMDI4NyAwMDAwMCBuIAowMDAwMDAwMzU5IDAwMDAwIG4gCjAwMDAwMDA0MTYgMDAwMDAgbiAKMDAwMDAwMDQ4NyAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDkgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjUzOQolJUVPRgo=",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 3,
+          "stdout": "QUJD",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 3,
+          "stdout": "QUJD",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): keys are not sorted in validate\nalpha -> 4,0\nbeta -> 8,0\nqpdf: operation succeeded with warnings\n"
+        }
+      }
+    },
+    "empty": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8Pj4KZW5kb2JqCjcgMCBvYmoKPDwgL1R5cGUgL0ZpbGVzcGVjIC9GIChvdGhlci5iaW4pIC9FRiA8PCAvRiA4IDAgUiA+PiA+PgplbmRvYmoKOCAwIG9iago8PCAvTGVuZ3RoIDMgPj4Kc3RyZWFtClhZWgplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDkzIDAwMDAwIG4gCjAwMDAwMDAxNTAgMDAwMDAgbiAKMDAwMDAwMDIzNSAwMDAwMCBuIAowMDAwMDAwMjg3IDAwMDAwIG4gCjAwMDAwMDAzNTkgMDAwMDAgbiAKMDAwMDAwMDM3OSAwMDAwMCBuIAowMDAwMDAwNDUwIDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgOSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNTAyCiUlRU9GCg==",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nWARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nWARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nqpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nWARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nWARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nWARNING: in.pdf (Name/Number tree node (object 6)): name/number tree node has neither non-empty /Names nor /Kids\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "absent": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgIC9BRiBbNSAwIFJdID4+CmVuZG9iagoyIDAgb2JqCjw8IC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdID4+CmVuZG9iagozIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMiAwIFIgL01lZGlhQm94IFswIDAgMTAgMTBdIC9SZXNvdXJjZXMgPDw+PiA+PgplbmRvYmoKNCAwIG9iago8PCAvTGVuZ3RoIDMgPj4Kc3RyZWFtCkFCQwplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZpbGVzcGVjIC9GIChhY3R1YWwuYmluKSAvRUYgPDwgL0YgNCAwIFIgPj4gPj4KZW5kb2JqCjYgMCBvYmoKbnVsbAplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNzEgMDAwMDAgbiAKMDAwMDAwMDEyOCAwMDAwMCBuIAowMDAwMDAwMjEzIDAwMDAwIG4gCjAwMDAwMDAyNjUgMDAwMDAgbiAKMDAwMDAwMDMzNyAwMDAwMCBuIAowMDAwMDAwMzU3IDAwMDAwIG4gCjAwMDAwMDA0MjggMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0ODAKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGhhcyBubyBlbWJlZGRlZCBmaWxlcwo=",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "in.pdf has no embedded files\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "bad-type": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9PdGhlciAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSA1IDAgUiAoYmV0YSkgNyAwIFJdID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAob3RoZXIuYmluKSAvRUYgPDwgL0YgOCAwIFIgPj4gPj4KZW5kb2JqCjggMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpYWVoKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA5MyAwMDAwMCBuIAowMDAwMDAwMTUwIDAwMDAwIG4gCjAwMDAwMDAyMzUgMDAwMDAgbiAKMDAwMDAwMDI4NyAwMDAwMCBuIAowMDAwMDAwMzU2IDAwMDAwIG4gCjAwMDAwMDA0MTMgMDAwMDAgbiAKMDAwMDAwMDQ4NCAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDkgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjUzNgolJUVPRgo=",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": "WARNING: in.pdf, object 5 0 at offset 297: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 3,
+          "stdout": "QUJD",
+          "stderr": "WARNING: in.pdf, object 5 0 at offset 297: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 3,
+          "stdout": "QUJD",
+          "stderr": "WARNING: in.pdf, object 5 0 at offset 297: Embedded file object's type is not /Filespec\nalpha -> 4,0\nbeta -> 8,0\nWARNING: in.pdf, object 5 0 at offset 297: Embedded file object's type is not /Filespec\nqpdf: operation succeeded with warnings\n"
+        }
+      }
+    },
+    "no-stream": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgPj4KZW5kb2JqCjYgMCBvYmoKPDwgL05hbWVzIFsoYWxwaGEpIDUgMCBSIChiZXRhKSA3IDAgUl0gPj4KZW5kb2JqCjcgMCBvYmoKPDwgL1R5cGUgL0ZpbGVzcGVjIC9GIChvdGhlci5iaW4pIC9FRiA8PCAvRiA4IDAgUiA+PiA+PgplbmRvYmoKOCAwIG9iago8PCAvTGVuZ3RoIDMgPj4Kc3RyZWFtClhZWgplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDkzIDAwMDAwIG4gCjAwMDAwMDAxNTAgMDAwMDAgbiAKMDAwMDAwMDIzNSAwMDAwMCBuIAowMDAwMDAwMjg3IDAwMDAwIG4gCjAwMDAwMDAzNDAgMDAwMDAgbiAKMDAwMDAwMDM5NyAwMDAwMCBuIAowMDAwMDAwNDY4IDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgOSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNTIwCiUlRU9GCg==",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "YWxwaGEgLT4gMCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: operation for stream attempted on object of type null\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "alpha -> 0,0\nbeta -> 8,0\nqpdf: operation for stream attempted on object of type null\n"
+        }
+      }
+    },
+    "fallback-stream": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9VRiAzIDAgUiAvRiA0IDAgUiA+PiA+PgplbmRvYmoKNiAwIG9iago8PCAvTmFtZXMgWyhhbHBoYSkgNSAwIFIgKGJldGEpIDcgMCBSXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM2OSAwMDAwMCBuIAowMDAwMDAwNDI2IDAwMDAwIG4gCjAwMDAwMDA0OTcgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1NDkKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 0,
+          "stdout": "QUJD",
+          "stderr": ""
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 0,
+          "stdout": "QUJD",
+          "stderr": "alpha -> 4,0\nbeta -> 8,0\n"
+        }
+      }
+    },
+    "preference": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRUYgPDwgL1VuaXggOCAwIFIgL0RPUyA0IDAgUiA+PiA+PgplbmRvYmoKNiAwIG9iago8PCAvTmFtZXMgWyhhbHBoYSkgNSAwIFIgKGJldGEpIDcgMCBSXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM1NyAwMDAwMCBuIAowMDAwMDAwNDE0IDAwMDAwIG4gCjAwMDAwMDA0ODUgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1MzcKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "YWxwaGEgLT4gOCwwCmJldGEgLT4gOCwwCg==",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 0,
+          "stdout": "WFla",
+          "stderr": ""
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 0,
+          "stdout": "WFla",
+          "stderr": "alpha -> 8,0\nbeta -> 8,0\n"
+        }
+      }
+    },
+    "invalid-value": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSAwIChiZXRhKSA3IDAgUl0gPj4KZW5kb2JqCjcgMCBvYmoKPDwgL1R5cGUgL0ZpbGVzcGVjIC9GIChvdGhlci5iaW4pIC9FRiA8PCAvRiA4IDAgUiA+PiA+PgplbmRvYmoKOCAwIG9iago8PCAvTGVuZ3RoIDMgPj4Kc3RyZWFtClhZWgplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDkzIDAwMDAwIG4gCjAwMDAwMDAxNTAgMDAwMDAgbiAKMDAwMDAwMDIzNSAwMDAwMCBuIAowMDAwMDAwMjg3IDAwMDAwIG4gCjAwMDAwMDAzNTkgMDAwMDAgbiAKMDAwMDAwMDQxMiAwMDAwMCBuIAowMDAwMDAwNDgzIDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgOSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNTM1CiUlRU9GCg==",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YmV0YSAtPiA4LDAK",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nbeta -> 8,0\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "invalid-key": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbNDIgNSAwIFIgKGJldGEpIDcgMCBSXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM1OSAwMDAwMCBuIAowMDAwMDAwNDExIDAwMDAwIG4gCjAwMDAwMDA0ODIgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1MzQKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YmV0YSAtPiA4LDAK",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid key in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid key in validate\nqpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid key in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid key in validate\nbeta -> 8,0\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "null-value": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSBudWxsIChiZXRhKSA3IDAgUl0gPj4KZW5kb2JqCjcgMCBvYmoKPDwgL1R5cGUgL0ZpbGVzcGVjIC9GIChvdGhlci5iaW4pIC9FRiA8PCAvRiA4IDAgUiA+PiA+PgplbmRvYmoKOCAwIG9iago8PCAvTGVuZ3RoIDMgPj4Kc3RyZWFtClhZWgplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDkzIDAwMDAwIG4gCjAwMDAwMDAxNTAgMDAwMDAgbiAKMDAwMDAwMDIzNSAwMDAwMCBuIAowMDAwMDAwMjg3IDAwMDAwIG4gCjAwMDAwMDAzNTkgMDAwMDAgbiAKMDAwMDAwMDQxNSAwMDAwMCBuIAowMDAwMDAwNDg2IDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgOSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNTM4CiUlRU9GCg==",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YmV0YSAtPiA4LDAK",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nbeta -> 8,0\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "empty-names": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM1OSAwMDAwMCBuIAowMDAwMDAwMzkwIDAwMDAwIG4gCjAwMDAwMDA0NjEgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1MTMKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "stream-value": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9OYW1lcyBbKGFscGhhKSA0IDAgUiAoYmV0YSkgNyAwIFJdID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAob3RoZXIuYmluKSAvRUYgPDwgL0YgOCAwIFIgPj4gPj4KZW5kb2JqCjggMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpYWVoKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA5MyAwMDAwMCBuIAowMDAwMDAwMTUwIDAwMDAwIG4gCjAwMDAwMDAyMzUgMDAwMDAgbiAKMDAwMDAwMDI4NyAwMDAwMCBuIAowMDAwMDAwMzU5IDAwMDAwIG4gCjAwMDAwMDA0MTYgMDAwMDAgbiAKMDAwMDAwMDQ4NyAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDkgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjUzOQolJUVPRgo=",
+      "reports": {
+        "--list-attachments": {
+          "status": 3,
+          "stdout": "YmV0YSAtPiA4LDAK",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nqpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (Name/Number tree node (object 6)): attempting to repair after error: in.pdf (Name/Number tree node (object 6)): invalid value in validate\nbeta -> 8,0\nqpdf: attachment alpha not found\n"
+        }
+      }
+    },
+    "stream-root": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9GIDQgMCBSID4+ID4+CmVuZG9iago2IDAgb2JqCjw8IC9MZW5ndGggMCA+PgpzdHJlYW0KCmVuZHN0cmVhbQplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM1OSAwMDAwMCBuIAowMDAwMDAwNDA4IDAwMDAwIG4gCjAwMDAwMDA0NzkgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1MzEKJSVFT0YK",
+      "reports": {
+        "--list-attachments": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGhhcyBubyBlbWJlZGRlZCBmaWxlcwo=",
+          "stderr": ""
+        },
+        "--show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment alpha not found\n"
+        },
+        "--show-attachment=actual.bin": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: attachment actual.bin not found\n"
+        },
+        "--list-attachments --show-attachment=alpha": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "in.pdf has no embedded files\nqpdf: attachment alpha not found\n"
+        }
+      }
+    }
+  }
+}

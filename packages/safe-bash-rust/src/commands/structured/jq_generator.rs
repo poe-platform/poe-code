@@ -10,6 +10,7 @@ use std::ops::ControlFlow::{self, Break, Continue};
 #[derive(Debug)]
 pub(super) enum JqFault {
     Error(i32, JVal),
+    Input(i32, JVal),
     Limit(&'static str),
     Halt(i32, String),
 }
@@ -41,7 +42,9 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s == "." || s.is_empty() {
         return emit(input.clone());
     }
-    if super::jq_parser::starts_number(s) && let Some(value) = super::jq_number::literal(s) {
+    if super::jq_parser::starts_number(s)
+        && let Some(value) = super::jq_number::literal(s)
+    {
         return emit(value);
     }
     visit_filter(s, input, vars, emit)
@@ -81,11 +84,12 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         vars.next_label.set(target + 1);
         let mut bound = vars.clone();
         bound.labels.insert(name.trim().into(), target);
-        return protected(body, input, &bound, emit, |code, e, _| {
-            if e == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))]) {
+        return protected(body, input, &bound, emit, |fault, _| {
+            if matches!(&fault, JqFault::Error(_, e) if *e == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))]))
+            {
                 Ok(Continue(()))
             } else {
-                Err(JqFault::Error(code, e))
+                Err(fault)
             }
         });
     }
@@ -107,7 +111,17 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
     if let Some(rest) = s.strip_prefix("try ") {
         let pair = split_jq_binary(rest, " catch ");
         let body = pair.as_ref().map_or(rest, |(body, _)| body);
-        return protected(body, input, vars, emit, |_, e, emit| {
+        return protected(body, input, vars, emit, |fault, emit| {
+            let e = match fault {
+                JqFault::Input(_, JVal::Str(message)) => JVal::Str(
+                    message
+                        .strip_prefix("parse error: ")
+                        .unwrap_or(&message)
+                        .into(),
+                ),
+                JqFault::Error(_, e) | JqFault::Input(_, e) => e,
+                _ => unreachable!("protected catches evaluation errors"),
+            };
             if let Some((_, handler)) = &pair {
                 visit_jq(handler, &e, vars, emit)
             } else {
@@ -168,7 +182,11 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 let mut remaining = crate::ShellLimits::default().max_loop_iterations;
                 return visit_jq(left, input, vars, &mut |v| {
                     remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
-                    emit(super::jq_parser::apply_literal_chain(v, suffix, vars.max_value_bytes)?)
+                    emit(super::jq_parser::apply_literal_chain(
+                        v,
+                        suffix,
+                        vars.max_value_bytes,
+                    )?)
                 });
             }
         };
@@ -284,7 +302,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
     let operand = s.strip_suffix('?').unwrap_or(s).trim_end();
     use super::jq_parser::Subscript;
     if operand != s {
-        return protected(operand, input, vars, emit, |_, _, _| Ok(Continue(())));
+        return protected(operand, input, vars, emit, |_, _| Ok(Continue(())));
     }
     if let Some((base, op)) = super::jq_parser::subscript(s)? {
         let bases = |each: &mut dyn FnMut(&JVal) -> Flow| {
@@ -371,7 +389,9 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }) {
             return flow;
         }
-        if let Some(filter) = args && matches!(name, "startswith" | "endswith" | "ltrimstr" | "rtrimstr") {
+        if let Some(filter) = args
+            && matches!(name, "startswith" | "endswith" | "ltrimstr" | "rtrimstr")
+        {
             return visit_jq(filter, input, vars, &mut |value| {
                 let (JVal::Str(text), JVal::Str(pattern)) = (input, &value) else {
                     return if matches!(name, "ltrimstr" | "rtrimstr") {
@@ -388,9 +408,15 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 })
             });
         }
-        if let Some(filter) = args && matches!(name, "has" | "in") {
+        if let Some(filter) = args
+            && matches!(name, "has" | "in")
+        {
             return visit_jq(filter, input, vars, &mut |value| {
-                let (container, key) = if name == "has" { (input, &value) } else { (&value, input) };
+                let (container, key) = if name == "has" {
+                    (input, &value)
+                } else {
+                    (&value, input)
+                };
                 let found = match (container, key) {
                     (JVal::Null, _) => false,
                     (JVal::Object(keys), JVal::Str(k)) => keys.iter().any(|(name, _)| name == k),
@@ -398,18 +424,36 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                         let index = n.trunc();
                         index >= 0.0 && index < items.len() as f64
                     }
-                    _ => return Err(format!("Cannot check whether {} has a {} key", container.type_name(), key.type_name()).into()),
+                    _ => {
+                        return Err(format!(
+                            "Cannot check whether {} has a {} key",
+                            container.type_name(),
+                            key.type_name()
+                        )
+                        .into());
+                    }
                 };
                 emit(JVal::Bool(found))
             });
         }
-        if let Some(filter) = args && matches!(name, "contains" | "inside") {
+        if let Some(filter) = args
+            && matches!(name, "contains" | "inside")
+        {
             return visit_jq(filter, input, vars, &mut |value| {
-                let (container, needle) = if name == "contains" { (input, &value) } else { (&value, input) };
+                let (container, needle) = if name == "contains" {
+                    (input, &value)
+                } else {
+                    (&value, input)
+                };
                 if container.type_name() != needle.type_name()
                     || matches!((container, needle), (JVal::Bool(a), JVal::Bool(b)) if a != b)
                 {
-                    return Err(format!("{} and {} cannot have their containment checked", describe(container), describe(needle)).into());
+                    return Err(format!(
+                        "{} and {} cannot have their containment checked",
+                        describe(container),
+                        describe(needle)
+                    )
+                    .into());
                 }
                 emit(JVal::Bool(super::jval_contains(container, needle)))
             });
@@ -431,14 +475,27 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 emit(JVal::Number(-low - 1.0, None))
             });
         }
-        if let Some(args) = args && matches!(name, "scan" | "capture" | "match" | "test") {
+        if let Some(args) = args
+            && matches!(name, "scan" | "capture" | "match" | "test")
+        {
             let pair = split_jq_binary(args, ";");
             let source = pair.as_ref().map_or(args, |(p, _)| p.as_str());
             return visit_jq(source, input, vars, &mut |pat| {
                 if let Some((_, flags)) = &pair {
-                    visit_jq(flags, input, vars, &mut |f| regex_results(name, input, &pat, &f, emit))
-                } else if name != "scan" && let JVal::Array(parts) = &pat && !(name == "capture" && parts.is_empty()) {
-                    regex_results(name, input, parts.first().unwrap_or(&JVal::Null), parts.get(1).unwrap_or(&JVal::Null), emit)
+                    visit_jq(flags, input, vars, &mut |f| {
+                        regex_results(name, input, &pat, &f, emit)
+                    })
+                } else if name != "scan"
+                    && let JVal::Array(parts) = &pat
+                    && !(name == "capture" && parts.is_empty())
+                {
+                    regex_results(
+                        name,
+                        input,
+                        parts.first().unwrap_or(&JVal::Null),
+                        parts.get(1).unwrap_or(&JVal::Null),
+                        emit,
+                    )
                 } else if name == "capture" && !matches!(pat, JVal::Str(_)) {
                     Err(format!("{} not a string or array", pat.type_name()).into())
                 } else {
@@ -479,7 +536,11 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 let (JVal::Str(text), JVal::Str(separator)) = (input, sep) else {
                     return Err("split input and separator must be strings".into());
                 };
-                emit(super::split_jq_string(text, &separator, vars.max_value_bytes)?)
+                emit(super::split_jq_string(
+                    text,
+                    &separator,
+                    vars.max_value_bytes,
+                )?)
             });
         }
         if let ("getpath", Some(filter)) = (name, args) {
@@ -552,7 +613,14 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
             let parts = split_jq_top(args, ';').unwrap_or_else(|| vec![args.to_owned()]);
             if name == "recurse" && (1..=2).contains(&parts.len()) {
                 let mut remaining = crate::ShellLimits::default().max_loop_iterations;
-                return recurse(input, &parts[0], parts.get(1).map(String::as_str), vars, &mut remaining, emit);
+                return recurse(
+                    input,
+                    &parts[0],
+                    parts.get(1).map(String::as_str),
+                    vars,
+                    &mut remaining,
+                    emit,
+                );
             }
             if let [filter] = parts.as_slice()
                 && matches!(name, "first" | "last" | "isempty")
@@ -678,13 +746,16 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         .and_then(|s| s.trim_start().strip_prefix('$'))
         && let Some(id) = vars.labels.get(name.trim())
     {
-        return Err(JqFault::Error(5, JVal::Object(vec![(
-            "__jq".into(),
-            JVal::Number(*id as f64, None),
-        )])));
+        return Err(JqFault::Error(
+            5,
+            JVal::Object(vec![("__jq".into(), JVal::Number(*id as f64, None))]),
+        ));
     }
     if s == "inputs" {
-        while let Some(value) = vars.pop_input().map_err(|(code,e)| JqFault::Error(code, JVal::Str(e)))? {
+        while let Some(value) = vars
+            .pop_input()
+            .map_err(|(code, e)| JqFault::Input(code, JVal::Str(e)))?
+        {
             if emit(value)?.is_break() {
                 return Ok(Break(()));
             }
@@ -700,7 +771,9 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
 }
 
 fn descendants(root: &JVal, emit: &mut Emit<'_>) -> Flow {
-    if emit(root.clone())?.is_break() { return Ok(Break(())); }
+    if emit(root.clone())?.is_break() {
+        return Ok(Break(()));
+    }
     let mut path = vec![(root, 0)];
     while let Some((node, index)) = path.last_mut() {
         let child = match node {
@@ -709,7 +782,9 @@ fn descendants(root: &JVal, emit: &mut Emit<'_>) -> Flow {
             _ => None,
         };
         if let Some(child) = child {
-            if emit(child.clone())?.is_break() { return Ok(Break(())); }
+            if emit(child.clone())?.is_break() {
+                return Ok(Break(()));
+            }
             *index += 1;
             path.push((child, 0));
         } else {
@@ -719,15 +794,27 @@ fn descendants(root: &JVal, emit: &mut Emit<'_>) -> Flow {
     Ok(Continue(()))
 }
 
-fn recurse(value: &JVal, update: &str, condition: Option<&str>, vars: &JqScope<'_>, remaining: &mut usize, emit: &mut Emit<'_>) -> Flow {
+fn recurse(
+    value: &JVal,
+    update: &str,
+    condition: Option<&str>,
+    vars: &JqScope<'_>,
+    remaining: &mut usize,
+    emit: &mut Emit<'_>,
+) -> Flow {
     vars.check_stack()?;
     *remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
-    if emit(value.clone())?.is_break() { return Ok(Break(())); }
+    if emit(value.clone())?.is_break() {
+        return Ok(Break(()));
+    }
     visit_jq(update, value, vars, &mut |child| {
         if let Some(test) = condition {
             visit_jq(test, &child, vars, &mut |result| {
-                if result.is_truthy() { recurse(&child, update, condition, vars, remaining, emit) }
-                else { Ok(Continue(())) }
+                if result.is_truthy() {
+                    recurse(&child, update, condition, vars, remaining, emit)
+                } else {
+                    Ok(Continue(()))
+                }
             })
         } else {
             recurse(&child, update, None, vars, remaining, emit)
@@ -735,7 +822,13 @@ fn recurse(value: &JVal, update: &str, condition: Option<&str>, vars: &JqScope<'
     })
 }
 
-fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emit: &mut Emit<'_>) -> Flow {
+fn regex_results(
+    name: &str,
+    input: &JVal,
+    pattern: &JVal,
+    modifiers: &JVal,
+    emit: &mut Emit<'_>,
+) -> Flow {
     let flags = match modifiers {
         JVal::Str(s) => s.as_str(),
         JVal::Null => "",
@@ -745,25 +838,40 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
         return Err(format!("{flags} is not a valid modifier string").into());
     }
     let JVal::Str(text) = input else {
-        return Err(format!("{} cannot be matched, as it is not a string", describe(input)).into());
+        return Err(format!(
+            "{} cannot be matched, as it is not a string",
+            describe(input)
+        )
+        .into());
     };
-    let JVal::Str(pat) = pattern else { return Err(format!("{} is not a string", describe(pattern)).into()); };
+    let JVal::Str(pat) = pattern else {
+        return Err(format!("{} is not a string", describe(pattern)).into());
+    };
     if name == "scan" && pat.is_empty() && !flags.contains('n') {
         for _ in 0..=text.len() {
-            if emit(JVal::Str(String::new()))?.is_break() { return Ok(Break(())); }
+            if emit(JVal::Str(String::new()))?.is_break() {
+                return Ok(Break(()));
+            }
         }
         return Ok(Continue(()));
     }
     let rx = super::ZeroRegex::jq(pat, flags, name)?;
-    if name == "test" { return emit(JVal::Bool(rx.is_match(text))); }
+    if name == "test" {
+        return emit(JVal::Bool(rx.is_match(text)));
+    }
     let mut flow = Ok(Continue(()));
     let (mut byte, mut offset) = (0, 0);
     rx.scan(text.as_bytes(), true, |s, e, caps| {
         let mut copies = 1;
         let value = match name {
             "scan" if caps.is_empty() => JVal::Str(text[s..e].to_owned()),
-            "scan" => JVal::Array(caps.iter().map(|span|
-                span.map_or(JVal::Null, |(lo, hi)| JVal::Str(text[lo..hi].to_owned()))).collect()),
+            "scan" => JVal::Array(
+                caps.iter()
+                    .map(|span| {
+                        span.map_or(JVal::Null, |(lo, hi)| JVal::Str(text[lo..hi].to_owned()))
+                    })
+                    .collect(),
+            ),
             "capture" => super::jq_capture_object(text, &rx, caps),
             _ => {
                 offset += text[byte..s].chars().count();
@@ -774,19 +882,33 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
                 }
                 let value = {
                     let mut names = rx.capture_names.iter().peekable();
-                    let captures = caps.iter().enumerate().map(|(i, cap)| {
-                        let name = names.next_if(|(_, slot)| *slot == i)
-                            .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
-                        let (pos, len, value) = cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| (
-                            (if lo < s { offset - text[lo..s].chars().count() } else { offset + text[s..lo].chars().count() }) as f64,
-                            text[lo..hi].chars().count(), JVal::Str(text[lo..hi].to_owned())));
-                        JVal::Object(vec![
-                            ("offset".into(), JVal::Number(pos, None)),
-                            ("length".into(), JVal::Number(len as f64, None)),
-                            ("string".into(), value),
-                            ("name".into(), name),
-                        ])
-                    }).collect();
+                    let captures = caps
+                        .iter()
+                        .enumerate()
+                        .map(|(i, cap)| {
+                            let name = names
+                                .next_if(|(_, slot)| *slot == i)
+                                .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
+                            let (pos, len, value) =
+                                cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| {
+                                    (
+                                        (if lo < s {
+                                            offset - text[lo..s].chars().count()
+                                        } else {
+                                            offset + text[s..lo].chars().count()
+                                        }) as f64,
+                                        text[lo..hi].chars().count(),
+                                        JVal::Str(text[lo..hi].to_owned()),
+                                    )
+                                });
+                            JVal::Object(vec![
+                                ("offset".into(), JVal::Number(pos, None)),
+                                ("length".into(), JVal::Number(len as f64, None)),
+                                ("string".into(), value),
+                                ("name".into(), name),
+                            ])
+                        })
+                        .collect();
                     JVal::Object(vec![
                         ("offset".into(), JVal::Number(offset as f64, None)),
                         ("length".into(), JVal::Number(length as f64, None)),
@@ -801,7 +923,9 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
         };
         for v in std::iter::repeat_n(value, copies) {
             flow = emit(v);
-            if !matches!(flow, Ok(Continue(()))) { return false; }
+            if !matches!(flow, Ok(Continue(()))) {
+                return false;
+            }
         }
         name == "scan" || flags.contains('g')
     });
@@ -844,7 +968,8 @@ pub(super) fn describe(scalar: &JVal) -> String {
         color: false,
         sort_keys: false,
     }
-    .write(printable, 0, &mut text).unwrap();
+    .write(printable, 0, &mut text)
+    .unwrap();
     if text.len() >= 15 {
         text = format!("{}...", String::from_utf8_lossy(&text.as_bytes()[..11]));
     }
@@ -866,7 +991,8 @@ fn halt_error(input: &JVal, code: JVal) -> Flow {
                 color: false,
                 sort_keys: false,
             }
-            .write(v, 0, &mut out).unwrap();
+            .write(v, 0, &mut out)
+            .unwrap();
             out.push('\n');
             out
         }
@@ -888,7 +1014,9 @@ pub(super) fn invoke<'a>(
             split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()])
         });
     let filter = overloads.get(&args.len())?;
-    if caller.call_depth >= 256 { return Some(Err(JqFault::Limit("maxDepth"))); }
+    if caller.call_depth >= 256 {
+        return Some(Err(JqFault::Limit("maxDepth")));
+    }
     let mut bound = filter.scope.clone();
     bound.call_depth = caller.call_depth + 1;
     if let Some(original) = &filter.recursive_name {
@@ -935,7 +1063,7 @@ fn protected(
     input: &JVal,
     vars: &JqScope<'_>,
     emit: &mut Emit<'_>,
-    handle: impl FnOnce(i32, JVal, &mut Emit<'_>) -> Flow,
+    handle: impl FnOnce(JqFault, &mut Emit<'_>) -> Flow,
 ) -> Flow {
     let mut downstream = None;
     let result = visit_jq(body, input, vars, &mut |v| match emit(v) {
@@ -949,7 +1077,11 @@ fn protected(
         return Err(e);
     }
     match result {
-        Err(JqFault::Error(code, e)) if vars.inputs.borrow().file_error.is_none() => handle(code, e, emit),
+        Err(fault @ (JqFault::Error(..) | JqFault::Input(..)))
+            if vars.inputs.borrow().file_error.is_none() =>
+        {
+            handle(fault, emit)
+        }
         other => other,
     }
 }

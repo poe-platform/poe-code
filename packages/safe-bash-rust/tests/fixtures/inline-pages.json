@@ -1,0 +1,46 @@
+{
+  "source": "qpdf 12.4.2",
+  "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAzCi9LaWRzIDYgMCBSCi9NZWRpYUJveCBbIDAgMCAyMCAzMCBdCj4+CmVuZG9iagoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0xlbmd0aCAzCj4+CnN0cmVhbQoqCgAKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDEwCj4+CnN0cmVhbQp4nPsvDwACHwEfCmVuZHN0cmVhbQplbmRvYmoKCjYgMCBvYmoKWyA8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9Db250ZW50cyA1IDAgUgo+PiAzIDAgUiA8PAovVHlwZSAvUGFnZXMKL0tpZHMgWyA8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9Db250ZW50cyA0IDAgUgo+PiBdCj4+IF0KZW5kb2JqCgp4cmVmCjAgNwowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTUwIDAwMDAwIG4gCjAwMDAwMDAyMTQgMDAwMDAgbiAKMDAwMDAwMDI2NyAwMDAwMCBuIAowMDAwMDAwMzQ5IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNwovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjUwMAolJUVPRg==",
+  "reports": {
+    "--show-npages": {
+      "status": 0,
+      "stdout": "Mwo=",
+      "stderr": ""
+    },
+    "--show-pages --with-images": {
+      "status": 3,
+      "stdout": "cGFnZSAxOiA3IDAgUgogIGNvbnRlbnQ6CiAgICA1IDAgUgpwYWdlIDI6IDMgMCBSCiAgY29udGVudDoKICAgIDQgMCBSCnBhZ2UgMzogOSAwIFIKICBjb250ZW50OgogICAgNCAwIFIK",
+      "stderr": "WARNING: in.pdf, object 2 0 at offset 80: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 361: kid 0 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 3 0 at offset 160: kid 1 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 2 0 at offset 80: kid 2 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 415: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 439: kid 0 (from 0) Resources is missing or invalid; repairing\nqpdf: operation succeeded with warnings\n"
+    },
+    "--show-xref": {
+      "status": 0,
+      "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTUwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMTQKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDI2Nwo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMzQ5Cg==",
+      "stderr": ""
+    },
+    "--show-object=7": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": ""
+    },
+    "--show-object=8": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": ""
+    },
+    "--check": {
+      "status": 3,
+      "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+      "stderr": "WARNING: in.pdf, object 2 0 at offset 80: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 361: kid 0 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 3 0 at offset 160: kid 1 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 2 0 at offset 80: kid 2 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 415: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 439: kid 0 (from 0) Resources is missing or invalid; repairing\nqpdf: operation succeeded with warnings\n"
+    },
+    "--rotate=+90:1,3 out.pdf": {
+      "status": 3,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf, object 2 0 at offset 80: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 361: kid 0 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 3 0 at offset 160: kid 1 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 2 0 at offset 80: kid 2 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 415: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 439: kid 0 (from 0) Resources is missing or invalid; repairing\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+    },
+    "--pages . 3,1,3 -- out.pdf": {
+      "status": 3,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf, object 2 0 at offset 80: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 361: kid 0 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 3 0 at offset 160: kid 1 (from 0) Resources is missing or invalid; repairing\nWARNING: in.pdf, object 2 0 at offset 80: kid 2 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 415: kid 0 (from 0) is direct; converting to indirect\nWARNING: in.pdf, object 6 0 at offset 439: kid 0 (from 0) Resources is missing or invalid; repairing\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+    }
+  }
+}

@@ -1,0 +1,165 @@
+[
+  {
+    "formula": "EXP({0,1,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 2.718281828459045
+      },
+      {
+        "kind": "number",
+        "value": 7.38905609893065
+      }
+    ],
+    "reference": "Production recalculateWorkbook array-group evaluation, 2026-11-21. The public ODS importer omits the non-anchor group values; they are not treated as numeric-zero captures."
+  },
+  {
+    "formula": "LN({1,2,-1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.6931471805599453
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "LOG10({1,10,0})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "LOG({8,16,32},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3
+      },
+      {
+        "kind": "number",
+        "value": 4
+      },
+      {
+        "kind": "number",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "formula": "LOG(8,{2,4,8})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3
+      },
+      {
+        "kind": "number",
+        "value": 1.5
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "LOG({8,16},{2,4,8})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "LOG({8,\"text\",#N/A},2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "LOG({8,16,32},Z1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.9030899869919435
+      },
+      {
+        "kind": "number",
+        "value": 1.2041199826559248
+      },
+      {
+        "kind": "number",
+        "value": 1.505149978319906
+      }
+    ]
+  },
+  {
+    "formula": "LOG({8,16,32},Z1000:AB1000)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  }
+]

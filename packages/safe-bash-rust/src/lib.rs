@@ -44,10 +44,10 @@
 pub mod agent;
 pub mod backend;
 pub mod budget;
-mod intl;
 pub mod commands;
 pub use commands::document;
 pub mod fs;
+mod intl;
 pub mod shell;
 pub mod vfs;
 #[cfg(feature = "shell-wasm")]
@@ -56,9 +56,11 @@ pub mod wasm;
 pub use agent::{
     AgentRunCommandRequest, BackgroundStatus, PoeAgentShellHost, PoeAgentShellOptions, ShellMode,
 };
-pub use backend::{BackendMode, CommandContext, CommandResult, HybridBackend, InvokeOptions, RustCommand};
-pub use commands::archive::render_dot_svg;
+pub use backend::{
+    BackendMode, CommandContext, CommandResult, HybridBackend, InvokeOptions, RustCommand,
+};
 pub use budget::{AllocationGuard, CancellationToken, ExecutionBudget, ShellLimits};
+pub use commands::archive::render_dot_svg;
 #[cfg(not(target_arch = "wasm32"))]
 pub use fs::RealVfs;
 pub use fs::{
@@ -102,7 +104,9 @@ mod tests {
                 ..Default::default()
             },
         );
-        let out = shell.exec("echo updated > /work/a.txt && cat /work/a.txt").unwrap();
+        let out = shell
+            .exec("echo updated > /work/a.txt && cat /work/a.txt")
+            .unwrap();
         assert_eq!(out.exit_code, 0);
         assert_eq!(out.stdout, "updated\n");
         assert_eq!(base.read_file("/work/a.txt").unwrap(), b"initial\n");

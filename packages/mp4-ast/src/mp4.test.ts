@@ -26,6 +26,15 @@ import {
 } from "./index.js";
 
 describe("@poe-code/mp4-ast", () => {
+  it("keeps the PCM codec when copying a stream with no remaining packets", () => {
+    const raw = createMediaAstRegistry(allMediaAsts()).findByFormatName("s16be")!;
+    const doc = raw.parse(new Uint8Array(0), { sampleRate: 48000, channels: 2, decodeAudio: false });
+    const sliced = sliceMp4(doc, { startSeconds: 0.03, copyAudio: true });
+    assert.equal(sliced.tracks[0]?.codecDescriptions[0]?.codecName, "pcm_s16be");
+    assert.equal(sliced.duration, 0);
+    assert.equal(raw.serialize(sliced, { audioCodec: "copy" }).length, 0);
+  });
+
   it("creates, parses, and probes a standard H.264 + AAC MP4 with faststart", () => {
     const mp4Bytes = createSyntheticMp4({
       width: 64,

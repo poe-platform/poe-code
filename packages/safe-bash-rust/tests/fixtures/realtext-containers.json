@@ -1,0 +1,1989 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-mkv-None",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-copy",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mkv-srt",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-webvtt",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-None",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-copy",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-mov_text",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-mp4-copy",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mov-mov_text",
+      "input": "<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "negative-mkv-None",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:04,000 --> 00:00:05,000\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-copy",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mkv-srt",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:04,000 --> 00:00:05,000\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-webvtt",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:04,000 --> 00:00:05,000\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-None",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:04,000 --> 00:00:05,000\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-copy",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-mov_text",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nBefore\n\n2\n00:00:04,000 --> 00:00:09,000\nAfter\n\n"
+    },
+    {
+      "name": "negative-mp4-copy",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mov-mov_text",
+      "input": "<window><time begin=\"-1\" end=\"2\">Before<time begin=\"3\" end=\"4\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nBefore\n\n2\n00:00:04,000 --> 00:00:09,000\nAfter\n\n"
+    },
+    {
+      "name": "leading-space-mkv-None",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\n\n\n2\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n3\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "leading-space-mkv-copy",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "leading-space-mkv-srt",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "leading-space-mkv-webvtt",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "leading-space-webm-None",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "leading-space-webm-copy",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "leading-space-mp4-mov_text",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "leading-space-mp4-copy",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "leading-space-mov-mov_text",
+      "input": " \n<window><time begin=\"0:00.50\" end=\"0:01.50\"/><clear/>First<br/>line<time begin=\"0:02.00\" end=\"0:03.50\"/><clear/>Second</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "nested-mkv-None",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "nested-mkv-copy",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "nested-mkv-srt",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "nested-mkv-webvtt",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "nested-webm-None",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "nested-webm-copy",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "nested-mp4-mov_text",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "nested-mp4-copy",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "nested-mov-mov_text",
+      "input": "<window><time begin=\"1\" end=\"2\"><time begin=\"3\" end=\"4\">Last</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "no-time-mkv-None",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "no-time-mkv-copy",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "no-time-mkv-srt",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "no-time-mkv-webvtt",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "no-time-webm-None",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "no-time-webm-copy",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "no-time-mp4-mov_text",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "no-time-mp4-copy",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "no-time-mov-mov_text",
+      "input": "<window>Text</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nText\n\n"
+    },
+    {
+      "name": "ordering-mkv-None",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "ordering-mkv-copy",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "ordering-mkv-srt",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "ordering-mkv-webvtt",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "ordering-webm-None",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "ordering-webm-copy",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "ordering-mp4-mov_text",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "ordering-mp4-copy",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "ordering-mov-mov_text",
+      "input": "<window><time begin=\"3\" end=\"4\">Last<time begin=\"1\" end=\"2\">First</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n"
+    },
+    {
+      "name": "before-time-mkv-None",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "before-time-mkv-copy",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "before-time-mkv-srt",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "before-time-mkv-webvtt",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "before-time-webm-None",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "before-time-webm-copy",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "before-time-mp4-mov_text",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "before-time-mp4-copy",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "before-time-mov-mov_text",
+      "input": "<window>Before<time begin=\"1\" end=\"2\">After</window>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nBefore\n\n2\n00:00:01,000 --> 00:00:02,000\nAfter\n\n"
+    },
+    {
+      "name": "text-37-mkv-None",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA &amp; B &lt; C &nbsp; &#65; &#x41; \n\n"
+    },
+    {
+      "name": "text-37-mkv-copy",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "text-37-mkv-srt",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA &amp; B &lt; C &nbsp; &#65; &#x41;\n\n"
+    },
+    {
+      "name": "text-37-mkv-webvtt",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA & B < C \\h &#65; &#x41; \n\n"
+    },
+    {
+      "name": "text-37-webm-None",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA & B < C \\h &#65; &#x41; \n\n"
+    },
+    {
+      "name": "text-37-webm-copy",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "text-37-mp4-mov_text",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA &amp; B &lt; C &nbsp; &#65; &#x41; \n\n"
+    },
+    {
+      "name": "text-37-mp4-copy",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "text-37-mov-mov_text",
+      "input": "<window><time begin=\"1\" end=\"2\">A &amp; B &lt; C &nbsp; &#65; &#x41;</window>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "realtext",
+        "-i",
+        "input.rt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\nA &amp; B &lt; C &nbsp; &#65; &#x41; \n\n"
+    }
+  ]
+}

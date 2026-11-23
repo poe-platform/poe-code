@@ -12,15 +12,21 @@ use std::sync::Arc;
 
 /// The environment seen by commands excludes shell storage and non-exported bindings.
 pub(crate) fn is_exported_scalar(env: &BTreeMap<String, String>, key: &str) -> bool {
-    if key.contains(['\0', '[']) || matches!(key, "!" | "0")
+    if key.contains(['\0', '['])
+        || matches!(key, "!" | "0")
         || env.contains_key(&format!("\0unexported__{key}"))
         || env.contains_key(&format!("\0keys__{key}"))
-        || env.contains_key(&format!("\0assoc__{key}")) {
+        || env.contains_key(&format!("\0assoc__{key}"))
+    {
         return false;
     }
     match key {
-        "PIPESTATUS" | "BASH_REMATCH" | "DIRSTACK" | "FUNCNAME" | "BASH_SOURCE" | "BASH_LINENO" => false,
-        "BASH_SUBSHELL" | "BASH_COMMAND" => env.get(&format!("\0attr__{key}")).is_some_and(|s| s.contains('x')),
+        "PIPESTATUS" | "BASH_REMATCH" | "DIRSTACK" | "FUNCNAME" | "BASH_SOURCE" | "BASH_LINENO" => {
+            false
+        }
+        "BASH_SUBSHELL" | "BASH_COMMAND" => env
+            .get(&format!("\0attr__{key}"))
+            .is_some_and(|s| s.contains('x')),
         _ => true,
     }
 }
@@ -72,7 +78,9 @@ impl Shell {
         // Internal bindings start with NUL, which cannot occur in an environment name.
         env.retain(|key, _| !key.contains('\0'));
         for value in env.values_mut() {
-            if let std::borrow::Cow::Owned(quoted) = crate::vfs::shell_text(value) { *value = quoted; }
+            if let std::borrow::Cow::Owned(quoted) = crate::vfs::shell_text(value) {
+                *value = quoted;
+            }
         }
         if !env.contains_key("IFS") {
             env.insert("IFS".into(), " \t\n".into());
@@ -120,7 +128,9 @@ impl Shell {
     }
 
     pub(crate) fn restore_session(&mut self, snapshot: &[u8]) -> Result<(), String> {
-        self.cwd = self.backend.restore(snapshot, &mut self.env, &self.limits)?;
+        self.cwd = self
+            .backend
+            .restore(snapshot, &mut self.env, &self.limits)?;
         Ok(())
     }
 
@@ -131,17 +141,23 @@ impl Shell {
     pub fn set_cwd(&mut self, cwd: &str) {
         let norm = normalize_posix_path(cwd);
         self.cwd = norm.clone();
-        self.env.insert("PWD".to_string(), crate::vfs::shell_text(&norm).into_owned());
+        self.env.insert(
+            "PWD".to_string(),
+            crate::vfs::shell_text(&norm).into_owned(),
+        );
     }
 
     pub fn set_env(&mut self, key: &str, val: &str) {
-        if key.contains('\0') { return; }
+        if key.contains('\0') {
+            return;
+        }
         self.set_binding(key, val);
     }
 
     pub(crate) fn set_binding(&mut self, key: &str, val: &str) {
         self.env.remove(&format!("\0unexported__{key}"));
-        self.env.insert(key.to_string(), crate::vfs::shell_text(val).into_owned());
+        self.env
+            .insert(key.to_string(), crate::vfs::shell_text(val).into_owned());
     }
 
     pub fn env(&self) -> &BTreeMap<String, String> {
@@ -170,7 +186,11 @@ impl Shell {
         script: &str,
         mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
     ) -> Result<ExecOutput, String> {
-        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(false, move |_| chunks.next())))
+        self.exec_input(
+            script,
+            ExecOptions::default(),
+            Some(eval::FdTarget::input_stream(false, move |_| chunks.next())),
+        )
     }
 
     pub(crate) fn exec_input(
@@ -219,12 +239,18 @@ impl Shell {
                 stderr: res.stderr,
                 exit_code: res.exit_code,
                 cwd: self.cwd.clone(),
-                used_typescript_bridge: self.backend.used_typescript_bridge.load(std::sync::atomic::Ordering::Relaxed),
+                used_typescript_bridge: self
+                    .backend
+                    .used_typescript_bridge
+                    .load(std::sync::atomic::Ordering::Relaxed),
             });
         }
 
         if self.backend.mode == BackendMode::NativeOnly {
-            return Err("Command requires TypeScript safe-bash bridge, but BackendMode::NativeOnly is set".into());
+            return Err(
+                "Command requires TypeScript safe-bash bridge, but BackendMode::NativeOnly is set"
+                    .into(),
+            );
         }
 
         let res = self.backend.execute_typescript_bridge(
@@ -261,12 +287,29 @@ mod tests {
             assert_eq!(observed.read_file("/events").unwrap(), b"once\n");
             Some(Ok(b"abc".to_vec()))
         });
-        let result = shell.exec_with_stream("echo once >> /events; f; keep=$1; sleep 2; echo $SECONDS", chunks).unwrap();
-        assert_eq!((result.exit_code, result.stdout.as_str(), result.used_typescript_bridge), (0, "a2\n", false));
+        let result = shell
+            .exec_with_stream(
+                "echo once >> /events; f; keep=$1; sleep 2; echo $SECONDS",
+                chunks,
+            )
+            .unwrap();
+        assert_eq!(
+            (
+                result.exit_code,
+                result.stdout.as_str(),
+                result.used_typescript_bridge
+            ),
+            (0, "a2\n", false)
+        );
         assert_eq!(shell.exec("echo $keep").unwrap().stdout, "saved\n");
         assert_eq!(fs.read_file("/events").unwrap(), b"once\n");
-        shell.set_limits(ShellLimits { max_input_bytes: 1, ..Default::default() });
-        let err = shell.exec_with_stream("f", std::iter::once(Ok(vec![0, 1]))).unwrap_err();
+        shell.set_limits(ShellLimits {
+            max_input_bytes: 1,
+            ..Default::default()
+        });
+        let err = shell
+            .exec_with_stream("f", std::iter::once(Ok(vec![0, 1])))
+            .unwrap_err();
         assert!(err.contains("maxInputBytes"), "{err}");
     }
 
@@ -286,12 +329,39 @@ mod tests {
     #[test]
     fn streamed_execution_never_replays_the_script_or_input_in_the_bridge() {
         let fs = Arc::new(MemoryVfs::new());
-        let mut shell = Shell::new(fs.clone(), ShellOptions { mode: BackendMode::Hybrid, ..Default::default() });
-        let result = shell.exec_with_stream("cat >> /events; no-such-command", std::iter::once(Ok(vec![b'x']))).unwrap();
-        assert_eq!((result.exit_code, result.used_typescript_bridge), (127, false));
+        let mut shell = Shell::new(
+            fs.clone(),
+            ShellOptions {
+                mode: BackendMode::Hybrid,
+                ..Default::default()
+            },
+        );
+        let result = shell
+            .exec_with_stream(
+                "cat >> /events; no-such-command",
+                std::iter::once(Ok(vec![b'x'])),
+            )
+            .unwrap();
+        assert_eq!(
+            (result.exit_code, result.used_typescript_bridge),
+            (127, false)
+        );
         assert_eq!(fs.read_file("/events").unwrap(), b"x");
-        let mut bridge = Shell::new(fs.clone(), ShellOptions { mode: BackendMode::TypeScriptOnly, ..Default::default() });
-        assert!(bridge.exec_with_stream("echo bad >> /events", std::iter::from_fn(|| panic!("unexpected pull"))).is_err());
+        let mut bridge = Shell::new(
+            fs.clone(),
+            ShellOptions {
+                mode: BackendMode::TypeScriptOnly,
+                ..Default::default()
+            },
+        );
+        assert!(
+            bridge
+                .exec_with_stream(
+                    "echo bad >> /events",
+                    std::iter::from_fn(|| panic!("unexpected pull"))
+                )
+                .is_err()
+        );
         assert_eq!(fs.read_file("/events").unwrap(), b"x");
     }
 
@@ -301,11 +371,23 @@ mod tests {
         let external = Arc::new(MemoryVfs::new());
         default_fs.write_file("/input", b"default").unwrap();
         external.write_file("/input", b"external").unwrap();
-        let out = shell.exec_with_options(
-            "cat /input | tee /copy; cat /missing",
-            ExecOptions { fs: Some(external.clone()), ..Default::default() },
-        ).unwrap();
-        assert_eq!((out.exit_code, out.stdout.as_str(), out.used_typescript_bridge), (1, "external", false));
+        let out = shell
+            .exec_with_options(
+                "cat /input | tee /copy; cat /missing",
+                ExecOptions {
+                    fs: Some(external.clone()),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            (
+                out.exit_code,
+                out.stdout.as_str(),
+                out.used_typescript_bridge
+            ),
+            (1, "external", false)
+        );
         assert_eq!(external.read_file("/copy").unwrap(), b"external");
         assert!(!default_fs.exists("/copy"));
         assert_eq!(shell.exec("cat /input").unwrap().stdout, "default");
@@ -323,12 +405,20 @@ mod tests {
     #[test]
     fn positional_arguments_and_exported_functions_survive_shell_turns() {
         let (mut shell, _) = Shell::with_memory_fs();
-        shell.exec("set -- alpha 'two words'; f() { echo child; }; export -f f").unwrap();
+        shell
+            .exec("set -- alpha 'two words'; f() { echo child; }; export -f f")
+            .unwrap();
         let second = shell.exec("echo \"$#:$2\"; bash -c f").unwrap();
-        assert_eq!((second.exit_code, second.stdout.as_str()), (0, "2:two words\nchild\n"));
+        assert_eq!(
+            (second.exit_code, second.stdout.as_str()),
+            (0, "2:two words\nchild\n")
+        );
         shell.exec("shift; export -n -f f").unwrap();
         let fourth = shell.exec("echo \"$#:$1\"; bash -c 'type -t f'").unwrap();
-        assert_eq!((fourth.exit_code, fourth.stdout.as_str()), (1, "1:two words\n"));
+        assert_eq!(
+            (fourth.exit_code, fourth.stdout.as_str()),
+            (1, "1:two words\n")
+        );
     }
 
     #[test]
@@ -357,7 +447,10 @@ mod tests {
         assert_eq!(res.exit_code, 0);
         assert_eq!(res.stdout, "hello:world:/app\n");
         assert_eq!(shell.cwd(), "/app");
-        assert_eq!(shell.env().get("GREETING").map(|s| s.as_str()), Some("hello"));
+        assert_eq!(
+            shell.env().get("GREETING").map(|s| s.as_str()),
+            Some("hello")
+        );
     }
 
     #[test]
@@ -397,8 +490,12 @@ mod tests {
     fn unit_shell_persists_cwd_and_env_across_exec_calls() {
         let (mut shell, vfs) = Shell::with_memory_fs();
         vfs.mkdir_all("/workspace/proj").unwrap();
-        shell.exec("cd /workspace/proj && export BUILD_ID=42").unwrap();
-        let res = shell.exec("printf '%s:%s' \"$(pwd)\" \"$BUILD_ID\"").unwrap();
+        shell
+            .exec("cd /workspace/proj && export BUILD_ID=42")
+            .unwrap();
+        let res = shell
+            .exec("printf '%s:%s' \"$(pwd)\" \"$BUILD_ID\"")
+            .unwrap();
         assert_eq!(res.exit_code, 0);
         assert_eq!(res.stdout, "/workspace/proj:42");
     }
@@ -410,14 +507,21 @@ mod tests {
         vfs.write_file("/work/file.txt", b"twelve bytes").unwrap();
         vfs.chmod("/work/file.txt", 0o640).unwrap();
         vfs.set_mtime("/work/file.txt", 0).unwrap();
-        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
-            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
-            ..Default::default()
-        });
+        let mut shell = Shell::new(
+            Arc::new(vfs),
+            ShellOptions {
+                cwd: Some("/work".into()),
+                mode: BackendMode::NativeOnly,
+                ..Default::default()
+            },
+        );
         for flags in ["-l", "-la", "-ld", "-lh"] {
             let result = shell.exec(&format!("ls {flags} file.txt")).unwrap();
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
-            assert_eq!(result.stdout, "-rw-r----- 1 0 0 12 1970-01-01 00:00 file.txt\n", "{flags}");
+            assert_eq!(
+                result.stdout, "-rw-r----- 1 0 0 12 1970-01-01 00:00 file.txt\n",
+                "{flags}"
+            );
             assert!(result.stderr.is_empty());
         }
         for flag in ['g', 'o', 'n'] {
@@ -433,10 +537,14 @@ mod tests {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
         vfs.write_file("/work/-l", b"literal filename").unwrap();
-        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
-            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
-            ..Default::default()
-        });
+        let mut shell = Shell::new(
+            Arc::new(vfs),
+            ShellOptions {
+                cwd: Some("/work".into()),
+                mode: BackendMode::NativeOnly,
+                ..Default::default()
+            },
+        );
         let result = shell.exec("ls -- -l").unwrap();
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         assert_eq!(result.stdout, "-l\n");
@@ -444,5 +552,4 @@ mod tests {
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         assert_eq!(result.stdout, "-l\n.\n..\n");
     }
-
 }

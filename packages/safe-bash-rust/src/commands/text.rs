@@ -1,6 +1,6 @@
+mod awk_float;
 mod awk_input;
 mod awk_source;
-mod awk_float;
 mod awk_value;
 use awk_value::Scalar;
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
@@ -19,7 +19,17 @@ pub fn try_run_text_command(
 ) -> Option<BuiltinOutcome> {
     match cmd {
         "sed" => Some(cmd_sed(args, stdin, cwd, env, fs)),
-        "awk" | "gawk" | "mawk" => Some(cmd_awk(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
+        "awk" | "gawk" | "mawk" => Some(cmd_awk(
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            env,
+            fs,
+            &mut super::capture_write,
+        )),
         "diff" => Some(cmd_diff(args, stdin, cwd, fs)),
         "diff3" => Some(cmd_diff3(args, stdin, cwd, fs)),
         "patch" => Some(cmd_patch(args, stdin, cwd, fs)),
@@ -97,7 +107,10 @@ enum SedOp {
 }
 
 #[derive(Clone, Debug)]
-enum SedAppend { Text(String), File(String) }
+enum SedAppend {
+    Text(String),
+    File(String),
+}
 
 #[derive(Clone, Default)]
 struct SedBuffer {
@@ -107,13 +120,18 @@ struct SedBuffer {
 
 impl SedBuffer {
     fn finish_record(&mut self, delimiter: char) {
-        if self.unterminated { self.text.push(delimiter); self.unterminated = false; }
+        if self.unterminated {
+            self.text.push(delimiter);
+            self.unterminated = false;
+        }
     }
 
     fn write_record(&mut self, text: &str, unterminated: bool, delimiter: char) {
         self.finish_record(delimiter);
         self.text.push_str(text);
-        if !unterminated { self.text.push(delimiter); }
+        if !unterminated {
+            self.text.push(delimiter);
+        }
         self.unterminated = unterminated;
     }
 }
@@ -127,7 +145,9 @@ struct SedFile<'a> {
 
 impl SedFile<'_> {
     fn flush(&mut self) -> Result<(), String> {
-        if self.pending.is_empty() { return Ok(()); }
+        if self.pending.is_empty() {
+            return Ok(());
+        }
         let result = (self.stream)(Some(&self.pending));
         self.pending.clear();
         result
@@ -141,37 +161,75 @@ impl SedFile<'_> {
             let take = bytes.len().min(BLOCK - self.pending.len());
             self.pending.extend_from_slice(&bytes[..take]);
             bytes = &bytes[take..];
-            if bytes.is_empty() { return Ok(()); }
+            if bytes.is_empty() {
+                return Ok(());
+            }
             self.flush()?;
         }
         let direct = bytes.len() / BLOCK * BLOCK;
-        if direct != 0 { (self.stream)(Some(&bytes[..direct]))?; }
+        if direct != 0 {
+            (self.stream)(Some(&bytes[..direct]))?;
+        }
         self.pending.extend_from_slice(&bytes[direct..]);
         Ok(())
     }
 
     fn write(&mut self, record: &SedBuffer, delimiter: char) -> Result<(), String> {
         let separator = [delimiter as u8];
-        if self.unterminated { self.put(&separator)?; }
+        if self.unterminated {
+            self.put(&separator)?;
+        }
         self.put(&crate::vfs::stream_string_to_bytes(&record.text))?;
-        if !record.unterminated { self.put(&separator)?; }
+        if !record.unterminated {
+            self.put(&separator)?;
+        }
         self.unterminated = record.unterminated;
-        if self.unbuffered { self.flush()?; }
+        if self.unbuffered {
+            self.flush()?;
+        }
         Ok(())
     }
 }
 
-fn open_sed_files<'a>(cmds: &[SedCmd], fs: &'a dyn SafeBashFs, cwd: &str, mode: u32, unbuffered: bool, files: &mut BTreeMap<String, SedFile<'a>>) -> Result<(), String> {
+fn open_sed_files<'a>(
+    cmds: &[SedCmd],
+    fs: &'a dyn SafeBashFs,
+    cwd: &str,
+    mode: u32,
+    unbuffered: bool,
+    files: &mut BTreeMap<String, SedFile<'a>>,
+) -> Result<(), String> {
     for cmd in cmds {
         let name = match &cmd.op {
-            SedOp::Group(inner) => { open_sed_files(inner, fs, cwd, mode, unbuffered, files)?; continue; }
-            SedOp::WriteFile(name) | SedOp::Substitute { write_file: Some(name), .. } => name,
+            SedOp::Group(inner) => {
+                open_sed_files(inner, fs, cwd, mode, unbuffered, files)?;
+                continue;
+            }
+            SedOp::WriteFile(name)
+            | SedOp::Substitute {
+                write_file: Some(name),
+                ..
+            } => name,
             _ => continue,
         };
         if !files.contains_key(name) {
-            let stream = fs.open_command_stream(&absolute_operand(cwd, name), false, false, mode, None)
-                .map_err(|err| format!("sed: couldn't open file {name}: {}\n", super::coreutils::file_error_reason(&err)))?;
-            files.insert(name.clone(), SedFile { stream, pending: Vec::new(), unterminated: false, unbuffered });
+            let stream = fs
+                .open_command_stream(&absolute_operand(cwd, name), false, false, mode, None)
+                .map_err(|err| {
+                    format!(
+                        "sed: couldn't open file {name}: {}\n",
+                        super::coreutils::file_error_reason(&err)
+                    )
+                })?;
+            files.insert(
+                name.clone(),
+                SedFile {
+                    stream,
+                    pending: Vec::new(),
+                    unterminated: false,
+                    unbuffered,
+                },
+            );
         }
     }
     Ok(())
@@ -185,23 +243,35 @@ struct SedQueue<'a> {
 
 impl SedQueue<'_> {
     fn flush(&mut self, out: &mut SedBuffer, delimiter: char) -> Result<(), String> {
-        if !self.pending.is_empty() { out.finish_record(delimiter); }
+        if !self.pending.is_empty() {
+            out.finish_record(delimiter);
+        }
         for item in self.pending.drain(..) {
             match item {
-                SedAppend::Text(text) => { out.text.push_str(&text); out.text.push('\n'); }
+                SedAppend::Text(text) => {
+                    out.text.push_str(&text);
+                    out.text.push('\n');
+                }
                 SedAppend::File(path) => {
                     let fs = self.fs;
                     let limit = fs.remaining_output_bytes();
                     let result = fs.read_chunks(&path, &mut |bytes| {
                         if bytes.len() > limit.saturating_sub(self.file_bytes) {
-                            return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
+                            return Err(fs.limit_error(
+                                "maxOutputBytes",
+                                fs.shell_limits().max_output_bytes,
+                            ));
                         }
                         self.file_bytes += bytes.len();
-                        out.text.push_str(&crate::vfs::bytes_to_stream_string(bytes));
+                        out.text
+                            .push_str(&crate::vfs::bytes_to_stream_string(bytes));
                         Ok(true)
                     });
                     if let Err(error) = result
-                        && !["ENOENT:", "EACCES:", "EPERM:", "EISDIR:", "ENOTDIR:"].iter().any(|code| error.starts_with(code)) {
+                        && !["ENOENT:", "EACCES:", "EPERM:", "EISDIR:", "ENOTDIR:"]
+                            .iter()
+                            .any(|code| error.starts_with(code))
+                    {
                         return Err(error);
                     }
                 }
@@ -221,9 +291,13 @@ struct SedCmd {
     range_start_line: usize,
 }
 
-fn read_sed_edit(fs: &dyn SafeBashFs, path: &str) -> Result<(Vec<u8>, crate::vfs::FileStat, crate::vfs::PublicationStamp), String> {
+fn read_sed_edit(
+    fs: &dyn SafeBashFs,
+    path: &str,
+) -> Result<(Vec<u8>, crate::vfs::FileStat, crate::vfs::PublicationStamp), String> {
     let (original, stamp) = fs.inspect_extraction(path, false)?;
-    let original = original.ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
+    let original =
+        original.ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
     if original.kind != crate::vfs::VfsEntryKind::File {
         return Err("in-place editing requires regular files and directory parents".into());
     }
@@ -233,22 +307,36 @@ fn read_sed_edit(fs: &dyn SafeBashFs, path: &str) -> Result<(Vec<u8>, crate::vfs
         }
     }
     let reader = fs.open_read_file(path, false)?;
-    if !original.same_snapshot(&reader.stat()?) { return Err(format!("EAGAIN: input changed: {path}")); }
+    if !original.same_snapshot(&reader.stat()?) {
+        return Err(format!("EAGAIN: input changed: {path}"));
+    }
     let limit = fs.max_input_bytes();
-    if original.size > limit { return Err(fs.limit_error("maxInputBytes", limit)); }
+    if original.size > limit {
+        return Err(fs.limit_error("maxInputBytes", limit));
+    }
     let mut bytes = Vec::new();
     while bytes.len() < original.size {
         fs.command_descriptor_op()?;
         let count = (original.size - bytes.len()).min(65536);
         let chunk = reader.read(bytes.len() as u64, count)?;
-        if chunk.is_empty() || chunk.len() > count { return Err(format!("EAGAIN: input changed: {path}")); }
+        if chunk.is_empty() || chunk.len() > count {
+            return Err(format!("EAGAIN: input changed: {path}"));
+        }
         bytes.extend_from_slice(&chunk);
     }
-    if !original.same_snapshot(&reader.stat()?) { return Err(format!("EAGAIN: input changed: {path}")); }
+    if !original.same_snapshot(&reader.stat()?) {
+        return Err(format!("EAGAIN: input changed: {path}"));
+    }
     Ok((bytes, original, stamp))
 }
 
-fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_sed(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut unbuffered = false;
     let mut quiet = false;
     let mut extended = false;
@@ -301,16 +389,27 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                     return err_out("sed: line length must be a nonnegative safe integer\n", 2);
                 }
                 match args[i].parse::<u64>() {
-                    Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
-                    _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
+                    Ok(v) if v <= 9_007_199_254_740_991 => {
+                        line_length = v.min(usize::MAX as u64) as usize
+                    }
+                    _ => {
+                        return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                    }
                 }
-            } else if let Some(rest) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--line-length=")) {
+            } else if let Some(rest) = a
+                .strip_prefix("-l")
+                .or_else(|| a.strip_prefix("--line-length="))
+            {
                 if rest.is_empty() || !rest.bytes().all(|b| b.is_ascii_digit()) {
                     return err_out("sed: line length must be a nonnegative safe integer\n", 2);
                 }
                 match rest.parse::<u64>() {
-                    Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
-                    _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
+                    Ok(v) if v <= 9_007_199_254_740_991 => {
+                        line_length = v.min(usize::MAX as u64) as usize
+                    }
+                    _ => {
+                        return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                    }
                 }
             } else if a == "-e" || a == "--expression" {
                 if i + 1 < args.len() {
@@ -319,7 +418,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 } else {
                     return err_out(&format!("sed: {a} requires an argument\n"), 2);
                 }
-            } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--expression=")) {
+            } else if let Some(rest) = a
+                .strip_prefix("-e")
+                .or_else(|| a.strip_prefix("--expression="))
+            {
                 scripts.push(rest.to_string());
             } else if a == "-f" || a == "--file" {
                 if i + 1 < args.len() {
@@ -328,7 +430,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                     if let Ok(b) = fs.read_file(&p) {
                         scripts.push(String::from_utf8_lossy(&b).into_owned());
                     } else {
-                        return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"), 1);
+                        return err_out(
+                            &format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"),
+                            1,
+                        );
                     }
                 } else {
                     return err_out(&format!("sed: {a} requires an argument\n"), 2);
@@ -338,7 +443,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 if let Ok(b) = fs.read_file(&p) {
                     scripts.push(String::from_utf8_lossy(&b).into_owned());
                 } else {
-                    return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"), 1);
+                    return err_out(
+                        &format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"),
+                        1,
+                    );
                 }
             } else if a.starts_with("--") {
                 return err_out(&format!("sed: unsupported option '{a}'\n"), 2);
@@ -384,7 +492,12 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                             if let Ok(b) = fs.read_file(&path) {
                                 scripts.push(String::from_utf8_lossy(&b).into_owned());
                             } else {
-                                return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{path}'\n"), 1);
+                                return err_out(
+                                    &format!(
+                                        "sed: ENOENT: no such file or directory, readFile '{path}'\n"
+                                    ),
+                                    1,
+                                );
                             }
                             break;
                         }
@@ -396,14 +509,27 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                                 i += 1;
                                 args[i].clone()
                             } else {
-                                return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                                return err_out(
+                                    "sed: line length must be a nonnegative safe integer\n",
+                                    2,
+                                );
                             };
                             if val_str.is_empty() || !val_str.bytes().all(|b| b.is_ascii_digit()) {
-                                return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                                return err_out(
+                                    "sed: line length must be a nonnegative safe integer\n",
+                                    2,
+                                );
                             }
                             match val_str.parse::<u64>() {
-                                Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
-                                _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
+                                Ok(v) if v <= 9_007_199_254_740_991 => {
+                                    line_length = v.min(usize::MAX as u64) as usize
+                                }
+                                _ => {
+                                    return err_out(
+                                        "sed: line length must be a nonnegative safe integer\n",
+                                        2,
+                                    );
+                                }
                             }
                             break;
                         }
@@ -455,33 +581,58 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     }
 
     let mut write_files = BTreeMap::new();
-    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mode = 0o666
+        & !env
+            .get("\0umask")
+            .and_then(|s| u32::from_str_radix(s, 8).ok())
+            .unwrap_or(0o022);
     if let Err(msg) = open_sed_files(&parsed_cmds, fs, cwd, mode, unbuffered, &mut write_files) {
         return err_out(&msg, 4);
     }
 
     let result = (|| {
-        let mut queue = SedQueue { fs, pending: Vec::new(), file_bytes: 0 };
+        let mut queue = SedQueue {
+            fs,
+            pending: Vec::new(),
+            file_bytes: 0,
+        };
 
         if in_place && !files.is_empty() {
             let mut exit_code = 0;
             for f in &files {
                 let full = resolve_posix_path(cwd, f);
                 let operand = absolute_operand(cwd, f);
-                if operand.split('/').any(|part| part == "..") || operand != full && fs.access_path(&operand, false).is_err() {
+                if operand.split('/').any(|part| part == "..")
+                    || operand != full && fs.access_path(&operand, false).is_err()
+                {
                     return err_out(&format!("sed: invalid in-place operand: {f}\n"), 1);
                 }
                 let (bytes, stat, stamp) = match read_sed_edit(fs, &full) {
                     Ok(input) => input,
                     Err(e) => return err_out(&format!("sed: {e}\n"), 1),
                 };
-                let backup = if in_place_suffix.is_empty() { None } else {
+                let backup = if in_place_suffix.is_empty() {
+                    None
+                } else {
                     let path = format!("{full}{in_place_suffix}");
                     match fs.inspect_extraction(&path, false) {
-                        Ok((Some(entry), _)) if entry.kind == crate::vfs::VfsEntryKind::Directory =>
-                            return err_out(&format!("sed: cannot rename {f}: Is a directory\n"), 4),
-                        Ok((Some(entry), _)) if entry.kind != crate::vfs::VfsEntryKind::File || entry.identity == stat.identity =>
-                            return err_out(&format!("sed: invalid backup destination: {path}\n"), 1),
+                        Ok((Some(entry), _))
+                            if entry.kind == crate::vfs::VfsEntryKind::Directory =>
+                        {
+                            return err_out(
+                                &format!("sed: cannot rename {f}: Is a directory\n"),
+                                4,
+                            );
+                        }
+                        Ok((Some(entry), _))
+                            if entry.kind != crate::vfs::VfsEntryKind::File
+                                || entry.identity == stat.identity =>
+                        {
+                            return err_out(
+                                &format!("sed: invalid backup destination: {path}\n"),
+                                1,
+                            );
+                        }
                         Ok((_, backup_stamp)) => Some((path, backup_stamp)),
                         Err(e) => return err_out(&format!("sed: {e}\n"), 1),
                     }
@@ -489,19 +640,45 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 let content = crate::vfs::bytes_to_stream_string(&bytes);
                 let mut cmds_copy = parsed_cmds.clone();
                 let mut out = SedBuffer::default();
-                let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+                let quit = match run_sed_on_inputs(
+                    [(f.as_str(), content.as_str())],
+                    &mut cmds_copy,
+                    quiet,
+                    null_data,
+                    line_length,
+                    &mut write_files,
+                    &mut queue,
+                    &mut out,
+                ) {
                     Ok(result) => result,
                     Err(e) => return err_out(&e, 2),
                 };
                 let output = crate::vfs::stream_string_to_bytes(&out.text);
                 let publication = match backup {
-                    Some((path, backup_stamp)) => fs.replace_file_with_backup(&full, &output, stamp.version, &path, backup_stamp.version),
-                    None => fs.replace_file_entry_with_metadata(&full, &output, stat.mode & 0o7777, (None, None), stamp.version),
+                    Some((path, backup_stamp)) => fs.replace_file_with_backup(
+                        &full,
+                        &output,
+                        stamp.version,
+                        &path,
+                        backup_stamp.version,
+                    ),
+                    None => fs.replace_file_entry_with_metadata(
+                        &full,
+                        &output,
+                        stat.mode & 0o7777,
+                        (None, None),
+                        stamp.version,
+                    ),
                 };
-                if let Err(e) = publication { return err_out(&format!("sed: {e}\n"), 4); }
+                if let Err(e) = publication {
+                    return err_out(&format!("sed: {e}\n"), 4);
+                }
                 // Publication has charged these bytes to the shared output budget.
                 queue.file_bytes = 0;
-                if let Some(code) = quit { exit_code = code; break; }
+                if let Some(code) = quit {
+                    exit_code = code;
+                    break;
+                }
             }
             return err_out("", exit_code);
         }
@@ -515,16 +692,36 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                     let full = resolve_posix_path(cwd, f);
                     match fs.read_file(&full) {
                         Ok(b) => crate::vfs::bytes_to_stream_string(&b),
-                        Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
+                        Err(_) => {
+                            return err_out(
+                                &format!(
+                                    "sed: ENOENT: no such file or directory, readStream '{full}'\n"
+                                ),
+                                1,
+                            );
+                        }
                     }
                 };
                 let mut cmds_copy = parsed_cmds.clone();
-                let quit = match run_sed_on_inputs([(f.as_str(), content.as_str())], &mut cmds_copy, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+                let quit = match run_sed_on_inputs(
+                    [(f.as_str(), content.as_str())],
+                    &mut cmds_copy,
+                    quiet,
+                    null_data,
+                    line_length,
+                    &mut write_files,
+                    &mut queue,
+                    &mut out,
+                ) {
                     Ok(result) => result,
                     Err(e) => return err_out(&e, 2),
                 };
                 if let Some(code) = quit {
-                    return BuiltinOutcome { stdout: out.text, stderr: String::new(), exit_code: code };
+                    return BuiltinOutcome {
+                        stdout: out.text,
+                        stderr: String::new(),
+                        exit_code: code,
+                    };
                 }
             }
             return ok_out(&out.text);
@@ -532,7 +729,9 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
 
         let mut inputs = Vec::new();
         let mut stdin = stdin;
-        if files.is_empty() { files.push("-".into()); }
+        if files.is_empty() {
+            files.push("-".into());
+        }
         for f in &files {
             let content = if f == "-" {
                 std::borrow::Cow::Borrowed(std::mem::take(&mut stdin))
@@ -540,13 +739,29 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 let full = resolve_posix_path(cwd, f);
                 match fs.read_file(&full) {
                     Ok(b) => std::borrow::Cow::Owned(crate::vfs::bytes_to_stream_string(&b)),
-                    Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
+                    Err(_) => {
+                        return err_out(
+                            &format!(
+                                "sed: ENOENT: no such file or directory, readStream '{full}'\n"
+                            ),
+                            1,
+                        );
+                    }
                 }
             };
             inputs.push((f.as_str(), content));
         }
         let mut out = SedBuffer::default();
-        let quit = match run_sed_on_inputs(inputs.iter().map(|(name, text)| (*name, text.as_ref())), &mut parsed_cmds, quiet, null_data, line_length, &mut write_files, &mut queue, &mut out) {
+        let quit = match run_sed_on_inputs(
+            inputs.iter().map(|(name, text)| (*name, text.as_ref())),
+            &mut parsed_cmds,
+            quiet,
+            null_data,
+            line_length,
+            &mut write_files,
+            &mut queue,
+            &mut out,
+        ) {
             Ok(result) => result,
             Err(e) => return err_out(&e, 2),
         };
@@ -557,7 +772,9 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         }
     })();
     for file in write_files.values_mut() {
-        if let Err(error) = file.flush().and_then(|()| (file.stream)(None)) { return err_out(&error, 4); }
+        if let Err(error) = file.flush().and_then(|()| (file.stream)(None)) {
+            return err_out(&error, 4);
+        }
     }
     result
 }
@@ -575,7 +792,12 @@ fn split_sed_statements(script: &str) -> Result<Vec<String>, String> {
 
     while idx < chars.len() {
         let c = chars[idx];
-        if c == '#' && in_addr_regex.is_none() && in_slash.is_none() && !in_text_cmd && cur.trim().is_empty() {
+        if c == '#'
+            && in_addr_regex.is_none()
+            && in_slash.is_none()
+            && !in_text_cmd
+            && cur.trim().is_empty()
+        {
             while idx < chars.len() && chars[idx] != '\n' {
                 idx += 1;
             }
@@ -744,7 +966,10 @@ fn max_sed_repl_backref(repl: &str) -> usize {
     max_ref
 }
 
-fn collect_sed_labels(cmds: &[SedCmd], labels: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
+fn collect_sed_labels(
+    cmds: &[SedCmd],
+    labels: &mut std::collections::BTreeSet<String>,
+) -> Result<(), String> {
     for c in cmds {
         match &c.op {
             SedOp::Label(l) => {
@@ -759,10 +984,15 @@ fn collect_sed_labels(cmds: &[SedCmd], labels: &mut std::collections::BTreeSet<S
     Ok(())
 }
 
-fn check_sed_branches(cmds: &[SedCmd], labels: &std::collections::BTreeSet<String>) -> Result<(), String> {
+fn check_sed_branches(
+    cmds: &[SedCmd],
+    labels: &std::collections::BTreeSet<String>,
+) -> Result<(), String> {
     for c in cmds {
         match &c.op {
-            SedOp::Branch(Some(l)) | SedOp::BranchIfSubst(Some(l)) | SedOp::BranchIfNotSubst(Some(l)) => {
+            SedOp::Branch(Some(l))
+            | SedOp::BranchIfSubst(Some(l))
+            | SedOp::BranchIfNotSubst(Some(l)) => {
                 if !labels.contains(l) {
                     return Err(format!("sed: undefined branch label '{l}'\n"));
                 }
@@ -782,10 +1012,17 @@ fn validate_sed_labels(cmds: &[SedCmd]) -> Result<(), String> {
 
 fn sed_bracket_char(chars: &mut std::str::Chars<'_>) -> Result<char, &'static str> {
     let c = chars.next().ok_or("unterminated bracket expression")?;
-    if c != '\\' { return Ok(c); }
+    if c != '\\' {
+        return Ok(c);
+    }
     let decoded = match chars.clone().next() {
-        Some('n') => '\n', Some('t') => '\t', Some('r') => '\r', Some('f') => '\x0c',
-        Some('v') => '\x0b', Some('a') => '\x07', Some('\\') => '\\',
+        Some('n') => '\n',
+        Some('t') => '\t',
+        Some('r') => '\r',
+        Some('f') => '\x0c',
+        Some('v') => '\x0b',
+        Some('a') => '\x07',
+        Some('\\') => '\\',
         _ => return Ok('\\'),
     };
     chars.next();
@@ -800,7 +1037,9 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
         if c == '[' {
             let start = chars.as_str();
             let mut first = true;
-            if start.starts_with('^') { chars.next(); }
+            if start.starts_with('^') {
+                chars.next();
+            }
             loop {
                 let rest = chars.as_str();
                 if !first && let Some(tail) = rest.strip_prefix(']') {
@@ -819,7 +1058,12 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
                 if rest.starts_with("[.") || rest.starts_with("[=") {
                     return Err("collating and equivalence classes are not supported".into());
                 }
-                let shorthand = |s: &str| matches!(s.as_bytes(), [b'\\', b'd' | b'D' | b'w' | b'W' | b's' | b'S', ..]);
+                let shorthand = |s: &str| {
+                    matches!(
+                        s.as_bytes(),
+                        [b'\\', b'd' | b'D' | b'w' | b'W' | b's' | b'S', ..]
+                    )
+                };
                 if shorthand(rest) {
                     chars = rest[2..].chars();
                     if chars.as_str().starts_with('-') && !chars.as_str().starts_with("-]") {
@@ -828,11 +1072,21 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
                     continue;
                 }
                 let low = sed_bracket_char(&mut chars)?;
-                if let Some(tail) = chars.as_str().strip_prefix('-') && !tail.is_empty() && !tail.starts_with(']') {
-                    if shorthand(tail) { return Err("character class cannot be a range endpoint".into()); }
+                if let Some(tail) = chars.as_str().strip_prefix('-')
+                    && !tail.is_empty()
+                    && !tail.starts_with(']')
+                {
+                    if shorthand(tail) {
+                        return Err("character class cannot be a range endpoint".into());
+                    }
                     chars = tail.chars();
                     let high = sed_bracket_char(&mut chars)?;
-                    if low.encode_utf16(&mut [0; 2]).iter().cmp(high.encode_utf16(&mut [0; 2]).iter()).is_gt() {
+                    if low
+                        .encode_utf16(&mut [0; 2])
+                        .iter()
+                        .cmp(high.encode_utf16(&mut [0; 2]).iter())
+                        .is_gt()
+                    {
                         return Err("reversed character range".into());
                     }
                 }
@@ -842,7 +1096,11 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
             continue;
         }
         let escaped = c == '\\';
-        if escaped { c = chars.next().ok_or("trailing backslash in regular expression")?; }
+        if escaped {
+            c = chars
+                .next()
+                .ok_or("trailing backslash in regular expression")?;
+        }
         if "()|+?{}".contains(c) {
             if extended == escaped {
                 // Quote literal operators as single-character classes: the search matcher
@@ -859,14 +1117,18 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
                 }
                 groups += 1;
             } else if c == ')' {
-                depth = depth.checked_sub(1).ok_or("unmatched ')' in regular expression")?;
+                depth = depth
+                    .checked_sub(1)
+                    .ok_or("unmatched ')' in regular expression")?;
             }
         } else if escaped {
             out.push('\\');
         }
         out.push(c);
     }
-    if depth != 0 { return Err("unmatched '(' in regular expression".into()); }
+    if depth != 0 {
+        return Err("unmatched '(' in regular expression".into());
+    }
     Ok((out, groups))
 }
 
@@ -924,7 +1186,11 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str) -> Result<Option<SedCmd>
                     _ => return Err("sed: invalid quit status\n".to_string()),
                 }
             };
-            if first == 'q' { SedOp::Quit(code) } else { SedOp::QuitSilent(code) }
+            if first == 'q' {
+                SedOp::Quit(code)
+            } else {
+                SedOp::QuitSilent(code)
+            }
         }
         'z' => SedOp::Zap,
         'F' => SedOp::Filename,
@@ -933,7 +1199,9 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str) -> Result<Option<SedCmd>
             if !digits.bytes().all(|b| b.is_ascii_digit()) {
                 return Err("sed: unexpected text after 'l' command\n".into());
             }
-            let width = digits.bytes().fold(0u32, |w, b| w.wrapping_mul(10).wrapping_add(u32::from(b - b'0')));
+            let width = digits.bytes().fold(0u32, |w, b| {
+                w.wrapping_mul(10).wrapping_add(u32::from(b - b'0'))
+            });
             SedOp::List((!digits.is_empty() && width != u32::MAX).then_some(width))
         }
         '=' => SedOp::LineNumber,
@@ -1061,7 +1329,8 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str) -> Result<Option<SedCmd>
             if parts.len() < 3 {
                 return Err("sed: unterminated substitution\n".to_string());
             }
-            let (pat, groups) = sed_pattern(&parts[0], extended).map_err(|e| format!("sed: {e}\n"))?;
+            let (pat, groups) =
+                sed_pattern(&parts[0], extended).map_err(|e| format!("sed: {e}\n"))?;
             if !pat.is_empty() && max_sed_repl_backref(&parts[1]) > groups {
                 return Err("sed: replacement references an undefined capture group\n".to_string());
             }
@@ -1250,7 +1519,10 @@ fn split_sed_delim(s: &str, delim: char) -> Option<Vec<String>> {
     Some(parts)
 }
 
-fn parse_sed_addresses(s: &str, extended: bool) -> (Option<SedAddr>, Option<SedAddr>, bool, &str, Option<String>) {
+fn parse_sed_addresses(
+    s: &str,
+    extended: bool,
+) -> (Option<SedAddr>, Option<SedAddr>, bool, &str, Option<String>) {
     let (a1, rest1, err1) = parse_one_sed_addr(s.trim_start(), extended);
     if let Some(e) = err1 {
         return (None, None, false, s, Some(e));
@@ -1263,16 +1535,34 @@ fn parse_sed_addresses(s: &str, extended: bool) -> (Option<SedAddr>, Option<SedA
             return (None, None, false, s, Some(e));
         }
         if parsed_a2.is_none() {
-            return (None, None, false, s, Some("sed: invalid address range\n".to_string()));
+            return (
+                None,
+                None,
+                false,
+                s,
+                Some("sed: invalid address range\n".to_string()),
+            );
         }
         a2 = parsed_a2;
         rest = rest2.trim_start();
     }
     if matches!(a1, Some(SedAddr::Line(0))) && !matches!(a2, Some(SedAddr::Regex(_, _))) {
-        return (None, None, false, s, Some("sed: zero address requires a 0,/regex/ range\n".to_string()));
+        return (
+            None,
+            None,
+            false,
+            s,
+            Some("sed: zero address requires a 0,/regex/ range\n".to_string()),
+        );
     }
     if matches!(a2, Some(SedAddr::Line(0))) {
-        return (None, None, false, s, Some("sed: zero address requires a 0,/regex/ range\n".to_string()));
+        return (
+            None,
+            None,
+            false,
+            s,
+            Some("sed: zero address requires a 0,/regex/ range\n".to_string()),
+        );
     }
     let negated = if rest.starts_with('!') {
         rest = rest[1..].trim_start();
@@ -1337,7 +1627,11 @@ fn parse_one_sed_addr(s: &str, extended: bool) -> (Option<SedAddr>, &str, Option
                     (false, after_delim)
                 };
                 if pat.is_empty() && ic {
-                    return (None, s, Some("sed: flags on an empty regex are not supported\n".to_string()));
+                    return (
+                        None,
+                        s,
+                        Some("sed: flags on an empty regex are not supported\n".to_string()),
+                    );
                 }
                 let conv = match sed_pattern(&pat, extended) {
                     Ok((p, _)) => p,
@@ -1348,7 +1642,11 @@ fn parse_one_sed_addr(s: &str, extended: bool) -> (Option<SedAddr>, &str, Option
             pat.push(chars[idx]);
             idx += 1;
         }
-        return (None, s, Some("sed: unterminated address regex\n".to_string()));
+        return (
+            None,
+            s,
+            Some("sed: unterminated address regex\n".to_string()),
+        );
     }
     let digits: String = s.chars().take_while(|c| c.is_ascii_digit()).collect();
     if !digits.is_empty()
@@ -1356,9 +1654,16 @@ fn parse_one_sed_addr(s: &str, extended: bool) -> (Option<SedAddr>, &str, Option
     {
         let after_n = &s[digits.len()..];
         if let Some(after_tilde) = after_n.strip_prefix('~') {
-            let step_digits: String = after_tilde.chars().take_while(|c| c.is_ascii_digit()).collect();
+            let step_digits: String = after_tilde
+                .chars()
+                .take_while(|c| c.is_ascii_digit())
+                .collect();
             if let Ok(step) = step_digits.parse::<usize>() {
-                return (Some(SedAddr::Step(n, step)), &after_tilde[step_digits.len()..], None);
+                return (
+                    Some(SedAddr::Step(n, step)),
+                    &after_tilde[step_digits.len()..],
+                    None,
+                );
             }
         }
         return (Some(SedAddr::Line(n)), after_n, None);
@@ -1448,15 +1753,23 @@ fn exec_sed_cmds(
         }
         let matched = match (&cmd.addr1, &cmd.addr2) {
             (None, _) => true,
-            (Some(a1), None) => match addr_matches(a1, line_num, is_last, &pattern_space.text, last_regex) {
-                Ok(b) => b,
-                Err(e) => return SedFlow::Error(e),
-            },
+            (Some(a1), None) => {
+                match addr_matches(a1, line_num, is_last, &pattern_space.text, last_regex) {
+                    Ok(b) => b,
+                    Err(e) => return SedFlow::Error(e),
+                }
+            }
             (Some(a1), Some(a2)) => {
                 if !cmd.in_range {
                     let start_matched = match a1 {
                         SedAddr::Line(0) => line_num == 1 && cmd.range_start_line == 0,
-                        other => match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
+                        other => match addr_matches(
+                            other,
+                            line_num,
+                            is_last,
+                            &pattern_space.text,
+                            last_regex,
+                        ) {
                             Ok(b) => b,
                             Err(e) => return SedFlow::Error(e),
                         },
@@ -1467,7 +1780,13 @@ fn exec_sed_cmds(
                             SedAddr::RelPlus(0) | SedAddr::RelStep(0) => true,
                             other => {
                                 if matches!(a1, SedAddr::Line(0)) {
-                                    match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
+                                    match addr_matches(
+                                        other,
+                                        line_num,
+                                        is_last,
+                                        &pattern_space.text,
+                                        last_regex,
+                                    ) {
                                         Ok(b) => b,
                                         Err(e) => return SedFlow::Error(e),
                                     }
@@ -1487,8 +1806,18 @@ fn exec_sed_cmds(
                 } else {
                     let end_hit = match a2 {
                         SedAddr::RelPlus(n) => line_num >= cmd.range_start_line + *n,
-                        SedAddr::RelStep(step) => *step == 0 || (line_num > cmd.range_start_line && line_num.is_multiple_of(*step)),
-                        other => match addr_matches(other, line_num, is_last, &pattern_space.text, last_regex) {
+                        SedAddr::RelStep(step) => {
+                            *step == 0
+                                || (line_num > cmd.range_start_line
+                                    && line_num.is_multiple_of(*step))
+                        }
+                        other => match addr_matches(
+                            other,
+                            line_num,
+                            is_last,
+                            &pattern_space.text,
+                            last_regex,
+                        ) {
                             Ok(b) => b,
                             Err(e) => return SedFlow::Error(e),
                         },
@@ -1523,7 +1852,11 @@ fn exec_sed_cmds(
             }
             SedOp::PrintFirstLine => {
                 let first = pattern_space.text.split_once(rec_term);
-                out.write_record(first.map_or(&pattern_space.text, |(line, _)| line), first.is_none() && pattern_space.unterminated, rec_term);
+                out.write_record(
+                    first.map_or(&pattern_space.text, |(line, _)| line),
+                    first.is_none() && pattern_space.unterminated,
+                    rec_term,
+                );
             }
             SedOp::Quit(code) => return SedFlow::Quit(*code, false),
             SedOp::QuitSilent(code) => return SedFlow::Quit(*code, true),
@@ -1540,19 +1873,36 @@ fn exec_sed_cmds(
                 let mut column = 0;
                 for byte in crate::vfs::stream_string_to_bytes(&pattern_space.text) {
                     let escaped = match byte {
-                        7 => "\\a", 8 => "\\b", 12 => "\\f", b'\n' => "\\n",
-                        b'\r' => "\\r", b'\t' => "\\t", 11 => "\\v", b'\\' => "\\\\", _ => "",
+                        7 => "\\a",
+                        8 => "\\b",
+                        12 => "\\f",
+                        b'\n' => "\\n",
+                        b'\r' => "\\r",
+                        b'\t' => "\\t",
+                        11 => "\\v",
+                        b'\\' => "\\\\",
+                        _ => "",
                     };
                     let printable = (32..127).contains(&byte);
-                    let len = if !escaped.is_empty() { 2 } else if printable { 1 } else { 4 };
+                    let len = if !escaped.is_empty() {
+                        2
+                    } else if printable {
+                        1
+                    } else {
+                        4
+                    };
                     if width > 0 && column + len >= width {
                         out.text.push('\\');
                         out.text.push(rec_term);
                         column = 0;
                     }
-                    if !escaped.is_empty() { out.text.push_str(escaped); }
-                    else if printable { out.text.push(char::from(byte)); }
-                    else { write!(out.text, "\\{byte:03o}").unwrap(); }
+                    if !escaped.is_empty() {
+                        out.text.push_str(escaped);
+                    } else if printable {
+                        out.text.push(char::from(byte));
+                    } else {
+                        write!(out.text, "\\{byte:03o}").unwrap();
+                    }
                     column += len;
                 }
                 out.text.push('$');
@@ -1584,7 +1934,9 @@ fn exec_sed_cmds(
                 if !_quiet {
                     out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                 }
-                if let Err(e) = queue.flush(out, rec_term) { return SedFlow::Error(e); }
+                if let Err(e) = queue.flush(out, rec_term) {
+                    return SedFlow::Error(e);
+                }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
                     pattern_space.text = records[*line_idx].1.to_string();
@@ -1595,7 +1947,9 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::NextAppend => {
-                if let Err(e) = queue.flush(out, rec_term) { return SedFlow::Error(e); }
+                if let Err(e) = queue.flush(out, rec_term) {
+                    return SedFlow::Error(e);
+                }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
                     pattern_space.text.push(rec_term);
@@ -1623,7 +1977,13 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::WriteFile(wf) => {
-                if let Err(error) = write_files.get_mut(wf).unwrap().write(pattern_space, rec_term) { return SedFlow::Error(error); }
+                if let Err(error) = write_files
+                    .get_mut(wf)
+                    .unwrap()
+                    .write(pattern_space, rec_term)
+                {
+                    return SedFlow::Error(error);
+                }
             }
             SedOp::Group(inner) => {
                 match exec_sed_cmds(
@@ -1659,7 +2019,8 @@ fn exec_sed_cmds(
                 return SedFlow::Delete;
             }
             SedOp::Transliterate(src, dst) => {
-                pattern_space.text = pattern_space.text
+                pattern_space.text = pattern_space
+                    .text
                     .chars()
                     .map(|c| {
                         src.iter()
@@ -1681,7 +2042,11 @@ fn exec_sed_cmds(
                 let (eff_pat, eff_ic) = if pat.is_empty() {
                     match last_regex.clone() {
                         Some(prev) => prev,
-                        None => return SedFlow::Error("sed: no previous regular expression\n".to_string()),
+                        None => {
+                            return SedFlow::Error(
+                                "sed: no previous regular expression\n".to_string(),
+                            );
+                        }
                     }
                 } else {
                     let pair = (pat.clone(), *ignore_case);
@@ -1703,7 +2068,13 @@ fn exec_sed_cmds(
                         out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
                     }
                     if let Some(wf) = write_file {
-                        if let Err(error) = write_files.get_mut(wf).unwrap().write(pattern_space, rec_term) { return SedFlow::Error(error); }
+                        if let Err(error) = write_files
+                            .get_mut(wf)
+                            .unwrap()
+                            .write(pattern_space, rec_term)
+                        {
+                            return SedFlow::Error(error);
+                        }
                     }
                 }
             }
@@ -1745,19 +2116,27 @@ fn run_sed_on_inputs<'a>(
     out: &mut SedBuffer,
 ) -> Result<Option<i32>, String> {
     let rec_term = if null_data { '\0' } else { '\n' };
-    let records: Vec<_> = inputs.into_iter().flat_map(|(name, input)| {
-        input.split_inclusive(rec_term).map(move |raw| match raw.strip_suffix(rec_term) {
-            Some(line) => (name, line, false),
-            None => (name, raw, true),
+    let records: Vec<_> = inputs
+        .into_iter()
+        .flat_map(|(name, input)| {
+            input
+                .split_inclusive(rec_term)
+                .map(move |raw| match raw.strip_suffix(rec_term) {
+                    Some(line) => (name, line, false),
+                    None => (name, raw, true),
+                })
         })
-    }).collect();
+        .collect();
     let total = records.len();
     let mut hold_space = SedBuffer::default();
     let mut line_idx = 0usize;
     let mut last_regex: Option<(String, bool)> = None;
 
     while line_idx < total {
-        let mut pattern_space = SedBuffer { text: records[line_idx].1.to_string(), unterminated: records[line_idx].2 };
+        let mut pattern_space = SedBuffer {
+            text: records[line_idx].1.to_string(),
+            unterminated: records[line_idx].2,
+        };
         let mut deleted = false;
         let mut quit = None;
         let mut subst_made = false;
@@ -1793,7 +2172,9 @@ fn run_sed_on_inputs<'a>(
                 }
                 SedFlow::Quit(code, silent) => {
                     quit = Some(code.unwrap_or(0));
-                    if silent { return Ok(quit); }
+                    if silent {
+                        return Ok(quit);
+                    }
                     break;
                 }
                 SedFlow::Error(msg) => {
@@ -1803,9 +2184,14 @@ fn run_sed_on_inputs<'a>(
             }
         }
 
-        if !deleted && !quiet { out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term); }
+        if !deleted && !quiet {
+            out.write_record(&pattern_space.text, pattern_space.unterminated, rec_term);
+        }
         queue.flush(out, rec_term)?;
-        if quit.is_some() { out.finish_record(rec_term); return Ok(quit); }
+        if quit.is_some() {
+            out.finish_record(rec_term);
+            return Ok(quit);
+        }
         line_idx += 1;
     }
 
@@ -1899,11 +2285,21 @@ impl<'a> AwkState<'a> {
         let ofs = vars.get("OFS").cloned().unwrap_or_else(|| " ".to_string());
         let ors = vars.get("ORS").cloned().unwrap_or_else(|| "\n".to_string());
         let rs = vars.get("RS").cloned().unwrap_or_else(|| "\n".to_string());
-        let ofmt = vars.get("OFMT").cloned().unwrap_or_else(|| "%.6g".to_string());
-        let convfmt = vars.get("CONVFMT").cloned().unwrap_or_else(|| "%.6g".to_string());
-        vars.entry("SUBSEP".to_string()).or_insert_with(|| "\x1c".to_string());
+        let ofmt = vars
+            .get("OFMT")
+            .cloned()
+            .unwrap_or_else(|| "%.6g".to_string());
+        let convfmt = vars
+            .get("CONVFMT")
+            .cloned()
+            .unwrap_or_else(|| "%.6g".to_string());
+        vars.entry("SUBSEP".to_string())
+            .or_insert_with(|| "\x1c".to_string());
         Self {
-            vars: vars.into_iter().map(|(k,v)| (k, Scalar::input(v))).collect(),
+            vars: vars
+                .into_iter()
+                .map(|(k, v)| (k, Scalar::input(v)))
+                .collect(),
             record_value: None,
             timezone: String::new(),
             arrays: BTreeMap::new(),
@@ -1931,16 +2327,27 @@ impl<'a> AwkState<'a> {
             cwd: cwd.to_string(),
             vfs,
             getline_files: BTreeMap::new(),
-            stdin, reader: None, argument: 1, saw_file: false, operand_assignments: true, finite_input_quota: true, error_status: 2,
+            stdin,
+            reader: None,
+            argument: 1,
+            saw_file: false,
+            operand_assignments: true,
+            finite_input_quota: true,
+            error_status: 2,
             redirect_written: Default::default(),
             create_mode,
         }
     }
 
     fn print(&mut self, text: &str) {
-        if self.runtime_err.is_some() { return; }
+        if self.runtime_err.is_some() {
+            return;
+        }
         self.output.pending.push_str(text);
-        if self.output.pending.len() >= 16384 && crate::vfs::stream_byte_len(&self.output.pending) >= 16384 && !self.output.flush() {
+        if self.output.pending.len() >= 16384
+            && crate::vfs::stream_byte_len(&self.output.pending) >= 16384
+            && !self.output.flush()
+        {
             self.runtime_err = Some(String::new());
         }
     }
@@ -1969,7 +2376,9 @@ impl<'a> AwkState<'a> {
                     b'^' => left.powf(right),
                     _ => unreachable!(),
                 };
-                if value.is_finite() { return Scalar::Number(value); }
+                if value.is_finite() {
+                    return Scalar::Number(value);
+                }
                 self.runtime_err = Some("awk: non-finite arithmetic result\n".into());
             }
         }
@@ -1979,15 +2388,23 @@ impl<'a> AwkState<'a> {
     fn finish(self) -> BuiltinOutcome {
         BuiltinOutcome {
             stdout: self.output.pending,
-            exit_code: if self.runtime_err.is_some() { self.error_status } else { self.exit_status.rem_euclid(256) },
+            exit_code: if self.runtime_err.is_some() {
+                self.error_status
+            } else {
+                self.exit_status.rem_euclid(256)
+            },
             stderr: self.runtime_err.unwrap_or_default(),
         }
     }
 
     fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> Scalar {
         let target = into_var.and_then(|name| AwkTarget::resolve(name, self));
-        if self.runtime_err.is_some() { return Scalar::Unset; }
-        if let Some(target) = &target { target.get(self); }
+        if self.runtime_err.is_some() {
+            return Scalar::Unset;
+        }
+        if let Some(target) = &target {
+            target.get(self);
+        }
         if let Some(l) = self.read_main(false) {
             if let Some(target) = target {
                 target.set(Scalar::input(l), self);
@@ -2001,28 +2418,55 @@ impl<'a> AwkState<'a> {
     }
 
     fn write_redirect(&mut self, raw_path: &str, append: bool, data: &str) {
-        if self.runtime_err.is_some() { return; }
-        if raw_path == "/dev/stdout" { self.print(data); return; }
-        if !self.output.flush() { self.runtime_err = Some(String::new()); return; }
+        if self.runtime_err.is_some() {
+            return;
+        }
+        if raw_path == "/dev/stdout" {
+            self.print(data);
+            return;
+        }
+        if !self.output.flush() {
+            self.runtime_err = Some(String::new());
+            return;
+        }
         if raw_path == "/dev/stderr" {
-            if !(self.output.send)(2, data) { self.runtime_err = Some(String::new()); }
+            if !(self.output.send)(2, data) {
+                self.runtime_err = Some(String::new());
+            }
             return;
         }
         if raw_path.is_empty() || raw_path.contains('\0') {
-            self.runtime_err = Some(if raw_path.is_empty() { "awk: ENOENT: no such file or directory ''\n".into() }
-                else { format!("awk: EINVAL: invalid argument '{}'\n", raw_path.replace('\0', "\\000")) });
+            self.runtime_err = Some(if raw_path.is_empty() {
+                "awk: ENOENT: no such file or directory ''\n".into()
+            } else {
+                format!(
+                    "awk: EINVAL: invalid argument '{}'\n",
+                    raw_path.replace('\0', "\\000")
+                )
+            });
             self.error_status = 1;
             return;
         }
         let full = absolute_operand(&self.cwd, raw_path);
         let bytes = crate::vfs::stream_string_to_bytes(data);
         let open = self.redirect_written.contains(&full);
-        let result = self.vfs.write_command_path(&full, &bytes, open || append, self.create_mode);
+        let result = self
+            .vfs
+            .write_command_path(&full, &bytes, open || append, self.create_mode);
         match result {
-            Ok(()) => { self.redirect_written.insert(full); }
+            Ok(()) => {
+                self.redirect_written.insert(full);
+            }
             Err(e) => {
-                let message = if full == "/" && e.starts_with("EISDIR:") { "EISDIR: illegal operation on a directory '/'".into() }
-                    else { super::coreutils::stream_file_error(e, if open { "appendFile" } else { "writeFile" }, &full) };
+                let message = if full == "/" && e.starts_with("EISDIR:") {
+                    "EISDIR: illegal operation on a directory '/'".into()
+                } else {
+                    super::coreutils::stream_file_error(
+                        e,
+                        if open { "appendFile" } else { "writeFile" },
+                        &full,
+                    )
+                };
                 self.runtime_err = Some(format!("awk: {message}\n"));
                 self.error_status = 1;
             }
@@ -2035,7 +2479,10 @@ impl<'a> AwkState<'a> {
         let fields = if line.is_empty() {
             Vec::new()
         } else if self.fs == " " {
-            line.split([' ', '\t', '\n']).filter(|s| !s.is_empty()).map(str::to_owned).collect()
+            line.split([' ', '\t', '\n'])
+                .filter(|s| !s.is_empty())
+                .map(str::to_owned)
+                .collect()
         } else if self.fs.is_empty() {
             awk_byte_fields(line)
         } else if self.fs.len() == 1 {
@@ -2062,7 +2509,11 @@ impl<'a> AwkState<'a> {
     }
 
     fn rebuild_line_from_fields(&mut self) {
-        let parts = self.fields.iter().map(|v| v.text(Some(&self.convfmt))).collect::<Result<Vec<_>, _>>();
+        let parts = self
+            .fields
+            .iter()
+            .map(|v| v.text(Some(&self.convfmt)))
+            .collect::<Result<Vec<_>, _>>();
         self.line = self.formatted(parts.map(|parts| parts.join(&self.ofs)));
         self.record_value = Some(Scalar::Text(self.line.clone()));
     }
@@ -2092,8 +2543,13 @@ impl<'a> AwkState<'a> {
             "CONVFMT" => self.convfmt = self.formatted(val.text(Some(&self.convfmt))),
             "NF" => {
                 let n = val.number().trunc();
-                if !(0.0..=9_007_199_254_740_991.0).contains(&n) || n > usize::MAX as f64
-                    || self.fields.try_reserve((n as usize).saturating_sub(self.fields.len())).is_err() {
+                if !(0.0..=9_007_199_254_740_991.0).contains(&n)
+                    || n > usize::MAX as f64
+                    || self
+                        .fields
+                        .try_reserve((n as usize).saturating_sub(self.fields.len()))
+                        .is_err()
+                {
                     self.runtime_err = Some("awk: invalid or excessive NF\n".into());
                     return;
                 }
@@ -2109,7 +2565,9 @@ impl<'a> AwkState<'a> {
 
     fn field_index(&mut self, expr: &str) -> Option<usize> {
         let n = eval_awk_value(expr, self).number().trunc();
-        if self.runtime_err.is_some() { return None; }
+        if self.runtime_err.is_some() {
+            return None;
+        }
         if !(0.0..=9_007_199_254_740_991.0).contains(&n) {
             self.runtime_err = Some("awk: invalid or excessive field index\n".into());
             return None;
@@ -2119,9 +2577,14 @@ impl<'a> AwkState<'a> {
 
     fn get_field(&self, idx: usize) -> Scalar {
         if idx == 0 {
-            self.record_value.clone().unwrap_or_else(|| Scalar::input(self.line.clone()))
+            self.record_value
+                .clone()
+                .unwrap_or_else(|| Scalar::input(self.line.clone()))
         } else {
-            self.fields.get(idx - 1).cloned().unwrap_or_else(|| Scalar::Text(String::new()))
+            self.fields
+                .get(idx - 1)
+                .cloned()
+                .unwrap_or_else(|| Scalar::Text(String::new()))
         }
     }
 
@@ -2146,20 +2609,50 @@ impl<'a> AwkState<'a> {
 
 fn is_valid_awk_ident(name: &str) -> bool {
     !name.is_empty()
-        && name.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+        && name
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
         && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
-pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+pub(super) fn cmd_awk(
+    args: &[String],
+    stdin: super::CommandInput,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
+) -> BuiltinOutcome {
     let mut result = ok_out("");
-    let tail = run_awk(args, stdin, cwd, env, fs, AwkOutput { pending: String::new(), send: &mut |fd,s| write(fd, s, &mut result) });
-    if result.exit_code == 0 && write(1, &tail.stdout, &mut result) && write(2, &tail.stderr, &mut result) {
+    let tail = run_awk(
+        args,
+        stdin,
+        cwd,
+        env,
+        fs,
+        AwkOutput {
+            pending: String::new(),
+            send: &mut |fd, s| write(fd, s, &mut result),
+        },
+    );
+    if result.exit_code == 0
+        && write(1, &tail.stdout, &mut result)
+        && write(2, &tail.stderr, &mut result)
+    {
         result.exit_code = tail.exit_code;
     }
     result
 }
 
-fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: &BTreeMap<String, String>, fs: &'a dyn SafeBashFs, output: AwkOutput<'a>) -> BuiltinOutcome {
+fn run_awk<'a>(
+    args: &[String],
+    stdin: super::CommandInput<'a>,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &'a dyn SafeBashFs,
+    output: AwkOutput<'a>,
+) -> BuiltinOutcome {
     let mut field_sep = " ".to_string();
     let mut vars = BTreeMap::new();
     let mut program_parts: Vec<String> = Vec::new();
@@ -2186,18 +2679,35 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             continue;
         }
         if !end_of_opts && (a == "--help" || a == "-h") {
-            return ok_out("Usage: awk [options] 'program' [file ...]\n  -F, --field-separator FS  Set the field separator\n  -v NAME=value            Assign a variable\n  -f, --file FILE           Read the program from a file\n  -e, --source PROGRAM      Add program text\n  -h, --help                Show this help\n");
+            return ok_out(
+                "Usage: awk [options] 'program' [file ...]\n  -F, --field-separator FS  Set the field separator\n  -v NAME=value            Assign a variable\n  -f, --file FILE           Read the program from a file\n  -e, --source PROGRAM      Add program text\n  -h, --help                Show this help\n",
+            );
         }
-        if !end_of_opts && (a == "--characters-as-bytes" || a == "-b" || a == "--gen-pot" || a == "-g" || a == "-I" || a == "--trace") {
+        if !end_of_opts
+            && (a == "--characters-as-bytes"
+                || a == "-b"
+                || a == "--gen-pot"
+                || a == "-g"
+                || a == "-I"
+                || a == "--trace")
+        {
             i += 1;
             continue;
         }
         if !end_of_opts && (a == "-D" || a == "--debug") {
-            return err_out("awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n", 2);
+            return err_out(
+                "awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n",
+                2,
+            );
         }
-        if !end_of_opts && let Some(rest) = a.strip_prefix("-D").or_else(|| a.strip_prefix("--debug=")) {
+        if !end_of_opts
+            && let Some(rest) = a.strip_prefix("-D").or_else(|| a.strip_prefix("--debug="))
+        {
             if rest.is_empty() {
-                return err_out("awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n", 2);
+                return err_out(
+                    "awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n",
+                    2,
+                );
             }
             debug_file = Some(rest.to_string());
             i += 1;
@@ -2226,7 +2736,11 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             }
             i += 1;
             field_sep = unescape_sed_text(&args[i]);
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-F").or_else(|| a.strip_prefix("--field-separator=")) {
+        } else if !end_of_opts
+            && let Some(rest) = a
+                .strip_prefix("-F")
+                .or_else(|| a.strip_prefix("--field-separator="))
+        {
             field_sep = unescape_sed_text(rest);
         } else if !end_of_opts && a == "--field-separator" {
             if i + 1 >= args.len() {
@@ -2247,7 +2761,9 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             } else {
                 return err_out("awk: -v requires a NAME=value assignment\n", 2);
             }
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-v").or_else(|| a.strip_prefix("--assign=")) {
+        } else if !end_of_opts
+            && let Some(rest) = a.strip_prefix("-v").or_else(|| a.strip_prefix("--assign="))
+        {
             if let Some((k, v)) = rest.split_once('=') {
                 if !is_valid_awk_ident(k) {
                     return err_out("awk: -v requires a NAME=value assignment\n", 2);
@@ -2263,10 +2779,19 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             i += 1;
             saw_explicit_prog = true;
             program_parts.push(args[i].clone());
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--source=")) {
+        } else if !end_of_opts
+            && let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--source="))
+        {
             saw_explicit_prog = true;
             program_parts.push(rest.to_string());
-        } else if !end_of_opts && (a == "-f" || a == "--file" || a == "-i" || a == "--include" || a == "-E" || a == "--exec") {
+        } else if !end_of_opts
+            && (a == "-f"
+                || a == "--file"
+                || a == "-i"
+                || a == "--include"
+                || a == "-E"
+                || a == "--exec")
+        {
             let is_prog_file = a == "-f" || a == "--file" || a == "-E" || a == "--exec";
             let is_exec = a == "-E" || a == "--exec";
             if i + 1 >= args.len() {
@@ -2282,13 +2807,24 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                     }
                     program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
-                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"),
+                        1,
+                    );
+                }
             }
             if is_exec {
                 operand_assignments = false;
                 end_of_opts = true;
             }
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")).or_else(|| a.strip_prefix("-E")).or_else(|| a.strip_prefix("--exec=")) {
+        } else if !end_of_opts
+            && let Some(rest) = a
+                .strip_prefix("-f")
+                .or_else(|| a.strip_prefix("--file="))
+                .or_else(|| a.strip_prefix("-E"))
+                .or_else(|| a.strip_prefix("--exec="))
+        {
             let is_exec = a.starts_with("-E") || a.starts_with("--exec=");
             let p = resolve_posix_path(cwd, rest);
             match fs.read_file(&p) {
@@ -2297,19 +2833,33 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                     saw_prog_file = true;
                     program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
-                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"),
+                        1,
+                    );
+                }
             }
             if is_exec {
                 operand_assignments = false;
                 end_of_opts = true;
             }
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-i").or_else(|| a.strip_prefix("--include=")) {
+        } else if !end_of_opts
+            && let Some(rest) = a
+                .strip_prefix("-i")
+                .or_else(|| a.strip_prefix("--include="))
+        {
             let p = resolve_posix_path(cwd, rest);
             match fs.read_file(&p) {
                 Ok(b) => {
                     program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
-                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"),
+                        1,
+                    );
+                }
             }
         } else if !end_of_opts && (a == "-l" || a == "--load") {
             if i + 1 >= args.len() {
@@ -2322,7 +2872,9 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                 return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
             }
             ordchr = true;
-        } else if !end_of_opts && let Some(ext) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--load=")) {
+        } else if !end_of_opts
+            && let Some(ext) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--load="))
+        {
             let base = ext.rsplit('/').next().unwrap_or(ext);
             if base != "ordchr" && base != "ordchr.so" {
                 return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
@@ -2361,7 +2913,12 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
         let dbg_path = resolve_posix_path(cwd, dbg);
         let dbg_bytes = match fs.read_file(&dbg_path) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{dbg_path}'\n"), 1),
+            Err(_) => {
+                return err_out(
+                    &format!("awk: ENOENT: no such file or directory, readFile '{dbg_path}'\n"),
+                    1,
+                );
+            }
         };
         let dbg_text = String::from_utf8_lossy(&dbg_bytes);
         let mut should_run = false;
@@ -2379,19 +2936,35 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                 }
                 should_run = true;
             } else {
-                return err_out(&format!("awk: unsupported batch debugger command '{action}'; supported commands are run and quit\n"), 2);
+                return err_out(
+                    &format!(
+                        "awk: unsupported batch debugger command '{action}'; supported commands are run and quit\n"
+                    ),
+                    2,
+                );
             }
         }
         if !should_run {
             return ok_out("");
         }
     }
-    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mode = 0o666
+        & !env
+            .get("\0umask")
+            .and_then(|s| u32::from_str_radix(s, 8).ok())
+            .unwrap_or(0o022);
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output, mode);
     state.timezone = env.get("TZ").cloned().unwrap_or_default();
     state.operand_assignments = operand_assignments;
-    state.finite_input_quota = !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
-    state.arrays.insert("ENVIRON".to_string(), env.iter().filter(|(k,_)| !k.starts_with('\0')).map(|(k,v)| (k.clone(),Scalar::input(v.clone()))).collect());
+    state.finite_input_quota =
+        !cfg!(target_arch = "wasm32") || env.contains_key("\0has_finite_input_quota");
+    state.arrays.insert(
+        "ENVIRON".to_string(),
+        env.iter()
+            .filter(|(k, _)| !k.starts_with('\0'))
+            .map(|(k, v)| (k.clone(), Scalar::input(v.clone())))
+            .collect(),
+    );
     state.set_var("ARGC", Scalar::Number((files.len() + 1) as f64));
     let mut argv_map = BTreeMap::new();
     argv_map.insert("0".to_string(), Scalar::Text("awk".into()));
@@ -2403,19 +2976,22 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     for r in &rules {
         if matches!(r.cond, AwkCond::Begin) {
             exec_awk_statements(&r.body, &mut state);
-            if state.runtime_err.is_some() { return state.finish(); }
+            if state.runtime_err.is_some() {
+                return state.finish();
+            }
             if state.exit_requested {
                 break;
             }
         }
     }
 
-    let needs_input = !state.exit_requested
-        && rules.iter().any(|r| !matches!(r.cond, AwkCond::Begin));
+    let needs_input =
+        !state.exit_requested && rules.iter().any(|r| !matches!(r.cond, AwkCond::Begin));
 
     if needs_input {
         let mut record_phase_start = state.reader.is_none();
-        'input_loop: while let Some(line) = state.read_main(std::mem::take(&mut record_phase_start)) {
+        'input_loop: while let Some(line) = state.read_main(std::mem::take(&mut record_phase_start))
+        {
             state.set_line(&line);
             state.next_requested = false;
 
@@ -2449,7 +3025,9 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                         }
                     }
                 }
-                if state.runtime_err.is_some() { return state.finish(); }
+                if state.runtime_err.is_some() {
+                    return state.finish();
+                }
                 if state.exit_requested {
                     break 'input_loop;
                 }
@@ -2457,10 +3035,17 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                     break;
                 }
             }
-            if state.runtime_err.is_some() { return state.finish(); }
-            if state.nextfile_requested { state.reader = None; state.nextfile_requested = false; }
+            if state.runtime_err.is_some() {
+                return state.finish();
+            }
+            if state.nextfile_requested {
+                state.reader = None;
+                state.nextfile_requested = false;
+            }
         }
-        if state.runtime_err.is_some() { return state.finish(); }
+        if state.runtime_err.is_some() {
+            return state.finish();
+        }
     }
 
     state.next_requested = false;
@@ -2469,7 +3054,9 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     for r in &rules {
         if matches!(r.cond, AwkCond::End) {
             exec_awk_statements(&r.body, &mut state);
-            if state.runtime_err.is_some() { return state.finish(); }
+            if state.runtime_err.is_some() {
+                return state.finish();
+            }
             if state.exit_requested {
                 break;
             }
@@ -2486,8 +3073,7 @@ fn eval_awk_cond(expr: &str, state: &mut AwkState) -> bool {
     }
     if is_single_awk_regex_literal(e) {
         let pat = e[1..e.len() - 1].replace("\\/", "/");
-        return ZeroRegex::awk(&pat)
-            .is_match(&state.line);
+        return ZeroRegex::awk(&pat).is_match(&state.line);
     }
     eval_awk_value(e, state).truth()
 }
@@ -2500,26 +3086,41 @@ fn parse_awk_f64(val: &str) -> f64 {
         let end = hex.bytes().take_while(u8::is_ascii_hexdigit).count();
         return super::parse_hex_float(&val[..sign], &hex[..end], "", 0);
     }
-    val[..sign + awk_decimal_len(tail.as_bytes())].parse().unwrap_or(0.0)
+    val[..sign + awk_decimal_len(tail.as_bytes())]
+        .parse()
+        .unwrap_or(0.0)
 }
 
 fn awk_decimal_len(bytes: &[u8]) -> usize {
     let mut end = bytes.iter().take_while(|b| b.is_ascii_digit()).count();
     if bytes.get(end) == Some(&b'.') {
-        let frac = bytes[end + 1..].iter().take_while(|b| b.is_ascii_digit()).count();
-        if end == 0 && frac == 0 { return 0; }
+        let frac = bytes[end + 1..]
+            .iter()
+            .take_while(|b| b.is_ascii_digit())
+            .count();
+        if end == 0 && frac == 0 {
+            return 0;
+        }
         end += 1 + frac;
     }
     if end > 0 && matches!(bytes.get(end), Some(b'e' | b'E')) {
         let exp = end + 1 + usize::from(matches!(bytes.get(end + 1), Some(b'+' | b'-')));
-        let digits = bytes[exp..].iter().take_while(|b| b.is_ascii_digit()).count();
-        if digits > 0 { end = exp + digits; }
+        let digits = bytes[exp..]
+            .iter()
+            .take_while(|b| b.is_ascii_digit())
+            .count();
+        if digits > 0 {
+            end = exp + digits;
+        }
     }
     end
 }
 
 fn awk_byte_fields(text: &str) -> Vec<String> {
-    crate::vfs::stream_string_to_bytes(text).chunks(1).map(crate::vfs::bytes_to_stream_string).collect()
+    crate::vfs::stream_string_to_bytes(text)
+        .chunks(1)
+        .map(crate::vfs::bytes_to_stream_string)
+        .collect()
 }
 
 fn awk_prev_allows_regex(prefix: &str) -> bool {
@@ -2530,7 +3131,11 @@ fn awk_prev_allows_regex(prefix: &str) -> bool {
 }
 
 fn awk_chars_allow_regex(chars: &[char], idx: usize) -> bool {
-    let prev = chars[..idx].iter().rev().find(|c| !c.is_whitespace()).copied();
+    let prev = chars[..idx]
+        .iter()
+        .rev()
+        .find(|c| !c.is_whitespace())
+        .copied();
     matches!(
         prev,
         None | Some('(' | ',' | '~' | '!' | '=' | ';' | '{' | '|' | '&' | '?' | ':')
@@ -2593,7 +3198,10 @@ fn split_awk_statements(block: &str) -> Vec<String> {
                             continue;
                         }
                         if rest.trim_start().starts_with("while")
-                            && (cur_ts.starts_with("do ") || cur_ts.starts_with("do\t") || cur_ts.starts_with("do\n") || cur_ts.starts_with("do{"))
+                            && (cur_ts.starts_with("do ")
+                                || cur_ts.starts_with("do\t")
+                                || cur_ts.starts_with("do\n")
+                                || cur_ts.starts_with("do{"))
                         {
                             idx += 1;
                             continue;
@@ -2654,7 +3262,9 @@ fn split_awk_statements(block: &str) -> Vec<String> {
 
 fn eval_awk_array_key(key_expr: &str, state: &mut AwkState) -> String {
     let inner = awk_ungroup(key_expr);
-    if !inner.contains(',') { return eval_awk_text(inner, state); }
+    if !inner.contains(',') {
+        return eval_awk_text(inner, state);
+    }
     let parts = split_awk_top_args(inner);
     if parts.len() <= 1 {
         eval_awk_text(inner, state)
@@ -2722,9 +3332,15 @@ fn split_awk_top_else(s: &str) -> Option<(&str, &str)> {
                 b')' => paren -= 1,
                 b'{' => brace += 1,
                 b'}' => brace -= 1,
-                b'e' if paren == 0 && brace == 0 && i + 4 <= bytes.len() && &bytes[i..i + 4] == b"else" => {
-                    let prev_ok = i == 0 || matches!(bytes[i - 1], b' ' | b'\t' | b'\n' | b'\r' | b';' | b'}');
-                    let next_ok = i + 4 == bytes.len() || matches!(bytes[i + 4], b' ' | b'\t' | b'\n' | b'\r' | b'{');
+                b'e' if paren == 0
+                    && brace == 0
+                    && i + 4 <= bytes.len()
+                    && &bytes[i..i + 4] == b"else" =>
+                {
+                    let prev_ok = i == 0
+                        || matches!(bytes[i - 1], b' ' | b'\t' | b'\n' | b'\r' | b';' | b'}');
+                    let next_ok = i + 4 == bytes.len()
+                        || matches!(bytes[i + 4], b' ' | b'\t' | b'\n' | b'\r' | b'{');
                     if prev_ok && next_ok {
                         return Some((&s[..i], &s[i + 4..]));
                     }
@@ -2738,12 +3354,16 @@ fn split_awk_top_else(s: &str) -> Option<(&str, &str)> {
 }
 
 fn is_awk_outer_parens(s: &str) -> bool {
-    s.starts_with('(') && s.ends_with(')') && split_awk_binary_once(s, ")").is_some_and(|(_, rest)| rest.is_empty())
+    s.starts_with('(')
+        && s.ends_with(')')
+        && split_awk_binary_once(s, ")").is_some_and(|(_, rest)| rest.is_empty())
 }
 
 fn awk_ungroup(mut expr: &str) -> &str {
     expr = expr.trim();
-    while is_awk_outer_parens(expr) { expr = expr[1..expr.len()-1].trim(); }
+    while is_awk_outer_parens(expr) {
+        expr = expr[1..expr.len() - 1].trim();
+    }
     expr
 }
 
@@ -2826,9 +3446,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             idx += 1;
             continue;
         }
-        if stmt.starts_with("while")
-            && (stmt[5..].starts_with(' ') || stmt[5..].starts_with('('))
-        {
+        if stmt.starts_with("while") && (stmt[5..].starts_with(' ') || stmt[5..].starts_with('(')) {
             exec_awk_while(stmt, state);
             idx += 1;
             continue;
@@ -2877,7 +3495,8 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             if !args.is_empty() {
                 let fmt_str = eval_awk_text(&args[0], state);
                 let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
-                let formatted = state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)));
+                let formatted =
+                    state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)));
                 if let Some((append, target_expr)) = redir {
                     let target_path = eval_awk_text(target_expr, state);
                     state.write_redirect(&target_path, append, &formatted);
@@ -2980,7 +3599,11 @@ fn extract_paren_and_body(stmt: &str, keyword: &str) -> Option<(String, String, 
         } else {
             el_t.to_string()
         };
-        return Some((cond, then_p.trim().trim_end_matches(';').trim().to_string(), Some(el_body)));
+        return Some((
+            cond,
+            then_p.trim().trim_end_matches(';').trim().to_string(),
+            Some(el_body),
+        ));
     }
     Some((cond, after_trim.to_string(), None))
 }
@@ -3056,13 +3679,16 @@ fn exec_awk_do_while(stmt: &str, state: &mut AwkState) {
         return;
     };
     let rem_trim = after_body.trim();
-    let Some(while_rest) = rem_trim.strip_prefix("while") else { return };
-    let cond_raw = while_rest.trim().trim_end_matches(';').trim();
-    let cond = if cond_raw.starts_with('(') && cond_raw.ends_with(')') && is_awk_outer_parens(cond_raw) {
-        &cond_raw[1..cond_raw.len() - 1]
-    } else {
-        cond_raw
+    let Some(while_rest) = rem_trim.strip_prefix("while") else {
+        return;
     };
+    let cond_raw = while_rest.trim().trim_end_matches(';').trim();
+    let cond =
+        if cond_raw.starts_with('(') && cond_raw.ends_with(')') && is_awk_outer_parens(cond_raw) {
+            &cond_raw[1..cond_raw.len() - 1]
+        } else {
+            cond_raw
+        };
     let mut guard = 0usize;
     loop {
         exec_awk_block(&body, state);
@@ -3240,18 +3866,28 @@ fn eval_awk_text(expr: &str, state: &mut AwkState) -> String {
 }
 
 fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
-    if state.runtime_err.is_some() { return Scalar::Unset; }
+    if state.runtime_err.is_some() {
+        return Scalar::Unset;
+    }
     let s = expr.trim();
     if s.is_empty() {
         return Scalar::Unset;
     }
-    if s.starts_with(|c: char| c.is_ascii_digit() || c == '.') && let Ok(n) = s.parse::<f64>() {
+    if s.starts_with(|c: char| c.is_ascii_digit() || c == '.')
+        && let Ok(n) = s.parse::<f64>()
+    {
         return Scalar::Number(n);
     }
-    if is_valid_awk_ident(s) && s != "getline" { return state.get_var(s); }
+    if is_valid_awk_ident(s) && s != "getline" {
+        return state.get_var(s);
+    }
     if let Some(field) = s.strip_prefix('$')
-        && !field.is_empty() && (field.bytes().all(|b| b.is_ascii_digit()) || is_valid_awk_ident(field)) {
-        return state.field_index(field).map_or(Scalar::Unset, |idx| state.get_field(idx));
+        && !field.is_empty()
+        && (field.bytes().all(|b| b.is_ascii_digit()) || is_valid_awk_ident(field))
+    {
+        return state
+            .field_index(field)
+            .map_or(Scalar::Unset, |idx| state.get_field(idx));
     }
     if is_single_awk_string_literal(s) {
         return Scalar::Text(unescape_sed_text(&s[1..s.len() - 1]));
@@ -3265,7 +3901,8 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     if is_awk_outer_parens(s) {
         let inner = awk_ungroup(&s[1..s.len() - 1]);
         if split_awk_binary_once(inner, ",").is_some() {
-            state.runtime_err = Some("awk: tuple is only valid as an array membership key\n".into());
+            state.runtime_err =
+                Some("awk: tuple is only valid as an array membership key\n".into());
             return Scalar::Unset;
         }
         return eval_awk_value(inner, state);
@@ -3273,14 +3910,31 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
 
     for op in ["+=", "-=", "*=", "/=", "%=", "^=", "="] {
         if let Some((lhs, rhs)) = split_awk_binary_once(s, op) {
-            if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
+            if op == "="
+                && (lhs.ends_with('!')
+                    || lhs.ends_with('<')
+                    || lhs.ends_with('>')
+                    || lhs.ends_with('='))
+            {
                 continue;
             }
-            let Some(target) = AwkTarget::resolve(lhs, state) else { return Scalar::Unset; };
-            let previous = if op == "=" { 0.0 } else { target.get(state).number() };
+            let Some(target) = AwkTarget::resolve(lhs, state) else {
+                return Scalar::Unset;
+            };
+            let previous = if op == "=" {
+                0.0
+            } else {
+                target.get(state).number()
+            };
             let rval = eval_awk_value(rhs, state);
-            let final_val = if op == "=" { rval } else { state.arithmetic(op.as_bytes()[0], previous, rval.number()) };
-            if state.runtime_err.is_none() { target.set(final_val.clone(), state); }
+            let final_val = if op == "=" {
+                rval
+            } else {
+                state.arithmetic(op.as_bytes()[0], previous, rval.number())
+            };
+            if state.runtime_err.is_none() {
+                target.set(final_val.clone(), state);
+            }
             return final_val;
         }
     }
@@ -3296,10 +3950,14 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     }
 
     if let Some((a, b)) = split_awk_binary_once(s, "||") {
-        return Scalar::Number(f64::from(eval_awk_cond(a, state) || eval_awk_cond(b, state)));
+        return Scalar::Number(f64::from(
+            eval_awk_cond(a, state) || eval_awk_cond(b, state),
+        ));
     }
     if let Some((a, b)) = split_awk_binary_once(s, "&&") {
-        return Scalar::Number(f64::from(eval_awk_cond(a, state) && eval_awk_cond(b, state)));
+        return Scalar::Number(f64::from(
+            eval_awk_cond(a, state) && eval_awk_cond(b, state),
+        ));
     }
 
     if let Some(gl_rest) = s.strip_prefix("getline")
@@ -3310,7 +3968,11 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             let var_name = var_part.trim();
             return state.read_getline_from_file(
                 &path,
-                if var_name.is_empty() { None } else { Some(var_name) },
+                if var_name.is_empty() {
+                    None
+                } else {
+                    Some(var_name)
+                },
             );
         }
         let var_name = gl_rest.trim();
@@ -3326,11 +3988,12 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             let lv = eval_awk_value(lhs, state);
             if cmp_op == "~" || cmp_op == "!~" {
                 let raw_pat = rhs.trim();
-                let pat_owned = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
-                    raw_pat[1..raw_pat.len() - 1].replace("\\/", "/")
-                } else {
-                    eval_awk_text(raw_pat, state)
-                };
+                let pat_owned =
+                    if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
+                        raw_pat[1..raw_pat.len() - 1].replace("\\/", "/")
+                    } else {
+                        eval_awk_text(raw_pat, state)
+                    };
                 let subject = state.formatted(lv.text(Some(&state.convfmt)));
                 let matched = ZeroRegex::awk(&pat_owned).is_match(&subject);
                 let ok = if cmp_op == "~" { matched } else { !matched };
@@ -3339,7 +4002,10 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             let rv = eval_awk_value(rhs, state);
             let cmp = match lv.compare(&rv, &state.convfmt) {
                 Ok(cmp) => cmp,
-                Err(e) => { state.formatted(Err(e)); return Scalar::Unset; }
+                Err(e) => {
+                    state.formatted(Err(e));
+                    return Scalar::Unset;
+                }
             };
             let ok = match cmp_op {
                 "==" => cmp == std::cmp::Ordering::Equal,
@@ -3379,9 +4045,16 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     }
 
     for (op, delta) in [("++", 1.0), ("--", -1.0)] {
-        let (var, postfix) = if let Some(v) = s.strip_suffix(op) { (v, true) }
-            else if let Some(v) = s.strip_prefix(op) { (v, false) } else { continue };
-        let Some(target) = AwkTarget::resolve(var, state) else { return Scalar::Unset; };
+        let (var, postfix) = if let Some(v) = s.strip_suffix(op) {
+            (v, true)
+        } else if let Some(v) = s.strip_prefix(op) {
+            (v, false)
+        } else {
+            continue;
+        };
+        let Some(target) = AwkTarget::resolve(var, state) else {
+            return Scalar::Unset;
+        };
         let previous = target.get(state).number();
         let next = previous + delta;
         target.set(Scalar::Number(next), state);
@@ -3401,10 +4074,15 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     }
 
     if let Some(field_expr) = s.strip_prefix('$') {
-        return state.field_index(field_expr).map_or(Scalar::Unset, |idx| state.get_field(idx));
+        return state
+            .field_index(field_expr)
+            .map_or(Scalar::Unset, |idx| state.get_field(idx));
     }
 
-    if s.ends_with(']') && s.contains('[') && let Some(target) = AwkTarget::resolve(s, state) {
+    if s.ends_with(']')
+        && s.contains('[')
+        && let Some(target) = AwkTarget::resolve(s, state)
+    {
         return target.get(state);
     }
 
@@ -3420,10 +4098,15 @@ enum AwkTarget<'a> {
 impl<'a> AwkTarget<'a> {
     fn resolve(expr: &'a str, state: &mut AwkState) -> Option<Self> {
         let expr = awk_ungroup(expr);
-        if let Some(index) = expr.strip_prefix('$') { return state.field_index(index).map(Self::Field); }
+        if let Some(index) = expr.strip_prefix('$') {
+            return state.field_index(index).map(Self::Field);
+        }
         if let Some((name, subscript)) = expr.strip_suffix(']').and_then(|s| s.split_once('[')) {
             let key = eval_awk_array_key(subscript, state);
-            return state.runtime_err.is_none().then_some(Self::Element(name.trim(), key));
+            return state
+                .runtime_err
+                .is_none()
+                .then_some(Self::Element(name.trim(), key));
         }
         Some(Self::Variable(expr))
     }
@@ -3436,7 +4119,11 @@ impl<'a> AwkTarget<'a> {
                 if let Some(value) = state.arrays.get(*name).and_then(|map| map.get(key)) {
                     return value.clone();
                 }
-                state.arrays.entry((*name).to_owned()).or_default().insert(key.clone(), Scalar::Unset);
+                state
+                    .arrays
+                    .entry((*name).to_owned())
+                    .or_default()
+                    .insert(key.clone(), Scalar::Unset);
                 Scalar::Unset
             }
         }
@@ -3446,7 +4133,13 @@ impl<'a> AwkTarget<'a> {
         match self {
             Self::Variable(name) => state.set_var(name, value),
             Self::Field(index) => state.set_field(index, value),
-            Self::Element(name, key) => { state.arrays.entry(name.to_owned()).or_default().insert(key, value); }
+            Self::Element(name, key) => {
+                state
+                    .arrays
+                    .entry(name.to_owned())
+                    .or_default()
+                    .insert(key, value);
+            }
         }
     }
 }
@@ -3468,10 +4161,13 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
 
     match fn_name {
         "strftime" | "mktime" => {
-            let values: Vec<_> = args.iter().map(|arg| eval_awk_value(arg,state)).collect();
-            let result = awk_time::evaluate(fn_name,&values,state);
+            let values: Vec<_> = args.iter().map(|arg| eval_awk_value(arg, state)).collect();
+            let result = awk_time::evaluate(fn_name, &values, state);
             Some(result.unwrap_or_else(|| {
-                if state.runtime_err.is_none() { state.error_status = 1; state.runtime_err = Some("awk: internal error\n".into()); }
+                if state.runtime_err.is_none() {
+                    state.error_status = 1;
+                    state.runtime_err = Some("awk: internal error\n".into());
+                }
                 Scalar::Unset
             }))
         }
@@ -3517,9 +4213,13 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             if args.len() >= 3 {
                 let len = eval_awk_value(&args[2], state).number() as usize;
                 let end = start.saturating_add(len).min(bytes.len());
-                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(&bytes[start..end])))
+                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(
+                    &bytes[start..end],
+                )))
             } else {
-                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(&bytes[start..])))
+                Some(Scalar::Text(crate::vfs::bytes_to_stream_string(
+                    &bytes[start..],
+                )))
             }
         }
         "index" => {
@@ -3528,9 +4228,14 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             }
             let hay = eval_awk_text(&args[0], state);
             let needle = eval_awk_text(&args[1], state);
-            if needle.is_empty() { return Some(Scalar::Number(1.0)); }
+            if needle.is_empty() {
+                return Some(Scalar::Number(1.0));
+            }
             let needle = crate::vfs::stream_string_to_bytes(&needle);
-            match crate::vfs::stream_string_to_bytes(&hay).windows(needle.len()).position(|s| s == needle) {
+            match crate::vfs::stream_string_to_bytes(&hay)
+                .windows(needle.len())
+                .position(|s| s == needle)
+            {
                 Some(byte_idx) => Some(Scalar::Number((byte_idx + 1) as f64)),
                 None => Some(Scalar::Number(0.0)),
             }
@@ -3549,7 +4254,11 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
                 eval_awk_text(raw_pat, state)
             };
             if let Some(arr_arg) = args.get(2) {
-                state.arrays.entry(arr_arg.trim().to_string()).or_default().clear();
+                state
+                    .arrays
+                    .entry(arr_arg.trim().to_string())
+                    .or_default()
+                    .clear();
             }
             let mut position = 0;
             let mut length = -1;
@@ -3579,17 +4288,18 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             let text = eval_awk_text(&args[0], state);
             let arr_name = args[1].trim().to_string();
             let raw_sep = args.get(2).map(|a| a.trim()).unwrap_or("");
-            let (sep, is_rx) = if raw_sep.starts_with('/') && raw_sep.ends_with('/') && raw_sep.len() >= 2 {
-                (raw_sep[1..raw_sep.len() - 1].to_string(), true)
-            } else if args.len() >= 3 {
-                let v = eval_awk_text(&args[2], state);
-                let rx = v.len() > 1;
-                (v, rx)
-            } else {
-                let v = state.fs.clone();
-                let rx = v.len() > 1;
-                (v, rx)
-            };
+            let (sep, is_rx) =
+                if raw_sep.starts_with('/') && raw_sep.ends_with('/') && raw_sep.len() >= 2 {
+                    (raw_sep[1..raw_sep.len() - 1].to_string(), true)
+                } else if args.len() >= 3 {
+                    let v = eval_awk_text(&args[2], state);
+                    let rx = v.len() > 1;
+                    (v, rx)
+                } else {
+                    let v = state.fs.clone();
+                    let rx = v.len() > 1;
+                    (v, rx)
+                };
             let (parts, seps): (Vec<String>, Vec<String>) = if text.is_empty() {
                 (Vec::new(), Vec::new())
             } else if sep.is_empty() {
@@ -3697,11 +4407,25 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             } else {
                 (1.0, trimmed)
             };
-            let val = if let Some(hex_part) = rest.strip_prefix("0x").or_else(|| rest.strip_prefix("0X")) {
-                let hex_digits: String = hex_part.chars().take_while(|c| c.is_ascii_hexdigit()).collect();
+            let val = if let Some(hex_part) =
+                rest.strip_prefix("0x").or_else(|| rest.strip_prefix("0X"))
+            {
+                let hex_digits: String = hex_part
+                    .chars()
+                    .take_while(|c| c.is_ascii_hexdigit())
+                    .collect();
                 u64::from_str_radix(&hex_digits, 16).unwrap_or(0) as f64 * sign
-            } else if rest.starts_with('0') && rest.len() > 1 && rest[1..].chars().next().is_some_and(|c| ('0'..='7').contains(&c)) {
-                let oct_digits: String = rest.chars().take_while(|c| ('0'..='7').contains(c)).collect();
+            } else if rest.starts_with('0')
+                && rest.len() > 1
+                && rest[1..]
+                    .chars()
+                    .next()
+                    .is_some_and(|c| ('0'..='7').contains(&c))
+            {
+                let oct_digits: String = rest
+                    .chars()
+                    .take_while(|c| ('0'..='7').contains(c))
+                    .collect();
                 u64::from_str_radix(&oct_digits, 8).unwrap_or(0) as f64 * sign
             } else {
                 parse_awk_f64(trimmed)
@@ -3729,11 +4453,14 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
                     }
                 })
                 .unwrap_or_default();
-            items.sort_by(|a, b| match (a,b) {
+            items.sort_by(|a, b| match (a, b) {
                 (Scalar::Text(a), Scalar::Text(b)) => a.cmp(b),
                 (Scalar::Text(_), _) => std::cmp::Ordering::Greater,
                 (_, Scalar::Text(_)) => std::cmp::Ordering::Less,
-                _ => a.number().partial_cmp(&b.number()).unwrap_or(std::cmp::Ordering::Equal),
+                _ => a
+                    .number()
+                    .partial_cmp(&b.number())
+                    .unwrap_or(std::cmp::Ordering::Equal),
             });
             let n = items.len();
             let dst = state.arrays.entry(dst_name).or_default();
@@ -3768,17 +4495,32 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             Some(Scalar::Number(acc as f64))
         }
         "lshift" => {
-            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
-            let sh = args.get(1).map(|a| eval_awk_value(a, state).number() as u32).unwrap_or(0);
+            let v = args
+                .first()
+                .map(|a| eval_awk_value(a, state).number() as u64)
+                .unwrap_or(0);
+            let sh = args
+                .get(1)
+                .map(|a| eval_awk_value(a, state).number() as u32)
+                .unwrap_or(0);
             Some(Scalar::Number(v.wrapping_shl(sh) as f64))
         }
         "rshift" => {
-            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
-            let sh = args.get(1).map(|a| eval_awk_value(a, state).number() as u32).unwrap_or(0);
+            let v = args
+                .first()
+                .map(|a| eval_awk_value(a, state).number() as u64)
+                .unwrap_or(0);
+            let sh = args
+                .get(1)
+                .map(|a| eval_awk_value(a, state).number() as u32)
+                .unwrap_or(0);
             Some(Scalar::Number(v.wrapping_shr(sh) as f64))
         }
         "compl" => {
-            let v = args.first().map(|a| eval_awk_value(a, state).number() as u64).unwrap_or(0);
+            let v = args
+                .first()
+                .map(|a| eval_awk_value(a, state).number() as u64)
+                .unwrap_or(0);
             Some(Scalar::Number(((!v) & ((1u64 << 53) - 1)) as f64))
         }
         "sub" | "gsub" => {
@@ -3793,12 +4535,16 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             };
             let repl = eval_awk_text(&args[1], state);
             let target_lval = args.get(2).map(|s| s.as_str()).unwrap_or("$0");
-            let Some(target) = AwkTarget::resolve(target_lval, state) else { return Some(Scalar::Unset); };
+            let Some(target) = AwkTarget::resolve(target_lval, state) else {
+                return Some(Scalar::Unset);
+            };
             let value = target.get(state);
             let current = state.formatted(value.text(Some(&state.convfmt)));
             let (updated, count) =
                 ZeroRegex::awk(&pat).replace_count(&current, &repl, fn_name == "gsub", None);
-            if count != 0 { target.set(Scalar::Text(updated), state); }
+            if count != 0 {
+                target.set(Scalar::Text(updated), state);
+            }
             Some(Scalar::Number(count as f64))
         }
         "int" => {
@@ -3809,14 +4555,21 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             Some(Scalar::Number(n.trunc()))
         }
         "sqrt" | "sin" | "cos" | "atan2" | "exp" | "log" => {
-            let n = args.first().map(|a| eval_awk_value(a, state).number()).unwrap_or(0.0);
+            let n = args
+                .first()
+                .map(|a| eval_awk_value(a, state).number())
+                .unwrap_or(0.0);
             let value = match fn_name {
                 "sqrt" => n.sqrt(),
                 "sin" => n.sin(),
                 "cos" => n.cos(),
                 "exp" => n.exp(),
                 "log" => n.ln(),
-                _ => n.atan2(args.get(1).map(|a| eval_awk_value(a, state).number()).unwrap_or(0.0)),
+                _ => n.atan2(
+                    args.get(1)
+                        .map(|a| eval_awk_value(a, state).number())
+                        .unwrap_or(0.0),
+                ),
             };
             Some(Scalar::Number(value))
         }
@@ -3831,15 +4584,27 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             Some(Scalar::Number(old_seed as f64))
         }
         "rand" => {
-            state.rng_state = state.rng_state.wrapping_mul(1664525).wrapping_add(1013904223);
+            state.rng_state = state
+                .rng_state
+                .wrapping_mul(1664525)
+                .wrapping_add(1013904223);
             let val = (state.rng_state as f64) / 4294967296.0;
             Some(Scalar::Number(val))
         }
         "fflush" => {
-            let name = args.first().map(|a| eval_awk_text(a, state)).unwrap_or_default();
+            let name = args
+                .first()
+                .map(|a| eval_awk_text(a, state))
+                .unwrap_or_default();
             if name.is_empty() || name == "/dev/stdout" {
-                if !state.output.flush() { state.runtime_err = Some(String::new()); }
-            } else if name != "/dev/stderr" && !state.redirect_written.contains(&absolute_operand(&state.cwd, &name)) {
+                if !state.output.flush() {
+                    state.runtime_err = Some(String::new());
+                }
+            } else if name != "/dev/stderr"
+                && !state
+                    .redirect_written
+                    .contains(&absolute_operand(&state.cwd, &name))
+            {
                 return Some(Scalar::Number(-1.0));
             }
             Some(Scalar::Number(0.0))
@@ -3850,14 +4615,20 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
                 let full = absolute_operand(&state.cwd, &path);
                 let input = state.getline_files.remove(&full).is_some();
                 let output = state.redirect_written.remove(&full);
-                if input || output { return Some(Scalar::Number(0.0)); }
+                if input || output {
+                    return Some(Scalar::Number(0.0));
+                }
             }
             Some(Scalar::Number(-1.0))
         }
         "ord" if !state.funcs.contains_key("ord") => {
             let s = eval_awk_text(args.first()?, state);
             let byte = s.chars().next().map_or(0, |c| {
-                if crate::vfs::is_stream_byte(c) { c as u32 as u8 } else { s.as_bytes()[0] }
+                if crate::vfs::is_stream_byte(c) {
+                    c as u32 as u8
+                } else {
+                    s.as_bytes()[0]
+                }
             });
             Some(Scalar::Number(f64::from(byte)))
         }
@@ -3876,7 +4647,11 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             }
             let fmt_str = eval_awk_text(&args[0], state);
             let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
-            Some(Scalar::Text(state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)))))
+            Some(Scalar::Text(state.formatted(format_awk_printf(
+                &fmt_str,
+                &vals,
+                Some(&state.convfmt),
+            ))))
         }
         _ => {
             if let Some((params, body)) = state.funcs.get(fn_name).cloned() {
@@ -3886,7 +4661,9 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
                             .map(|a| a.trim())
                             .filter(|s| {
                                 !s.is_empty()
-                                    && s.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+                                    && s.chars()
+                                        .next()
+                                        .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
                                     && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
                             })
                             .map(|s| s.to_string())
@@ -3955,7 +4732,9 @@ fn split_awk_redirection(s: &str) -> (&str, Option<(bool, &str)>) {
 }
 
 fn split_awk_binary_once<'a>(s: &'a str, op: &str) -> Option<(&'a str, &'a str)> {
-    if !s.contains(op) { return None; }
+    if !s.contains(op) {
+        return None;
+    }
     let bytes = s.as_bytes();
     let mut quote = false;
     let mut in_rx = false;
@@ -4020,8 +4799,12 @@ fn split_awk_arithmetic(s: &str) -> Option<(&str, u8, &str)> {
             while at < bytes.len() {
                 let ch = bytes[at];
                 at += 1;
-                if ch == c { break; }
-                if ch == b'\\' { at += 1; }
+                if ch == c {
+                    break;
+                }
+                if ch == b'\\' {
+                    at += 1;
+                }
             }
             operand = true;
             continue;
@@ -4034,15 +4817,29 @@ fn split_awk_arithmetic(s: &str) -> Option<(&str, u8, &str)> {
             }
             b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
                 at += 1;
-                while at < bytes.len() && (bytes[at].is_ascii_alphanumeric() || bytes[at] == b'_') { at += 1; }
+                while at < bytes.len() && (bytes[at].is_ascii_alphanumeric() || bytes[at] == b'_') {
+                    at += 1;
+                }
                 operand = true;
                 continue;
             }
-            b'(' | b'[' => { depth += 1; operand = false; }
-            b')' | b']' => { depth = depth.saturating_sub(1); operand = true; }
-            b'+' | b'-' if bytes.get(at + 1) == Some(&c) => { at += 1; }
+            b'(' | b'[' => {
+                depth += 1;
+                operand = false;
+            }
+            b')' | b']' => {
+                depth = depth.saturating_sub(1);
+                operand = true;
+            }
+            b'+' | b'-' if bytes.get(at + 1) == Some(&c) => {
+                at += 1;
+            }
             b'+' | b'-' | b'*' | b'/' | b'%' | b'^' => {
-                let priority = match c { b'+' | b'-' => 1, b'^' => 3, _ => 2 };
+                let priority = match c {
+                    b'+' | b'-' => 1,
+                    b'^' => 3,
+                    _ => 2,
+                };
                 if depth == 0 && operand && (priority < rank || priority == rank && c != b'^') {
                     rank = priority;
                     split = Some(at);
@@ -4055,7 +4852,9 @@ fn split_awk_arithmetic(s: &str) -> Option<(&str, u8, &str)> {
         at += 1;
     }
     // A leading unary operator encloses exponentiation, but binds before multiplication.
-    if rank == 3 && s.starts_with(['+', '-', '!']) && !s.starts_with("++") && !s.starts_with("--") { return None; }
+    if rank == 3 && s.starts_with(['+', '-', '!']) && !s.starts_with("++") && !s.starts_with("--") {
+        return None;
+    }
     split.map(|i| (&s[..i], bytes[i], &s[i + 1..]))
 }
 
@@ -4126,11 +4925,15 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
     }
     let is_arith_op_end = |tok: &str| -> bool {
         let t = tok.trim();
-        !t.ends_with("++") && !t.ends_with("--") && (t.ends_with(['+', '-', '*', '/', '%', '^']) || t == "!")
+        !t.ends_with("++")
+            && !t.ends_with("--")
+            && (t.ends_with(['+', '-', '*', '/', '%', '^']) || t == "!")
     };
     let is_arith_op_start = |tok: &str| -> bool {
         let t = tok.trim();
-        !t.starts_with("++") && !t.starts_with("--") && t.starts_with(['+', '-', '*', '/', '%', '^'])
+        !t.starts_with("++")
+            && !t.starts_with("--")
+            && t.starts_with(['+', '-', '*', '/', '%', '^'])
     };
     let mut merged: Vec<String> = Vec::new();
     for p in parts {
@@ -4146,7 +4949,11 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
     if merged.len() > 1 { Some(merged) } else { None }
 }
 
-fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> Result<String, (i32, &'static str)> {
+fn format_awk_printf(
+    fmt_str: &str,
+    vals: &[Scalar],
+    convfmt: Option<&str>,
+) -> Result<String, (i32, &'static str)> {
     let mut out = String::new();
     let chars: Vec<char> = fmt_str.chars().collect();
     let mut i = 0usize;
@@ -4227,14 +5034,22 @@ fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> R
             let (raw_body, is_num, allow_sign) = match conv {
                 'd' | 'i' => {
                     let n = val.number();
-                    if !n.is_finite() { return Err((2, "cannot format a non-finite number")); }
+                    if !n.is_finite() {
+                        return Err((2, "cannot format a non-finite number"));
+                    }
                     let integer = n.trunc();
-                    let text = if integer == 0.0 { "0".into() } else { format!("{integer:.0}") };
+                    let text = if integer == 0.0 {
+                        "0".into()
+                    } else {
+                        format!("{integer:.0}")
+                    };
                     (text, true, n >= 0.0)
                 }
                 'u' | 'x' | 'X' | 'o' => {
                     let n = val.number();
-                    if !n.is_finite() { return Err((2, "cannot format a non-finite number")); }
+                    if !n.is_finite() {
+                        return Err((2, "cannot format a non-finite number"));
+                    }
                     let unsigned = (n.trunc() % 4294967296.0) as i64 as u32;
                     let mut text = match conv {
                         'x' => format!("{unsigned:x}"),
@@ -4243,25 +5058,44 @@ fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> R
                         _ => unsigned.to_string(),
                     };
                     if alt_form && n != 0.0 {
-                        text.insert_str(0, match conv { 'x' => "0x", 'X' => "0X", 'o' => "0", _ => "" });
+                        text.insert_str(
+                            0,
+                            match conv {
+                                'x' => "0x",
+                                'X' => "0X",
+                                'o' => "0",
+                                _ => "",
+                            },
+                        );
                     }
                     (text, true, false)
                 }
                 'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
                     let n = val.number();
-                    if !n.is_finite() { zero_pad = false; }
-                    (awk_float::format(n, conv, prec.unwrap_or(6), alt_form)?, true, !n.is_nan())
+                    if !n.is_finite() {
+                        zero_pad = false;
+                    }
+                    (
+                        awk_float::format(n, conv, prec.unwrap_or(6), alt_form)?,
+                        true,
+                        !n.is_nan(),
+                    )
                 }
                 'c' => {
                     let byte = match val {
-                        Scalar::Text(s) => crate::vfs::stream_string_to_bytes(s).first().copied().unwrap_or(0),
+                        Scalar::Text(s) => crate::vfs::stream_string_to_bytes(s)
+                            .first()
+                            .copied()
+                            .unwrap_or(0),
                         v => (v.number().trunc() % 256.0) as i32 as u8,
                     };
                     (crate::vfs::bytes_to_stream_string(&[byte]), false, false)
                 }
                 _ => {
                     let val = val.text(convfmt)?;
-                    let truncated = if let Some(p) = prec && p < crate::vfs::stream_byte_len(&val) {
+                    let truncated = if let Some(p) = prec
+                        && p < crate::vfs::stream_byte_len(&val)
+                    {
                         let bytes = crate::vfs::stream_string_to_bytes(&val);
                         crate::vfs::bytes_to_stream_string(&bytes[..p])
                     } else {
@@ -4270,17 +5104,18 @@ fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> R
                     (truncated, false, false)
                 }
             };
-            let signed_val = if allow_sign && !raw_body.starts_with('-') && !raw_body.starts_with('+') {
-                if force_sign {
-                    format!("+{raw_body}")
-                } else if space_sign {
-                    format!(" {raw_body}")
+            let signed_val =
+                if allow_sign && !raw_body.starts_with('-') && !raw_body.starts_with('+') {
+                    if force_sign {
+                        format!("+{raw_body}")
+                    } else if space_sign {
+                        format!(" {raw_body}")
+                    } else {
+                        raw_body
+                    }
                 } else {
                     raw_body
-                }
-            } else {
-                raw_body
-            };
+                };
             let len = crate::vfs::stream_byte_len(&signed_val);
             if width <= len {
                 out.push_str(&signed_val);
@@ -4319,8 +5154,16 @@ fn collect_rel_files(root: &str, rel_prefix: &str, fs: &dyn SafeBashFs, out: &mu
     let mut entries = fs.list_dir(root).unwrap_or_default();
     entries.sort();
     for name in entries {
-        let full = if root == "/" { format!("/{name}") } else { format!("{root}/{name}") };
-        let rel = if rel_prefix.is_empty() { name.clone() } else { format!("{rel_prefix}/{name}") };
+        let full = if root == "/" {
+            format!("/{name}")
+        } else {
+            format!("{root}/{name}")
+        };
+        let rel = if rel_prefix.is_empty() {
+            name.clone()
+        } else {
+            format!("{rel_prefix}/{name}")
+        };
         if fs.is_dir(&full) {
             collect_rel_files(&full, &rel, fs, out);
         } else {
@@ -4455,7 +5298,9 @@ fn quote_diff_arg(argument: &str) -> String {
         if " \t\n\r!\"$&'()*;<=>?[\\^`|".contains(ch) {
             needs_quotes = true;
         }
-        if !" %'+,-./0123456789:@ABCDEFGHIJKLMNOPQRSTUVWXYZ]_abcdefghijklmnopqrstuvwxyz".contains(ch) {
+        if !" %'+,-./0123456789:@ABCDEFGHIJKLMNOPQRSTUVWXYZ]_abcdefghijklmnopqrstuvwxyz"
+            .contains(ch)
+        {
             double_quotes = false;
         }
     }
@@ -4501,11 +5346,13 @@ fn diff_two_texts(
     text_b: &str,
     opts: &DiffOpts,
 ) -> (String, bool) {
-    let format = opts.format.unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
-        DiffFormat::Context
-    } else {
-        DiffFormat::Normal
-    });
+    let format = opts
+        .format
+        .unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
+            DiffFormat::Context
+        } else {
+            DiffFormat::Normal
+        });
     let brief = opts.brief;
     let report_identical = opts.report_identical;
     let ignore_case = opts.ignore_case;
@@ -4555,7 +5402,9 @@ fn diff_two_texts(
             }
             s = out_s.trim_end_matches(' ').to_string();
         } else if opts.ignore_trailing_space {
-            s = s.trim_end_matches([' ', '\t', '\x0b', '\x0c', '\r']).to_string();
+            s = s
+                .trim_end_matches([' ', '\t', '\x0b', '\x0c', '\r'])
+                .to_string();
         }
         if ignore_case {
             s = s.to_ascii_lowercase();
@@ -4585,7 +5434,10 @@ fn diff_two_texts(
     let same_keys = norm_a == norm_b;
     if same_keys && format != DiffFormat::Ifdef && format != DiffFormat::SideBySide {
         if report_identical {
-            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+            return (
+                format!("Files {label_a} and {label_b} are identical\n"),
+                false,
+            );
         }
         return (String::new(), false);
     }
@@ -4674,7 +5526,10 @@ fn diff_two_texts(
 
     if !differed && format != DiffFormat::Ifdef && format != DiffFormat::SideBySide {
         if report_identical {
-            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+            return (
+                format!("Files {label_a} and {label_b} are identical\n"),
+                false,
+            );
         }
         return (String::new(), false);
     }
@@ -4684,7 +5539,10 @@ fn diff_two_texts(
             return (format!("Files {label_a} and {label_b} differ\n"), true);
         }
         if report_identical {
-            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+            return (
+                format!("Files {label_a} and {label_b} are identical\n"),
+                false,
+            );
         }
         return (String::new(), false);
     }
@@ -4820,7 +5678,10 @@ fn diff_two_texts(
                     any_ins = true;
                 }
             }
-            if !changes[start..end].iter().any(|c| c.kind != ' ' && !c.ignored) {
+            if !changes[start..end]
+                .iter()
+                .any(|c| c.kind != ' ' && !c.ignored)
+            {
                 old_position += old_count;
                 new_position += new_count;
                 scan = end;
@@ -4885,7 +5746,10 @@ fn diff_two_texts(
                         }
                     }
                 }
-                out.push_str(&format!("--- {} ----\n", context_range(new_position, new_count)));
+                out.push_str(&format!(
+                    "--- {} ----\n",
+                    context_range(new_position, new_count)
+                ));
                 if any_ins {
                     let mut si = start;
                     while si < end {
@@ -4927,7 +5791,9 @@ fn diff_two_texts(
         let mut right_start = width - half;
         if !opts.expand_tabs {
             right_start = ((width + 11) / 16) * 8;
-            half = right_start.saturating_sub(3).min(width.saturating_sub(right_start));
+            half = right_start
+                .saturating_sub(3)
+                .min(width.saturating_sub(right_start));
             if half == 0 {
                 right_start = width;
             }
@@ -4954,7 +5820,11 @@ fn diff_two_texts(
             if let Some(r) = right
                 && !r.is_empty()
             {
-                let col = if marker == ' ' { first_col } else { marker_col + 1 };
+                let col = if marker == ' ' {
+                    first_col
+                } else {
+                    marker_col + 1
+                };
                 let (second_text, _) = sbs_clipped(r, half, opts.expand_tabs);
                 row_text.push_str(&sbs_padding(col, right_start, opts.expand_tabs));
                 row_text.push_str(&second_text);
@@ -5217,11 +6087,13 @@ fn diff_two_byte_inputs(
     opts: &DiffOpts,
     stderr: &mut String,
 ) -> (String, bool, bool) {
-    let format = opts.format.unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
-        DiffFormat::Context
-    } else {
-        DiffFormat::Normal
-    });
+    let format = opts
+        .format
+        .unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
+            DiffFormat::Context
+        } else {
+            DiffFormat::Normal
+        });
     let has_nul = bytes_a.contains(&0) || bytes_b.contains(&0);
     let mut trouble = false;
     let mut incomplete_ed = false;
@@ -5368,23 +6240,38 @@ fn diff_dirs_recursive(
                     for r in rels {
                         let fa = format!("{ca}/{r}");
                         let l_a = format!("{da}/{r}");
-                        let txt = fs.read_file(&fa).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+                        let txt = fs
+                            .read_file(&fa)
+                            .map(|b| String::from_utf8_lossy(&b).into_owned())
+                            .unwrap_or_default();
                         let ls: Vec<&str> = txt.lines().collect();
-                        out.push_str(&format!("--- {l_a}\n+++ /dev/null\n@@ -1,{} +0,0 @@\n", ls.len()));
+                        out.push_str(&format!(
+                            "--- {l_a}\n+++ /dev/null\n@@ -1,{} +0,0 @@\n",
+                            ls.len()
+                        ));
                         for l in ls {
                             out.push_str(&format!("-{l}\n"));
                         }
                     }
                 } else {
-                    let txt = fs.read_file(&ca).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+                    let txt = fs
+                        .read_file(&ca)
+                        .map(|b| String::from_utf8_lossy(&b).into_owned())
+                        .unwrap_or_default();
                     let ls: Vec<&str> = txt.lines().collect();
-                    out.push_str(&format!("--- {da}\n+++ /dev/null\n@@ -1,{} +0,0 @@\n", ls.len()));
+                    out.push_str(&format!(
+                        "--- {da}\n+++ /dev/null\n@@ -1,{} +0,0 @@\n",
+                        ls.len()
+                    ));
                     for l in ls {
                         out.push_str(&format!("-{l}\n"));
                     }
                 }
             } else {
-                out.push_str(&format!("Only in {}: {name_a}\n", disp_a.trim_end_matches('/')));
+                out.push_str(&format!(
+                    "Only in {}: {name_a}\n",
+                    disp_a.trim_end_matches('/')
+                ));
             }
         } else if !ex_a && ex_b {
             *any_diff = true;
@@ -5395,23 +6282,38 @@ fn diff_dirs_recursive(
                     for r in rels {
                         let fb = format!("{cb}/{r}");
                         let l_b = format!("{db}/{r}");
-                        let txt = fs.read_file(&fb).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+                        let txt = fs
+                            .read_file(&fb)
+                            .map(|b| String::from_utf8_lossy(&b).into_owned())
+                            .unwrap_or_default();
                         let ls: Vec<&str> = txt.lines().collect();
-                        out.push_str(&format!("--- /dev/null\n+++ {l_b}\n@@ -0,0 +1,{} @@\n", ls.len()));
+                        out.push_str(&format!(
+                            "--- /dev/null\n+++ {l_b}\n@@ -0,0 +1,{} @@\n",
+                            ls.len()
+                        ));
                         for l in ls {
                             out.push_str(&format!("+{l}\n"));
                         }
                     }
                 } else {
-                    let txt = fs.read_file(&cb).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+                    let txt = fs
+                        .read_file(&cb)
+                        .map(|b| String::from_utf8_lossy(&b).into_owned())
+                        .unwrap_or_default();
                     let ls: Vec<&str> = txt.lines().collect();
-                    out.push_str(&format!("--- /dev/null\n+++ {db}\n@@ -0,0 +1,{} @@\n", ls.len()));
+                    out.push_str(&format!(
+                        "--- /dev/null\n+++ {db}\n@@ -0,0 +1,{} @@\n",
+                        ls.len()
+                    ));
                     for l in ls {
                         out.push_str(&format!("+{l}\n"));
                     }
                 }
             } else {
-                out.push_str(&format!("Only in {}: {name_b}\n", disp_b.trim_end_matches('/')));
+                out.push_str(&format!(
+                    "Only in {}: {name_b}\n",
+                    disp_b.trim_end_matches('/')
+                ));
             }
         } else if fs.is_dir(&ca) != fs.is_dir(&cb) {
             *any_diff = true;
@@ -5536,13 +6438,15 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
             }
             "-u" | "--unified" => {
-                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
             }
             "-c" | "--context" => {
-                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
@@ -5558,7 +6462,9 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
             }
             "-y" | "--side-by-side" => {
-                if let Err(e) = select_format(DiffFormat::SideBySide, &mut selected_format, &mut opts) {
+                if let Err(e) =
+                    select_format(DiffFormat::SideBySide, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
             }
@@ -5569,7 +6475,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "-a" | "--text" => opts.text = true,
             "--ignore-file-name-case" => opts.ignore_file_name_case = true,
             "--no-ignore-file-name-case" => opts.ignore_file_name_case = false,
-            "-d" | "--minimal" | "-l" | "--paginate" | "--color" | "--color=always" | "--color=auto" | "--color=never" => {}
+            "-d" | "--minimal" | "-l" | "--paginate" | "--color" | "--color=always"
+            | "--color=auto" | "--color=never" => {}
             other if other.starts_with("--color=") => {
                 let mode = &other["--color=".len()..];
                 return err_out(&format!("diff: invalid color: {mode}\n"), 2);
@@ -5595,7 +6502,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 if i + 1 >= args.len() {
                     return err_out("diff: -U requires an argument\n", 2);
                 }
-                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 i += 1;
@@ -5615,7 +6523,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 if i + 1 >= args.len() {
                     return err_out("diff: -C requires an argument\n", 2);
                 }
-                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 i += 1;
@@ -5746,7 +6655,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 to_file = Some(a["--to-file=".len()..].to_string());
             }
             _ if a.starts_with("--unified=") => {
-                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 let w = match parse_ctx_len(&a["--unified=".len()..]) {
@@ -5762,7 +6672,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 opts.ctx_lines = Some(w);
             }
             _ if a.starts_with("--context=") => {
-                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts)
+                {
                     return err_out(&e, 2);
                 }
                 let w = match parse_ctx_len(&a["--context=".len()..]) {
@@ -5786,7 +6697,10 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     if ch.is_ascii_digit() {
                         let d = (ch as u8 - b'0') as usize;
                         legacy_context = Some(if prev_digit {
-                            legacy_context.unwrap_or(0).saturating_mul(10).saturating_add(d)
+                            legacy_context
+                                .unwrap_or(0)
+                                .saturating_mul(10)
+                                .saturating_add(d)
                         } else {
                             d
                         });
@@ -5796,29 +6710,41 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     prev_digit = false;
                     match ch {
                         'u' => {
-                            if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                            if let Err(e) =
+                                select_format(DiffFormat::Unified, &mut selected_format, &mut opts)
+                            {
                                 return err_out(&e, 2);
                             }
                             opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
                         }
                         'c' => {
-                            if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                            if let Err(e) =
+                                select_format(DiffFormat::Context, &mut selected_format, &mut opts)
+                            {
                                 return err_out(&e, 2);
                             }
                             opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
                         }
                         'e' => {
-                            if let Err(e) = select_format(DiffFormat::Ed, &mut selected_format, &mut opts) {
+                            if let Err(e) =
+                                select_format(DiffFormat::Ed, &mut selected_format, &mut opts)
+                            {
                                 return err_out(&e, 2);
                             }
                         }
                         'n' => {
-                            if let Err(e) = select_format(DiffFormat::Rcs, &mut selected_format, &mut opts) {
+                            if let Err(e) =
+                                select_format(DiffFormat::Rcs, &mut selected_format, &mut opts)
+                            {
                                 return err_out(&e, 2);
                             }
                         }
                         'y' => {
-                            if let Err(e) = select_format(DiffFormat::SideBySide, &mut selected_format, &mut opts) {
+                            if let Err(e) = select_format(
+                                DiffFormat::SideBySide,
+                                &mut selected_format,
+                                &mut opts,
+                            ) {
                                 return err_out(&e, 2);
                             }
                         }
@@ -5853,7 +6779,11 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                             };
                             match ch {
                                 'U' => {
-                                    if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                                    if let Err(e) = select_format(
+                                        DiffFormat::Unified,
+                                        &mut selected_format,
+                                        &mut opts,
+                                    ) {
                                         return err_out(&e, 2);
                                     }
                                     let w = match parse_ctx_len(&param) {
@@ -5863,13 +6793,20 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                     if let Some(prev) = explicit_ctx_width
                                         && prev != w
                                     {
-                                        return err_out("diff: conflicting output style options\n", 2);
+                                        return err_out(
+                                            "diff: conflicting output style options\n",
+                                            2,
+                                        );
                                     }
                                     explicit_ctx_width = Some(w);
                                     opts.ctx_lines = Some(w);
                                 }
                                 'C' => {
-                                    if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                                    if let Err(e) = select_format(
+                                        DiffFormat::Context,
+                                        &mut selected_format,
+                                        &mut opts,
+                                    ) {
                                         return err_out(&e, 2);
                                     }
                                     let w = match parse_ctx_len(&param) {
@@ -5879,7 +6816,10 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                     if let Some(prev) = explicit_ctx_width
                                         && prev != w
                                     {
-                                        return err_out("diff: conflicting output style options\n", 2);
+                                        return err_out(
+                                            "diff: conflicting output style options\n",
+                                            2,
+                                        );
                                     }
                                     explicit_ctx_width = Some(w);
                                     opts.ctx_lines = Some(w);
@@ -5892,7 +6832,11 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                     };
                                 }
                                 'D' => {
-                                    if let Err(e) = select_format(DiffFormat::Ifdef, &mut selected_format, &mut opts) {
+                                    if let Err(e) = select_format(
+                                        DiffFormat::Ifdef,
+                                        &mut selected_format,
+                                        &mut opts,
+                                    ) {
                                         return err_out(&e, 2);
                                     }
                                     opts.ifdef_macro = param;
@@ -5927,7 +6871,10 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("diff: at most two labels are supported\n", 2);
     }
     if from_file.is_some() && to_file.is_some() {
-        return err_out("diff: --from-file and --to-file may not both be specified\n", 2);
+        return err_out(
+            "diff: --from-file and --to-file may not both be specified\n",
+            2,
+        );
     }
     if from_file.is_some() || to_file.is_some() {
         if files.is_empty() {
@@ -5937,20 +6884,27 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("diff: expected two files or directories\n", 2);
     }
 
-    let has_bad_name = |s: &str| s.is_empty() || s.chars().any(|c| matches!(c, '\0' | '\r' | '\n' | '\t'));
+    let has_bad_name =
+        |s: &str| s.is_empty() || s.chars().any(|c| matches!(c, '\0' | '\r' | '\n' | '\t'));
     let has_ctrl_char = |s: &str| s.chars().any(|c| matches!(c, '\0' | '\r' | '\n' | '\t'));
     if files.iter().any(|s| has_bad_name(s))
         || from_file.as_deref().is_some_and(has_bad_name)
         || to_file.as_deref().is_some_and(has_bad_name)
         || opts.labels.iter().any(|s| has_ctrl_char(s))
     {
-        return err_out("diff: empty names or control characters in filenames/labels are unsupported\n", 2);
+        return err_out(
+            "diff: empty names or control characters in filenames/labels are unsupported\n",
+            2,
+        );
     }
 
     for exf in exclude_files {
         let full = resolve_posix_path(cwd, &exf);
         if fs.is_dir(&full) {
-            return err_out("diff: diff input requires identity-checked retained reads\n", 2);
+            return err_out(
+                "diff: diff input requires identity-checked retained reads\n",
+                2,
+            );
         }
         if let Ok(bytes) = fs.read_file(&full) {
             let txt = String::from_utf8_lossy(&bytes);
@@ -5960,7 +6914,10 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
             }
         } else {
-            return err_out("diff: diff input requires identity-checked retained reads\n", 2);
+            return err_out(
+                "diff: diff input requires identity-checked retained reads\n",
+                2,
+            );
         }
     }
 
@@ -6019,7 +6976,13 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return BuiltinOutcome {
             stdout: total_out,
             stderr: total_err,
-            exit_code: if any_trouble { 2 } else if any_diff { 1 } else { 0 },
+            exit_code: if any_trouble {
+                2
+            } else if any_diff {
+                1
+            } else {
+                0
+            },
         };
     }
 
@@ -6054,7 +7017,13 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             return BuiltinOutcome {
                 stdout: out,
                 stderr,
-                exit_code: if any_trouble { 2 } else if any_diff { 1 } else { 0 },
+                exit_code: if any_trouble {
+                    2
+                } else if any_diff {
+                    1
+                } else {
+                    0
+                },
             };
         } else if !is_dir_a && is_dir_b {
             let base = files[0].rsplit('/').next().unwrap_or(&files[0]).to_string();
@@ -6126,7 +7095,13 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     BuiltinOutcome {
         stdout: out,
         stderr,
-        exit_code: if trouble { 2 } else if differed { 1 } else { 0 },
+        exit_code: if trouble {
+            2
+        } else if differed {
+            1
+        } else {
+            0
+        },
     }
 }
 
@@ -6227,7 +7202,11 @@ fn decode_patch_header_path(raw_line: &str) -> Result<(String, bool), BuiltinOut
             if ch == '\\' && idx < chars.len() {
                 let esc = chars[idx];
                 idx += 1;
-                if ('0'..='7').contains(&esc) && idx + 1 < chars.len() && ('0'..='7').contains(&chars[idx]) && ('0'..='7').contains(&chars[idx + 1]) {
+                if ('0'..='7').contains(&esc)
+                    && idx + 1 < chars.len()
+                    && ('0'..='7').contains(&chars[idx])
+                    && ('0'..='7').contains(&chars[idx + 1])
+                {
                     let oct_s: String = [esc, chars[idx], chars[idx + 1]].iter().collect();
                     idx += 2;
                     if let Ok(b) = u8::from_str_radix(&oct_s, 8) {
@@ -6261,7 +7240,9 @@ fn decode_patch_header_path(raw_line: &str) -> Result<(String, bool), BuiltinOut
     } else {
         trimmed.split_whitespace().next().unwrap_or("").to_string()
     };
-    if decoded.contains('\0') { return Err(invalid()); }
+    if decoded.contains('\0') {
+        return Err(invalid());
+    }
     Ok((crate::vfs::shell_text(&decoded).into_owned(), is_epoch))
 }
 
@@ -6285,13 +7266,16 @@ fn convert_context_diff_to_unified(text: &str) -> String {
         return text.to_string();
     }
     let mut out = String::new();
-    let lines: Vec<&str> = text.split_terminator('\n').map(|line| {
-        if line.starts_with("*** ") || line.starts_with("--- ") {
-            line.strip_suffix('\r').unwrap_or(line)
-        } else {
-            line
-        }
-    }).collect();
+    let lines: Vec<&str> = text
+        .split_terminator('\n')
+        .map(|line| {
+            if line.starts_with("*** ") || line.starts_with("--- ") {
+                line.strip_suffix('\r').unwrap_or(line)
+            } else {
+                line
+            }
+        })
+        .collect();
     let mut i = 0usize;
     while i < lines.len() {
         if let Some(a_hdr) = lines[i].strip_prefix("*** ")
@@ -6366,10 +7350,12 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                         out.push_str(&format!(" {c}\n"));
                         oi += 1;
                         ni += 1;
-                    } else if let Some(d) = ol.strip_prefix("- ").or_else(|| ol.strip_prefix("! ")) {
+                    } else if let Some(d) = ol.strip_prefix("- ").or_else(|| ol.strip_prefix("! "))
+                    {
                         out.push_str(&format!("-{d}\n"));
                         oi += 1;
-                    } else if let Some(a) = nl.strip_prefix("+ ").or_else(|| nl.strip_prefix("! ")) {
+                    } else if let Some(a) = nl.strip_prefix("+ ").or_else(|| nl.strip_prefix("! "))
+                    {
                         out.push_str(&format!("+{a}\n"));
                         ni += 1;
                     } else if oi < old_part.len() {
@@ -6472,7 +7458,13 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             opts.force = true;
         } else if a == "--binary" {
             binary = true;
-        } else if a == "--batch" || a == "--set-time" || a == "--set-utc" || a == "--unified" || a == "--context" || a == "--normal" {
+        } else if a == "--batch"
+            || a == "--set-time"
+            || a == "--set-utc"
+            || a == "--unified"
+            || a == "--context"
+            || a == "--normal"
+        {
         } else if a == "--atomic" {
             opts.atomic = true;
         } else if a == "--merge" || a.starts_with("--merge=") {
@@ -6539,7 +7531,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     }
                     "--read-only" => {
                         if !matches!(param.as_str(), "ignore" | "warn" | "fail") {
-                            return err_out(&format!("patch: invalid read-only behavior: {param}\n"), 2);
+                            return err_out(
+                                &format!("patch: invalid read-only behavior: {param}\n"),
+                                2,
+                            );
                         }
                     }
                     "--strip" => match parse_patch_int(&param, "strip count") {
@@ -6565,7 +7560,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     },
                     "--get" => {
                         if param != "0" {
-                            return err_out("patch: version-control acquisition is unsupported; use --get=0\n", 2);
+                            return err_out(
+                                "patch: version-control acquisition is unsupported; use --get=0\n",
+                                2,
+                            );
                         }
                     }
                     "--input" => input_file = Some(param),
@@ -6620,7 +7618,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             },
                             'g' => {
                                 if param != "0" {
-                                    return err_out("patch: version-control acquisition is unsupported; use -g0\n", 2);
+                                    return err_out(
+                                        "patch: version-control acquisition is unsupported; use -g0\n",
+                                        2,
+                                    );
                                 }
                             }
                             'i' => input_file = Some(param),
@@ -6636,7 +7637,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
 
     if operands.len() > 2 {
-        return err_out("patch: expected at most a target file and a patch input file\n", 2);
+        return err_out(
+            "patch: expected at most a target file and a patch input file\n",
+            2,
+        );
     }
     let target_file = operands.first().cloned();
     if operands.len() == 2 {
@@ -6704,8 +7708,11 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     };
     let patch_text = crate::vfs::bytes_to_stream_string(&patch_bytes);
     // A CR in a hunk is file content unless the patch itself uses CRLF throughout.
-    opts.strip_cr = !binary && patch_text.ends_with("\r\n")
-        && patch_text.split_terminator('\n').all(|line| line.ends_with('\r'));
+    opts.strip_cr = !binary
+        && patch_text.ends_with("\r\n")
+        && patch_text
+            .split_terminator('\n')
+            .all(|line| line.ends_with('\r'));
     let patch_text = if opts.strip_cr {
         patch_text.replace("\r\n", "\n")
     } else {
@@ -6722,7 +7729,12 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 Ok(value) => value,
                 Err(error) => return error,
             };
-            normal_index = Some(resolve_patch_target_path(&decoded, opts.strip, &opts.work_cwd, fs));
+            normal_index = Some(resolve_patch_target_path(
+                &decoded,
+                opts.strip,
+                &opts.work_cwd,
+                fs,
+            ));
         }
         if normal_diff_ranges(line).is_some() {
             opts.was_normal_diff = true;
@@ -6732,7 +7744,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     let normalized_patch = if opts.was_normal_diff {
         if target_file.is_none() && normal_index.is_none() {
-            return err_out("patch: **** Only garbage was found in the patch input.\n", 2);
+            return err_out(
+                "patch: **** Only garbage was found in the patch input.\n",
+                2,
+            );
         }
         match convert_normal_diff_to_unified(lines) {
             Ok(patch) => patch,
@@ -6845,7 +7860,10 @@ fn flush_patched_file(
     }
     let cwd = &opts.work_cwd;
     let orig_full = resolve_posix_path(cwd, target);
-    if should_backup && output_override.is_none() && let Ok(orig_bytes) = fs.read_file(&orig_full) {
+    if should_backup
+        && output_override.is_none()
+        && let Ok(orig_bytes) = fs.read_file(&orig_full)
+    {
         let bak_path = compute_backup_path(&orig_full, opts, fs);
         if let Some(staged) = staged_writes {
             staged.push((bak_path, Some(orig_bytes)));
@@ -6859,7 +7877,10 @@ fn flush_patched_file(
     }
     let write_target = output_override.unwrap_or(target);
     let full = resolve_posix_path(cwd, write_target);
-    if opts.ifdef_guard.is_none() && (delete_to_dev_null || opts.remove_empty) && file_lines.is_empty() {
+    if opts.ifdef_guard.is_none()
+        && (delete_to_dev_null || opts.remove_empty)
+        && file_lines.is_empty()
+    {
         if let Some(staged) = staged_writes {
             staged.push((full, None));
         } else {
@@ -6889,13 +7910,18 @@ fn normal_diff_ranges(line: &str) -> Option<(char, usize, usize, usize, usize)> 
     let op = line.as_bytes()[at] as char;
     let range = |part: &str, empty: bool| {
         let (first, last) = part.split_once(',').unwrap_or((part, part));
-        if ![first, last].iter().all(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())) {
+        if ![first, last]
+            .iter()
+            .all(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+        {
             return None;
         }
         let start = first.parse::<usize>().ok()?;
         let end = last.parse::<usize>().ok()?;
         let count = if empty {
-            if part.contains(',') { return None; }
+            if part.contains(',') {
+                return None;
+            }
             0
         } else {
             end.checked_sub(start)?.checked_add(1)?
@@ -6912,26 +7938,46 @@ fn convert_normal_diff_to_unified<'a>(
 ) -> Result<String, &'static str> {
     // Normal diffs have no filename headers. GNU uses /dev/null for both reject names.
     let mut out = String::from("--- /dev/null\n+++ /dev/null\n");
-    let range = |start, count| if count == 1 { format!("{start}") } else { format!("{start},{count}") };
+    let range = |start, count| {
+        if count == 1 {
+            format!("{start}")
+        } else {
+            format!("{start},{count}")
+        }
+    };
     while let Some(line) = lines.next() {
-        if line.is_empty() { continue; }
-        let (op, old, removed, new, added) = normal_diff_ranges(line)
-            .ok_or("patch: malformed normal patch command\n")?;
-        out.push_str(&format!("@@ -{} +{} @@\n", range(old, removed), range(new, added)));
+        if line.is_empty() {
+            continue;
+        }
+        let (op, old, removed, new, added) =
+            normal_diff_ranges(line).ok_or("patch: malformed normal patch command\n")?;
+        out.push_str(&format!(
+            "@@ -{} +{} @@\n",
+            range(old, removed),
+            range(new, added)
+        ));
         for (prefix, sign, count) in [('<', '-', removed), ('>', '+', added)] {
             if prefix == '>' && op == 'c' && !matches!(lines.next(), Some("---" | "---\r")) {
                 return Err("patch: missing normal change separator\n");
             }
             for _ in 0..count {
-                let rest = lines.next().and_then(|l| l.strip_prefix(prefix))
+                let rest = lines
+                    .next()
+                    .and_then(|l| l.strip_prefix(prefix))
                     .ok_or("patch: malformed normal patch body\n")?;
-                let text = if rest.is_empty() { "" } else {
-                    rest.strip_prefix([' ', '\t']).ok_or("patch: malformed normal patch body\n")?
+                let text = if rest.is_empty() {
+                    ""
+                } else {
+                    rest.strip_prefix([' ', '\t'])
+                        .ok_or("patch: malformed normal patch body\n")?
                 };
                 out.push(sign);
                 out.push_str(text);
                 out.push('\n');
-                if lines.next_if(|l| l.starts_with("\\ No newline at end of file")).is_some() {
+                if lines
+                    .next_if(|l| l.starts_with("\\ No newline at end of file"))
+                    .is_some()
+                {
                     out.push_str("\\ No newline at end of file\n");
                 }
             }
@@ -6940,7 +7986,12 @@ fn convert_normal_diff_to_unified<'a>(
     Ok(out)
 }
 
-fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, fs: &dyn SafeBashFs) -> String {
+fn resolve_patch_target_path(
+    chosen_raw: &str,
+    strip: Option<usize>,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> String {
     if let Some(s) = strip {
         return strip_path_components(chosen_raw, s);
     }
@@ -6948,7 +7999,11 @@ fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, 
     if fs.exists(&candidate_full) {
         return chosen_raw.to_string();
     }
-    chosen_raw.rsplit('/').next().unwrap_or(chosen_raw).to_string()
+    chosen_raw
+        .rsplit('/')
+        .next()
+        .unwrap_or(chosen_raw)
+        .to_string()
 }
 
 fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String {
@@ -6975,7 +8030,10 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String
     }
     let old_suffix = if normal { "" } else { " ****" };
     let new_suffix = if normal { " -----" } else { " ----" };
-    let mut out = format!("***************\n*** {}{old_suffix}\n", ctx_range(old_s, old_c));
+    let mut out = format!(
+        "***************\n*** {}{old_suffix}\n",
+        ctx_range(old_s, old_c)
+    );
     for side in ['-', '+'] {
         if side == '+' {
             out.push_str(&format!("--- {}{new_suffix}\n", ctx_range(new_s, new_c)));
@@ -6998,7 +8056,11 @@ fn format_context_reject_hunk(raw_hunk_lines: &[String], normal: bool) -> String
                 }
                 end += 1;
             }
-            let mark = if !normal && has_rem && has_add { '!' } else { side };
+            let mark = if !normal && has_rem && has_add {
+                '!'
+            } else {
+                side
+            };
             for &(k, text) in &entries[idx..end] {
                 if k == side {
                     out.push_str(&format!("{mark} {text}"));
@@ -7032,11 +8094,8 @@ fn apply_unified_diff(
     } else {
         ""
     };
-    let mut staged_writes: Option<Vec<(String, Option<Vec<u8>>)>> = if opts.atomic {
-        Some(Vec::new())
-    } else {
-        None
-    };
+    let mut staged_writes: Option<Vec<(String, Option<Vec<u8>>)>> =
+        if opts.atomic { Some(Vec::new()) } else { None };
 
     let mut current_target: Option<String> = None;
     let mut current_old_hdr = String::new();
@@ -7095,15 +8154,23 @@ fn apply_unified_diff(
                     Some(r) => Some(r.to_string()),
                     None => Some(format!("{target}.rej")),
                 };
-                let hunk_word = if file_hunk_count <= 1 { "hunk" } else { "hunks" };
-                if !dry_run && !opts.atomic && let Some(ref rt) = rej_target {
+                let hunk_word = if file_hunk_count <= 1 {
+                    "hunk"
+                } else {
+                    "hunks"
+                };
+                if !dry_run
+                    && !opts.atomic
+                    && let Some(ref rt) = rej_target
+                {
                     status_out.push_str(&format!(
                         "{file_failed_count} out of {} {hunk_word} FAILED -- saving rejects to file {rt}\n",
                         file_hunk_count.max(1),
                     ));
                     let rej_full = resolve_posix_path(cwd, rt);
                     let use_ctx = opts.reject_format.as_deref() == Some("context")
-                        || (opts.reject_format.is_none() && (opts.was_normal_diff || opts.was_context_diff));
+                        || (opts.reject_format.is_none()
+                            && (opts.was_normal_diff || opts.was_context_diff));
                     let (r_old, r_new) = if reverse {
                         (new_hdr, old_hdr)
                     } else {
@@ -7119,14 +8186,16 @@ fn apply_unified_diff(
                     }
                     for rh in file_rej_hunks {
                         if use_ctx {
-                            rej_body.push_str(&format_context_reject_hunk(rh, opts.was_normal_diff));
+                            rej_body
+                                .push_str(&format_context_reject_hunk(rh, opts.was_normal_diff));
                         } else {
                             for l in rh {
                                 rej_body.push_str(l);
                             }
                         }
                     }
-                    let _ = fs.write_file(&rej_full, &crate::vfs::stream_string_to_bytes(&rej_body));
+                    let _ =
+                        fs.write_file(&rej_full, &crate::vfs::stream_string_to_bytes(&rej_body));
                 } else {
                     status_out.push_str(&format!(
                         "{file_failed_count} out of {} {hunk_word} FAILED\n",
@@ -7162,7 +8231,8 @@ fn apply_unified_diff(
                     stdout_patched,
                     &mut status_out,
                     &mut any_file_failed,
-                ).map_err(io_error)?;
+                )
+                .map_err(io_error)?;
             }
             let (dec_minus, is_ep) = decode_patch_header_path(minus_path)?;
             pending_minus_raw = dec_minus;
@@ -7173,7 +8243,8 @@ fn apply_unified_diff(
         if let Some(plus_path) = line.strip_prefix("+++ ") {
             let (raw_plus_owned, plus_epoch) = decode_patch_header_path(plus_path)?;
             let raw_plus = raw_plus_owned.as_str();
-            let old_is_null = !opts.was_normal_diff && (pending_minus_raw == "/dev/null" || pending_minus_epoch);
+            let old_is_null =
+                !opts.was_normal_diff && (pending_minus_raw == "/dev/null" || pending_minus_epoch);
             let new_is_null = !opts.was_normal_diff && (raw_plus == "/dev/null" || plus_epoch);
             delete_to_dev_null = if reverse { old_is_null } else { new_is_null };
             created_from_dev_null = if reverse { new_is_null } else { old_is_null };
@@ -7195,7 +8266,9 @@ fn apply_unified_diff(
                 stripped.clone()
             };
             if let Some(out_ov) = output_override {
-                status_out.push_str(&format!("{transport_notice}{action_verb} file {out_ov} (read from {target})\n"));
+                status_out.push_str(&format!(
+                    "{transport_notice}{action_verb} file {out_ov} (read from {target})\n"
+                ));
             } else {
                 status_out.push_str(&format!("{transport_notice}{action_verb} file {target}\n"));
             }
@@ -7250,7 +8323,8 @@ fn apply_unified_diff(
             while idx < lines.len() {
                 let hl = lines[idx];
                 // Within the declared range, "--- " and "+++ " are ordinary edits.
-                if (hunk_old.len() == old_count && hunk_new.len() == new_count
+                if (hunk_old.len() == old_count
+                    && hunk_new.len() == new_count
                     && !hl.starts_with("\\ No newline at end of file"))
                     || hl.starts_with("@@ ")
                     || (hunk_old.len() >= old_count && hl.starts_with("--- "))
@@ -7324,26 +8398,42 @@ fn apply_unified_diff(
                 trailing_ctx,
                 opts.ignore_ws,
                 opts.fuzz,
-                no_trailing_newline, old_no_nl,
+                no_trailing_newline,
+                old_no_nl,
             );
 
             if match_opt.is_none()
                 && !reverse
                 && !opts.force
                 && !hunk_new.is_empty()
-                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos, opts.ignore_ws, no_trailing_newline, new_no_nl)
+                && let Some(rev_pos) = find_subslice_pos(
+                    &file_lines,
+                    &hunk_new,
+                    expected_pos,
+                    opts.ignore_ws,
+                    no_trailing_newline,
+                    new_no_nl,
+                )
             {
                 if opts.forward_only {
-                    status_out.push_str("Reversed (or previously applied) patch detected!  Skipping patch.\n");
+                    status_out.push_str(
+                        "Reversed (or previously applied) patch detected!  Skipping patch.\n",
+                    );
                     status_out.push_str(&format!(
                         "{file_hunk_count} out of {file_hunk_count} {} ignored\n",
-                        if file_hunk_count <= 1 { "hunk" } else { "hunks" }
+                        if file_hunk_count <= 1 {
+                            "hunk"
+                        } else {
+                            "hunks"
+                        }
                     ));
                     file_failed_count += 1;
                     file_forward_skipped = true;
                     continue;
                 } else {
-                    status_out.push_str("Reversed (or previously applied) patch detected!  Assuming -R.\n");
+                    status_out.push_str(
+                        "Reversed (or previously applied) patch detected!  Assuming -R.\n",
+                    );
                     std::mem::swap(&mut hunk_old, &mut hunk_new);
                     std::mem::swap(&mut old_no_nl, &mut new_no_nl);
                     for (k, _) in &mut hunk_entries {
@@ -7372,7 +8462,10 @@ fn apply_unified_diff(
                         while ci < hunk_old.len().max(hunk_new.len()) {
                             let ol = hunk_old.get(ci).map(|s| s.as_str()).unwrap_or("");
                             let nl = hunk_new.get(ci).map(|s| s.as_str()).unwrap_or("");
-                            let fl = file_lines.get(ins_at + ci).map(|s| s.as_str()).unwrap_or("");
+                            let fl = file_lines
+                                .get(ins_at + ci)
+                                .map(|s| s.as_str())
+                                .unwrap_or("");
                             if ol == nl && fl == ol {
                                 conflict_block.push(fl.to_string());
                             } else {
@@ -7396,7 +8489,8 @@ fn apply_unified_diff(
                         }
                         file_lines.splice(ins_at..end_at, conflict_block);
                     } else {
-                        status_out.push_str(&format!("Hunk #{file_hunk_count} FAILED at {fail_line}.\n"));
+                        status_out
+                            .push_str(&format!("Hunk #{file_hunk_count} FAILED at {fail_line}.\n"));
                         file_rej_hunks.push(raw_hunk_lines);
                     }
                     continue;
@@ -7501,10 +8595,12 @@ fn apply_unified_diff(
             };
             let new_slice_len = replacement.len();
             if splice_end == file_lines.len() && trailing_ctx == 0 {
-                no_trailing_newline = new_no_nl && !replacement.is_empty() && opts.ifdef_guard.is_none();
+                no_trailing_newline =
+                    new_no_nl && !replacement.is_empty() && opts.ifdef_guard.is_none();
             }
             file_lines.splice(splice_start..splice_end, replacement);
-            prev_delta = (pos as isize) - (unshifted_start as isize) + (new_slice_len as isize) - (old_slice_len as isize);
+            prev_delta = (pos as isize) - (unshifted_start as isize) + (new_slice_len as isize)
+                - (old_slice_len as isize);
             continue;
         }
         idx += 1;
@@ -7528,7 +8624,8 @@ fn apply_unified_diff(
             stdout_patched,
             &mut status_out,
             &mut any_file_failed,
-        ).map_err(io_error)?;
+        )
+        .map_err(io_error)?;
         if any_file_failed {
             return Ok((status_out, true));
         }
@@ -7549,7 +8646,10 @@ fn apply_unified_diff(
     } else if patch_text.is_empty() {
         Ok((status_out, false))
     } else {
-        Err(err_out("patch: **** Only garbage was found in the patch input.\n", 2))
+        Err(err_out(
+            "patch: **** Only garbage was found in the patch input.\n",
+            2,
+        ))
     }
 }
 
@@ -7600,7 +8700,14 @@ fn parse_hunk_starts_and_counts(header: &str) -> (usize, usize, usize, usize) {
     (old_s, old_c, new_s, new_c)
 }
 
-fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: bool, file_no_lf: bool, hunk_no_lf: bool) -> Option<usize> {
+fn find_subslice_pos(
+    hay: &[String],
+    needle: &[String],
+    hint: usize,
+    ignore_ws: bool,
+    file_no_lf: bool,
+    hunk_no_lf: bool,
+) -> Option<usize> {
     let last = hay.len().checked_sub(needle.len())?;
     let start = hint.min(last);
     let matches = |pos: usize| {
@@ -7611,13 +8718,17 @@ fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize, ignore_ws: 
                 let a = a.trim_end_matches(blank);
                 let b = b.trim_end_matches(blank);
                 a.starts_with(blank) == b.starts_with(blank)
-                    && a.split(blank).filter(|s| !s.is_empty()).eq(b.split(blank).filter(|s| !s.is_empty()))
+                    && a.split(blank)
+                        .filter(|s| !s.is_empty())
+                        .eq(b.split(blank).filter(|s| !s.is_empty()))
             })
         } else {
             (needle.is_empty() || (file_no_lf && pos == last) == hunk_no_lf) && slice == needle
         }
     };
-    if matches(start) { return Some(start); }
+    if matches(start) {
+        return Some(start);
+    }
     for distance in 1..=start.max(last - start) {
         if distance <= last - start && matches(start + distance) {
             return Some(start + distance);
@@ -7646,12 +8757,22 @@ fn find_subslice_pos_with_fuzz(
     }
     let max_context = leading_ctx.max(trailing_ctx);
     for tol in 1..=fuzz.min(max_context) {
-        let pf = (tol + leading_ctx).saturating_sub(max_context).min(leading_ctx);
-        let sf = (tol + trailing_ctx).saturating_sub(max_context).min(trailing_ctx);
+        let pf = (tol + leading_ctx)
+            .saturating_sub(max_context)
+            .min(leading_ctx);
+        let sf = (tol + trailing_ctx)
+            .saturating_sub(max_context)
+            .min(trailing_ctx);
         if pf + sf < needle.len() {
             let trimmed = &needle[pf..needle.len() - sf];
-            if let Some(inner_pos) = find_subslice_pos(hay, trimmed, hint.saturating_add(pf), ignore_ws, file_no_lf, hunk_no_lf && sf == 0)
-                && inner_pos >= pf
+            if let Some(inner_pos) = find_subslice_pos(
+                hay,
+                trimmed,
+                hint.saturating_add(pf),
+                ignore_ws,
+                file_no_lf,
+                hunk_no_lf && sf == 0,
+            ) && inner_pos >= pf
                 && inner_pos + trimmed.len() + sf <= hay.len()
             {
                 return Some((inner_pos - pf, tol, pf, sf));
@@ -7750,7 +8871,10 @@ struct ApplyPatchFileSpec {
 
 fn validate_apply_patch_target_path(value: &str, cwd: &str) -> Result<String, BuiltinOutcome> {
     if !cwd.starts_with('/') || cwd.contains('\0') {
-        return Err(err_out("apply_patch: cwd must be an absolute virtual path\n", 2));
+        return Err(err_out(
+            "apply_patch: cwd must be an absolute virtual path\n",
+            2,
+        ));
     }
     for ch in value.chars() {
         let code = ch as u32;
@@ -7778,12 +8902,20 @@ fn inspect_apply_patch_path(
     fs: &dyn SafeBashFs,
 ) -> Result<Option<crate::vfs::FileStat>, BuiltinOutcome> {
     let parts: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
-    let root_st = fs.lstat("/").map_err(|e| err_out(&format!("apply_patch: {e}\n"), 1))?;
+    let root_st = fs
+        .lstat("/")
+        .map_err(|e| err_out(&format!("apply_patch: {e}\n"), 1))?;
     if root_st.kind == crate::vfs::VfsEntryKind::Symlink {
-        return Err(err_out("apply_patch: symlink paths are unsupported: /\n", 1));
+        return Err(err_out(
+            "apply_patch: symlink paths are unsupported: /\n",
+            1,
+        ));
     }
     if root_st.mode & 0o100 == 0 {
-        return Err(err_out(&format!("apply_patch: permission denied: {path}\n"), 1));
+        return Err(err_out(
+            &format!("apply_patch: permission denied: {path}\n"),
+            1,
+        ));
     }
     let mut cur = String::new();
     for (idx, seg) in parts.iter().enumerate() {
@@ -7801,10 +8933,16 @@ fn inspect_apply_patch_path(
             ));
         }
         if idx + 1 < parts.len() && st.kind != crate::vfs::VfsEntryKind::Directory {
-            return Err(err_out(&format!("apply_patch: not a directory: {cur}\n"), 1));
+            return Err(err_out(
+                &format!("apply_patch: not a directory: {cur}\n"),
+                1,
+            ));
         }
         if idx + 1 < parts.len() && st.mode & 0o100 == 0 {
-            return Err(err_out(&format!("apply_patch: permission denied: {path}\n"), 1));
+            return Err(err_out(
+                &format!("apply_patch: permission denied: {path}\n"),
+                1,
+            ));
         }
         if idx + 1 == parts.len() {
             return Ok(Some(st));
@@ -7818,9 +8956,18 @@ fn require_patch_write(path: &str, fs: &dyn SafeBashFs) -> Result<(), BuiltinOut
     loop {
         match fs.lstat(target) {
             Ok(st) if st.mode & 0o200 != 0 => return Ok(()),
-            Ok(_) => return Err(err_out(&format!("apply_patch: permission denied: {target}\n"), 1)),
+            Ok(_) => {
+                return Err(err_out(
+                    &format!("apply_patch: permission denied: {target}\n"),
+                    1,
+                ));
+            }
             Err(e) if e.starts_with("ENOENT:") && target != "/" => {
-                target = target.rsplit_once('/').map(|(p, _)| p).filter(|p| !p.is_empty()).unwrap_or("/");
+                target = target
+                    .rsplit_once('/')
+                    .map(|(p, _)| p)
+                    .filter(|p| !p.is_empty())
+                    .unwrap_or("/");
             }
             Err(e) => return Err(err_out(&format!("apply_patch: {e}\n"), 1)),
         }
@@ -7829,7 +8976,10 @@ fn require_patch_write(path: &str, fs: &dyn SafeBashFs) -> Result<(), BuiltinOut
 
 fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.len() > 1 {
-        return err_out("apply_patch: expected stdin or one literal patch argument\n", 2);
+        return err_out(
+            "apply_patch: expected stdin or one literal patch argument\n",
+            2,
+        );
     }
     let patch_input = if args.len() == 1 {
         if args[0].contains('\0') {
@@ -7856,8 +9006,14 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             .map(|l| l.strip_suffix('\r').unwrap_or(l))
             .collect()
     };
-    if lines.is_empty() || lines[0] != "*** Begin Patch" || *lines.last().unwrap() != "*** End Patch" {
-        return err_out("apply_patch: expected Begin Patch and End Patch envelope\n", 2);
+    if lines.is_empty()
+        || lines[0] != "*** Begin Patch"
+        || *lines.last().unwrap() != "*** End Patch"
+    {
+        return err_out(
+            "apply_patch: expected Begin Patch and End Patch envelope\n",
+            2,
+        );
     }
 
     let mut idx = 1usize;
@@ -7874,7 +9030,10 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         } else if let Some(lbl) = header.strip_prefix("*** Update File: ") {
             (ApplyPatchFileKind::Update, lbl.to_string())
         } else {
-            return err_out(&format!("apply_patch: invalid file header at patch line {idx}\n"), 2);
+            return err_out(
+                &format!("apply_patch: invalid file header at patch line {idx}\n"),
+                2,
+            );
         };
         let path = match validate_apply_patch_target_path(&label, cwd) {
             Ok(p) => p,
@@ -7923,7 +9082,10 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                 }
                 ApplyPatchFileKind::Update => {
                     if finished {
-                        return err_out("apply_patch: EOF must terminate the file's last hunk\n", 2);
+                        return err_out(
+                            "apply_patch: EOF must terminate the file's last hunk\n",
+                            2,
+                        );
                     }
                     if line == "@@" || line.starts_with("@@ ") {
                         let named = line.starts_with("@@ ");
@@ -7943,9 +9105,7 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                                 eof: false,
                             });
                         }
-                        if named
-                            && let Some(ref mut cur) = current
-                        {
+                        if named && let Some(ref mut cur) = current {
                             cur.anchors.push(line[3..].to_string());
                         }
                     } else if line == "*** End of File" {
@@ -7967,7 +9127,10 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                         } else if let Some(r) = line.strip_prefix('-') {
                             ('-', r)
                         } else {
-                            return err_out(&format!("apply_patch: invalid hunk line {}\n", idx + 1), 2);
+                            return err_out(
+                                &format!("apply_patch: invalid hunk line {}\n", idx + 1),
+                                2,
+                            );
                         };
                         if current.is_none() {
                             current = Some(ApplyPatchHunk {
@@ -8020,7 +9183,11 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         }
     }
     for path in paths.keys() {
-        if path.match_indices('/').skip(1).any(|(i, _)| paths.contains_key(&path[..i])) {
+        if path
+            .match_indices('/')
+            .skip(1)
+            .any(|(i, _)| paths.contains_key(&path[..i]))
+        {
             return err_out("apply_patch: duplicate or conflicting patch paths\n", 2);
         }
     }
@@ -8028,7 +9195,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     let mut revisions = BTreeMap::new();
     for (path, ordinal) in paths {
         let (scope, stamp) = match fs.observe_patch(&path) {
-            Ok(v) => v, Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
+            Ok(v) => v,
+            Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
         };
         revisions.entry(scope).or_insert(stamp.version);
         scopes.insert(path, (scope, ordinal, stamp));
@@ -8052,10 +9220,17 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             );
         }
         if let Some(st) = &stat {
-            if let Some(id) = &st.identity && !identities.insert(id.clone()) {
-                return err_out("apply_patch: patch operations refer to the same backing entry\n", 1);
+            if let Some(id) = &st.identity
+                && !identities.insert(id.clone())
+            {
+                return err_out(
+                    "apply_patch: patch operations refer to the same backing entry\n",
+                    1,
+                );
             }
-            if st.mode & 0o400 == 0 && unreadable.is_none() { unreadable = Some(&f.path); }
+            if st.mode & 0o400 == 0 && unreadable.is_none() {
+                unreadable = Some(&f.path);
+            }
         }
         if stat.is_none() && !matches!(f.kind, ApplyPatchFileKind::Add) {
             return err_out(&format!("apply_patch: missing target: {}\n", f.label), 1);
@@ -8078,9 +9253,17 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     for f in &parsed_files {
         let target = if f.destination.is_some() || matches!(f.kind, ApplyPatchFileKind::Delete) {
             crate::vfs::dirname_posix_path(&f.path)
-        } else { f.path.clone() };
-        if let Err(e) = require_patch_write(&target, fs) { return e; }
-        if let Some(dest) = &f.destination && let Err(e) = require_patch_write(dest, fs) { return e; }
+        } else {
+            f.path.clone()
+        };
+        if let Err(e) = require_patch_write(&target, fs) {
+            return e;
+        }
+        if let Some(dest) = &f.destination
+            && let Err(e) = require_patch_write(dest, fs)
+        {
+            return e;
+        }
     }
     if let Some(path) = unreadable {
         return err_out(&format!("apply_patch: permission denied: {path}\n"), 1);
@@ -8126,10 +9309,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                             let is_crlf = i > start_off && orig_bytes_str[i - 1] == b'\r';
                             let text_end = if is_crlf { i - 1 } else { i };
                             let ending = if is_crlf { "\r\n" } else { "\n" };
-                            old_records.push((
-                                orig[start_off..text_end].to_string(),
-                                ending.to_string(),
-                            ));
+                            old_records
+                                .push((orig[start_off..text_end].to_string(), ending.to_string()));
                             start_off = i + 1;
                         }
                     }
@@ -8157,7 +9338,10 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                                 false,
                             ) else {
                                 return err_out(
-                                    &format!("apply_patch: context anchor not found: {}\n", f.label),
+                                    &format!(
+                                        "apply_patch: context anchor not found: {}\n",
+                                        f.label
+                                    ),
                                     1,
                                 );
                             };
@@ -8280,7 +9464,12 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                     Some("EACCES") => format!("permission denied: {path}"),
                     _ => e,
                 };
-                return err_out(&format!("apply_patch: operation {ordinal}; prior changes may remain: {detail}\n"), 1);
+                return err_out(
+                    &format!(
+                        "apply_patch: operation {ordinal}; prior changes may remain: {detail}\n"
+                    ),
+                    1,
+                );
             }
         }
     }
@@ -8330,7 +9519,10 @@ fn parse_cmp_byte_count(raw: &str, opt_name: &str, max_val: u128) -> Result<usiz
         let mut acc = 0u128;
         for ch in num_part.chars() {
             let d = ch.to_digit(base).ok_or_else(err)? as u128;
-            acc = acc.checked_mul(base as u128).and_then(|v| v.checked_add(d)).ok_or_else(err)?;
+            acc = acc
+                .checked_mul(base as u128)
+                .and_then(|v| v.checked_add(d))
+                .ok_or_else(err)?;
         }
         acc
     };
@@ -8407,7 +9599,10 @@ fn cmd_cmp(
         Ok(())
     };
     let cmp_usage_err = |msg: &str| -> BuiltinOutcome {
-        err_out(&format!("cmp: {msg}\ncmp: Try 'cmp --help' for more information.\n"), 2)
+        err_out(
+            &format!("cmp: {msg}\ncmp: Try 'cmp --help' for more information.\n"),
+            2,
+        )
     };
 
     let long_opts: &[(&str, char)] = &[
@@ -8456,7 +9651,8 @@ fn cmd_cmp(
                 }
                 let first_key = matches[0].1;
                 if matches.iter().any(|&(_, ch)| ch != first_key) {
-                    let poss: Vec<String> = matches.iter().map(|&(k, _)| format!("'--{k}'")).collect();
+                    let poss: Vec<String> =
+                        matches.iter().map(|&(k, _)| format!("'--{k}'")).collect();
                     return cmp_usage_err(&format!(
                         "option '{a}' is ambiguous; possibilities: {}",
                         poss.join(" ")
@@ -8468,7 +9664,9 @@ fn cmd_cmp(
             match key {
                 's' => {
                     if eq_val.is_some() {
-                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' doesn't allow an argument"
+                        ));
                     }
                     if verbose_list {
                         return cmp_usage_err("options -l and -s are incompatible");
@@ -8478,7 +9676,9 @@ fn cmd_cmp(
                 }
                 'l' => {
                     if eq_val.is_some() {
-                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' doesn't allow an argument"
+                        ));
                     }
                     if silent {
                         return cmp_usage_err("options -l and -s are incompatible");
@@ -8488,22 +9688,30 @@ fn cmd_cmp(
                 }
                 'b' | 'c' => {
                     if eq_val.is_some() {
-                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' doesn't allow an argument"
+                        ));
                     }
                     print_bytes = true;
                     i += 1;
                 }
                 'v' => {
                     if eq_val.is_some() {
-                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' doesn't allow an argument"
+                        ));
                     }
                     return ok_out("cmp (virtual-bash)\n");
                 }
                 'h' => {
                     if eq_val.is_some() {
-                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' doesn't allow an argument"
+                        ));
                     }
-                    return ok_out("Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\nCompare bytes in the virtual filesystem; omitted FILE2 or '-' reads stdin.\n  -s, --silent, --quiet  report status only\n  -l, --verbose         list differing bytes in octal\n  -b, -c, --print-bytes  also display byte characters\n  -i, --ignore-initial=SKIP[:SKIP2]  skip initial bytes\n  -n, --bytes=LIMIT     compare at most LIMIT bytes\n  --help, -v, --version show virtual-bash command information\n");
+                    return ok_out(
+                        "Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\nCompare bytes in the virtual filesystem; omitted FILE2 or '-' reads stdin.\n  -s, --silent, --quiet  report status only\n  -l, --verbose         list differing bytes in octal\n  -b, -c, --print-bytes  also display byte characters\n  -i, --ignore-initial=SKIP[:SKIP2]  skip initial bytes\n  -n, --bytes=LIMIT     compare at most LIMIT bytes\n  --help, -v, --version show virtual-bash command information\n",
+                    );
                 }
                 'i' => {
                     let val = if let Some(v) = eq_val {
@@ -8514,7 +9722,9 @@ fn cmd_cmp(
                         i += 2;
                         v
                     } else {
-                        return cmp_usage_err(&format!("option '--{sel_name}' requires an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' requires an argument"
+                        ));
                     };
                     if let Err(e) = apply_skip(&val, &mut skips) {
                         return cmp_usage_err(&e);
@@ -8529,7 +9739,9 @@ fn cmd_cmp(
                         i += 2;
                         v
                     } else {
-                        return cmp_usage_err(&format!("option '--{sel_name}' requires an argument"));
+                        return cmp_usage_err(&format!(
+                            "option '--{sel_name}' requires an argument"
+                        ));
                     };
                     match parse_cmp_byte_count(&val, "--bytes", u64::MAX as u128) {
                         Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
@@ -8634,11 +9846,15 @@ fn cmd_cmp(
     };
     let raw1 = match read_b(&name1) {
         Ok(b) => b,
-        Err((e, suppress_silent)) => return err_out(if silent && suppress_silent { "" } else { &e }, 2),
+        Err((e, suppress_silent)) => {
+            return err_out(if silent && suppress_silent { "" } else { &e }, 2);
+        }
     };
     let raw2 = match read_b(&name2) {
         Ok(b) => b,
-        Err((e, suppress_silent)) => return err_out(if silent && suppress_silent { "" } else { &e }, 2),
+        Err((e, suppress_silent)) => {
+            return err_out(if silent && suppress_silent { "" } else { &e }, 2);
+        }
     };
     let mut b1 = raw1[skips.0.min(raw1.len())..].to_vec();
     let mut b2 = raw2[skips.1.min(raw2.len())..].to_vec();
@@ -8688,11 +9904,12 @@ fn cmd_cmp(
                     .or_else(|| env.get("LANG"))
                     .map(|s| s.as_str())
                     .unwrap_or("");
-                let unit = if !print_bytes && (locale.is_empty() || locale == "C" || locale == "POSIX") {
-                    "char"
-                } else {
-                    "byte"
-                };
+                let unit =
+                    if !print_bytes && (locale.is_empty() || locale == "C" || locale == "POSIX") {
+                        "char"
+                    } else {
+                        "byte"
+                    };
                 let detail = if print_bytes {
                     format!(
                         " is {:>3o} {} {:>3o} {}",
@@ -8857,7 +10074,8 @@ fn diff3_align_regions(
         loop {
             let a = left.get(offsets[0]);
             let b = right.get(offsets[1]);
-            let side = if b.is_none() || a.is_some_and(|al| al.base.start <= b.unwrap().base.start) {
+            let side = if b.is_none() || a.is_some_and(|al| al.base.start <= b.unwrap().base.start)
+            {
                 0
             } else {
                 1
@@ -9110,7 +10328,9 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     if let Some(info) = information {
         return if info == "help" {
-            ok_out("Usage: diff3 [OPTION]... OURS BASE THEIRS\nReports, -m merge, -A/-e/-E/-3/-x/-X ed scripts; -a -T -L -i --strip-trailing-cr.\nNo external diff/ed programs. One stdin operand in any position. Ed labels must be single-line.\n")
+            ok_out(
+                "Usage: diff3 [OPTION]... OURS BASE THEIRS\nReports, -m merge, -A/-e/-E/-3/-x/-X ed scripts; -a -T -L -i --strip-trailing-cr.\nNo external diff/ed programs. One stdin operand in any position. Ed labels must be single-line.\n",
+            )
         } else {
             ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n")
         };
@@ -9186,9 +10406,18 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let base_lines = &all_files[common];
     let left_lines = &all_files[0];
     let right_lines = &all_files[other];
-    let base_keys: Vec<String> = base_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
-    let left_keys: Vec<String> = left_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
-    let right_keys: Vec<String> = right_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
+    let base_keys: Vec<String> = base_lines
+        .iter()
+        .map(|l| l.cmp_key(strip_trailing_cr))
+        .collect();
+    let left_keys: Vec<String> = left_lines
+        .iter()
+        .map(|l| l.cmp_key(strip_trailing_cr))
+        .collect();
+    let right_keys: Vec<String> = right_lines
+        .iter()
+        .map(|l| l.cmp_key(strip_trailing_cr))
+        .collect();
     let left_edits = diff3_pair_edits(&base_keys, &left_keys);
     let right_edits = diff3_pair_edits(&base_keys, &right_keys);
     let mut stderr = String::new();
@@ -9280,7 +10509,11 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             } else {
                 out.push_str(&format!("===={different}\n"));
             }
-            let sequence = if different == 2 { [0usize, 2, 1] } else { [0usize, 1, 2] };
+            let sequence = if different == 2 {
+                [0usize, 2, 1]
+            } else {
+                [0usize, 1, 2]
+            };
             for (seq_i, &file_idx) in sequence.iter().enumerate() {
                 out.push_str(&format!("{}:{}\n", file_idx + 1, address(ranges[file_idx])));
                 if different == 0
@@ -9293,8 +10526,8 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
             continue;
         }
-        let flagged = (different == 0 && matches!(sel, 'A' | 'E' | 'X'))
-            || (different == 2 && sel == 'A');
+        let flagged =
+            (different == 0 && matches!(sel, 'A' | 'E' | 'X')) || (different == 2 && sel == 'A');
         let replace = (different == 3 && matches!(sel, 'A' | 'E' | 'e' | '3'))
             || (different == 0 && matches!(sel, 'e' | 'x'));
         if merge {
@@ -9364,7 +10597,10 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             out.push_str(&format!(">>>>>>> {}\n.\n", lbls[2]));
             if dots {
                 let s = region.left.end + 2;
-                let e = region.left.end + (base_r.end - base_r.start) + (theirs_r.end - theirs_r.start) + 2;
+                let e = region.left.end
+                    + (base_r.end - base_r.start)
+                    + (theirs_r.end - theirs_r.start)
+                    + 2;
                 out.push_str(&format!("{s},{e}s/^\\.//\n"));
             }
             out.push_str(&format!(
@@ -9412,7 +10648,9 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
 }
 fn cmd_wdiff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.len() == 1 && args[0] == "--help" {
-        return ok_out("Usage: wdiff OLD NEW\nCompare whitespace-delimited words; [-deleted-] and {+inserted+}.\n");
+        return ok_out(
+            "Usage: wdiff OLD NEW\nCompare whitespace-delimited words; [-deleted-] and {+inserted+}.\n",
+        );
     }
     let operands = if args.first().map(|s| s.as_str()) == Some("--") {
         &args[1..]
@@ -9490,8 +10728,12 @@ fn cmd_wdiff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         changed = true;
         let mut removed: Vec<&WWord> = Vec::new();
         let mut added: Vec<&WWord> = Vec::new();
-        while (i < a.len() || j < b.len()) && !(i < a.len() && j < b.len() && a[i].text == b[j].text) {
-            if i < a.len() && (j == b.len() || matrix[(i + 1) * width + j] >= matrix[i * width + j + 1]) {
+        while (i < a.len() || j < b.len())
+            && !(i < a.len() && j < b.len() && a[i].text == b[j].text)
+        {
+            if i < a.len()
+                && (j == b.len() || matrix[(i + 1) * width + j] >= matrix[i * width + j + 1])
+            {
                 removed.push(&a[i]);
                 i += 1;
             } else {
@@ -9546,16 +10788,56 @@ mod tests {
     #[test]
     fn awk_getline_resolves_targets_before_reading_and_preserves_eof_values() {
         for (program, input, expected) in [
-            (r#"BEGIN{x="seed";r=getline x;print r,x,NR,FNR}"#, "", "0 seed 0 0\n"),
-            (r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#, "", "0 1 seed\n"),
-            (r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#, "value\n", "1 1 value\n"),
-            ("BEGIN{r=getline a[NR];print r,(0 in a),(1 in a)}", "value\n", "1 1 0\n"),
-            ("BEGIN{i=0;r=getline a[i++];print r,i,(0 in a),length(a)}", "", "0 1 1 1\n"),
-            (r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#, "", "0 2 2 left right\n"),
-            (r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#, "value\n", "1 2 2 value right\n"),
+            (
+                r#"BEGIN{x="seed";r=getline x;print r,x,NR,FNR}"#,
+                "",
+                "0 seed 0 0\n",
+            ),
+            (
+                r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#,
+                "",
+                "0 1 seed\n",
+            ),
+            (
+                r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#,
+                "value\n",
+                "1 1 value\n",
+            ),
+            (
+                "BEGIN{r=getline a[NR];print r,(0 in a),(1 in a)}",
+                "value\n",
+                "1 1 0\n",
+            ),
+            (
+                "BEGIN{i=0;r=getline a[i++];print r,i,(0 in a),length(a)}",
+                "",
+                "0 1 1 1\n",
+            ),
+            (
+                r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#,
+                "",
+                "0 2 2 left right\n",
+            ),
+            (
+                r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#,
+                "value\n",
+                "1 2 2 value right\n",
+            ),
         ] {
-            let out = try_run_text_command("awk", &args(&[program]), input, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, expected, ""), "{program}");
+            let out = try_run_text_command(
+                "awk",
+                &args(&[program]),
+                input,
+                "/",
+                &BTreeMap::new(),
+                &MemoryVfs::new(),
+            )
+            .unwrap();
+            assert_eq!(
+                (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+                (0, expected, ""),
+                "{program}"
+            );
         }
     }
 
@@ -9572,37 +10854,80 @@ mod tests {
           print c["x"],length(c),("x" in c);
           print d[0]+=length(d)
         }"#;
-        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"4 1 5 0\n6 1 6\n16 1 16\n1 2 1\n7\n2 2 3 \n1 1 axc\n 1 1\n1\n",""));
+        let out = try_run_text_command(
+            "awk",
+            &args(&[program]),
+            "",
+            "/",
+            &BTreeMap::new(),
+            &MemoryVfs::new(),
+        )
+        .unwrap();
+        assert_eq!(
+            (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+            (
+                0,
+                "4 1 5 0\n6 1 6\n16 1 16\n1 2 1\n7\n2 2 3 \n1 1 axc\n 1 1\n1\n",
+                ""
+            )
+        );
     }
 
     #[test]
     fn awk_print_and_printf_expand_one_grouped_argument_list() {
         let fs = MemoryVfs::new();
         let program = r#"BEGIN { OFS="|"; print ((1, "x" ~ /[(]/, 2)) > "/rows"; printf (("%s:%d", "abc", 3)); print (1+2)*3,(4+5) }"#;
-        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &fs).unwrap();
-        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"abc:39|9\n",""));
+        let out =
+            try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(
+            (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+            (0, "abc:39|9\n", "")
+        );
         assert_eq!(fs.read_file("/rows").unwrap(), b"1|0|2\n");
         let bad = r#"BEGIN{print "before"; print ((1,2),3); print "after"}"#;
-        let out = try_run_text_command("awk", &args(&[bad]), "", "/", &BTreeMap::new(), &fs).unwrap();
-        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (2,"before\n","awk: tuple is only valid as an array membership key\n"));
+        let out =
+            try_run_text_command("awk", &args(&[bad]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(
+            (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+            (
+                2,
+                "before\n",
+                "awk: tuple is only valid as an array membership key\n"
+            )
+        );
     }
 
     #[test]
     fn awk_match_positions_count_preserved_input_bytes() {
         let stdin = crate::vfs::bytes_to_stream_string(b"a\xffz\n");
         let program = r#"{ print match($0,/z/),RSTART,RLENGTH; print match($0,/a(.)/,m),RLENGTH,ord(m[1]); print match($0,/$/),RLENGTH }"#;
-        let out = try_run_text_command("awk", &args(&["-lordchr",program]), &stdin, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"3 3 1\n1 2 255\n4 0\n",""));
+        let out = try_run_text_command(
+            "awk",
+            &args(&["-lordchr", program]),
+            &stdin,
+            "/",
+            &BTreeMap::new(),
+            &MemoryVfs::new(),
+        )
+        .unwrap();
+        assert_eq!(
+            (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+            (0, "3 3 1\n1 2 255\n4 0\n", "")
+        );
     }
 
     #[test]
     fn awk_calendar_obeys_the_virtual_zone_and_dst_selection() {
-        let env = BTreeMap::from([("TZ".into(),"america/new_york".into())]);
+        let env = BTreeMap::from([("TZ".into(), "america/new_york".into())]);
         let program = r#"BEGIN { ENVIRON["TZ"]="UTC"; print strftime("%F %T %z %Z",0); print mktime("2024 03 10 02 30 00"),mktime("2024 11 03 01 30 00"); print mktime("1970 01 01 00 00 60",1),mktime("invalid",1) }"#;
-        let result = try_run_text_command("awk",&args(&[program]),"","/",&env,&MemoryVfs::new()).unwrap();
-        assert_eq!(result.stdout,"1969-12-31 19:00:00 -0500 EST\n1710055800 1730611800\n60 -1\n");
-        assert_eq!(result.exit_code,0,"{}",result.stderr);
+        let result =
+            try_run_text_command("awk", &args(&[program]), "", "/", &env, &MemoryVfs::new())
+                .unwrap();
+        assert_eq!(
+            result.stdout,
+            "1969-12-31 19:00:00 -0500 EST\n1710055800 1730611800\n60 -1\n"
+        );
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
     }
 
     #[test]
@@ -9613,51 +10938,148 @@ mod tests {
             print x*3, a[1]*3, f($1)*3, x, a[1], $1;
             print "x="x, length(x), sprintf("%s",f(x)), $0
         }"#;
-        let out = try_run_text_command("awk", &args(&[program]), "a b\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        let out = try_run_text_command(
+            "awk",
+            &args(&[program]),
+            "a b\n",
+            "/",
+            &BTreeMap::new(),
+            &MemoryVfs::new(),
+        )
+        .unwrap();
         assert_eq!((out.exit_code, out.stderr.as_str()), (0, ""));
-        assert_eq!(out.stdout, "0.333333333333 0.333333333333 0.333333333333\n1 1 1 0.333 0.333 0.333\nx=0.3333 6 0.3333 0.333333 b\n");
+        assert_eq!(
+            out.stdout,
+            "0.333333333333 0.333333333333 0.333333333333\n1 1 1 0.333 0.333 0.333\nx=0.3333 6 0.3333 0.333333 b\n"
+        );
     }
 
     #[test]
     fn awk_keeps_input_number_spelling_and_distinguishes_literal_strings() {
         let program = r#"{ x="0"; print $1, x?1:0, $2?1:0, $1==3, "003"==3; printf "%c%c%c", "65", $1, "é" }"#;
-        let out = try_run_text_command("awk", &args(&[program]), "003 0\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        let out = try_run_text_command(
+            "awk",
+            &args(&[program]),
+            "003 0\n",
+            "/",
+            &BTreeMap::new(),
+            &MemoryVfs::new(),
+        )
+        .unwrap();
         assert_eq!(out.exit_code, 0);
-        assert_eq!(crate::vfs::stream_string_to_bytes(&out.stdout), b"003 1 0 1 0\n6\x03\xc3");
+        assert_eq!(
+            crate::vfs::stream_string_to_bytes(&out.stdout),
+            b"003 1 0 1 0\n6\x03\xc3"
+        );
     }
 
     #[test]
     fn awk_field_references_use_numeric_indices_and_missing_fields_are_strings() {
         for (program, status, stdout, stderr) in [
-            (r#"{ CONVFMT="%.0f"; i=1.9; print $i; $i=9; j="2suffix"; print $0,$j }"#, 0, "alpha\n9 beta beta\n", ""),
-            ("{ print $3==0; NF=4; print $4==0; $6=1; print $5==0 }", 0, "0\n0\n0\n", ""),
-            ("{ i=-1; print 1; print $i }", 2, "1\n", "awk: invalid or excessive field index\n"),
-            ("{ i=9007199254740992; $i=2; print $0 }", 2, "", "awk: invalid or excessive field index\n"),
+            (
+                r#"{ CONVFMT="%.0f"; i=1.9; print $i; $i=9; j="2suffix"; print $0,$j }"#,
+                0,
+                "alpha\n9 beta beta\n",
+                "",
+            ),
+            (
+                "{ print $3==0; NF=4; print $4==0; $6=1; print $5==0 }",
+                0,
+                "0\n0\n0\n",
+                "",
+            ),
+            (
+                "{ i=-1; print 1; print $i }",
+                2,
+                "1\n",
+                "awk: invalid or excessive field index\n",
+            ),
+            (
+                "{ i=9007199254740992; $i=2; print $0 }",
+                2,
+                "",
+                "awk: invalid or excessive field index\n",
+            ),
         ] {
-            let out = try_run_text_command("awk", &args(&[program]), "alpha beta\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (status, stdout, stderr), "{program}");
+            let out = try_run_text_command(
+                "awk",
+                &args(&[program]),
+                "alpha beta\n",
+                "/",
+                &BTreeMap::new(),
+                &MemoryVfs::new(),
+            )
+            .unwrap();
+            assert_eq!(
+                (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+                (status, stdout, stderr),
+                "{program}"
+            );
         }
     }
 
     #[test]
     fn awk_formats_rounded_significands_and_subnormals() {
         let program = r#"BEGIN { printf "%.6g|%.6g|%.0e|%.1f|%.17e|%.0f|%#.1G", 999999.5, .00009999999, 2.5, 1.25, 5e-324, 1e21, 10 }"#;
-        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        let out = try_run_text_command(
+            "awk",
+            &args(&[program]),
+            "",
+            "/",
+            &BTreeMap::new(),
+            &MemoryVfs::new(),
+        )
+        .unwrap();
         assert_eq!((out.exit_code, out.stderr.as_str()), (0, ""));
-        assert_eq!(out.stdout, "1e+06|0.0001|3e+00|1.3|4.94065645841246544e-324|1e+21|1E+01");
+        assert_eq!(
+            out.stdout,
+            "1e+06|0.0001|3e+00|1.3|4.94065645841246544e-324|1e+21|1E+01"
+        );
     }
 
     #[test]
     fn awk_preserves_nonfinite_math_and_float_output() {
         for (program, input, expected) in [
-            (r#"{print $1, int($1)}"#, "1e999\n-1e999\n", "1e999 inf\n-1e999 -inf\n"),
-            (r#"BEGIN {print sqrt(-1), log(0), log(-1), exp(1000), int(sqrt(-1))}"#, "", "nan -inf nan inf nan\n"),
-            (r#"BEGIN {x=exp(1000); print x, "value=" x, log(x), sin(x), cos(x)}"#, "", "inf value=inf inf nan nan\n"),
-            (r#"BEGIN {printf "%#f|%010f|%+g|%G|%.101g\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000)}"#, "", "inf|       inf|nan|-INF|inf\n"),
-            (r#"BEGIN {printf "%s|%.2s|%8s\n", exp(1000), log(0), sqrt(-1)}"#, "", "inf|-i|     nan\n"),
+            (
+                r#"{print $1, int($1)}"#,
+                "1e999\n-1e999\n",
+                "1e999 inf\n-1e999 -inf\n",
+            ),
+            (
+                r#"BEGIN {print sqrt(-1), log(0), log(-1), exp(1000), int(sqrt(-1))}"#,
+                "",
+                "nan -inf nan inf nan\n",
+            ),
+            (
+                r#"BEGIN {x=exp(1000); print x, "value=" x, log(x), sin(x), cos(x)}"#,
+                "",
+                "inf value=inf inf nan nan\n",
+            ),
+            (
+                r#"BEGIN {printf "%#f|%010f|%+g|%G|%.101g\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000)}"#,
+                "",
+                "inf|       inf|nan|-INF|inf\n",
+            ),
+            (
+                r#"BEGIN {printf "%s|%.2s|%8s\n", exp(1000), log(0), sqrt(-1)}"#,
+                "",
+                "inf|-i|     nan\n",
+            ),
         ] {
-            let out = try_run_text_command("awk", &args(&[program]), input, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, expected, ""), "{program}");
+            let out = try_run_text_command(
+                "awk",
+                &args(&[program]),
+                input,
+                "/",
+                &BTreeMap::new(),
+                &MemoryVfs::new(),
+            )
+            .unwrap();
+            assert_eq!(
+                (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+                (0, expected, ""),
+                "{program}"
+            );
         }
     }
 
@@ -9665,11 +11087,27 @@ mod tests {
     fn awk_float_format_failures_preserve_prior_output() {
         for (fmt, arg, status, message) in [
             ("%.100g", ".000125", 1, "awk: internal error\n"),
-            ("%d", r#""1e999""#, 2, "awk: cannot format a non-finite number\n"),
+            (
+                "%d",
+                r#""1e999""#,
+                2,
+                "awk: cannot format a non-finite number\n",
+            ),
         ] {
             let program = format!(r#"BEGIN {{ print 1; printf "{fmt}", {arg}; print 2 }}"#);
-            let out = try_run_text_command("awk", &args(&[&program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
-            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (status, "1\n", message));
+            let out = try_run_text_command(
+                "awk",
+                &args(&[&program]),
+                "",
+                "/",
+                &BTreeMap::new(),
+                &MemoryVfs::new(),
+            )
+            .unwrap();
+            assert_eq!(
+                (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+                (status, "1\n", message)
+            );
         }
     }
 
@@ -9762,12 +11200,12 @@ mod tests {
         assert!(wdiff_out.stdout.contains("[-quick-] {+fast+}"));
     }
 
-
     #[test]
     fn unit_sed_in_place_and_awk_associative_aggregation() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
-        vfs.write_file("/work/cfg.ini", b"port=8080\nhost=localhost\n").unwrap();
+        vfs.write_file("/work/cfg.ini", b"port=8080\nhost=localhost\n")
+            .unwrap();
         let env = BTreeMap::new();
 
         let sed_i = try_run_text_command(
@@ -9806,16 +11244,42 @@ mod tests {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
-        vfs.write_file("/work/f1.txt", b"hello one world\n").unwrap();
-        vfs.write_file("/work/f2.txt", b"hello two world\n").unwrap();
+        vfs.write_file("/work/f1.txt", b"hello one world\n")
+            .unwrap();
+        vfs.write_file("/work/f2.txt", b"hello two world\n")
+            .unwrap();
 
-        let cmp_same = try_run_text_command("cmp", &args(&["/work/f1.txt", "/work/f1.txt"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_same = try_run_text_command(
+            "cmp",
+            &args(&["/work/f1.txt", "/work/f1.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(cmp_same.exit_code, 0);
 
-        let cmp_diff = try_run_text_command("cmp", &args(&["-s", "/work/f1.txt", "/work/f2.txt"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_diff = try_run_text_command(
+            "cmp",
+            &args(&["-s", "/work/f1.txt", "/work/f2.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(cmp_diff.exit_code, 1);
 
-        let wdiff = try_run_text_command("wdiff", &args(&["/work/f1.txt", "/work/f2.txt"]), "", "/work", &env, &vfs).unwrap();
+        let wdiff = try_run_text_command(
+            "wdiff",
+            &args(&["/work/f1.txt", "/work/f2.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(wdiff.exit_code, 1);
         assert!(wdiff.stdout.contains("[-one-]") && wdiff.stdout.contains("{+two+}"));
     }
@@ -9828,11 +11292,31 @@ mod tests {
         vfs.write_file("/work/a.txt", b"common\nold_val\n").unwrap();
         vfs.write_file("/work/b.txt", b"common\nnew_val\n").unwrap();
 
-        let ifdef = try_run_text_command("diff", &args(&["-D", "FLAG", "/work/a.txt", "/work/b.txt"]), "", "/work", &env, &vfs).unwrap();
+        let ifdef = try_run_text_command(
+            "diff",
+            &args(&["-D", "FLAG", "/work/a.txt", "/work/b.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(ifdef.exit_code, 1);
-        assert!(ifdef.stdout.contains("#ifndef FLAG\nold_val\n#else /* FLAG */\nnew_val\n#endif /* FLAG */\n"));
+        assert!(
+            ifdef
+                .stdout
+                .contains("#ifndef FLAG\nold_val\n#else /* FLAG */\nnew_val\n#endif /* FLAG */\n")
+        );
 
-        let rcs = try_run_text_command("diff", &args(&["-n", "/work/a.txt", "/work/b.txt"]), "", "/work", &env, &vfs).unwrap();
+        let rcs = try_run_text_command(
+            "diff",
+            &args(&["-n", "/work/a.txt", "/work/b.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(rcs.exit_code, 1);
         assert_eq!(rcs.stdout, "d2 1\na2 1\nnew_val\n");
 
@@ -9847,15 +11331,34 @@ mod tests {
         .unwrap();
         assert_eq!(ap.exit_code, 0);
         assert!(!vfs.exists("/work/a.txt"));
-        assert_eq!(vfs.read_file("/work/moved.txt").unwrap(), b"common\nmoved_val\n");
+        assert_eq!(
+            vfs.read_file("/work/moved.txt").unwrap(),
+            b"common\nmoved_val\n"
+        );
 
         vfs.write_file("/work/c1.bin", b"AAXBB").unwrap();
         vfs.write_file("/work/c2.bin", b"AAYBB").unwrap();
-        let cmp_l = try_run_text_command("cmp", &args(&["-l", "/work/c1.bin", "/work/c2.bin"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_l = try_run_text_command(
+            "cmp",
+            &args(&["-l", "/work/c1.bin", "/work/c2.bin"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(cmp_l.exit_code, 1);
         assert_eq!(cmp_l.stdout, "3 130 131\n");
 
-        let cmp_skip = try_run_text_command("cmp", &args(&["-s", "-i", "3:3", "/work/c1.bin", "/work/c2.bin"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_skip = try_run_text_command(
+            "cmp",
+            &args(&["-s", "-i", "3:3", "/work/c1.bin", "/work/c2.bin"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(cmp_skip.exit_code, 0);
 
         vfs.write_file("/work/m.txt", b"mine\nsame\n").unwrap();
@@ -9863,7 +11366,18 @@ mod tests {
         vfs.write_file("/work/t.txt", b"theirs\nsame\n").unwrap();
         let d3 = try_run_text_command(
             "diff3",
-            &args(&["-m", "-L", "M", "-L", "O", "-L", "T", "/work/m.txt", "/work/o.txt", "/work/t.txt"]),
+            &args(&[
+                "-m",
+                "-L",
+                "M",
+                "-L",
+                "O",
+                "-L",
+                "T",
+                "/work/m.txt",
+                "/work/o.txt",
+                "/work/t.txt",
+            ]),
             "",
             "/work",
             &env,
@@ -9871,7 +11385,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(d3.exit_code, 1);
-        assert!(d3.stdout.contains("<<<<<<< M\nmine\n||||||| O\nbase\n=======\ntheirs\n>>>>>>> T\n"));
+        assert!(
+            d3.stdout
+                .contains("<<<<<<< M\nmine\n||||||| O\nbase\n=======\ntheirs\n>>>>>>> T\n")
+        );
     }
 
     #[test]
@@ -9880,11 +11397,27 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        let sed_rev = try_run_text_command("sed", &args(&["1!G;h;$!d"]), "one\ntwo\nthree\n", "/work", &env, &vfs).unwrap();
+        let sed_rev = try_run_text_command(
+            "sed",
+            &args(&["1!G;h;$!d"]),
+            "one\ntwo\nthree\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(sed_rev.exit_code, 0);
         assert_eq!(sed_rev.stdout, "three\ntwo\none\n");
 
-        let sed_branch = try_run_text_command("sed", &args(&[":loop; s/^0\\([0-9]\\)/\\1/; t loop"]), "00042\n000\n", "/work", &env, &vfs).unwrap();
+        let sed_branch = try_run_text_command(
+            "sed",
+            &args(&[":loop; s/^0\\([0-9]\\)/\\1/; t loop"]),
+            "00042\n000\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(sed_branch.exit_code, 0);
         assert_eq!(sed_branch.stdout, "42\n0\n");
 
@@ -9919,7 +11452,8 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        vfs.write_file("/work/p1.txt", b"a=1\nb=2\n\na=3\nb=4\n").unwrap();
+        vfs.write_file("/work/p1.txt", b"a=1\nb=2\n\na=3\nb=4\n")
+            .unwrap();
         vfs.write_file("/work/p2.txt", b"a=5\nb=6\n").unwrap();
         let awk_nf = try_run_text_command(
             "awk",
@@ -9947,7 +11481,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(sed_w.exit_code, 0);
-        assert_eq!(vfs.read_file("/work/out.txt").unwrap(), b"/usr/sbin\n/home/sbin\n");
+        assert_eq!(
+            vfs.read_file("/work/out.txt").unwrap(),
+            b"/usr/sbin\n/home/sbin\n"
+        );
     }
 
     #[test]
@@ -9955,9 +11492,18 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.mkdir_all("/work").unwrap();
         fs.chmod("/work", 0o750).unwrap();
-        let patch = |body: &str| cmd_apply_patch(&[], &format!("*** Begin Patch\n{body}\n*** End Patch"), "/work", &fs);
+        let patch = |body: &str| {
+            cmd_apply_patch(
+                &[],
+                &format!("*** Begin Patch\n{body}\n*** End Patch"),
+                "/work",
+                &fs,
+            )
+        };
         assert_eq!(patch("*** Add File: a/b/new\n+one").exit_code, 0);
-        for path in ["/work/a", "/work/a/b"] { assert_eq!(fs.stat(path).unwrap().mode, 0o40777); }
+        for path in ["/work/a", "/work/a/b"] {
+            assert_eq!(fs.stat(path).unwrap().mode, 0o40777);
+        }
         assert_eq!(fs.stat("/work").unwrap().mode, 0o40750);
         assert_eq!(fs.stat("/work/a/b/new").unwrap().mode, 0o100666);
         fs.chmod("/work/a/b/new", 0o751).unwrap();
@@ -9966,7 +11512,10 @@ mod tests {
         assert_eq!(fs.stat("/work/a/b/new").unwrap().mtime_ms, 42.0);
         assert_eq!(patch("*** Add File: a/b/new\n+two").exit_code, 0);
         assert_eq!(fs.stat("/work/a/b/new").unwrap().mode, 0o100751);
-        assert_eq!(patch("*** Update File: a/b/new\n*** Move to: dest").exit_code, 0);
+        assert_eq!(
+            patch("*** Update File: a/b/new\n*** Move to: dest").exit_code,
+            0
+        );
         assert_eq!(fs.stat("/work/dest").unwrap().mode, 0o100666);
         assert!(!fs.exists("/work/a/b/new"));
     }
@@ -9976,9 +11525,19 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/d/file", b"old\n").unwrap();
         fs.hard_link("/d/file", "/alias").unwrap();
-        let patch = |body: &str| cmd_apply_patch(&[], &format!("*** Begin Patch\n{body}\n*** End Patch"), "/", &fs);
+        let patch = |body: &str| {
+            cmd_apply_patch(
+                &[],
+                &format!("*** Begin Patch\n{body}\n*** End Patch"),
+                "/",
+                &fs,
+            )
+        };
         let r = patch("*** Add File: d/file\n+new\n*** Delete File: alias");
-        assert_eq!(r.stderr, "apply_patch: patch operations refer to the same backing entry\n");
+        assert_eq!(
+            r.stderr,
+            "apply_patch: patch operations refer to the same backing entry\n"
+        );
         assert_eq!(fs.read_file("/alias").unwrap(), b"old\n");
         fs.chmod("/d/file", 0o460).unwrap();
         let r = patch("*** Add File: first\n+one\n*** Add File: d/file\n+two");
@@ -9988,16 +11547,23 @@ mod tests {
         fs.chmod("/d", 0o555).unwrap();
         assert_eq!(patch("*** Add File: d/file\n+old").exit_code, 0);
         let r = patch("*** Add File: first\n+one\n*** Add File: d/file\n+changed");
-        assert_eq!(r.stderr, "apply_patch: operation 2; prior changes may remain: permission denied: /d/file\n");
+        assert_eq!(
+            r.stderr,
+            "apply_patch: operation 2; prior changes may remain: permission denied: /d/file\n"
+        );
         assert_eq!(fs.read_file("/first").unwrap(), b"one\n");
         assert_eq!(fs.read_file("/d/file").unwrap(), b"old\n");
-        assert_eq!(patch("*** Delete File: d/file").stderr, "apply_patch: permission denied: /d\n");
+        assert_eq!(
+            patch("*** Delete File: d/file").stderr,
+            "apply_patch: permission denied: /d\n"
+        );
     }
 
     #[test]
     fn apply_patch_failed_move_keeps_the_source() {
         let vfs = MemoryVfs::with_limits(crate::vfs::MemoryVfsLimits {
-            max_file_bytes: 4, ..Default::default()
+            max_file_bytes: 4,
+            ..Default::default()
         });
         vfs.write_file("/src", b"old\n").unwrap();
         let patch = "*** Begin Patch\n*** Update File: src\n*** Move to: dest\n@@\n-old\n+oversized\n*** End Patch";
@@ -10013,7 +11579,8 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        vfs.write_file("/work/bin.dat", &[0xff, 0x00, 0x80]).unwrap();
+        vfs.write_file("/work/bin.dat", &[0xff, 0x00, 0x80])
+            .unwrap();
         let pure_move = try_run_text_command(
             "apply_patch",
             &[],
@@ -10024,10 +11591,14 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pure_move.exit_code, 0);
-        assert_eq!(vfs.read_file("/work/sub/moved.dat").unwrap(), vec![0xff, 0x00, 0x80]);
+        assert_eq!(
+            vfs.read_file("/work/sub/moved.dat").unwrap(),
+            vec![0xff, 0x00, 0x80]
+        );
         assert!(!vfs.exists("/work/bin.dat"));
 
-        vfs.write_file("/work/file.txt", b"first\nsecond\nthird\n").unwrap();
+        vfs.write_file("/work/file.txt", b"first\nsecond\nthird\n")
+            .unwrap();
         let bad_anchor = try_run_text_command(
             "apply_patch",
             &[],
@@ -10038,7 +11609,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(bad_anchor.exit_code, 1);
-        assert_eq!(bad_anchor.stderr, "apply_patch: context anchor not found: file.txt\n");
+        assert_eq!(
+            bad_anchor.stderr,
+            "apply_patch: context anchor not found: file.txt\n"
+        );
 
         let eof_after = try_run_text_command(
             "apply_patch",
@@ -10050,7 +11624,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(eof_after.exit_code, 2);
-        assert_eq!(eof_after.stderr, "apply_patch: EOF must terminate the file's last hunk\n");
+        assert_eq!(
+            eof_after.stderr,
+            "apply_patch: EOF must terminate the file's last hunk\n"
+        );
     }
 
     #[test]
@@ -10059,56 +11636,136 @@ mod tests {
         vfs.mkdir_all("/work/sub").unwrap();
         let env = BTreeMap::new();
 
-        let sed_help = try_run_text_command("sed", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
+        let sed_help =
+            try_run_text_command("sed", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(sed_help.exit_code, 2);
         assert_eq!(sed_help.stderr, "sed: unsupported option '-h'\n");
 
-        let sed_ll = try_run_text_command("sed", &args(&["-l", "abc", "p"]), "", "/work", &env, &vfs).unwrap();
+        let sed_ll =
+            try_run_text_command("sed", &args(&["-l", "abc", "p"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(sed_ll.exit_code, 2);
-        assert_eq!(sed_ll.stderr, "sed: line length must be a nonnegative safe integer\n");
+        assert_eq!(
+            sed_ll.stderr,
+            "sed: line length must be a nonnegative safe integer\n"
+        );
 
-        let sed_f_missing = try_run_text_command("sed", &args(&["-f", "missing.sed"]), "", "/work", &env, &vfs).unwrap();
+        let sed_f_missing = try_run_text_command(
+            "sed",
+            &args(&["-f", "missing.sed"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(sed_f_missing.exit_code, 1);
-        assert_eq!(sed_f_missing.stderr, "sed: ENOENT: no such file or directory, readFile '/work/missing.sed'\n");
+        assert_eq!(
+            sed_f_missing.stderr,
+            "sed: ENOENT: no such file or directory, readFile '/work/missing.sed'\n"
+        );
 
-        let sed_in_missing = try_run_text_command("sed", &args(&["p", "missing.txt"]), "", "/work", &env, &vfs).unwrap();
+        let sed_in_missing =
+            try_run_text_command("sed", &args(&["p", "missing.txt"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(sed_in_missing.exit_code, 1);
-        assert_eq!(sed_in_missing.stderr, "sed: ENOENT: no such file or directory, readStream '/work/missing.txt'\n");
+        assert_eq!(
+            sed_in_missing.stderr,
+            "sed: ENOENT: no such file or directory, readStream '/work/missing.txt'\n"
+        );
 
         let awk_missing = try_run_text_command("awk", &[], "", "/work", &env, &vfs).unwrap();
         assert_eq!(awk_missing.exit_code, 2);
         assert_eq!(awk_missing.stderr, "awk: missing awk program\n");
 
-        let awk_bad_v = try_run_text_command("awk", &args(&["-v", "123=1", "BEGIN{}"]), "", "/work", &env, &vfs).unwrap();
+        let awk_bad_v = try_run_text_command(
+            "awk",
+            &args(&["-v", "123=1", "BEGIN{}"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(awk_bad_v.exit_code, 2);
-        assert_eq!(awk_bad_v.stderr, "awk: -v requires a NAME=value assignment\n");
+        assert_eq!(
+            awk_bad_v.stderr,
+            "awk: -v requires a NAME=value assignment\n"
+        );
 
         let awk_dbg = try_run_text_command("awk", &args(&["-D"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(awk_dbg.exit_code, 2);
-        assert_eq!(awk_dbg.stderr, "awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n");
+        assert_eq!(
+            awk_dbg.stderr,
+            "awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n"
+        );
 
-        let diff_color = try_run_text_command("diff", &args(&["--color=rainbow", "a", "b"]), "", "/work", &env, &vfs).unwrap();
+        let diff_color = try_run_text_command(
+            "diff",
+            &args(&["--color=rainbow", "a", "b"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(diff_color.exit_code, 2);
         assert_eq!(diff_color.stderr, "diff: invalid color: rainbow\n");
 
-        let diff_ifdef_dir = try_run_text_command("diff", &args(&["-D", "M", "/work/sub", "/work/sub"]), "", "/work", &env, &vfs).unwrap();
+        let diff_ifdef_dir = try_run_text_command(
+            "diff",
+            &args(&["-D", "M", "/work/sub", "/work/sub"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(diff_ifdef_dir.exit_code, 2);
-        assert_eq!(diff_ifdef_dir.stderr, "diff: -D option not supported with directories\n");
+        assert_eq!(
+            diff_ifdef_dir.stderr,
+            "diff: -D option not supported with directories\n"
+        );
 
-        let patch_merge = try_run_text_command("patch", &args(&["--merge=bad"]), "", "/work", &env, &vfs).unwrap();
+        let patch_merge =
+            try_run_text_command("patch", &args(&["--merge=bad"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(patch_merge.exit_code, 2);
         assert_eq!(patch_merge.stderr, "patch: invalid merge style: bad\n");
 
-        let cmp_ver = try_run_text_command("cmp", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_ver =
+            try_run_text_command("cmp", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(cmp_ver.exit_code, 0);
         assert_eq!(cmp_ver.stdout, "cmp (virtual-bash)\n");
 
-        let cmp_bad_skip = try_run_text_command("cmp", &args(&["-i", "bad:2", "a", "b"]), "", "/work", &env, &vfs).unwrap();
+        let cmp_bad_skip = try_run_text_command(
+            "cmp",
+            &args(&["-i", "bad:2", "a", "b"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(cmp_bad_skip.exit_code, 2);
-        assert_eq!(cmp_bad_skip.stderr, "cmp: invalid --ignore-initial value 'bad:2'\ncmp: Try 'cmp --help' for more information.\n");
+        assert_eq!(
+            cmp_bad_skip.stderr,
+            "cmp: invalid --ignore-initial value 'bad:2'\ncmp: Try 'cmp --help' for more information.\n"
+        );
 
-        let d3_help_err = try_run_text_command("diff3", &args(&["--help", "-m", "-i"]), "", "/work", &env, &vfs).unwrap();
+        let d3_help_err = try_run_text_command(
+            "diff3",
+            &args(&["--help", "-m", "-i"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(d3_help_err.exit_code, 2);
-        assert_eq!(d3_help_err.stderr, "diff3: Incompatible options: merge and write/quit\n");
+        assert_eq!(
+            d3_help_err.stderr,
+            "diff3: Incompatible options: merge and write/quit\n"
+        );
     }
 }

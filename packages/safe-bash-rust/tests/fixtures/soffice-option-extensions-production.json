@@ -1,0 +1,5178 @@
+[
+  {
+    "formula": "OPT_JUMP_DIFF()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.913045033902048
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,.5,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(0,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(-1,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(1,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(1e-10,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(1e100,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"1\",100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"\",100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(TRUE(),100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(#N/A,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(NA(),100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(1/0,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF({0,1},100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(,100,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",0,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",-1,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",1,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.5200491463136845e-18
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",1e-10,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 8.782510809040952e-261
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",1e100,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.999999999999662e+99
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",\"1\",100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.5200491463136845e-18
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",\"x\",100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",\"\",100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",TRUE(),100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.5200491463136845e-18
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",#N/A,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",NA(),100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",1/0,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{0,1},100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,0,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999999663
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,-1,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.04877057549594
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1e-10,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999990149
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1e100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,\"1\",1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.04877057549594
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,\"x\",1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,\"\",1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,TRUE(),1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.04877057549594
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,#N/A,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,NA(),1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1/0,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,{0,1},1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999999663
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999999663
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,0,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,-1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1e-10,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.00005641951651018056
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1e100,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,\"1\",.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.913045033902048
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,\"x\",.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,\"\",.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,TRUE(),.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.913045033902048
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,#N/A,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,NA(),.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1/0,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,{0,1},.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,0,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.361845729570013
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,-1,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.006306239674192954
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,1,.2,.3,.5)",
+    "kind": "number",
+    "value": 63.21437581878088
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,1e-10,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.361845734201928
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,1e100,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999999663
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,\"1\",.2,.3,.5)",
+    "kind": "number",
+    "value": 63.21437581878088
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,\"x\",.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,\"\",.2,.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,TRUE(),.2,.3,.5)",
+    "kind": "number",
+    "value": 63.21437581878088
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,#N/A,.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,NA(),.2,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,1/0,.2,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,{0,1},.2,.3,.5)",
+    "kind": "number",
+    "value": 7.361845729570013
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.361845729570013
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,0,.3,.5)",
+    "kind": "number",
+    "value": 4.877057549928428
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,-1,.3,.5)",
+    "kind": "number",
+    "value": 36.58998908660714
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,1,.3,.5)",
+    "kind": "number",
+    "value": 36.58998908660714
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,1e-10,.3,.5)",
+    "kind": "number",
+    "value": 4.877057549928428
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,1e100,.3,.5)",
+    "kind": "number",
+    "value": 99.99999999999663
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,\"1\",.3,.5)",
+    "kind": "number",
+    "value": 36.58998908660714
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,\"x\",.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,\"\",.3,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,TRUE(),.3,.5)",
+    "kind": "number",
+    "value": 36.58998908660714
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,#N/A,.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,NA(),.3,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,1/0,.3,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,{0,1},.3,.5)",
+    "kind": "number",
+    "value": 4.877057549928428
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,,.3,.5)",
+    "kind": "number",
+    "value": 4.877057549928428
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,0,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,-1,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.5)",
+    "kind": "number",
+    "value": 10.243203515323055
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1e-10,.5)",
+    "kind": "number",
+    "value": 8.277803968617777
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1e100,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,\"1\",.5)",
+    "kind": "number",
+    "value": 10.243203515323055
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,\"x\",.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,\"\",.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,TRUE(),.5)",
+    "kind": "number",
+    "value": 10.243203515323055
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,#N/A,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,NA(),.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1/0,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,{0,1},.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,0)",
+    "kind": "number",
+    "value": 10.450583572185213
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,-1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,1)",
+    "kind": "number",
+    "value": 8.169330534397
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,1e-10)",
+    "kind": "number",
+    "value": 10.450583572185222
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,1e100)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,\"1\")",
+    "kind": "number",
+    "value": 8.169330534397
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,\"x\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,TRUE())",
+    "kind": "number",
+    "value": 8.169330534397
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,{0,1})",
+    "kind": "number",
+    "value": 10.450583572185213
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,)",
+    "kind": "number",
+    "value": 10.450583572185213
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",.01,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 8.650599948280434e-42
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",80,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.7421910664137474
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",120,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 26.23420369289477
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",1000,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 904.8770576483125
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",.01,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 95.11294245006819
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",1,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 94.12294245006822
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",80,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 16.865133516484637
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 5.035987483973613
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",120,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.3571461429670042
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",1000,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.841464825416202e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",.01,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 8.650599948280434e-42
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",1,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.5200491463136845e-18
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",80,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.7421910664137474
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",100,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.913045033902048
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",120,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 26.23420369289477
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"CALL\",1000,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 904.8770576483125
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",.01,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 95.11294245006819
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",1,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 94.12294245006822
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",80,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 16.865133516484637
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",100,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 5.035987483973613
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",120,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.3571461429670042
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"Put\",1000,100,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.841464825416202e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",.01,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",1,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",80,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",120,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"x\",1000,100,1,.05,.2,.3,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 99.00000004999998
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.00000004999998
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 99.00000011172538
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 99.0124221995061
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 99.0124221995061
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 99.0305231637984
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 99.04877057549594
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 99.1461358818156
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 70.44130474707069
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 70.44130475169975
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,1,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 70.59882985890836
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 20.000003999999887
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 20.00000473887827
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 20.0000227338246
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 20.993775960489486
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 21.180038223469506
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 39.983081561564205
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 23.901646039942072
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 24.722824066657797
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 66.37364994626442
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 57.99664907561124
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 58.595884850985165
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,80,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 70.59880852792168
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0.0002847562609923221
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.00564747598098909
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.05644553418254379
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 1.2517184266293908
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 4.038500451123835
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 32.01635714102028
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 4.877247273031562
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 62.13741242202181
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 54.846103336001235
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 55.93893104904832
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 70.59880564871163
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 3.0949972946878616e-37
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.0000011941893599006533
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.000023545402402682447
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 5.106849412719986e-17
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.3639961685624162
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 26.031613987334435
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 1.205447813972658e-10
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.936395300885484
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 58.58477644306402
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 51.695557596391254
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 53.43894636036315
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,120,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 70.59880304816029
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.211803879000338e-44
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.000006172540540477826
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.855219345364412e-21
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 1.852839537958079
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.520049146313685e-16
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 10.559564478712906
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.15416954821603363
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,10000,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 70.59857873961498
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.211787221004475e-46
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 6.172539915640572e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.370525193044578e-23
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.018100964292288888
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9.38758037651131e-19
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.09736530631966155
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 4.6290617863506144e-9
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,1,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.1575251118376703
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 8.549486682453679e-45
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 7.388783815020081e-7
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.000018733824709001047
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 1.1463478120669026e-23
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.18626226298000897
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 18.989305601074722
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 1.388355102738169e-22
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.8211780267157279
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 42.47200390632232
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 2.947334239858751e-208
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.5992357753739299
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,80,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 12.602159452310453
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0.0002797562611044219
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 0.0056424759811154
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 0.0564405341826701
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0.00949847601754086
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 2.7962805005119873
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 30.77413719040842
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 0.00018972310311839152
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 57.26035487209339
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 9.059342390536428e-159
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.0928277130470776
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 15.752702312710381
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 19.999994000000157
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 19.99999519418952
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 20.00001754540256
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 18.509336059265774
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 18.873332227828193
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 44.54095004660021
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 14.147530940205753
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 17.083926240970687
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 72.73230738314923
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 2.1686103739284623e-123
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1.7433887639718875
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,120,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 18.90324545176903
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.000001,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 9899.999500000013
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.000001,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9899.999500000013
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.000001,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 9899.999506172551
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.25,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 9775.778004938813
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.25,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9775.778004938813
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,.25,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 9777.630844476773
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,1,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 9412.294245006822
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,1,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 9412.294245006822
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,1,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 9422.85380948554
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,30,.05,.01,.3,.5)",
+    "kind": "number",
+    "value": 1504.6740377709427
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,30,.05,.2,.3,.5)",
+    "kind": "number",
+    "value": 1504.8282073191588
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,10000,30,.05,2,.3,.5)",
+    "kind": "number",
+    "value": 1575.2726165105578
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",\"x\",100,1,.05,.2,.3,#N/A)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",#N/A,100,1,.05,.2,.3,\"x\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",#VALUE!,100,1,.05,.2,.3,NA())",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",NA(),100,1,.05,.2,.3,#VALUE!)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.4560790564254
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,.1,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(0,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(-1,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(1,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(1e-10,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(1e100,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"1\",100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"\",100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(TRUE(),100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(#N/A,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(NA(),100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(1/0,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC({0,1},100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(,100,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",0,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",-1,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",1,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.0564659782798753e-116
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",1e-10,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",1e100,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.048374180359595e+99
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",\"1\",100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.0564659782798753e-116
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",\"x\",100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",\"\",100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",TRUE(),100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.0564659782798753e-116
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",#N/A,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",NA(),100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",1/0,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{0,1},100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,0,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 90.48374180359595
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,-1,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 89.6230338271709
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1e-10,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 90.48374180350987
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1e100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,\"1\",1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 89.6230338271709
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,\"x\",1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,\"\",1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,TRUE(),1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 89.6230338271709
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,#N/A,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,NA(),1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1/0,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,{0,1},1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 90.48374180359595
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 90.48374180359595
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,0,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,-1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1e-10,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.00007978870607337077
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1e100,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,\"1\",.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.4560790564254
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,\"x\",.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,\"\",.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,TRUE(),.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.4560790564254
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,#N/A,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,NA(),.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1/0,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,{0,1},.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,0,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.940902597066703
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,-1,.2,.05,.1)",
+    "kind": "number",
+    "value": 27.022174888087743
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,1,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.657053692148634
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,1e-10,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.940902596072599
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,1e100,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,\"1\",.2,.05,.1)",
+    "kind": "number",
+    "value": 3.657053692148634
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,\"x\",.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,\"\",.2,.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,TRUE(),.2,.05,.1)",
+    "kind": "number",
+    "value": 3.657053692148634
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,#N/A,.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,NA(),.2,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,1/0,.2,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,{0,1},.2,.05,.1)",
+    "kind": "number",
+    "value": 9.940902597066703
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.940902597066703
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,0,.05,.1)",
+    "kind": "number",
+    "value": 4.412944161090172
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,-1,.05,.1)",
+    "kind": "number",
+    "value": -31.635925594556216
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,1,.05,.1)",
+    "kind": "number",
+    "value": 36.048869755646386
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,1e-10,.05,.1)",
+    "kind": "number",
+    "value": 4.412944161090172
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,1e100,.05,.1)",
+    "kind": "number",
+    "value": 90.48374180359595
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,\"1\",.05,.1)",
+    "kind": "number",
+    "value": 36.048869755646386
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,\"x\",.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,\"\",.05,.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,TRUE(),.05,.1)",
+    "kind": "number",
+    "value": 36.048869755646386
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,#N/A,.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,NA(),.05,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,1/0,.05,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,{0,1},.05,.1)",
+    "kind": "number",
+    "value": 4.412944161090172
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,,.05,.1)",
+    "kind": "number",
+    "value": 4.412944161090172
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,0,.1)",
+    "kind": "number",
+    "value": 6.8560274456196195
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,-1,.1)",
+    "kind": "number",
+    "value": 5.555814296564358e-7
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,1,.1)",
+    "kind": "number",
+    "value": 147.8938890603202
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,1e-10,.1)",
+    "kind": "number",
+    "value": 6.85602745026596
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,1e100,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,\"1\",.1)",
+    "kind": "number",
+    "value": 147.8938890603202
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,\"x\",.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,\"\",.1)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,TRUE(),.1)",
+    "kind": "number",
+    "value": 147.8938890603202
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,#N/A,.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,NA(),.1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,1/0,.1)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,{0,1},.1)",
+    "kind": "number",
+    "value": 6.8560274456196195
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,,.1)",
+    "kind": "number",
+    "value": 6.8560274456196195
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 28.407631421064636
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 3.844554844451081
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 10.450583571140506
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,1e100)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,\"1\")",
+    "kind": "number",
+    "value": 3.844554844451081
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,\"x\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,TRUE())",
+    "kind": "number",
+    "value": 3.844554844451081
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,{0,1})",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",.01,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",80,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.6824724053089037
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",120,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 23.67873015733486
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",1000,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 818.7666203934538
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",.01,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 86.06174926832541
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",1,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 85.16596022446981
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",80,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 15.366276604937925
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 5.043134895335229
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",120,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.1690376355255103
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",1000,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.4106101665864164e-31
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",.01,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",1,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.0564659782798753e-116
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",80,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.6824724053089037
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",100,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9.4560790564254
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",120,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 23.67873015733486
+  },
+  {
+    "formula": "OPT_EXEC(\"CALL\",1000,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 818.7666203934538
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",.01,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 86.06174926832541
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",1,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 85.16596022446981
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",80,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 15.366276604937925
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",100,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 5.043134895335229
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",120,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.1690376355255103
+  },
+  {
+    "formula": "OPT_EXEC(\"Put\",1000,100,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 1.4106101665864164e-31
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",.01,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",1,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",80,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",120,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"x\",1000,100,1,.05,.2,.05,.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 98.99999015000049
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 98.99999015000049
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 98.99999015000049
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 96.56779678511244
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 96.56779678511244
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 96.56780013211916
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 89.6230338271709
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 89.66272172559437
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 4.967597840248152
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 4.967597840721546
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,1,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.978706828008684
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 20.00000199999959
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 20.00000199999959
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 20.00000199999959
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 20.475437785167525
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 20.502280712416276
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 44.50894686431055
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 21.627103689591326
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 22.24889837559467
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 65.55979459284065
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 4.089987113727011
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 4.141118601858211
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,80,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.9787067469591895
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0.00040144721698803505
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.007981344846396267
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.07979093283327925
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 1.2125206664060433
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 4.501052444483968
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 37.72352159181029
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 4.4129442082693675
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 62.48578266599818
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 3.8678071829621636
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.9587737791053934
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.978706736072523
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 5.850834140574337e-255
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.19483215062525105
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 32.31526621270031
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 2.067051420867983e-41
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 2.93843908073098
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 59.843712110170635
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 3.6456272521973174
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.7879557339913728
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,120,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.978706726237118
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.00037922108736018355
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.056465978279844e-114
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.605750512332602
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.015347715805651824
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,10000,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 4.978705858457136
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.0000033470067200547045
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 2.9272692622389017e-121
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.039687898423479695
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 4.733939860995704e-10
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,1,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.011108987760531744
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.026842927248750214
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 24.033509079143027
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 4.127935501576514e-166
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.6217946860033442
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 43.932690903249316
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 5.569772516145762e-220
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.05113148813120114
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,80,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.8887196332321798
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0.00039644721760724025
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.007976344847029682
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 0.07978593283390556
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 0.0009712356549553942
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 3.289503013732888
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 36.5119721610592
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 4.717919303078259e-8
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 58.07283850490802
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 9.407686519547572e-168
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.0909665961432295
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 1.1108995531103594
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 19.99999200000086
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 19.99999200000086
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 19.99999200000086
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 18.05233892366535
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 18.247171074290602
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 50.367605136365654
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 12.801215367410984
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 15.739654448141959
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 72.64492747758162
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 2.0402200259768912e-130
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 0.14232848179405527
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,120,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 1.3330794740398004
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.000001,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 9899.998510000112
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.000001,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9899.998510000112
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.000001,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 9899.998510000112
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.25,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 9534.413186005384
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.25,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 9534.413186005384
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,.25,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 9534.41356522647
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,1,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 8516.596022446982
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,1,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 8516.596022446982
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,1,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 8521.201772959315
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,30,.05,.01,.05,.1)",
+    "kind": "number",
+    "value": 106.11125854563667
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,30,.05,.2,.05,.1)",
+    "kind": "number",
+    "value": 106.12660626144233
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,10000,30,.05,2,.05,.1)",
+    "kind": "number",
+    "value": 111.08996440409382
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",\"x\",100,1,.05,.2,.05,#N/A)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",#N/A,100,1,.05,.2,.05,\"x\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",#VALUE!,100,1,.05,.2,.05,NA())",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",NA(),100,1,.05,.2,.05,#VALUE!)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,.05,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(0,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(-1,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(1,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(1e-10,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(1e100,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"1\",100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"\",100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(TRUE(),100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(#N/A,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(NA(),100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(1/0,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START({0,1},100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(,100,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",0,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",-1,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": -0.08772268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",1,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.08772268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",1e-10,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933e-12
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",1e100,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756932e+98
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",\"1\",1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.08772268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",\"x\",1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",\"\",1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",TRUE(),1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.08772268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",#N/A,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",NA(),1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",1/0,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{0,1},1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,0,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,-1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1e-10,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 99.99999999036805
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1e100,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,\"1\",.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,\"x\",.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,\"\",.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,TRUE(),.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,#N/A,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,NA(),.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1/0,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,{0,1},.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,0,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583572185568
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,-1,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 16.126779724978626
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1e-10,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583571544158
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1e100,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,\"1\",1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,\"x\",1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,\"\",1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,TRUE(),1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,#N/A,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,NA(),1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1/0,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,{0,1},1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583572185568
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583572185568
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1e-10,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1e100,.05,.2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,\"1\",.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,\"x\",.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,\"\",.05,.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,TRUE(),.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,#N/A,.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,NA(),.05,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1/0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,{0,1},.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,0,.2,.05)",
+    "kind": "number",
+    "value": 9.22203207113927
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,-1,.2,.05)",
+    "kind": "number",
+    "value": 25.06808220044442
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,1,.2,.05)",
+    "kind": "number",
+    "value": 3.3925960047958403
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,1e-10,.2,.05)",
+    "kind": "number",
+    "value": 9.222032070217072
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,1e100,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,\"1\",.2,.05)",
+    "kind": "number",
+    "value": 3.3925960047958403
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,\"x\",.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,\"\",.2,.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,TRUE(),.2,.05)",
+    "kind": "number",
+    "value": 3.3925960047958403
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,#N/A,.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,NA(),.2,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,1/0,.2,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,{0,1},.2,.05)",
+    "kind": "number",
+    "value": 9.22203207113927
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,,.2,.05)",
+    "kind": "number",
+    "value": 9.22203207113927
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,0,.05)",
+    "kind": "number",
+    "value": 3.6805582279178184
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,-1,.05)",
+    "kind": "number",
+    "value": -31.07162338443449
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,1,.05)",
+    "kind": "number",
+    "value": 34.7521816123523
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,1e-10,.05)",
+    "kind": "number",
+    "value": 3.6805582279178184
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,1e100,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,\"1\",.05)",
+    "kind": "number",
+    "value": 34.7521816123523
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,\"x\",.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,\"\",.05)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,TRUE(),.05)",
+    "kind": "number",
+    "value": 34.7521816123523
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,#N/A,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,NA(),.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,1/0,.05)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,{0,1},.05)",
+    "kind": "number",
+    "value": 3.6805582279178184
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,,.05)",
+    "kind": "number",
+    "value": 3.6805582279178184
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,0)",
+    "kind": "number",
+    "value": 6.564677149246772
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,-1)",
+    "kind": "number",
+    "value": 0.00001382493902162277
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,1)",
+    "kind": "number",
+    "value": 136.43073836934613
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,1e-10)",
+    "kind": "number",
+    "value": 6.564677153224174
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,1e100)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,\"1\")",
+    "kind": "number",
+    "value": 136.43073836934613
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,\"x\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,TRUE())",
+    "kind": "number",
+    "value": 136.43073836934613
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,{0,1})",
+    "kind": "number",
+    "value": 6.564677149246772
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,)",
+    "kind": "number",
+    "value": 6.564677149246772
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",.01,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.0008772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",80,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 7.017814607805546
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",120,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.526721911708318
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",1000,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 87.72268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",.01,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.0005091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",1,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.05091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",80,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 4.0733680254713
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 5.091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",120,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.11005203820695
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",1000,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 50.91710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",.01,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.0008772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",1,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.08772268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",80,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 7.017814607805546
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",100,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.772268259756933
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",120,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.526721911708318
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"CALL\",1000,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 87.72268259756932
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",.01,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.0005091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",1,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.05091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",80,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 4.0733680254713
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",100,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 5.091710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",120,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.11005203820695
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"Put\",1000,1,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 50.91710031839125
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",.01,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",1,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",80,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",120,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"x\",1000,1,.25,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 99
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 99
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 99
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 99.03680558227917
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 99.03680558227917
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 99.05080965177982
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 99.77406320794489
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 99.77406321683573
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.01,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 99.99999979828657
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 50
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 50
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 50
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 51.84027911395891
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 51.84031091937222
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 74.29209291571817
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 88.70316039724446
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 88.98093632343877
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,.5,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 99.99999837880738
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.25,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.25,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,.25,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 3.680559564925112
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 62.07452487212439
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 77.40632079448892
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 79.26201533992827
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 99.99999768410136
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.00043398321813943515
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 48.16015833997408
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 54.812641588977826
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 63.99022130079046
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,2,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 99.99999670425936
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 9.326522702417526e-153
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 1.612872385286672
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.28559206625237993
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,100,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 99.99997751891691
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 9.028858936120911e-160
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 0.014004069500640919
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 8.890830960459983e-9
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.01,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 0.2259365903416785
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.000031805413310212076
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 22.451813801759258
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 0.27777592619430136
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,.5,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 11.296837981562916
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.25,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.25,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,.25,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 0.0000013370072999656866
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 58.39396664420657
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 4.345651709989948e-165
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 1.8556945454393534
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 22.593676889612443
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 92.63888354416436
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 92.63931752738252
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 140.79904188413843
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 5.9644171109163894e-49
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 9.177579711812633
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,2,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 45.187355115281534
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.000001,.05,.01,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.000001,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.000001,.05,2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.25,.05,.01,.05)",
+    "kind": "number",
+    "value": 9900
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.25,.05,.2,.05)",
+    "kind": "number",
+    "value": 9900
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,.25,.05,2,.05)",
+    "kind": "number",
+    "value": 9900
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,1,.05,.01,.05)",
+    "kind": "number",
+    "value": 9531.94417720822
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 9531.94417720822
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,1,.05,2,.05)",
+    "kind": "number",
+    "value": 9533.557049593506
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,30,.05,.01,.05)",
+    "kind": "number",
+    "value": 2159.3679205511085
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,30,.05,.2,.05)",
+    "kind": "number",
+    "value": 2159.653512617361
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,100,.25,30,.05,2,.05)",
+    "kind": "number",
+    "value": 2259.3678980700256
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",\"x\",1,.25,1,.05,.2,#N/A)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",#N/A,1,.25,1,.05,.2,\"x\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",#VALUE!,1,.25,1,.05,.2,NA())",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",NA(),1,.25,1,.05,.2,#VALUE!)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1e-10,0)",
+    "kind": "number",
+    "value": 4.877057602069669
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1e-10,0)",
+    "kind": "number",
+    "value": 69.0574697956566
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1e-10,.1)",
+    "kind": "number",
+    "value": 4.877057570649273
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1e-10,.1)",
+    "kind": "number",
+    "value": 66.57405663530683
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1e-10,.5)",
+    "kind": "number",
+    "value": 4.877057559440973
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1e-10,.5)",
+    "kind": "number",
+    "value": 53.24604515434806
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1e-10,1)",
+    "kind": "number",
+    "value": 4.877057559440888
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1e-10,1)",
+    "kind": "number",
+    "value": 4.877057559440888
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1e-10,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1e-10,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.01,0)",
+    "kind": "number",
+    "value": 4.877057602069669
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.01,0)",
+    "kind": "number",
+    "value": 69.05746979565659
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.01,.1)",
+    "kind": "number",
+    "value": 4.877976823223555
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.01,.1)",
+    "kind": "number",
+    "value": 66.90572175803119
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.01,.5)",
+    "kind": "number",
+    "value": 4.886895049053793
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.01,.5)",
+    "kind": "number",
+    "value": 53.71125477331616
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.01,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.01,1)",
+    "kind": "number",
+    "value": 5.823546641575124
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.01,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.01,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.3,0)",
+    "kind": "number",
+    "value": 4.877057602069504
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.3,0)",
+    "kind": "number",
+    "value": 69.05746979565427
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.3,.1)",
+    "kind": "number",
+    "value": 4.877058223373295
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.3,.1)",
+    "kind": "number",
+    "value": 68.71297690033478
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.3,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.3,1)",
+    "kind": "number",
+    "value": 28.027283847296584
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,.3,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,.3,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1,0)",
+    "kind": "number",
+    "value": 4.877057553066136
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1,0)",
+    "kind": "number",
+    "value": 69.05746910178328
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1,.1)",
+    "kind": "number",
+    "value": 4.877057625211557
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1,.1)",
+    "kind": "number",
+    "value": 68.94426344784863
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1,.5)",
+    "kind": "number",
+    "value": 4.877072301529243
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1,.5)",
+    "kind": "number",
+    "value": 66.31970328283661
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1,1)",
+    "kind": "number",
+    "value": 4.877230367793868
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1,1)",
+    "kind": "number",
+    "value": 50.2272126810607
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,1,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,1,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,100,0)",
+    "kind": "number",
+    "value": 5.548569673598625e-30
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,100,0)",
+    "kind": "number",
+    "value": 7.856585136108047e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,100,.1)",
+    "kind": "number",
+    "value": 5.548569629339178e-30
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,100,.1)",
+    "kind": "number",
+    "value": 7.603316790003067e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,100,.5)",
+    "kind": "number",
+    "value": 5.548569614279253e-30
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,100,.5)",
+    "kind": "number",
+    "value": 6.290170332803434e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,100,1)",
+    "kind": "number",
+    "value": 5.548569614278351e-30
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,100,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.01,100,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,2,100,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 0.2550692878257137
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 849725375509801
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 0.25481434603003095
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 79.51409691076856
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 0.25455965904871547
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 7.440629395987914e-12
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 0.25481434603000547
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 79.51409667222626
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 0.23056555494033476
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 3.887696488228553e-43
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,.001,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0.09374095921999433
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,30,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,-1,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,-1,0,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583572185568
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,-1,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 20.924360952895217
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,0,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,0,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,0,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 16.126779724978626
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 14.815356681060287
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,1,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 10.450583572185568
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,2,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,2,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,2,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,2,2,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1e-10,0)",
+    "kind": "number",
+    "value": 5.214107207589819e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1e-10,0)",
+    "kind": "number",
+    "value": 64.18041224572802
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1e-10,.1)",
+    "kind": "number",
+    "value": 2.072068941101231e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1e-10,.1)",
+    "kind": "number",
+    "value": 61.69699908537823
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1e-10,.5)",
+    "kind": "number",
+    "value": 9.512366482518281e-9
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1e-10,.5)",
+    "kind": "number",
+    "value": 48.368987604419466
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1e-10,1)",
+    "kind": "number",
+    "value": 9.512294244531525e-9
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1e-10,1)",
+    "kind": "number",
+    "value": 9.512294244531525e-9
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1e-10,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1e-10,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.01,0)",
+    "kind": "number",
+    "value": 5.21410720758982e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.01,0)",
+    "kind": "number",
+    "value": 64.18041224572801
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.01,.1)",
+    "kind": "number",
+    "value": 0.0009192732949713331
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.01,.1)",
+    "kind": "number",
+    "value": 62.02866420810256
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.01,.5)",
+    "kind": "number",
+    "value": 0.00983749912518554
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.01,.5)",
+    "kind": "number",
+    "value": 48.83419722338757
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.01,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.01,1)",
+    "kind": "number",
+    "value": 0.9464890916465301
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.01,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.01,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.3,0)",
+    "kind": "number",
+    "value": 5.214107207589642e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.3,0)",
+    "kind": "number",
+    "value": 64.18041224572585
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.3,.1)",
+    "kind": "number",
+    "value": 6.734448720987703e-7
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.3,.1)",
+    "kind": "number",
+    "value": 63.83591935040634
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.3,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.3,1)",
+    "kind": "number",
+    "value": 23.150226297368164
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,.3,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,.3,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1,0)",
+    "kind": "number",
+    "value": 5.214107155199688e-8
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1,0)",
+    "kind": "number",
+    "value": 64.18041160085825
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1,.1)",
+    "kind": "number",
+    "value": 1.2428649996011633e-7
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1,.1)",
+    "kind": "number",
+    "value": 64.06720594692356
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1,.5)",
+    "kind": "number",
+    "value": 0.000014800604177398079
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1,.5)",
+    "kind": "number",
+    "value": 61.442645781911565
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1,1)",
+    "kind": "number",
+    "value": 0.00017286686880672408
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1,1)",
+    "kind": "number",
+    "value": 45.35015518013564
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,1,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,1,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,100,0)",
+    "kind": "number",
+    "value": 5.932026948922551e-38
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,100,0)",
+    "kind": "number",
+    "value": 7.301728174680214e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,100,.1)",
+    "kind": "number",
+    "value": 1.5060824477808686e-38
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,100,.1)",
+    "kind": "number",
+    "value": 7.048459828575232e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,100,.5)",
+    "kind": "number",
+    "value": 8.960304788651677e-43
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,100,.5)",
+    "kind": "number",
+    "value": 5.7353133713756e-29
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,100,1)",
+    "kind": "number",
+    "value": 2.5760263846800094e-88
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,100,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,.01,100,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"p\",100,100,1,.05,2,100,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 0.2500644104478558
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 15.150414506744747
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,-1)",
+    "kind": "number",
+    "value": 19525395837122.484
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 0.24981447102794618
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 5.573526022256971
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,0)",
+    "kind": "number",
+    "value": 1.8271129256115368
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 0.24956478142252841
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 2.0503856384223864
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,1)",
+    "kind": "number",
+    "value": 1.7097433879367287e-13
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 0.2498144710279212
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 5.573526021699618
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,1e-10)",
+    "kind": "number",
+    "value": 1.827112920130198
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 0.22604148095294585
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 2.0733940257125128e-43
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,100)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,.001,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0.09190160799830031
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,1,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_EXEC(\"p\",100,100,30,.05,.2,.05,1000)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,-1,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,-1,0,.05,.2,.05)",
+    "kind": "number",
+    "value": 5.573526022256975
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,-1,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.61052152857457
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,-1,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.995158595400985
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,0,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,0,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,0,1,.05,.2,.05)",
+    "kind": "number",
+    "value": 5.573526022256975
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,0,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.61052152857457
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,.25,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 6.437243846148045
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,1,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,1,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,1,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,1,2,.05,.2,.05)",
+    "kind": "number",
+    "value": 5.573526022256975
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,2,-1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,2,0,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,2,1,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"p\",100,1,2,2,.05,.2,.05)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_JUMP_DIFF({\"c\",\"p\"},100,100,1,.05,.2,.3,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.913045033902048
+      },
+      {
+        "kind": "number",
+        "value": 5.035987483973613
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{80,120},100,1,.05,.2,.3,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.7421910664137474
+      },
+      {
+        "kind": "number",
+        "value": 26.23420369289477
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,.3,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.450583572185213
+      },
+      {
+        "kind": "number",
+        "value": 9.913045033902048
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF({0,\"c\"},100,100,1,.05,.2,.3,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 9.913045033902048
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{80,120},100,1,.05,.2,.3,{0})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{80;120},100,1,.05,.2,.3,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{80,120},100,1,.05,.2,.3,)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.8594195728121217
+      },
+      {
+        "kind": "number",
+        "value": 26.169043946846415
+      }
+    ]
+  },
+  {
+    "formula": "OPT_JUMP_DIFF(\"c\",{80,120},100,1,.05,.2,.3,NA())",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC({\"c\",\"p\"},100,100,1,.05,.2,.05,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.33859934841972
+      },
+      {
+        "kind": "number",
+        "value": 3.38051441520505
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{80,120},100,1,.05,.2,.05,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.127794980180357
+      },
+      {
+        "kind": "number",
+        "value": 15.872327489130187
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",100,100,1,.05,.2,.05,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.450583572185565
+      },
+      {
+        "kind": "number",
+        "value": 6.33859934841972
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC({0,\"c\"},100,100,1,.05,.2,.05,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 6.33859934841972
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{80,120},100,1,.05,.2,.05,{0})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{80;120},100,1,.05,.2,.05,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{80,120},100,1,.05,.2,.05,)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.8594195728121843
+      },
+      {
+        "kind": "number",
+        "value": 26.169043946847296
+      }
+    ]
+  },
+  {
+    "formula": "OPT_EXEC(\"c\",{80,120},100,1,.05,.2,.05,NA())",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START({\"c\",\"p\"},100,1,.25,1,.05,.2,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 49.163931123684655
+      },
+      {
+        "kind": "number",
+        "value": 0.12112766313093065
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{80,120},1,.25,1,.05,.2,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 39.33114489894772
+      },
+      {
+        "kind": "number",
+        "value": 58.99671734842159
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",100,1,.25,1,.05,.2,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.564677149246772
+      },
+      {
+        "kind": "number",
+        "value": 49.163931123684655
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START({0,\"c\"},100,1,.25,1,.05,.2,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 49.163931123684655
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{80,120},1,.25,1,.05,.2,{0})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{80;120},1,.25,1,.05,.2,{0,.5})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{80,120},1,.25,1,.05,.2,)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.251741719397417
+      },
+      {
+        "kind": "number",
+        "value": 7.877612579096126
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FORWARD_START(\"c\",{80,120},1,.25,1,.05,.2,NA())",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  }
+]

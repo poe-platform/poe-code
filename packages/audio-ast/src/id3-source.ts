@@ -165,7 +165,13 @@ export async function probeId3Source(source: AudioProbeSource, options: SourceOp
       id3TextEncoding(encoding!, new Uint8Array());
       const span: Id3TextSpan = { key, offset: frame.position, length: frame.end - frame.position, unsynchronized: frame.unsynchronized, encoding: encoding!, ...(id === "PRIV" ? { binary: true } : {}) };
       if (options.onTag) { await options.onTag(span); options.signal?.throwIfAborted(); }
-      else { let value = ""; for await (const text of readId3Text(source, span, options)) value += text; tags[key] = span.binary ? value : cleanText(value); }
+      else {
+        let value = "";
+        for await (const text of readId3Text(source, span, options)) value += text;
+        Object.defineProperty(tags, key, {
+          value: span.binary ? value : cleanText(value), enumerable: true, configurable: true, writable: true
+        });
+      }
     }
   }
   if (footer) {

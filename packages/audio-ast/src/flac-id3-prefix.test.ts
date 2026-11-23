@@ -3,6 +3,15 @@ import { expect, it } from "vitest";
 import { parseAudio, probeFlacSource, writeAudioMetadata, encodeId3, id3HeaderSize, flacFormatTags } from "./index.js";
 
 const fixture = (name: string) => new Uint8Array(readFileSync(new URL(`./fixtures/id3-prefix-${name}.flac`, import.meta.url)));
+it("keeps prototype-named tags from an ID3 prefix", async () => {
+  const tags = Object.fromEntries(["__proto__", "constructor", "toString"].map(key => [key, "Retained"]));
+  const bytes = Uint8Array.from([...encodeId3(tags), ...fixture("bare")]);
+  const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.subarray(offset, offset + length); } };
+  for (const parsed of [parseAudio(bytes), await probeFlacSource(source)]) {
+    expect(parsed.tags).toEqual(tags);
+    expect(Object.getPrototypeOf(parsed.tags)).toBe(Object.prototype);
+  }
+});
 for (const name of ["v3", "v4", "id3only"]) {
   it(`parses and rewrites ID3-prefixed ${name} FLAC without losing frames or metadata`, async () => {
     const bytes = fixture(name), audio = parseAudio(bytes);

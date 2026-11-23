@@ -287,11 +287,36 @@ export function cafAst(): MediaAstPlugin {
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x63616666,
     parse: parseCaf,
     probe(bytes, options = {}) {
-      const doc = parseCaf(bytes, { ...options, decodeAudio: false });
-      let result = buildProbeResultFromDoc(doc, bytes.length, options.filename,
-        { ...options, formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)" });
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      let doc = parseCaf(bytes, { ...options, budget, decodeAudio: false });
       const track = doc.tracks[0]!;
       const desc = track.codecDescriptions[0]!;
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const alac = desc.codecName === "alac";
+      const compressed = alac || desc.codecName === "adpcm_ima_qt";
+      // The packet table declares ALAC's padded duration, independently of the
+      // decoded length of its final packet. Keep parse/copy sample timing intact.
+      if (compressed) {
+        const duration = alac ? track.samples.length * view.getUint32(40) : track.duration;
+        budget.checkDuration(duration / doc.timescale);
+        doc = { ...doc, duration, durationSeconds: duration / doc.timescale,
+          tracks: [{ ...track, duration, declaredSampleCount: duration }] };
+      }
+      let result = buildProbeResultFromDoc(doc, bytes.length, options.filename,
+        { ...options, formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)" });
+      const sampleFormat = compressed ? alac && desc.bitsPerSample! > 16 ? "s32p" : "s16p" : result.streams[0]!.sample_fmt;
+      result = { ...result,
+        streams: result.streams.map(stream => ({ ...stream,
+          codec_tag_string: String.fromCharCode(...bytes.subarray(28, 32)),
+          codec_tag: "0x" + view.getUint32(28, true).toString(16).padStart(8, "0"),
+          sample_fmt: sampleFormat,
+          bits_per_sample: alac ? 0 : stream.bits_per_sample,
+          bit_rate: alac ? undefined : stream.bit_rate
+        })),
+        frames: result.frames?.map(frame => ({ ...frame, sample_fmt: sampleFormat })),
+        format: { ...result.format, bit_rate: doc.durationSeconds > 0
+          ? String(Math.trunc(bytes.length * 8 / doc.durationSeconds)) : result.format.bit_rate }
+      };
       // Empty PCM has no duration estimate; retain the description's nominal bitrate.
       if (track.duration === 0 && track.samples.length === 0 && desc.codecName.startsWith("pcm_")) {
         const bitRate = String(desc.sampleRate! * desc.channels! * desc.bitsPerSample!);
@@ -304,7 +329,6 @@ export function cafAst(): MediaAstPlugin {
       if (options.seekable !== false) return result;
       // Parsing validates the chunks and retains all audio. Only a packet table
       // encountered before data establishes duration for a nonseekable probe.
-      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       let durationKnown = false;
       for (let offset = 8; offset + 12 <= bytes.length;) {
         options.budget?.checkCpu();

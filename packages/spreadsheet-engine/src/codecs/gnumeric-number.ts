@@ -9,6 +9,10 @@ export function gnumericNumber(value: number, shortest = false, precision = 17):
   let denominator = 1n;
   const shift = power ? power - 1075 : -1074;
   if (shift >= 0) numerator <<= BigInt(shift); else denominator <<= BigInt(-shift);
+  // A shortest decimal spelling can round up to a power of ten while the
+  // exact binary64 value lies below it. Choose the exponent from the rational.
+  if (exponent >= 0 ? numerator < denominator * 10n ** BigInt(exponent)
+    : numerator * 10n ** BigInt(-exponent) < denominator) exponent--;
   const decimalShift = precision - 1 - exponent;
   if (decimalShift >= 0) numerator *= 10n ** BigInt(decimalShift); else denominator *= 10n ** BigInt(-decimalShift);
   let rounded = numerator / denominator;

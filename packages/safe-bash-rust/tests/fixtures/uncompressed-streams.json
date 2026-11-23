@@ -1,0 +1,69 @@
+{
+  "source": "qpdf 12.4.2 --preserve-unreferenced; stream filters and encoded bytes",
+  "cases": {
+    "compression": {
+      "input": {
+        "--compress-streams=n": [
+          "[null,\"\"]",
+          "[null,\"AP8BAg==\"]",
+          "[null,\"BAUG\"]",
+          "[null,\"QUI=\"]",
+          "[null,\"cQ0KQkkgL1cgMyAvSCAxIC9CUEMgOCAvQ1MgL0cgSUQgDQoNIEVJDVE=\"]"
+        ],
+        "--stream-data=uncompress --stream-data=unknown": [
+          "[null,\"\"]",
+          "[null,\"AP8BAg==\"]",
+          "[null,\"BAUG\"]",
+          "[null,\"QUI=\"]",
+          "[null,\"cQ0KQkkgL1cgMyAvSCAxIC9CUEMgOCAvQ1MgL0cgSUQgDQoNIEVJDVE=\"]"
+        ],
+        "--stream-data=uncompress --normalize-content=n": [
+          "[null,\"\"]",
+          "[null,\"AP8BAg==\"]",
+          "[null,\"BAUG\"]",
+          "[null,\"QUI=\"]",
+          "[null,\"cQ0KQkkgL1cgMyAvSCAxIC9CUEMgOCAvQ1MgL0cgSUQgDQoNIEVJDVE=\"]"
+        ]
+      }
+    },
+    "normalization": {
+      "input": {
+        "--stream-data=uncompress": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxIDMgVG0KKE9yaWdpbmFsKSBUagpFVApR\"]"
+        ],
+        "--qdf --object-streams=generate --normalize-content=n": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxIDMgVG0KKE9yaWdpbmFsKSBUagpFVApR\"]"
+        ],
+        "--object-streams=generate --compress-streams=n": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxIDMgVG0KKE9yaWdpbmFsKSBUagpFVApR\"]"
+        ],
+        "--object-streams=generate --stream-data=uncompress --stream-data=preserve": [
+          "[\"/FlateDecode\",\"eJwr5DJQAMGidC6nEC59N0MFQyOFkDQuQ7AokKdgrBCSy6XhX5SZnpmXmKOpEJLF5RrCFQgAX0wNDw==\"]"
+        ],
+        "--object-streams=generate --stream-data=uncompress --stream-data=unknown": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxIDMgVG0KKE9yaWdpbmFsKSBUagpFVApR\"]"
+        ]
+      }
+    },
+    "linearization": {
+      "/in.pdf": {
+        "--linearize --stream-data=uncompress": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxMCAyMCBUbQooUGFnZSAwKSBUagpFVApR\"]",
+          "[null,\"cSBR\"]"
+        ]
+      },
+      "/packed.pdf": {
+        "--linearize --stream-data=uncompress": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxMCAyMCBUbQooUGFnZSAwKSBUagpFVApR\"]",
+          "[null,\"cSBR\"]"
+        ]
+      },
+      "/open.pdf": {
+        "--linearize --stream-data=uncompress": [
+          "[null,\"cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAxMCAyMCBUbQooUGFnZSAwKSBUagpFVApR\"]",
+          "[null,\"cSBR\"]"
+        ]
+      }
+    }
+  }
+}

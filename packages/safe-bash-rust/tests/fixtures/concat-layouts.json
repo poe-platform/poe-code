@@ -1,0 +1,4853 @@
+{
+  "reference": "FFmpeg 7.0.2: decoded WAV concatenation preserves canonical speaker layouts",
+  "inputs": {
+    "c.wav": "52494646de01000057415645666d742028000000feff0200803e000000fa000004001000160010000c0000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174618001000020d18dd8cdd13ad97ad2e7d927d394dad4d341db81d4eedb2ed59bdcdbd548dd88d6f5dd35d7a2dee2d74fdf8fd8fcdf3cd9a9e0e9d956e196da03e243dbb0e2f0db5de39ddc0ae44addb7e4f7dd64e5a4de11e651dfbee6fedf6be7abe018e858e1c5e805e272e9b2e21fea5fe3ccea0ce479ebb9e426ec66e5d3ec13e680edc0e62dee6de7daee1ae887efc7e834f074e9e1f021ea8ef1ceea3bf27bebe8f228ec95f3d5ec42f482edeff42fee9cf5dcee49f689eff6f636f0a3f7e3f050f890f1fdf83df2aaf9eaf257fa97f304fb44f4b1fbf1f45efc9ef50bfd4bf6b8fdf8f665fea5f712ff52f8bffffff86c00acf9190159fac60106fb7302b3fb200360fccd030dfd7a04bafd270567fed40514ff8106c1ff2e076e00db071b018808c80135097502e20922038f0acf033c0b7c04e90b2905960cd605430d8306f00d30079d0edd074a0f8a08f70f3709a410e4095111910afe113e0bab12eb0b5813980c0514450db214f20d5f159f0e0c164c0fb916f90f6617a61013185311c018",
+    "3.wav": "52494646c601000057415645666d74201000000001000200803e000000fa0000040010004c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174618001000020d18dd8cdd13ad97ad2e7d927d394dad4d341db81d4eedb2ed59bdcdbd548dd88d6f5dd35d7a2dee2d74fdf8fd8fcdf3cd9a9e0e9d956e196da03e243dbb0e2f0db5de39ddc0ae44addb7e4f7dd64e5a4de11e651dfbee6fedf6be7abe018e858e1c5e805e272e9b2e21fea5fe3ccea0ce479ebb9e426ec66e5d3ec13e680edc0e62dee6de7daee1ae887efc7e834f074e9e1f021ea8ef1ceea3bf27bebe8f228ec95f3d5ec42f482edeff42fee9cf5dcee49f689eff6f636f0a3f7e3f050f890f1fdf83df2aaf9eaf257fa97f304fb44f4b1fbf1f45efc9ef50bfd4bf6b8fdf8f665fea5f712ff52f8bffffff86c00acf9190159fac60106fb7302b3fb200360fccd030dfd7a04bafd270567fed40514ff8106c1ff2e076e00db071b018808c80135097502e20922038f0acf033c0b7c04e90b2905960cd605430d8306f00d30079d0edd074a0f8a08f70f3709a410e4095111910afe113e0bab12eb0b5813980c0514450db214f20d5f159f0e0c164c0fb916f90f6617a61013185311c018",
+    "4.wav": "524946460601000057415645666d74201000000001000100803e0000007d0000020010004c4953541a000000494e464f495346540d0000004c61766636312e312e313030000064617461c000000020d1cdd17ad227d3d4d381d42ed5dbd588d635d7e2d78fd83cd9e9d996da43dbf0db9ddc4addf7dda4de51dffedfabe058e105e2b2e25fe30ce4b9e466e513e6c0e66de71ae8c7e874e921eaceea7beb28ecd5ec82ed2feedcee89ef36f0e3f090f13df2eaf297f344f4f1f49ef54bf6f8f6a5f752f8fff8acf959fa06fbb3fb60fc0dfdbafd67fe14ffc1ff6e001b01c80175022203cf037c042905d60583063007dd078a083709e409910a3e0beb0b980c450df20d9f0e4c0ff90fa6105311",
+    "7.wav": "524946469e02000057415645666d742028000000feff0300803e0000007701000600100016001000070000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174614002000020d18dd8fadfcdd13ad9a7e07ad2e7d954e127d394da01e2d4d341dbaee281d4eedb5be32ed59bdc08e4dbd548ddb5e488d6f5dd62e535d7a2de0fe6e2d74fdfbce68fd8fcdf69e73cd9a9e016e8e9d956e1c3e896da03e270e943dbb0e21deaf0db5de3caea9ddc0ae477eb4addb7e424ecf7dd64e5d1eca4de11e67eed51dfbee62beefedf6be7d8eeabe018e885ef58e1c5e832f005e272e9dff0b2e21fea8cf15fe3ccea39f20ce479ebe6f2b9e426ec93f366e5d3ec40f413e680ededf4c0e62dee9af56de7daee47f61ae887eff4f6c7e834f0a1f774e9e1f04ef821ea8ef1fbf8ceea3bf2a8f97bebe8f255fa28ec95f302fbd5ec42f4affb82edeff45cfc2fee9cf509fddcee49f6b6fd89eff6f663fe36f0a3f710ffe3f050f8bdff90f1fdf86a003df2aaf91701eaf257fac40197f304fb710244f4b1fb1e03f1f45efccb039ef50bfd78044bf6b8fd2505f8f665fed205a5f712ff7f0652f8bfff2c07fff86c00d907acf91901860859fac601330906fb7302e009b3fb20038d0a60fccd033a0b0dfd7a04e70bbafd2705940c67fed405410d14ff8106ee0dc1ff2e079b0e6e00db07480f1b018808f50fc8013509a2107502e2094f1122038f0afc11cf033c0ba9127c04e90b56132905960c0314d605430db0148306f00d5d1530079d0e0a16dd074a0fb7168a08f70f64173709a4101118e4095111be18910afe116b193e0bab12181aeb0b5813c51a980c0514721b450db2141f1cf20d5f15cc1c9f0e0c16791d4c0fb916261ef90f6617d31ea6101318801f5311c0182d20",
+    "33.wav": "524946465e03000057415645666d742028000000feff0400803e000000f401000800100016001000330000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174610003000020d18dd8fadf67e7cdd13ad9a7e014e87ad2e7d954e1c1e827d394da01e26ee9d4d341dbaee21bea81d4eedb5be3c8ea2ed59bdc08e475ebdbd548ddb5e422ec88d6f5dd62e5cfec35d7a2de0fe67cede2d74fdfbce629ee8fd8fcdf69e7d6ee3cd9a9e016e883efe9d956e1c3e830f096da03e270e9ddf043dbb0e21dea8af1f0db5de3caea37f29ddc0ae477ebe4f24addb7e424ec91f3f7dd64e5d1ec3ef4a4de11e67eedebf451dfbee62bee98f5fedf6be7d8ee45f6abe018e885eff2f658e1c5e832f09ff705e272e9dff04cf8b2e21fea8cf1f9f85fe3ccea39f2a6f90ce479ebe6f253fab9e426ec93f300fb66e5d3ec40f4adfb13e680ededf45afcc0e62dee9af507fd6de7daee47f6b4fd1ae887eff4f661fec7e834f0a1f70eff74e9e1f04ef8bbff21ea8ef1fbf86800ceea3bf2a8f915017bebe8f255fac20128ec95f302fb6f02d5ec42f4affb1c0382edeff45cfcc9032fee9cf509fd7604dcee49f6b6fd230589eff6f663fed00536f0a3f710ff7d06e3f050f8bdff2a0790f1fdf86a00d7073df2aaf917018408eaf257fac401310997f304fb7102de0944f4b1fb1e038b0af1f45efccb03380b9ef50bfd7804e50b4bf6b8fd2505920cf8f665fed2053f0da5f712ff7f06ec0d52f8bfff2c07990efff86c00d907460facf919018608f30f59fac6013309a01006fb7302e0094d11b3fb20038d0afa1160fccd033a0ba7120dfd7a04e70b5413bafd2705940c011467fed405410dae1414ff8106ee0d5b15c1ff2e079b0e08166e00db07480fb5161b018808f50f6217c8013509a2100f187502e2094f11bc1822038f0afc116919cf033c0ba912161a7c04e90b5613c31a2905960c0314701bd605430db0141d1c8306f00d5d15ca1c30079d0e0a16771ddd074a0fb716241e8a08f70f6417d11e3709a41011187e1fe4095111be182b20910afe116b19d8203e0bab12181a8521eb0b5813c51a3222980c0514721bdf22450db2141f1c8c23f20d5f15cc1c39249f0e0c16791de6244c0fb916261e9325f90f6617d31e4026a6101318801fed265311c0182d209a27",
+    "107.wav": "524946465e03000057415645666d742028000000feff0400803e000000f401000800100016001000070100000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174610003000020d18dd8fadf67e7cdd13ad9a7e014e87ad2e7d954e1c1e827d394da01e26ee9d4d341dbaee21bea81d4eedb5be3c8ea2ed59bdc08e475ebdbd548ddb5e422ec88d6f5dd62e5cfec35d7a2de0fe67cede2d74fdfbce629ee8fd8fcdf69e7d6ee3cd9a9e016e883efe9d956e1c3e830f096da03e270e9ddf043dbb0e21dea8af1f0db5de3caea37f29ddc0ae477ebe4f24addb7e424ec91f3f7dd64e5d1ec3ef4a4de11e67eedebf451dfbee62bee98f5fedf6be7d8ee45f6abe018e885eff2f658e1c5e832f09ff705e272e9dff04cf8b2e21fea8cf1f9f85fe3ccea39f2a6f90ce479ebe6f253fab9e426ec93f300fb66e5d3ec40f4adfb13e680ededf45afcc0e62dee9af507fd6de7daee47f6b4fd1ae887eff4f661fec7e834f0a1f70eff74e9e1f04ef8bbff21ea8ef1fbf86800ceea3bf2a8f915017bebe8f255fac20128ec95f302fb6f02d5ec42f4affb1c0382edeff45cfcc9032fee9cf509fd7604dcee49f6b6fd230589eff6f663fed00536f0a3f710ff7d06e3f050f8bdff2a0790f1fdf86a00d7073df2aaf917018408eaf257fac401310997f304fb7102de0944f4b1fb1e038b0af1f45efccb03380b9ef50bfd7804e50b4bf6b8fd2505920cf8f665fed2053f0da5f712ff7f06ec0d52f8bfff2c07990efff86c00d907460facf919018608f30f59fac6013309a01006fb7302e0094d11b3fb20038d0afa1160fccd033a0ba7120dfd7a04e70b5413bafd2705940c011467fed405410dae1414ff8106ee0d5b15c1ff2e079b0e08166e00db07480fb5161b018808f50f6217c8013509a2100f187502e2094f11bc1822038f0afc116919cf033c0ba912161a7c04e90b5613c31a2905960c0314701bd605430db0141d1c8306f00d5d15ca1c30079d0e0a16771ddd074a0fb716241e8a08f70f6417d11e3709a41011187e1fe4095111be182b20910afe116b19d8203e0bab12181a8521eb0b5813c51a3222980c0514721bdf22450db2141f1c8c23f20d5f15cc1c39249f0e0c16791de6244c0fb916261e9325f90f6617d31e4026a6101318801fed265311c0182d209a27",
+    "37.wav": "524946461e04000057415645666d742028000000feff0500803e0000007102000a00100016001000370000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e313030000064617461c003000020d18dd8fadf67e7d4eecdd13ad9a7e014e881ef7ad2e7d954e1c1e82ef027d394da01e26ee9dbf0d4d341dbaee21bea88f181d4eedb5be3c8ea35f22ed59bdc08e475ebe2f2dbd548ddb5e422ec8ff388d6f5dd62e5cfec3cf435d7a2de0fe67cede9f4e2d74fdfbce629ee96f58fd8fcdf69e7d6ee43f63cd9a9e016e883eff0f6e9d956e1c3e830f09df796da03e270e9ddf04af843dbb0e21dea8af1f7f8f0db5de3caea37f2a4f99ddc0ae477ebe4f251fa4addb7e424ec91f3fefaf7dd64e5d1ec3ef4abfba4de11e67eedebf458fc51dfbee62bee98f505fdfedf6be7d8ee45f6b2fdabe018e885eff2f65ffe58e1c5e832f09ff70cff05e272e9dff04cf8b9ffb2e21fea8cf1f9f866005fe3ccea39f2a6f913010ce479ebe6f253fac001b9e426ec93f300fb6d0266e5d3ec40f4adfb1a0313e680ededf45afcc703c0e62dee9af507fd74046de7daee47f6b4fd21051ae887eff4f661fece05c7e834f0a1f70eff7b0674e9e1f04ef8bbff280721ea8ef1fbf86800d507ceea3bf2a8f9150182087bebe8f255fac2012f0928ec95f302fb6f02dc09d5ec42f4affb1c03890a82edeff45cfcc903360b2fee9cf509fd7604e30bdcee49f6b6fd2305900c89eff6f663fed0053d0d36f0a3f710ff7d06ea0de3f050f8bdff2a07970e90f1fdf86a00d707440f3df2aaf917018408f10feaf257fac40131099e1097f304fb7102de094b1144f4b1fb1e038b0af811f1f45efccb03380ba5129ef50bfd7804e50b52134bf6b8fd2505920cff13f8f665fed2053f0dac14a5f712ff7f06ec0d591552f8bfff2c07990e0616fff86c00d907460fb316acf919018608f30f601759fac6013309a0100d1806fb7302e0094d11ba18b3fb20038d0afa11671960fccd033a0ba712141a0dfd7a04e70b5413c11abafd2705940c01146e1b67fed405410dae141b1c14ff8106ee0d5b15c81cc1ff2e079b0e0816751d6e00db07480fb516221e1b018808f50f6217cf1ec8013509a2100f187c1f7502e2094f11bc18292022038f0afc116919d620cf033c0ba912161a83217c04e90b5613c31a30222905960c0314701bdd22d605430db0141d1c8a238306f00d5d15ca1c372430079d0e0a16771de424dd074a0fb716241e91258a08f70f6417d11e3e263709a41011187e1feb26e4095111be182b209827910afe116b19d82045283e0bab12181a8521f228eb0b5813c51a32229f29980c0514721bdf224c2a450db2141f1c8c23f92af20d5f15cc1c3924a62b9f0e0c16791de624532c4c0fb916261e9325002df90f6617d31e4026ad2da6101318801fed265a2e5311c0182d209a2746d1",
+    "3f.wav": "52494646de04000057415645666d742028000000feff0600803e000000ee02000c001000160010003f0000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174618004000020d18dd8fadf67e7d4ee41f6cdd13ad9a7e014e881efeef67ad2e7d954e1c1e82ef09bf727d394da01e26ee9dbf048f8d4d341dbaee21bea88f1f5f881d4eedb5be3c8ea35f2a2f92ed59bdc08e475ebe2f24ffadbd548ddb5e422ec8ff3fcfa88d6f5dd62e5cfec3cf4a9fb35d7a2de0fe67cede9f456fce2d74fdfbce629ee96f503fd8fd8fcdf69e7d6ee43f6b0fd3cd9a9e016e883eff0f65dfee9d956e1c3e830f09df70aff96da03e270e9ddf04af8b7ff43dbb0e21dea8af1f7f86400f0db5de3caea37f2a4f911019ddc0ae477ebe4f251fabe014addb7e424ec91f3fefa6b02f7dd64e5d1ec3ef4abfb1803a4de11e67eedebf458fcc50351dfbee62bee98f505fd7204fedf6be7d8ee45f6b2fd1f05abe018e885eff2f65ffecc0558e1c5e832f09ff70cff790605e272e9dff04cf8b9ff2607b2e21fea8cf1f9f86600d3075fe3ccea39f2a6f9130180080ce479ebe6f253fac0012d09b9e426ec93f300fb6d02da0966e5d3ec40f4adfb1a03870a13e680ededf45afcc703340bc0e62dee9af507fd7404e10b6de7daee47f6b4fd21058e0c1ae887eff4f661fece053b0dc7e834f0a1f70eff7b06e80d74e9e1f04ef8bbff2807950e21ea8ef1fbf86800d507420fceea3bf2a8f915018208ef0f7bebe8f255fac2012f099c1028ec95f302fb6f02dc094911d5ec42f4affb1c03890af61182edeff45cfcc903360ba3122fee9cf509fd7604e30b5013dcee49f6b6fd2305900cfd1389eff6f663fed0053d0daa1436f0a3f710ff7d06ea0d5715e3f050f8bdff2a07970e041690f1fdf86a00d707440fb1163df2aaf917018408f10f5e17eaf257fac40131099e100b1897f304fb7102de094b11b81844f4b1fb1e038b0af8116519f1f45efccb03380ba512121a9ef50bfd7804e50b5213bf1a4bf6b8fd2505920cff136c1bf8f665fed2053f0dac14191ca5f712ff7f06ec0d5915c61c52f8bfff2c07990e0616731dfff86c00d907460fb316201eacf919018608f30f6017cd1e59fac6013309a0100d187a1f06fb7302e0094d11ba182720b3fb20038d0afa116719d42060fccd033a0ba712141a81210dfd7a04e70b5413c11a2e22bafd2705940c01146e1bdb2267fed405410dae141b1c882314ff8106ee0d5b15c81c3524c1ff2e079b0e0816751de2246e00db07480fb516221e8f251b018808f50f6217cf1e3c26c8013509a2100f187c1fe9267502e2094f11bc182920962722038f0afc116919d6204328cf033c0ba912161a8321f0287c04e90b5613c31a30229d292905960c0314701bdd224a2ad605430db0141d1c8a23f72a8306f00d5d15ca1c3724a42b30079d0e0a16771de424512cdd074a0fb716241e9125fe2c8a08f70f6417d11e3e26ab2d3709a41011187e1feb26582ee4095111be182b20982744d1910afe116b19d8204528f1d13e0bab12181a8521f2289ed2eb0b5813c51a32229f294bd3980c0514721bdf224c2af8d3450db2141f1c8c23f92aa5d4f20d5f15cc1c3924a62b52d59f0e0c16791de624532cffd54c0fb916261e9325002dacd6f90f6617d31e4026ad2d59d7a6101318801fed265a2e06d85311c0182d209a2746d1b3d8",
+    "60f.wav": "52494646de04000057415645666d742028000000feff0600803e000000ee02000c001000160010000f0600000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174618004000020d18dd8fadf67e7d4ee41f6cdd13ad9a7e014e881efeef67ad2e7d954e1c1e82ef09bf727d394da01e26ee9dbf048f8d4d341dbaee21bea88f1f5f881d4eedb5be3c8ea35f2a2f92ed59bdc08e475ebe2f24ffadbd548ddb5e422ec8ff3fcfa88d6f5dd62e5cfec3cf4a9fb35d7a2de0fe67cede9f456fce2d74fdfbce629ee96f503fd8fd8fcdf69e7d6ee43f6b0fd3cd9a9e016e883eff0f65dfee9d956e1c3e830f09df70aff96da03e270e9ddf04af8b7ff43dbb0e21dea8af1f7f86400f0db5de3caea37f2a4f911019ddc0ae477ebe4f251fabe014addb7e424ec91f3fefa6b02f7dd64e5d1ec3ef4abfb1803a4de11e67eedebf458fcc50351dfbee62bee98f505fd7204fedf6be7d8ee45f6b2fd1f05abe018e885eff2f65ffecc0558e1c5e832f09ff70cff790605e272e9dff04cf8b9ff2607b2e21fea8cf1f9f86600d3075fe3ccea39f2a6f9130180080ce479ebe6f253fac0012d09b9e426ec93f300fb6d02da0966e5d3ec40f4adfb1a03870a13e680ededf45afcc703340bc0e62dee9af507fd7404e10b6de7daee47f6b4fd21058e0c1ae887eff4f661fece053b0dc7e834f0a1f70eff7b06e80d74e9e1f04ef8bbff2807950e21ea8ef1fbf86800d507420fceea3bf2a8f915018208ef0f7bebe8f255fac2012f099c1028ec95f302fb6f02dc094911d5ec42f4affb1c03890af61182edeff45cfcc903360ba3122fee9cf509fd7604e30b5013dcee49f6b6fd2305900cfd1389eff6f663fed0053d0daa1436f0a3f710ff7d06ea0d5715e3f050f8bdff2a07970e041690f1fdf86a00d707440fb1163df2aaf917018408f10f5e17eaf257fac40131099e100b1897f304fb7102de094b11b81844f4b1fb1e038b0af8116519f1f45efccb03380ba512121a9ef50bfd7804e50b5213bf1a4bf6b8fd2505920cff136c1bf8f665fed2053f0dac14191ca5f712ff7f06ec0d5915c61c52f8bfff2c07990e0616731dfff86c00d907460fb316201eacf919018608f30f6017cd1e59fac6013309a0100d187a1f06fb7302e0094d11ba182720b3fb20038d0afa116719d42060fccd033a0ba712141a81210dfd7a04e70b5413c11a2e22bafd2705940c01146e1bdb2267fed405410dae141b1c882314ff8106ee0d5b15c81c3524c1ff2e079b0e0816751de2246e00db07480fb516221e8f251b018808f50f6217cf1e3c26c8013509a2100f187c1fe9267502e2094f11bc182920962722038f0afc116919d6204328cf033c0ba912161a8321f0287c04e90b5613c31a30229d292905960c0314701bdd224a2ad605430db0141d1c8a23f72a8306f00d5d15ca1c3724a42b30079d0e0a16771de424512cdd074a0fb716241e9125fe2c8a08f70f6417d11e3e26ab2d3709a41011187e1feb26582ee4095111be182b20982744d1910afe116b19d8204528f1d13e0bab12181a8521f2289ed2eb0b5813c51a32229f294bd3980c0514721bdf224c2af8d3450db2141f1c8c23f92aa5d4f20d5f15cc1c3924a62b52d59f0e0c16791de624532cffd54c0fb916261e9325002dacd6f90f6617d31e4026ad2d59d7a6101318801fed265a2e06d85311c0182d209a2746d1b3d8",
+    "63f.wav": "524946465e06000057415645666d742028000000feff0800803e000000e8030010001000160010003f0600000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e3130300000646174610006000020d18dd8fadf67e7d4ee41f6aefd1b05cdd13ad9a7e014e881efeef65bfec8057ad2e7d954e1c1e82ef09bf708ff750627d394da01e26ee9dbf048f8b5ff2207d4d341dbaee21bea88f1f5f86200cf0781d4eedb5be3c8ea35f2a2f90f017c082ed59bdc08e475ebe2f24ffabc012909dbd548ddb5e422ec8ff3fcfa6902d60988d6f5dd62e5cfec3cf4a9fb1603830a35d7a2de0fe67cede9f456fcc303300be2d74fdfbce629ee96f503fd7004dd0b8fd8fcdf69e7d6ee43f6b0fd1d058a0c3cd9a9e016e883eff0f65dfeca05370de9d956e1c3e830f09df70aff7706e40d96da03e270e9ddf04af8b7ff2407910e43dbb0e21dea8af1f7f86400d1073e0ff0db5de3caea37f2a4f911017e08eb0f9ddc0ae477ebe4f251fabe012b0998104addb7e424ec91f3fefa6b02d8094511f7dd64e5d1ec3ef4abfb1803850af211a4de11e67eedebf458fcc503320b9f1251dfbee62bee98f505fd7204df0b4c13fedf6be7d8ee45f6b2fd1f058c0cf913abe018e885eff2f65ffecc05390da61458e1c5e832f09ff70cff7906e60d531505e272e9dff04cf8b9ff2607930e0016b2e21fea8cf1f9f86600d307400fad165fe3ccea39f2a6f913018008ed0f5a170ce479ebe6f253fac0012d099a100718b9e426ec93f300fb6d02da094711b41866e5d3ec40f4adfb1a03870af411611913e680ededf45afcc703340ba1120e1ac0e62dee9af507fd7404e10b4e13bb1a6de7daee47f6b4fd21058e0cfb13681b1ae887eff4f661fece053b0da814151cc7e834f0a1f70eff7b06e80d5515c21c74e9e1f04ef8bbff2807950e02166f1d21ea8ef1fbf86800d507420faf161c1eceea3bf2a8f915018208ef0f5c17c91e7bebe8f255fac2012f099c100918761f28ec95f302fb6f02dc094911b6182320d5ec42f4affb1c03890af6116319d02082edeff45cfcc903360ba312101a7d212fee9cf509fd7604e30b5013bd1a2a22dcee49f6b6fd2305900cfd136a1bd72289eff6f663fed0053d0daa14171c842336f0a3f710ff7d06ea0d5715c41c3124e3f050f8bdff2a07970e0416711dde2490f1fdf86a00d707440fb1161e1e8b253df2aaf917018408f10f5e17cb1e3826eaf257fac40131099e100b18781fe52697f304fb7102de094b11b8182520922744f4b1fb1e038b0af8116519d2203f28f1f45efccb03380ba512121a7f21ec289ef50bfd7804e50b5213bf1a2c2299294bf6b8fd2505920cff136c1bd922462af8f665fed2053f0dac14191c8623f32aa5f712ff7f06ec0d5915c61c3324a02b52f8bfff2c07990e0616731de0244d2cfff86c00d907460fb316201e8d25fa2cacf919018608f30f6017cd1e3a26a72d59fac6013309a0100d187a1fe726542e06fb7302e0094d11ba182720942740d1b3fb20038d0afa116719d4204128edd160fccd033a0ba712141a8121ee289ad20dfd7a04e70b5413c11a2e229b2947d3bafd2705940c01146e1bdb22482af4d367fed405410dae141b1c8823f52aa1d414ff8106ee0d5b15c81c3524a22b4ed5c1ff2e079b0e0816751de2244f2cfbd56e00db07480fb516221e8f25fc2ca8d61b018808f50f6217cf1e3c26a92d55d7c8013509a2100f187c1fe926562e02d87502e2094f11bc182920962742d1afd822038f0afc116919d6204328efd15cd9cf033c0ba912161a8321f0289cd209da7c04e90b5613c31a30229d2949d3b6da2905960c0314701bdd224a2af6d363dbd605430db0141d1c8a23f72aa3d410dc8306f00d5d15ca1c3724a42b50d5bddc30079d0e0a16771de424512cfdd56adddd074a0fb716241e9125fe2caad617de8a08f70f6417d11e3e26ab2d57d7c4de3709a41011187e1feb26582e04d871dfe4095111be182b20982744d1b1d81ee0910afe116b19d8204528f1d15ed9cbe03e0bab12181a8521f2289ed20bda78e1eb0b5813c51a32229f294bd3b8da25e2980c0514721bdf224c2af8d365dbd2e2450db2141f1c8c23f92aa5d412dc7fe3f20d5f15cc1c3924a62b52d5bfdc2ce49f0e0c16791de624532cffd56cddd9e44c0fb916261e9325002dacd619de86e5f90f6617d31e4026ad2d59d7c6de33e6a6101318801fed265a2e06d873dfe0e65311c0182d209a2746d1b3d820e08de7",
+    "s32le.wav": "524946467e00000057415645666d742028000000feff0200401f000000fa00000800200016002000030000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636312e312e31303000006461746120000000fffffe7f01000180ffffff3f010000c0ffffff7f00000080ffff00000100ffff",
+    "f64le.wav": "524946469400000057415645666d74201200000003000200401f000000f401001000400000006661637404000000040000004c4953541a000000494e464f495346540d0000004c61766636312e312e31303000006461746140000000748ffc3add9abf3f2810483cdd9aefbf95d626e80b2e113e95d626e80b2e11bea18f76ffffffef3fa18f76ffffffefbfc0f936000000c03fc0f936000000c0bf"
+  },
+  "inputProbes": {
+    "c.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 2,
+          "channel_layout": "2 channels (FC+LFE)"
+        }
+      ]
+    },
+    "3.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 2
+        }
+      ]
+    },
+    "4.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 1
+        }
+      ]
+    },
+    "7.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 3,
+          "channel_layout": "3.0"
+        }
+      ]
+    },
+    "33.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 4,
+          "channel_layout": "quad"
+        }
+      ]
+    },
+    "107.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 4,
+          "channel_layout": "4.0"
+        }
+      ]
+    },
+    "37.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 5,
+          "channel_layout": "5.0"
+        }
+      ]
+    },
+    "3f.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 6,
+          "channel_layout": "5.1"
+        }
+      ]
+    },
+    "60f.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 6,
+          "channel_layout": "5.1(side)"
+        }
+      ]
+    },
+    "63f.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "channels": 8,
+          "channel_layout": "7.1"
+        }
+      ]
+    },
+    "s32le.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s32le",
+          "channels": 2,
+          "channel_layout": "stereo"
+        }
+      ]
+    },
+    "f64le.wav": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_f64le",
+          "channels": 2
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "name": "concat-c-wav-preserve",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 12
+    },
+    {
+      "name": "concat-c-wav-stereo",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-c-wav-mono",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-c-wav-trim",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc",
+      "waveMask": 12
+    },
+    {
+      "name": "concat-c-w64-preserve",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 12
+    },
+    {
+      "name": "concat-c-w64-stereo",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-c-w64-mono",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-c-w64-trim",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc",
+      "waveMask": 12
+    },
+    {
+      "name": "concat-c-s16le-preserve",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "4a38a979f7464d31b6eb4b6f41efefd9eab3c3d0a128c92579d61f3d05eda3ed"
+    },
+    {
+      "name": "concat-c-s16le-stereo",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "cf7050e0e04e1b2995650f913a8caa2180fa4bf6abcbbf4791b7a9a8b33a329e"
+    },
+    {
+      "name": "concat-c-s16le-mono",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "2ba382301fbc45df8e53ab8d8fa3545ba66e22e80ff22632aeec8ce53988c9c8"
+    },
+    {
+      "name": "concat-c-s16le-trim",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "69eab37d331771d033c63052310ed46e6f9de6aaafe6a066341d29249a7234f7"
+    },
+    {
+      "name": "concat-c-mov-preserve",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761"
+    },
+    {
+      "name": "concat-c-mov-stereo",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01"
+    },
+    {
+      "name": "concat-c-mov-mono",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29"
+    },
+    {
+      "name": "concat-c-mov-trim",
+      "args": [
+        "-i",
+        "c.wav",
+        "-i",
+        "c.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "2 channels (FC+LFE)"
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc"
+    },
+    {
+      "name": "concat-3-wav-preserve",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-wav-stereo",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-wav-mono",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "2f8f38727c97cbd37b6b065b60991f41f48aefe9553e725ab6278ea91c131d82",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-wav-trim",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-w64-preserve",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-w64-stereo",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-w64-mono",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "2f8f38727c97cbd37b6b065b60991f41f48aefe9553e725ab6278ea91c131d82",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-w64-trim",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3-s16le-preserve",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "4a38a979f7464d31b6eb4b6f41efefd9eab3c3d0a128c92579d61f3d05eda3ed"
+    },
+    {
+      "name": "concat-3-s16le-stereo",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "4a38a979f7464d31b6eb4b6f41efefd9eab3c3d0a128c92579d61f3d05eda3ed"
+    },
+    {
+      "name": "concat-3-s16le-mono",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "423b1d990a06b21db3340cc9ee8c11f1bf90a03b58cb31583f043f844376ef49"
+    },
+    {
+      "name": "concat-3-s16le-trim",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "69eab37d331771d033c63052310ed46e6f9de6aaafe6a066341d29249a7234f7"
+    },
+    {
+      "name": "concat-3-mov-preserve",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761"
+    },
+    {
+      "name": "concat-3-mov-stereo",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "73121847bead604b95e4754680aceec49adbcbb8f25b8c889aac4bf6e4b84761"
+    },
+    {
+      "name": "concat-3-mov-mono",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "2f8f38727c97cbd37b6b065b60991f41f48aefe9553e725ab6278ea91c131d82"
+    },
+    {
+      "name": "concat-3-mov-trim",
+      "args": [
+        "-i",
+        "3.wav",
+        "-i",
+        "3.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "f8333bf4c24004e974eddb6423b91a21da4f44921deb679966255961866de4bc"
+    },
+    {
+      "name": "concat-4-wav-preserve",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-wav-stereo",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-wav-mono",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-wav-trim",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "3cb2f7e762a2b1a071960de13d644b9f472183b4a7d825cb4820026dce39dcd7",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-w64-preserve",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-w64-stereo",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-w64-mono",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-w64-trim",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "3cb2f7e762a2b1a071960de13d644b9f472183b4a7d825cb4820026dce39dcd7",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-4-s16le-preserve",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "2ba382301fbc45df8e53ab8d8fa3545ba66e22e80ff22632aeec8ce53988c9c8"
+    },
+    {
+      "name": "concat-4-s16le-stereo",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "cf7050e0e04e1b2995650f913a8caa2180fa4bf6abcbbf4791b7a9a8b33a329e"
+    },
+    {
+      "name": "concat-4-s16le-mono",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "2ba382301fbc45df8e53ab8d8fa3545ba66e22e80ff22632aeec8ce53988c9c8"
+    },
+    {
+      "name": "concat-4-s16le-trim",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "0d65259b17c1e41c94a4b11d42735d21b8a62079cd206bbe030a0c574a1330a0"
+    },
+    {
+      "name": "concat-4-mov-preserve",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29"
+    },
+    {
+      "name": "concat-4-mov-stereo",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "448f15d211e35023a3a56c348b975aeaf3807552eefa68cbe9f1129594ac0e01"
+    },
+    {
+      "name": "concat-4-mov-mono",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "03b157f0cd3e84eddef033035d5a27f28e00a25291a0fc96f2dcde448679de29"
+    },
+    {
+      "name": "concat-4-mov-trim",
+      "args": [
+        "-i",
+        "4.wav",
+        "-i",
+        "4.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "3cb2f7e762a2b1a071960de13d644b9f472183b4a7d825cb4820026dce39dcd7"
+    },
+    {
+      "name": "concat-7-wav-preserve",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a78227934caa5e6be3d340b4b30ffac61ed613baddf84bfb9d14667b1d88437d",
+      "waveMask": 7
+    },
+    {
+      "name": "concat-7-wav-stereo",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f05841139c432659d2207023c5830feb7f46bdcf5d9988a91bae963e68fae5fc",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-7-wav-mono",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "b1a26b72b599e0061b4add9bddc5d4b53b622d649d9812683f8028a6295dae1d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-7-wav-trim",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a0008d915d17e6e9ec7a30b6afdc112414ab454d60041c15de67a99540594308",
+      "waveMask": 7
+    },
+    {
+      "name": "concat-7-w64-preserve",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a78227934caa5e6be3d340b4b30ffac61ed613baddf84bfb9d14667b1d88437d",
+      "waveMask": 7
+    },
+    {
+      "name": "concat-7-w64-stereo",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f05841139c432659d2207023c5830feb7f46bdcf5d9988a91bae963e68fae5fc",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-7-w64-mono",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "b1a26b72b599e0061b4add9bddc5d4b53b622d649d9812683f8028a6295dae1d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-7-w64-trim",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a0008d915d17e6e9ec7a30b6afdc112414ab454d60041c15de67a99540594308",
+      "waveMask": 7
+    },
+    {
+      "name": "concat-7-s16le-preserve",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "6318a5810f0a95423ce780318d966ad23f44f42544a756bd0cb8c45b6777edcf"
+    },
+    {
+      "name": "concat-7-s16le-stereo",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "023703a4064f53fe99550a8375bca18d285ed7cbf013ddd0c709242fda2681cb"
+    },
+    {
+      "name": "concat-7-s16le-mono",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "95e06537990d8fa8a2f43240cc38d27bd1c90e9124248e6cd72ef92f88239f7b"
+    },
+    {
+      "name": "concat-7-s16le-trim",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "06836822d5ad2cf120e088b1a96f1217b87856555bf3d4aca33b0032386ac035"
+    },
+    {
+      "name": "concat-7-mov-preserve",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a78227934caa5e6be3d340b4b30ffac61ed613baddf84bfb9d14667b1d88437d"
+    },
+    {
+      "name": "concat-7-mov-stereo",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "f05841139c432659d2207023c5830feb7f46bdcf5d9988a91bae963e68fae5fc"
+    },
+    {
+      "name": "concat-7-mov-mono",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "b1a26b72b599e0061b4add9bddc5d4b53b622d649d9812683f8028a6295dae1d"
+    },
+    {
+      "name": "concat-7-mov-trim",
+      "args": [
+        "-i",
+        "7.wav",
+        "-i",
+        "7.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 3,
+            "channel_layout": "3.0"
+          }
+        ]
+      },
+      "pcmSha256": "a0008d915d17e6e9ec7a30b6afdc112414ab454d60041c15de67a99540594308"
+    },
+    {
+      "name": "concat-33-wav-preserve",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d",
+      "waveMask": 51
+    },
+    {
+      "name": "concat-33-wav-stereo",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "c82f22c43ce6c2fb9078d83c044e9d72954159e85f42b84eb94970346e1c1633",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-33-wav-mono",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "d123d80e10d28f881417316cddbf9f9c388dbd758683a4a16ff55cf0ea4346a1",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-33-wav-trim",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78",
+      "waveMask": 51
+    },
+    {
+      "name": "concat-33-w64-preserve",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d",
+      "waveMask": 51
+    },
+    {
+      "name": "concat-33-w64-stereo",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "c82f22c43ce6c2fb9078d83c044e9d72954159e85f42b84eb94970346e1c1633",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-33-w64-mono",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "d123d80e10d28f881417316cddbf9f9c388dbd758683a4a16ff55cf0ea4346a1",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-33-w64-trim",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78",
+      "waveMask": 51
+    },
+    {
+      "name": "concat-33-s16le-preserve",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "8dd7f5786db56a9f171324d02c3c0fb096651f8ff824e4338fd88da33ed0e93f"
+    },
+    {
+      "name": "concat-33-s16le-stereo",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "53d127ddb01c0b41b5dfa7858275222db80178de620ea70d6749f6022d6cff03"
+    },
+    {
+      "name": "concat-33-s16le-mono",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "fd7ac908f3274a8786ca6e401ee71aa762af1d3af428655b5d48534aa994b916"
+    },
+    {
+      "name": "concat-33-s16le-trim",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "06826490f9de49e553aeafe6e562e848def5938186a3205ec9c91a2f08728e27"
+    },
+    {
+      "name": "concat-33-mov-preserve",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d"
+    },
+    {
+      "name": "concat-33-mov-stereo",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "c82f22c43ce6c2fb9078d83c044e9d72954159e85f42b84eb94970346e1c1633"
+    },
+    {
+      "name": "concat-33-mov-mono",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "d123d80e10d28f881417316cddbf9f9c388dbd758683a4a16ff55cf0ea4346a1"
+    },
+    {
+      "name": "concat-33-mov-trim",
+      "args": [
+        "-i",
+        "33.wav",
+        "-i",
+        "33.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "quad"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78"
+    },
+    {
+      "name": "concat-107-wav-preserve",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d",
+      "waveMask": 263
+    },
+    {
+      "name": "concat-107-wav-stereo",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "48b0d5fdce0439c10acd6022d93c5d0e68a77760c2cb340333631e7a15a5ab83",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-107-wav-mono",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "e1ec1b51a26f628f686f38c872f55f1c79c2c5e2b3a355fa9dbe0476b4e265ab",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-107-wav-trim",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78",
+      "waveMask": 263
+    },
+    {
+      "name": "concat-107-w64-preserve",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d",
+      "waveMask": 263
+    },
+    {
+      "name": "concat-107-w64-stereo",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "48b0d5fdce0439c10acd6022d93c5d0e68a77760c2cb340333631e7a15a5ab83",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-107-w64-mono",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "e1ec1b51a26f628f686f38c872f55f1c79c2c5e2b3a355fa9dbe0476b4e265ab",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-107-w64-trim",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78",
+      "waveMask": 263
+    },
+    {
+      "name": "concat-107-s16le-preserve",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "8dd7f5786db56a9f171324d02c3c0fb096651f8ff824e4338fd88da33ed0e93f"
+    },
+    {
+      "name": "concat-107-s16le-stereo",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "6c5d6b03a8694492be9588a1a1ca56e3fc15fccb2ca40d861d021dc21e7345a8"
+    },
+    {
+      "name": "concat-107-s16le-mono",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "633abfaaab5a1c50f9da4514f90b4672652ccb712ef51e382ba4f3e90637085f"
+    },
+    {
+      "name": "concat-107-s16le-trim",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "06826490f9de49e553aeafe6e562e848def5938186a3205ec9c91a2f08728e27"
+    },
+    {
+      "name": "concat-107-mov-preserve",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "8e4ec368711341d4d605a720f96aa3850c48c376a44de79ada4e77f629d06d7d"
+    },
+    {
+      "name": "concat-107-mov-stereo",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "48b0d5fdce0439c10acd6022d93c5d0e68a77760c2cb340333631e7a15a5ab83"
+    },
+    {
+      "name": "concat-107-mov-mono",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "e1ec1b51a26f628f686f38c872f55f1c79c2c5e2b3a355fa9dbe0476b4e265ab"
+    },
+    {
+      "name": "concat-107-mov-trim",
+      "args": [
+        "-i",
+        "107.wav",
+        "-i",
+        "107.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 4,
+            "channel_layout": "4.0"
+          }
+        ]
+      },
+      "pcmSha256": "e2614a3e3344c0dfcc2ec2a5331706f2bbfa5e782bdd5b463c8ce3389bbe5e78"
+    },
+    {
+      "name": "concat-37-wav-preserve",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "904e249fafd42620d9669f0e0b434d82782a6c8499bb98a51fe5133bf8ec62a4",
+      "waveMask": 55
+    },
+    {
+      "name": "concat-37-wav-stereo",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f823ed7a7af0fe0defa0431b8af1c690bc6d2c5cdd003969a848458ce7f884f2",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-37-wav-mono",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "911278fa28c3d5c487ef4104e1dbf7226c74a0c2d807da687399768f7d0ab8d2",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-37-wav-trim",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "ab130b28e03f5c49d4f3ac069b7dcad65c6fb57ca10c39f19a618addcf8bd453",
+      "waveMask": 55
+    },
+    {
+      "name": "concat-37-w64-preserve",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "904e249fafd42620d9669f0e0b434d82782a6c8499bb98a51fe5133bf8ec62a4",
+      "waveMask": 55
+    },
+    {
+      "name": "concat-37-w64-stereo",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "f823ed7a7af0fe0defa0431b8af1c690bc6d2c5cdd003969a848458ce7f884f2",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-37-w64-mono",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "911278fa28c3d5c487ef4104e1dbf7226c74a0c2d807da687399768f7d0ab8d2",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-37-w64-trim",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "ab130b28e03f5c49d4f3ac069b7dcad65c6fb57ca10c39f19a618addcf8bd453",
+      "waveMask": 55
+    },
+    {
+      "name": "concat-37-s16le-preserve",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "6f725de4b99bf89e48a52c10b084cc3cca6263216826e41fd5c65f0d37c0c8e4"
+    },
+    {
+      "name": "concat-37-s16le-stereo",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "9f3f5c04057058af375e7758b3a017516dcddeb51897857d6fec9ea9876d84f0"
+    },
+    {
+      "name": "concat-37-s16le-mono",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "d3e3451b4b52cd30daeb94103158be754c3b2e42cf5a1465b432d95c4dbb7165"
+    },
+    {
+      "name": "concat-37-s16le-trim",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "e60c809b86b22e0ac4f41ae53c9c03686e8ba6b7dd972c38f3121dc482e3c2b0"
+    },
+    {
+      "name": "concat-37-mov-preserve",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "904e249fafd42620d9669f0e0b434d82782a6c8499bb98a51fe5133bf8ec62a4"
+    },
+    {
+      "name": "concat-37-mov-stereo",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "f823ed7a7af0fe0defa0431b8af1c690bc6d2c5cdd003969a848458ce7f884f2"
+    },
+    {
+      "name": "concat-37-mov-mono",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "911278fa28c3d5c487ef4104e1dbf7226c74a0c2d807da687399768f7d0ab8d2"
+    },
+    {
+      "name": "concat-37-mov-trim",
+      "args": [
+        "-i",
+        "37.wav",
+        "-i",
+        "37.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 5,
+            "channel_layout": "5.0"
+          }
+        ]
+      },
+      "pcmSha256": "ab130b28e03f5c49d4f3ac069b7dcad65c6fb57ca10c39f19a618addcf8bd453"
+    },
+    {
+      "name": "concat-3f-wav-preserve",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a",
+      "waveMask": 63
+    },
+    {
+      "name": "concat-3f-wav-stereo",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3f-wav-mono",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3f-wav-trim",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54",
+      "waveMask": 63
+    },
+    {
+      "name": "concat-3f-w64-preserve",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a",
+      "waveMask": 63
+    },
+    {
+      "name": "concat-3f-w64-stereo",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3f-w64-mono",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-3f-w64-trim",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54",
+      "waveMask": 63
+    },
+    {
+      "name": "concat-3f-s16le-preserve",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "2682e039597412856d7a3e62a89f7c9b6e5ea9e8bdc0aa33b4368596cc279eb3"
+    },
+    {
+      "name": "concat-3f-s16le-stereo",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "c61061860fe952608a3254f0324d910a12aa8c1da98e93a96d1e25579e00d6eb"
+    },
+    {
+      "name": "concat-3f-s16le-mono",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "58ab9fc308ff8464e069f2d94b005a45941bacda2f95106c83927218985ff28e"
+    },
+    {
+      "name": "concat-3f-s16le-trim",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "dd0dc0de32306d85c0addf4237a45eaccad237156e268face619458f95ac8037"
+    },
+    {
+      "name": "concat-3f-mov-preserve",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a"
+    },
+    {
+      "name": "concat-3f-mov-stereo",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173"
+    },
+    {
+      "name": "concat-3f-mov-mono",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d"
+    },
+    {
+      "name": "concat-3f-mov-trim",
+      "args": [
+        "-i",
+        "3f.wav",
+        "-i",
+        "3f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54"
+    },
+    {
+      "name": "concat-60f-wav-preserve",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a",
+      "waveMask": 1551
+    },
+    {
+      "name": "concat-60f-wav-stereo",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-60f-wav-mono",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-60f-wav-trim",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54",
+      "waveMask": 1551
+    },
+    {
+      "name": "concat-60f-w64-preserve",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a",
+      "waveMask": 1551
+    },
+    {
+      "name": "concat-60f-w64-stereo",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-60f-w64-mono",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-60f-w64-trim",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54",
+      "waveMask": 1551
+    },
+    {
+      "name": "concat-60f-s16le-preserve",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "2682e039597412856d7a3e62a89f7c9b6e5ea9e8bdc0aa33b4368596cc279eb3"
+    },
+    {
+      "name": "concat-60f-s16le-stereo",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "c61061860fe952608a3254f0324d910a12aa8c1da98e93a96d1e25579e00d6eb"
+    },
+    {
+      "name": "concat-60f-s16le-mono",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "58ab9fc308ff8464e069f2d94b005a45941bacda2f95106c83927218985ff28e"
+    },
+    {
+      "name": "concat-60f-s16le-trim",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "dd0dc0de32306d85c0addf4237a45eaccad237156e268face619458f95ac8037"
+    },
+    {
+      "name": "concat-60f-mov-preserve",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d1c6bc872ab99db6ad00a20f6d8085576a0e168b59fca3357069001c9dad2b0a"
+    },
+    {
+      "name": "concat-60f-mov-stereo",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "8e3505ab18a2e1d63730f0c3b84c7fb30fa15ff7897f3a3e3845fa0b4c015173"
+    },
+    {
+      "name": "concat-60f-mov-mono",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "f5377f29606c90621aa42a199fc0633e91d7ecee8925ba69c8a4e8e48dbdd44d"
+    },
+    {
+      "name": "concat-60f-mov-trim",
+      "args": [
+        "-i",
+        "60f.wav",
+        "-i",
+        "60f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 6,
+            "channel_layout": "5.1(side)"
+          }
+        ]
+      },
+      "pcmSha256": "d0cf79da3811d477630c55b2bd904db0620feecf07d2df8f195efdc301044e54"
+    },
+    {
+      "name": "concat-63f-wav-preserve",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "b820d36a4376a0bd0ab2bcc8db9dc85f5ef81c95b351526f1f9cf4a1b55bfe6e",
+      "waveMask": 1599
+    },
+    {
+      "name": "concat-63f-wav-stereo",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "41cc5d32fd5c046a5ad35e4fb2107335a4c90f4808ad30170a8cffc51c716753",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-63f-wav-mono",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f3385c83a260e380346eca9731cc10b75eabf81f60997115b9393867b8b5c584",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-63f-wav-trim",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "a5dffe16bc9cf55437e26865feb05070630627ecc6ef3053d4750414c1ef9010",
+      "waveMask": 1599
+    },
+    {
+      "name": "concat-63f-w64-preserve",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "b820d36a4376a0bd0ab2bcc8db9dc85f5ef81c95b351526f1f9cf4a1b55bfe6e",
+      "waveMask": 1599
+    },
+    {
+      "name": "concat-63f-w64-stereo",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "41cc5d32fd5c046a5ad35e4fb2107335a4c90f4808ad30170a8cffc51c716753",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-63f-w64-mono",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1
+          }
+        ]
+      },
+      "pcmSha256": "f3385c83a260e380346eca9731cc10b75eabf81f60997115b9393867b8b5c584",
+      "waveMask": 0
+    },
+    {
+      "name": "concat-63f-w64-trim",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "w64",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "a5dffe16bc9cf55437e26865feb05070630627ecc6ef3053d4750414c1ef9010",
+      "waveMask": 1599
+    },
+    {
+      "name": "concat-63f-s16le-preserve",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "42fc3deaaaf425a2a7586bc289d68cdfefbb96c398a16247c3f3fcfd81cf1727"
+    },
+    {
+      "name": "concat-63f-s16le-stereo",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "45ca62472b36074489cfd9af6c1bb27cd364a146ad5a58821e9fe56b1992f1c4"
+    },
+    {
+      "name": "concat-63f-s16le-mono",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "36e3718225ebeaab7bfd0ef562e62cce1940ebf55d97f3b7f702e0722a2938c4"
+    },
+    {
+      "name": "concat-63f-s16le-trim",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "s16le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "867987858edde628b676d1be6446dce1f7ba427ffbdb545cfd89e9bc80cd7398"
+    },
+    {
+      "name": "concat-63f-mov-preserve",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "b820d36a4376a0bd0ab2bcc8db9dc85f5ef81c95b351526f1f9cf4a1b55bfe6e"
+    },
+    {
+      "name": "concat-63f-mov-stereo",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "2",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "41cc5d32fd5c046a5ad35e4fb2107335a4c90f4808ad30170a8cffc51c716753"
+    },
+    {
+      "name": "concat-63f-mov-mono",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ac",
+        "1",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 1,
+            "channel_layout": "mono"
+          }
+        ]
+      },
+      "pcmSha256": "f3385c83a260e380346eca9731cc10b75eabf81f60997115b9393867b8b5c584"
+    },
+    {
+      "name": "concat-63f-mov-trim",
+      "args": [
+        "-i",
+        "63f.wav",
+        "-i",
+        "63f.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s16le",
+        "-ss",
+        "0.002",
+        "-t",
+        "0.003",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "channels": 8,
+            "channel_layout": "7.1"
+          }
+        ]
+      },
+      "pcmSha256": "a5dffe16bc9cf55437e26865feb05070630627ecc6ef3053d4750414c1ef9010"
+    },
+    {
+      "name": "precision-s32le-wav",
+      "args": [
+        "-i",
+        "s32le.wav",
+        "-i",
+        "s32le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s32le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s32le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "002b8e1205f8168134864a0ddfbb390ba0ab2266f50136e57222fad8e3480343"
+    },
+    {
+      "name": "precision-s32le-mov",
+      "args": [
+        "-i",
+        "s32le.wav",
+        "-i",
+        "s32le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s32le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s32le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "002b8e1205f8168134864a0ddfbb390ba0ab2266f50136e57222fad8e3480343"
+    },
+    {
+      "name": "precision-s32le-s32le",
+      "args": [
+        "-i",
+        "s32le.wav",
+        "-i",
+        "s32le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_s32le",
+        "-f",
+        "s32le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "ef32d52b38d0923a7a18814c9fc7a7fe155ea3f027d3f81c8c2585c7eb5d6e09"
+    },
+    {
+      "name": "precision-f64le-wav",
+      "args": [
+        "-i",
+        "f64le.wav",
+        "-i",
+        "f64le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_f64le",
+        "-f",
+        "wav",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_f64le",
+            "channels": 2
+          }
+        ]
+      },
+      "pcmSha256": "186ab36510965c4e806373e0bc06e9da49b0fcf2bc22402ab08f14f675855e2b"
+    },
+    {
+      "name": "precision-f64le-mov",
+      "args": [
+        "-i",
+        "f64le.wav",
+        "-i",
+        "f64le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_f64le",
+        "-f",
+        "mov",
+        "output"
+      ],
+      "exit": 0,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_f64le",
+            "channels": 2,
+            "channel_layout": "stereo"
+          }
+        ]
+      },
+      "pcmSha256": "186ab36510965c4e806373e0bc06e9da49b0fcf2bc22402ab08f14f675855e2b"
+    },
+    {
+      "name": "precision-f64le-f64le",
+      "args": [
+        "-i",
+        "f64le.wav",
+        "-i",
+        "f64le.wav",
+        "-filter_complex",
+        "concat=n=2:v=0:a=1",
+        "-c:a",
+        "pcm_f64le",
+        "-f",
+        "f64le",
+        "output"
+      ],
+      "exit": 0,
+      "rawSha256": "186ab36510965c4e806373e0bc06e9da49b0fcf2bc22402ab08f14f675855e2b"
+    }
+  ]
+}

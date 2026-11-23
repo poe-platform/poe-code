@@ -14,14 +14,26 @@ enum Walk {
     RenameEntry,
 }
 
-fn file_times((atime_ms, mtime_ms): (Option<f64>, Option<f64>)) -> Result<std::fs::FileTimes, String> {
+fn file_times(
+    (atime_ms, mtime_ms): (Option<f64>, Option<f64>),
+) -> Result<std::fs::FileTimes, String> {
     let time = |ms: f64| {
-        let duration = Duration::try_from_secs_f64(ms.abs() / 1000.0).map_err(|_| "EOVERFLOW: file timestamp")?;
-        if ms < 0.0 { UNIX_EPOCH.checked_sub(duration) } else { UNIX_EPOCH.checked_add(duration) }.ok_or("EOVERFLOW: file timestamp")
+        let duration = Duration::try_from_secs_f64(ms.abs() / 1000.0)
+            .map_err(|_| "EOVERFLOW: file timestamp")?;
+        if ms < 0.0 {
+            UNIX_EPOCH.checked_sub(duration)
+        } else {
+            UNIX_EPOCH.checked_add(duration)
+        }
+        .ok_or("EOVERFLOW: file timestamp")
     };
     let mut times = std::fs::FileTimes::new();
-    if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
-    if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
+    if let Some(ms) = atime_ms {
+        times = times.set_accessed(time(ms)?);
+    }
+    if let Some(ms) = mtime_ms {
+        times = times.set_modified(time(ms)?);
+    }
     Ok(times)
 }
 
@@ -120,8 +132,12 @@ impl RealVfs {
                     return Err("ENOTDIR: not a directory".into());
                 }
                 Ok(_) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound && (mode != Walk::RenameEntry || pending.is_empty()) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Err("ENOENT: no such file or directory".into()),
+                Err(e)
+                    if e.kind() == std::io::ErrorKind::NotFound
+                        && (mode != Walk::RenameEntry || pending.is_empty()) => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    return Err("ENOENT: no such file or directory".into());
+                }
                 Err(e) => return Err(e.to_string()),
             }
         }
@@ -134,12 +150,23 @@ impl RealVfs {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
         use std::io::Write;
-        std::fs::OpenOptions::new().write(true).append(append).truncate(!append).create(true)
-            .open(host).and_then(|mut f| f.write_all(data)).map_err(|e| e.to_string())
+        std::fs::OpenOptions::new()
+            .write(true)
+            .append(append)
+            .truncate(!append)
+            .create(true)
+            .open(host)
+            .and_then(|mut f| f.write_all(data))
+            .map_err(|e| e.to_string())
     }
 
     fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
-        let host = self.walk(&self.root, path, if follow { Walk::Follow } else { Walk::Entry }, false)?;
+        let host = self.walk(
+            &self.root,
+            path,
+            if follow { Walk::Follow } else { Walk::Entry },
+            false,
+        )?;
         let meta = std::fs::symlink_metadata(host).map_err(|e| e.to_string())?;
         Self::file_stat(meta)
     }
@@ -169,17 +196,32 @@ impl RealVfs {
         #[cfg(unix)]
         let (identity, allocated_bytes, nlink, uid, gid, io_block_size) = {
             use std::os::unix::fs::MetadataExt;
-            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512), Some(meta.nlink() as usize), Some(meta.uid()), Some(meta.gid()), Some(meta.blksize()))
+            (
+                Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())),
+                meta.blocks().checked_mul(512),
+                Some(meta.nlink() as usize),
+                Some(meta.uid()),
+                Some(meta.gid()),
+                Some(meta.blksize()),
+            )
         };
         #[cfg(not(unix))]
-        let (identity, allocated_bytes, nlink, uid, gid, io_block_size) = (None, None, None, None, None, None);
+        let (identity, allocated_bytes, nlink, uid, gid, io_block_size) =
+            (None, None, None, None, None, None);
         let timestamp = |time: std::time::SystemTime| {
             let millis = |d: Duration| d.as_secs() as f64 * 1000.0 + d.subsec_nanos() as f64 / 1e6;
-            time.duration_since(UNIX_EPOCH).map(millis).unwrap_or_else(|e| -millis(e.duration()))
+            time.duration_since(UNIX_EPOCH)
+                .map(millis)
+                .unwrap_or_else(|e| -millis(e.duration()))
         };
         Ok(FileStat {
             revision: None,
-            nlink, uid, gid, io_block_size, preferred_io_block_size: io_block_size, filesystem_type: None,
+            nlink,
+            uid,
+            gid,
+            io_block_size,
+            preferred_io_block_size: io_block_size,
+            filesystem_type: None,
             identity,
             allocated_bytes,
             kind,
@@ -200,23 +242,31 @@ impl RealVfs {
 }
 
 impl super::OpenRedirectFile for std::fs::File {
-    fn stat(&self) -> Result<FileStat, String> { RealVfs::file_stat(self.metadata().map_err(mutation_error)?) }
+    fn stat(&self) -> Result<FileStat, String> {
+        RealVfs::file_stat(self.metadata().map_err(mutation_error)?)
+    }
 
-    fn truncate_to(&self, len: usize) -> Result<(), String> { self.set_len(len as u64).map_err(mutation_error) }
+    fn truncate_to(&self, len: usize) -> Result<(), String> {
+        self.set_len(len as u64).map_err(mutation_error)
+    }
 
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
         use std::io::{Read, Seek, SeekFrom};
         let mut file = self;
-        file.seek(SeekFrom::Start(offset as u64)).map_err(mutation_error)?;
+        file.seek(SeekFrom::Start(offset as u64))
+            .map_err(mutation_error)?;
         let mut bytes = Vec::new();
-        file.take(limit as u64).read_to_end(&mut bytes).map_err(mutation_error)?;
+        file.take(limit as u64)
+            .read_to_end(&mut bytes)
+            .map_err(mutation_error)?;
         Ok(bytes)
     }
 
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
         use std::io::{Seek, SeekFrom, Write};
         let mut file = self;
-        file.seek(offset.map_or(SeekFrom::End(0), |n| SeekFrom::Start(n as u64))).map_err(mutation_error)?;
+        file.seek(offset.map_or(SeekFrom::End(0), |n| SeekFrom::Start(n as u64)))
+            .map_err(mutation_error)?;
         file.write_all(bytes).map_err(mutation_error)
     }
 }
@@ -226,14 +276,22 @@ impl super::FileReadHandle for std::sync::Mutex<std::fs::File> {
         RealVfs::file_stat(self.lock().unwrap().metadata().map_err(mutation_error)?)
     }
     fn seek_end(&self) -> Result<u64, String> {
-        Ok(self.lock().unwrap().metadata().map_err(mutation_error)?.len())
+        Ok(self
+            .lock()
+            .unwrap()
+            .metadata()
+            .map_err(mutation_error)?
+            .len())
     }
     fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> {
         use std::io::{Read, Seek, SeekFrom};
         let mut file = self.lock().unwrap();
         file.seek(SeekFrom::Start(offset)).map_err(mutation_error)?;
         let mut bytes = Vec::new();
-        (&mut *file).take(maximum as u64).read_to_end(&mut bytes).map_err(mutation_error)?;
+        (&mut *file)
+            .take(maximum as u64)
+            .read_to_end(&mut bytes)
+            .map_err(mutation_error)?;
         Ok(bytes)
     }
 }
@@ -262,42 +320,105 @@ impl SafeBashFs for RealVfs {
         std::fs::set_permissions(host, permissions).map_err(|e| e.to_string())
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
+    fn set_times(
+        &self,
+        path: &str,
+        atime_ms: Option<f64>,
+        mtime_ms: Option<f64>,
+    ) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let times = file_times((atime_ms, mtime_ms))?;
-        std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
+        std::fs::File::open(host)
+            .and_then(|file| file.set_times(times))
+            .map_err(|e| e.to_string())
     }
 
-    #[cfg(all(target_os = "linux", any(target_arch = "x86", target_arch = "x86_64", target_arch = "riscv64", target_arch = "arm", target_arch = "aarch64")))]
-    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
+    #[cfg(all(
+        target_os = "linux",
+        any(
+            target_arch = "x86",
+            target_arch = "x86_64",
+            target_arch = "riscv64",
+            target_arch = "arm",
+            target_arch = "aarch64"
+        )
+    ))]
+    fn scratch_file(
+        &self,
+        directory: &str,
+    ) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
         use std::os::unix::fs::OpenOptionsExt;
         let parent = self.walk(&self.root, directory, Walk::Follow, false)?;
         // Linux O_TMPFILE creates a private inode without a name to replace or clean up.
-        let o_directory = if cfg!(any(target_arch = "arm", target_arch = "aarch64")) { 0o40000 } else { 0o200000 };
-        std::fs::OpenOptions::new().read(true).write(true).custom_flags(0o20000000 | o_directory).mode(0o600)
-            .open(parent).map(|file| std::rc::Rc::new(file) as _).map_err(mutation_error)
+        let o_directory = if cfg!(any(target_arch = "arm", target_arch = "aarch64")) {
+            0o40000
+        } else {
+            0o200000
+        };
+        std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .custom_flags(0o20000000 | o_directory)
+            .mode(0o600)
+            .open(parent)
+            .map(|file| std::rc::Rc::new(file) as _)
+            .map_err(mutation_error)
     }
 
-    fn supports_command_descriptor(&self, _entry: &str) -> bool { true }
+    fn supports_command_descriptor(&self, _entry: &str) -> bool {
+        true
+    }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+    fn open_redirect_file(
+        &self,
+        path: &str,
+        access: crate::vfs::RedirectAccess,
+        create_mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
-        let host = self.walk(&self.root, path, if exclusive { Walk::RenameEntry } else { Walk::Follow }, false)?;
+        let host = self.walk(
+            &self.root,
+            path,
+            if exclusive {
+                Walk::RenameEntry
+            } else {
+                Walk::Follow
+            },
+            false,
+        )?;
         let mut options = std::fs::OpenOptions::new();
-        options.read(matches!(access, super::RedirectAccess::Read | super::RedirectAccess::ReadWrite))
-            .write(access != super::RedirectAccess::Read).create(create_mode.is_some() && access != super::RedirectAccess::Read).create_new(exclusive)
-            .append(access == super::RedirectAccess::Append).truncate(access == super::RedirectAccess::Truncate);
+        options
+            .read(matches!(
+                access,
+                super::RedirectAccess::Read | super::RedirectAccess::ReadWrite
+            ))
+            .write(access != super::RedirectAccess::Read)
+            .create(create_mode.is_some() && access != super::RedirectAccess::Read)
+            .create_new(exclusive)
+            .append(access == super::RedirectAccess::Append)
+            .truncate(access == super::RedirectAccess::Truncate);
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode.unwrap_or(0));
-        options.open(host).map(|f| Some(std::rc::Rc::new(f) as _)).map_err(mutation_error)
+        options
+            .open(host)
+            .map(|f| Some(std::rc::Rc::new(f) as _))
+            .map_err(mutation_error)
     }
 
-    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+    fn open_read_file(
+        &self,
+        path: &str,
+        allow_directory: bool,
+    ) -> Result<Box<dyn super::FileReadHandle>, String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let file = std::fs::File::open(host).map_err(mutation_error)?;
         let meta = file.metadata().map_err(mutation_error)?;
-        if meta.is_dir() && !allow_directory { return Err("EISDIR: illegal operation on a directory".into()); }
-        if !meta.is_file() && !meta.is_dir() { return Err("ENOTSUP: unsupported file type".into()); }
+        if meta.is_dir() && !allow_directory {
+            return Err("EISDIR: illegal operation on a directory".into());
+        }
+        if !meta.is_file() && !meta.is_dir() {
+            return Err("ENOTSUP: unsupported file type".into());
+        }
         Ok(Box::new(std::sync::Mutex::new(file)))
     }
 
@@ -310,7 +431,11 @@ impl SafeBashFs for RealVfs {
         self.open_chunks_sized(path, std::num::NonZeroUsize::new(65536).unwrap())
     }
 
-    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+    fn open_chunks_sized(
+        &self,
+        path: &str,
+        size: std::num::NonZeroUsize,
+    ) -> Result<super::ChunkReader<'_>, String> {
         let size = size.get().min(65536);
         use std::io::Read;
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
@@ -325,13 +450,21 @@ impl SafeBashFs for RealVfs {
 
     fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
         #[cfg(not(unix))]
-        { let _ = (path, directory, mode); Err("ENOTSUP: private permissions unavailable".into()) }
+        {
+            let _ = (path, directory, mode);
+            Err("ENOTSUP: private permissions unavailable".into())
+        }
         #[cfg(unix)]
         {
-            if !directory { return self.create_file(path, &[], mode); }
+            if !directory {
+                return self.create_file(path, &[], mode);
+            }
             use std::os::unix::fs::DirBuilderExt;
             let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
-            std::fs::DirBuilder::new().mode(mode).create(host).map_err(mutation_error)
+            std::fs::DirBuilder::new()
+                .mode(mode)
+                .create(host)
+                .map_err(mutation_error)
         }
     }
 
@@ -339,29 +472,51 @@ impl SafeBashFs for RealVfs {
         use std::io::Write;
         let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
         #[cfg(not(unix))]
-        if mode & 0o077 == 0 { return Err("ENOTSUP: private permissions unavailable".into()); }
+        if mode & 0o077 == 0 {
+            return Err("ENOTSUP: private permissions unavailable".into());
+        }
         let mut options = std::fs::OpenOptions::new();
         options.write(true).create_new(true);
-        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        if mode > 0o7777 {
+            return Err("EINVAL: invalid argument".into());
+        }
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, mode);
         let mut file = options.open(host).map_err(mutation_error)?;
         file.write_all(data).map_err(mutation_error)?;
         #[cfg(unix)]
-        file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode)).map_err(mutation_error)?;
+        file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode))
+            .map_err(mutation_error)?;
         Ok(())
     }
 
-    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        version: u64,
+    ) -> Result<(), String> {
         use std::io::Write;
         use std::sync::atomic::{AtomicU64, Ordering};
         static SERIAL: AtomicU64 = AtomicU64::new(0);
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
-        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        let times = if times == (None, None) { None } else { Some(file_times(times)?) };
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
+        if mode > 0o7777 {
+            return Err("EINVAL: invalid argument".into());
+        }
+        let times = if times == (None, None) {
+            None
+        } else {
+            Some(file_times(times)?)
+        };
         let dest = self.walk(&self.root, path, Walk::RenameEntry, false)?;
         match std::fs::symlink_metadata(&dest) {
-            Ok(st) if !st.is_file() => return Err("ENOTSUP: destination must be a regular file or absent".into()),
+            Ok(st) if !st.is_file() => {
+                return Err("ENOTSUP: destination must be a regular file or absent".into());
+            }
             Err(e) if e.kind() != std::io::ErrorKind::NotFound => return Err(mutation_error(e)),
             _ => {}
         }
@@ -373,8 +528,11 @@ impl SafeBashFs for RealVfs {
         std::os::unix::fs::OpenOptionsExt::mode(&mut opts, 0o600);
         for _ in 0..128 {
             let serial = SERIAL.fetch_add(1, Ordering::Relaxed);
-            let stage = dest.with_file_name(format!(".safe-bash-stage-{}-{serial}", std::process::id()));
-            if stage == dest { continue; }
+            let stage =
+                dest.with_file_name(format!(".safe-bash-stage-{}-{serial}", std::process::id()));
+            if stage == dest {
+                continue;
+            }
             let mut file = match opts.open(&stage) {
                 Ok(file) => file,
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
@@ -382,13 +540,17 @@ impl SafeBashFs for RealVfs {
             };
             let result = (|| {
                 file.write_all(data)?;
-                if let Some(times) = times { file.set_times(times)?; }
+                if let Some(times) = times {
+                    file.set_times(times)?;
+                }
                 #[cfg(unix)]
                 file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode))?;
                 drop(file);
                 std::fs::rename(&stage, &dest)
             })();
-            if result.is_err() { let _ = std::fs::remove_file(stage); }
+            if result.is_err() {
+                let _ = std::fs::remove_file(stage);
+            }
             return result.map_err(mutation_error);
         }
         Err("EEXIST: could not allocate a staging file".into())
@@ -403,14 +565,23 @@ impl SafeBashFs for RealVfs {
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
-        if source.is_empty() || destination.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+        if source.is_empty() || destination.is_empty() {
+            return Err("ENOENT: no such file or directory".into());
+        }
         let from = self.walk(&self.root, source, Walk::RenameEntry, false)?;
         let to = self.walk(&self.root, destination, Walk::RenameEntry, false)?;
-        if from == self.root || to == self.root { return Err("EBUSY: resource busy or locked".into()); }
-        if [source, destination].iter().any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | ".."))) {
+        if from == self.root || to == self.root {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        if [source, destination]
+            .iter()
+            .any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | "..")))
+        {
             return Err("EINVAL: invalid argument".into());
         }
-        if (source.ends_with('/') || destination.ends_with('/')) && !std::fs::symlink_metadata(&from).is_ok_and(|m| m.is_dir()) {
+        if (source.ends_with('/') || destination.ends_with('/'))
+            && !std::fs::symlink_metadata(&from).is_ok_and(|m| m.is_dir())
+        {
             return Err("ENOTDIR: not a directory".into());
         }
         let result = if no_replace {
@@ -419,13 +590,24 @@ impl SafeBashFs for RealVfs {
                 use std::ffi::{CString, c_char, c_int, c_uint};
                 use std::os::unix::ffi::OsStrExt;
                 unsafe extern "C" {
-                    fn renameat2(oldfd: c_int, old: *const c_char, newfd: c_int, new: *const c_char, flags: c_uint) -> c_int;
+                    fn renameat2(
+                        oldfd: c_int,
+                        old: *const c_char,
+                        newfd: c_int,
+                        new: *const c_char,
+                        flags: c_uint,
+                    ) -> c_int;
                 }
-                let from = CString::new(from.as_os_str().as_bytes()).map_err(|_| "EINVAL: invalid argument")?;
-                let to = CString::new(to.as_os_str().as_bytes()).map_err(|_| "EINVAL: invalid argument")?;
+                let from = CString::new(from.as_os_str().as_bytes())
+                    .map_err(|_| "EINVAL: invalid argument")?;
+                let to = CString::new(to.as_os_str().as_bytes())
+                    .map_err(|_| "EINVAL: invalid argument")?;
                 // Absolute paths ignore dirfd; RENAME_NOREPLACE tests and moves atomically.
-                if unsafe { renameat2(-100, from.as_ptr(), -100, to.as_ptr(), 1) } == 0 { Ok(()) }
-                else { Err(std::io::Error::last_os_error()) }
+                if unsafe { renameat2(-100, from.as_ptr(), -100, to.as_ptr(), 1) } == 0 {
+                    Ok(())
+                } else {
+                    Err(std::io::Error::last_os_error())
+                }
             }
             #[cfg(not(target_os = "linux"))]
             return Err("ENOTSUP: operation not supported".into());
@@ -437,16 +619,32 @@ impl SafeBashFs for RealVfs {
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
-        if matches!(path.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
+        if matches!(
+            path.trim_end_matches('/').rsplit('/').next(),
+            Some("." | "..")
+        ) {
             return Err("EINVAL: invalid argument".into());
         }
-        if host == self.root { return Err("EBUSY: resource busy or locked".into()); }
-        if path.ends_with('/') && !directory {
-            return Err(if std::fs::symlink_metadata(host).map_err(mutation_error)?.is_dir() {
-                "EISDIR: illegal operation on a directory"
-            } else { "ENOTDIR: not a directory" }.into());
+        if host == self.root {
+            return Err("EBUSY: resource busy or locked".into());
         }
-        if directory { std::fs::remove_dir(host) } else { std::fs::remove_file(host) }.map_err(mutation_error)
+        if path.ends_with('/') && !directory {
+            return Err(if std::fs::symlink_metadata(host)
+                .map_err(mutation_error)?
+                .is_dir()
+            {
+                "EISDIR: illegal operation on a directory"
+            } else {
+                "ENOTDIR: not a directory"
+            }
+            .into());
+        }
+        if directory {
+            std::fs::remove_dir(host)
+        } else {
+            std::fs::remove_file(host)
+        }
+        .map_err(mutation_error)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
@@ -509,18 +707,31 @@ impl SafeBashFs for RealVfs {
         let mut entries = Vec::new();
         for entry in std::fs::read_dir(host).map_err(|e| e.to_string())? {
             let entry = entry.map_err(|e| e.to_string())?;
-            if entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+            if entries.len() == limit {
+                return Err("EFBIG: directory entry limit exceeded".into());
+            }
             let kind = entry.file_type().map_err(|e| e.to_string())?;
-            let mode = if kind.is_file() { 0o100000 } else if kind.is_symlink() { 0o120000 }
-                else if kind.is_dir() { 0o040000 } else { return Err("ENOTSUP: unsupported file type".into()); };
+            let mode = if kind.is_file() {
+                0o100000
+            } else if kind.is_symlink() {
+                0o120000
+            } else if kind.is_dir() {
+                0o040000
+            } else {
+                return Err("ENOTSUP: unsupported file type".into());
+            };
             entries.push((entry.file_name().to_string_lossy().into_owned(), mode));
         }
         Ok(entries)
     }
 
-    fn supports_symbolic_links(&self, _entry: &str) -> bool { cfg!(unix) }
+    fn supports_symbolic_links(&self, _entry: &str) -> bool {
+        cfg!(unix)
+    }
 
-    fn supports_hard_links(&self, _path: &str) -> bool { true }
+    fn supports_hard_links(&self, _path: &str) -> bool {
+        true
+    }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
         let src = self.walk(&self.root, source, Walk::RenameEntry, false)?;
@@ -529,38 +740,60 @@ impl SafeBashFs for RealVfs {
     }
 
     #[cfg(unix)]
-    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
+    fn publish_extraction_symlink(
+        &self,
+        path: &str,
+        target: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        _stamp: u64,
+    ) -> Result<(), String> {
         use std::sync::atomic::{AtomicU64, Ordering};
         static SERIAL: AtomicU64 = AtomicU64::new(0);
-        let dir=crate::vfs::dirname_posix_path(path);
-        let verify_parent=|| {
-            let current=self.lstat(&dir)?;
-            if current.kind!=VfsEntryKind::Directory || parent.identity.is_none() || current.identity!=parent.identity {
+        let dir = crate::vfs::dirname_posix_path(path);
+        let verify_parent = || {
+            let current = self.lstat(&dir)?;
+            if current.kind != VfsEntryKind::Directory
+                || parent.identity.is_none()
+                || current.identity != parent.identity
+            {
                 return Err(format!("EAGAIN: extraction parent changed: {path}"));
             }
             Ok(())
         };
         verify_parent()?;
-        let Some(expected)=expected else {return self.symlink(target,path);};
-        let verify_destination=|| {
-            if expected.kind!=VfsEntryKind::File || !self.lstat(path)?.same_snapshot(expected) {
+        let Some(expected) = expected else {
+            return self.symlink(target, path);
+        };
+        let verify_destination = || {
+            if expected.kind != VfsEntryKind::File || !self.lstat(path)?.same_snapshot(expected) {
                 return Err(format!("EAGAIN: extraction destination changed: {path}"));
             }
             Ok(())
         };
         verify_destination()?;
         for _ in 0..128 {
-            let id=SERIAL.fetch_add(1,Ordering::Relaxed);
-            let stage=format!("{}/.safe-bash-stage-{}-{id}",dir.trim_end_matches('/'),std::process::id());
-            if stage==path {continue;}
-            match self.symlink(target,&stage) {
-                Ok(())=>{},
-                Err(e) if e.starts_with("EEXIST:")=>continue,
-                Err(e)=>return Err(e),
+            let id = SERIAL.fetch_add(1, Ordering::Relaxed);
+            let stage = format!(
+                "{}/.safe-bash-stage-{}-{id}",
+                dir.trim_end_matches('/'),
+                std::process::id()
+            );
+            if stage == path {
+                continue;
+            }
+            match self.symlink(target, &stage) {
+                Ok(()) => {}
+                Err(e) if e.starts_with("EEXIST:") => continue,
+                Err(e) => return Err(e),
             }
             // RealVfs assumes a trusted host tree during each path operation.
-            let result=verify_parent().and_then(|()|verify_destination()).and_then(|()|self.rename(&stage,path,false));
-            if result.is_err(){self.remove_one(&stage,false)?;}
+            let result = verify_parent()
+                .and_then(|()| verify_destination())
+                .and_then(|()| self.rename(&stage, path, false));
+            if result.is_err() {
+                self.remove_one(&stage, false)?;
+            }
             return result;
         }
         Err("EEXIST: could not allocate a staging symlink".into())
@@ -636,12 +869,15 @@ mod tests {
             .unwrap();
         let held = vfs.open_read_file("/nested/dir/hello.txt", false).unwrap();
         let original = held.stat().unwrap();
-        vfs.rename("/nested/dir/hello.txt", "/nested/dir/retained", false).unwrap();
-        vfs.write_file("/nested/dir/hello.txt", b"replacement").unwrap();
+        vfs.rename("/nested/dir/hello.txt", "/nested/dir/retained", false)
+            .unwrap();
+        vfs.write_file("/nested/dir/hello.txt", b"replacement")
+            .unwrap();
         assert_eq!(held.read(5, 3).unwrap(), b"vfs");
         assert_eq!(held.stat().unwrap().identity, original.identity);
         drop(held);
-        vfs.rename("/nested/dir/retained", "/nested/dir/hello.txt", false).unwrap();
+        vfs.rename("/nested/dir/retained", "/nested/dir/hello.txt", false)
+            .unwrap();
         assert!(vfs.exists("/nested/dir/hello.txt"));
         assert_eq!(
             vfs.read_file("/nested/dir/hello.txt").unwrap(),
@@ -654,23 +890,53 @@ mod tests {
 
         #[cfg(unix)]
         {
-            let parent=vfs.lstat("/nested/dir").unwrap();
-            vfs.write_file("/nested/dir/replace",b"old").unwrap();
-            vfs.hard_link("/nested/dir/replace","/old").unwrap();
-            let expected=vfs.lstat("/nested/dir/replace").unwrap();
-            vfs.publish_extraction_symlink("/nested/dir/replace","hello.txt",&parent,Some(&expected),0).unwrap();
-            assert_eq!(vfs.read_file("/old").unwrap(),b"old");
-            assert_eq!(vfs.read_file("/nested/dir/replace").unwrap(),b"real-vfs-bytes");
-            assert!(vfs.publish_extraction_symlink("/nested/dir/replace","else",&parent,Some(&expected),0).is_err());
-            vfs.remove_one("/nested/dir/replace",false).unwrap();
-            vfs.remove_one("/old",false).unwrap();
+            let parent = vfs.lstat("/nested/dir").unwrap();
+            vfs.write_file("/nested/dir/replace", b"old").unwrap();
+            vfs.hard_link("/nested/dir/replace", "/old").unwrap();
+            let expected = vfs.lstat("/nested/dir/replace").unwrap();
+            vfs.publish_extraction_symlink(
+                "/nested/dir/replace",
+                "hello.txt",
+                &parent,
+                Some(&expected),
+                0,
+            )
+            .unwrap();
+            assert_eq!(vfs.read_file("/old").unwrap(), b"old");
+            assert_eq!(
+                vfs.read_file("/nested/dir/replace").unwrap(),
+                b"real-vfs-bytes"
+            );
+            assert!(
+                vfs.publish_extraction_symlink(
+                    "/nested/dir/replace",
+                    "else",
+                    &parent,
+                    Some(&expected),
+                    0
+                )
+                .is_err()
+            );
+            vfs.remove_one("/nested/dir/replace", false).unwrap();
+            vfs.remove_one("/old", false).unwrap();
             vfs.symlink("hello.txt", "/nested/dir/link.txt").unwrap();
-            assert!(vfs.create_file("/nested/dir/link.txt", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
-            assert_eq!(vfs.read_file("/nested/dir/hello.txt").unwrap(), b"real-vfs-bytes");
+            assert!(
+                vfs.create_file("/nested/dir/link.txt", b"no", 0o600)
+                    .unwrap_err()
+                    .starts_with("EEXIST")
+            );
+            assert_eq!(
+                vfs.read_file("/nested/dir/hello.txt").unwrap(),
+                b"real-vfs-bytes"
+            );
             assert_eq!(vfs.readlink("/nested/dir/link.txt").unwrap(), "hello.txt");
-            vfs.hard_link("/nested/dir/link.txt", "/other-link").unwrap();
+            vfs.hard_link("/nested/dir/link.txt", "/other-link")
+                .unwrap();
             let linked = vfs.lstat("/other-link").unwrap();
-            assert_eq!(linked.identity, vfs.lstat("/nested/dir/link.txt").unwrap().identity);
+            assert_eq!(
+                linked.identity,
+                vfs.lstat("/nested/dir/link.txt").unwrap().identity
+            );
             assert_eq!(linked.nlink, Some(2));
             vfs.remove_path("/other-link").unwrap();
             vfs.symlink("/nested/dir/hello.txt", "/absolute").unwrap();
@@ -680,25 +946,39 @@ mod tests {
             std::os::unix::fs::symlink(tmp_root.parent().unwrap(), tmp_root.join("outside"))
                 .unwrap();
             assert!(vfs.list_dir("/outside").is_err());
-            assert!(vfs.hard_link("/nested/dir/hello.txt", "/outside/no-link").is_err());
+            assert!(
+                vfs.hard_link("/nested/dir/hello.txt", "/outside/no-link")
+                    .is_err()
+            );
             assert!(!vfs.exists("/outside"));
             assert!(vfs.write_file("/outside/never-created", b"x").is_err());
             assert!(vfs.readlink("/outside").is_err());
-            assert!(vfs.rename("/nested/dir/hello.txt", "/outside/never-created", false).is_err());
+            assert!(
+                vfs.rename("/nested/dir/hello.txt", "/outside/never-created", false)
+                    .is_err()
+            );
             vfs.remove_path("/outside").unwrap();
             vfs.symlink("nested/dir", "/alias").unwrap();
             assert_eq!(vfs.list_dir("/alias/..").unwrap(), vec!["dir"]);
         }
 
         assert!(vfs.rename("/", "/moved", false).is_err());
-        assert!(vfs.rename("/nested/dir/hello.txt", "/absent/../moved", false).is_err());
+        assert!(
+            vfs.rename("/nested/dir/hello.txt", "/absent/../moved", false)
+                .is_err()
+        );
         #[cfg(target_os = "linux")]
         {
             vfs.write_file("/occupied", b"keep").unwrap();
-            assert!(vfs.rename("/nested/dir/hello.txt", "/occupied", true).unwrap_err().starts_with("EEXIST:"));
+            assert!(
+                vfs.rename("/nested/dir/hello.txt", "/occupied", true)
+                    .unwrap_err()
+                    .starts_with("EEXIST:")
+            );
             assert_eq!(vfs.read_file("/occupied").unwrap(), b"keep");
             vfs.rename("/nested/dir/hello.txt", "/moved", true).unwrap();
-            vfs.rename("/moved", "/nested/dir/hello.txt", false).unwrap();
+            vfs.rename("/moved", "/nested/dir/hello.txt", false)
+                .unwrap();
         }
         assert!(vfs.remove_path("/absent/../nested").is_err());
         assert!(vfs.remove_path("/").is_err());
@@ -729,7 +1009,11 @@ mod tests {
             assert!(vfs.mkdir_one("/shared", 0o700).is_err());
             assert_eq!(vfs.stat("/shared").unwrap().mode & 0o777, 0o777);
             for destination in ["/absent/link", "/absent/../wrong"] {
-                assert!(vfs.symlink("confined.txt", destination).unwrap_err().starts_with("ENOENT:"));
+                assert!(
+                    vfs.symlink("confined.txt", destination)
+                        .unwrap_err()
+                        .starts_with("ENOENT:")
+                );
             }
             assert!(!vfs.exists("/absent") && vfs.lstat("/wrong").is_err());
             vfs.symlink("confined.txt", "/alias").unwrap();
@@ -758,7 +1042,8 @@ mod tests {
         let vfs = RealVfs::new(&tmp_root).unwrap();
         vfs.mkdir_all("/sub/tree").unwrap();
         vfs.write_file("/sub/tree/log.txt", b"a").unwrap();
-        vfs.set_times("/sub/tree/log.txt", Some(1_000.0), None).unwrap();
+        vfs.set_times("/sub/tree/log.txt", Some(1_000.0), None)
+            .unwrap();
         vfs.append_file("/sub/tree/log.txt", b"b").unwrap();
         assert_eq!(vfs.stat("/sub/tree/log.txt").unwrap().atime_ms, 1_000.0);
         assert_eq!(vfs.read_file("/sub/tree/log.txt").unwrap(), b"ab");

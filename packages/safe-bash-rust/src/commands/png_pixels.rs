@@ -17,7 +17,8 @@ pub(super) struct Raster {
 }
 
 pub(super) fn still_format(bytes: &[u8]) -> Option<&'static str> {
-    if super::jpeg_decode::signature(bytes) { Some("jpeg") }
+    if bytes.starts_with(b"qoif") { Some("qoi") }
+    else if super::jpeg_decode::signature(bytes) { Some("jpeg") }
     else if super::bmp::signature(bytes) { Some("bmp") }
     else if super::tiff::signature(bytes) { Some("tiff") }
     else if super::netpbm::signature(bytes) { Some(match bytes[1] {
@@ -135,6 +136,7 @@ impl Raster {
         }
     }
     pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
+        if bytes.starts_with(b"qoif") { return Ok(super::qoi::Image::read(bytes,limit)?.decode()); }
         if super::gif::signature(bytes) { return super::gif::decode(bytes,1,limit, |_,_| Ok(())); }
         if super::webp::signature(bytes) { return super::webp::decode(bytes,limit); }
         if super::jpeg_decode::signature(bytes) {return super::jpeg_decode::decode(bytes,limit);}

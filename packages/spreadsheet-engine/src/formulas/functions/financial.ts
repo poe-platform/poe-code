@@ -293,7 +293,7 @@ export const financialFunctions: Readonly<Record<string, FunctionImplementation>
     }
     const life = 1 / rate; rate *= life < 3 ? 1 : life < 5 ? 1.5 : life <= 6 ? 2 : 2.5;
     let depreciation = roundEven(fraction * rate * cost); cost -= depreciation; let remaining = cost - salvage;
-    for (let n = 0; n < period; n++) { h.tick(); depreciation = roundEven(rate * cost); remaining -= depreciation; if (remaining < 0) return numericResult(period - n <= 1 ? roundEven(cost / 2) : 0); cost -= depreciation; }
+    for (let n = 0; n < period; n++) { h.tick(); depreciation = roundEven(rate * cost); remaining -= depreciation; if (remaining < 0) return numericResult(period - n <= 1 ? roundEven(cost / 2) : 0); cost -= depreciation; if (depreciation === 0) break; }
     return numericResult(depreciation);
   }) satisfies FunctionImplementation])),
   ...Object.fromEntries(["PRICEMAT", "YIELDMAT"].map(name => [name, ((a, h) => {

@@ -1,0 +1,1317 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-mkv-None",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-copy",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-srt",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-webvtt",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-None",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-copy",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-mov_text",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mp4-copy",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mov-mov_text",
+      "input": "-->> 12\nFirst\nline\n-->> 50\nSecond\n-->> 75\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,480 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "fractional-mkv-None",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-mkv-copy",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-mkv-srt",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-mkv-webvtt",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-webm-None",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-webm-copy",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "fractional-mp4-mov_text",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "fractional-mp4-copy",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "fractional-mov-mov_text",
+      "input": "-->> 1\nOne\n-->> 3\nThree\n-->> 8\nEight\n-->> 101\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nOne\n\n2\n00:00:00,100 --> 00:00:00,267\nThree\n\n3\n00:00:00,267 --> 00:00:03,370\nEight\n\n"
+    },
+    {
+      "name": "negative-mkv-None",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-srt",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-webvtt",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-None",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-mov_text",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,167 --> 00:00:03,166\nAfter\n\n"
+    },
+    {
+      "name": "negative-mp4-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mov-mov_text",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,167 --> 00:00:03,166\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-mkv-None",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:01,966\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-mkv-copy",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:01,966\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-mkv-srt",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:01,966\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-mkv-webvtt",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:01,966\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-webm-None",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:01,966\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-webm-copy",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-integral-mp4-mov_text",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:02,266\nAfter\n\n"
+    },
+    {
+      "name": "negative-integral-mp4-copy",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-integral-mov-mov_text",
+      "input": "-->> -9\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,133\nBefore\n\n2\n00:00:01,133 --> 00:00:02,266\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-mkv-None",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,002\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-mkv-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,002\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-mkv-srt",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,002\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-mkv-webvtt",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,002\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-webm-None",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,002\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-webm-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-fractional-mp4-mov_text",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,336\nAfter\n\n"
+    },
+    {
+      "name": "negative-fractional-mp4-copy",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-fractional-mov-mov_text",
+      "input": "-->> -10\nBefore\n-->> 25\nAfter\n-->> 50\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "aqtitle",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.aqt",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,168\nBefore\n\n2\n00:00:01,168 --> 00:00:02,336\nAfter\n\n"
+    }
+  ]
+}

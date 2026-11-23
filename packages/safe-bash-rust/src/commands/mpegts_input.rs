@@ -25,6 +25,9 @@ fn timestamp(b: &[u8]) -> i64 {
         | i64::from(b[4] >> 1)
 }
 struct Pes {
+    stream_id: u8,
+    emitted_at: usize,
+    corrupt: bool,
     pts: i64,
     dts: i64,
     start: usize,
@@ -32,12 +35,14 @@ struct Pes {
 }
 #[derive(Default)]
 struct Stream {
+    last_cc: Option<u8>,
+    corrupt: bool,
     current: Vec<u8>,
     data: Vec<u8>,
     packets: Vec<Pes>,
 }
 impl Stream {
-    fn flush(&mut self, budget: &mut usize) -> Result<bool> {
+    fn flush(&mut self, emitted_at: usize, budget: &mut usize) -> Result<bool> {
         let b = &self.current;
         let mut first = false;
         if b.starts_with(&[0, 0, 1])
@@ -62,6 +67,12 @@ impl Stream {
             let start = self.data.len();
             self.data.extend_from_slice(es);
             self.packets.push(Pes {
+                stream_id: b[3],
+                emitted_at,
+                corrupt: self.corrupt || {
+                    let length = usize::from(u16::from_be_bytes([b[4], b[5]]));
+                    length != 0 && length + 6 != b.len()
+                },
                 pts,
                 dts,
                 start,
@@ -69,6 +80,7 @@ impl Stream {
             });
         }
         self.current.clear();
+        self.corrupt = false;
         Ok(first)
     }
 }
@@ -78,8 +90,9 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
     let mut pids = BTreeMap::new();
     let mut types = BTreeMap::new();
     let mut order = Vec::new();
+    let mut declared = Vec::new();
     let mut pmt = 0x1000;
-    for slot in bytes.chunks_exact(stride) {
+    for (slot_index, slot) in bytes.chunks_exact(stride).enumerate() {
         let b = &slot[skip..];
         if b[0] != 0x47 {
             continue;
@@ -87,18 +100,21 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
         let start = b[1] & 0x40 != 0;
         let pid = u16::from_be_bytes([b[1] & 31, b[2]]);
         let control = b[3] >> 4 & 3;
-        if control == 2 || pid == 0x1fff {
+        if control == 0 || pid == 0x1fff {
             continue;
         }
-        let at = if control == 3 {
+        let at = if control & 2 != 0 {
             5 + usize::from(b[4])
         } else {
             4
         };
-        let Some(payload) = b.get(at..).filter(|p| !p.is_empty()) else {
+        let Some(payload) = b.get(at..) else {
             continue;
         };
         if pid == 0 || pid == pmt {
+            if payload.is_empty() {
+                continue;
+            }
             let pointer = if start {
                 usize::from(payload[0]) + 1
             } else {
@@ -120,7 +136,11 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
                 let mut pos = 12 + usize::from(u16::from_be_bytes([s[10] & 15, s[11]]));
                 while pos + 5 <= end {
                     let e = &s[pos..];
-                    types.insert(u16::from_be_bytes([e[1] & 31, e[2]]), e[0]);
+                    let pid = u16::from_be_bytes([e[1] & 31, e[2]]);
+                    if !declared.contains(&pid) {
+                        declared.push(pid);
+                    }
+                    types.insert(pid, e[0]);
                     pos += 5 + usize::from(u16::from_be_bytes([e[3] & 15, e[4]]));
                 }
             }
@@ -152,16 +172,43 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
             idx
         };
         let st = &mut streams[index].1;
-        if start && st.flush(budget)? {
+        let cc = b[3] & 15;
+        let discontinuity = control & 2 != 0 && b[4] != 0 && b[5] & 0x80 != 0;
+        st.corrupt |= b[1] & 0x80 != 0
+            || !discontinuity
+                && st
+                    .last_cc
+                    .is_some_and(|last| (last + (control & 1)) & 15 != cc);
+        st.last_cc = Some(cc);
+        if control & 1 == 0 {
+            continue;
+        }
+        if start && st.flush(slot_index * stride, budget)? {
             order.push(index);
         }
         st.current.extend_from_slice(payload);
+        if st.current.len() >= 6 {
+            let length = usize::from(u16::from_be_bytes([st.current[4], st.current[5]]));
+            if length != 0 && st.current.len() >= length + 6 {
+                st.current.truncate(length + 6);
+                if st.flush(slot_index * stride, budget)? {
+                    order.push(index);
+                }
+            }
+        }
     }
     for (idx, (_, s)) in streams.iter_mut().enumerate() {
-        if s.flush(budget)? {
+        if s.flush(bytes.len(), budget)? {
             order.push(idx);
         }
     }
+    // Stream indexes follow the program map, regardless of PES buffering.
+    order.sort_by_key(|&idx| {
+        declared
+            .iter()
+            .position(|&pid| pid == streams[idx].0)
+            .unwrap_or(declared.len() + idx)
+    });
     Ok(order
         .into_iter()
         .map(|idx| {
@@ -177,9 +224,16 @@ pub(super) struct Description {
     pub ticks: u64,
     pub avcc: Vec<u8>,
 }
+#[derive(Clone, Copy)]
+pub(super) struct PacketInfo {
+    pub stream_id: u8,
+    pub emitted_at: usize,
+    pub corrupt: bool,
+}
 pub(super) struct Track {
     pub info: StreamInfo,
     pub packets: Vec<Packet>,
+    pub packet_info: Vec<PacketInfo>,
     pub data: Vec<u8>,
     pub config: Vec<u8>,
     pub object: u8,
@@ -199,6 +253,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
     let mut ordinals = [0, 0];
     for (ty, stream) in streams(bytes, &mut budget)? {
         let mut packets = Vec::new();
+        let mut packet_info = Vec::new();
         let mut config = Vec::new();
         let mut object = 2;
         let mut data = Vec::new();
@@ -212,7 +267,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
             Ok(())
         };
         let (mut total, mut count, mut start, mut size, mut has_cts) = (0., 0, 0, 0, false);
-        let mut push = |pts, dts, ticks: i64, bytes: usize, key| -> Result<()> {
+        let mut push = |pts, dts, ticks: i64, bytes: usize, key, info| -> Result<()> {
             if count == 0 {
                 start = pts;
             }
@@ -229,6 +284,12 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
                     pos: size,
                     key,
                 });
+                if mode == Read::Packets {
+                    budget = budget
+                        .checked_sub(size_of::<PacketInfo>() + size_of::<(usize, usize)>())
+                        .ok_or("sample index exceeds memory budget")?;
+                    packet_info.push(info);
+                }
             }
             total += ticks as f64;
             size += bytes as u64;
@@ -283,6 +344,16 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
                         ticks,
                         if n == 0 { payload.len() } else { n },
                         key,
+                        PacketInfo {
+                            stream_id: s.stream_id,
+                            corrupt: stream.packets.get(i + 1).is_some_and(|next| next.corrupt),
+                            // The video parser needs the next access unit before it
+                            // releases this one. Its last unit drains after demux EOF.
+                            emitted_at: stream
+                                .packets
+                                .get(i + 1)
+                                .map_or(bytes.len() + 1, |next| next.emitted_at),
+                        },
                     )?;
                     last_ticks = ticks;
                 }
@@ -307,15 +378,43 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
             0xf | 3 | 4 => {
                 let mut frames = adts::Frames::new(&stream.data);
                 let mut dts = 0;
+                let mut pes = stream.packets.iter().peekable();
+                let mut current = &stream.packets[0];
                 for f in frames.by_ref() {
+                    let offset = f.as_ptr().addr() - stream.data.as_ptr().addr();
+                    while pes.peek().is_some_and(|s| s.start <= offset) {
+                        current = pes.next().unwrap();
+                    }
                     append(f)?;
-                    push(dts, dts, 1024, f.len(), true)?;
+                    push(
+                        dts,
+                        dts,
+                        1024,
+                        f.len(),
+                        true,
+                        PacketInfo {
+                            stream_id: current.stream_id,
+                            corrupt: current.corrupt,
+                            emitted_at: current.emitted_at,
+                        },
+                    )?;
                     dts += 1024;
                 }
                 if dts == 0 {
                     for s in &stream.packets {
                         append(&stream.data[s.start..s.end])?;
-                        push(dts, dts, 1024, s.end - s.start, true)?;
+                        push(
+                            dts,
+                            dts,
+                            1024,
+                            s.end - s.start,
+                            true,
+                            PacketInfo {
+                                stream_id: s.stream_id,
+                                corrupt: s.corrupt,
+                                emitted_at: s.emitted_at,
+                            },
+                        )?;
                         dts += 1024;
                     }
                 }
@@ -345,6 +444,7 @@ pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>
             object,
             ordinal,
             packets,
+            packet_info,
             info: StreamInfo {
                 codec,
                 scale,
@@ -378,11 +478,31 @@ pub(in super::super) fn report(
         },
     )?;
     let (counts, select) = (opts.counts, opts.select);
+    let count: usize = tracks.iter().map(|t| t.packets.len()).sum();
+    if count > limit / size_of::<(usize, usize)>() {
+        return Err("sample index exceeds memory budget");
+    }
+    let mut order: Vec<_> = tracks
+        .iter()
+        .enumerate()
+        .flat_map(|(i, t)| (0..t.packets.len()).map(move |n| (i, n)))
+        .collect();
+    order.sort_unstable_by_key(|&(i, n)| (tracks[i].packet_info[n].emitted_at, i, n));
+    let tracks = &tracks;
     media_probe::report(opts, |section| match section {
-        "packet" | "frame" => Box::new(tracks.iter().enumerate().flat_map(move |(i, t)| {
-            t.packets
-                .iter()
-                .map(move |p| t.info.codec.record(i, t.info.scale, *p, section == "frame"))
+        "packet" | "frame" => Box::new(order.iter().filter_map(move |&(i, n)| {
+            let t = &tracks[i];
+            if !media_probe::selected(select, t.kind, i, t.ordinal) {
+                return None;
+            }
+            let mut row = t
+                .info
+                .codec
+                .record(i, t.info.scale, t.packets[n], section == "frame");
+            if section == "packet" {
+                t.packet_info[n].add_to(&mut row);
+            }
+            Some(row)
         })),
         "stream" => Box::new(
             tracks
@@ -404,4 +524,23 @@ pub(in super::super) fn report(
         ))),
         _ => Box::new(std::iter::empty()),
     })
+}
+
+impl PacketInfo {
+    pub fn add_to(self, row: &mut media_probe::Row) {
+        use crate::commands::structured::JVal::{Array, Number, Object, Str};
+        if self.corrupt {
+            if let Some((_, Str(flags))) = row.iter_mut().find(|(key, _)| *key == "flags") {
+                flags.pop();
+                flags.push('C');
+            }
+        }
+        row.push((
+            "side_data_list",
+            Array(vec![Object(vec![
+                ("side_data_type".into(), Str("MPEGTS Stream ID".into())),
+                ("id".into(), Number(f64::from(self.stream_id), None)),
+            ])]),
+        ));
+    }
 }

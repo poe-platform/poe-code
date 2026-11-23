@@ -52,10 +52,10 @@ fn xlsx_empty_text_coordinates_follow_overwrites_and_are_budgeted() {
 fn xlsx_archive_validates_the_directory_crc_and_aggregate_expansion() {
     let original = include_bytes!("../../../tests/fixtures/xml-prefixes.xlsx");
     assert!(read_xlsx_all_sheets(&original[..original.len() - 22], "Sheet1", ["FALSE", "TRUE"], 65536).is_err());
-    assert!(read_xlsx_all_sheets(original, "Sheet1", ["FALSE", "TRUE"], 1024).unwrap_err().contains("input limit"));
+    assert!(read_xlsx_all_sheets(original, "Sheet1", ["FALSE", "TRUE"], 1024).err().unwrap().contains("input limit"));
     let expanded = include_bytes!("../../../tests/fixtures/expanded-workbook.xlsx");
     assert!(expanded.len() < 8192);
-    assert!(read_xlsx_all_sheets(expanded, "Sheet1", ["FALSE", "TRUE"], 8192).unwrap_err().contains("input limit"));
+    assert!(read_xlsx_all_sheets(expanded, "Sheet1", ["FALSE", "TRUE"], 8192).err().unwrap().contains("input limit"));
     let streamed = include_bytes!("../../../tests/fixtures/streamed-workbook.xlsx");
     let sheets = read_xlsx_all_sheets(streamed, "Sheet1", ["FALSE", "TRUE"], 65536).unwrap();
     assert_eq!(sheets[0].rows[1], ["café 🚀 & <tag>", " lead bold tail "]);
@@ -64,7 +64,7 @@ fn xlsx_archive_validates_the_directory_crc_and_aggregate_expansion() {
     let local = u32::from_le_bytes(crc[central + 42..central + 46].try_into().unwrap()) as usize;
     crc[central + 16] ^= 1;
     crc[local + 14] ^= 1;
-    assert!(read_xlsx_all_sheets(&crc, "Sheet1", ["FALSE", "TRUE"], 65536).unwrap_err().contains("CRC32"));
+    assert!(read_xlsx_all_sheets(&crc, "Sheet1", ["FALSE", "TRUE"], 65536).err().unwrap().contains("CRC32"));
 }
 
 #[test]
@@ -113,14 +113,13 @@ fn xlsx_boolean_formatting_applies_only_to_boolean_cells() {
 }
 
 #[test]
-fn xlsx_selection_bounds_repeated_sheet_storage_before_publishing() {
+fn xlsx_selection_reuses_sheet_storage_for_repeated_exports() {
     let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
     shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 700, ..Default::default() });
     fs.write_file("/input.csv", b"Label\nValue\n").unwrap();
     fs.write_file("/output.txt", b"saved export").unwrap();
     let options = "sheet=input.csv ".repeat(8);
     let result = shell.exec(&format!("ssconvert -O '{options}' /input.csv /output.txt")).unwrap();
-    assert_eq!(result.exit_code, 1);
-    assert_eq!(result.stderr, "ssconvert: selected sheets exceed input limit\n");
-    assert_eq!(fs.read_file("/output.txt").unwrap(), b"saved export");
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(fs.read_file("/output.txt").unwrap(), b"Label\nValue\n".repeat(8));
 }

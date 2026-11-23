@@ -1,31 +1,58 @@
 import "./jbig2-truncation.wasm.test.mjs";
+
 import "./xargs-quoting.wasm.test.mjs";
+
 import "./empty-path-discovery.wasm.test.mjs";
+
 import "./ssh-keygen-removal.wasm.test.mjs";
+
 import "./zip-extra-controls.wasm.test.mjs";
+
 import "./gzip-diagnostics.wasm.test.mjs";
+
 import "./pdf-json-sections.wasm.test.mjs";
+
 import "./jbig2-decode.wasm.test.mjs";
+
 import "./pdf-jbig2-stencil.wasm.test.mjs";
+
 import "./gnu-information.wasm.test.mjs";
+
 import "./pdf-postscript.wasm.test.mjs";
+
 import "./pdf-jbig2-raster.wasm.test.mjs";
+
 import "./pdf-header-offset.wasm.test.mjs";
+
 import "./pdf-path-clipping.test.mjs";
+
 import "./pdf-text-stroke.wasm.test.mjs";
+
 import "./patch-bytes.wasm.test.mjs";
+
 import "./xlsx-rows.wasm.test.mjs";
+
 import "./xlsx-xml.wasm.test.mjs";
+
 import "./xlsx-archive.wasm.test.mjs";
+
 import "./xlsx-booleans.wasm.test.mjs";
+
 import "./xlsx-selection.wasm.test.mjs";
+
 import "./jq-recursion.wasm.test.mjs";
+
 import assert from "node:assert/strict";
+
 import test from "node:test";
+
 import { gunzipSync } from "node:zlib";
+
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+
 const hasJspi = typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
+
 
 test("runtimes without JSPI reject host filesystems and JavaScript handlers before executing", {skip: hasJspi ? "Requires a runtime without WebAssembly Promise Integration" : false}, async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -45,6 +72,7 @@ test("runtimes without JSPI reject host filesystems and JavaScript handlers befo
     await assert.rejects(sh.fs.lstat("/target"),{code:"ENOENT"});
   }finally{await sh.dispose();}
 });
+
 
 for (const mountPath of ["/private/tmp/project", "/tmp/project"]) {
 for (const suffix of ["", ".bak", ".new"]) test(`native Rust sed edits host mount ${mountPath} with suffix '${suffix}'`, {skip: !WebAssembly.Suspending}, async () => {
@@ -74,6 +102,7 @@ for (const suffix of ["", ".bak", ".new"]) test(`native Rust sed edits host moun
   } finally { await reader.close(); await bash.dispose(); }
 });
 }
+
 
 for (const refusal of ["synthetic ancestry", "read-only", "replaced ancestor", "cancellation"]) {
   for (const suffix of ["", ".bak"]) test(`native Rust mounted sed preserves data on ${refusal}, suffix '${suffix}'`, {skip: !WebAssembly.Suspending}, async () => {
@@ -112,6 +141,7 @@ for (const refusal of ["synthetic ancestry", "read-only", "replaced ancestor", "
   });
 }
 
+
 test("cancellable Rust sleep waits only for an executed command", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   const controller = new AbortController();
@@ -121,6 +151,7 @@ test("cancellable Rust sleep waits only for an executed command", {skip: !WebAss
     assert.equal((await run).stdout, "sleep 60");
   } finally { controller.abort(); await bash.dispose(); }
 });
+
 
 test("aborting expanded and literal sleeps preserves only preceding writes", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -135,6 +166,7 @@ test("aborting expanded and literal sleeps preserves only preceding writes", {sk
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("Rust sleep shares its timeout deadline with the host timer and keeps concurrent clocks independent", {skip: !WebAssembly.Suspending}, async t => {
   const bash = new RustWasmBash(), timers = [];
@@ -154,6 +186,7 @@ test("Rust sleep shares its timeout deadline with the host timer and keeps concu
   } finally { a.abort(); b.abort(); await bash.dispose(); }
 });
 
+
 test("cancelling a sleep between streamed reads closes stdin without consuming more", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
   let pulls = 0, closed = 0;
@@ -171,6 +204,7 @@ test("cancelling a sleep between streamed reads closes stdin without consuming m
   } finally { controller.abort(); await bash.dispose(); }
 });
 
+
 test("disposing a plugin shell interrupts sleep before the next handler", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash(), calls = [];
   bash.register({name:"mark", execute(ctx) { calls.push(ctx.args[0]); return {exitCode:0}; }});
@@ -185,6 +219,7 @@ test("disposing a plugin shell interrupts sleep before the next handler", {skip:
     assert.deepEqual(calls, ["before"]);
   } finally { await bash.dispose(); }
 });
+
 
 test("stat -f reports the filesystem type supplied for each host path", {skip: !WebAssembly.Suspending}, async () => {
   const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -204,6 +239,7 @@ test("stat -f reports the filesystem type supplied for each host path", {skip: !
   } finally { await bash.dispose(); }
 });
 
+
 test("sed backup on a caller filesystem keeps the original inode and open readers", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/",forceNative:true});
@@ -220,6 +256,7 @@ test("sed backup on a caller filesystem keeps the original inode and open reader
   } finally { await reader.close(); await bash.dispose(); }
 });
 
+
 test("sed refuses symlink edits and directory traversal through a regular file", async () => {
   const bash = new RustWasmBash({cwd:"/",forceNative:true,files:{"/file":"old"},symlinks:{"/alias":"/file","/file.bak":"/file"}});
   try {
@@ -231,6 +268,7 @@ test("sed refuses symlink edits and directory traversal through a regular file",
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("sed admits queued read bytes once per edited file and skips discarded reads", async () => {
   const bash = new RustWasmBash({cwd:"/",forceNative:true,deviceView:"provided",files:{"/a":"a","/b":"b","/raw":Uint8Array.of(255,0,226,130)}});
@@ -244,6 +282,7 @@ test("sed admits queued read bytes once per edited file and skips discarded read
     await assert.rejects(bash.exec("sed -n -e 'r /dev/zero' a", {limits:{maxOutputBytes:8}}), /maxOutputBytes/);
   } finally { await bash.dispose(); }
 });
+
 
 test("output budgets count the bytes written by each command and pipeline stage", async () => {
   for (const bytes of [Uint8Array.of(255), new TextEncoder().encode("\uE080")]) {
@@ -264,6 +303,7 @@ test("output budgets count the bytes written by each command and pipeline stage"
     } finally { bash.dispose(); }
   }
 });
+
 
 test("tail and negative head retain the requested suffix across chunks until EOF", async () => {
   const first = "a".repeat(65535) + "\n";
@@ -288,6 +328,7 @@ test("tail and negative head retain the requested suffix across chunks until EOF
   } finally { bash.dispose(); }
 });
 
+
 test("head and tail accept safe counts larger than Wasm memory", async () => {
   const bash = new RustWasmBash();
   try {
@@ -301,6 +342,7 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
     }
   } finally { bash.dispose(); }
 });
+
 
 test("join reads only the selected input and keeps emitted rows on failure", async () => {
   const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n" } });
@@ -319,6 +361,7 @@ test("join reads only the selected input and keeps emitted rows on failure", asy
   } finally { bash.dispose(); }
 });
 
+
 test("join stops at its output limit before fetching the next input chunk", async () => {
   const bash = new RustWasmBash({ files: { "/left": "key left\n" + "a\n".repeat(40000), "/right": "key right\n" } });
   try {
@@ -327,6 +370,7 @@ test("join stops at its output limit before fetching the next input chunk", asyn
     }), /maxOutputBytes/);
   } finally { bash.dispose(); }
 });
+
 
 test("comm merges readers in order and preserves complete rows on a later read error", async () => {
   const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "x", mode: 0o200 } } });
@@ -344,6 +388,7 @@ test("comm merges readers in order and preserves complete rows on a later read e
     await assert.rejects(bash.exec("comm /g /g", { limits: { maxInputBytes: 3 } }), /maxInputBytes/);
   } finally { bash.dispose(); }
 });
+
 
 test("paste shares a reader for repeated stdin and opens named columns before reading rows", async () => {
   const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "xx", mode: 0o200 } } });
@@ -365,6 +410,7 @@ test("paste shares a reader for repeated stdin and opens named columns before re
   } finally { bash.dispose(); }
 });
 
+
 test("date reads batch lines from the selected source and preserves output before read failures", async () => {
   const bash = new RustWasmBash({ files: { "/dates": "@0\n@1\n", "/blocked": { content: "@1", mode: 0o200 } } });
   try {
@@ -383,6 +429,7 @@ test("date reads batch lines from the selected source and preserves output befor
   } finally { bash.dispose(); }
 });
 
+
 test("date rejects conflicting input sources before consuming stdin", async () => {
   const bash = new RustWasmBash();
   try {
@@ -396,6 +443,7 @@ test("date rejects conflicting input sources before consuming stdin", async () =
     }
   } finally { bash.dispose(); }
 });
+
 
 test("redirected devices read on demand and share the input quota across descriptor copies", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
@@ -418,6 +466,7 @@ test("redirected devices read on demand and share the input quota across descrip
   } finally { bash.dispose(); }
 });
 
+
 test("tail starting at a record skips across device chunks and reads to EOF or a limit", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();
@@ -433,6 +482,7 @@ test("tail starting at a record skips across device chunks and reads to EOF or a
   } finally { bash.dispose(); }
 });
 
+
 test("cat enforces its input quota per regular file, including later chunks", async () => {
   const bash = new RustWasmBash({ files: {
     "/long": new Uint8Array(65537), "/one": "abc", "/two": "def", "/secret": { content: "hidden", mode: 0o200 },
@@ -447,6 +497,7 @@ test("cat enforces its input quota per regular file, including later chunks", as
   } finally { bash.dispose(); }
 });
 
+
 test("noclobber checks the final name without replacing files or following dangling links", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
     const bash = new RustWasmBash({profile, files:{"/dir/file":"original"}, symlinks:{"/dangling":"/absent", "/cycle":"/cycle", "/alias":"/dir"}});
@@ -460,6 +511,7 @@ test("noclobber checks the final name without replacing files or following dangl
     } finally { bash.dispose(); }
   }
 });
+
 
 test("cat checks access before reading aliases and preserves each filesystem's path errors", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
@@ -481,6 +533,7 @@ test("cat checks access before reading aliases and preserves each filesystem's p
   }
 });
 
+
 test("head and tail check every path component before emitting a file header", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
     const bash = new RustWasmBash({ profile, files: { "/private/entry": "hidden", "/ok": "shown" } });
@@ -497,6 +550,7 @@ test("head and tail check every path component before emitting a file header", a
     } finally { bash.dispose(); }
   }
 });
+
 
 test("head reads device chunks until its byte or record count is satisfied", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
@@ -530,6 +584,7 @@ test("head reads device chunks until its byte or record count is satisfied", asy
   } finally { bash.dispose(); }
 });
 
+
 test("reentrant host commands have independent SECONDS, deadlines and elapsed times", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();
@@ -552,6 +607,7 @@ test("reentrant host commands have independent SECONDS, deadlines and elapsed ti
   } finally { bash.dispose(); }
 });
 
+
 test("a host callback can inspect the parent session while a child is executing", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();
@@ -565,6 +621,7 @@ test("a host callback can inspect the parent session while a child is executing"
     assert.deepEqual([result.exitCode, result.stdout, snapshot?.cwd], [0, "a", "/workspace"]);
   } finally { bash.dispose(); }
 });
+
 
 test("random device reads allow the entropy source to access the shared filesystem", async t => {
   const bash = new RustWasmBash({ deviceView: "provided", files: { "/workspace/value": "ok" } });
@@ -589,6 +646,7 @@ test("random device reads allow the entropy source to access the shared filesyst
   } finally { bash.dispose(); }
 });
 
+
 test("entropy reads survive WASM memory growth inside the host callback", t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();
@@ -601,6 +659,7 @@ test("entropy reads survive WASM memory growth inside the host callback", t => {
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "aaa", ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("a running command cannot restore its session after a host callback destroys it", t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
@@ -620,6 +679,7 @@ test("a running command cannot restore its session after a host callback destroy
   } finally { x.safe_bash_destroy_session(next); bash.dispose(); }
 });
 
+
 test("a destroyed session handle cannot read or destroy a later session", () => {
   const bash = new RustWasmBash();
   const x = bash.instance.exports;
@@ -636,6 +696,7 @@ test("a destroyed session handle cannot read or destroy a later session", () => 
   } finally { bash.dispose(); }
 });
 
+
 test("find -exec children inherit the caller's stdin in both execution modes", async () => {
   const bash = new RustWasmBash({ files: { "/x": "", "/y": "" } });
   try {
@@ -645,6 +706,7 @@ test("find -exec children inherit the caller's stdin in both execution modes", a
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xargs shares inherited stdin across batches only with an argument file", async () => {
   const bash = new RustWasmBash({ files: { "/args": "x y" } });
@@ -659,6 +721,7 @@ test("xargs shares inherited stdin across batches only with an argument file", a
     }
   } finally { bash.dispose(); }
 });
+
 
 test("disabling capture still delivers bytes to sinks and hides them from result hooks", async () => {
   const bash = new RustWasmBash();
@@ -678,6 +741,7 @@ test("disabling capture still delivers bytes to sinks and hides them from result
   } finally { bash.dispose(); }
 });
 
+
 test("env and timeout leave the child's unread stdin for the caller", async () => {
   const bash = new RustWasmBash();
   try {
@@ -687,6 +751,7 @@ test("env and timeout leave the child's unread stdin for the caller", async () =
     }
   } finally { bash.dispose(); }
 });
+
 
 test("text utilities consume stdin once across operands and shell commands", async () => {
   const bash = new RustWasmBash();
@@ -704,6 +769,7 @@ test("text utilities consume stdin once across operands and shell commands", asy
   } finally { bash.dispose(); }
 });
 
+
 test("utilities leave redirected input for the next command when operands supply their data", async () => {
   const bash = new RustWasmBash({ files: { "/large": "abcdefghijklmn", "/small": "abc", "/nodes": "a b" } });
   try {
@@ -716,6 +782,7 @@ test("utilities leave redirected input for the next command when operands supply
     }
   } finally { bash.dispose(); }
 });
+
 
 test("tsort charges streamed graph input and leaves unselected stdin unread", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({ files: { "/graph": "x y" } });
@@ -737,6 +804,7 @@ test("tsort charges streamed graph input and leaves unselected stdin unread", {s
   } finally { bash.dispose(); }
 });
 
+
 test("factor, envsubst and numfmt consume their shared stdin once", async () => {
   const bash = new RustWasmBash({ files: { "/numbers": "15 9\n" } });
   try {
@@ -751,6 +819,7 @@ test("factor, envsubst and numfmt consume their shared stdin once", async () => 
   } finally { bash.dispose(); }
 });
 
+
 test("factor reads byte tokens and quotes invalid values from stdin and argv", async () => {
   const bash = new RustWasmBash();
   try {
@@ -762,6 +831,7 @@ test("factor reads byte tokens and quotes invalid values from stdin and argv", a
       "factor: '\\303\\251' is not a valid positive integer\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("numfmt preserves completed fields, header terminators and blank separators", async () => {
   const bash = new RustWasmBash({ env: { LC_ALL: "C" } });
@@ -779,6 +849,7 @@ test("numfmt preserves completed fields, header terminators and blank separators
   } finally { bash.dispose(); }
 });
 
+
 test("numfmt stops pulling on conversion failure and keeps records split across chunks", async () => {
   const bash = new RustWasmBash({ files: {
     "/bad": "2\nwrong\n" + "x".repeat(65528) + "Z",
@@ -791,6 +862,7 @@ test("numfmt stops pulling on conversion failure and keeps records split across 
     assert.deepEqual([split.exitCode, split.stdout, split.stderr], [0, "14\n12", ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("text utilities report redirected input errors after the bytes already read", async () => {
   const bash = new RustWasmBash({ files: { "/large": "15 \n2222222222" } });
@@ -807,6 +879,7 @@ test("text utilities report redirected input errors after the bytes already read
     }
   } finally { bash.dispose(); }
 });
+
 
 test("shuf stops unbounded output at the sink and keeps records written before random input ends", async () => {
   const bash = new RustWasmBash({files:{"/rand":Uint8Array.of(2),"/o":"old"}});
@@ -825,6 +898,7 @@ test("shuf stops unbounded output at the sink and keeps records written before r
   } finally { bash.dispose(); }
 });
 
+
 test("shuf draws from host entropy in the same byte order as a named random source", async t => {
   const bash = new RustWasmBash();
   try {
@@ -838,6 +912,7 @@ test("shuf draws from host entropy in the same byte order as a named random sour
     assert.deepEqual([r.exitCode,r.stdout,r.stderr,draws], [0,"A\nB\nA\nA\n","",[4096]]);
   } finally { bash.dispose(); }
 });
+
 
 test("shuf samples a stream using the random source and charges only the selected input", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/rand":Uint8Array.of(23,157,48,17,81,202),"/empty":"","/i":"X\nX\n"}});
@@ -864,6 +939,7 @@ test("shuf samples a stream using the random source and charges only the selecte
   } finally { bash.dispose(); }
 });
 
+
 test("dd reads the opened input one record at a time when the output aliases it", async () => {
   for (const [args, expected, records] of [
     ["bs=1", "", "0+0"],
@@ -879,6 +955,7 @@ test("dd reads the opened input one record at a time when the output aliases it"
     } finally { bash.dispose(); }
   }
 });
+
 
 test("dd opens named output before stdin and publishes completed records according to the filesystem", {skip: !WebAssembly.Suspending}, async () => {
   for (const overlay of [false,true]) {
@@ -897,6 +974,7 @@ test("dd opens named output before stdin and publishes completed records accordi
   }
 });
 
+
 test("dd charges open, descriptor inspection and each named output record in order", {skip: !WebAssembly.Suspending}, async () => {
   for (const [limit, pulls, content] of [[2,0,"old"],[3,0,""],[4,1,""],[5,2,"A"]]) {
     const bash = new RustWasmBash({files:{"/o":"old"}});
@@ -910,6 +988,7 @@ test("dd charges open, descriptor inspection and each named output record in ord
     } finally { bash.dispose(); }
   }
 });
+
 
 test("dd keeps writing the opened inode after its name is replaced", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/o":"abcdef"}});
@@ -925,6 +1004,7 @@ test("dd keeps writing the opened inode after its name is replaced", {skip: !Web
     assert.deepEqual([r.exitCode,r.stderr,bash.readText("/o"),bash.readText("/moved")], [0,"","replacement","ab123f"]);
   } finally { bash.dispose(); }
 });
+
 
 test("dd rejects unsupported flags at open time before copying or truncating", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/target":"keep"}});
@@ -947,6 +1027,7 @@ test("dd rejects unsupported flags at open time before copying or truncating", {
   } finally { bash.dispose(); }
 });
 
+
 test("dd stops pulling input when a converted output record exceeds the limit", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {
@@ -964,6 +1045,7 @@ test("dd stops pulling input when a converted output record exceeds the limit", 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("dd honors count, charges the producer chunk, and leaves its unread suffix for the next command", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/in":"FILE"}});
@@ -988,6 +1070,7 @@ test("dd honors count, charges the producer chunk, and leaves its unread suffix 
   } finally { bash.dispose(); }
 });
 
+
 test("od accepts safe integer ranges, including hexadecimal quantities with suffixes", async () => {
   const bash = new RustWasmBash();
   try {
@@ -1009,6 +1092,7 @@ test("od accepts safe integer ranges, including hexadecimal quantities with suff
   } finally { bash.dispose(); }
 });
 
+
 test("od formats single and double precision at fixed and exponential boundaries", async () => {
   const bash = new RustWasmBash();
   try {
@@ -1026,6 +1110,7 @@ test("od formats single and double precision at fixed and exponential boundaries
     }
   } finally { bash.dispose(); }
 });
+
 
 test("od admits whole chunks but stops reading as soon as its range or output ends", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1049,6 +1134,7 @@ test("od admits whole chunks but stops reading as soon as its range or output en
   } finally { bash.dispose(); }
 });
 
+
 test("od checks only the operands its range needs and emits diagnostics in read order", async () => {
   const bash = new RustWasmBash({files:{"/f":"abcd"}});
   try {
@@ -1063,6 +1149,7 @@ test("od checks only the operands its range needs and emits diagnostics in read 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("fold stops at the producer chunk that exhausts output", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1079,6 +1166,7 @@ test("fold stops at the producer chunk that exhausts output", {skip: !WebAssembl
   } finally { bash.dispose(); }
 });
 
+
 test("fold reports operand errors before wrapping later input", async () => {
   const bash = new RustWasmBash();
   try {
@@ -1086,6 +1174,7 @@ test("fold reports operand errors before wrapping later input", async () => {
     assert.deepEqual([r.exitCode,r.stdout], [1,"fold: ENOENT: no such file or directory, stat '/missing'\nab\ncd"]);
   } finally { bash.dispose(); }
 });
+
 
 test("nl validates the last option values in production order, independently of Wasm word size", async () => {
   const bash = new RustWasmBash();
@@ -1104,6 +1193,7 @@ test("nl validates the last option values in production order, independently of 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("nl stops pulling stdin on output failure and closes it on line number overflow", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1124,6 +1214,7 @@ test("nl stops pulling stdin on output failure and closes it on line number over
   } finally { bash.dispose(); }
 });
 
+
 test("nl writes diagnostics in operand order and carries blank groups across page boundaries", async () => {
   const bash = new RustWasmBash();
   try {
@@ -1131,6 +1222,7 @@ test("nl writes diagnostics in operand order and carries blank groups across pag
     assert.deepEqual([r.exitCode, r.stdout], [1, "nl: ENOENT: no such file or directory, stat '/missing'\n       \n\n     1\t\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("tee admits targets before reading and keeps each accepted chunk on quota failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1152,6 +1244,7 @@ test("tee admits targets before reading and keeps each accepted chunk on quota f
   } finally { bash.dispose(); }
 });
 
+
 test("tee keeps writing the open inode after a rename, including an append-only target", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/t":{content:"old",mode:0o200}}});
   try {
@@ -1166,6 +1259,7 @@ test("tee keeps writing the open inode after a rename, including an append-only 
       [0, [0,255,65], "", "replacement", [111,108,100,0,255,65]]);
   } finally { bash.dispose(); }
 });
+
 
 test("tee leaves an overlay destination intact until the stream succeeds", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs",files:{"/t":"old"}});
@@ -1183,6 +1277,7 @@ test("tee leaves an overlay destination intact until the stream succeeds", {skip
   } finally { bash.dispose(); }
 });
 
+
 test("tee reports overlay errors against the failing entry", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/readonly":{content:"keep", mode:0o444}, "/dir/file":"keep"}});
   try {
@@ -1198,6 +1293,7 @@ test("tee reports overlay errors against the failing entry", async () => {
   } finally { bash.dispose(); }
 });
 
+
 test("xxd negative seeks stat the requested path before a zero-length range", async () => {
   const bash = new RustWasmBash({files:{"/f":"x"}});
   try {
@@ -1210,6 +1306,7 @@ test("xxd negative seeks stat the requested path before a zero-length range", as
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xxd traverses output parents before resolving .. and honors file permissions", async () => {
   const bash = new RustWasmBash({files:{"/out":"keep","/readonly":{content:"keep",mode:0o444}}});
@@ -1229,6 +1326,7 @@ test("xxd traverses output parents before resolving .. and honors file permissio
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xxd reverse patches the opened file without truncating or reopening it", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/target":"abcdef"}});
@@ -1250,6 +1348,7 @@ test("xxd reverse patches the opened file without truncating or reopening it", {
   } finally { bash.dispose(); }
 });
 
+
 test("xxd reads named input in 8192-byte blocks when its output aliases the same file", async () => {
   const input = "2000: 6666\n".padEnd(8192, " ") + "\n0: 58";
   const bash = new RustWasmBash({files:{"/src":input}});
@@ -1259,6 +1358,7 @@ test("xxd reads named input in 8192-byte blocks when its output aliases the same
       "xxd: invalid input: expected hexadecimal address and colon\n", input.slice(0, 8192) + "ff: 58"]);
   } finally { bash.dispose(); }
 });
+
 
 test("xxd reverse retains emitted rows and padding on invalid input", async () => {
   const bash = new RustWasmBash();
@@ -1275,6 +1375,7 @@ test("xxd reverse retains emitted rows and padding on invalid input", async () =
   } finally { bash.dispose(); }
 });
 
+
 test("xxd reverse charges streamed writes before pulling more input", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/target":"abcdef"}});
   try {
@@ -1289,6 +1390,7 @@ test("xxd reverse charges streamed writes before pulling more input", {skip: !We
     assert.deepEqual([bash.readText("/pad"), bash.readText("/target")], ["\0".repeat(8192), "abXdef"]);
   } finally { bash.dispose(); }
 });
+
 
 test("xxd validates all numeric options after opening named output and uses wide addresses", async () => {
   const bash = new RustWasmBash({ files: { "/out": "old" } });
@@ -1305,6 +1407,7 @@ test("xxd validates all numeric options after opening named output and uses wide
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xxd opens only the input needed by the selected range", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1323,6 +1426,7 @@ test("xxd opens only the input needed by the selected range", {skip: !WebAssembl
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xxd publishes complete rows before pulling stdin and preserves them on failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({ files: { "/out": "previous" } });
@@ -1344,6 +1448,7 @@ test("xxd publishes complete rows before pulling stdin and preserves them on fai
     assert.deepEqual([invalid.exitCode, bash.readText("/out")], [2, ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("tab conversion commits each input chunk and stops reading on output failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1367,6 +1472,7 @@ test("tab conversion commits each input chunk and stops reading on output failur
   } finally { bash.dispose(); }
 });
 
+
 test("tab conversion maintains columns across named inputs and interleaves file diagnostics", async () => {
   const bash = new RustWasmBash({ files: { "/prefix": "ab", "/tail": "\tX" } });
   try {
@@ -1377,6 +1483,7 @@ test("tab conversion maintains columns across named inputs and interleaves file 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("rev publishes completed lines before pulling stdin and stops on quota failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1396,6 +1503,7 @@ test("rev publishes completed lines before pulling stdin and stops on quota fail
   } finally { bash.dispose(); }
 });
 
+
 test("rev retains diagnostic order for invalid UTF-8 and continues to the next file", async () => {
   const bash = new RustWasmBash({ files: { "/bad": Uint8Array.of(97,10,98,99,255,10), "/ok": "12" } });
   try {
@@ -1404,6 +1512,7 @@ test("rev retains diagnostic order for invalid UTF-8 and continues to the next f
       "rev: ENOENT: no such file or directory, stat '/missing'\nrev: /bad: Illegal byte sequence\na\ncb\n21", ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("rev requires a complete UTF-8 encoding name before reading input", async () => {
   const bash = new RustWasmBash();
@@ -1417,6 +1526,7 @@ test("rev requires a complete UTF-8 encoding name before reading input", async (
     }
   } finally { bash.dispose(); }
 });
+
 
 test("rev reports named file errors and continues with later files", async () => {
   const bash = new RustWasmBash({
@@ -1433,6 +1543,7 @@ test("rev reports named file errors and continues with later files", async () =>
   } finally { bash.dispose(); }
 });
 
+
 test("rev stops reading a shared descriptor after an invalid UTF-8 record", async () => {
   const bytes = new Uint8Array(65540).fill(97);
   bytes.set([98, 99, 255, 10]);
@@ -1446,6 +1557,7 @@ test("rev stops reading a shared descriptor after an invalid UTF-8 record", asyn
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "cb\nZ", "rev: stdin: Illegal byte sequence\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("cat, head and tail advance the shared stdin cursor only when they read", async () => {
   const bash = new RustWasmBash();
@@ -1467,6 +1579,7 @@ test("cat, head and tail advance the shared stdin cursor only when they read", a
   } finally { bash.dispose(); }
 });
 
+
 test("cat reads only the original bytes when appending a named file to itself", async () => {
   const bash = new RustWasmBash({ files: { "/f": "ab\n" } });
   try {
@@ -1474,6 +1587,7 @@ test("cat reads only the original bytes when appending a named file to itself", 
     assert.deepEqual([result.exitCode, result.stderr, bash.readText("/f")], [0, "", "ab\nab\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("cat and tr publish each chunk before pulling more stdin", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1498,6 +1612,7 @@ test("cat and tr publish each chunk before pulling more stdin", {skip: !WebAssem
   } finally { bash.dispose(); }
 });
 
+
 test("base encoders admit stdin chunks before writing and stop decoding invalid input", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({ files: { "/src": "f" } });
   try {
@@ -1521,6 +1636,7 @@ test("base encoders admit stdin chunks before writing and stop decoding invalid 
   } finally { bash.dispose(); }
 });
 
+
 test("pagers share one input allowance across files and stdin", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/f":"x"}});
   try {
@@ -1536,6 +1652,7 @@ test("pagers share one input allowance across files and stdin", {skip: !WebAssem
   } finally { bash.dispose(); }
 });
 
+
 test("pagers report missing operands in order and decode formatted input per operand", async () => {
   const bash = new RustWasmBash({files:{"/lead":Uint8Array.of(0xc3),"/tail":Uint8Array.of(0xa9)}});
   try {
@@ -1550,6 +1667,7 @@ test("pagers report missing operands in order and decode formatted input per ope
   } finally { bash.dispose(); }
 });
 
+
 test("pager searches validate extended expressions and preserve quoted operators", async () => {
   const bash = new RustWasmBash({files:{"/lines":"ignore\na(b)\nabab\n"}});
   try {
@@ -1563,6 +1681,7 @@ test("pager searches validate extended expressions and preserve quoted operators
     assert.equal((await bash.exec("less -p '[' </dev/null")).exitCode, 0);
   } finally { bash.dispose(); }
 });
+
 
 test("checksum commands charge operands together and publish results before pulling stdin", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/f":"abc"}});
@@ -1582,6 +1701,7 @@ test("checksum commands charge operands together and publish results before pull
   } finally { bash.dispose(); }
 });
 
+
 test("checksum verification publishes each report before reading the next manifest chunk", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/f":"abc"}});
   const line = "900150983cd24fb0d6963f7d28e17f72  /f\n";
@@ -1599,6 +1719,7 @@ test("checksum verification publishes each report before reading the next manife
   } finally { bash.dispose(); }
 });
 
+
 test("checksum verification uses the last reporting option and validates records as UTF-8", async () => {
   const hash = "900150983cd24fb0d6963f7d28e17f72";
   const bash = new RustWasmBash({files:{"/f":"abc", "/m":Uint8Array.from([
@@ -1613,6 +1734,7 @@ test("checksum verification uses the last reporting option and validates records
     }
   } finally { bash.dispose(); }
 });
+
 
 test("SHA3 combines the suffix and final padding bit in the last byte of a block", async () => {
   const {createHash} = await import("node:crypto");
@@ -1629,6 +1751,7 @@ test("SHA3 combines the suffix and final padding bit in the last byte of a block
   } finally { bash.dispose(); }
 });
 
+
 test("checksum working memory stays bounded as the stdin stream grows", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash(), block = Buffer.alloc(16381, 0xb7);
   const stdin = count => ({async *[Symbol.asyncIterator]() { for (let i = 0; i < count; i++) yield block; }});
@@ -1642,6 +1765,7 @@ test("checksum working memory stays bounded as the stdin stream grows", {skip: !
     }
   } finally { bash.dispose(); }
 });
+
 
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
@@ -1657,6 +1781,7 @@ test("wc enforces input byte limits and counts UTF-8 across chunks", async () =>
   } finally { bash.dispose(); }
 });
 
+
 test("a rejected beforeExec hook leaves stdin untouched", async () => {
   const bash = new RustWasmBash(), reason = new Error("hook refused execution");
   let opened = 0;
@@ -1666,6 +1791,7 @@ test("a rejected beforeExec hook leaves stdin untouched", async () => {
     assert.equal(opened, 0);
   } finally { bash.dispose(); }
 });
+
 
 test("async Rust commands pull stdin on demand and resume independently", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -1702,6 +1828,7 @@ test("async Rust commands pull stdin on demand and resume independently", {skip:
   } finally { bash.dispose(); }
 });
 
+
 test("standalone plugins run async handlers in Rust pipelines and sessions", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash({cwd:"/"});
   const trace = [];
@@ -1730,6 +1857,7 @@ test("standalone plugins run async handlers in Rust pipelines and sessions", {sk
   } finally { await bash.dispose(); }
 });
 
+
 test("middleware wraps live shell commands, functions and plugin handlers",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({fs,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -1757,6 +1885,7 @@ test("middleware wraps live shell commands, functions and plugin handlers",{skip
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("middleware writes to the active redirect before and after the native command",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -1782,6 +1911,7 @@ test("middleware writes to the active redirect before and after the native comma
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("middleware pulls stdin only when read and next sees the remaining chunks",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const js=new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -1802,6 +1932,7 @@ test("middleware pulls stdin only when read and next sees the remaining chunks",
   try{const expected=await run(js);assert.equal(expected[0][0][1],0);assert.deepEqual(await run(rust),expected);}
   finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("middleware and the selected plugin handler share streams, cleanup and thrown errors",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -1828,6 +1959,7 @@ test("middleware and the selected plugin handler share streams, cleanup and thro
   try{const expected=await run(js);assert.equal(expected[1],42);assert.deepEqual(await run(rust),expected);}
   finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("middleware cwd and environment apply during lookup and restore around shell mutations",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -1858,6 +1990,7 @@ inspect; tool; pwd; echo "$MARK:$DROP:$LOCAL"; change; pwd; echo "$MARK:$DROP:$L
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("middleware restores arrays, preserves replacements and honors directory stack changes",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh)=>{
@@ -1879,6 +2012,7 @@ test("middleware restores arrays, preserves replacements and honors directory st
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
   try{assert.deepEqual(await run(rust),await run(js));}finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("ctx.invoke inherits the current context before, inside and after the middleware terminal",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -1910,6 +2044,7 @@ test("ctx.invoke inherits the current context before, inside and after the middl
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("host commands inherit exported functions and can remove them from external invocations",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh)=>{
@@ -1936,6 +2071,7 @@ test("host commands inherit exported functions and can remove them from external
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("middleware replacements reach builtins, functions and registered commands with literal byte arguments",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {createCommandArguments}=await import("safe-bash-contracts");
@@ -1959,6 +2095,7 @@ test("middleware replacements reach builtins, functions and registered commands 
   }
 });
 
+
 test("middleware can observe or catch exit, return, break and continue",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh,swallow)=>{
@@ -1978,6 +2115,7 @@ test("middleware can observe or catch exit, return, break and continue",{skip:!W
     try{assert.deepEqual(await run(rust,swallow),await run(js,swallow));}finally{await js.dispose();await rust.dispose();}
   }
 });
+
 
 test("plugin-provided capabilities reach nested commands and explicit invocation settings win",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -2003,6 +2141,7 @@ test("plugin-provided capabilities reach nested commands and explicit invocation
     assert.throws(()=>provided({choice:"late"}),/disposed/i);
   }
 });
+
 
 test("suspended plugin commands keep their own inputs, output limits and cancellation", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash({cwd:"/"});
@@ -2034,6 +2173,7 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
     await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
   } finally { release(); await bash.dispose(); }
 });
+
 
 test("plugin filesystem streams pin memory bytes on first pull, obey ranges and charge once", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -2068,6 +2208,7 @@ test("plugin filesystem streams pin memory bytes on first pull, obey ranges and 
   }
 });
 
+
 test("returning a memory stream releases its pinned bytes even after unlink",async () => {
   const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const bash = new RustWasmBash({memoryFsOptions:{maxBytes:100}});
@@ -2083,6 +2224,7 @@ test("returning a memory stream releases its pinned bytes even after unlink",asy
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("plugin file output shares the shell byte limit with child commands and refunds short writes", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {writeFileOutput,writeFileOutputCounted} = await import("safe-bash-contracts/filesystem-output-budget");
@@ -2113,6 +2255,7 @@ test("plugin file output shares the shell byte limit with child commands and ref
   }
 });
 
+
 test("conditional plugin publication checks parent and destination receipts before editing hard links", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
@@ -2141,6 +2284,7 @@ test("conditional plugin publication checks parent and destination receipts befo
   }
 });
 
+
 test("ranged filesystem streams keep large regular chunks and bound infinite device reads",async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/data":new Uint8Array(100005)}});
   async function sizes(path,options) {
@@ -2156,6 +2300,7 @@ test("ranged filesystem streams keep large regular chunks and bound infinite dev
     await assert.rejects(sizes("/data",{start:5,endExclusive:4}),{code:"EINVAL"});
   } finally { await bash.dispose(); }
 });
+
 
 test("ZIP newline conversion preserves binary members and uses the compression method's text probe", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
@@ -2183,6 +2328,7 @@ test("ZIP newline conversion preserves binary members and uses the compression m
     }
   } finally { await rust.dispose(); await js.dispose(); }
 });
+
 
 test("ZIP updates exclude archive aliases, preserve retained readers, and validate destinations before moving inputs", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
@@ -2220,6 +2366,7 @@ test("ZIP updates exclude archive aliases, preserve retained readers, and valida
   }
 });
 
+
 test("zip -m keeps protected inputs after publication and removes writable sources and their aliases", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
   const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
@@ -2239,6 +2386,7 @@ test("zip -m keeps protected inputs after publication and removes writable sourc
     assert.deepEqual(await run(rust,rust.fs),expected);
   } finally {await js.dispose(); await rust.dispose();}
 });
+
 
 test("ZIP progress reports entry updates, encoded sizes and move warnings in order",async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
@@ -2262,6 +2410,7 @@ test("ZIP progress reports entry updates, encoded sizes and move warnings in ord
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("ZIP rejects reserved move switches before replacing an archive or deleting a source", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
   const ref = new MemoryFileSystem(), js = new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
@@ -2284,6 +2433,7 @@ test("ZIP rejects reserved move switches before replacing an archive or deleting
     await run(js,ref); await run(rust,rust.fs);
   } finally {await js.dispose();await rust.dispose();}
 });
+
 
 test("ZIP update, delete and copy keep the compressed records of untouched members",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2321,6 +2471,7 @@ test("ZIP update, delete and copy keep the compressed records of untouched membe
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("ZIP editing verifies a retained data descriptor before moving the source",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -2346,6 +2497,7 @@ test("ZIP editing verifies a retained data descriptor before moving the source",
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("a ZIP member named __ZIP_COMMENT__ remains distinct from the archive comment",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -2365,6 +2517,7 @@ test("a ZIP member named __ZIP_COMMENT__ remains distinct from the archive comme
     }
   } finally {await js.dispose();await rust.dispose();}
 });
+
 
 test("ZIP archive comments preserve input bytes, line limits and prompt order",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2395,6 +2548,7 @@ test("ZIP archive comments preserve input bytes, line limits and prompt order",a
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip renders binary archive comments only in modes that display them",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -2413,6 +2567,7 @@ test("unzip renders binary archive comments only in modes that display them",asy
     }
   } finally {await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip preserves existing files unless overwrite is selected and checks renamed destinations",async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -2438,6 +2593,7 @@ test("unzip preserves existing files unless overwrite is selected and checks ren
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip consumes a binary archive from stdin for listing, piping and extraction",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -2462,6 +2618,7 @@ test("unzip consumes a binary archive from stdin for listing, piping and extract
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 for (const extended of [false, true]) test(`unzip update and freshen compare ${extended ? "extended" : "DOS"} timestamps before prompting and skip absent freshen paths`,async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2492,6 +2649,7 @@ for (const extended of [false, true]) test(`unzip update and freshen compare ${e
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip contains extracted members and protects existing links and the input archive",async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -2527,6 +2685,7 @@ test("unzip contains extracted members and protects existing links and the input
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -2558,6 +2717,7 @@ test("ZIP update and freshen select newer members and leave a current archive un
     assert.deepEqual(await run(rust,rust.fs),expected);
   } finally {await js.dispose();await rust.dispose();}
 });
+
 
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
@@ -2594,6 +2754,7 @@ test("native zip splits at record boundaries and preserves occupied volume desti
   }
 });
 
+
 test("unzip lists metadata without inflating unselected payloads and tests only selected members",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
@@ -2612,6 +2773,7 @@ test("unzip lists metadata without inflating unselected payloads and tests only 
     assert.deepEqual(await rust.fs.readFile("/dest/good"),await ref.readFile("/dest/good"));
   } finally {await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip validates disk numbers, local headers and record coverage before extraction",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2651,6 +2813,7 @@ test("unzip validates disk numbers, local headers and record coverage before ext
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("zip writes signed descriptors for selected members and keeps them whole across split volumes",async t => {
   // Reading a member updates its access time, which subsequent archives preserve.
   t.mock.method(Date, "now", () => 1700000000000);
@@ -2682,6 +2845,7 @@ test("zip writes signed descriptors for selected members and keeps them whole ac
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("split ZIP reserves all volumes before replacing files or removing move sources", async () => {
   const bash = new RustWasmBash({cwd:"/case", memoryFsOptions:{maxBytes:250000}});
   try {
@@ -2695,6 +2859,7 @@ test("split ZIP reserves all volumes before replacing files or removing move sou
     assert.deepEqual((await bash.fs.readdir("/case")).map(e=>e.name).sort(),["input","out.z01"]);
   } finally { await bash.dispose(); }
 });
+
 
 test("split ZIP publishes in mounted and overlay directories and opens with the JavaScript volume resolver", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
@@ -2715,6 +2880,7 @@ test("split ZIP publishes in mounted and overlay directories and opens with the 
   }
 });
 
+
 test("Rust owned staging satisfies the shared atomic filesystem contract",async t=>{
   const {createAtomicFileSystemConformance}=await import("@poe-code/safe-fs/testing/atomic");
   for(const c of createAtomicFileSystemConformance({includeSymlinks:true,async createFixture(){
@@ -2722,6 +2888,7 @@ test("Rust owned staging satisfies the shared atomic filesystem contract",async 
     return {fs:sh.fs,root:"/root",dispose:()=>sh.dispose()};
   }})) await t.test(c.name,()=>c.run());
 });
+
 
 test("Rust owned staging rejects a replaced ancestor even when the destination parent survives",async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/tree/leaf"]}), fs=sh.fs;
@@ -2736,6 +2903,7 @@ test("Rust owned staging rejects a replaced ancestor even when the destination p
     await fs.removeStagedFile(staging);
   } finally {await sh.dispose();}
 });
+
 
 test("aborting plugin staging cleans only the original unchanged entries",{skip:!WebAssembly.Suspending},async()=>{
   for(const replace of [false,true]){
@@ -2753,6 +2921,7 @@ test("aborting plugin staging cleans only the original unchanged entries",{skip:
     }finally{await sh.dispose();}
   }
 });
+
 
 test("plugin staging validates the exact paths and command signal used for the mutation",{skip:!WebAssembly.Suspending},async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/one/two/three"]}), fs=sh.fs;
@@ -2780,6 +2949,7 @@ test("plugin staging validates the exact paths and command signal used for the m
   }finally{await sh.dispose();}
 });
 
+
 test("retained staging writers serialize appends and cleanup follows the original parent",async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/parent"]}), fs=sh.fs;
   try{
@@ -2799,6 +2969,7 @@ test("retained staging writers serialize appends and cleanup follows the origina
   }finally{await sh.dispose();}
 });
 
+
 test("an oversized staged filename leaves no private directory",async()=>{
   const sh=new RustWasmBash({cwd:"/"}),fs=sh.fs;
   try{
@@ -2809,6 +2980,7 @@ test("an oversized staged filename leaves no private directory",async()=>{
     }
   }finally{await sh.dispose();}
 });
+
 
 test("unlinked retained staging bytes count against the memory budget until cleanup closes",async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -2824,6 +2996,7 @@ test("unlinked retained staging bytes count against the memory budget until clea
     }
   }finally{await sh.dispose();}
 });
+
 
 test("split ZIP plugins stage complete volumes and extract through checked ancestors",{skip:typeof WebAssembly.Suspending!=="function"},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2842,6 +3015,7 @@ test("split ZIP plugins stage complete volumes and extract through checked ances
     assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("Rust plugin directories support conditional creation and metadata restoration", {skip:typeof WebAssembly.Suspending!=="function"}, async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -2869,6 +3043,7 @@ test("Rust plugin directories support conditional creation and metadata restorat
   } finally {await js.dispose();await rust.dispose();}
 });
 
+
 test("plugin stdin reports the source of the current descriptor", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust = new RustWasmBash({cwd:"/"});
@@ -2895,6 +3070,7 @@ test("plugin stdin reports the source of the current descriptor", {skip: typeof 
     }
   } finally { await js.dispose(); await rust.dispose(); }
 });
+
 
 test("plugin reads and writes reject closed or incompatible descriptors on use", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -2926,6 +3102,7 @@ test("plugin reads and writes reject closed or incompatible descriptors on use",
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+
 test("plugin command failures preserve public diagnostics and redact private errors", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");
@@ -2950,6 +3127,7 @@ test("plugin command failures preserve public diagnostics and redact private err
     }
   } finally { await js.dispose(); await rust.dispose(); }
 });
+
 
 test("plugin internal errors reach the selected hook without exposing private details", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -2980,6 +3158,7 @@ test("plugin internal errors reach the selected hook without exposing private de
   assert.throws(() => new RustWasmBash({onInternalError:42}), {name:"TypeError",message:"onInternalError must be callable"});
 });
 
+
 test("plugin writes to a duplicated output descriptor retain their byte order", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, getCommandArguments} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -3005,6 +3184,7 @@ test("plugin writes to a duplicated output descriptor retain their byte order", 
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+
 test("aborting a plugin preserves completed redirect writes and stops the script", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   for (const reason of ["limit","cancel"]) {
     const bash = new RustWasmBash({cwd:"/"});
@@ -3023,6 +3203,7 @@ test("aborting a plugin preserves completed redirect writes and stops the script
     } finally { await bash.dispose(); }
   }
 });
+
 
 test("plugin file reads share the script's filesystem quota and obey path and size limits", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash({cwd:"/", files:{"/input":Uint8Array.of(255,0)}});
@@ -3044,6 +3225,7 @@ test("plugin file reads share the script's filesystem quota and obey path and si
     await assert.rejects(captured.readFile("/input"), /finished/);
   } finally { await bash.dispose(); }
 });
+
 
 test("plugin filesystem capabilities allow private output and inspection of links and permissions", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -3072,6 +3254,7 @@ test("plugin filesystem capabilities allow private output and inspection of link
   }
 });
 
+
 test("plugin filesystem queries resolve permissions at the target, including device aliases and exclusive creation", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   async function run(sh,fs) {
@@ -3097,6 +3280,7 @@ test("plugin filesystem queries resolve permissions at the target, including dev
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
   assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
 });
+
 
 test("plugin descriptors share the execution quota and retain position and file identity", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -3131,6 +3315,7 @@ test("plugin descriptors share the execution quota and retain position and file 
     assert.deepEqual(await run(rust,rust.fs,limit),expected,"quota "+limit);
   }
 });
+
 
 test("plugin rename, symlink, and unlink validate entry paths before changing them", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -3169,6 +3354,7 @@ test("plugin rename, symlink, and unlink validate entry paths before changing th
   }
 });
 
+
 test("plugin retained reads share quotas, survive replacement, and close at command exit", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   async function run(sh,fs,limit) {
@@ -3195,6 +3381,7 @@ test("plugin retained reads share quotas, survive replacement, and close at comm
   }
 });
 
+
 test("unfinished plugin readers release unlinked storage before the next command", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash({cwd:"/",memoryFsOptions:{maxBytes:100},files:{"/f":new Uint8Array(80)}});
   try {
@@ -3208,6 +3395,7 @@ test("unfinished plugin readers release unlinked storage before the next command
     await bash.fs.writeFile("/later",new Uint8Array(90));
   } finally { await bash.dispose(); }
 });
+
 
 test("plugin directory creation and removal honor umask and share the execution quota", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -3234,6 +3422,7 @@ test("plugin directory creation and removal honor umask and share the execution 
     assert.deepEqual(await run(rust,rust.fs,operations), await run(js,fs,operations), "quota " + operations);
   }
 });
+
 
 for (const runtime of ["TypeScript", "Rust"]) {
   test(`${runtime} plugin conditional writes apply umask only when creating files`, {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
@@ -3278,6 +3467,7 @@ for (const runtime of ["TypeScript", "Rust"]) {
   });
 }
 
+
 test("plugin writes share quotas, apply umask on creation, and stop after the handler", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
@@ -3305,6 +3495,7 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
     }
   } finally { await js.dispose(); await rust.dispose(); }
 });
+
 
 test("native readlink resolves parent components and charges before filtering link errors", async () => {
   const {Shell, MemoryFileSystem, readlinkCommands} = await import("@poe-platform/safe-bash");
@@ -3341,6 +3532,7 @@ test("native readlink resolves parent components and charges before filtering li
   }
 });
 
+
 test("native du exclusions match UTF-16 units and literal extended-glob syntax", async () => {
   const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(duCommands()), rust = new RustWasmBash({cwd:"/"});
@@ -3356,6 +3548,7 @@ test("native du exclusions match UTF-16 units and literal extended-glob syntax",
     }
   } finally { await js.dispose(); rust.dispose(); }
 });
+
 
 test("native du validates a whole directory before reporting sorted children", async () => {
   const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
@@ -3373,6 +3566,7 @@ test("native du validates a whole directory before reporting sorted children", a
     }
   } finally { await js.dispose(); rust.dispose(); }
 });
+
 
 test("the du plugin walks directories and follows symlinks through scoped Wasm metadata", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, createDuCommand} = await import("@poe-platform/safe-bash");
@@ -3397,6 +3591,7 @@ test("the du plugin walks directories and follows symlinks through scoped Wasm m
     await assert.rejects(rust.fs.stat("/late"), {code:"ENOENT"});
   } finally { await js.dispose(); await rust.dispose(); }
 });
+
 
 test("document plugin cleanup drains before the next command and preserves failures", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
@@ -3432,6 +3627,7 @@ test("document plugin cleanup drains before the next command and preserves failu
   }
 });
 
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");
@@ -3459,6 +3655,7 @@ test("disposing a plugin shell cancels suspended handlers and attempts every plu
   } finally { await cleanup.catch(() => {}); }
 });
 
+
 test("a cancelled execution does not wait for unfinished plugin setup", async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
   let resume;
@@ -3473,6 +3670,7 @@ test("a cancelled execution does not wait for unfinished plugin setup", async ()
   } finally { resume(); await outcome; await bash.dispose(); }
 });
 
+
 test("disposal waits for queued plugin setup before releasing the shell", async () => {
   const bash = new RustWasmBash();
   const trace = [];
@@ -3486,6 +3684,7 @@ test("disposal waits for queued plugin setup before releasing the shell", async 
   await cleanup;
   assert.deepEqual(trace, ["setup","disposed"]);
 });
+
 
 test("standalone plugin invocation preserves literal bytes, recursive state, environment and output budgets", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem,getCommandArguments} = await import("@poe-platform/safe-bash");
@@ -3517,6 +3716,7 @@ test("standalone plugin invocation preserves literal bytes, recursive state, env
   } finally { await rust.dispose(); await js.dispose(); }
 });
 
+
 test("nested plugin input limits and cancellation stop child effects and release suspended callbacks", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const shell = new RustWasmBash();
   const started = Promise.withResolvers(), controller = new AbortController();
@@ -3541,6 +3741,7 @@ test("nested plugin input limits and cancellation stop child effects and release
     assert.equal((await shell.exec("echo ok")).stdout,"ok\n");
   } finally { await shell.dispose(); }
 });
+
 
 test("Wasm host commands can yield a literal child call and resume with binary output and status", async () => {
   const bash = new RustWasmBash({cwd:"/"}), x = bash.exports;
@@ -3577,6 +3778,7 @@ test("Wasm host commands can yield a literal child call and resume with binary o
     await assert.rejects(bash.fs.stat("/late"),{code:"ENOENT"});
   } finally { bash._freeBytes(name); table.set(slot,null); await bash.dispose(); }
 });
+
 
 test("Wasm host commands inherit exported bindings and preserve bytes in native pipelines", async () => {
   const bash = new RustWasmBash({cwd:"/", env:{BASE:"initial"}});
@@ -3644,6 +3846,7 @@ test("Wasm host commands inherit exported bindings and preserve bytes in native 
   } finally { bash._freeBytes(name); bash.dispose(); }
 });
 
+
 test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd offsets", () => {
   const bash = new RustWasmBash();
   const x = bash.exports, root = bash.sessionId;
@@ -3700,6 +3903,7 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
   } finally { bash.dispose(); }
 });
 
+
 test("repeated Wasm executions reuse input and script allocations on success and limit errors", () => {
   const bash = new RustWasmBash(), stdin = new Uint8Array(128 * 1024);
   const script = ": #" + "a".repeat(stdin.length);
@@ -3716,6 +3920,7 @@ test("repeated Wasm executions reuse input and script allocations on success and
     }
   } finally { bash.dispose(); }
 });
+
 
 test("abort closes held async stdin once without waiting for the producer", async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
@@ -3739,6 +3944,7 @@ test("abort closes held async stdin once without waiting for the producer", asyn
     bash.dispose();
   }
 });
+
 
 test("async stdin preserves borrowed bytes and stops pulling after cancellation", async () => {
   const bash = new RustWasmBash();
@@ -3768,6 +3974,7 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+
 test("jq repeats strings and splits each separator value with Unicode and empty-input semantics", async () => {
   const bash = new RustWasmBash();
   try {
@@ -3787,6 +3994,7 @@ test("jq repeats strings and splits each separator value with Unicode and empty-
   } finally { bash.dispose(); }
 });
 
+
 test("jq numeric remainder uses signed 64-bit operands and operators describe errors", () => {
   const bash = new RustWasmBash();
   try {
@@ -3804,6 +4012,7 @@ test("jq numeric remainder uses signed 64-bit operands and operators describe er
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq recurse emits each node before requesting children and preserves suspended sibling streams", () => {
   const bash = new RustWasmBash();
@@ -3823,6 +4032,7 @@ test("jq recurse emits each node before requesting children and preserves suspen
   } finally { bash.dispose(); }
 });
 
+
 test("jq accepts leading decimal points in numeric filters and arithmetic operands", () => {
   const bash = new RustWasmBash();
   try {
@@ -3830,6 +4040,7 @@ test("jq accepts leading decimal points in numeric filters and arithmetic operan
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "[0.5,-0.25,12.5,1.75,2]\n", ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq reports exhaustion in nested generator expressions before losing its session", () => {
   const bash = new RustWasmBash();
@@ -3840,6 +4051,7 @@ test("jq reports exhaustion in nested generator expressions before losing its se
     assert.equal(bash.execSync("echo ok").stdout, "ok\n");
   } finally { bash.dispose(); }
 });
+
 
 test("a long jq operator chain cannot exhaust the shell stack", () => {
   const bash = new RustWasmBash();
@@ -3856,6 +4068,7 @@ test("a long jq operator chain cannot exhaust the shell stack", () => {
   } finally { bash.dispose(); }
 });
 
+
 test("jq accepts if as an unquoted object key beside conditional values", async () => {
   const bash = new RustWasmBash();
   try {
@@ -3869,6 +4082,7 @@ test("jq accepts if as an unquoted object key beside conditional values", async 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq field access visits every base and respects optional and quoted keys", async () => {
   const bash = new RustWasmBash();
@@ -3895,6 +4109,7 @@ test("jq field access visits every base and respects optional and quoted keys", 
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq evaluates bracket indexes and slice bounds before each base", async () => {
   const bash = new RustWasmBash();
@@ -3925,6 +4140,7 @@ test("jq evaluates bracket indexes and slice bounds before each base", async () 
   } finally { bash.dispose(); }
 });
 
+
 test("jq halt exits the program across catches and preserves prior output", async () => {
   const bash = new RustWasmBash();
   try {
@@ -3951,6 +4167,7 @@ test("jq halt exits the program across catches and preserves prior output", asyn
   } finally { bash.dispose(); }
 });
 
+
 test("jq searches byte offsets and overlapping subsequences for every pattern", async () => {
   const bash = new RustWasmBash();
   try {
@@ -3972,6 +4189,7 @@ test("jq searches byte offsets and overlapping subsequences for every pattern", 
   } finally { bash.dispose(); }
 });
 
+
 test("jq iteration emits each object or array item until an error or early stop", async () => {
   const bash = new RustWasmBash();
   try {
@@ -3990,6 +4208,7 @@ test("jq iteration emits each object or array item until an error or early stop"
   } finally { bash.dispose(); }
 });
 
+
 test("jq binds function value parameters as nested streams in the caller's scope", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4006,6 +4225,7 @@ test("jq binds function value parameters as nested streams in the caller's scope
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq getpath and setpath visit each candidate and validate it against the input", async () => {
   const bash = new RustWasmBash();
@@ -4031,6 +4251,7 @@ test("jq getpath and setpath visit each candidate and validate it against the in
   } finally { bash.dispose(); }
 });
 
+
 test("jq select, negation and optional filters preserve intermediate results", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4049,6 +4270,7 @@ test("jq select, negation and optional filters preserve intermediate results", a
   } finally { bash.dispose(); }
 });
 
+
 test("yq properties retain numeric path components as keys and replace scalar parents", async () => {
   const bash = new RustWasmBash({ files: {"/workspace/app.properties": "a=1\na.1=b\na.0=x\n0=root\n"} });
   try {
@@ -4056,6 +4278,7 @@ test("yq properties retain numeric path components as keys and replace scalar pa
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, '{"0":"root","a":{"0":"x","1":"b"}}\n', ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq validates array indexes and slice replacements before growing a path", async () => {
   const bash = new RustWasmBash();
@@ -4075,6 +4298,7 @@ test("jq validates array indexes and slice replacements before growing a path", 
     assert.deepEqual([limit.exitCode, limit.stdout, limit.stderr], [5, "", "jq: maxCollectionSize limit exceeded\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq assignments use one right-hand value for every path and delete empty updates", async () => {
   const bash = new RustWasmBash();
@@ -4096,6 +4320,7 @@ test("jq assignments use one right-hand value for every path and delete empty up
   } finally { bash.dispose(); }
 });
 
+
 test("jq labels stop the right generator and expose the break value to catch", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4115,6 +4340,7 @@ test("jq labels stop the right generator and expose the break value to catch", a
     assert.deepEqual([err.exitCode, err.stdout, err.stderr], [5, "1\n", "jq: error (at <unknown>): bad\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq reduce and foreach interleave their initial, source and update streams", async () => {
   const bash = new RustWasmBash();
@@ -4136,6 +4362,7 @@ test("jq reduce and foreach interleave their initial, source and update streams"
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "1\n", "jq: error (at <unknown>): bad\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq binary operators visit every operand in order and short-circuit unused filters", async () => {
   const bash = new RustWasmBash();
@@ -4159,6 +4386,7 @@ test("jq binary operators visit every operand in order and short-circuit unused 
   } finally { bash.dispose(); }
 });
 
+
 test("jq parses arguments, file variables and string conversions with its input grammar", async () => {
   const bash = new RustWasmBash({ files: {"/workspace/bad": "[1,]", "/workspace/-": "1 2"} });
   try {
@@ -4179,6 +4407,7 @@ test("jq parses arguments, file variables and string conversions with its input 
   } finally { bash.dispose(); }
 });
 
+
 test("jq preserves numeric literals independently when their doubles are equal", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4195,6 +4424,7 @@ test("jq preserves numeric literals independently when their doubles are equal",
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq selects stream results for each nth argument and returns null for last(empty)", async () => {
   const bash = new RustWasmBash();
@@ -4221,6 +4451,7 @@ test("jq selects stream results for each nth argument and returns null for last(
   } finally { bash.dispose(); }
 });
 
+
 test("jq emits every combination of object fields in order and replaces duplicate keys", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4240,6 +4471,7 @@ test("jq emits every combination of object fields in order and replaces duplicat
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: error (at <unknown>): object keys must be strings\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq ranges and limits stream numeric arguments and stop when their consumer stops", async () => {
   const bash = new RustWasmBash();
@@ -4265,6 +4497,7 @@ test("jq ranges and limits stream numeric arguments and stop when their consumer
   } finally { bash.dispose(); }
 });
 
+
 test("jq pulls stdin only for selected operands and stops after the last requested value", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash({files:{"/f":"42\n"}});
   try {
@@ -4283,6 +4516,7 @@ test("jq pulls stdin only for selected operands and stops after the last request
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"é\nx42\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("jq publishes values and ready diagnostics before the next producer pull", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -4306,6 +4540,7 @@ test("jq publishes values and ready diagnostics before the next producer pull", 
   } finally { sh.dispose(); }
 });
 
+
 test("jq retains published bytes but reports a failed stdin producer at the shell line", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {
@@ -4323,6 +4558,7 @@ test("jq retains published bytes but reports a failed stdin producer at the shel
     }
   } finally { sh.dispose(); }
 });
+
 
 test("jq stops input generators after producing enough output and preserves results before errors", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/items": "1 2 3 4\n", "/workspace/good": "7 8" } });
@@ -4346,6 +4582,7 @@ test("jq stops input generators after producing enough output and preserves resu
   } finally { bash.dispose(); }
 });
 
+
 test("jq reports runtime errors at the input record and resumes at the next value", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/a": "1\n2\n", "/workspace/b": "3 4", "/workspace/x": "1 2 3\n", "/workspace/bad": "oops",
@@ -4366,6 +4603,7 @@ test("jq reports runtime errors at the input record and resumes at the next valu
   } finally { bash.dispose(); }
 });
 
+
 test("jq resynchronizes JSON sequences at record separators and preserves warnings", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4384,6 +4622,7 @@ test("jq resynchronizes JSON sequences at record separators and preserves warnin
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq emits JSON stream events before a container closes and reports parse errors at byte positions", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/prefix": "[10," } });
@@ -4407,6 +4646,7 @@ test("jq emits JSON stream events before a container closes and reports parse er
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq opens input files on demand and shares a cursor with inputs", async () => {
   const bash = new RustWasmBash({ files: {
@@ -4439,6 +4679,7 @@ test("jq opens input files on demand and shares a cursor with inputs", async () 
   } finally { bash.dispose(); }
 });
 
+
 test("jq evaluates each condition result and emits nothing for an empty condition", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4455,6 +4696,7 @@ test("jq evaluates each condition result and emits nothing for an empty conditio
   } finally { bash.dispose(); }
 });
 
+
 test("jq keeps the first named argument and skips duplicate file operands", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/values": "42" } });
   try {
@@ -4470,6 +4712,7 @@ test("jq keeps the first named argument and skips duplicate file operands", asyn
     assert.deepEqual([r.exitCode, r.stderr], [2, "jq: invalid JSON for --argjson x\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq escapes control characters and truncates command errors before writing diagnostics", async () => {
   const sh = new RustWasmBash({ cwd: "/" });
@@ -4491,6 +4734,7 @@ test("jq escapes control characters and truncates command errors before writing 
   } finally { sh.dispose(); }
 });
 
+
 test("jq rejects invalid UTF-8 in program files before opening data files", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/filter.jq": Uint8Array.of(34, 255, 34) } });
   try {
@@ -4498,6 +4742,7 @@ test("jq rejects invalid UTF-8 in program files before opening data files", asyn
     assert.deepEqual([r.exitCode, r.stdout, r.stderr], [3, "", "jq: program file is not valid UTF-8\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("jq emits exact JSON bytes for ASCII, indentation, color, and sequence options", async () => {
   const bash = new RustWasmBash();
@@ -4517,6 +4762,7 @@ test("jq emits exact JSON bytes for ASCII, indentation, color, and sequence opti
     }
   } finally { bash.dispose(); }
 });
+
 
 test("jq reports undefined function signatures in unused definitions and branches", async () => {
   const bash = new RustWasmBash();
@@ -4540,6 +4786,7 @@ test("jq reports undefined function signatures in unused definitions and branche
   } finally { bash.dispose(); }
 });
 
+
 test("jq reads each module as a program file and only skips missing candidates", async () => {
   const sh = new RustWasmBash({ files: { "/lib/m.jq": "def value: 12;", "/lib/bad.jq": Uint8Array.of(255) } });
   try {
@@ -4558,6 +4805,7 @@ test("jq reads each module as a program file and only skips missing candidates",
   } finally { sh.dispose(); }
 });
 
+
 test("jq resolves literal and escaped Unicode module names to the same file", async () => {
   const sh = new RustWasmBash({ files: {
     "/lib/a\ue080.jq": "def value: 42;",
@@ -4570,6 +4818,7 @@ test("jq resolves literal and escaped Unicode module names to the same file", as
     }
   } finally { sh.dispose(); }
 });
+
 
 test("jq compiles nested modules in their own scope before opening inputs", async () => {
   const bash = new RustWasmBash({ files: {
@@ -4595,6 +4844,7 @@ test("jq compiles nested modules in their own scope before opening inputs", asyn
   } finally { bash.dispose(); }
 });
 
+
 test("jq validates complete string segments and decodes paired Unicode escapes", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4615,6 +4865,7 @@ test("jq validates complete string segments and decodes paired Unicode escapes",
   } finally { bash.dispose(); }
 });
 
+
 test("jq checks variable scope before reading input or evaluating branches", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4630,6 +4881,7 @@ test("jq checks variable scope before reading input or evaluating branches", asy
     assert.equal(scoped.stdout, '["outer",1,"outer",6]\n');
   } finally { bash.dispose(); }
 });
+
 
 test("jq resolves definitions by arity and evaluates filter arguments in their caller's scope", async () => {
   const bash = new RustWasmBash();
@@ -4647,6 +4899,7 @@ test("jq resolves definitions by arity and evaluates filter arguments in their c
   } finally { bash.dispose(); }
 });
 
+
 test("jq env and $ENV read exported variables independently of jq arguments", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4663,6 +4916,7 @@ test("jq env and $ENV read exported variables independently of jq arguments", as
     }
   } finally { bash.dispose(); }
 });
+
 
 test("commands receive exported scalar values without array elements or shell bookkeeping", async () => {
   const bash = new RustWasmBash();
@@ -4684,6 +4938,7 @@ test("commands receive exported scalar values without array elements or shell bo
   } finally { bash.dispose(); }
 });
 
+
 test("double underscore variables survive exports, shell options and cold checkpoints", async () => {
   const bash = new RustWasmBash({ cwd: "/workspace", env: { __cwd: "cwd-value", __project: "initial" } });
   try {
@@ -4704,6 +4959,7 @@ test("double underscore variables survive exports, shell options and cold checkp
   } finally { bash.dispose(); }
 });
 
+
 test("JSON session checkpoints restore bindings without repeating filesystem writes", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4723,6 +4979,7 @@ test("JSON session checkpoints restore bindings without repeating filesystem wri
     assert.ok(!("rawHistory" in checkpoint));
   } finally { bash.dispose(); }
 });
+
 
 test("JavaScript and Rust can exchange supported cold session state", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -4766,6 +5023,7 @@ test("JavaScript and Rust can exchange supported cold session state", async () =
   } finally { await js.dispose(); rust.dispose(); }
 });
 
+
 test("session checkpoints retain associative key order and distinguish unassigned arrays", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4781,6 +5039,7 @@ test("session checkpoints retain associative key order and distinguish unassigne
   } finally { bash.dispose(); }
 });
 
+
 test("restored positional arguments and aliases honor the expansion byte limit", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4795,6 +5054,7 @@ test("restored positional arguments and aliases honor the expansion byte limit",
   } finally { bash.dispose(); }
 });
 
+
 test("session restore only parses function definitions and never runs legacy history", async () => {
   const bash = new RustWasmBash();
   try {
@@ -4804,6 +5064,7 @@ test("session restore only parses function definitions and never runs legacy his
     assert.equal((await bash.exec("test ! -e /bad")).exitCode, 0);
   } finally { bash.dispose(); }
 });
+
 
 test("session hooks can supply a checkpoint and observe the committed turn", async () => {
   const bash = new RustWasmBash();
@@ -4827,6 +5088,7 @@ test("session hooks can supply a checkpoint and observe the committed turn", asy
     assert.equal((await session.exec('echo "${FROM_HOOK-unset}"')).stdout, "unset\n");
   } finally { bash.dispose(); }
 });
+
 
 test("session turns run in order across async hooks and recover after rejection", async () => {
   const bash = new RustWasmBash();
@@ -4852,6 +5114,7 @@ test("session turns run in order across async hooks and recover after rejection"
   } finally { bash.dispose(); }
 });
 
+
 test("ordinary calls isolate shell state while sharing filesystem changes", async () => {
   const bash = new RustWasmBash({ cwd: "/work", env: { BASE: "initial" }, directories: ["/work/sub"] });
   try {
@@ -4863,6 +5126,7 @@ test("ordinary calls isolate shell state while sharing filesystem changes", asyn
     assert.equal(next.exitCode, 1);
   } finally { bash.dispose(); }
 });
+
 
 test("explicit sessions share files but start with separate shell state", async () => {
   const bash = new RustWasmBash({ cwd: "/work", env: { BASE: "initial" } });
@@ -4876,6 +5140,7 @@ test("explicit sessions share files but start with separate shell state", async 
   } finally { bash.dispose(); }
 });
 
+
 test("explicit sessions retain the working directory and environment resulting from each turn", async () => {
   const bash = new RustWasmBash({ cwd: "/work", env: { EXISTING: "base" }, directories: ["/work/sub"] });
   try {
@@ -4885,6 +5150,7 @@ test("explicit sessions retain the working directory and environment resulting f
     assert.equal(next.stdout, "/work/sub\nupdated/value\n");
   } finally { bash.dispose(); }
 });
+
 
 test("symbolic links validate the parent before mutation and report the failing operand", async () => {
   const bash = new RustWasmBash({deviceView: "provided", files: {"/locked/file": "keep"}, symlinks: {"/seed/link": "absent"}});
@@ -4903,6 +5169,7 @@ test("symbolic links validate the parent before mutation and report the failing 
     await assert.rejects(fs.lstat("/bad"), {code: "ENOENT"});
   } finally { bash.dispose(); }
 });
+
 
 test("symbolic links check protected device paths before link text, including dot aliases", async () => {
   const bash = new RustWasmBash({ directories: ["/dir"] });
@@ -4924,6 +5191,7 @@ test("symbolic links check protected device paths before link text, including do
   } finally { bash.dispose(); }
 });
 
+
 test("an empty overlay link target reports the original destination before traversal", async () => {
   const bash = new RustWasmBash({ profile: "overlay-cow-fs", directories: ["/dir"] });
   try {
@@ -4932,6 +5200,7 @@ test("an empty overlay link target reports the original destination before trave
     }
   } finally { bash.dispose(); }
 });
+
 
 test("gzip compresses repeated bytes and interoperates with an independent decoder", () => {
   const payload = Buffer.from("a repeatable log message\n".repeat(4096));
@@ -4948,6 +5217,7 @@ test("gzip compresses repeated bytes and interoperates with an independent decod
     bash.dispose();
   }
 });
+
 
 test("WASM Bash forceNative returns long listings and preserves literal -l filenames", async () => {
   const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
@@ -4970,6 +5240,7 @@ test("WASM Bash forceNative returns long listings and preserves literal -l filen
   assert.equal(result.stdout, "-l\n");
   bash.dispose();
 });
+
 
 test("WASM Bash forceNative executes compression codecs with genuine magic headers", async () => {
   const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
@@ -4997,6 +5268,7 @@ test("WASM Bash forceNative executes compression codecs with genuine magic heade
   assert.deepEqual([...xz.slice(0, 6)], [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]);
   assert.deepEqual([...zst.slice(0, 4)], [0x28, 0xb5, 0x2f, 0xfd]);
 });
+
 
 test("WASM Bash forceNative writes genuine SQLite format 3 pages and supports nested timeout and op/gh", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5033,6 +5305,7 @@ test("WASM Bash forceNative writes genuine SQLite format 3 pages and supports ne
   assert.equal(opGhRes.stdout, "/bin/op\n/bin/gh\ns3cr3t\n1\n");
 });
 
+
 test("WASM Bash forceNative enforces sleep validation, timeout --preserve-status, and -k kill-after", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/" });
 
@@ -5047,6 +5320,7 @@ test("WASM Bash forceNative enforces sleep validation, timeout --preserve-status
   const preserve = await bash.exec("timeout --preserve-status -s INT 0.05s sleep 0.2");
   assert.equal(preserve.exitCode, 130);
 });
+
 
 test("WASM Bash forceNative supports op inject literal braces, file attachments, and secret masking", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5069,6 +5343,7 @@ test("WASM Bash forceNative supports op inject literal braces, file attachments,
   assert.match(res.stdout, /MASKED=<concealed by 1Password>/);
   assert.match(res.stdout, /RAW=top-secret-pw/);
 });
+
 
 test("WASM Bash forceNative supports SQLite multi-page B-trees, recursive CTEs, and window functions", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5097,6 +5372,7 @@ test("WASM Bash forceNative supports SQLite multi-page B-trees, recursive CTEs, 
   assert.equal(bytes.byteLength % 4096, 0);
 });
 
+
 test("WASM Bash forceNative supports /dev/* devices, arrays, namerefs, process substitution, and traps", async () => {
   const bash = createRustWasmBash({ deviceView: "provided", forceNative: true, cwd: "/work" });
   bash.mountDevices();
@@ -5115,6 +5391,7 @@ test("WASM Bash forceNative supports /dev/* devices, arrays, namerefs, process s
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(res.stdout, "00000000\nNAMEREF=v2\nEXIT_TRAP_OK\n");
 });
+
 
 test("WASM Bash forceNative executes tar compressed archives, jq, csvpy, bc, sed, awk, and dot", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5136,6 +5413,7 @@ test("WASM Bash forceNative executes tar compressed archives, jq, csvpy, bc, sed
   assert.equal(res.stdout, "{\"result\":84}\nDOT_OK\n");
 });
 
+
 test("in2csv admits JSON table storage under the shell memory limit", () => {
   const bash = new RustWasmBash({
     limits: { maxMemoryBytes: 4096 },
@@ -5152,6 +5430,7 @@ test("in2csv admits JSON table storage under the shell memory limit", () => {
   }
 });
 
+
 test("WASM Bash forceNative enforces memoryFsOptions quotas and execution limits", async () => {
   const bash = createRustWasmBash({
     forceNative: true,
@@ -5167,6 +5446,7 @@ test("WASM Bash forceNative enforces memoryFsOptions quotas and execution limits
   await assert.rejects(() => bash.exec("i=0; while [ $i -lt 100 ]; do i=$((i + 1)); done"), /maxLoopIterations/);
 });
 
+
 test("WASM Bash forceNative supports env -i, -u, -C, and -S split-string execution", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
   await bash.fs.mkdir("/work/sub", { recursive: true });
@@ -5179,6 +5459,7 @@ test("WASM Bash forceNative supports env -i, -u, -C, and -S split-string executi
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(res.stdout, "yes\n1\n2\n/work/sub\n");
 });
+
 
 test("WASM Bash forceNative supports gh pr list --state closed (including merged), release delete, variable, and label", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5201,6 +5482,7 @@ test("WASM Bash forceNative supports gh pr list --state closed (including merged
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(res.stdout, "CLOSED_PRS=[2,1]\nRELEASES=0\nVAR=prod\n");
 });
+
 
 test("WASM Bash forceNative supports zip, unzip -l/-p, and apply_patch", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
@@ -5225,6 +5507,7 @@ PATCH
   assert.equal(res.stdout, "line1\nline2-patched\n");
 });
 
+
 test("WASM Bash forceNative supports sqlite3 -json formatting and WITH ... UPDATE correlated subqueries", async () => {
   const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
   await bash.fs.mkdir("/work", { recursive: true });
@@ -5247,6 +5530,7 @@ test("WASM Bash forceNative supports sqlite3 -json formatting and WITH ... UPDAT
     "[{\"id\":1,\"tag\":\"u-1\"},\n{\"id\":2,\"tag\":\"u-2-vip\"}]\n"
   );
 });
+
 
 test("Wasm filesystem removes only entries admitted by rm, unlink and rmdir", async () => {
   const bash = new RustWasmBash({ files: { "/tree/keep": "data" } });
@@ -5273,6 +5557,7 @@ test("Wasm filesystem removes only entries admitted by rm, unlink and rmdir", as
   }
 });
 
+
 test("the default device directory merges null with backing files and is counted once by df", async () => {
   const bash = createRustWasmBash({ files: { "/dev/zero": "ordinary" }, symlinks: { "/discard": "/dev/null" } });
   try {
@@ -5289,6 +5574,7 @@ test("the default device directory merges null with backing files and is counted
   } finally { bash.dispose(); }
 });
 
+
 test("provided devices preserve backing files and the mounted test devices remain readable", async () => {
   const provided = createRustWasmBash({ deviceView: "provided", files: { "/dev/null": "kept" } });
   const mounted = createRustWasmBash({ deviceView: "provided", files: { "/dev/hidden": "backing" } });
@@ -5300,6 +5586,7 @@ test("provided devices preserve backing files and the mounted test devices remai
     assert.equal(devices.stdout, "null\nrandom\nurandom\nzero\n0000\n");
   } finally { provided.dispose(); mounted.dispose(); }
 });
+
 
 test("mktemp retries occupied names without following links, and propagates creation and entropy failures", async t => {
   const sh = new RustWasmBash({ forceNative: true, cwd: "/" });
@@ -5333,6 +5620,7 @@ test("mktemp retries occupied names without following links, and propagates crea
   } finally { sh.dispose(); }
 });
 
+
 test("touch updates the selected host timestamps and preserves the other clock", {skip: !WebAssembly.Suspending}, async () => {
   const {MemoryFileSystem} = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), sh = new RustWasmBash({fs,cwd:"/"});
@@ -5347,6 +5635,7 @@ test("touch updates the selected host timestamps and preserves the other clock",
     }
   } finally { await sh.dispose(); }
 });
+
 
 test("host file identity distinguishes equal device and inode numbers from different scopes", {skip: !WebAssembly.Suspending}, async () => {
   const {MemoryFileSystem} = await import("@poe-code/safe-fs");
@@ -5365,6 +5654,7 @@ test("host file identity distinguishes equal device and inode numbers from diffe
     assert.equal(result.stdout,"1\n0\n7 23\n");
   } finally { await sh.dispose(); }
 });
+
 
 test("cp pins the inspected host source before replacing or backing up a destination", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
@@ -5408,6 +5698,7 @@ test("cp pins the inspected host source before replacing or backing up a destina
   }
 });
 
+
 test("noclobber on a host without descriptors publishes bytes once and preserves a competing file", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
   const store = new MemoryFileSystem(), fs = createMountFileSystem({root:store,mounts:{}});
@@ -5433,6 +5724,7 @@ test("noclobber on a host without descriptors publishes bytes once and preserves
   } finally { await sh.dispose(); }
 });
 
+
 test("mkdir omits only the default mode on a mount without permissions", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem, MemoryFileSystem} = await import("@poe-code/safe-fs");
   const fs = createMountFileSystem({root:new MemoryFileSystem(),mounts:{"/remote":new MemoryFileSystem()}});
@@ -5451,6 +5743,7 @@ test("mkdir omits only the default mode on a mount without permissions", {skip: 
     }
   } finally { await sh.dispose(); }
 });
+
 
 test("rm never retries an atomic refusal with an unguarded delete", {skip: !WebAssembly.Suspending}, async () => {
   const {createMountFileSystem,MemoryFileSystem} = await import("@poe-code/safe-fs");
@@ -5473,6 +5766,7 @@ test("rm never retries an atomic refusal with an unguarded delete", {skip: !WebA
   } finally { await sh.dispose(); }
 });
 
+
 test("moving a host file across mounts preserves bytes and metadata when creating or replacing", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
   const src = new MemoryFileSystem(), dest = new MemoryFileSystem();
@@ -5493,6 +5787,7 @@ test("moving a host file across mounts preserves bytes and metadata when creatin
     }
   } finally { await sh.dispose(); }
 });
+
 
 test("a cross-mount move preserves a raced source and never overwrites a raced destination", {skip: !WebAssembly.Suspending}, async () => {
   const { createMountFileSystem, MemoryFileSystem } = await import("@poe-code/safe-fs");
@@ -5529,6 +5824,7 @@ test("a cross-mount move preserves a raced source and never overwrites a raced d
   }
 });
 
+
 test("the configured host root is live across commands and sessions, and an exec override is temporary", {skip: !WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), other = new MemoryFileSystem();
@@ -5549,6 +5845,7 @@ test("the configured host root is live across commands and sessions, and an exec
   } finally { await shell.dispose(); }
 });
 
+
 test("private redirection fails before creating a file on a host without permissions", {skip: !WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = new MemoryFileSystem(), sh = new RustWasmBash({fs,cwd:"/"});
@@ -5562,6 +5859,7 @@ test("private redirection fails before creating a file on a host without permiss
     }
   } finally { await sh.dispose(); }
 });
+
 
 test("mktemp creates private entries on a supplied filesystem and retries a concurrent collision", { skip: !WebAssembly.Suspending }, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
@@ -5595,6 +5893,7 @@ test("mktemp creates private entries on a supplied filesystem and retries a conc
   } finally { sh.dispose(); }
 });
 
+
 test("ssh-keygen fails before publishing a key when entropy or private permissions are unavailable", async t => {
   const sh = new RustWasmBash({ forceNative: true, cwd: "/" });
   const cmd = "ssh-keygen -t ed25519 -N '' -f /key";
@@ -5615,6 +5914,7 @@ test("ssh-keygen fails before publishing a key when entropy or private permissio
   } finally { sh.dispose(); }
 });
 
+
 test("random devices use the host entropy source and fail if it is unavailable", async t => {
   const bash = createRustWasmBash({ deviceView: "provided" });
   bash.mountDevices();
@@ -5630,6 +5930,7 @@ test("random devices use the host entropy source and fail if it is unavailable",
     assert.equal(failed.stdoutBytes.length, 0);
   } finally { bash.dispose(); }
 });
+
 
 test("Wasm fs.link retains inode identity and reports the failing operand", async () => {
   const bash = new RustWasmBash({deviceView:"provided", files:{"/src/f":"first", "/keep":"original"}, symlinks:{"/sym":"absent"}});
@@ -5653,6 +5954,7 @@ test("Wasm fs.link retains inode identity and reports the failing operand", asyn
   } finally { bash.dispose(); }
 });
 
+
 test("fs.link protects the default device view, rejects overlays and respects mount boundaries", async () => {
   const bash = new RustWasmBash({files:{"/file":"keep"}});
   const overlay = new RustWasmBash({profile:"overlay-cow-fs"});
@@ -5665,6 +5967,7 @@ test("fs.link protects the default device view, rejects overlays and respects mo
     await assert.rejects(bash.fs.link("/dev/null", "/dev/new"), {code:"ENOTSUP", dest:"/dev/new"});
   } finally { overlay.dispose(); bash.dispose(); }
 });
+
 
 test("Wasm rename moves entries and preserves both paths on failure", async () => {
   const bash = new RustWasmBash({ files: { "/src/file": "source", "/other": "keep" } });
@@ -5688,6 +5991,7 @@ test("Wasm rename moves entries and preserves both paths on failure", async () =
     bash.dispose();
   }
 });
+
 
 test("overlay rename moves the merged tree without resurrecting hidden children", async () => {
   const bash = new RustWasmBash({
@@ -5713,6 +6017,7 @@ test("overlay rename moves the merged tree without resurrecting hidden children"
   }
 });
 
+
 test("rename preserves hard links and rejects moves across a mount", async () => {
   const bash = new RustWasmBash({ files: { "/dir/file": "source", "/other": "target" } });
   const fs = bash.fs;
@@ -5733,6 +6038,7 @@ test("rename preserves hard links and rejects moves across a mount", async () =>
   }
 });
 
+
 test("realpath walks links before parent components and stays inside a mount", async () => {
   const bash = new RustWasmBash({files:{"/tree/sub/file":"data"}});
   const fs = bash.fs;
@@ -5750,6 +6056,7 @@ test("realpath walks links before parent components and stays inside a mount", a
     assert.equal(await fs.realpath("/dev/."), "/dev");
   } finally { bash.dispose(); }
 });
+
 
 test("plugin copyFile uses the invocation filesystem and preserves exclusive destinations", {skip: !WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
@@ -5769,6 +6076,7 @@ test("plugin copyFile uses the invocation filesystem and preserves exclusive des
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("plugin copyFile cannot bypass the external filesystem device overlay", {skip: !WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-code/safe-fs");
@@ -5790,6 +6098,7 @@ test("plugin copyFile cannot bypass the external filesystem device overlay", {sk
     assert.deepEqual(await fs.readFile("/data"), Uint8Array.of(1));
   } finally { await bash.dispose(); }
 });
+
 
 test("copyFile preserves destinations on failed copies and applies the source mode", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
@@ -5832,6 +6141,7 @@ test("copyFile preserves destinations on failed copies and applies the source mo
   }
 });
 
+
 test("writeFile honors exclusive creation, append, permissions and cancellation", async t => {
   let now = Date.UTC(2040, 0, 1);
   t.mock.method(Date, "now", () => now);
@@ -5870,6 +6180,7 @@ test("writeFile honors exclusive creation, append, permissions and cancellation"
   }
 });
 
+
 test("a memory file write publishes its mode and timestamps together", async t => {
   let tick = Date.UTC(2040, 0, 1);
   t.mock.method(Date, "now", () => ++tick);
@@ -5884,6 +6195,7 @@ test("a memory file write publishes its mode and timestamps together", async t =
   } finally { bash.dispose(); }
 });
 
+
 test("companion replay uses the original working directory after exec options change", async () => {
   const companion = new RustWasmBash({ directories: ["/other"] });
   const bash = new RustWasmBash({ forceNative: false, companionFactory: () => companion });
@@ -5897,6 +6209,7 @@ test("companion replay uses the original working directory after exec options ch
   } finally { bash.dispose(); companion.dispose(); }
 });
 
+
 test("failed chmod does not poison the next companion call", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
@@ -5906,6 +6219,7 @@ test("failed chmod does not poison the next companion call", async () => {
     assert.equal(await bash.fs.realpath("/after"), "/after");
   } finally { bash.dispose(); }
 });
+
 
 test("companion replay keeps admitted removal flags and file timestamps", async () => {
   const companion = new RustWasmBash();
@@ -5930,6 +6244,7 @@ test("companion replay keeps admitted removal flags and file timestamps", async 
   } finally { bash.dispose(); }
 });
 
+
 test("companion replay retains only completed writes and their original bytes and options", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
@@ -5953,6 +6268,7 @@ test("companion replay retains only completed writes and their original bytes an
   } finally { bash.dispose(); companion.dispose(); }
 });
 
+
 test("constructor seeds use the same creation mode as fs.writeFile", async () => {
   const bash = new RustWasmBash({files:{
     "/nested/text":"hello", "/bytes":new Uint8Array([42]), "/object":{content:"value"},
@@ -5965,6 +6281,7 @@ test("constructor seeds use the same creation mode as fs.writeFile", async () =>
     assert.equal((await bash.fs.stat("/private")).mode & 0o777, 0o600);
   } finally { bash.dispose(); }
 });
+
 
 test("readFile enforces read and directory search permissions, byte caps, and aborts", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
@@ -5990,6 +6307,7 @@ test("readFile enforces read and directory search permissions, byte caps, and ab
 });
 
 
+
 test("mounted streams without EOF cannot be read as whole files", async () => {
   const bash = new RustWasmBash({deviceView:"provided"});
   try {
@@ -6002,6 +6320,7 @@ test("mounted streams without EOF cannot be read as whole files", async () => {
   } finally { bash.dispose(); }
 });
 
+
 test("the strict budget profile mounts the virtual devices used by production", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev"});
   try {
@@ -6011,6 +6330,7 @@ test("the strict budget profile mounts the virtual devices used by production", 
     await assert.rejects(bash.fs.writeFile("/dev/urandom", "denied"), {code:"EPERM"});
   } finally { bash.dispose(); }
 });
+
 
 test("stat identifies aliases, renames and replacements within one filesystem", async () => {
   const a = new RustWasmBash({files:{"/original":"value"}});
@@ -6031,6 +6351,7 @@ test("stat identifies aliases, renames and replacements within one filesystem", 
   } finally { a.dispose(); b.dispose(); }
 });
 
+
 test("overlay reads verify each followed link against the layer that owns it", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/lower/file":"value"}});
   const {fs} = bash;
@@ -6046,6 +6367,7 @@ test("overlay reads verify each followed link against the layer that owns it", a
     assert.equal(new TextDecoder().decode(await fs.readFile(alias + "/file")), "upper");
   } finally { bash.dispose(); }
 });
+
 
 test("memory overlay directory scopes distinguish siblings and keep symlink aliases together", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/src/dir/file":"data"}, symlinks:{"/alias":"/src/dir"}});
@@ -6069,6 +6391,7 @@ test("memory overlay directory scopes distinguish siblings and keep symlink alia
   } finally { bash.dispose(); }
 });
 
+
 test("stat and lstat resolve parents before '..' and report inaccessible entries", async () => {
   const bash = new RustWasmBash({files:{"/tree/sub/file":"data", "/tree/x":"nested", "/x":"root"}, symlinks:{"/alias":"tree/sub"}});
   try {
@@ -6086,6 +6409,7 @@ test("stat and lstat resolve parents before '..' and report inaccessible entries
     await assert.rejects(bash.fs.stat("missing"), {code:"ENOENT",syscall:"stat",path:"/missing"});
   } finally { bash.dispose(); }
 });
+
 
 test("open descriptors retain the file across rename, unlink, and replacement", async () => {
   const bash = new RustWasmBash({files:{"/entry":"first"}});
@@ -6117,6 +6441,7 @@ test("open descriptors retain the file across rename, unlink, and replacement", 
   } finally { bash.dispose(); }
 });
 
+
 test("descriptor append, sparse writes, cancellation and close preserve cursor ordering", async () => {
   const bash = new RustWasmBash({files:{"/entry":"a"}, symlinks:{"/link":"entry"}});
   try {
@@ -6146,6 +6471,7 @@ test("descriptor append, sparse writes, cancellation and close preserve cursor o
   } finally { bash.dispose(); }
 });
 
+
 test("mounted descriptors distinguish seekable files from streams and overlay admission", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev"});
   const overlay = new RustWasmBash({profile:"overlay-cow-fs"});
@@ -6164,6 +6490,7 @@ test("mounted descriptors distinguish seekable files from streams and overlay ad
     await random.close();
   } finally { bash.dispose(); overlay.dispose(); }
 });
+
 
 test("mv unlinks the source only after a successful cross-device write", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", files:{"/file":"keep", "/tree/a":"child"}});
@@ -6197,6 +6524,7 @@ test("mv unlinks the source only after a successful cross-device write", async (
   } finally { bash.dispose(); }
 });
 
+
 test("seed directories and implicit parents use the production memory filesystem modes", async () => {
   const bash = new RustWasmBash({cwd:"/project/work", directories:["/seed/deep"], files:{"/nested/files/a":"data"}});
   try {
@@ -6206,6 +6534,7 @@ test("seed directories and implicit parents use the production memory filesystem
     }
   } finally { bash.dispose(); }
 });
+
 
 test("mkdir -p applies the shell umask to new parents and -m to the final directory", async () => {
   const bash = new RustWasmBash({directories:["/existing"]});
@@ -6217,6 +6546,7 @@ test("mkdir -p applies the shell umask to new parents and -m to the final direct
     assert.equal((await bash.fs.stat("/existing")).mode & 0o7777, 0o777);
   } finally { bash.dispose(); }
 });
+
 
 test("fs.mkdir creates only requested entries, respects search permissions and preserves existing modes", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
@@ -6254,6 +6584,7 @@ test("fs.mkdir creates only requested entries, respects search permissions and p
   }
 });
 
+
 test("mkdir checks routed creation capabilities before publishing a missing directory", async () => {
   for (const [profile, args, error, absent] of [
     ["overlay-cow-fs", "/alias/../out", "ENOENT: no such file or directory, realpath '/alias/../out'", "/dir/out"],
@@ -6270,6 +6601,7 @@ test("mkdir checks routed creation capabilities before publishing a missing dire
   }
 });
 
+
 test("link-free mkdir uses backing memory only when the shell has no explicit operation limit", async () => {
   for (const limits of [undefined, {maxFileSystemOperations: 100000}]) {
     const bash = new RustWasmBash({deviceView:"default", cwd:"/", limits});
@@ -6280,6 +6612,7 @@ test("link-free mkdir uses backing memory only when the shell has no explicit op
     } finally { bash.dispose(); }
   }
 });
+
 
 test("mkdir checks all operands against the operation limit before creating directories", async () => {
   for (const [view, ops] of [["provided", 6], ["default", 10]]) {
@@ -6294,6 +6627,7 @@ test("mkdir checks all operands against the operation limit before creating dire
     }
   }
 });
+
 
 test("mkdir reports which device lookup failed before creating a directory", async () => {
   const bash = new RustWasmBash({deviceView:"default", symlinks:{"/alias":"/dev"}});
@@ -6310,6 +6644,7 @@ test("mkdir reports which device lookup failed before creating a directory", asy
   } finally { bash.dispose(); }
 });
 
+
 test("mkdir replay retains parents created before a recursive failure", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
@@ -6320,6 +6655,7 @@ test("mkdir replay retains parents created before a recursive failure", async ()
     assert.equal((await companion.fs.stat("/unsearchable")).mode & 0o777, 0);
   } finally { bash.dispose(); companion.dispose(); }
 });
+
 
 test("async readdir returns typed entries in JavaScript order and admits bounded listings", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
@@ -6346,6 +6682,7 @@ test("async readdir returns typed entries in JavaScript order and admits bounded
   }
 });
 
+
 test("readdir refuses unreadable directories and resolves ancestors before '..'", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile, files:{"/private/secret":"value", "/readable/file":"data", "/dev/secret":"value"}});
@@ -6363,6 +6700,7 @@ test("readdir refuses unreadable directories and resolves ancestors before '..'"
     } finally { bash.dispose(); }
   }
 });
+
 
 test("ls checks search permission before following children, links or '..'", async () => {
   const bash = new RustWasmBash({files:{"/guard/inner/secret":"data","/guard/plain":"file","/open/file":"ok"},symlinks:{"/alias":"guard/inner","/dang":"absent"}});
@@ -6391,6 +6729,7 @@ test("ls checks search permission before following children, links or '..'", asy
   } finally { bash.dispose(); }
 });
 
+
 test("ls reports the original directory operand when access through an alias fails", async () => {
   for (const profile of [undefined,"strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile,files:{"/parent/private/data":"a"},symlinks:{"/link":"parent/private"}});
@@ -6403,6 +6742,7 @@ test("ls reports the original directory operand when access through an alias fai
     } finally { bash.dispose(); }
   }
 });
+
 test("single-entry removal preserves unseen descendants", async () => {
   for (const cmd of ["find /g -maxdepth 0 -delete", "rmdir /g", "rm -d /g"]) {
     const bash = new RustWasmBash({files:{"/g/sub/data":"KEEP"}});
@@ -6415,6 +6755,7 @@ test("single-entry removal preserves unseen descendants", async () => {
     } finally { bash.dispose(); }
   }
 });
+
 
 test("device metadata follows virtual traversal without granting access to backing directories", async () => {
   const bash = new RustWasmBash({directories:["/locked","/keep"]});
@@ -6434,6 +6775,7 @@ test("device metadata follows virtual traversal without granting access to backi
   } finally { bash.dispose(); }
 });
 
+
 test("memory rmdir reports a missing entry without the trailing slash", async () => {
   for (const deviceView of ["default","provided"]) {
     const bash = new RustWasmBash({deviceView, directories:["/dir"]});
@@ -6445,6 +6787,7 @@ test("memory rmdir reports a missing entry without the trailing slash", async ()
   }
 });
 
+
 test("a missing prefix cannot select a mounted device's directory removal capability", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/empty"]});
   try {
@@ -6454,6 +6797,7 @@ test("a missing prefix cannot select a mounted device's directory removal capabi
     assert.equal(result.stderr, "rmdir: ENOENT: no such file or directory, rmdir '/missing/../dev'\n");
   } finally { bash.dispose(); }
 });
+
 
 test("rmdir checks whether an unsupported mounted directory is actually nonempty", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/empty"]});
@@ -6469,6 +6813,7 @@ test("rmdir checks whether an unsupported mounted directory is actually nonempty
   } finally { bash.dispose(); }
 });
 
+
 test("mounted removal requires a searchable directory before crossing a trailing slash", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/locked"]});
   try {
@@ -6483,6 +6828,7 @@ test("mounted removal requires a searchable directory before crossing a trailing
     await bash.fs.rmdir("/locked");
   } finally { bash.dispose(); }
 });
+
 
 test("removal checks device traversal and mounted roots before rejecting a terminal dot", async () => {
   for (const [profile, path, method, code, syscall, failed] of [
@@ -6501,6 +6847,7 @@ test("removal checks device traversal and mounted roots before rejecting a termi
   }
 });
 
+
 test("rmdir charges parent capability retries when device traversal crosses a missing directory", async () => {
   for (const [symlinks, minimum] of [[{}, 9], [{"/link":"/a"}, 10]]) {
     const bash = new RustWasmBash({cwd:"/", directories:["/a"], symlinks});
@@ -6514,6 +6861,7 @@ test("rmdir charges parent capability retries when device traversal crosses a mi
     } finally { bash.dispose(); }
   }
 });
+
 
 test("rmdir checks every operand's removal capability before deleting earlier directories", async () => {
   for (const [profile, ignore, code, removed] of [
@@ -6531,6 +6879,7 @@ test("rmdir checks every operand's removal capability before deleting earlier di
   }
 });
 
+
 test("rmdir checks the parent and removes empty unreadable directories", async () => {
   const bash = new RustWasmBash({files:{"/guard/keep":"data"},symlinks:{"/alias":"/guard"}});
   try {
@@ -6544,6 +6893,7 @@ test("rmdir checks the parent and removes empty unreadable directories", async (
     assert.equal(bash.readText("/guard/keep"), "data");
   } finally { bash.dispose(); }
 });
+
 
 test("find does not run depth-first actions when directory traversal fails", async () => {
   const bash = new RustWasmBash({files:{"/g/sub/data":"KEEP","/open/data":"OTHER"},symlinks:{"/alias":"/g/sub"}});
@@ -6568,6 +6918,7 @@ test("find does not run depth-first actions when directory traversal fails", asy
   } finally { bash.dispose(); }
 });
 
+
 test("recursive removal checks all nonempty directories before deleting anything", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile, files:{"/tree/first":"A","/tree/z/last":"B","/open/file":"C"}});
@@ -6590,6 +6941,7 @@ test("recursive removal checks all nonempty directories before deleting anything
   }
 });
 
+
 test("overlay removal resolves every ancestor before changing either layer", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/g/sub/data":"lower","/open/keep":"KEEP"},symlinks:{"/link":"/g"}});
   try {
@@ -6606,6 +6958,7 @@ test("overlay removal resolves every ancestor before changing either layer", asy
   } finally { bash.dispose(); }
 });
 
+
 test("fs.utimes preserves both timestamps on the inode and propagates failures", async () => {
   const bash = new RustWasmBash({files:{"/file":"keep"}});
   try {
@@ -6621,6 +6974,7 @@ test("fs.utimes preserves both timestamps on the inode and propagates failures",
     assert.equal((await bash.fs.stat("/file")).mtimeMs, mtimeMs);
   } finally { bash.dispose(); }
 });
+
 
 test("memory file timestamps use the host clock when created, read, written and touched", async t => {
   let now = Date.UTC(2040, 0, 1);
@@ -6646,6 +7000,7 @@ test("memory file timestamps use the host clock when created, read, written and 
   } finally { bash.dispose(); }
 });
 
+
 test("date uses the host clock and prefers an existing numeric reference over epoch seconds", async t => {
   t.mock.method(Date, "now", () => 2208988800123);
   const bash = new RustWasmBash({files:{"/w/5":"x"},cwd:"/w"});
@@ -6658,6 +7013,7 @@ test("date uses the host clock and prefers an existing numeric reference over ep
     assert.equal(bash.execSync("date -r 999999999999999999999999 +%s").stderr, "date: date is outside the supported range\n");
   } finally { bash.dispose(); }
 });
+
 
 test("chmod changes inode status time without changing modification or birth time", async t => {
   const birth = Date.UTC(2040, 0, 1);
@@ -6674,6 +7030,7 @@ test("chmod changes inode status time without changing modification or birth tim
     assert.match(bash.execSync("ls -lc /f").stdout, /2040-01-02 00:00 \/f\n$/);
   } finally { bash.dispose(); }
 });
+
 
 test("find compares the requested inode time at exact minute and day boundaries", async t => {
   const now = Date.UTC(2040, 0, 1);
@@ -6699,6 +7056,7 @@ test("find compares the requested inode time at exact minute and day boundaries"
   } finally { bash.dispose(); }
 });
 
+
 test("mounted devices retain their creation time while the default null device uses the epoch", async t => {
   let now = Date.UTC(2040, 0, 1);
   t.mock.method(Date, "now", () => now);
@@ -6716,6 +7074,7 @@ test("mounted devices retain their creation time while the default null device u
   } finally { bash.dispose(); }
 });
 
+
 test("chmod reports why a change was denied and leaves permissions intact", async () => {
   const bash = new RustWasmBash({ profile: "overlay-cow-fs", files: { "/w/f": { content: "x", mode: 0o200 } } });
   try {
@@ -6726,6 +7085,7 @@ test("chmod reports why a change was denied and leaves permissions intact", asyn
     await assert.rejects(bash.fs.chmod("/dev/null", 0o600), { code: "ENOTSUP", syscall: "chmod", path: "/dev/null" });
   } finally { bash.dispose(); }
 });
+
 
 test("writeFile reports overlay failures at the resolved operand and prioritizes mount errors", async () => {
   const bash = new RustWasmBash({ profile: "overlay-cow-fs", files: { "/f": { content: "keep", mode: 0o444 } }, symlinks: { "/link": "f" } });
@@ -6738,6 +7098,7 @@ test("writeFile reports overlay failures at the resolved operand and prioritizes
     await assert.rejects(bash.fs.writeFile("/dev/absent", "bad"), { code: "ENOENT", syscall: "writeFile", path: "/dev/absent" });
   } finally { bash.dispose(); }
 });
+
 
 test("stat distinguishes absent fields, a zero allocation, and a real inode", async () => {
   const bash = new RustWasmBash({files:{"/f":"content","/g":"other"}});
@@ -6763,6 +7124,7 @@ test("stat distinguishes absent fields, a zero allocation, and a real inode", as
   } finally { bash.dispose(); }
 });
 
+
 test("invalid environment entries reject construction and execution before hooks or writes", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" } });
   let calls = 0;
@@ -6777,6 +7139,7 @@ test("invalid environment entries reject construction and execution before hooks
   } finally { bash.dispose(); }
 });
 
+
 test("fd accepts safe integer depth limits and bundled exec flags in Wasm", async () => {
   const bash = new RustWasmBash({ cwd: "/w", files: { "/w/a.Ä": "", "/w/sub/b.ä": "" } });
   try {
@@ -6784,6 +7147,7 @@ test("fd accepts safe integer depth limits and bundled exec flags in Wasm", asyn
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "./a.Ä\n./sub/b.ä\n", ""]);
   } finally { bash.dispose(); }
 });
+
 
 test("filesystem factory registration preserves the live native filesystem with a companion configured", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
@@ -6803,6 +7167,7 @@ test("filesystem factory registration preserves the live native filesystem with 
     assert.equal((await bash.exec("cat /native")).stdout, "kept\n");
   } finally { bash.dispose(); }
 });
+
 
 test("standalone filesystem factories validate schemes and preserve factory inputs and results", async () => {
   const bash = new RustWasmBash();
@@ -6826,6 +7191,7 @@ test("standalone filesystem factories validate schemes and preserve factory inpu
   await assert.rejects(bash.createFileSystem("mem+v1.0-x"), /Shell is disposed/);
 });
 
+
 test("per-call filesystems never redirect writes into the default Wasm filesystem", async () => {
   const main = new RustWasmBash({ files: { "/file": "original" } });
   const other = new RustWasmBash({ files: { "/file": "other" } });
@@ -6840,6 +7206,7 @@ test("per-call filesystems never redirect writes into the default Wasm filesyste
     assert.equal(other.readText("/file"), WebAssembly.Suspending ? "changed\n" : "other");
   } finally { main.dispose(); other.dispose(); }
 });
+
 
 test("standalone Wasm executes against live caller-supplied files without inspecting unrelated paths",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -6862,6 +7229,7 @@ test("standalone Wasm executes against live caller-supplied files without inspec
     assert.equal((await sh.exec("cat /source")).stdout,"default");
   }finally{await sh.dispose();}
 });
+
 
 test("caller-supplied filesystems expose default devices without reading or changing shadowed files",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -6892,6 +7260,7 @@ test("caller-supplied filesystems expose default devices without reading or chan
   }
 });
 
+
 test("a supplied mount keeps absolute device links local and rejects links crossing into virtual devices",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,MountFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const root=new MemoryFileSystem(), mounted=new MemoryFileSystem();
@@ -6910,6 +7279,7 @@ test("a supplied mount keeps absolute device links local and rejects links cross
     assert.deepEqual([got.exitCode,got.stdout,got.stderr],[ref.exitCode,ref.stdout,ref.stderr]);
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("host plugins see the same device namespace as native commands on a supplied filesystem",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -6947,6 +7317,7 @@ test("host plugins see the same device namespace as native commands on a supplie
   }
 });
 
+
 test("suspended host filesystem calls isolate concurrent forks and share the selected filesystem with plugins",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const first=new MemoryFileSystem(), second=new MemoryFileSystem(), bash=new RustWasmBash({cwd:"/"});
@@ -6972,6 +7343,7 @@ test("suspended host filesystem calls isolate concurrent forks and share the sel
     assert.equal((await bash.exec("test -e /marked")).exitCode,1);
   }finally{resume.resolve();await bash.dispose();}
 });
+
 
 test("ln and cp -l use the supplied filesystem's hard links and respect path capabilities",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem,MountFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
@@ -6999,6 +7371,7 @@ test("ln and cp -l use the supplied filesystem's hard links and respect path cap
     assert.deepEqual(await exercise(rust),ref);
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("host retained reads keep the opened object, bound each range and close after a failed read",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -7032,6 +7405,7 @@ test("host retained reads keep the opened object, bound each range and close aft
   }finally{await sh.dispose();}
 });
 
+
 test("a supplied filesystem keeps redirected descriptors on the opened file after a rename",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),bash=new RustWasmBash({cwd:"/"});
@@ -7050,6 +7424,7 @@ test("a supplied filesystem keeps redirected descriptors on the opened file afte
   }finally{await bash.dispose();}
 });
 
+
 test("split elides unused chunks without allocating a bucket per requested output", async () => {
   const sh = new RustWasmBash({ forceNative: true });
   try {
@@ -7064,6 +7439,7 @@ test("split elides unused chunks without allocating a bucket per requested outpu
     }
   } finally { sh.dispose(); }
 });
+
 
 test("split checks the opened output before truncation if its name is redirected to the input", {skip:!WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
@@ -7091,6 +7467,7 @@ test("split checks the opened output before truncation if its name is redirected
   } finally { await shell.dispose(); }
 });
 
+
 test("command output on a supplied filesystem preserves creation and existing modes",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh)=>{
@@ -7106,6 +7483,7 @@ test("command output on a supplied filesystem preserves creation and existing mo
     assert.deepEqual(await run(rust),expected);
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("supplied filesystems publish rendered files against their original destination and parent",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -7143,6 +7521,7 @@ test("supplied filesystems publish rendered files against their original destina
   }finally{await shell.dispose();}
 });
 
+
 test("csplit rollback on a supplied filesystem removes only its own output",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), sh=new RustWasmBash({cwd:"/"});
@@ -7161,6 +7540,7 @@ test("csplit rollback on a supplied filesystem removes only its own output",{ski
     await assert.rejects(fs.stat("/xx01"),{code:"ENOENT"});
   }finally{await sh.dispose();}
 });
+
 
 test("ZIP stages a fresh host file, preserves retained readers and cleans up a refused publication",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -7188,6 +7568,7 @@ test("ZIP stages a fresh host file, preserves retained readers and cleans up a r
     assert.deepEqual((await fs.readdir("/")).map(e=>e.name).sort(),["a","b","out.zip","race.zip"]);
   }finally{await sh.dispose();}
 });
+
 
 test("ZIP updates both host hard links and refuses a competing write before publication",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
@@ -7232,6 +7613,7 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip reads LZMA method 14 properties and validates the complete member before replacing a file",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7270,6 +7652,7 @@ test("unzip reads LZMA method 14 properties and validates the complete member be
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lzma","LZMA"]])test("zip writes "+method+" members and honors store fallback and descriptors",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7290,6 +7673,7 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("zip reads, relocates and bounds members with ZIP64 central sizes and offsets", async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7317,6 +7701,7 @@ test("zip reads, relocates and bounds members with ZIP64 central sizes and offse
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("zip preserves file stdin and qualifies lazy host-stream reads", async t => {
   const sh=new RustWasmBash({cwd:"/",files:{"/src":"src"}});
   try{
@@ -7343,6 +7728,7 @@ test("zip preserves file stdin and qualifies lazy host-stream reads", async t =>
     });
   }finally{await sh.dispose();}
 });
+
 
 test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async t => {
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -7381,6 +7767,7 @@ test("zip reads a dash member and implicit filter from stdin without moving a li
   }finally{await rust.dispose();}
 });
 
+
 test("zip writes a dash archive to stdout, keeping progress on stderr and literal dash files intact",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"}),host=new MemoryFileSystem();
@@ -7412,6 +7799,7 @@ test("zip writes a dash archive to stdout, keeping progress on stderr and litera
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("zip validates its temporary directory before writing the archive or removing sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7424,6 +7812,7 @@ test("zip validates its temporary directory before writing the archive or removi
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("zip -b tests the archive in the requested directory and cleans up without removing collisions",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7450,6 +7839,7 @@ test("zip -b tests the archive in the requested directory and cleans up without 
   }
 });
 
+
 test("zip -b preserves the destination and move sources if the staging directory changes",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
@@ -7473,6 +7863,7 @@ test("zip -b preserves the destination and move sources if the staging directory
   }
 });
 
+
 test("zip -b uses staging even without -T and leaves a read-only temporary directory untouched",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
@@ -7489,6 +7880,7 @@ test("zip -b uses staging even without -T and leaves a read-only temporary direc
     }finally{await sh.dispose();}
   }
 });
+
 
 test("split zip tests the complete candidate beside the destination and stages each volume under -b",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7512,6 +7904,7 @@ test("split zip tests the complete candidate beside the destination and stages e
     }finally{await sh.dispose();}
   }
 });
+
 
 test("split zip cleans every owned stage and preserves competing volume writes on a supplied filesystem",{skip: !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
@@ -7537,6 +7930,7 @@ test("split zip cleans every owned stage and preserves competing volume writes o
   }
 });
 
+
 test("zip validates literal -TT arguments even without an integrity test",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7550,6 +7944,7 @@ test("zip validates literal -TT arguments even without an integrity test",async(
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("zip -TT invokes the checker on a private readable archive before replacing or moving anything",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7584,6 +7979,7 @@ test("zip -TT invokes the checker on a private readable archive before replacing
   }
 });
 
+
 test("zip tests a staged archive in overlay and mounted memory profiles",async()=>{
   for(const profile of ["overlay-cow-fs","strict-budgets-mount-dev"]){
     const sh=new RustWasmBash({cwd:"/",profile,files:{"/dir/src":"abc"}});
@@ -7593,6 +7989,7 @@ test("zip tests a staged archive in overlay and mounted memory profiles",async()
     }finally{await sh.dispose();}
   }
 });
+
 
 test("zip -T dispatches a replacement unzip and retains competing writes",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7623,6 +8020,7 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async 
   }
 });
 
+
 test("zip -m removes owned aliases but preserves a source changed by its checker",async t=>{
   const {Shell,archiveCommands,MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
@@ -7642,6 +8040,7 @@ test("zip -m removes owned aliases but preserves a source changed by its checker
   }
 });
 
+
 test("zip rejects a checker that moves the archive parent under a replacement ancestor",{skip: !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false},async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/top/dest"],files:{"/src":"original"}});
   sh.register({name:"swap",async execute(ctx){
@@ -7654,6 +8053,7 @@ test("zip rejects a checker that moves the archive parent under a replacement an
     assert.deepEqual(await sh.fs.readdir("/top/dest"),[]);
   }finally{await sh.dispose();}
 });
+
 
 test("zip -T verifies the resulting members before publication and before moving sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7672,6 +8072,7 @@ test("zip -T verifies the resulting members before publication and before moving
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("ZIP edits retain encrypted members and their password verifier without decrypting them",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7698,6 +8099,7 @@ test("ZIP edits retain encrypted members and their password verifier without dec
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip authenticates WinZip AES members before output or replacement",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7741,6 +8143,7 @@ test("unzip authenticates WinZip AES members before output or replacement",async
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip verifies traditional ZIP passwords before releasing member bytes",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(17)}})),rust=new RustWasmBash({cwd:"/"});
@@ -7775,6 +8178,7 @@ test("unzip verifies traditional ZIP passwords before releasing member bytes",as
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip accepts grouped value options and keeps exclusions active after other flags",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7791,6 +8195,7 @@ test("unzip accepts grouped value options and keeps exclusions active after othe
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip matches full member names and credits the first matching include",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7805,6 +8210,7 @@ test("unzip matches full member names and credits the first matching include",{s
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip rejects absolute symlink target chains even inside the extraction root",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7821,6 +8227,7 @@ test("unzip rejects absolute symlink target chains even inside the extraction ro
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("unzip defers guarded symlinks until regular entries finish",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7855,6 +8262,7 @@ test("unzip defers guarded symlinks until regular entries finish",{skip:!WebAsse
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("unzip stops before later files when the host cannot create symlinks",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const src=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:src}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -7870,6 +8278,7 @@ test("unzip stops before later files when the host cannot create symlinks",{skip
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 for(const format of ["zip","tar"])test(format+" refuses an implicit extraction parent replaced during its creation",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7890,6 +8299,7 @@ for(const format of ["zip","tar"])test(format+" refuses an implicit extraction p
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 for(const format of ["zip","tar"])test(format+" restores directory metadata after extracting children and guards the original directory",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -7940,6 +8350,7 @@ for(const format of ["zip","tar"])test(format+" restores directory metadata afte
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 for(const format of ["zip","tar"])test(format+" extraction stages host files with archive metadata and rejects changes to the destination or its parent",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
@@ -8007,6 +8418,7 @@ for(const format of ["zip","tar"])test(format+" extraction stages host files wit
   }finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("tar guards removal of a non-file destination before extracting a regular file",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
@@ -8027,6 +8439,7 @@ test("tar guards removal of a non-file destination before extracting a regular f
     }
   }finally{await js.dispose();await rust.dispose();}
 });
+
 
 test("ZIP reads an existing archive and its members in bounded ranges, and rejects a member changed mid-read",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
@@ -8082,6 +8495,7 @@ test("ZIP reads an existing archive and its members in bounded ranges, and rejec
   try{for(const sh of [js,rust])await run(sh);}finally{await js.dispose();await rust.dispose();}
 });
 
+
 test("host apply_patch confines create, update, move and delete to the preflight directories",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"}),enc=new TextEncoder(),dec=new TextDecoder();
@@ -8121,6 +8535,7 @@ test("host apply_patch confines create, update, move and delete to the preflight
   }finally{await sh.dispose();}
 });
 
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {
@@ -8128,6 +8543,7 @@ test("explicitly selecting the native filesystem uses the current Wasm files", a
     assert.equal(result.stdout, "original");
   } finally { bash.dispose(); }
 });
+
 
 test("delegating an external filesystem call preserves the active native filesystem", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8144,6 +8560,7 @@ test("delegating an external filesystem call preserves the active native filesys
     assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")), "original");
   } finally { bash.dispose(); }
 });
+
 
 test("sort applies locale ordering to records, selected keys and merge inputs", async () => {
   const bash = new RustWasmBash({ files: {
@@ -8164,6 +8581,7 @@ test("sort applies locale ordering to records, selected keys and merge inputs", 
   } finally { bash.dispose(); }
 });
 
+
 test("conditional string ordering uses the locale's default case order", async () => {
   const bash = new RustWasmBash();
   try {
@@ -8181,6 +8599,7 @@ test("conditional string ordering uses the locale's default case order", async (
   } finally { bash.dispose(); }
 });
 
+
 test("the production shell can list files and check permissions on a Wasm filesystem", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
@@ -8197,6 +8616,7 @@ test("the production shell can list files and check permissions on a Wasm filesy
     await assert.rejects(wasm.fs.access("/dir", 0, {signal:controller.signal}), {name:"AbortError"});
   } finally { await shell.dispose(); wasm.dispose(); }
 });
+
 
 test("cat reads Wasm file operands and retained reads survive pathname replacement", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8229,6 +8649,7 @@ test("cat reads Wasm file operands and retained reads survive pathname replaceme
     }
   } finally { await shell.dispose(); }
 });
+
 
 test("retained directory metadata survives moves, unlink and overlay copy-up", async () => {
   for (const profile of ["warm-memory-fastpath","overlay-cow-fs","strict-budgets-mount-dev"]) {
@@ -8263,6 +8684,7 @@ test("retained directory metadata survives moves, unlink and overlay copy-up", a
   }
 });
 
+
 test("the production shell redirects and appends bytes on a Wasm filesystem", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
@@ -8283,6 +8705,7 @@ test("the production shell redirects and appends bytes on a Wasm filesystem", as
     await assert.rejects(wasm.fs.appendFile("/dev", "", { mode: -1 }), { code: "EISDIR", syscall: undefined });
   } finally { wasm.dispose(); }
 });
+
 
 test("native ffmpeg and ffprobe describe their supported production formats and codecs", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
@@ -8332,6 +8755,7 @@ test("native ffmpeg and ffprobe describe their supported production formats and 
   } finally { await shell.dispose(); wasm.dispose(); }
 });
 
+
 test("memory inode revisions match TypeScript through writes, links and chmod", async () => {
   const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const wasm = new RustWasmBash({ forceNative: true });
@@ -8365,6 +8789,7 @@ test("memory inode revisions match TypeScript through writes, links and chmod", 
   } finally { wasm.dispose(); }
 });
 
+
 test("cancelled and guarded chmod calls cannot silently change Wasm permissions", async () => {
   const bash = new RustWasmBash({ files: { "/private": { content: "data", mode: 0o600 } } });
   try {
@@ -8391,6 +8816,7 @@ test("cancelled and guarded chmod calls cannot silently change Wasm permissions"
   } finally { bash.dispose(); }
 });
 
+
 test("mounted chmod checks directory receipts before invoking a guard and rechecks before mutation", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", files:{"/d/f":"x"}});
   const fs = bash.fs;
@@ -8413,6 +8839,7 @@ test("mounted chmod checks directory receipts before invoking a guard and rechec
     await assert.rejects(fs.chmod("/d/f",0o777,{...fresh,commitGuard:()=>assert.fail("replaced parent invoked guard")}),{code:"EAGAIN"});
   } finally { bash.dispose(); }
 });
+
 
 test("overlay guarded chmod preserves directory receipts and rejects unsafe replacements", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/d/f":"original", "/target":"saved"}});
@@ -8450,6 +8877,7 @@ test("overlay guarded chmod preserves directory receipts and rejects unsafe repl
   } finally { bash.dispose(); }
 });
 
+
 test("a refused overlay chmod releases its staged copy and preserves a nested chmod", async () => {
   const bash = new RustWasmBash({profile:"overlay-cow-fs",files:{"/outer":"a","/inner":"b"}});
   try {
@@ -8469,6 +8897,7 @@ test("a refused overlay chmod releases its staged copy and preserves a nested ch
   } finally { bash.dispose(); }
 });
 
+
 test("chmod forwards the original guard to the active companion", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -8484,6 +8913,7 @@ test("chmod forwards the original guard to the active companion", async () => {
   } finally { bash.dispose(); }
 });
 
+
 test("yes selects GNU long options and diagnoses the first invalid option byte", async () => {
   const { Shell, MemoryFileSystem, agentCommands, yesCommands } = await import("@poe-platform/safe-bash");
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(yesCommands({ replace: true }));
@@ -8497,6 +8927,7 @@ test("yes selects GNU long options and diagnoses the first invalid option byte",
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("chmod follows only operand symlinks, protects root, and defers restrictive directory changes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8528,6 +8959,7 @@ test("chmod follows only operand symlinks, protects root, and defers restrictive
   }
 });
 
+
 test("du validates options before traversal and formats explicit block sizes like production", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), data = new Uint8Array(1537);
@@ -8546,6 +8978,7 @@ test("du validates options before traversal and formats explicit block sizes lik
   } finally { wasm.dispose(); }
 });
 
+
 test("truncate uses the preferred block size when the default null device has no I/O block size", async () => {
   const bash = new RustWasmBash({ files: { "/f": "abc" }, symlinks: { "/alias": "/dev/null" } });
   try {
@@ -8557,6 +8990,7 @@ test("truncate uses the preferred block size when the default null device has no
     assert.equal(result.stderr, "truncate: failed to truncate '/alias' at 8192 bytes: Invalid argument\n");
   } finally { bash.dispose(); }
 });
+
 
 test("install validates modes, accounts and host operations before changing files", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8585,6 +9019,7 @@ test("install validates modes, accounts and host operations before changing file
     } finally { wasm.dispose(); }
   }
 });
+
 
 test("install replaces directory entries without writing through destination or backup links", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8625,6 +9060,7 @@ test("install replaces directory entries without writing through destination or 
   }
 });
 
+
 test("install directory failures and symbolic mode masks match production", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { installCommands } = await import("@poe-platform/safe-bash/commands/install");
@@ -8654,6 +9090,7 @@ test("install directory failures and symbolic mode masks match production", asyn
     } finally { wasm.dispose(); }
   }
 });
+
 
 test("pdfdetach consumes option values in order and extracts only the selected attachments", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8688,6 +9125,7 @@ test("pdfdetach consumes option values in order and extracts only the selected a
   }
 });
 
+
 test("pdftohtml selects stdin, page ranges and zoom like production", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { pdftotextCommands } = await import("@poe-platform/safe-bash/commands/pdftotext");
@@ -8712,6 +9150,7 @@ test("pdftohtml selects stdin, page ranges and zoom like production", async () =
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("exiftool rejects invalid metadata options before creating a backup or changing the input", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8738,6 +9177,7 @@ test("exiftool rejects invalid metadata options before creating a backup or chan
   }
 });
 
+
 test("exiftool templates substitute each original tag once for both files and stdin", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
@@ -8760,6 +9200,7 @@ test("exiftool templates substitute each original tag once for both files and st
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("exiftool refuses link operands and unsupported writers without changing the source or its backup", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8794,6 +9235,7 @@ test("exiftool refuses link operands and unsupported writers without changing th
     } finally { wasm.dispose(); }
   }
 });
+
 
 test("exiftool creates named outputs and backups without overwriting occupied names", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8837,6 +9279,7 @@ test("exiftool creates named outputs and backups without overwriting occupied na
   }
 });
 
+
 test("exiftool replaces the inode on normal edits and retains it for explicit in-place edits", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
@@ -8866,6 +9309,7 @@ test("exiftool replaces the inode on normal edits and retains it for explicit in
   }
 });
 
+
 test("exiftool expands physical argument-file lines and carries option state through nested files", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
@@ -8893,6 +9337,7 @@ test("exiftool expands physical argument-file lines and carries option state thr
   } finally { wasm.dispose(); }
 });
 
+
 test("exiftool binary and text rendering preserve selected PDF tag order and value semantics", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
@@ -8915,6 +9360,7 @@ test("exiftool binary and text rendering preserve selected PDF tag order and val
   } finally { wasm.dispose(); }
 });
 
+
 test("exiftool preserves native file-size units and rounding", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
@@ -8930,6 +9376,7 @@ test("exiftool preserves native file-size units and rounding", async () => {
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("exiftool reads and edits standard PNG chunks without altering image data", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -8977,6 +9424,7 @@ test("exiftool reads and edits standard PNG chunks without altering image data",
   }
 });
 
+
 test("magick writes pixel and alpha streams into a standard PDF from files and canvases", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { imagemagickCommands } = await import("@poe-platform/safe-bash/commands/imagemagick");
@@ -8995,6 +9443,7 @@ test("magick writes pixel and alpha streams into a standard PDF from files and c
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("PDF commands reject malformed documents without publishing blank pages", async () => {
   const { PdfDocument } = await import("@poe-code/pdf-ast");
@@ -9037,6 +9486,7 @@ test("PDF commands reject malformed documents without publishing blank pages", a
   }
 });
 
+
 test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async () => {
   const { createHash } = await import("node:crypto");
   const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
@@ -9061,6 +9511,7 @@ test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async 
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("pdftoppm scales the soft mask at its own resolution and interpolation setting", async () => {
   const { createHash } = await import("node:crypto");
@@ -9092,6 +9543,7 @@ test("pdftoppm scales the soft mask at its own resolution and interpolation sett
   } finally { wasm.dispose(); }
 });
 
+
 test("pdftocairo downsamples the color image and soft mask independently", async () => {
   const { createHash } = await import("node:crypto");
   const { PdfDocument, cosStream, cosName, cosNumber, cosDict, dictSet, decodePng } = await import("@poe-code/pdf-ast");
@@ -9120,6 +9572,7 @@ test("pdftocairo downsamples the color image and soft mask independently", async
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("pdfimages writes both bytes of each 16-bit RGB PNG and TIFF sample", async () => {
   const { PdfDocument, cosNumber, cosArray, dictSet } = await import("@poe-code/pdf-ast");
@@ -9165,6 +9618,7 @@ test("pdfimages writes both bytes of each 16-bit RGB PNG and TIFF sample", async
   } finally { wasm.dispose(); }
 });
 
+
 test("pdfimages lists effective PPI with Poppler precision and ties to even", async () => {
   const { PdfDocument } = await import("@poe-code/pdf-ast");
   const doc = PdfDocument.create(), page = doc.addPage([3000,300]);
@@ -9180,6 +9634,7 @@ test("pdfimages lists effective PPI with Poppler precision and ties to even", as
     ]);
   } finally { wasm.dispose(); }
 });
+
 
 test("pdfimages extracts the base image and its soft mask separately like Poppler", async () => {
   const { PdfDocument, encodePng, decodePng } = await import("@poe-code/pdf-ast");
@@ -9220,6 +9675,7 @@ test("pdfimages extracts the base image and its soft mask separately like Popple
   } finally { wasm.dispose(); }
 });
 
+
 test("qpdf inspects embedded name trees, associated files and attachment annotations", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9247,6 +9703,7 @@ test("qpdf inspects embedded name trees, associated files and attachment annotat
     }
   } finally { wasm.dispose(); }
 });
+
 
 test("qpdf adds, replaces and removes attachments without losing the PDF object graph", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -9311,6 +9768,7 @@ test("qpdf adds, replaces and removes attachments without losing the PDF object 
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf displays actual PDF objects, stream bytes and nested form image references", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9337,6 +9795,7 @@ test("qpdf displays actual PDF objects, stream bytes and nested form image refer
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf copies the complete graph and materializes inherited page attributes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -9366,6 +9825,7 @@ test("qpdf copies the complete graph and materializes inherited page attributes"
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf replaces only the destination entry and respects directory permissions", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9387,6 +9847,7 @@ test("qpdf replaces only the destination entry and respects directory permission
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf removes selected catalog and information entries without rewriting unrelated streams", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -9415,6 +9876,7 @@ test("qpdf removes selected catalog and information entries without rewriting un
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf rotates selected real pages in order, retaining inherited geometry and content", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -9450,6 +9912,7 @@ test("qpdf rotates selected real pages in order, retaining inherited geometry an
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf splits real page objects with their resources, rotations and document metadata", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -9500,6 +9963,7 @@ test("qpdf splits real page objects with their resources, rotations and document
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf selects repeated and collated pages with their streams, resources, and base metadata", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9541,6 +10005,7 @@ test("qpdf selects repeated and collated pages with their streams, resources, an
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf counts, inspects and rewrites inline pages in traversal order", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9566,6 +10031,7 @@ test("qpdf counts, inspects and rewrites inline pages in traversal order", async
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf inspection validates encoded streams and reports linearization without extracting text", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9588,6 +10054,7 @@ test("qpdf inspection validates encoded streams and reports linearization withou
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf recovers a wrong stream length and writes the recovered bytes with a correct length", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9624,6 +10091,7 @@ test("qpdf recovers a wrong stream length and writes the recovered bytes with a 
     }
   } finally{wasm.dispose();}
 });
+
 
 test("qpdf reads the last row of overlapping xref subsections and stops at a visited revision", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9665,6 +10133,7 @@ test("qpdf reads the last row of overlapping xref subsections and stops at a vis
     }
   } finally {wasm.dispose();}
 });
+
 test("qpdf inspects and copies pages indexed by binary cross-reference streams", async () => {
   const {deflateSync}=await import("node:zlib");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9709,6 +10178,7 @@ test("qpdf inspects and copies pages indexed by binary cross-reference streams",
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf decodes chained PDF byte filters, abbreviations and indirect filter arrays", async () => {
   const {deflateSync,deflateRawSync,gzipSync}=await import("node:zlib");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9746,6 +10216,7 @@ test("qpdf decodes chained PDF byte filters, abbreviations and indirect filter a
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf reverses PNG and TIFF row predictors in filtered streams", async () => {
   const {deflateSync}=await import("node:zlib");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9778,6 +10249,7 @@ test("qpdf reverses PNG and TIFF row predictors in filtered streams", async () =
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf decodes LZW phrase references, width changes and row predictors", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9813,6 +10285,7 @@ test("qpdf decodes LZW phrase references, width changes and row predictors", asy
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf reads and copies pages stored inside compressed PDF object streams", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9840,6 +10313,7 @@ test("qpdf reads and copies pages stored inside compressed PDF object streams", 
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf writes generated object streams and binary indexes with production bytes", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9873,6 +10347,7 @@ test("qpdf writes generated object streams and binary indexes with production by
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf stream and normalization options preserve real PDF objects and control packing", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9897,6 +10372,7 @@ test("qpdf stream and normalization options preserve real PDF objects and contro
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf validates JSON options before publishing output", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9914,6 +10390,7 @@ test("qpdf validates JSON options before publishing output", async () => {
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf exports indexed objects, decoded streams and page references in both JSON formats", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -9952,6 +10429,7 @@ test("qpdf exports indexed objects, decoded streams and page references in both 
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf JSON preserves prior files after a late stream decode failure", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9975,6 +10453,7 @@ test("qpdf JSON preserves prior files after a late stream decode failure", async
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf counts the final JSON destination once when a stream has the same filename", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -9997,6 +10476,7 @@ test("qpdf counts the final JSON destination once when a stream has the same fil
     assert.deepEqual(Buffer.from(await wasm.fs.readFile("/"+name)),Buffer.from(expected));
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf JSON validates the input before report options, including stdin and prefixed PDF headers", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10022,6 +10502,7 @@ test("qpdf JSON validates the input before report options, including stdin and p
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf recovers missing cross-references from object bodies, including packed objects", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10066,6 +10547,7 @@ test("qpdf recovers missing cross-references from object bodies, including packe
   } finally {await js.dispose();wasm.dispose();}
 });
 
+
 test("qpdf inspects and saves catalogs without an indirect page tree",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -10095,6 +10577,7 @@ test("qpdf inspects and saves catalogs without an indirect page tree",async()=>{
   }finally{rs.dispose();}
 });
 
+
 test("qpdf refuses to replace output when a damaged PDF has no recoverable catalog",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -10115,6 +10598,7 @@ test("qpdf refuses to replace output when a damaged PDF has no recoverable catal
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf encryption predicates inspect the input bytes before parsing the document",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -10133,6 +10617,7 @@ test("qpdf encryption predicates inspect the input bytes before parsing the docu
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf authenticates standard PDF passwords and decrypts strings and streams",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10159,6 +10644,7 @@ test("qpdf authenticates standard PDF passwords and decrypts strings and streams
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf rewrites, decrypts and selects pages with each input's password",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -10184,6 +10670,7 @@ test("qpdf rewrites, decrypts and selects pages with each input's password",asyn
   } finally {wasm.dispose();}
 });
 
+
 test("qpdf opens AES-256 PDFs with user and owner passwords and preserves output on failure",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
@@ -10203,6 +10690,7 @@ test("qpdf opens AES-256 PDFs with user and owner passwords and preserves output
     }
   } finally {wasm.dispose();}
 });
+
 
 test("qpdf consumes explicit Crypt filters in order and retains the remaining filters", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -10258,6 +10746,7 @@ test("qpdf consumes explicit Crypt filters in order and retains the remaining fi
   } finally { await js.dispose();rust.dispose(); }
 });
 
+
 test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers", async () => {
   const { readFile } = await import("node:fs/promises");
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -10281,6 +10770,7 @@ test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers",
     }
   } finally { rust.dispose(); }
 });
+
 
 test("qpdf inspects encryption without disclosing unauthenticated linearized PDF contents", async () => {
   const {readFile} = await import("node:fs/promises");
@@ -10313,6 +10803,7 @@ test("qpdf inspects encryption without disclosing unauthenticated linearized PDF
     }
   } finally { await js.dispose(); rust.dispose(); }
 });
+
 
 test("qpdf writes interoperable AES-256 files with separate passwords and permissions", async t => {
   const {PdfDocument,cosDict,cosName,cosString,dictSet,dictGet} = await import("@poe-code/pdf-ast");
@@ -10369,6 +10860,7 @@ test("qpdf writes interoperable AES-256 files with separate passwords and permis
   } finally {rust.dispose();}
 });
 
+
 test("wkhtmltopdf writes heading fonts, nested outlines and page destinations as PDF objects",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -10387,6 +10879,7 @@ test("wkhtmltopdf writes heading fonts, nested outlines and page destinations as
     }
   } finally {rust.dispose();}
 });
+
 
 test("qpdf writes and repairs fixed-width linearization offsets across edits",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10417,6 +10910,7 @@ test("qpdf writes and repairs fixed-width linearization offsets across edits",as
   } finally {rust.dispose();}
 });
 
+
 test("pdftk cat and shuffle copy selected objects, bookmarks and attachments into readable PDFs", async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
@@ -10443,6 +10937,7 @@ test("pdftk cat and shuffle copy selected objects, bookmarks and attachments int
     }
   } finally {rust.dispose();}
 });
+
 
 test("pdftk protects copied PDFs with distinct credentials and honors allow permissions",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
@@ -10475,6 +10970,7 @@ test("pdftk protects copied PDFs with distinct credentials and honors allow perm
   } finally {rust.dispose();}
 });
 
+
 test("pdftk burst writes standalone page graphs and the source document report",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10494,6 +10990,7 @@ test("pdftk burst writes standalone page graphs and the source document report",
     }
   }finally{rust.dispose();}
 });
+
 
 test("pdftk unpacks authenticated attachments using only the last payload for each leaf name",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
@@ -10520,6 +11017,7 @@ test("pdftk unpacks authenticated attachments using only the last payload for ea
     assert.equal((await rust.exec("test -f /out/first.bin")).exitCode,1);
   }finally{rust.dispose();}
 });
+
 
 test("pdftk update_info edits existing PDF objects and preserves unrelated metadata and streams",async()=>{
   const {PdfDocument,dictGet}=await import("@poe-code/pdf-ast");
@@ -10549,6 +11047,7 @@ test("pdftk update_info edits existing PDF objects and preserves unrelated metad
   }finally{rust.dispose();}
 });
 
+
 test("pdftk rotate applies only the final matching rotation and keeps every original page",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10568,6 +11067,7 @@ test("pdftk rotate applies only the final matching rotation and keeps every orig
     }
   }finally{rust.dispose();}
 });
+
 
 test("pdftk reads inherited form values, widget states and choice options from encrypted PDFs",async()=>{
   const {PdfDocument,cosArray,cosString:s,cosNumber:n,cosName:k,cosDict:d,dictSet,cosBool}=await import("@poe-code/pdf-ast");
@@ -10601,6 +11101,7 @@ test("pdftk reads inherited form values, widget states and choice options from e
   } finally{rust.dispose();}
 });
 
+
 test("pdftk annotation reports retain destinations, action order, and text encoding",async()=>{
   const {PdfDocument,cosArray:a,cosString:s,cosNumber:n,cosName:k,cosDict:d,dictSet,cosBool}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10622,6 +11123,7 @@ test("pdftk annotation reports retain destinations, action order, and text encod
     }
   }finally{rust.dispose();}
 });
+
 
 test("pdftk appends attachments to existing name trees and selected page annotations", async () => {
   const {PdfDocument, cosArray, cosDict, cosString, dictSet, dictGet, serializeCosDocument} = await import("@poe-code/pdf-ast");
@@ -10660,6 +11162,7 @@ test("pdftk appends attachments to existing name trees and selected page annotat
   } finally { rust.dispose(); }
 });
 
+
 test("pdftk output flags edit the form owner and catalog without replacing the document", async () => {
   const {PdfDocument, cosDict, cosString, cosBool, dictSet} = await import("@poe-code/pdf-ast");
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -10684,6 +11187,7 @@ test("pdftk output flags edit the form owner and catalog without replacing the d
   } finally {rust.dispose();}
 });
 
+
 test("pdftk separates output options from operands and defaults to binary stdout", async () => {
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10702,6 +11206,7 @@ test("pdftk separates output options from operands and defaults to binary stdout
     await assert.rejects(rust.fs.stat("/old"),{code:"ENOENT"});
   } finally {rust.dispose();}
 });
+
 
 test("pdftk keeps the selected input trailer ID across assembly and metadata edits",async()=>{
   const {PdfDocument,cosArray,cosHexString,serializeCosDocument}=await import("@poe-code/pdf-ast");
@@ -10724,6 +11229,7 @@ test("pdftk keeps the selected input trailer ID across assembly and metadata edi
     }
   }finally{rs.dispose();}
 });
+
 
 test("pdftk composites stamp and background streams, resources and page transforms",async()=>{
   const {PdfDocument,cosDict,cosName,cosArray,cosString,cosNumber,dictSet,dictGet}=await import("@poe-code/pdf-ast");
@@ -10760,6 +11266,7 @@ test("pdftk composites stamp and background streams, resources and page transfor
   }finally{rs.dispose();}
 });
 
+
 test("qpdf flattens rotations into content and maps page boxes and annotation rectangles",async()=>{
   const {PdfDocument,cosArray:a,cosNumber:n,cosName:k,cosDict:d,dictSet,dictGet}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10790,6 +11297,7 @@ test("qpdf flattens rotations into content and maps page boxes and annotation re
     }
   }finally{rs.dispose();}
 });
+
 
 test("qpdf overlays and underlays preserve the PDF and compose selected pages in argument order",async()=>{
   const {PdfDocument,cosDict,cosString,cosArray,dictSet,dictGet}=await import("@poe-code/pdf-ast");
@@ -10825,6 +11333,7 @@ test("qpdf overlays and underlays preserve the PDF and compose selected pages in
   }finally{rs.dispose();}
 });
 
+
 test("pdfunite flattens nested bookmarks and remaps destinations in repeated input files",async()=>{
   const {PdfDocument,cosDict,cosName,cosNumber,cosString,cosArray,dictSet}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10842,6 +11351,7 @@ test("pdfunite flattens nested bookmarks and remaps destinations in repeated inp
     assert.ok(Buffer.from(actual).equals(expected),"first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
   } finally {rs.dispose();}
 });
+
 
 test("qpdf replaces page labels while retaining the existing document",async()=>{
   const {PdfDocument,cosDict,cosArray,dictSet}=await import("@poe-code/pdf-ast");
@@ -10879,6 +11389,7 @@ test("qpdf replaces page labels while retaining the existing document",async()=>
   } finally { await js.dispose(); rs.dispose();}
 });
 
+
 test("pdftk fill_form updates field values, widget appearances and new fields across data formats",async()=>{
   const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,dictSet}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10902,6 +11413,7 @@ test("pdftk fill_form updates field values, widget appearances and new fields ac
     }
   }finally{rs.dispose();}
 });
+
 
 test("pdftk flattens existing and filled widgets while preserving links and remapping appearance geometry",async()=>{
   const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosStream,dictSet}=await import("@poe-code/pdf-ast");
@@ -10928,6 +11440,7 @@ test("pdftk flattens existing and filled widgets while preserving links and rema
   }finally{rs.dispose();}
 });
 
+
 test("qpdf generates missing form appearances and respects existing or forced appearances",async()=>{
   const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosBool,dictSet}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10951,6 +11464,7 @@ test("qpdf generates missing form appearances and respects existing or forced ap
     }
   }finally{rs.dispose();}
 });
+
 
 test("qpdf flattens annotations with shared content, appearance resources and visibility flags",async()=>{
   const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosStream,dictGet,dictSet}=await import("@poe-code/pdf-ast");
@@ -10976,6 +11490,7 @@ test("qpdf flattens annotations with shared content, appearance resources and vi
   }finally{rs.dispose();}
 });
 
+
 test("qpdf prunes unused resources and follows names in patterns, forms and annotations",async()=>{
   const {PdfDocument,cosDict,cosName,cosArray,cosStream,dictSet}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -10997,6 +11512,7 @@ test("qpdf prunes unused resources and follows names in patterns, forms and anno
     }
   }finally{rs.dispose();}
 });
+
 
 test("qpdf externalizes inline images above the size threshold without splitting binary data",async()=>{
   const {PdfDocument,cosDict,dictGet,dictSet}=await import("@poe-code/pdf-ast");
@@ -11032,6 +11548,7 @@ test("qpdf externalizes inline images above the size threshold without splitting
   }finally{rs.dispose();}
 });
 
+
 test("qpdf imports and updates JSON object graphs without losing streams or unreferenced objects",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11054,6 +11571,7 @@ test("qpdf imports and updates JSON object graphs without losing streams or unre
   }finally{rs.dispose();}
 });
 
+
 test("qpdf JSON errors preserve the output and report native JSON positions",async()=>{
   const rs=new RustWasmBash({cwd:"/",files:{"/out":"original"}});
   try{
@@ -11066,6 +11584,7 @@ test("qpdf JSON errors preserve the output and report native JSON positions",asy
     }
   }finally{rs.dispose();}
 });
+
 
 test("qpdf reads each argument-file line literally, once, before parsing options",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
@@ -11091,6 +11610,7 @@ test("qpdf reads each argument-file line literally, once, before parsing options
   }finally{rs.dispose();}
 });
 
+
 test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -11107,6 +11627,7 @@ test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async(
     }
   }finally{rs.dispose();}
 });
+
 
 test("wkhtmltopdf writes URI annotations for visible links in headings and paragraphs",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11128,6 +11649,7 @@ test("wkhtmltopdf writes URI annotations for visible links in headings and parag
     }
   }finally{rs.dispose();}
 });
+
 
 test("PDF URL inspection follows actions; text and HTML use the annotation rectangle",async()=>{
   const {PdfDocument,cosStream,cosDict,cosArray,cosNumber,cosName,cosString,dictSet}=await import("@poe-code/pdf-ast");
@@ -11152,6 +11674,7 @@ test("PDF URL inspection follows actions; text and HTML use the annotation recta
   }finally{rs.dispose();}
 });
 
+
 test("pdftotext orders logical lines, preserves block boundaries and optionally rejoins hyphens",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11168,6 +11691,7 @@ test("pdftotext orders logical lines, preserves block boundaries and optionally 
   }finally{rs.dispose();}
 });
 
+
 test("wkhtmltopdf draws code blocks, quote bars and horizontal rules on physical pages",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -11183,6 +11707,7 @@ test("wkhtmltopdf draws code blocks, quote bars and horizontal rules on physical
   }finally{rs.dispose();}
 });
 
+
 test("wkhtmltopdf preserves nested list order, continuation indentation and definition spacing",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -11197,6 +11722,7 @@ test("wkhtmltopdf preserves nested list order, continuation indentation and defi
     }
   }finally{rs.dispose();}
 });
+
 
 test("wkhtmltopdf draws table rows, column spans and multiline cells across pages",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11215,6 +11741,7 @@ test("wkhtmltopdf draws table rows, column spans and multiline cells across page
   }finally{rs.dispose();}
 });
 
+
 test("HTML table parsing closes cells and inserts implicit row groups in source order",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -11228,6 +11755,7 @@ test("HTML table parsing closes cells and inserts implicit row groups in source 
     }
   }finally{rs.dispose();}
 });
+
 
 test("wkhtmltopdf draws inline SVG rectangles and labels in order and reserves the diagram height",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11243,6 +11771,7 @@ test("wkhtmltopdf draws inline SVG rectangles and labels in order and reserves t
   }finally{rs.dispose();}
 });
 
+
 test("wkhtmltopdf preserves text after self-closing inline SVG",async()=>{
   const rust=new RustWasmBash({cwd:"/",forceNative:true,files:{"/chart.html":Buffer.from('<svg width="100" height="40"><rect x="1" y="2" width="30" height="10"/><text x="2" y="25">Label</text><circle r="3"/></svg><p>After diagram</p>')}});
   try{
@@ -11251,6 +11780,7 @@ test("wkhtmltopdf preserves text after self-closing inline SVG",async()=>{
     assert.match(result.stdout,/Label\s+After diagram/);
   }finally{await rust.dispose();}
 });
+
 
 test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image resources",async()=>{
   const {encodePng}=await import("@poe-code/pdf-ast");
@@ -11274,6 +11804,7 @@ test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image r
   }finally{rs.dispose();}
 });
 
+
 test("pdftohtml publishes painted PDF images and inlines the same pixels in HTML and XML",async()=>{
   const {PdfDocument,encodePng}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11291,6 +11822,7 @@ test("pdftohtml publishes painted PDF images and inlines the same pixels in HTML
   }finally{rs.dispose();}
 });
 
+
 test("pdftohtml preserves nested outline destinations and sibling order in HTML and XML",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
@@ -11303,6 +11835,7 @@ test("pdftohtml preserves nested outline destinations and sibling order in HTML 
     const cmd="pdftohtml "+args+" in",e=await js.exec(cmd),r=await rs.exec(cmd);assert.equal(e.exitCode,0,e.stderr);assert.deepEqual([r.stdout,r.stderr,r.exitCode],[e.stdout,e.stderr,e.exitCode],cmd);
   }}finally{rs.dispose();}
 });
+
 
 test("wkhtmltopdf paginates at block page breaks and preserves intentional blank sheets",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -11324,6 +11857,7 @@ test("wkhtmltopdf paginates at block page breaks and preserves intentional blank
     }
   }finally{rs.dispose();}
 });
+
 
 test("wkhtmltopdf numbers headers and footers after laying out physical sheets", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11352,6 +11886,7 @@ test("wkhtmltopdf numbers headers and footers after laying out physical sheets",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar writes interoperable PAX metadata and refuses unrepresentable USTAR entries", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11385,6 +11920,7 @@ test("tar writes interoperable PAX metadata and refuses unrepresentable USTAR en
   } finally { rs.dispose(); }
 });
 
+
 test("tar leaves archives untouched when a source cannot be read", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11408,6 +11944,7 @@ test("tar leaves archives untouched when a source cannot be read", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar refuses explicit archive aliases and omits them from recursive inputs", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11439,6 +11976,7 @@ test("tar refuses explicit archive aliases and omits them from recursive inputs"
   }
 });
 
+
 test("tar never rewrites a compressed archive during mutation", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11465,6 +12003,7 @@ test("tar never rewrites a compressed archive during mutation", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar validates raw mutation records and preserves untouched member bytes", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11539,6 +12078,7 @@ test("tar validates raw mutation records and preserves untouched member bytes", 
   } finally { rs.dispose(); }
 });
 
+
 test("tar update uses the newest archived mtime and preserves a no-op archive", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11567,6 +12107,7 @@ test("tar update uses the newest archived mtime and preserves a no-op archive", 
   } finally { rs.dispose(); }
 });
 
+
 test("tar append and update apply creation metadata to new entries and list only additions", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11591,6 +12132,7 @@ test("tar append and update apply creation metadata to new entries and list only
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar reads valid members up to the first damaged header, body, or end record", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11628,6 +12170,7 @@ test("tar reads valid members up to the first damaged header, body, or end recor
   } finally { rs.dispose(); }
 });
 
+
 test("tar reads global and local PAX fields and GNU long names in member order", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11663,6 +12206,7 @@ test("tar reads global and local PAX fields and GNU long names in member order",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar confines member paths to real extraction directories", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11706,6 +12250,7 @@ test("tar confines member paths to real extraction directories", async () => {
   } finally { rs.dispose(); }
 });
 
+
 test("tar verifies symlink targets against the extraction root before changing the destination", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11736,6 +12281,7 @@ test("tar verifies symlink targets against the extraction root before changing t
     } finally { rs.dispose(); }
   }
 });
+
 
 test("tar recreates hard links only to files published earlier in this extraction", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11790,6 +12336,7 @@ test("tar recreates hard links only to files published earlier in this extractio
   } finally { rs.dispose(); }
 });
 
+
 test("tar creation binds hard links to the earliest still-live archive name", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11833,6 +12380,7 @@ test("tar creation binds hard links to the earliest still-live archive name", as
   } finally { rs.dispose(); }
 });
 
+
 test("tar refuses hard-linked symlinks unless dereferenced, while ZIP stores each operand", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11858,6 +12406,7 @@ test("tar refuses hard-linked symlinks unless dereferenced, while ZIP stores eac
     assert.deepEqual([zip.exitCode, zip.stderr, zip.stdout], [0, "", "payloadpayload"]);
   } finally { rs.dispose(); }
 });
+
 
 test("tar stores relative member names while reading the original operand path", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11890,6 +12439,7 @@ test("tar stores relative member names while reading the original operand path",
   } finally { rs.dispose(); }
 });
 
+
 test("tar --exclude-caches skips contents only for directories bearing the cache signature", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -11918,6 +12468,7 @@ test("tar --exclude-caches skips contents only for directories bearing the cache
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar pads newly written archives to the requested record size before compression", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11949,6 +12500,7 @@ test("tar pads newly written archives to the requested record size before compre
     assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(before));
   } finally { rs.dispose(); }
 });
+
 
 test("tar compares filesystem metadata and hard-link identity as well as file contents", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -11985,6 +12537,7 @@ test("tar compares filesystem metadata and hard-link identity as well as file co
   } finally { rs.dispose(); }
 });
 
+
 test("tar restores file permissions and PAX times, honoring touch and permission overrides", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -12013,6 +12566,7 @@ test("tar restores file permissions and PAX times, honoring touch and permission
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar restores directory metadata at archive end or when leaving a subtree", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12049,6 +12603,7 @@ test("tar restores directory metadata at archive end or when leaving a subtree",
   } finally { rs.dispose(); }
 });
 
+
 test("tar honors the last overwrite policy and finishes extracting after kept conflicts", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -12070,6 +12625,7 @@ test("tar honors the last overwrite policy and finishes extracting after kept co
     }
   } finally { rs.dispose(); }
 });
+
 
 test("tar parses substitution expressions before publishing and preserves escaped delimiters", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12103,6 +12659,7 @@ test("tar parses substitution expressions before publishing and preserves escape
     }
   } finally { rs.dispose(); }
 });
+
 
 test("sed and tar distinguish literal BRE punctuation from repetition and reject unfinished groups", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12141,6 +12698,7 @@ test("sed and tar distinguish literal BRE punctuation from repetition and reject
   } finally { rs.dispose(); }
 });
 
+
 test("tar rejects empty intermediate transformed member and link names", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
@@ -12170,6 +12728,7 @@ test("tar rejects empty intermediate transformed member and link names", async (
     }
   } finally { rs.dispose(); }
 });
+
 
 test("whole-line searches honor anchors and preserve them as text in fixed-string mode", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12206,6 +12765,7 @@ test("whole-line searches honor anchors and preserve them as text in fixed-strin
   } finally { rs.dispose(); }
 });
 
+
 test("regex character classes select punctuation, controls, and complements inside unions", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
@@ -12230,6 +12790,7 @@ test("regex character classes select punctuation, controls, and complements insi
   } finally { rs.dispose(); }
 });
 
+
 test("rg dotall matches digits as well as newlines", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
@@ -12244,6 +12805,7 @@ test("rg dotall matches digits as well as newlines", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("regex groups treat parentheses and alternatives inside brackets as characters", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12263,6 +12825,7 @@ test("regex groups treat parentheses and alternatives inside brackets as charact
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep, rg, and sed choose nonoverlapping alternatives in their dialect order", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12290,6 +12853,7 @@ test("grep, rg, and sed choose nonoverlapping alternatives in their dialect orde
   } finally { rs.dispose(); }
 });
 
+
 test("grep handles overlapping repetitions when the required suffix is absent", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
@@ -12304,6 +12868,7 @@ test("grep handles overlapping repetitions when the required suffix is absent", 
     assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout]);
   } finally { rs.dispose(); }
 });
+
 
 test("substitutions use original capture boundaries and count eligible empty matches", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12324,6 +12889,7 @@ test("substitutions use original capture boundaries and count eligible empty mat
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg replacements use the captures selected in the original input", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12351,6 +12917,7 @@ test("rg replacements use the captures selected in the original input", async ()
   } finally { rs.dispose(); }
 });
 
+
 test("rg multiline replacement renders each selected block once", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12375,6 +12942,7 @@ test("rg multiline replacement renders each selected block once", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("jq regex filters use original capture slots and preserve missing values", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12406,6 +12974,7 @@ test("jq regex filters use original capture slots and preserve missing values", 
   } finally { rs.dispose(); }
 });
 
+
 test("jq nonempty matching retries alternatives and empty patterns count UTF-8 boundaries", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12426,6 +12995,7 @@ test("jq nonempty matching retries alternatives and empty patterns count UTF-8 b
     }
   } finally { rs.dispose(); }
 });
+
 
 test("jq regex generators consume patterns and flags only as requested", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12453,6 +13023,7 @@ test("jq regex generators consume patterns and flags only as requested", async (
   } finally { rs.dispose(); }
 });
 
+
 test("jq regex modifiers preserve literal characters and select multiline dot behavior", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12479,6 +13050,7 @@ test("jq regex modifiers preserve literal characters and select multiline dot be
   } finally { rs.dispose(); }
 });
 
+
 test("jq lookaround preserves assertion captures without consuming input", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12503,6 +13075,7 @@ test("jq lookaround preserves assertion captures without consuming input", async
     }
   } finally { rs.dispose(); }
 });
+
 
 test("jq regex filters reject malformed patterns and report parser errors through try", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
@@ -12537,6 +13110,7 @@ test("jq regex filters reject malformed patterns and report parser errors throug
   } finally { rs.dispose(); }
 });
 
+
 test("jq bracket ranges decode escaped endpoints before comparing them", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12558,6 +13132,7 @@ test("jq bracket ranges decode escaped endpoints before comparing them", async (
     }
   } finally { rs.dispose(); }
 });
+
 
 test("jq inline regex flags apply to the enclosing group and restore outer modes", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
@@ -12586,6 +13161,7 @@ test("jq inline regex flags apply to the enclosing group and restore outer modes
   } finally { rs.dispose(); }
 });
 
+
 test("deep jq regex groups compile and discard invalid patterns without exhausting the stack", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12605,6 +13181,7 @@ test("deep jq regex groups compile and discard invalid patterns without exhausti
   } finally { rs.dispose(); }
 });
 
+
 test("jq character classes use UTF-16 range order across the surrogate interval", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12622,6 +13199,7 @@ test("jq character classes use UTF-16 range order across the surrogate interval"
     }
   } finally { rs.dispose(); }
 });
+
 
 test("awk uses extended regex escapes consistently in rules, fields and functions", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
@@ -12649,6 +13227,7 @@ test("awk uses extended regex escapes consistently in rules, fields and function
   } finally { rs.dispose(); }
 });
 
+
 test("rg multiline counts, inverts and limits the selected records", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12672,6 +13251,7 @@ test("rg multiline counts, inverts and limits the selected records", async () =>
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg multiline anchors and inline flags follow the scope of each group", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12698,6 +13278,7 @@ test("rg multiline anchors and inline flags follow the scope of each group", asy
   } finally { rs.dispose(); }
 });
 
+
 test("rg keeps selection, columns and replacement spans through the last context record", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
@@ -12723,6 +13304,7 @@ test("rg keeps selection, columns and replacement spans through the last context
   } finally { rs.dispose(); }
 });
 
+
 test("rg visits UTF-8 byte offsets for empty matches and preserves split replacement bytes", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12747,6 +13329,7 @@ test("rg visits UTF-8 byte offsets for empty matches and preserves split replace
   } finally { rs.dispose(); }
 });
 
+
 test("rg null-data keeps record delimiters independent of count and filename output", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12768,6 +13351,7 @@ test("rg null-data keeps record delimiters independent of count and filename out
   } finally { rs.dispose(); }
 });
 
+
 test("rg chooses record anchors for ordinary ASCII searches in NUL-delimited batches", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12788,6 +13372,7 @@ test("rg chooses record anchors for ordinary ASCII searches in NUL-delimited bat
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg file listing status and quiet diagnostics follow target order", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12814,6 +13399,7 @@ test("rg file listing status and quiet diagnostics follow target order", async (
   } finally { rs.dispose(); }
 });
 
+
 test("rg distinguishes text, explicit binary inputs and discovered binary files", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
@@ -12837,6 +13423,7 @@ test("rg distinguishes text, explicit binary inputs and discovered binary files"
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg searches invalid UTF-8 at its original byte offsets and writes original bytes", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
@@ -12868,6 +13455,7 @@ test("rg searches invalid UTF-8 at its original byte offsets and writes original
   } finally { rs.dispose(); }
 });
 
+
 test("rg preserves carriage returns in records and applies CRLF to match and omission output", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -12887,6 +13475,7 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+
 test("awk retains filename spelling when opening and closing redirected streams", async () => {
   const sh = new RustWasmBash({cwd:"/",files:{"/f":"x\ny\n"}});
   try {
@@ -12901,6 +13490,7 @@ test("awk retains filename spelling when opening and closing redirected streams"
   } finally { sh.dispose(); }
 });
 
+
 test("awk named getline keeps a byte cursor across separator changes and exposes read errors", async () => {
   const sh = new RustWasmBash({files:{"/f":Buffer.from([255,13,10,58,98,58,10])}});
   try {
@@ -12914,6 +13504,7 @@ test("awk named getline keeps a byte cursor across separator changes and exposes
   } finally { sh.dispose(); }
 });
 
+
 test("awk file and descriptor redirections preserve bytes and close releases the filename", async () => {
   const sh = new RustWasmBash({files:{"/f":"prefix"}});
   try {
@@ -12924,6 +13515,7 @@ test("awk file and descriptor redirections preserve bytes and close releases the
   } finally { sh.dispose(); }
 });
 
+
 test("awk string functions address input bytes and change only ASCII case", async () => {
   const sh = new RustWasmBash();
   try {
@@ -12933,6 +13525,7 @@ test("awk string functions address input bytes and change only ASCII case", asyn
       [0, "", "342032203420ff2061ff80622041ff80420a3320322030208920c3896120c389410a"]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk splits fields on AWK whitespace or individual bytes for an empty separator", async () => {
   const sh = new RustWasmBash();
@@ -12948,6 +13541,7 @@ test("awk splits fields on AWK whitespace or individual bytes for an empty separ
   } finally { sh.dispose(); }
 });
 
+
 test("awk integer formats retain big signed values and wrap unsigned values to 32 bits", async () => {
   const sh = new RustWasmBash();
   try {
@@ -12956,6 +13550,7 @@ test("awk integer formats retain big signed values and wrap unsigned values to 3
       "-1 4294967295 0xffffffff 037777777777 FFFFFFFF\n+18446744073709551616 0 0x0 00 0\n+4294967297 1 0x1 01 1\n0 0 0x0 00 0\n"]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk printf and sprintf measure string width and precision in input bytes", async () => {
   const sh = new RustWasmBash();
@@ -12967,6 +13562,7 @@ test("awk printf and sprintf measure string width and precision in input bytes",
     assert.deepEqual([r.exitCode,r.stderr,Buffer.from(r.stdoutBytes).toString("hex")], [0,"",expected]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk validates the entire program before actions or file writes", async () => {
   const sh = new RustWasmBash();
@@ -12989,6 +13585,7 @@ test("awk validates the entire program before actions or file writes", async () 
     assert.deepEqual([good.exitCode,good.stdout,good.stderr], [0,"2 1e999 0 0\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk resolves function names and arity before executing the program", async () => {
   const sh = new RustWasmBash();
@@ -13023,6 +13620,7 @@ test("awk resolves function names and arity before executing the program", async
   } finally { sh.dispose(); }
 });
 
+
 test("awk ordchr reads and writes bytes, including through redirection", async () => {
   const sh = new RustWasmBash({files:{"/bytes":Uint8Array.of(0xfe,0x0a)}});
   try {
@@ -13033,6 +13631,7 @@ test("awk ordchr reads and writes bytes, including through redirection", async (
     assert.deepEqual([bad.exitCode,bad.stdout,bad.stderr], [2,"","awk: invalid numeric argument in 'chr'\n"]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk calendar uses the shell zone, UTC override and formatter flags", async () => {
   const sh = new RustWasmBash();
@@ -13051,6 +13650,7 @@ test("awk calendar uses the shell zone, UTC override and formatter flags", async
   } finally { sh.dispose(); }
 });
 
+
 test("awk systime returns whole seconds on either side of the Unix epoch", async t => {
   let ms = 0;
   t.mock.method(Date, "now", () => ms);
@@ -13063,6 +13663,7 @@ test("awk systime returns whole seconds on either side of the Unix epoch", async
     }
   } finally { sh.dispose(); }
 });
+
 
 test("awk validates array targets in function calls and resolves grouped names", async () => {
   const sh = new RustWasmBash();
@@ -13086,6 +13687,7 @@ test("awk validates array targets in function calls and resolves grouped names",
   } finally { sh.dispose(); }
 });
 
+
 test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
   const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
   try {
@@ -13106,6 +13708,7 @@ test("awk keeps source-file bytes and parses the program before opening debugger
   } finally { sh.dispose(); }
 });
 
+
 test("awk rejects non-finite arithmetic but preserves non-finite math function results", async () => {
   const sh = new RustWasmBash();
   try {
@@ -13123,6 +13726,7 @@ test("awk rejects non-finite arithmetic but preserves non-finite math function r
   } finally { sh.dispose(); }
 });
 
+
 test("awk distinguishes signed exponents and prefix operators from binary arithmetic", async () => {
   const sh = new RustWasmBash();
   try {
@@ -13130,6 +13734,7 @@ test("awk distinguishes signed exponents and prefix operators from binary arithm
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"0.02 200 1 7\n-4 0.25 512 -6 5\n1 1 6 6 4\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk coerces decimal exponents, incomplete exponents and signed hexadecimal input prefixes", async () => {
   const sh = new RustWasmBash();
@@ -13139,6 +13744,7 @@ test("awk coerces decimal exponents, incomplete exponents and signed hexadecimal
   } finally { sh.dispose(); }
 });
 
+
 test("awk evaluates numeric rule patterns once and retains zero-pattern input processing", async () => {
   const sh = new RustWasmBash();
   try {
@@ -13146,6 +13752,7 @@ test("awk evaluates numeric rule patterns once and retains zero-pattern input pr
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"one\ntwo\n2\n2\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk charges each streamed memory operand once and flushes before getline opens it", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\n"}});
@@ -13170,6 +13777,7 @@ test("awk charges each streamed memory operand once and flushes before getline o
   } finally { sh.dispose(); }
 });
 
+
 test("awk admits a direct memory operand before charging the read at the start of record processing", async () => {
   const sh = new RustWasmBash({files:{"/f":"abc\ndef\n"}});
   try {
@@ -13185,6 +13793,7 @@ test("awk admits a direct memory operand before charging the read at the start o
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"from stdin\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("awk publishes completed output before pulling stdin and keeps it on failure", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13211,6 +13820,7 @@ test("awk publishes completed output before pulling stdin and keeps it on failur
   } finally { sh.dispose(); }
 });
 
+
 test("awk reads only selected operands and shares the main reader with getline and END", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash({files: {"/f": "first\n"}});
   try {
@@ -13235,6 +13845,7 @@ test("awk reads only selected operands and shares the main reader with getline a
   } finally { sh.dispose(); }
 });
 
+
 test("a filesystem quota rejects descriptor setup before truncation or the next stdin pull", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {
@@ -13250,6 +13861,7 @@ test("a filesystem quota rejects descriptor setup before truncation or the next 
     }
   } finally { sh.dispose(); }
 });
+
 
 test("redirected output preserves each accepted 64 KiB descriptor write", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13269,6 +13881,7 @@ test("redirected output preserves each accepted 64 KiB descriptor write", {skip:
   } finally { sh.dispose(); }
 });
 
+
 test("rg publishes matches and read errors in operand order", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash({files:{"/f":"hit file\n"}});
   try {
@@ -13284,6 +13897,7 @@ test("rg publishes matches and read errors in operand order", {skip: !WebAssembl
     assert.deepEqual([result.exitCode,await contents()], [2,seen[1]+"rg: internal error\n/f:hit file\n"]);
   } finally { sh.dispose(); }
 });
+
 
 test("rg publishes multiline output at diagnostics and whole-match boundaries", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash({files:{"/f":"ab\nb\n"}});
@@ -13303,6 +13917,7 @@ test("rg publishes multiline output at diagnostics and whole-match boundaries", 
   } finally { sh.dispose(); }
 });
 
+
 test("rg multiline keeps a published heading when the next output write exceeds the limit", async () => {
   const sh = new RustWasmBash({files:{"/f":"λ"+"x".repeat(65533)+"b\nb\n"}});
   try {
@@ -13310,6 +13925,7 @@ test("rg multiline keeps a published heading when the next output write exceeds 
     assert.equal(Buffer.from(await sh.fs.readFile("/out")).toString(), "/f\n");
   } finally { sh.dispose(); }
 });
+
 
 test("rg reports the ancestor that denied a path lookup", async () => {
   const sh = new RustWasmBash({files:{"/locked/sub/f":"hit\n"}});
@@ -13321,6 +13937,7 @@ test("rg reports the ancestor that denied a path lookup", async () => {
     }
   } finally { sh.dispose(); }
 });
+
 
 test("overlay redirections share file contents but keep independent offsets", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs"});
@@ -13334,6 +13951,7 @@ test("overlay redirections share file contents but keep independent offsets", as
     assert.deepEqual([r.exitCode,sh.readText("/old"),sh.readText("/out")],[0,"abc","abcz"]);
   } finally { sh.dispose(); }
 });
+
 
 test("overlay output redirection charges access before it creates, appends or truncates", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/f":"keep","/readonly":{content:"keep",mode:0o400}}});
@@ -13350,6 +13968,7 @@ test("overlay output redirection charges access before it creates, appends or tr
   } finally { sh.dispose(); }
 });
 
+
 test("rg selects files by the built-in type globs in argument order", async () => {
   const sh = new RustWasmBash({files:Object.fromEntries([".bashrc",".other","CMakeLists.txt","Dockerfile.prod","x.h","x.mts","x.vue","unknown.xyz"].map(name => ["/d/"+name,"value"]))});
   try {
@@ -13363,6 +13982,7 @@ test("rg selects files by the built-in type globs in argument order", async () =
     }
   } finally { sh.dispose(); }
 });
+
 
 test("rg stops at a denied operand on mounted and overlay filesystems", async () => {
   for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
@@ -13378,6 +13998,7 @@ test("rg stops at a denied operand on mounted and overlay filesystems", async ()
   }
 });
 
+
 test("rg charges metadata and read capability lookups on mounted and overlay filesystems", async () => {
   for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
     const sh = new RustWasmBash({profile,files:{"/f":"a\nb\n"}});
@@ -13389,6 +14010,7 @@ test("rg charges metadata and read capability lookups on mounted and overlay fil
     } finally { sh.dispose(); }
   }
 });
+
 
 test("rg admits explicit memory files once and charges the complete input in count mode", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\na\n","/out":"old"}});
@@ -13408,6 +14030,7 @@ test("rg admits explicit memory files once and charges the complete input in cou
   } finally { sh.dispose(); }
 });
 
+
 test("rg keeps earlier directory matches when a later file chunk contains a NUL", async () => {
   const sh = new RustWasmBash({files:{"/d/f":"a\n"+"b".repeat(65536)+"\na\0b\n"}});
   try {
@@ -13415,6 +14038,7 @@ test("rg keeps earlier directory matches when a later file chunk contains a NUL"
     assert.deepEqual([result.exitCode,result.stdout,result.stderr], [0,"/d/f:a\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("rg JSON preserves Unicode and uses compact JSON escapes in lines and submatches", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13429,6 +14053,7 @@ test("rg JSON preserves Unicode and uses compact JSON escapes in lines and subma
     assert.equal(JSON.parse(end).data.stats.bytes_printed, Buffer.byteLength(begin + "\n" + match + "\n"));
   } finally { sh.dispose(); }
 });
+
 
 test("rg JSON publishes complete batches, reports binary lines, and keeps failed input out of the summary", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13451,6 +14076,7 @@ test("rg JSON publishes complete batches, reports binary lines, and keeps failed
   } finally { sh.dispose(); }
 });
 
+
 test("rg streams matches with statistics and discards the totals of a failed input", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {
@@ -13468,6 +14094,7 @@ test("rg streams matches with statistics and discards the totals of a failed inp
     assert.match(Buffer.from(await sh.fs.readFile("/out")).toString(), /^a\n\n1 matches\n1 matched lines\n/);
   } finally { sh.dispose(); }
 });
+
 
 test("rg publishes line and context batches and closes stdin when output stops", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13491,6 +14118,7 @@ test("rg publishes line and context batches and closes stdin when output stops",
   } finally { sh.dispose(); }
 });
 
+
 test("grep accounts for named input setup even when max-count is zero", async () => {
   const sh = new RustWasmBash();
   try {
@@ -13503,6 +14131,7 @@ test("grep accounts for named input setup even when max-count is zero", async ()
     await assert.rejects(sh.exec("grep -n x /missing", {limits}), {limit:"maxFileSystemOperations"});
   } finally { sh.dispose(); }
 });
+
 
 test("grep publishes context before the next pull and closes stdin on output failure", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
@@ -13524,6 +14153,7 @@ test("grep publishes context before the next pull and closes stdin on output fai
     }
   } finally { sh.dispose(); }
 });
+
 
 test("grep publishes literal matches before the next stdin pull and stops on write or validation failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
@@ -13547,6 +14177,7 @@ test("grep publishes literal matches before the next stdin pull and stops on wri
   } finally { bash.dispose(); }
 });
 
+
 test("grep charges one direct memory file read before checking its input bytes", async () => {
   const sh = new RustWasmBash({files: {"/f":"abc\na\n"}});
   try {
@@ -13566,6 +14197,7 @@ test("grep charges one direct memory file read before checking its input bytes",
   } finally { sh.dispose(); }
 });
 
+
 test("grep with an option after the pattern validates batches at stdin chunk boundaries", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {
@@ -13584,6 +14216,7 @@ test("grep with an option after the pattern validates batches at stdin chunk bou
     }
   } finally { sh.dispose(); }
 });
+
 
 test("grep validates plain ASCII searches record by record and preserves earlier output", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
@@ -13607,6 +14240,7 @@ test("grep validates plain ASCII searches record by record and preserves earlier
   } finally { rs.dispose(); }
 });
 
+
 test("rg JSON end and summary records account for each input and emitted byte", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -13620,6 +14254,7 @@ test("rg JSON end and summary records account for each input and emitted byte", 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg rejects malformed regexes before searching and treats fixed patterns literally", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
@@ -13640,6 +14275,7 @@ test("rg rejects malformed regexes before searching and treats fixed patterns li
   } finally { rs.dispose(); }
 });
 
+
 test("rg whole-word matching follows the matcher selected for each record batch", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -13657,6 +14293,7 @@ test("rg whole-word matching follows the matcher selected for each record batch"
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep validates bounded regex batches before emitting matches, counts or filenames", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -13677,6 +14314,7 @@ test("grep validates bounded regex batches before emitting matches, counts or fi
   } finally { rs.dispose(); }
 });
 
+
 test("grep -o selects empty matches without printing them or inverted records", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -13693,6 +14331,7 @@ test("grep -o selects empty matches without printing them or inverted records", 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep preserves bytes and precedence of pattern files and argument patterns", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -13711,6 +14350,7 @@ test("grep preserves bytes and precedence of pattern files and argument patterns
   } finally { rs.dispose(); }
 });
 
+
 test("grep reports out-of-profile pattern bytes before opening the target", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -13725,6 +14365,7 @@ test("grep reports out-of-profile pattern bytes before opening the target", asyn
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep and rg apply stacked repetitions only in profiles that execute them", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -13744,6 +14385,7 @@ test("grep and rg apply stacked repetitions only in profiles that execute them",
   } finally { rs.dispose(); }
 });
 
+
 test("grep bounded whole-word regexes report byte-sized matches inside UTF-8", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
@@ -13755,6 +14397,7 @@ test("grep bounded whole-word regexes report byte-sized matches inside UTF-8", a
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep option spelling and arguments match production for short and long forms", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13775,6 +14418,7 @@ test("grep option spelling and arguments match production for short and long for
     }
   } finally { rs.dispose(); }
 });
+
 
 test("grep walks directories, applies basename filters in order and reports filesystem errors", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13800,6 +14444,7 @@ test("grep walks directories, applies basename filters in order and reports file
   } finally { rs.dispose(); }
 });
 
+
 test("rg file listing and searching use the same traversal and symlink rules", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13823,6 +14468,7 @@ test("rg file listing and searching use the same traversal and symlink rules", a
   } finally { rs.dispose(); }
 });
 
+
 test("rg statistics count searched records and printed matches in each output mode", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13840,6 +14486,7 @@ test("rg statistics count searched records and printed matches in each output mo
     }
   } finally { rs.dispose(); }
 });
+
 
 test("rg groups output records across operands and only prints each heading once", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13859,6 +14506,7 @@ test("rg groups output records across operands and only prints each heading once
   } finally { rs.dispose(); }
 });
 
+
 test("rg numeric options keep their spelling, size units and safe integer bounds", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13877,6 +14525,7 @@ test("rg numeric options keep their spelling, size units and safe integer bounds
   } finally { rs.dispose(); }
 });
 
+
 test("op validates root flags before selecting help or version", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13894,6 +14543,7 @@ test("op validates root flags before selecting help or version", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("op resolves help for catalog commands, groups and aliases without executing them", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13919,6 +14569,7 @@ test("op resolves help for catalog commands, groups and aliases without executin
   } finally { rs.dispose(); }
 });
 
+
 test("op read rejects non-ASCII scheme prefixes and op run stops on unresolved references", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13933,6 +14584,7 @@ test("op read rejects non-ASCII scheme prefixes and op run stops on unresolved r
     }
   } finally { rs.dispose(); }
 });
+
 
 test("op masks the longest original byte match in run and snapshot child output", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13955,6 +14607,7 @@ test("op masks the longest original byte match in run and snapshot child output"
   } finally { rs.dispose(); }
 });
 
+
 test("op only sees exported variables and command assignments", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -13969,6 +14622,7 @@ test("op only sees exported variables and command assignments", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("op rejects explicit account and session selectors before accessing the default object store", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -13992,6 +14646,7 @@ test("op rejects explicit account and session selectors before accessing the def
   } finally { rs.dispose(); }
 });
 
+
 test("op resolves global and command flags against the selected catalog command", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -14014,6 +14669,7 @@ test("op resolves global and command flags against the selected catalog command"
   } finally { rs.dispose(); }
 });
 
+
 test("op item hides sensitive field values unless the parsed output flags allow them", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -14035,6 +14691,7 @@ test("op item hides sensitive field values unless the parsed output flags allow 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("op confines item and document operations to the selected vault", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14063,6 +14720,7 @@ test("op confines item and document operations to the selected vault", async () 
   } finally { rs.dispose(); }
 });
 
+
 test("op requires an unambiguous vault for reference reads and vault mutations", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -14079,6 +14737,7 @@ test("op requires an unambiguous vault for reference reads and vault mutations",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("op computes OTPs for the stored field and clock using RFC 6238", async (t) => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14124,6 +14783,7 @@ test("op computes OTPs for the stored field and clock using RFC 6238", async (t)
   } finally { rs.dispose(); }
 });
 
+
 test("cal and ncal select the current UTC month or the supplied epoch", async (t) => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -14141,6 +14801,7 @@ test("cal and ncal select the current UTC month or the supplied epoch", async (t
     }
   } finally { rs.dispose(); }
 });
+
 
 test("compression commands charge only their selected inputs and stop pulling at the shared limit", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/a":"abc\n","/b":"def\n"}});
@@ -14161,6 +14822,7 @@ test("compression commands charge only their selected inputs and stop pulling at
     assert.deepEqual([twice.exitCode,twice.stdout,twice.stderr],[0,"once",""]);
   } finally { bash.dispose(); }
 });
+
 
 test("named compression preserves aliased inputs and atomically replaces only the output entry", async () => {
   for (const profile of ["memory-fs", "overlay-cow-fs"]) {
@@ -14198,6 +14860,7 @@ test("named compression preserves aliased inputs and atomically replaces only th
   }
 });
 
+
 test("compression rejects overlapping plans before changing files", async () => {
   const bash = new RustWasmBash({ cwd: "/", files: { "/a": "original" } });
   try {
@@ -14213,6 +14876,7 @@ test("compression rejects overlapping plans before changing files", async () => 
   } finally { bash.dispose(); }
 });
 
+
 test("failed compression publication retains the source and previous destination", async () => {
   const bash = new RustWasmBash({ cwd: "/", memoryFsOptions: { maxFileBytes: 16 } });
   try {
@@ -14225,6 +14889,7 @@ test("failed compression publication retains the source and previous destination
     }
   } finally { bash.dispose(); }
 });
+
 
 test("compression retains files changed while an earlier operand is suspended", { skip: !WebAssembly.Suspending }, async () => {
   for (const path of ["/a", "/a.gz"]) {
@@ -14243,6 +14908,7 @@ test("compression retains files changed while an earlier operand is suspended", 
     } finally { bash.dispose(); }
   }
 });
+
 
 test("gunzip checks each member's optional header and trailer", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14265,6 +14931,7 @@ test("gunzip checks each member's optional header and trailer", async () => {
   } finally { rs.dispose(); }
 });
 
+
 test("gzip and bzip2 only pass unrecognized input through in supported force modes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14285,6 +14952,7 @@ test("gzip and bzip2 only pass unrecognized input through in supported force mod
     }
   } finally { rs.dispose(); }
 });
+
 
 test("pr writes completed rows before pulling more input and stops at output and page limits", { skip: !WebAssembly.Suspending }, async () => {
   const bash = new RustWasmBash({cwd:"/", files:{"/f":"file\n"}});
@@ -14314,6 +14982,7 @@ test("pr writes completed rows before pulling more input and stops at output and
   } finally { bash.dispose(); }
 });
 
+
 test("pr commits complete rows at named-file read boundaries", async () => {
   for (const profile of ["memory-fs", "overlay-cow-fs"]) {
     const bash = new RustWasmBash({cwd:"/", ...(profile === "memory-fs" ? {} : {profile})});
@@ -14326,6 +14995,7 @@ test("pr commits complete rows at named-file read boundaries", async () => {
   }
 });
 
+
 test("pr reads its original input when output appends through a hard link", async () => {
   const bash = new RustWasmBash({cwd:"/",files:{"/f":"abc\n"}});
   try {
@@ -14334,6 +15004,7 @@ test("pr reads its original input when output appends through a hard link", asyn
   } finally { bash.dispose(); }
 });
 
+
 test("pr keeps the completed prefix and reports redirected input errors in order", async () => {
   const bash = new RustWasmBash({cwd:"/", files:{"/f":"abc\n123\n"}});
   try {
@@ -14341,6 +15012,7 @@ test("pr keeps the completed prefix and reports redirected input errors in order
     assert.deepEqual([r.exitCode, r.stdout], [1, "abc\npr: 'standard input': EFBIG: file too large, read '/f'\n"]);
   } finally { bash.dispose(); }
 });
+
 
 test("pr measures headers in bytes and checks the locale and timezone only for printed headers", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14357,6 +15029,7 @@ test("pr measures headers in bytes and checks the locale and timezone only for p
     }
   } finally { rs.dispose(); }
 });
+
 
 test("pr timestamps stdin and merged pages from the clock and files from their mtime", async (t) => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14382,6 +15055,7 @@ test("pr timestamps stdin and merged pages from the clock and files from their m
   } finally { rs.dispose(); }
 });
 
+
 test("bzip2 blocks with equal rotations and long shared prefixes decode in production", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14400,6 +15074,7 @@ test("bzip2 blocks with equal rotations and long shared prefixes decode in produ
     }
   } finally { rs.dispose(); }
 });
+
 
 test("bzip2 splits blocks by encoded run length before the level's block limit", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14426,6 +15101,7 @@ test("bzip2 splits blocks by encoded run length before the level's block limit",
   } finally { rs.dispose(); }
 });
 
+
 test("unzstd switches codecs after each gzip member in a mixed stream", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
@@ -14439,6 +15115,7 @@ test("unzstd switches codecs after each gzip member in a mixed stream", async ()
     }
   } finally { rs.dispose(); }
 });
+
 
 test("zstd probes the frame header before passing through unknown input", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14459,6 +15136,7 @@ test("zstd probes the frame header before passing through unknown input", async 
   } finally { rs.dispose(); }
 });
 
+
 test("xz and lzma distinguish truncated headers, bad data and forced plaintext", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14478,6 +15156,7 @@ test("xz and lzma distinguish truncated headers, bad data and forced plaintext",
   } finally { rs.dispose(); }
 });
 
+
 test("xz integrity checks distinguish incomplete production blocks, indexes and footers", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14493,6 +15172,7 @@ test("xz integrity checks distinguish incomplete production blocks, indexes and 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("lzma encodes preset dictionaries, repeated matches and a streaming end marker", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14516,6 +15196,7 @@ test("lzma encodes preset dictionaries, repeated matches and a streaming end mar
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xz emits compressed LZMA2 blocks and stores incompressible chunks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14547,6 +15228,7 @@ test("xz emits compressed LZMA2 blocks and stores incompressible chunks", async 
   } finally { rs.dispose(); }
 });
 
+
 test("unxz reverses delta filters in block order before checking the output", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14565,6 +15247,7 @@ test("unxz reverses delta filters in block order before checking the output", as
     }
   } finally { rs.dispose(); }
 });
+
 
 test("unxz decodes x86 and ARM64 branches at the block's declared start offset", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14591,6 +15274,7 @@ test("unxz decodes x86 and ARM64 branches at the block's declared start offset",
   } finally { rs.dispose(); }
 });
 
+
 test("unxz reads PowerPC, ARM, Thumb, SPARC and IA-64 executable filters", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();
@@ -14615,6 +15299,7 @@ test("unxz reads PowerPC, ARM, Thumb, SPARC and IA-64 executable filters", async
   } finally { rs.dispose(); }
 });
 
+
 test("unxz restores RISC-V jumps and AUIPC pairs", async () => {
   // The payload contains JAL, packed AUIPC, and a literal pair that resembles AUIPC.
   const archive = Buffer.from("fd377a585a000000ff12d94103010b04fc0f00002101000024b2092f010023ef004433ef02010297020000e780020017310128aabbccdd1710000000000000ef001234000001382401ed1a0b06729e7a010000000000595a", "hex");
@@ -14626,6 +15311,7 @@ test("unxz restores RISC-V jumps and AUIPC pairs", async () => {
     assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "ef70b006eff24fa017710e280000000097c2bbaa138012cd1710000000000000ef001234");
   } finally { rs.dispose(); }
 });
+
 
 test("unxz checks optional block sizes even when the index and checksums are valid", async () => {
   const { crc32 } = await import("node:zlib");
@@ -14648,6 +15334,7 @@ test("unxz checks optional block sizes even when the index and checksums are val
   } finally { rs.dispose(); }
 });
 
+
 test("expr counts and slices bytes or characters using LC_CTYPE, and orders strings using LC_COLLATE", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
@@ -14669,6 +15356,7 @@ test("expr counts and slices bytes or characters using LC_CTYPE, and orders stri
     }
   } finally { rs.dispose(); }
 });
+
 
 test("expr uses anchored basic regular expressions for match and colon", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14694,6 +15382,7 @@ test("expr uses anchored basic regular expressions for match and colon", async (
   } finally { rs.dispose(); }
 });
 
+
 test("mdq keeps the document root distinct from a list of selected blocks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14709,6 +15398,7 @@ test("mdq keeps the document root distinct from a list of selected blocks", asyn
   } finally { rs.dispose(); }
 });
 
+
 test("mdq builds sections from ATX and Setext headings, including empty titles", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14722,6 +15412,7 @@ test("mdq builds sections from ATX and Setext headings, including empty titles",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq preserves indented and fenced code without selecting headings inside it", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14743,6 +15434,7 @@ test("mdq preserves indented and fenced code without selecting headings inside i
   } finally { rs.dispose(); }
 });
 
+
 test("mdq plain output normalizes blank lines and preserves literal block text", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14759,6 +15451,7 @@ test("mdq plain output normalizes blank lines and preserves literal block text",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq retains ragged tables and normalizes column widths only for selection", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14778,6 +15471,7 @@ test("mdq retains ragged tables and normalizes column widths only for selection"
   } finally { rs.dispose(); }
 });
 
+
 test("mdq distinguishes thematic breaks from underlined headings and front matter", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14795,6 +15489,7 @@ test("mdq distinguishes thematic breaks from underlined headings and front matte
   } finally { rs.dispose(); }
 });
 
+
 test("mdq recognizes tables by their delimiter row and respects escaped pipes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14811,6 +15506,7 @@ test("mdq recognizes tables by their delimiter row and respects escaped pipes", 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq decodes escaped punctuation in text and preserves it inside code spans", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14831,6 +15527,7 @@ test("mdq decodes escaped punctuation in text and preserves it inside code spans
   } finally { rs.dispose(); }
 });
 
+
 test("mdq item selectors distinguish ordinary items from checked and unchecked tasks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14844,6 +15541,7 @@ test("mdq item selectors distinguish ordinary items from checked and unchecked t
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq groups list items by marker, numbers from the first item, and selects their paragraphs", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14864,6 +15562,7 @@ test("mdq groups list items by marker, numbers from the first item, and selects 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq keeps a matched subtree once and still searches its siblings", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14877,6 +15576,7 @@ test("mdq keeps a matched subtree once and still searches its siblings", async (
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq selects inline links from body content and can filter the selected link again", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14894,6 +15594,7 @@ test("mdq selects inline links from body content and can filter the selected lin
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq keeps raw HTML blocks through their CommonMark terminators", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14915,6 +15616,7 @@ test("mdq keeps raw HTML blocks through their CommonMark terminators", async () 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq selects HTML nodes in document order and skips literal markup", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14935,6 +15637,7 @@ test("mdq selects HTML nodes in document order and skips literal markup", async 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq wraps words at the requested width inside paragraphs, quotes and list items", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14953,6 +15656,7 @@ test("mdq wraps words at the requested width inside paragraphs, quotes and list 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq quote selection rewrites matched children and skips code blocks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -14966,6 +15670,7 @@ test("mdq quote selection rewrites matched children and skips code blocks", asyn
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq decodes Markdown character references in text and fence info, once", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -14985,6 +15690,7 @@ test("mdq decodes Markdown character references in text and fence info, once", a
   } finally { rs.dispose(); }
 });
 
+
 test("mdq serializes controls with JavaScript JSON string escaping", async () => {
   const paragraph = "a\b\f\u007fz";
   const rs = new RustWasmBash({ files: { "/input": paragraph } });
@@ -14994,6 +15700,7 @@ test("mdq serializes controls with JavaScript JSON string escaping", async () =>
     assert.equal(result.exitCode, 0, result.stderr);
   } finally { rs.dispose(); }
 });
+
 
 test("mdq parses link destinations and titles before matching or rendering them", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15013,6 +15720,7 @@ test("mdq parses link destinations and titles before matching or rendering them"
   } finally { rs.dispose(); }
 });
 
+
 test("mdq numbers rendered links in order and emits their definitions at the selected position", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15027,6 +15735,7 @@ test("mdq numbers rendered links in order and emits their definitions at the sel
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq resolves document references before selection and preserves their source styles", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15045,6 +15754,7 @@ test("mdq resolves document references before selection and preserves their sour
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq keeps production definition order for mixed numeric and named reference IDs", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15068,6 +15778,7 @@ test("mdq keeps production definition order for mixed numeric and named referenc
   } finally { rs.dispose(); }
 });
 
+
 test("mdq selects and renders bracketed URLs, bare URLs, domains and email addresses", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15086,6 +15797,7 @@ test("mdq selects and renders bracketed URLs, bare URLs, domains and email addre
   } finally { rs.dispose(); }
 });
 
+
 test("mdq resolves emphasis delimiters around inline atoms and retains literal marks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15103,6 +15815,7 @@ test("mdq resolves emphasis delimiters around inline atoms and retains literal m
   } finally { rs.dispose(); }
 });
 
+
 test("mdq preserves source whitespace inside multiline code and HTML and consumes Markdown line breaks", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15117,6 +15830,7 @@ test("mdq preserves source whitespace inside multiline code and HTML and consume
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq pairs Markdown brackets after recognizing code, HTML and inner links", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15133,6 +15847,7 @@ test("mdq pairs Markdown brackets after recognizing code, HTML and inner links",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq flattens image descriptions and renders or selects images inside links", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15151,6 +15866,7 @@ test("mdq flattens image descriptions and renders or selects images inside links
   } finally { rs.dispose(); }
 });
 
+
 test("mdq tracks open list items and quotes when lines continue, nest or leave a container", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15167,6 +15883,7 @@ test("mdq tracks open list items and quotes when lines continue, nest or leave a
   } finally { rs.dispose(); }
 });
 
+
 test("mdq treats caret labels with spaces as ordinary reference links", async () => {
   const rs = new RustWasmBash({ files: { "/input": "A[^x y].\n\n[^x y]: note\n" } });
   try {
@@ -15175,6 +15892,7 @@ test("mdq treats caret labels with spaces as ordinary reference links", async ()
     assert.equal((await rs.exec("mdq -o plain </input")).stdout, "A^x y.\n");
   } finally { rs.dispose(); }
 });
+
 
 test("mdq follows reachable footnotes once, resolves their bodies and places definitions", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15194,6 +15912,7 @@ test("mdq follows reachable footnotes once, resolves their bodies and places def
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq maps replacements on visible text back to nested emphasis ranges", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15215,6 +15934,7 @@ test("mdq maps replacements on visible text back to nested emphasis ranges", asy
   } finally { rs.dispose(); }
 });
 
+
 test("mdq unquoted literals use Unicode simple case folding", async () => {
   const bash = new RustWasmBash();
   try {
@@ -15230,6 +15950,7 @@ test("mdq unquoted literals use Unicode simple case folding", async () => {
     }
   } finally { bash.dispose(); }
 });
+
 test("mdq retains parsed matcher values and delimiters inside selectors", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15252,6 +15973,7 @@ test("mdq retains parsed matcher values and delimiters inside selectors", async 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq replacements respect the visible byte ranges of inline code", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15269,6 +15991,7 @@ test("mdq replacements respect the visible byte ranges of inline code", async ()
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq takes the first regex alternative and expands its actual captures", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15289,6 +16012,7 @@ test("mdq takes the first regex alternative and expands its actual captures", as
   } finally { rs.dispose(); }
 });
 
+
 test("mdq lookaround assertions preserve their captures without consuming their text", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15306,6 +16030,7 @@ test("mdq lookaround assertions preserve their captures without consuming their 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq Unicode regex shorthands agree inside classes and at word boundaries", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15325,6 +16050,7 @@ test("mdq Unicode regex shorthands agree inside classes and at word boundaries",
   } finally { rs.dispose(); }
 });
 
+
 test("mdq reports regex group, class and repetition errors at their query positions", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
@@ -15341,6 +16067,7 @@ test("mdq reports regex group, class and repetition errors at their query positi
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq atomic groups and possessive repeats discard only their own alternatives", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15360,6 +16087,7 @@ test("mdq atomic groups and possessive repeats discard only their own alternativ
   } finally { rs.dispose(); }
 });
 
+
 test("mdq scoped regex flags control case, anchors, whitespace and greed", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15378,6 +16106,7 @@ test("mdq scoped regex flags control case, anchors, whitespace and greed", async
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq resolves and validates named, numbered and relative regex references", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15399,6 +16128,7 @@ test("mdq resolves and validates named, numbered and relative regex references",
   } finally { rs.dispose(); }
 });
 
+
 test("mdq distinguishes match start, search continuation and end-of-input anchors", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15417,6 +16147,7 @@ test("mdq distinguishes match start, search continuation and end-of-input anchor
   } finally { rs.dispose(); }
 });
 
+
 test("mdq decodes regex character escapes and pinpoints invalid escapes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15434,6 +16165,7 @@ test("mdq decodes regex character escapes and pinpoints invalid escapes", async 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq resolves Unicode binary properties, categories and script aliases", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15454,6 +16186,7 @@ test("mdq resolves Unicode binary properties, categories and script aliases", as
   } finally { rs.dispose(); }
 });
 
+
 test("mdq regex conditionals select one branch and retain captures from the condition", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15473,6 +16206,7 @@ test("mdq regex conditionals select one branch and retain captures from the cond
   } finally { rs.dispose(); }
 });
 
+
 test("mdq evaluates nested regex class unions, intersections and differences", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15490,6 +16224,7 @@ test("mdq evaluates nested regex class unions, intersections and differences", a
   } finally { rs.dispose(); }
 });
 
+
 test("mdq ignores inline regex comments and reports unfinished or repeated ones", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands()), rs = new RustWasmBash();
@@ -15500,6 +16235,7 @@ test("mdq ignores inline regex comments and reports unfinished or repeated ones"
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mdq preserves inline objects across replacements and chained selectors", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15528,6 +16264,7 @@ test("mdq preserves inline objects across replacements and chained selectors", a
   } finally { rs.dispose(); }
 });
 
+
 test("mdq rejects invalid UTF-8 at the input being read and preserves valid Unicode bytes", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15549,6 +16286,7 @@ test("mdq rejects invalid UTF-8 at the input being read and preserves valid Unic
   } finally { rs.dispose(); }
 });
 
+
 test("mdq shares the input byte limit across file operands and stdin", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15569,6 +16307,7 @@ test("mdq shares the input byte limit across file operands and stdin", async () 
   } finally { rs.dispose(); }
 });
 
+
 test("mdq reports invalid Markdown before compiling the selector", async () => {
   const bash = new RustWasmBash({files: {"/doc": "[^a]: one\n\n[^a]: two\n"}});
   try {
@@ -15578,6 +16317,7 @@ test("mdq reports invalid Markdown before compiling the selector", async () => {
     }
   } finally { bash.dispose(); }
 });
+
 
 test("xq compiles jq functions and rejects unknown names before reading XML", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15591,6 +16331,7 @@ test("xq compiles jq functions and rejects unknown names before reading XML", as
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xq converts XML when jq requests the next source", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15614,6 +16355,7 @@ test("xq converts XML when jq requests the next source", async () => {
     }
   } finally { rs.dispose(); }
 });
+
 
 test("XML commands share strict parsing and preserve their own JSON mapping", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15640,6 +16382,7 @@ test("XML commands share strict parsing and preserve their own JSON mapping", as
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint recovery reports repairs and rejects malformed attributes and DTDs", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15655,6 +16398,7 @@ test("xmllint recovery reports repairs and rejects malformed attributes and DTDs
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint processes each operand and reads stdin only once", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15686,6 +16430,7 @@ test("xmllint processes each operand and reads stdin only once", async () => {
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint writes the requested document encoding and keeps XPath and canonical output UTF-8", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15710,6 +16455,7 @@ test("xmllint writes the requested document encoding and keeps XPath and canonic
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint preserves comments, processing instructions, and CDATA through serialization and XPath", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15732,6 +16478,7 @@ test("xmllint preserves comments, processing instructions, and CDATA through ser
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint returns distinct XPath nodes in document order", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15746,6 +16493,7 @@ test("xmllint returns distinct XPath nodes in document order", async () => {
   } finally { rs.dispose(); }
 });
 
+
 test("XPath descendant predicates use sibling positions at each parent", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15758,6 +16506,7 @@ test("XPath descendant predicates use sibling positions at each parent", async (
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint compiles XPath paths and predicates before opening XML operands", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15779,6 +16528,7 @@ test("xmllint compiles XPath paths and predicates before opening XML operands", 
   } finally { rs.dispose(); }
 });
 
+
 test("XPath keeps query prefixes separate and preserves expanded names at each node", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15797,6 +16547,7 @@ test("XPath keeps query prefixes separate and preserves expanded names at each n
   } finally { rs.dispose(); }
 });
 
+
 test("XPath comparisons preserve operand types and compare every node value", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15814,6 +16565,7 @@ test("XPath comparisons preserve operand types and compare every node value", as
   } finally { rs.dispose(); }
 });
 
+
 test("XPath scalar output rounds to six digits while string() keeps full precision", async () => {
   const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
   try {
@@ -15829,6 +16581,7 @@ test("XPath scalar output rounds to six digits while string() keeps full precisi
   } finally { rs.dispose(); }
 });
 
+
 test("XPath substring rounds character positions before clipping them to the string", async () => {
   const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
   try {
@@ -15843,6 +16596,7 @@ test("XPath substring rounds character positions before clipping them to the str
   } finally { rs.dispose(); }
 });
 
+
 test("XPath translate uses the first mapping for each code point and drops unmapped replacements", async () => {
   const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
   try {
@@ -15850,6 +16604,7 @@ test("XPath translate uses the first mapping for each code point and drops unmap
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "1🌺1z\n", ""]);
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint canonicalizes expanded names and preserves the destination on a relative namespace URI", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15871,6 +16626,7 @@ test("xmllint canonicalizes expanded names and preserves the destination on a re
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint checks output permissions and path traversal before replacing file contents", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
@@ -15897,6 +16653,7 @@ test("xmllint checks output permissions and path traversal before replacing file
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint walks each input path component before following dot-dot", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
@@ -15915,6 +16672,7 @@ test("xmllint walks each input path component before following dot-dot", async (
   } finally { rs.dispose(); }
 });
 
+
 test("nested XPath paths preserve their predicate contexts without a native call stack limit", async () => {
   const rs = new RustWasmBash({ files: { "/doc": "<r><a/><a/><a/></r>" } });
   try {
@@ -15931,6 +16689,7 @@ test("nested XPath paths preserve their predicate contexts without a native call
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint --noout validates deeply nested input and still reports errors at the deepest element", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
   try {
@@ -15946,6 +16705,7 @@ test("xmllint --noout validates deeply nested input and still reports errors at 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint reads redirected stdin only for the operand that requests it", async () => {
   const rs = new RustWasmBash({ cwd: "/", files: { "/doc": "<r/>", "/big": "<big/>" } });
@@ -15967,6 +16727,7 @@ test("xmllint reads redirected stdin only for the operand that requests it", asy
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint stops consuming a redirected operand at a fatal XML error", async () => {
   const rs = new RustWasmBash({ cwd: "/", files: { "/broken": "<broken/>".repeat(20000) } });
   try {
@@ -15977,6 +16738,7 @@ test("xmllint stops consuming a redirected operand at a fatal XML error", async 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint preserves XML tokens, namespace scope and text nodes across decoder chunks", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
@@ -15997,6 +16759,7 @@ test("xmllint preserves XML tokens, namespace scope and text nodes across decode
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint charges named input in read order and prevalidates recovery input", async () => {
   const rs = new RustWasmBash({ cwd: "/", files: {
     "/f": Buffer.concat([Buffer.from("<r/><r/>" + " ".repeat(9000)), Buffer.from([255])])
@@ -16011,6 +16774,7 @@ test("xmllint charges named input in read order and prevalidates recovery input"
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint reports invalid XML characters in the normalization window it needs", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
   try {
@@ -16021,6 +16785,7 @@ test("xmllint reports invalid XML characters in the normalization window it need
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint rejects malformed attributes before reading the rest of an open tag", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
@@ -16037,6 +16802,7 @@ test("xmllint rejects malformed attributes before reading the rest of an open ta
     }
   } finally { rs.dispose(); }
 });
+
 
 test("heredocs check the expanded byte count before installing later redirects", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
@@ -16055,6 +16821,7 @@ test("heredocs check the expanded byte count before installing later redirects",
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint diagnoses malformed end tags and instruction names before their terminator", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
   try {
@@ -16068,6 +16835,7 @@ test("xmllint diagnoses malformed end tags and instruction names before their te
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xq streams XML operands in query order and charges their cumulative input bytes", async () => {
   const rs = new RustWasmBash({ cwd: "/", files: {
@@ -16088,6 +16856,7 @@ test("xq streams XML operands in query order and charges their cumulative input 
   } finally { rs.dispose(); }
 });
 
+
 test("XML byte streams remove the UTF-8 signature before XML normalization", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
   try {
@@ -16100,6 +16869,7 @@ test("XML byte streams remove the UTF-8 signature before XML normalization", asy
     }
   } finally { rs.dispose(); }
 });
+
 
 test("oversized here-strings fail during descriptor setup even when nobody reads them", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
@@ -16121,6 +16891,7 @@ test("oversized here-strings fail during descriptor setup even when nobody reads
   } finally { rs.dispose(); }
 });
 
+
 test("a failed here-string does not assign, unset, or read a builtin variable", async () => {
   const rs = new RustWasmBash({ cwd: "/" });
   try {
@@ -16131,6 +16902,7 @@ test("a failed here-string does not assign, unset, or read a builtin variable", 
     }
   } finally { rs.dispose(); }
 });
+
 
 test("mapfile checks a direct here-string in UTF-16 units before replacing its array", async () => {
   const rs = new RustWasmBash({cwd: "/"});
@@ -16155,6 +16927,7 @@ test("mapfile checks a direct here-string in UTF-16 units before replacing its a
   } finally { rs.dispose(); }
 });
 
+
 test("direct printing skips the here-string operand only when it can write the result", async () => {
   const rs = new RustWasmBash({cwd: "/"});
   try {
@@ -16174,6 +16947,7 @@ test("direct printing skips the here-string operand only when it can write the r
   } finally { rs.dispose(); }
 });
 
+
 test("xmllint recovery consumes one UTF-16 unit of a malformed root terminator", async () => {
   const rs = new RustWasmBash({cwd: "/"});
   try {
@@ -16183,6 +16957,7 @@ test("xmllint recovery consumes one UTF-16 unit of a malformed root terminator",
     }
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint retains recovered low surrogates in their original text node and output encoding", async () => {
   const rs = new RustWasmBash({cwd: "/", files: {"/f": "<p><r/🪴text</p>"}});
@@ -16201,6 +16976,7 @@ test("xmllint retains recovered low surrogates in their original text node and o
     assert.deepEqual(Buffer.from(r.stdoutBytes), Buffer.from('<?xml version="1.0" encoding="UTF-16LE"?>\n<p><r/>\udeb4text</p>\n', "utf16le"));
   } finally { rs.dispose(); }
 });
+
 
 test("the shell rejects process-id expansion at the second dollar before running the command", async () => {
   const rs = new RustWasmBash({cwd: "/"});
@@ -16225,6 +17001,7 @@ test("the shell rejects process-id expansion at the second dollar before running
   } finally { rs.dispose(); }
 });
 
+
 test("arithmetic rejects process-id expansion only when the expression executes", async () => {
   const rs = new RustWasmBash({cwd: "/"});
   try {
@@ -16238,6 +17015,7 @@ test("arithmetic rejects process-id expansion only when the expression executes"
     assert.deepEqual([skipped.exitCode, skipped.stdout, skipped.stderr], [0, "done\n", ""]);
   } finally { rs.dispose(); }
 });
+
 
 test("xmllint rejects invalid output bytes without overwriting a private-use filename", async () => {
   const name = "\ue0ff";
@@ -16255,6 +17033,7 @@ test("xmllint rejects invalid output bytes without overwriting a private-use fil
   } finally { sh.dispose(); }
 });
 
+
 test("XML commands validate argument bytes in command-specific order", async () => {
   const sh = new RustWasmBash({cwd: "/"});
   try {
@@ -16270,6 +17049,7 @@ test("XML commands validate argument bytes in command-specific order", async () 
     }
   } finally { sh.dispose(); }
 });
+
 
 test("private-use text crosses filesystem, shell source and session boundaries once", async () => {
   const name = "\ue0ee\ue083\ue0bf";
@@ -16291,6 +17071,7 @@ test("private-use text crosses filesystem, shell source and session boundaries o
   } finally { sh.dispose(); }
 });
 
+
 test("parameter lengths and slices count shell bytes only in the byte locale", async () => {
   const sh = new RustWasmBash({env: {X: "a\ue0ffb"}});
   try {
@@ -16304,6 +17085,7 @@ test("parameter lengths and slices count shell bytes only in the byte locale", a
     }
   } finally { sh.dispose(); }
 });
+
 
 test("ls and find escape display names but preserve raw print0 paths", async () => {
   const sh = new RustWasmBash({files: {"/names/\ue0ff": "data"}});
@@ -16321,6 +17103,7 @@ test("ls and find escape display names but preserve raw print0 paths", async () 
   } finally { sh.dispose(); }
 });
 
+
 test("XML and Markdown queries render private-use text once in results and diagnostics", async () => {
   const n = "\ue0ff", sh = new RustWasmBash({cwd: "/", env: {V: n}, files: {["/" + n]: "<r/>"}});
   try {
@@ -16337,6 +17120,7 @@ test("XML and Markdown queries render private-use text once in results and diagn
   } finally { sh.dispose(); }
 });
 
+
 test("xmllint serializes deep documents and discards the tree after a late parse error", async () => {
   const depth = 12000, doc = "<r>".repeat(depth) + "leaf" + "</r>".repeat(depth);
   const sh = new RustWasmBash({files: {"/doc": doc, "/bad": doc + "<extra/>"}});
@@ -16349,6 +17133,7 @@ test("xmllint serializes deep documents and discards the tree after a late parse
   } finally { sh.dispose(); }
 });
 
+
 test("xmllint transforms deeply nested whitespace and CDATA in document order", async () => {
   const open = "<r>".repeat(2048), close = "</r>".repeat(2048);
   const body = '<a>  <b/> \n</a><a xml:space="preserve"> <b/> </a><c>x<![CDATA[y]]> z</c>';
@@ -16359,6 +17144,7 @@ test("xmllint transforms deeply nested whitespace and CDATA in document order", 
     assert.equal(r.stdout, '<?xml version="1.0"?>\n' + open + '<a><b/></a><a xml:space="preserve"> <b/> </a><c>xy z</c>' + close + "\n");
   } finally { sh.dispose(); }
 });
+
 
 test("xmllint canonicalizes deep namespace changes and restores sibling bindings", async () => {
   const open = "<n>".repeat(5000), close = "</n>".repeat(5000);
@@ -16376,6 +17162,7 @@ test("xmllint canonicalizes deep namespace changes and restores sibling bindings
   } finally { sh.dispose(); }
 });
 
+
 test("XPath traverses deep document text and restores namespace bindings for later siblings", async () => {
   const depth = 8000, xml = '<r xmlns:p="urn:outer">' + '<n>'.repeat(depth) +
     '<p:x>alpha<![CDATA[beta]]></p:x><a xmlns:p="urn:inner"><p:x>wrong</p:x></a><p:x>omega</p:x>' +
@@ -16389,6 +17176,7 @@ test("XPath traverses deep document text and restores namespace bindings for lat
     await assert.rejects(sh.exec("xmllint --xpath '//n' /doc >/dev/null", {limits: {maxOutputBytes: 1000}}), /maxOutputBytes/);
   } finally { sh.dispose(); }
 });
+
 
 test("xmllint formats deep XML up to the encoded output budget before publishing", async () => {
   const depth = 540, doc = "<r>".repeat(depth) + "é" + "</r>".repeat(depth);
@@ -16411,6 +17199,7 @@ test("xmllint formats deep XML up to the encoded output budget before publishing
   } finally { sh.dispose(); }
 });
 
+
 test("writes to the default null device consume the output quota before the next command", async () => {
   const sh = new RustWasmBash({files: {"/two": Uint8Array.of(0xff, 0x61)}});
   try {
@@ -16423,6 +17212,7 @@ test("writes to the default null device consume the output quota before the next
     await assert.rejects(sh.exec("printf a >/dev/null; printf b >>/dev/null", {limits: {maxOutputBytes: 1}}), /maxOutputBytes/);
   } finally { sh.dispose(); }
 });
+
 
 test("xq converts deep XML to raw JSON with ordered groups and mixed content", async () => {
   const depth = 12000, root = "<r>".repeat(depth), tail = "</r>".repeat(depth);
@@ -16440,6 +17230,7 @@ test("xq converts deep XML to raw JSON with ordered groups and mixed content", a
   } finally { sh.dispose(); }
 });
 
+
 test("output limits stop later list commands and apply to background output", async () => {
   const sh = new RustWasmBash({files: {"/f": "ab"}});
   try {
@@ -16449,6 +17240,7 @@ test("output limits stop later list commands and apply to background output", as
     }
   } finally { sh.dispose(); }
 });
+
 
 test("shells forward nested command output without spending its quota again", async () => {
   const sh = new RustWasmBash({files: {"/f": Uint8Array.of(0xff, 0x61), "/script": "cat /f"}});
@@ -16475,6 +17267,7 @@ test("shells forward nested command output without spending its quota again", as
   } finally { sh.dispose(); }
 });
 
+
 test("redirecting a nested command preserves the quota for each output stream", async () => {
   const sh = new RustWasmBash();
   try {
@@ -16495,6 +17288,7 @@ test("redirecting a nested command preserves the quota for each output stream", 
   } finally { sh.dispose(); }
 });
 
+
 test("path-based writes to mounted devices charge only newly emitted bytes", async () => {
   const sh = new RustWasmBash({deviceView: "provided"});
   sh.mountDevices();
@@ -16506,6 +17300,7 @@ test("path-based writes to mounted devices charge only newly emitted bytes", asy
     }
   } finally { sh.dispose(); }
 });
+
 
 test("jq decodes shell bytes once and emits UTF-8 from files, filters and variables", async () => {
   const pua = "\uE080";
@@ -16525,6 +17320,7 @@ test("jq decodes shell bytes once and emits UTF-8 from files, filters and variab
     assert.equal(bad.stderr, "jq: ENOENT: no such file or directory, readStream '/missing" + pua + "'\n");
   } finally { sh.dispose(); }
 });
+
 
 test("jq replaces malformed UTF-8 at raw file boundaries and JSON string escape boundaries", async () => {
   const sh = new RustWasmBash({files: {
@@ -16551,6 +17347,7 @@ test("jq replaces malformed UTF-8 at raw file boundaries and JSON string escape 
   } finally { sh.dispose(); }
 });
 
+
 test("jq charges one read for a direct memory JSON operand and admits its bytes before that charge", async () => {
   for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const sh = new RustWasmBash({files: {"/f": "12\n"}, profile});
@@ -16572,6 +17369,7 @@ test("jq charges one read for a direct memory JSON operand and admits its bytes 
   }
 });
 
+
 test("jq early errors stop at the filesystem chunk actually requested", async () => {
   const files = { "/a": "1\n" + " ".repeat(65531) + "2  \n", "/empty": "" };
   for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
@@ -16586,6 +17384,7 @@ test("jq early errors stop at the filesystem chunk actually requested", async ()
   }
 });
 
+
 test("jq reports the line reached when a filter stops reading JSON inputs", async () => {
   const sh = new RustWasmBash();
   try {
@@ -16598,6 +17397,7 @@ test("jq reports the line reached when a filter stops reading JSON inputs", asyn
     }
   } finally { sh.dispose(); }
 });
+
 
 test("jq admits a single memory file when its JSON input is first requested", async () => {
   const files = {"/f": "12\n34\n"};
@@ -16621,6 +17421,7 @@ test("jq admits a single memory file when its JSON input is first requested", as
   }
 });
 
+
 test("overlay noclobber publishes on last close and preserves a competing writer", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs"});
   try {
@@ -16643,6 +17444,7 @@ test("overlay noclobber publishes on last close and preserves a competing writer
   } finally { sh.dispose(); }
 });
 
+
 test("an exclusive exec descriptor reports a close conflict to its owning shell", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs"});
   try {
@@ -16658,6 +17460,7 @@ test("an exclusive exec descriptor reports a close conflict to its owning shell"
     assert.deepEqual([sub.exitCode,sub.stdout,sub.stderr],[0,"end\n","shell: line 1: EEXIST: file already exists, overlay '/f'\n"]);
   } finally { sh.dispose(); }
 });
+
 
 test("cat charges named reads in operand order for each filesystem profile", async () => {
   for (const [profile,minimum] of [["wasm-only",2],["overlay-cow-fs",8],["strict-budgets-mount-dev",8]]) {
@@ -16675,6 +17478,7 @@ test("cat charges named reads in operand order for each filesystem profile", asy
     } finally { sh.dispose(); }
   }
 });
+
 
 test("rg inherits ignore rules by directory, source priority and repository boundary", async () => {
   const sh = new RustWasmBash({cwd:"/p",files:{
@@ -16699,6 +17503,7 @@ test("rg inherits ignore rules by directory, source priority and repository boun
   } finally { sh.dispose(); }
 });
 
+
 test("recursive rg uses directory entry types and charges ignore lookups before reads", async () => {
   for (const [profile,ops] of [["warm-memory-fastpath",3],["strict-budgets-mount-dev",16],["overlay-cow-fs",16]]) {
     const sh = new RustWasmBash({profile,files:{"/d/a":"h\n","/d/n/b":"h\n","/d/.hidden":"h\n","/d/.ignore":"ignored\n","/d/ignored":"h\n","/d/.gitignore":"gitfile\n","/d/gitfile":"h\n"}});
@@ -16709,6 +17514,7 @@ test("recursive rg uses directory entry types and charges ignore lookups before 
     } finally { sh.dispose(); }
   }
 });
+
 
 test("rg CLI globs use cwd-relative path components and validate before visiting operands", async () => {
   const sh = new RustWasmBash({cwd:"/w",files:{"/w/d/a.rs":"","/w/d/b.ts":"","/w/d/n/a.rs":"","/w/d/i:a":"","/outside/a.rs":""}});
@@ -16728,6 +17534,7 @@ test("rg CLI globs use cwd-relative path components and validate before visiting
     assert.deepEqual([folded.exitCode,folded.stdout,folded.stderr],[2,"d/b.ts\n","rg: bounded regex unsupported: glob case folding supports ASCII paths only\n"]);
   } finally { sh.dispose(); }
 });
+
 
 test("rg opens pattern and ignore files through the operand's actual ancestors", async () => {
   for (const profile of ["warm-memory-fastpath","strict-budgets-mount-dev","overlay-cow-fs"]) {
@@ -16750,6 +17557,7 @@ test("rg opens pattern and ignore files through the operand's actual ancestors",
   }
 });
 
+
 test("rm on direct memory removes one file per admitted operation", async () => {
   const sh = new RustWasmBash({files:{"/w/a":"a","/w/b":"b"}});
   try {
@@ -16760,6 +17568,7 @@ test("rm on direct memory removes one file per admitted operation", async () => 
     assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"removed '/w/b'\nremoved '/w/missing'\n",""]);
   } finally { sh.dispose(); }
 });
+
 
 test("rm checks all operands before deleting, then charges each guarded removal", async () => {
   for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs","warm-memory-fastpath"]) {
@@ -16783,6 +17592,7 @@ test("rm checks all operands before deleting, then charges each guarded removal"
   }
 });
 
+
 test("overlay fs.rm removes empty visible directories and preserves nonempty ones", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/lower/file":"keep","/empty/hidden":"lower"}});
   try {
@@ -16795,6 +17605,7 @@ test("overlay fs.rm removes empty visible directories and preserves nonempty one
     assert.equal(sh.readText("/lower/file"),"keep");
   } finally { sh.dispose(); }
 });
+
 
 test("mv checks the destination's no-replace capability on a supplied filesystem", {skip:!WebAssembly.Suspending}, async () => {
   const {MemoryFileSystem, Shell, agentCommands} = await import("@poe-platform/safe-bash");
@@ -16819,6 +17630,7 @@ test("mv checks the destination's no-replace capability on a supplied filesystem
   }
 });
 
+
 test("mv admits all routed operands before either rename", async () => {
   for (const profile of ["strict-budgets-mount-dev", "overlay-cow-fs"]) {
     for (const [limit, moved] of [[3,0],[5,0],[6,1],[7,2]]) {
@@ -16837,6 +17649,7 @@ test("mv admits all routed operands before either rename", async () => {
   }
 });
 
+
 test("mv preserves the source when an overlay device destination cannot be renamed", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/a":"A"}});
   try {
@@ -16848,6 +17661,7 @@ test("mv preserves the source when an overlay device destination cannot be renam
     }
   } finally { sh.dispose(); }
 });
+
 
 test("mv retries destination lstat before reporting a non-directory ancestor", async () => {
   for (const profile of ["warm-memory-fastpath","strict-budgets-mount-dev","overlay-cow-fs"]) {
@@ -16863,6 +17677,7 @@ test("mv retries destination lstat before reporting a non-directory ancestor", a
     } finally { sh.dispose(); }
   }
 });
+
 
 test("mv removes a regular source only after a mounted device consumes it", async () => {
   const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/a":""}});
@@ -16885,6 +17700,7 @@ test("mv removes a regular source only after a mounted device consumes it", asyn
   } finally { sh.dispose(); }
 });
 
+
 test("mv checks the entry type before rejecting unsupported device operations", async () => {
   const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/dir/file":"keep"}});
   try {
@@ -16904,6 +17720,7 @@ test("mv checks the entry type before rejecting unsupported device operations", 
     assert.equal(sh.readText("/w/dir/file"),"keep");
   } finally { sh.dispose(); }
 });
+
 
 test("mv plans directory descendants before refusing publication on a device mount", async () => {
   const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/src/child":"keep"}});
@@ -16926,6 +17743,7 @@ test("mv plans directory descendants before refusing publication on a device mou
   } finally { sh.dispose(); }
 });
 
+
 test("overlay rename resolves dot components and requires directories at trailing slashes", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/tree/sub/file":"keep"}});
   try {
@@ -16938,6 +17756,7 @@ test("overlay rename resolves dot components and requires directories at trailin
     assert.equal(sh.readText("/w/moved/sub/file"),"keep");
   } finally { sh.dispose(); }
 });
+
 
 test("overlay rename verifies a link in its backing layer before moving it", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/lower":"keep"},symlinks:{"/w/alias":"lower","/w/chain":"alias"}});
@@ -16954,6 +17773,7 @@ test("overlay rename verifies a link in its backing layer before moving it", asy
   } finally { sh.dispose(); }
 });
 
+
 test("overlay refuses to redirect a copied lower link when its parent changes", async () => {
   const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/a":"A","/w/d/a":"other"},symlinks:{"/w/l":"a"}});
   try {
@@ -16968,6 +17788,7 @@ test("overlay refuses to redirect a copied lower link when its parent changes", 
     assert.equal(await sh.fs.readlink("/w/d/l"),"a");
   } finally { sh.dispose(); }
 });
+
 
 test("rename checks protected device-view operands before the backing rename", async () => {
   const bash = new RustWasmBash({ cwd: "/", files: { "/file": "keep" }, directories: ["/d"], symlinks: { "/alias": "/d", "/root": "/", "/loop": "/loop" } });
@@ -16991,6 +17812,7 @@ test("rename checks protected device-view operands before the backing rename", a
     assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")),"keep");
   } finally { bash.dispose(); }
 });
+
 
 test("GPG public key transfer permits verification but cannot grant signing authority", async () => {
   const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
@@ -17025,6 +17847,7 @@ test("GPG public key transfer permits verification but cannot grant signing auth
   }
 });
 
+
 test("GPG keyring writes are private and replace the entry without updating aliases", async () => {
   const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
   const memory = new MemoryFileSystem();
@@ -17056,6 +17879,7 @@ test("GPG keyring writes are private and replace the entry without updating alia
   } finally { wasm.dispose(); }
 });
 
+
 test("GPG rejects competing keyring replacements and cleans up its private stage", {skip:!WebAssembly.Suspending}, async () => {
   const { MemoryFileSystem, Shell, agentCommands, gpgCommands } = await import("@poe-platform/safe-bash");
   const rust = new RustWasmBash({forceNative:true});
@@ -17086,6 +17910,7 @@ test("GPG rejects competing keyring replacements and cleans up its private stage
     }
   } finally { rust.dispose(); }
 });
+
 
 
 test("PNG checksum failures preserve output through Wasm convert", async () => {
@@ -17129,6 +17954,7 @@ test("PNG checksum failures preserve output through Wasm convert", async () => {
   } finally { await bash.dispose(); }
 });
 
+
 test("embedded simple TrueType fonts render, keep spaces blank, and fail without overwriting", async () => {
   const {readFileSync} = await import("node:fs");
   const {decodePng} = await import("@poe-code/pdf-ast");
@@ -17166,6 +17992,7 @@ test("embedded simple TrueType fonts render, keep spaces blank, and fail without
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("embedded TrueType rejects overflowing cmap groups without replacing output", async () => {
   const {readFileSync} = await import("node:fs");
@@ -17205,9 +18032,12 @@ test("embedded TrueType rejects overflowing cmap groups without replacing output
   } finally { await bash.dispose(); }
 });
 
+
 import "./pdf-opacity.test.mjs";
 
+
 import "./pdf-shading.test.mjs";
+
 
 test("DeviceCMYK fill/stroke and color-space restoration match TypeScript", async () => {
   const {readFileSync} = await import("node:fs");
@@ -17238,6 +18068,7 @@ test("DeviceCMYK fill/stroke and color-space restoration match TypeScript", asyn
     }
   } finally { await bash.dispose(); }
 });
+
 
 test("PDF dash arrays, phase, caps, transforms and restoration match shared pixel cases", async () => {
   const { readFileSync } = await import("node:fs");
@@ -17277,53 +18108,7523 @@ test("PDF dash arrays, phase, caps, transforms and restoration match shared pixe
   } finally { await bash.dispose(); }
 });
 
+
 import "./pdf-blend.test.mjs";
+
 
 import "./pdf-cid-font.test.mjs";
 
+
 import "./pdf-groups.test.mjs";
+
 
 import "./pdf-soft-masks.test.mjs";
 
+
 import "./pdf-indexed.test.mjs";
 
+
 import "./magick-terminal-outputs.wasm.test.mjs";
+
 import "./magick-generated-allocation.wasm.test.mjs";
+
 import "./pandoc-operands.wasm.test.mjs";
+
 import "./pandoc-references.wasm.test.mjs";
+
 import "./pandoc-emphasis.wasm.test.mjs";
+
 
 import "./pandoc-code-spans.wasm.test.mjs";
 
+
 import "./pandoc-entities.wasm.test.mjs";
+
 import "./pandoc-raw-inline.wasm.test.mjs";
+
 import "./pandoc-markdown-inputs.wasm.test.mjs";
+
 import "./pandoc-pdf-parity.wasm.test.mjs";
+
 
 import "./uniq-windows.wasm.test.mjs";
 
+
 import "./fold-diagnostics.wasm.test.mjs";
 
+
 import "./unzip-selection.wasm.test.mjs";
+
 import "./awk-nonfinite.wasm.test.mjs";
+
 import "./xlsx-skip.wasm.test.mjs";
+
 import "./pdf-font-substitution.wasm.test.mjs";
+
 
 import "./pdf-cairo-svg.wasm.test.mjs";
 
+
 import "./pdf-text-geometry.wasm.test.mjs";
+
 
 import "./readonly-discard.wasm.test.mjs";
 
+
 import "./arithmetic-discard.wasm.test.mjs";
+
 
 import "./physical-mode.wasm.test.mjs";
 
+
 import "./local-options.wasm.test.mjs";
+
 
 import "./function-loop-boundary.wasm.test.mjs";
 
+
 import "./declared-ifs.wasm.test.mjs";
 
+
 import "./sed-output-order.wasm.test.mjs";
+
 import "./webdav-cd.wasm.test.mjs";
+
+
+test("ssconvert document exporters and filename routing work through public Wasm", async () => {
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  try {
+    await bash.fs.writeFile("/source.csv", "Value,Total\n2,=A2+3\n");
+    const output = await bash.exec("ssconvert -T Gnumeric_html:latex_table source.csv output.csv && cat output.csv");
+    assert.equal(output.exitCode, 0, output.stderr);
+    assert.ok(output.stdout.endsWith("Value\t&Total\\\\\n2\t&5\\\\\n"), output.stdout);
+    assert.equal(output.stderr, "");
+    const inferred = await bash.exec("ssconvert source.csv output.tex && cat output.tex");
+    assert.equal(inferred.exitCode, 0, inferred.stderr);
+    assert.equal(inferred.stdout, output.stdout);
+    const split = await bash.exec("ssconvert -S -T Gnumeric_html:latex_table source.csv 'sheet.%n.%%.tex' && cat 'sheet.0.%.tex'");
+    assert.equal(split.exitCode, 0, split.stderr);
+    assert.equal(split.stdout, output.stdout);
+    const failure = await bash.exec("ssconvert -T unknown source.csv output.csv");
+    assert.equal(failure.exitCode, 1);
+    assert.equal(failure.stderr, "Unknown exporter 'unknown'.\nTry --list-exporters to see a list of possibilities.\n");
+    assert.equal(new TextDecoder().decode(await bash.fs.readFile("/output.csv")), output.stdout);
+  } finally { await bash.dispose(); }
+});
+
+
+test("ssconvert cell updates preserve types and recalculate through public Wasm", async () => {
+  const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  for (const external of [false, true]) {
+    const bash = new RustWasmBash({cwd:"/", forceNative:true});
+    const fs = external ? new MemoryFileSystem() : bash.fs;
+    const options = external ? {fs} : {};
+    try {
+      await fs.writeFile("/source.csv", Buffer.from("Name,Value,Total\nAda,2,=B2+3\n"));
+      const result = await bash.exec("ssconvert --set 'B2=9' --set 'A2=25%' source.csv updated.csv && cat updated.csv", options);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "Name,Value,Total\n0.25,9,12\n");
+      const html = await bash.exec("ssconvert --set 'B2=9' --set 'A2=25%' source.csv updated.html && cat updated.html", options);
+      assert.equal(html.exitCode, 0, html.stderr);
+      assert.ok(html.stdout.includes(">25%</td>"), html.stdout);
+      assert.ok(html.stdout.includes(">12</td>"), html.stdout);
+      const invalid = await bash.exec("ssconvert --set 'A0=9' source.csv updated.csv", options);
+      assert.equal(invalid.exitCode, 1);
+      assert.equal(invalid.stderr, "Failed to set cell A0=9\n");
+      assert.equal(Buffer.from(await fs.readFile("/updated.csv")).toString(), result.stdout);
+    } finally { await bash.dispose(); }
+  }
+});
+
+
+test("ssconvert imported workbooks retain formulas and formats through public Wasm", async () => {
+  const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  for (const external of [false, true]) {
+    const bash = new RustWasmBash({cwd:"/", forceNative:true});
+    const fs = external ? new MemoryFileSystem() : bash.fs;
+    const options = external ? {fs} : {};
+    try {
+      await fs.writeFile("/source.csv", Buffer.from("Name,Value,Total\nAda,2,=B2+3\n"));
+      for (const extension of ["xlsx", "ods"]) {
+        const created = await bash.exec(`ssconvert --set 'A2=25%' source.csv source.${extension}`, options);
+        assert.equal(created.exitCode, 0, created.stderr);
+        const input = Buffer.from(await fs.readFile(`/source.${extension}`));
+        const updated = await bash.exec(`ssconvert --set 'B2=9' source.${extension} updated.csv && cat updated.csv`, options);
+        assert.equal(updated.exitCode, 0, updated.stderr);
+        assert.equal(updated.stdout, "Name,Value,Total\n0.25,9,12\n");
+        const html = await bash.exec(`ssconvert --set 'B2=9' source.${extension} updated.html && cat updated.html`, options);
+        assert.equal(html.exitCode, 0, html.stderr);
+        assert.ok(html.stdout.includes(">12</td>"), html.stdout);
+        assert.deepEqual(Buffer.from(await fs.readFile(`/source.${extension}`)), input);
+      }
+    } finally { await bash.dispose(); }
+  }
+});
+
+
+test("ssconvert imported calculations match production through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/ssconvert-calculation-production.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    await bash.fs.mkdir("/work", {recursive:true});
+    for (const fixture of cases.filter(fixture => fixture.outputs.includes("out.csv"))) {
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      await bash.fs.writeFile("/work/out.csv", "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "));
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      for (const [name, hex] of Object.entries(fixture.production.files)) assert.deepEqual(Buffer.from(await bash.fs.readFile("/work/" + name)), Buffer.from(hex, "hex"), fixture.name + ": " + name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("ssconvert targets the imported active sheet through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/ssconvert-active-production.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    await bash.fs.mkdir("/work", {recursive:true});
+    for (const fixture of cases.filter(fixture => fixture.outputs.includes("out.csv"))) {
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      await bash.fs.writeFile("/work/out.csv", "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "));
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      for (const [name, hex] of Object.entries(fixture.production.files)) assert.deepEqual(Buffer.from(await bash.fs.readFile("/work/" + name)), Buffer.from(hex, "hex"), fixture.name + ": " + name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("ssconvert selects and splits exported sheets through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/ssconvert-selection-production.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const fixture of cases.filter(fixture => fixture.outputs.includes("out.csv") || fixture.outputs.includes("out.txt"))) {
+      assert.equal((await bash.exec("rm -rf /work; mkdir /work")).exitCode, 0);
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      for (const name of fixture.outputs) await bash.fs.writeFile("/work/" + name, "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "));
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      const names = (await bash.fs.readdir("/work")).map(entry => typeof entry === "string" ? entry : entry.name).sort();
+      assert.deepEqual(names, Object.keys(fixture.production.files).sort(), fixture.name + ": files");
+      for (const [name, hex] of Object.entries(fixture.production.files)) assert.deepEqual(Buffer.from(await bash.fs.readFile("/work/" + name)), Buffer.from(hex, "hex"), fixture.name + ": " + name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("ssconvert text export options match production through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/ssconvert-options-production.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const fixture of cases) {
+      assert.equal((await bash.exec("rm -rf /work; mkdir /work")).exitCode, 0);
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      for (const name of fixture.outputs) await bash.fs.writeFile("/work/" + name, "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "));
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      const names = (await bash.fs.readdir("/work")).map(entry => typeof entry === "string" ? entry : entry.name).sort();
+      assert.deepEqual(names, Object.keys(fixture.production.files).sort(), fixture.name + ": files");
+      for (const [name, hex] of Object.entries(fixture.production.files)) assert.deepEqual(Buffer.from(await bash.fs.readFile("/work/" + name)), Buffer.from(hex, "hex"), fixture.name + ": " + name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("ssconvert text export encoding match production through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/ssconvert-encoding-production.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const fixture of cases) {
+      assert.equal((await bash.exec("rm -rf /work; mkdir /work")).exitCode, 0);
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      for (const name of fixture.outputs) await bash.fs.writeFile("/work/" + name, "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "), {env: fixture.env});
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      const names = (await bash.fs.readdir("/work")).map(entry => typeof entry === "string" ? entry : entry.name).sort();
+      assert.deepEqual(names, Object.keys(fixture.production.files).sort(), fixture.name + ": files");
+      for (const [name, hex] of Object.entries(fixture.production.files)) assert.deepEqual(Buffer.from(await bash.fs.readFile("/work/" + name)), Buffer.from(hex, "hex"), fixture.name + ": " + name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+for (const [feature, fixture] of [["inference", "text"], ["decoding", "decoding"], ["selection", "importers"], ["DIF", "dif"], ["SYLK", "sylk"], ["SYLK export", "sylk-export"], ["Gnumeric XML export", "gnumeric-export"], ["Gnumeric XML import", "gnumeric-import"], ["Gnumeric styles", "gnumeric-styles"], ["ODS style regions", "ods-regions"], ["XLSX style regions", "xlsx-regions"], ["XLSX validation", "xlsx-validation"], ["XLSX conditional formatting", "xlsx-conditional"], ["XLSX page breaks", "xlsx-breaks"], ["XLSX print settings", "xlsx-print"], ["XLSX worksheet views", "xlsx-view"], ["XLSX worksheet format", "xlsx-format"], ["XLSX defined names", "xlsx-names"], ["XLSX calculation settings", "xlsx-calculation"], ["XLSX document properties", "xlsx-properties"], ["Gnumeric document properties", "gnumeric-properties"], ["numeric spellings", "numbers"], ["ODS Gnumeric print", "ods-gnumeric-print"], ["ODS print numbers", "ods-print-numbers"], ["ODS label ranges", "ods-label-ranges"], ["ODS label formulas", "ods-label-formulas"], ["ODS legacy Calc labels", "ods-legacy-labels"], ["label references", "label-references"], ["explicit label data ranges", "radical-labels"], ["live names", "live-names"], ["explicit global names", "global-names"], ["name import order", "name-import-order"]])
+test(`ssconvert text import ${feature} matches production through public Wasm`, async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL(`../tests/fixtures/ssconvert-${fixture}-production.json`, import.meta.url), "utf8"));
+  const {createZipCodec} = await import("@poe-code/office-package");
+  const zip = createZipCodec(), signal = new AbortController().signal;
+  const limits = {maxArchiveBytes: 1e7, maxEntryBytes: 1e7, maxTotalBytes: 1e7, maxMembers: 1000,
+    maxPathBytes: 4096, maxDepth: 32, maxPaxBytes: 1e7, maxTextBytes: 1e7, chunkSize: 65536};
+  async function unpack(bytes) {
+    const result = {};
+    for (const entry of (await zip.readZipArchive(bytes, limits, signal)).entries) {
+      const chunks = [];
+      for await (const chunk of zip.decodeZipEntry(entry, limits, signal)) chunks.push(chunk);
+      result[entry.name] = Buffer.concat(chunks);
+    }
+    return result;
+  }
+  const bash = new RustWasmBash({cwd:"/work", forceNative:true, limits:{maxOutputBytes:64 * 1024 * 1024}});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const fixture of cases) {
+      assert.equal((await bash.exec("rm -rf /work; mkdir /work")).exitCode, 0);
+      for (const [name, hex] of Object.entries(fixture.inputHex)) await bash.fs.writeFile("/work/" + name, Buffer.from(hex, "hex"));
+      for (const name of fixture.outputs) await bash.fs.writeFile("/work/" + name, "existing output");
+      const result = await bash.exec("ssconvert " + fixture.args.map(quote).join(" "), {env: fixture.env});
+      for (const key of ["exitCode", "stdout", "stderr"]) assert.equal(result[key], fixture.production[key], fixture.name + ": " + key);
+      const names = (await bash.fs.readdir("/work")).map(entry => typeof entry === "string" ? entry : entry.name).sort();
+      assert.deepEqual(names, Object.keys(fixture.production.files).sort(), fixture.name + ": files");
+      for (const [name, hex] of Object.entries(fixture.production.files)) {
+        const actual = Buffer.from(await bash.fs.readFile("/work/" + name)), expected = Buffer.from(hex, "hex");
+        let archive;
+        if (expected.subarray(0, 4).equals(Buffer.from([80, 75, 3, 4]))) {
+          try { archive = await unpack(expected); }
+          catch (error) { if (error.code !== "invalid-package") throw error; }
+        }
+        if (archive)
+          assert.deepEqual(await unpack(actual), archive, fixture.name + ": " + name);
+        else if (expected.subarray(0, 3).equals(Buffer.from([31, 139, 8]))) {
+          assert.deepEqual(actual.subarray(0, 10), expected.subarray(0, 10), fixture.name + ": gzip header");
+          assert.deepEqual(gunzipSync(actual), gunzipSync(expected), fixture.name + ": " + name);
+        } else assert.deepEqual(actual, expected, fixture.name + ": " + name);
+      }
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("Office aliases convert files through native Wasm and caller filesystems", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  for (const external of [false, true]) {
+    const expectedFs = new MemoryFileSystem(), hostFs = new MemoryFileSystem();
+    const reference = new Shell({cwd:"/", fs:expectedFs}).use(agentCommands());
+    const bash = new RustWasmBash({cwd:"/", forceNative:true});
+    const fs = external ? hostFs : bash.fs;
+    try {
+      for (const target of [expectedFs, fs]) {
+        await target.writeFile("/source sheet.csv", Buffer.from("Name,Value,Total\nAda,2,=B2+3\n"));
+        await target.writeFile("/note.html", Buffer.from("<h1>Report</h1><p>Two &amp; three</p>"));
+      }
+      const script = "printf once >> visits; soffice --headless --convert-to xlsx --outdir exports 'source sheet.csv' && libreoffice --convert-to csv --outdir reopened 'exports/source sheet.xlsx' && soffice --convert-to docx --outdir exports note.html && libreoffice --cat exports/note.docx";
+      const expected = await reference.exec(script);
+      assert.equal(expected.exitCode, 0, expected.stderr);
+      const actual = await bash.exec(script, external ? {fs} : {});
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr]);
+      for (const path of ["/source sheet.csv", "/reopened/source sheet.csv", "/note.html", "/visits"]) {
+        assert.deepEqual(Buffer.from(await fs.readFile(path)), Buffer.from(await expectedFs.readFile(path)), path);
+      }
+      assert.equal(Buffer.from(await fs.readFile("/reopened/source sheet.csv")).toString(), "Name,Value,Total\nAda,2,5\n");
+      assert.equal(Buffer.from(await fs.readFile("/visits")).toString(), "once");
+    } finally { await bash.dispose(); }
+  }
+});
+
+
+test("external invocations skip shell builtins but retain registered executables",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    const results=[];
+    sh.use({name:"external-builtins",setup(host){
+      host.commands.register({name:"driver",async execute(ctx){
+        for(const [name,args] of [["cd",["/"]],["set",["--","changed"]],["eval",["echo forbidden"]],[":",[]],["exit",["3"]],["echo",["external"]],["true",[]],["false",[]],["printf",["%s","ok"]],["test",["-d","/"]]]){
+          let stdout="",stderr="";
+          const r=await ctx.invoke(name,args,{externalInvocation:true,stdout:{async write(b){stdout+=Buffer.from(b).toString();}},stderr:{async write(b){stderr+=Buffer.from(b).toString();}}});
+          results.push([name,r.exitCode,stdout,stderr]);
+        }
+        return {exitCode:0};
+      }});
+    }});
+    const result=await sh.exec("export PATH=/bin:/usr/bin; driver");
+    assert.equal(result.exitCode,0,result.stderr);
+    sh.use({name:"external-set",setup(host){host.commands.register({name:"set",async execute(ctx){await ctx.stdout.write(Buffer.from("registered\n"));return {exitCode:0};}});}});
+    const registered=await sh.exec("env set; command set -- local; printf '%s' \"$1\"");
+    return [results,[registered.exitCode,registered.stdout,registered.stderr]];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try{
+    const expected=await run(js);
+    assert.deepEqual(expected[0].map(r=>r[1]),[127,127,127,127,127,0,0,1,0,0]);
+    assert.deepEqual(expected[1],[0,"registered\nlocal",""]);
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("zip writes available virtual owner IDs and local access timestamps", {skip: !WebAssembly.Suspending}, async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  for(const owner of [{uid:0,gid:0},{uid:501,gid:20},{uid:undefined,gid:undefined},{uid:501,gid:undefined}]) {
+    const fs=new MemoryFileSystem();
+    const view=new Proxy(fs,{get(target,property) {
+      if(property==="stat" || property==="lstat") return async (...args)=>({...await target[property](...args),...owner});
+      if(property==="openReadFile") return async (...args)=>{
+        const reader=await target.openReadFile(...args);
+        return {...reader,stat:async (...options)=>({...await reader.stat(...options),...owner})};
+      };
+      const value=Reflect.get(target,property);
+      return typeof value==="function"?value.bind(target):value;
+    }});
+    const js=new Shell({fs:view,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+    try {
+      await fs.writeFile("/file",Buffer.from("payload"));
+      for(const [mtime,atime] of [[1700000001,1900000123],[-1,-10],[2147483648,1700000000],[1700000000,2147483648]]) {
+        await fs.utimes("/file",atime*1000,mtime*1000);
+        const cmd="zip -q0 - file",a=await js.exec(cmd);
+        await fs.utimes("/file",atime*1000,mtime*1000);
+        const b=await rust.exec(cmd,{fs:view});
+        assert.equal(a.exitCode,0,a.stderr);
+        assert.equal(b.exitCode,0,JSON.stringify({owner,mtime,atime})+": "+b.stderr);
+        assert.deepEqual(b.stdoutBytes,a.stdoutBytes,JSON.stringify({owner,mtime,atime}));
+      }
+    } finally {await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("unzip restores local access timestamps for files and directories",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try {
+    await fs.mkdir("/folder");await fs.writeFile("/folder/file",Buffer.from("hello"));
+    for(const [path,atime,mtime] of [["/folder",1900000123000,1700000001000],["/folder/file",-10000,-1000]]) await fs.utimes(path,atime,mtime);
+    const seed=await js.exec("zip -q0r - folder");
+    assert.equal(seed.exitCode,0,seed.stderr);
+    for(const view of [fs,rust.fs]) await view.writeFile("/seed.zip",seed.stdoutBytes);
+    for(const sh of [js,rust]) {
+      const result=await sh.exec("unzip -q seed.zip -d dest");
+      assert.equal(result.exitCode,0,result.stderr);
+    }
+    for(const name of ["/dest/folder","/dest/folder/file"]) {
+      const a=await fs.stat(name),b=await rust.fs.stat(name);
+      assert.deepEqual([b.atimeMs,b.mtimeMs,b.mode],[a.atimeMs,a.mtimeMs,a.mode],name);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("unzip rejects duplicate and malformed timestamp fields before replacing files",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try {
+    await fs.writeFile("/file",Buffer.from("archive"));
+    const seed=await js.exec("zip -q0 - file");
+    assert.equal(seed.exitCode,0,seed.stderr);
+    const original=Buffer.from(seed.stdoutBytes),central=original.readUInt32LE(original.length-6);
+    for(const [start,local] of [[30+original.readUInt16LE(26),true],[central+46+original.readUInt16LE(central+28),false]]) {
+      for(const defect of ["empty","flags","length","duplicate"]) {
+        const bytes=Buffer.from(original);
+        if(defect==="empty") bytes.writeUInt16LE(0,start+2);
+        if(defect==="flags") bytes[start+4]=8;
+        if(defect==="length") bytes[start+4]=local?1:0;
+        if(defect==="duplicate") bytes.writeUInt16LE(0x5455,start+4+bytes.readUInt16LE(start+2));
+        for(const view of [fs,rust.fs]) {await view.writeFile("/seed.zip",bytes);await view.writeFile("/file",Buffer.from("keep"));}
+        const a=await js.exec("unzip -oq seed.zip"),b=await rust.exec("unzip -oq seed.zip");
+        assert.equal(a.exitCode,2,a.stderr);
+        assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],local+": "+defect);
+        assert.equal(Buffer.from(await rust.fs.readFile("/file")).toString(),"keep");
+      }
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("unzip reports tested selections and unmatched patterns on the correct stream",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try {
+    const names=["hello.txt","é.txt","a".repeat(22),"a".repeat(25)];
+    for (const name of names) await fs.writeFile("/"+name,Buffer.from("hello\n"));
+    const seed=await js.exec("zip -q0 sample.zip "+names.join(" "));
+    assert.equal(seed.exitCode,0,seed.stderr);
+    await rust.fs.writeFile("/sample.zip",await fs.readFile("/sample.zip"));
+    for (const flags of ["-t","-tq","-tqq","-Z1","-l","-p","-qo -d dest"]) {
+      for (const selectors of ["","'*'","hello.txt","missing","'*' hello.txt","-x hello.txt","-x missing","-x '*' hello.txt","hello.txt -x é.txt"]) {
+        const cmd="unzip "+flags+" sample.zip "+selectors;
+        const a=await js.exec(cmd),b=await rust.exec(cmd);
+        assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+      }
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("unzip update and freshen compare timestamps at stored precision before prompting",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  const base=1700000000000;
+  try {
+    await ref.mkdir("/nested");
+    for(const name of ["rounded","old","new","nested/missing"]){
+      await ref.writeFile("/"+name,Uint8Array.of(65));await ref.utimes("/"+name,base,base);
+    }
+    const zip=await js.exec("zip -0q seed.zip rounded old new nested/missing");assert.equal(zip.exitCode,0,zip.stderr);
+    const seed=Buffer.from(await ref.readFile("/seed.zip"));
+    const dos=Buffer.from(seed);
+    for(let offset=0;offset<dos.length-4;offset++) {
+      const signature=dos.readUInt32LE(offset);
+      if(signature!==0x04034b50 && signature!==0x02014b50) continue;
+      const local=signature===0x04034b50,header=local?30:46;
+      const start=offset+header+dos.readUInt16LE(offset+(local?26:28));
+      const end=start+dos.readUInt16LE(offset+(local?28:30));
+      for(let field=start;field<end;field+=4+dos.readUInt16LE(field+2)) {
+        if(dos.readUInt16LE(field)===0x5455) dos.writeUInt16LE(0xcafe,field);
+      }
+    }
+    for(const extended of [false,true]) {
+      for(const fs of [ref,rust.fs]) await fs.writeFile("/seed.zip",extended?seed:dos);
+      for(const [sh,fs] of [[js,ref],[rust,rust.fs]])for(const [flags,missing] of [["uf",false],["fu",true]]) {
+        const dest="/"+flags+extended;
+        await fs.mkdir(dest);
+        for(const [name,delta] of [["rounded",-1],["old",-2000],["new",2000]]) {
+          await fs.writeFile(dest+"/"+name,Uint8Array.of(66));await fs.utimes(dest+"/"+name,base+delta,base+delta);
+        }
+        const result=await sh.exec("unzip -q"+flags+" -d "+dest+" seed.zip",{stdin:(extended?"n\n":"")+"r\nrenamed\n"});
+        assert.equal(result.exitCode,0,result.stderr);
+        const prompt=name=>"replace "+dest+"/"+name+"? [y]es, [n]o, [A]ll, [N]one, [r]ename: ";
+        assert.equal(result.stderr,(extended?prompt("rounded"):"")+prompt("old")+"new name: ");
+        for(const name of ["rounded","old","new"])assert.deepEqual(await fs.readFile(dest+"/"+name),Uint8Array.of(66));
+        assert.deepEqual(await fs.readFile(dest+"/renamed"),Uint8Array.of(65));
+        if(missing)assert.deepEqual(await fs.readFile(dest+"/nested/missing"),Uint8Array.of(65));
+        else await assert.rejects(fs.stat(dest+"/nested"),{code:"ENOENT"});
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("unzip honors signed extended timestamps when listing and updating files",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try {
+    for(const stamp of [-2147483648,-1,0,2147483647]) {
+      await fs.writeFile("/file",Buffer.from("archive"));
+      await fs.utimes("/file",stamp*1000,stamp*1000);
+      const seed=await js.exec("zip -0q - file");
+      assert.equal(seed.exitCode,0,seed.stderr);
+      for(const view of [fs,rust.fs]) await view.writeFile("/seed.zip",seed.stdoutBytes);
+      for(const delta of [-1000,-1,0,1000]) {
+        for(const view of [fs,rust.fs]) {
+          await view.writeFile("/file",Buffer.from("keep"));
+          await view.utimes("/file",stamp*1000+delta,stamp*1000+delta);
+        }
+        for(const cmd of ["unzip -l seed.zip","unzip -uoq seed.zip"]) {
+          const a=await js.exec(cmd),b=await rust.exec(cmd);
+          assert.equal(a.exitCode,0,a.stderr);
+          assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],stamp+": "+cmd);
+        }
+        assert.equal(Buffer.from(await fs.readFile("/file")).toString(),delta<0?"archive":"keep");
+        assert.deepEqual(Buffer.from(await rust.fs.readFile("/file")),Buffer.from(await fs.readFile("/file")));
+      }
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("exhausted jq function and path recursion reports a limit and leaves the shell usable", () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const program of [
+      "def f: f; f",
+      "def f: . |= f; try f catch 0",
+      "def f: f; path(f)",
+      "def f: if . > 0 then .-1 | f else . end; 10000 | f",
+    ]) {
+      const r = bash.execSync("jq -n '" + program + "'");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: maxDepth limit exceeded\n"]);
+      assert.equal(bash.execSync("echo ok").stdout, "ok\n");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("jq handles two hundred nested user calls without losing the shell", () => {
+  const bash = new RustWasmBash();
+  try {
+    const result = bash.execSync("jq -n 'def countdown: if . > 0 then .-1 | countdown else . end; 200 | countdown'");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "0\n", ""]);
+    assert.equal(bash.execSync("echo still-running").stdout, "still-running\n");
+  } finally { bash.dispose(); }
+});
+
+
+test("patsub_replacement toggles literal and expanded ampersands and restores sessions", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try{
+    const compare=async(script)=>{
+      const expected=await js.exec(script),actual=await rust.exec(script);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],script);
+    };
+    const setup=String.raw`v=aba; values=(aba aab); r='[&]'; escaped='\&'; slashes='\\&'; `;
+    for(const option of ['', 'shopt -u patsub_replacement; ', 'shopt -s patsub_replacement; ']){
+      for(const replacement of ['[&]','$r','$(printf "%s" "$r")','"[&]"',"'[&]'",'"$r"','"$(printf "%s" "$r")"',String.raw`[\&]`,'$escaped','$slashes']){
+        await compare(setup+option+'printf "%s" "${v//a/'+replacement+'}"');
+      }
+      await compare(setup+option+'printf "<%s>" "${v/a/[&]}" "${v//a/[&]}" "${v/#a/[&]}" "${v/%a/[&]}" "${values[@]//a/[&]}"');
+    }
+    await compare('v=aba; for mode in -u -s -u; do shopt "$mode" patsub_replacement; for i in 1 2 3; do printf "<%s>" "${v//a/[&]}"; done; done');
+    for(const shell of [js,rust]){
+      const session=shell.createSession();await session.exec('shopt -u patsub_replacement');
+      const state=JSON.parse(JSON.stringify(session.state));assert.equal(state.options.patsub_replacement,false);
+      const command='v=aba; (shopt -s patsub_replacement; printf "<%s>" "${v//a/[&]}"); printf "<%s>" "${v//a/[&]}"; bash -c "shopt -p patsub_replacement"';
+      const expected=await js.createSession(state).exec(command),actual=await rust.createSession(state).exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("globskipdots requires literal leading dots and survives session restore", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try{
+    for(const shell of [js,rust]) assert.equal((await shell.exec('mkdir -p /work/d; touch /work/d/.env /work/d/plain')).exitCode,0);
+    const compare=async(script)=>{
+      script='cd /work; '+script;
+      const expected=await js.exec(script),actual=await rust.exec(script);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],script);
+    };
+    await compare('shopt -p globskipdots; shopt -u globskipdots; printf "<%s>" d/.*; shopt -s globskipdots; printf "<%s>" d/.*');
+    for(const recursive of [false,true]){
+      const prefix=recursive?'d/**/':'d/';
+      for(const pattern of ['.*','.?','.[.]','"."*','\\.*','*','[.]*','.*/','.*/*','@(.|..)','?(.)','+(.)','*(.)','?(x).','*(x).','@([.]|..)','@(*|.)','!(foo)','*([.])']){
+        await compare('shopt -s extglob globstar\nshopt -u globskipdots\nprintf "<%s>" '+prefix+pattern);
+      }
+      await compare('shopt -u globskipdots; shopt -s dotglob globstar; printf "<%s>" '+prefix+'*; GLOBIGNORE=nomatch; printf "<%s>" '+prefix+'.*');
+    }
+    for(const shell of [js,rust]){
+      const session=shell.createSession();await session.exec('cd /work; shopt -u globskipdots');
+      const state=JSON.parse(JSON.stringify(session.state));assert.equal(state.options.globskipdots,false);
+      const command='(printf "<%s>" d/.*; shopt -s globskipdots); printf "<%s>" d/.*; bash -c "shopt -p globskipdots"';
+      const expected=await js.createSession(state).exec(command),actual=await rust.createSession(state).exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("cdable_vars falls back after directory lookup and survives session restore", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  const setup='cd /work; OLDPWD=/search/link; ';
+  try{
+    for(const shell of [js,rust]) assert.equal((await shell.exec('mkdir -p /work/dir/child /search/link /search/only; ln -s dir/child /work/link')).exitCode,0);
+    const scripts=[
+      'dest=dir; cd dest',
+      'shopt -s cdable_vars; dest=dir; cd dest',
+      'shopt -s cdable_vars; dir=link; cd dir',
+      'shopt -s cdable_vars; link=dir; CDPATH=/search; cd link',
+      'shopt -s cdable_vars; dest=only; CDPATH=/search; cd dest',
+      'shopt -s cdable_vars; dest=link; cd -L dest',
+      'shopt -s cdable_vars; dest=link; cd -P dest',
+      'shopt -s cdable_vars; cd link; dest=..; cd -L dest',
+      'shopt -s cdable_vars; cd link; dest=..; cd -P dest',
+      'shopt -s cdable_vars; dest=/work/dir; cd dest',
+      'shopt -s cdable_vars; dest=missing; cd dest',
+      'shopt -s cdable_vars; dest=other; other=dir; cd dest',
+      'shopt -s cdable_vars; dest=; cd dest',
+      'shopt -s cdable_vars; declare -a dest=(dir); cd dest',
+      'shopt -s cdable_vars; dest=dir; declare -n ref=dest; cd ref',
+      'shopt -s cdable_vars; dest=dir; shopt -u cdable_vars; cd dest',
+      'shopt -s cdable_vars; dest=dir; (shopt -u cdable_vars); cd dest',
+    ];
+    for(const script of scripts){
+      const command=setup+script+'; printf "%s|%s|%s" "$?" "$PWD" "$OLDPWD"';
+      const expected=await js.exec(command),actual=await rust.exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],script);
+    }
+    for(const shell of [js,rust]){
+      const session=shell.createSession();await session.exec(setup+'shopt -s cdable_vars; dest=dir');
+      const state=JSON.parse(JSON.stringify(session.state));
+      assert.equal(state.options.cdable_vars,true);
+      const expected=await js.createSession(state).exec('cd dest; pwd'),actual=await rust.createSession(state).exec('cd dest; pwd');
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("OPTIND integer attributes follow declaration, scope and session restore", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  for(const env of [{},{OPTIND:"20"}]){
+    const js=new Shell({cwd:"/",fs:new MemoryFileSystem(),env}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true,env});
+    try{
+      for(const script of [
+        'export value=outer; f(){ local value=inner; declare -p value; }; f; declare -p value',
+        'f(){ local fresh=inner; declare -p fresh; }; f',
+        'declare -p OPTIND; OPTIND=2+3; declare -p OPTIND',
+        'declare +i OPTIND; OPTIND=2+3; declare -p OPTIND',
+        'unset OPTIND; OPTIND=2+3; declare -p OPTIND',
+        'f(){ local OPTIND=2+3; declare -p OPTIND; }; f; declare -p OPTIND',
+        'export OPTIND; bash -c "declare -p OPTIND"',
+        'declare +i OPTIND; OPTIND=2; getopts ab opt -a -b; declare -p OPTIND; echo "$opt"',
+      ]){
+        const expected=await js.exec(script),actual=await rust.exec(script);
+        assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],JSON.stringify(env)+": "+script);
+      }
+      for(const setup of [":","declare +i OPTIND; OPTIND=2+3","unset OPTIND"]){
+        const states=[];
+        for(const shell of [js,rust]){
+          const session=shell.createSession();await session.exec(setup);
+          states.push(JSON.parse(JSON.stringify(session.state)));
+        }
+        assert.deepEqual(states[1].variableAttributes,states[0].variableAttributes);
+        for(const state of states){
+          const script='declare -p OPTIND; OPTIND=4+5; declare -p OPTIND';
+          const expected=await js.createSession(state).exec(script),actual=await rust.createSession(state).exec(script);
+          assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],setup);
+        }
+      }
+    }finally{await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("shift validates full-width counts and restores shift_verbose", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  for(const env of [{},{POSIXLY_CORRECT:""}]){
+    const js=new Shell({cwd:"/",fs:new MemoryFileSystem(),env}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true,env});
+    try{
+      for(const script of [
+        'set -- one; shift 4294967296; echo "$?:$#:$1"',
+        'set -- one; shift 9223372036854775807; echo "$?:$#:$1"',
+        'set -- one two; shift -- 1; echo "$?:$#:$1"',
+        'shift; echo $?', 'shopt -s shift_verbose; shift; echo $?',
+        'shopt -s shift_verbose; set -- one; shift 2; echo "$?:$1"',
+        'shopt -u shift_verbose; shift 2; echo $?', 'shift -1; echo $?',
+        'shift bad; echo after:$?', 'shift 1 2; echo after', 'shift --help',
+        'if shift bad; then echo wrong; fi; echo after', '! shift bad; echo after',
+        'command shift bad; echo after', 'builtin shift bad; echo after',
+      ]){
+        const expected=await js.exec(script),actual=await rust.exec(script);
+        assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],JSON.stringify(env)+": "+script);
+      }
+      for(const shell of [js,rust]){
+        const session=shell.createSession();
+        await session.exec(":");
+        assert.equal(session.state.options.shift_verbose,"POSIXLY_CORRECT" in env);
+        await session.exec("shopt -s shift_verbose");
+        const snapshot=JSON.parse(JSON.stringify(session.state));
+        assert.equal(snapshot.options.shift_verbose,true);
+        const restored=shell.createSession(snapshot);
+        const result=await restored.exec("shift 9");
+        assert.equal(result.exitCode,1);
+        assert.equal(result.stderr,"shell: line 1: shift: 9: shift count out of range\n");
+        await restored.exec("shopt -u shift_verbose");
+        assert.equal(restored.state.options.shift_verbose,false);
+      }
+    }finally{await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("sourcepath controls source lookup and survives session restore", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(shell)=>{
+    await shell.exec("mkdir /scripts; printf 'echo path:$1' > /scripts/item; printf 'echo local:$1' > /item");
+    const results=[];
+    for(const script of [
+      "source item arg", "shopt -u sourcepath; source item arg",
+      "shopt -u sourcepath; source -p /scripts item arg", ". -p/scripts item arg",
+      "source -p /missing item; echo after", "source -p /missing ./item arg",
+      "source -p", "source -x item", "source -p /missing -p /scripts item arg",
+      "shopt -p sourcepath; shopt -u sourcepath; shopt -p sourcepath",
+    ]){
+      const r=await shell.exec("export PATH=/scripts; "+script);
+      results.push([r.exitCode,r.stdout,r.stderr]);
+    }
+    const session=shell.createSession();
+    await session.exec("export PATH=/scripts; shopt -u sourcepath");
+    const state=JSON.parse(JSON.stringify(session.state));
+    assert.equal(state.options.sourcepath,false);
+    const restored=shell.createSession(state);
+    const r=await restored.exec("source item restored; shopt -s sourcepath; source item enabled");
+    assert.equal(restored.state.options.sourcepath,true);
+    results.push([r.exitCode,r.stdout,r.stderr]);
+    return results;
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try{
+    const expected=await run(js);
+    assert.deepEqual(expected.slice(0,4),[[0,"path:arg\n",""],[0,"local:arg\n",""],[0,"path:arg\n",""],[0,"path:arg\n",""]]);
+    assert.deepEqual(expected.at(-1),[0,"local:restored\npath:enabled\n",""]);
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("command execution uses and updates hash entries with isolated subshells",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  for(const source of [
+    'hash -t tool; tool; tool; hash; hash -l; hash -t tool',
+    'hash -p /b/tool tool; tool; command -v tool; type -p tool; type -a tool; hash',
+    'hash -p /b/tool tool; hash -p /a/other other; hash -p /a/tool tool; hash -l',
+    'tool; rm /a/tool; tool; echo status:$?; hash -t tool',
+    'tool; rm /a/tool; shopt -s checkhash; tool; hash',
+    'PATH=/missing; hash -p /missing/tool tool; shopt -s checkhash; tool; echo status:$?; hash -l',
+    'hash -p /b/tool tool; PATH=/a; tool; hash -t tool; unset PATH; hash -t tool',
+    'hash -p /b/tool tool; PATH=/a tool; tool; hash',
+    'tool; printf -v PATH /b; tool; hash',
+    'tool; read PATH <<< /b; tool; hash',
+    'tool; export PATH=/b; tool; hash',
+    'tool; declare PATH=/b; tool; hash',
+    'tool; readonly PATH=/b; tool; hash',
+    'tool; declare -n ref=PATH; ref=/b; tool; hash',
+    'tool; declare -n ref=PATH; printf -v ref /b; tool; hash',
+    'unset PATH; hash -p /a/tool tool; : ${PATH:=/b}; tool; hash',
+    'tool; f() { local PATH=/b; tool; hash; }; f; hash; tool; hash',
+    'cd /a; PATH=.; hash tool; hash -t tool; tool; hash',
+    'PATH=a; hash tool; hash -t tool; tool; hash',
+    'hash -p /b/tool tool; (hash -p /a/tool tool; tool; hash); tool; hash',
+    'hash -p /b/tool tool; bash -c "hash; tool; hash"; hash',
+    'hash -p /b/tool tool; command -p tool; hash -t tool',
+    'hash -p /bin/echo say; say hello; hash',
+    "hash -p '/a/quote\"file' 'quoted name'; hash -l; hash -d 'quoted name'; hash",
+    `hash -p "/a/quote'file" "quo'ted"; hash -l; hash -z; hash -t missing absent`,
+  ]) {
+    const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/",env:{PATH:"/a:/b"}}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",env:{PATH:"/a:/b"}});
+    try {
+      for(const view of [fs,rust.fs]) for(const directory of ["a","b"]) {
+        await view.mkdir("/"+directory);
+        for(const name of ["tool","other"]) await view.writeFile("/"+directory+"/"+name,Buffer.from("#!/bin/sh\necho "+directory+"\n"),{mode:0o755});
+      }
+      const a=await js.exec(source),b=await rust.exec(source);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],source);
+    } finally {await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("checkhash rechecks missing and nonexecutable cached paths and survives snapshots",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  for(const enabled of [false,true]) for(const change of ["rm /b/tool","chmod 644 /b/tool","true"]) {
+    const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/",env:{PATH:"/a"}}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",env:{PATH:"/a"}});
+    try {
+      for(const view of [fs,rust.fs]) for(const directory of ["a","b"]) {
+        await view.mkdir("/"+directory);
+        await view.writeFile("/"+directory+"/tool",Buffer.from("#!/bin/sh\necho "+directory+"\n"),{mode:0o755});
+      }
+      const states=[];
+      for(const sh of [js,rust]) {
+        const session=sh.createSession();
+        const option=await session.exec("shopt -"+(enabled?"s":"u")+" checkhash");
+        assert.equal(option.exitCode,0,option.stderr);
+        const snapshot=JSON.parse(JSON.stringify(session.state));
+        assert.equal(snapshot.options.checkhash,enabled);
+        const restored=sh.createSession(snapshot);
+        const result=await restored.exec('hash -p /b/tool tool; '+change+'; command tool; echo status:$?; hash -t tool; (shopt -s checkhash); shopt -p checkhash');
+        states.push([result.exitCode,result.stdout,result.stderr]);
+      }
+      assert.deepEqual(states[1],states[0],enabled+": "+change);
+    } finally {await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("hashall controls caching, discovery and child interpreters",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const sources=[
+    ...["+h","+o hashall"].map(disable=>`set ${disable}; tool; hash -t tool; echo disabled:$?; set -h; hash -t tool; tool; hash -t tool`),
+    ...["hash","hash -l","hash -r","hash -d tool","hash -p /a/tool tool","hash -t tool","hash tool","hash -z"].map(operation=>`hash -p /b/tool tool; set +h; ${operation}; echo disabled:$?; set -h; hash -t tool`),
+    'hash -p /b/tool tool; set +h; tool; command -v tool; type -p tool; set -h; hash -t tool; tool; hash',
+    'echo "$-"; [[ -o hashall ]]; echo conditional:$?; test -o hashall; echo test:$?; set +h; echo "$-"; [[ -o hashall ]]; echo conditional:$?; test -o hashall; echo test:$?',
+    'shopt -uo hashall; shopt -po hashall; shopt -so hashall; shopt -po hashall',
+    "set +h; (hash -t saved; set -h); hash -t saved; bash -c 'shopt -qo hashall; echo fresh:$?'; bash +h -c 'shopt -qo hashall; echo child:$?'; set -h; (set +h); shopt -qo hashall; echo parent:$?",
+    ...["+h","+o hashall"].flatMap(option=>[`bash ${option} /script`,`bash ${option} -s`,`bash ${option} -c 'shopt -qo hashall; echo hashing:$?'`]),
+  ];
+  for(const source of sources) {
+    const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/",env:{PATH:"/a"}}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",env:{PATH:"/a"}});
+    try {
+      for(const view of [fs,rust.fs]) {
+        for(const directory of ["a","b"]) {
+          await view.mkdir("/"+directory);
+          await view.writeFile("/"+directory+"/tool",Buffer.from("#!/bin/sh\necho "+directory+"\n"),{mode:0o755});
+        }
+        await view.writeFile("/script",Buffer.from('shopt -qo hashall; echo hashing:$?'));
+      }
+      const options={stdin:'shopt -qo hashall; echo hashing:$?'};
+      const a=await js.exec(source,options),b=await rust.exec(source,options);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],source);
+    } finally {await js.dispose();await rust.dispose();}
+  }
+});
+
+
+test("hashall survives session snapshots while independent executions enable it",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    const states=[];
+    for(const sh of [js,rust]) {
+      const session=sh.createSession();
+      assert.equal((await session.exec("set +h")).exitCode,0);
+      const snapshot=JSON.parse(JSON.stringify(session.state));
+      assert.equal(snapshot.options.hashall,false);
+      const restored=sh.createSession(snapshot);
+      const disabled=await restored.exec("hash -t saved");
+      const enabled=await restored.exec("set -h; hash -p /saved saved; hash -t saved");
+      states.push([disabled.exitCode,disabled.stdout,disabled.stderr,enabled.exitCode,enabled.stdout,enabled.stderr]);
+      assert.equal((await sh.exec("test -o hashall")).exitCode,0);
+    }
+    assert.deepEqual(states[1],states[0]);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("local dash restores set options once per function on normal and early returns",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    const sources=[
+      ...["errexit","nounset","noglob","noclobber","allexport","pipefail","braceexpand","hashall","errtrace","functrace"].flatMap(option=>
+        [false,true].flatMap(enabled=>[":","return 7"].map(ending=>`set ${enabled?"-":"+"}o ${option}; f() { local -; set ${enabled?"+":"-"}o ${option}; if [[ -o ${option} ]]; then echo on; else echo off; fi; ${ending}; }; f; if [[ -o ${option} ]]; then echo on; else echo off; fi`))),
+      'set +uf; inner() { local -; set +u -f; }; outer() { local -; set -u; local -; inner; [[ -o nounset ]] && echo outer; [[ -o noglob ]] || echo glob; }; outer; printf "after=<%s>\\n" "$missing"',
+      'x=outer; f() { local - x=inner; set -u; shopt -s nullglob; echo "$x"; }; f; printf "%s:<%s>\\n" "$x" "$missing"; shopt -q nullglob',
+      'f() { set -u; }; f; echo "$missing"',
+    ];
+    for(const source of sources) {
+      const a=await js.exec(source),b=await rust.exec(source);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],source);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("local dash restores session options while unwinding exit and expansion errors",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    for(const body of ['set -n','set -u; echo "$missing"','set +h; exit 3']) {
+      const results=[];
+      for(const sh of [js,rust]) {
+        const session=sh.createSession();
+        const result=await session.exec(`f() { local -; ${body}; }; f`);
+        results.push([result.exitCode,result.stdout,result.stderr]);
+        assert.equal(session.state.options.nounset,false,body);
+        assert.equal(session.state.options.noexec,false,body);
+        assert.equal(session.state.options.hashall,true,body);
+      }
+      assert.deepEqual(results[1],results[0],body);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("physical shell mode controls directory traversal and survives local scopes",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const actual=[],expected=[];
+  for(const source of [
+    'set -P; cd link; cd ..',
+    'set -o physical; cd link; cd ..',
+    'set -P; set +P; cd link; cd ..',
+    'set -o physical; set +o physical; cd link; cd ..',
+    'set -P; cd -L link/..',
+    'set -P; cd -PL link/..',
+    'set -P; cd -LP link/..',
+    'cd -P link/..',
+    'set -P; cd missing/..',
+    'set -P; cd file/..',
+    'set -P; cd dangling/..',
+    'set -P; cd loop/..',
+    'set -P; CDPATH=/missing:/work; cd link/..',
+    'set -P; CDPATH=/missing; cd link/..',
+    'set +P; cd -P link/..',
+    'cd link; set -P; cd ..',
+    'set -P; cd -L link; cd ..',
+    'set -P; cd',
+    'set -P; pushd link >/dev/null; cd ..',
+    'set -P; pushd -n link >/dev/null; popd >/dev/null; cd ..',
+    'set -P; (set +P); cd link/..',
+    'set -P; f() { local -; set +P; }; f; cd link/..',
+    'f() { local -; set -P; }; f; cd link/..',
+    'set -P; (cd link/..; pwd -P)',
+    'set -P; printf "%s\\n" "$(cd link/..; pwd -P)"',
+    'shopt -so physical; cd link/..',
+    ...['bash','sh'].flatMap(interpreter=>['-P','-o physical','-P +P'].flatMap(option=>[
+      `${interpreter} ${option} -c 'cd link/..; pwd -P'`,
+      `${interpreter} ${option} /script`,
+      `${interpreter} ${option} -s`,
+    ])),
+    'for setting in -P +P "-o physical" "+o physical"; do set $setting; [[ -o physical ]]; echo conditional:$?; test -o physical; echo test:$?; shopt -qo physical; echo shopt:$?; echo "$-"; shopt -po physical; done',
+  ]) {
+    const fs=new MemoryFileSystem(),env={HOME:'/work/link'},js=new Shell({fs,cwd:'/work',env}).use(agentCommands()),rust=new RustWasmBash({cwd:'/work',env});
+    try {
+      for(const view of [fs,rust.fs]) {
+        await view.mkdir('/work/dir/child',{recursive:true});
+        await view.symlink('/work/dir/child','/work/link');
+        await view.symlink('/missing','/work/dangling');
+        await view.symlink('/work/loop','/work/loop');
+        await view.writeFile('/work/file',Buffer.from('content'));
+        await view.writeFile('/script',Buffer.from('cd link/..; pwd -P'));
+      }
+      const script=source+'; printf "%s|%s|" "$?" "$PWD"; pwd -P',options={stdin:'cd link/..; pwd -P'};
+      const a=await js.exec(script,options),b=await rust.exec(script,options);
+      actual.push([source,b.exitCode,b.stdout,b.stderr]);
+      expected.push([source,a.exitCode,a.stdout,a.stderr]);
+    } finally {await js.dispose();await rust.dispose();}
+  }
+  assert.deepEqual(actual,expected);
+});
+
+
+test("BASH_ARGV0 updates shell names through assignments and retains shell isolation",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const source=`printf '%s\\n' "$0:$BASH_ARGV0" "$#:$1:$2"
+BASH_ARGV0=tool; printf '%s\\n' "$0:$BASH_ARGV0"
+(BASH_ARGV0=subshell; printf '%s\\n' "$0:$BASH_ARGV0")
+printf '%s\\n' "$(BASH_ARGV0=substitution; printf '%s' "$0:$BASH_ARGV0")" "$0:$BASH_ARGV0"
+bash -c 'printf "%s\\n" "$0:$BASH_ARGV0"; BASH_ARGV0=child; printf "%s\\n" "$0:$BASH_ARGV0"' nested
+printf -v BASH_ARGV0 '%s' formatted; printf '%s\\n' "$0:$BASH_ARGV0"
+read -r BASH_ARGV0 <<< read; printf '%s\\n' "$0:$BASH_ARGV0"
+declare BASH_ARGV0=declared; printf '%s\\n' "$0:$BASH_ARGV0"
+declare -n ref=BASH_ARGV0; ref=reference; printf '%s\\n' "$0:$BASH_ARGV0"
+printf -v ref '%s' named; printf '%s\\n' "$0:$BASH_ARGV0"
+BASH_ARGV0=; printf '<%s>\\n' "$0:$BASH_ARGV0"
+: \${BASH_ARGV0:=default}; printf '%s\\n' "$0:$BASH_ARGV0"
+unset BASH_ARGV0; BASH_ARGV0=ordinary; printf '%s\\n' "$0:$BASH_ARGV0" "$#:$1:$2"`;
+  const raw=`printf '%s:' "$0" "$BASH_ARGV0"; BASH_ARGV0=$'\\xfe'; printf '%s:' "$0" "$BASH_ARGV0" "\${@:0}"; set -- next; printf '%s:' "$0" "$BASH_ARGV0" "$1"; (unset BASH_ARGV0; BASH_ARGV0=ordinary; printf '%s:' "$0" "$BASH_ARGV0"); BASH_ARGV0=tool; printf '%s:' "$0" "$BASH_ARGV0"`;
+  const fs=new MemoryFileSystem(),js=new Shell({fs}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    for(const view of [fs,rust.fs]) {
+      await view.writeFile('/program',Buffer.from('#!/bin/bash\n'+source),{mode:0o755});
+      await view.writeFile('/bytes',Buffer.from(raw));
+    }
+    const actual=[],expected=[];
+    for(const command of ["bash -c 'source /program' label one 'two words'","bash /program one 'two words'","/program one 'two words'","bash -c 'source /bytes' $'\\xff' one"]) {
+      const a=await js.exec(command),b=await rust.exec(command);
+      actual.push([command,b.exitCode,b.stdoutBytes,b.stderrBytes]);expected.push([command,a.exitCode,a.stdoutBytes,a.stderrBytes]);
+    }
+    assert.deepEqual(actual,expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("BASH_ARGV0 restores local and temporary bindings and resets across fresh executions",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    const actual=[],expected=[];
+    for(const command of [
+      'echo "$0:$BASH_ARGV0"; BASH_ARGV0=tool; echo "$0:$BASH_ARGV0"; unset BASH_ARGV0',
+      'echo "$0:$BASH_ARGV0"',
+      'BASH_ARGV0=temporary printf "%s\\n" "$0:$BASH_ARGV0"; echo "$0:$BASH_ARGV0"',
+      'f(){ echo "$0:$BASH_ARGV0"; }; BASH_ARGV0=temporary f; echo "$0:$BASH_ARGV0"',
+      'f(){ local BASH_ARGV0=inner; echo "$0:$BASH_ARGV0"; }; f; echo "$0:$BASH_ARGV0"',
+      'f(){ local BASH_ARGV0=inner; unset BASH_ARGV0; }; f; echo "$0:$BASH_ARGV0"; BASH_ARGV0=after; echo "$0:$BASH_ARGV0"',
+      'export BASH_ARGV0=exported; bash -c \'echo "$0:$BASH_ARGV0"\' child; echo "$0:$BASH_ARGV0"',
+    ]) {
+      const a=await js.exec(command),b=await rust.exec(command);
+      actual.push([command,b.exitCode,b.stdout,b.stderr]);expected.push([command,a.exitCode,a.stdout,a.stderr]);
+    }
+    for(const sh of [js,rust]) {
+      const session=sh.createSession();
+      await session.exec('BASH_ARGV0=saved');
+      assert.equal(session.state.variables.BASH_ARGV0,'saved');
+      const restored=sh.createSession(JSON.parse(JSON.stringify(session.state)));
+      assert.equal((await restored.exec('echo "$0:$BASH_ARGV0"; BASH_ARGV0=next; echo "$0:$BASH_ARGV0"')).stdout,'virtual-bash:saved\nnext:next\n');
+      assert.equal((await sh.exec('echo "$0:$BASH_ARGV0"',{env:{BASH_ARGV0:'ignored'}})).stdout,'virtual-bash:virtual-bash\n');
+    }
+    assert.deepEqual(actual,expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("readonly option variables follow set and shopt across shell scopes and snapshots",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem(),cwd:'/'}).use(agentCommands()),rust=new RustWasmBash({cwd:'/'});
+  try {
+    const actual=[],expected=[];
+    for(const source of [
+      'echo "$SHELLOPTS|$BASHOPTS"; declare -p SHELLOPTS BASHOPTS',
+      'set -o pipefail; shopt -s nullglob; echo "$SHELLOPTS|$BASHOPTS"; (set +o pipefail; shopt -u nullglob; echo "$SHELLOPTS|$BASHOPTS"); echo "$SHELLOPTS|$BASHOPTS"',
+      'export SHELLOPTS BASHOPTS; set -o pipefail; shopt -s nullglob; bash -c \'echo "$SHELLOPTS|$BASHOPTS"\'; env | sort',
+      'set -o pipefail; f() { local -; set +h -P; echo "$SHELLOPTS"; }; f; echo "$SHELLOPTS"',
+      'set -e; echo "$(echo "$SHELLOPTS")"; shopt -s inherit_errexit; echo "$(echo "$SHELLOPTS")"',
+      'shopt -s extdebug; echo "$SHELLOPTS|$BASHOPTS"; shopt -u extdebug; echo "$SHELLOPTS|$BASHOPTS"',
+      'set -aefuC; set -o pipefail; shopt -s checkhash dotglob expand_aliases extglob failglob globstar inherit_errexit lastpipe nocaseglob nocasematch nullglob xpg_echo; echo "$SHELLOPTS|$BASHOPTS"; set +B; shopt -u globskipdots; echo "$SHELLOPTS|$BASHOPTS"',
+    ]) {
+      const a=await js.exec(source),b=await rust.exec(source);
+      actual.push([source,b.exitCode,b.stdout,b.stderr]);expected.push([source,a.exitCode,a.stdout,a.stderr]);
+    }
+    assert.deepEqual(actual,expected);
+    for(const sh of [js,rust]) {
+      const session=sh.createSession();
+      await session.exec('set -o pipefail; shopt -s nullglob');
+      assert.equal(session.state.variables.SHELLOPTS,'braceexpand:hashall:pipefail');
+      assert.equal(session.state.variables.BASHOPTS,'globskipdots:nullglob:patsub_replacement:sourcepath');
+      assert.ok(session.state.readonlyVariables.includes('SHELLOPTS'));
+      assert.ok(session.state.readonlyVariables.includes('BASHOPTS'));
+      const restored=sh.createSession(JSON.parse(JSON.stringify(session.state)));
+      assert.equal((await restored.exec('echo "$SHELLOPTS|$BASHOPTS"')).stdout,'braceexpand:hashall:pipefail|globskipdots:nullglob:patsub_replacement:sourcepath\n');
+      assert.equal((await sh.exec('echo "$SHELLOPTS|$BASHOPTS"',{env:{SHELLOPTS:'pipefail',BASHOPTS:'nullglob'}})).stdout,'braceexpand:hashall|globskipdots:patsub_replacement:sourcepath\n');
+      await session.exec('set -n');
+      assert.equal(session.state.variables.SHELLOPTS,'braceexpand:hashall:noexec:pipefail');
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("option variables reject assignment and removal through shell builtins",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash();
+  try {
+    const actual=[],expected=[];
+    for(const name of ['SHELLOPTS','BASHOPTS']) for(const source of [
+      `${name}=bogus; echo changed`, `unset ${name}`, `declare ${name}=bogus`,
+      `printf -v ${name} bogus`, `read ${name} <<< bogus`, `declare -n ref=${name}; ref=bogus`,
+      `f() { local ${name}=bogus; }; f`,
+    ]) {
+      const a=await js.exec(source),b=await rust.exec(source);
+      actual.push([source,b.exitCode,b.stdout,b.stderr]);expected.push([source,a.exitCode,a.stdout,a.stderr]);
+    }
+    assert.deepEqual(actual,expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("GLOBIGNORE updates dotglob through assignments, unsets and restored bindings",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem(),cwd:'/'}).use(agentCommands()),rust=new RustWasmBash({cwd:'/'});
+  try {
+    for(const sh of [js,rust]) assert.equal((await sh.exec('mkdir -p /work/.secret; touch /work/.hidden /work/plain /work/skip /work/.secret/deep')).exitCode,0);
+    const actual=[],expected=[];
+    for(const source of [
+      'GLOBIGNORE=skip; shopt -p dotglob; echo "$BASHOPTS"; echo *',
+      'GLOBIGNORE=skip; shopt -u dotglob; shopt -p dotglob; echo *',
+      'GLOBIGNORE=skip; GLOBIGNORE=; shopt -p dotglob; echo *',
+      'shopt -s dotglob; unset GLOBIGNORE; shopt -p dotglob; echo *',
+      'GLOBIGNORE=skip; unset GLOBIGNORE; shopt -p dotglob; echo *',
+      'printf -v GLOBIGNORE skip; shopt -p dotglob; echo "$BASHOPTS"; echo *',
+      'read GLOBIGNORE <<< skip; shopt -p dotglob; echo "$BASHOPTS"; echo *',
+      'declare -n ref=GLOBIGNORE; ref=skip; shopt -p dotglob; echo *',
+      'echo "${GLOBIGNORE:=skip}|$BASHOPTS"; echo *',
+      '(( GLOBIGNORE=1 )); shopt -p dotglob; echo "$BASHOPTS"; echo *',
+      'f() { local GLOBIGNORE=skip; shopt -p dotglob; }; f; shopt -p dotglob; echo *',
+      'GLOBIGNORE=skip; f() { local GLOBIGNORE=; shopt -u dotglob; }; f; shopt -p dotglob; echo *',
+      'GLOBIGNORE=skip; shopt -u dotglob; f() { :; }; GLOBIGNORE=skip f; shopt -p dotglob; echo *',
+      'f() { :; }; GLOBIGNORE=skip f; shopt -p dotglob; echo *',
+      'GLOBIGNORE=unmatched; shopt -s globstar; echo **/*',
+      'GLOBIGNORE=skip bash -c \'shopt -p dotglob; echo *\'',
+      '(GLOBIGNORE=skip; echo *); shopt -p dotglob; echo *',
+    ]) {
+      const a=await js.exec('cd /work; '+source),b=await rust.exec('cd /work; '+source);
+      actual.push([source,b.exitCode,b.stdout,b.stderr]);expected.push([source,a.exitCode,a.stdout,a.stderr]);
+    }
+    assert.deepEqual(actual,expected);
+    assert.equal((await rust.exec('cd /work; GLOBIGNORE=skip; shopt -s globstar; echo **/*')).stdout,'.hidden .secret .secret/deep plain\n');
+    for(const sh of [js,rust]) {
+      const session=sh.createSession();
+      await session.exec('cd /work; GLOBIGNORE=skip');
+      assert.equal(session.state.options.dotglob,true);
+      assert.equal(session.state.variables.BASHOPTS,'dotglob:globskipdots:patsub_replacement:sourcepath');
+      const restored=sh.createSession(JSON.parse(JSON.stringify(session.state)));
+      assert.equal((await restored.exec('echo *')).stdout,'.hidden .secret plain\n');
+      await restored.exec('unset GLOBIGNORE');
+      assert.equal(restored.state.options.dotglob,false);
+      assert.equal(restored.state.variables.BASHOPTS,'globskipdots:patsub_replacement:sourcepath');
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("named descriptors allocate, duplicate, close and honor varredir_close",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem(),cwd:'/',backgroundJobs:true}).use(agentCommands()),rust=new RustWasmBash({cwd:'/'});
+  const setup=`say() { echo "$@"; }; pass() { cat; }; status() { return "$1"; }; args() { printf '["%s"]' "$@"; }; `;
+  try {
+    const actual=[],expected=[];
+    for(const [name,source,stdout] of [
+      ["named varredir_close enabled", 'shopt -s varredir_close; say "enable=$?"; : {out}>log; say "assigned=${out-unset}"; (printf sample >&"$out") 2>/dev/null; say "write=$?"; pass <log', 'enable=0\nassigned=10\nwrite=1\n'],
+      ["named varredir_close disabled", 'shopt -u varredir_close; say "enable=$?"; : {out}>log; say "assigned=${out-unset}"; (printf sample >&"$out") 2>/dev/null; say "write=$?"; pass <log', 'enable=0\nassigned=10\nwrite=0\nsample'],
+      ["named varredir_close exec persists", 'shopt -s varredir_close; exec {out}>log; printf sample >&"$out"; exec {out}>&-; pass <log', 'sample'],
+      ["named varredir_close command lifetime", 'shopt -s varredir_close; f(){ say inside >&"$out"; }; f {out}>log; (say outside >&"$out") 2>/dev/null; say "$?"; pass <log; : {next}>other; say "$out/$next"', '1\ninside\n10/10\n'],
+      ["named varredir_close input lifetime", 'shopt -s varredir_close; read -r -u 10 value {input}<<<hello; say "$value/$input"; (read -r -u "$input" value) 2>/dev/null; say "$?"', 'hello/10\n1\n'],
+      ["named varredir_close failure cleanup", 'shopt -s varredir_close; status 7 {out}>log; say "$?"; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '7\n1\n'],
+      ["named varredir_close compound lifetime", 'shopt -s varredir_close; { say inside >&"$out"; } {out}>log; (say outside >&"$out") 2>/dev/null; say "$?"; pass <log', '1\ninside\n'],
+      ["named varredir_close redirect failure cleanup", 'shopt -s varredir_close; : 2>/dev/null {out}>log </missing; say "$?"; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '1\n1\n'],
+      ["named varredir_close keeps duplicate", 'shopt -s varredir_close; { exec 3>&"$out"; } {out}>log; say kept >&3; exec 3>&-; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '1\nkept\n'],
+      ["named exec input", 'printf "first\\nsecond\\n" > rows; exec {input}<rows; IFS= read -r a <&"$input"; IFS= read -r b <&"$input"; exec {input}<&-; printf "%s/%s\\n" "$a" "$b"', 'first/second\n'],
+      ["named output skips occupied descriptors", 'exec 10>occupied; : {out}>log; say "$out"; printf sample >&"$out"; exec {out}>&-; pass <log', '11\nsample'],
+      ["named close releases descriptor", ': {out}>log; exec {out}>&-; : {next}>other; say "$out/$next"; say reused >&"$next"; exec {next}>&-; pass <other', '10/10\nreused\n'],
+      ["named command close restores descriptor", ': {out}>log; : {out}>&-; : {next}>other; say "$out/$next"; say restored >&"$out"; exec {out}>&-; pass <log', '10/11\nrestored\n'],
+      ["named allocations follow redirection order", ': {first}>first {second}>&"$first"; say "$first/$second"; say shared >&"$second"; exec {first}>&- {second}>&-; pass <first', '10/11\nshared\n'],
+      ["named reassignment keeps previous descriptor open", ': {out}>first; old=$out; : {out}>second; say "$old/$out"; say first >&"$old"; say second >&"$out"; exec {old}>&- {out}>&-; pass <first; pass <second', '10/11\nfirst\nsecond\n'],
+      ["named allocation failure leaves variable unchanged", 'out=old; : 2>/dev/null {out}</missing; say "$?:$out"; : {next}>log; say "$next"', '1:old\n10\n'],
+      ["named readonly assignment does not leak descriptor", 'readonly out=old; : 2>/dev/null {out}>log; say "$?:$out"; : {next}>other; say "$next"', '1:old\n10\n'],
+      ["named input assignment prefix", 'prefix=old; prefix=new : {input}<<<hello; read -r value <&"$input"; exec {input}<&-; say "$prefix/$value"', 'old/hello\n'],
+      ["named input substitution does not read the file", 'say data >rows; value=$({input}<rows); say "<$value>/${input-unset}"', '<>/unset\n'],
+      ["named function serialization", 'f(){ : {out}>log; }; eval "$(declare -f f)"; f; say saved >&"$out"; exec {out}>&-; pass <log', 'saved\n'],
+      ["named append", 'say first >log; : {out}>>log; say second >&"$out"; exec {out}>&-; pass <log', 'first\nsecond\n'],
+      ["named readwrite", 'say abcdef >log; : {both}<>log; printf xy >&"$both"; read -r value <&"$both"; exec {both}>&-; say "$value"', 'cdef\n'],
+      ["named nameref", 'declare -n ref=out; : {ref}>log; say "$ref/$out"; say saved >&"$out"; exec {ref}>&-; pass <log', '10/10\nsaved\n'],
+      ["named duplicate survives original close", 'exec 3>log; : {out}>&3; exec 3>&-; say kept >&"$out"; : {out}>&-; pass <log', 'kept\n'],
+      ["named here string", ': {input}<<<hello; read -r value <&"$input"; : {input}<&-; say "$value"', 'hello\n'],
+      ["named heredoc", 'word=hello; : {input}<<EOF\n$word\nEOF\nread -r value <&"$input"; say "$value/$input"', 'hello/10\n'],
+      ["named input duplicate", 'exec 3<<<hello; : {input}<&3; exec 3<&-; read -r value <&"$input"; say "$value/$input"', 'hello/10\n'],
+      ["named external inline input", 'cat {input}<<<hello; read -r value <&"$input"; say "$value/$input"', '/\n'],
+      ["named echo inline input", 'echo visible {input}<<<hello; read -r value <&"$input"; say "$value/$input"', 'visible\nhello/10\n'],
+      ["named mapfile input", 'mapfile -t rows {input}<<<hello; say "${#rows[@]}"; read -r value <&"$input"; say "$value/$input"', '0\nhello/10\n'],
+      ["named background input", 'printf outer | { cat {input}<<<inner & wait; }', ''],
+      ["named output on external command", 'say visible {out}>log; say saved >&"$out"; : {out}>&-; pass <log', 'visible\nsaved\n'],
+      ["named compound output", '{ say "$out"; } {out}>log; say saved >&"$out"; : {out}>&-; pass <log', '10\nsaved\n'],
+      ["quoted descriptor name stays an argument", 'args "{out}">log; pass <log; say "${out-unset}"', '["{out}"]unset\n'],
+      ["spaced descriptor name stays an argument", 'args {out} >log; pass <log; say "${out-unset}"', '["{out}"]unset\n'],
+    ]) {
+      const a=await js.exec(setup+source),b=await rust.exec(setup+source);
+      assert.equal(a.stdout,stdout,name);
+      actual.push([name,b.exitCode,b.stdout,b.stderr]);expected.push([name,a.exitCode,a.stdout,a.stderr]);
+    }
+    assert.deepEqual(actual,expected);
+    for(const source of ['unset fd; : {fd}>&-', 'fd=bad; : {fd}<&-', 'fd=256; : {fd}>&-', ': {fd}>&bad', ': {fd}<&9', ': {fd}>&1-; echo visible >&"$fd"']) {
+      const a=await js.exec(source),b=await rust.exec(source);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],source);
+    }
+    for(const sh of [js,rust]) {
+      const session=sh.createSession();
+      assert.equal((await session.exec('shopt -s varredir_close')).exitCode,0);
+      assert.equal(session.state.options.varredir_close,true);
+      const restored=sh.createSession(JSON.parse(JSON.stringify(session.state)));
+      const result=await restored.exec('shopt -p varredir_close; (shopt -u varredir_close); : {out}>log; (echo bad >&"$out") 2>/dev/null; echo "$?"');
+      assert.equal(result.stdout,'shopt -s varredir_close\n1\n');
+      assert.equal(result.stderr,'');
+      const occupied=Array.from({length:246},(_,i)=>`exec ${i+10}>/dev/null`).join('; ');
+      const bounded=await sh.exec(`${occupied}; fd=10; : 2>/dev/null {out}>log; echo "$?:\${out-unset}"; exec {fd}>&-; : {out}>log; echo "$out"`);
+      assert.equal(bounded.stdout,'1:unset\n10\n');
+      assert.equal(bounded.stderr,'');
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("JavaScript and Rust can exchange cold session snapshots", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" });
+  js.use(agentCommands());
+  const rust = new RustWasmBash({ cwd: "/" });
+  try {
+    const setup = "export E=value; set -- 'two words'; readonly fixed=1; declare -i number=3; declare -A m=([foo]='bar baz'); declare -a sparse=([5]=a); f() { echo ok; } > /output; readonly -f f; export -f f; shopt -s nullglob; umask 027; false";
+    const source = 'echo "$?:$E:$1:${m[foo]}:${sparse[5]}:$fixed"; number=2+3; echo "$number"; f; read -r line < /output; echo "$line"; umask';
+    const snapshots = [];
+    for (const [from, to] of [[js, rust], [rust, js]]) {
+      const session = from.createSession();
+      await session.exec(setup);
+      const snapshot = JSON.parse(JSON.stringify(session.state));
+      snapshots.push(snapshot);
+      const restored = to.createSession(snapshot);
+      const result = await restored.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "1:value:two words:bar baz:a:1\n5\nok\n0027\n");
+    }
+    for (const key of ["exported", "readonlyVariables", "exportedFunctions", "readonlyFunctions"]) {
+      for (const s of snapshots) s[key].sort();
+    }
+    assert.deepEqual(snapshots[1], snapshots[0]);
+  } finally { await js.dispose(); rust.dispose(); }
+});
+
+
+test("WASM Bash forceNative lists metadata and preserves literal -l filenames", async () => {
+  const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
+  await bash.fs.mkdir("/work", { recursive: true });
+  await bash.fs.writeFile("/work/-l", "twelve bytes");
+  await bash.fs.chmod("/work/-l", 0o640);
+  for (const flags of ["-l", "-la", "-lh", "-l1", "-1l"]) {
+    const result = await bash.exec(`ls ${flags} -- -l`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.match(result.stdout, /^-rw-r----- 1 0 0 12 \d{4}-\d{2}-\d{2} \d{2}:\d{2} -l\n$/);
+    assert.equal(result.stderr, "");
+  }
+  for (const flag of ["g", "o", "n"]) {
+    const result = await bash.exec(`ls -${flag} -- -l`);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, `ls: invalid option -- '${flag}'\n`);
+  }
+  const result = await bash.exec("ls -- -l");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "-l\n");
+  bash.dispose();
+});
+
+
+test("native long listings match TypeScript metadata, links, timestamps and diagnostics", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rust = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const shell of [js, rust]) {
+      const result = await shell.exec("mkdir /listing; printf 'twelve bytes' > /listing/file; chmod 2640 /listing/file; ln /listing/file /listing/alias; ln -s file /listing/link; touch -m -d @0 /listing/file; touch -a -d @60 /listing/file");
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    for (const flags of ["-l", "-l1", "-1l", "-lh", "-lQF", "-lu", "--time=access -l", "-lL"]) {
+      const script = `ls ${flags} /listing/file /listing/alias`;
+      const expected = await js.exec(script), actual = await rust.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+    }
+    for (const script of ["ls -lL /listing/link", "ls -l /missing", "ls -lg /listing/file", "ls -lo /listing/file", "ls -ln /listing/file"]) {
+      const expected = await js.exec(script), actual = await rust.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+    }
+    const link = await rust.exec("ls -lF /listing/link");
+    assert.equal(link.exitCode, 0, link.stderr);
+    assert.match(link.stdout, /^lrwxrwxrwx 1 0 0 4 .* \/listing\/link -> file\n$/);
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
+
+test("native rsvg-convert preserves SVG pixels, dimensions, transparency and PDF geometry", async () => {
+  const { createRsvgConvertCommand } = await import("safe-bash-command-rsvg-convert");
+  const { createCommandArguments, toByteSource } = await import("safe-bash-contracts");
+  const { decodePng, PdfDocument } = await import("@poe-code/pdf-ast");
+  const sh = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const source of [
+      '<svg width="2" height="1"><rect width="2" height="1" fill="red"/></svg>',
+      '<svg width="8" height="8"><rect x="2" y="2" width="4" height="4" fill="white"/></svg>',
+      '<svg width="20" height="12"><g transform="translate(2 3)" fill="red"><rect width="5" height="8"/><circle cx="5" cy="2" r="2"/></g></svg>',
+    ]) {
+      await sh.fs.writeFile("/input.svg", source);
+      for (const format of ["png", "pdf"]) {
+        const chunks = [];
+        const expected = await createRsvgConvertCommand().execute({ command: "rsvg-convert",
+          args: createCommandArguments(["-f", format]).args, cwd: "/", env: {}, fs: sh.fs,
+          signal: new AbortController().signal, stdin: toByteSource(source),
+          stdout: { async write(bytes) { chunks.push(bytes); } }, stderr: { async write(bytes) { assert.fail(new TextDecoder().decode(bytes)); } } });
+        assert.equal(expected.exitCode, 0);
+        const reference = Buffer.concat(chunks);
+        for (const input of ["/input.svg", "-"]) {
+          const actual = await sh.exec(`rsvg-convert -f ${format} ${input}`, { stdin: source });
+          assert.equal(actual.exitCode, 0, actual.stderr);
+          if (format === "png") {
+            const a = decodePng(actual.stdoutBytes), b = decodePng(reference);
+            assert.deepEqual([a.width, a.height, [...a.data]], [b.width, b.height, [...b.data]]);
+          } else {
+            const a = PdfDocument.load(actual.stdoutBytes).getPage(0), b = PdfDocument.load(reference).getPage(0);
+            assert.deepEqual([a.width, a.height], [b.width, b.height]);
+          }
+        }
+      }
+    }
+    await sh.fs.writeFile("/destination", "keep");
+    const invalid = await sh.exec("rsvg-convert -o /destination", { stdin: '<svg width="2" height="1"><image/></svg>' });
+    assert.equal(invalid.exitCode, 1);
+    assert.equal(sh.readText("/destination"), "keep");
+    const directory = await sh.exec("rsvg-convert /input.svg -o /");
+    assert.equal(directory.exitCode, 1);
+    assert.match(directory.stderr, /EISDIR/);
+  } finally { await sh.dispose(); }
+});
+
+
+test("native rsvg-convert validates before stdin and stops at its input byte limit", { skip: !WebAssembly.Suspending }, async () => {
+  const sh = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    await sh.fs.writeFile("/input", '<svg width="1" height="1"/>');
+    for (const [script, code] of [["rsvg-convert --help", 0], ["rsvg-convert --bad", 1], ["rsvg-convert /input -o /out", 0]]) {
+      const result = await sh.exec(script, { stdin: { [Symbol.asyncIterator]() { return { async next() { assert.fail("unexpected stdin pull"); } }; } } });
+      assert.equal(result.exitCode, code, result.stderr);
+    }
+    let pulls = 0, closes = 0;
+    const stdin = { async *[Symbol.asyncIterator]() {
+      try { for (;;) { pulls++; yield new Uint8Array(1024 * 1024).fill(32); } }
+      finally { closes++; }
+    } };
+    const result = await sh.exec("rsvg-convert -o /out", { stdin });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "rsvg-convert: EFBIG: command input byte limit exceeded\n");
+    assert.deepEqual([pulls, closes], [5, 1]);
+  } finally { await sh.dispose(); }
+});
+
+
+test("zip leaves unused stdin available and bounds reads when a dash member is selected", {skip: !WebAssembly.Suspending}, async () => {
+  const sh=new RustWasmBash({cwd:"/",files:{"/src":"src"}});
+  try{
+    for(const cmd of ["zip -q named.zip src","zip -q - src >/dev/null","zip -q filtered.zip - src -x -","zip --help >/dev/null"]){
+      let pulls=0;
+      const r=await sh.exec(cmd,{stdin:{async *[Symbol.asyncIterator](){pulls++;yield Buffer.from("remaining");}}});
+      assert.equal(r.exitCode,0,r.stderr);assert.equal(pulls,0,cmd);
+    }
+    await sh.fs.writeFile("/input","left over\n");
+    for(const [cmd,expected] of [["zip -q file.zip src; cat","left over\n"],["zip -q file.zip -; cat",""]]){
+      const r=await sh.exec("{ "+cmd+"; } </input");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""]);
+    }
+    let pulls=0;
+    const run=sh.exec("zip -qm bounded.zip src -",{stdin:{async *[Symbol.asyncIterator](){
+      for(let i=0;i<100;i++){pulls++;yield Buffer.alloc(4,65);}
+    }},limits:{maxInputBytes:10}});
+    await assert.rejects(run,{limit:"maxInputBytes"});assert.ok(pulls<=3,String(pulls));
+    await assert.rejects(sh.fs.lstat("/bounded.zip"),{code:"ENOENT"});
+    assert.equal(sh.readText("/src"),"src");
+  }finally{await sh.dispose();}
+});
+
+
+test("ffmpeg preserves native WAV sample values in files, pipes and seeks", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { parseWav } = await import("@poe-code/mp4-ast");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-conversion.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of fixture.cases) {
+      const input = Buffer.from(sample.wav, "hex");
+      await bash.fs.writeFile("/input.wav", input);
+      for (const [script, expected, pipe] of [
+        ["ffmpeg -y -i input.wav -map 0:a:0 out.wav", sample.s16le, false],
+        ["ffmpeg -i - -f wav -", sample.s16le, true],
+        ["ffmpeg -y -ss 0.0005 -i input.wav -t 0.001 out.wav", sample.seekS16le, false],
+      ]) {
+        const result = await bash.exec(script, pipe ? {stdin: input} : {});
+        assert.equal(result.exitCode, 0, result.stderr);
+        const wav = pipe ? result.stdoutBytes : await bash.fs.readFile("/out.wav");
+        const audio = parseWav(wav).tracks[0].decodedAudio;
+        const pcm = Buffer.from(expected, "hex");
+        assert.equal(audio.sampleRate, 8000);
+        assert.equal(audio.channelData.length, sample.channels);
+        for (const [channel, data] of audio.channelData.entries()) {
+          const native = Array.from({length: pcm.length / 2 / sample.channels}, (_, i) => pcm.readInt16LE((i * sample.channels + channel) * 2) / 32768);
+          assert.deepEqual(Array.from(data), native, `${sample.codec}, ${sample.channels} channels: ${script}`);
+        }
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("ffmpeg and ffprobe read native Wave64 PCM and write file and pipe headers", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { parseWav } = await import("@poe-code/mp4-ast");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wave64.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of fixture.cases) {
+      const input = Buffer.from(sample.input, "hex");
+      await bash.fs.writeFile("/input", input);
+      for (const [script, expected] of [
+        ["ffmpeg -y -i input out.w64", sample.output],
+        ["ffmpeg -i - -f w64 -", sample.pipe],
+      ]) {
+        const result = await bash.exec(script, {stdin: input});
+        assert.equal(result.exitCode, 0, `${sample.codec}: ${result.stderr}`);
+        const output = script.endsWith(" -") ? result.stdoutBytes : await bash.fs.readFile("/out.w64");
+        assert.equal(Buffer.from(output).toString("hex"), expected, sample.codec);
+      }
+      if (sample.codec === "pcm_f64le") {
+        const concat = await bash.exec("ffmpeg -i input -i input -filter_complex concat=n=2:v=0:a=1 -f w64 -");
+        assert.equal(concat.exitCode, 0, concat.stderr);
+        assert.equal(Buffer.from(concat.stdoutBytes.subarray(104)).toString("hex"), sample.pcm16.repeat(2));
+      }
+      const decoded = await bash.exec("ffmpeg -y -f w64 -i input out.wav");
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      const audio = parseWav(await bash.fs.readFile("/out.wav")).tracks[0].decodedAudio;
+      const pcm = Buffer.from(sample.pcm16, "hex");
+      const channels = sample.streams[0].channels;
+      assert.equal(audio.channelData.length, channels);
+      for (const [channel, samples] of audio.channelData.entries()) {
+        assert.deepEqual(Array.from(samples), Array.from({length: pcm.length / 2 / channels}, (_, i) => pcm.readInt16LE((i * channels + channel) * 2) / 32768), sample.codec);
+      }
+      const probe = await bash.exec("ffprobe -show_entries stream=codec_name,sample_rate,channels,bits_per_sample,duration:format=format_name,duration,size -of json input");
+      assert.equal(probe.exitCode, 0, probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout), {programs: [], stream_groups: [], streams: sample.streams, format: sample.format}, sample.codec);
+      const excluded = await bash.exec("ffprobe -select_streams v -show_streams -of json input");
+      assert.deepEqual(JSON.parse(excluded.stdout), {streams: []});
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("Wave64 bounds chunk reads and rejects malformed headers", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wave64.json", import.meta.url), "utf8"));
+  const sample = fixture.cases[0];
+  const input = Buffer.from(sample.input, "hex");
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const [offset, value, accepted] of [[16, 39n, false], [16, 129n, true], [16, 1n << 60n, true], [56, 23n, false], [96, 100n, true], [96, 1n << 60n, true]]) {
+      const bytes = Buffer.from(input);
+      bytes.writeBigUInt64LE(value, offset);
+      await bash.fs.writeFile("/input.w64", bytes);
+      const result = await bash.exec("ffmpeg -y -i input.w64 out.w64");
+      assert.equal(result.exitCode === 0, accepted, `${offset}, ${value}: ${result.stderr}`);
+      if (accepted) assert.equal(Buffer.from(await bash.fs.readFile("/out.w64")).toString("hex"), sample.output);
+    }
+    await bash.fs.writeFile("/input.w64", input);
+    const wrong = await bash.exec("ffmpeg -f wav -i input.w64 wrong.wav");
+    assert.equal(wrong.exitCode, 1);
+    await bash.fs.writeFile("/pipe.w64", Buffer.from(sample.pipe, "hex"));
+    assert.equal((await bash.exec("ffmpeg -i pipe.w64 rejected.wav")).exitCode, 1);
+    await bash.fs.writeFile("/short.w64", input.subarray(0, 17));
+    assert.equal((await bash.exec("ffprobe short.w64")).exitCode, 1);
+    const limited = await bash.exec("ffmpeg -y -i input.w64 -ar 48000 too-large.w64", {limits: {maxInputBytes: input.length}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /audio output exceeds memory budget/);
+    await assert.rejects(bash.fs.stat("/too-large.w64"), {code: "ENOENT"});
+  } finally { bash.dispose(); }
+});
+
+
+test("WAV probing retains native precision fields with writer options", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-conversion.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true, files: {"/input.wav": Buffer.from(fixture.cases[5].wav, "hex")}});
+  try {
+    for (const [writer, expected] of [
+      ["csv=p=0", "pcm_f64le,64\n"],
+      ["default=nw=1:nk=1", "pcm_f64le\n64\n"],
+      ["compact=p=0", "codec_name=pcm_f64le|bits_per_sample=64\n"],
+    ]) {
+      const result = await bash.exec(`ffprobe -show_entries stream=codec_name,bits_per_sample -of ${writer} input.wav`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected, writer);
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("PCM output codecs preserve native sample bytes and Wave64 headers", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { createHash } = await import("node:crypto");
+  const { parseWav } = await import("@poe-code/mp4-ast");
+  const inputs = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-conversion.json", import.meta.url), "utf8")).cases;
+  const {cases, containers} = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-encoders.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of cases) {
+      await bash.fs.writeFile("/input.wav", Buffer.from(inputs[sample.input].wav, "hex"));
+      for (const dest of ["out.wav", "out.w64", "-"]) {
+        const result = await bash.exec(`ffmpeg -y -i input.wav -c:a ${sample.codec} ${dest === "-" ? "-f w64" : ""} ${dest}`);
+        assert.equal(result.exitCode, 0, `${sample.input}, ${sample.codec}: ${result.stderr}`);
+        const bytes = dest === "-" ? result.stdoutBytes : await bash.fs.readFile("/" + dest);
+        if (dest === "out.wav") {
+          const track = parseWav(bytes, {decodeAudio: false}).tracks[0];
+          assert.equal(Buffer.concat(track.samples.map(s => Buffer.from(s.data))).toString("hex"), sample.pcm, `${sample.input}, ${sample.codec}`);
+          const probe = await bash.exec("ffprobe -show_entries stream=codec_name -of csv=p=0 out.wav");
+          assert.equal(probe.stdout.trim(), sample.codec === "copy" ? inputs[sample.input].codec : sample.codec);
+        } else {
+          assert.equal(createHash("sha256").update(bytes).digest("hex"), sample[dest === "-" ? "pipe_sha256" : "w64_sha256"], `${sample.input}, ${sample.codec}, ${dest}`);
+        }
+      }
+    }
+    await bash.fs.writeFile("/input.wav", Buffer.from(inputs[0].wav, "hex"));
+    for (const option of ["-c", "-codec", "-acodec", "-codec:a", "-c:a:0", "-codec:a:0"]) {
+      const result = await bash.exec(`ffmpeg -y -i input.wav ${option} pcm_u8 out.w64`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(createHash("sha256").update(await bash.fs.readFile("/out.w64")).digest("hex"), cases[0].w64_sha256, option);
+    }
+    for (const [kind, input] of Object.entries(containers)) {
+      await bash.fs.writeFile("/input." + kind, Buffer.from(input, "hex"));
+      for (const sample of cases.filter(c => c.input === 1)) {
+        for (const filter of sample.codec === "copy" ? [""] : ["", "anull", "areverse"]) {
+          const result = await bash.exec(`ffmpeg -y -i input.${kind} -c:a ${sample.codec} ${filter ? "-af " + filter : ""} out.wav`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const track = parseWav(await bash.fs.readFile("/out.wav"), {decodeAudio: false}).tracks[0];
+          const expected = Buffer.from(sample.pcm, "hex");
+          const frames = Array.from({length: 30}, (_, i) => expected.subarray(i * expected.length / 30, (i + 1) * expected.length / 30));
+          assert.deepEqual(Buffer.concat(track.samples.map(s => Buffer.from(s.data))), filter === "areverse" ? Buffer.concat(frames.reverse()) : expected, `${kind}, ${sample.codec}, ${filter}`);
+        }
+      }
+    }
+    const limited = await bash.exec("ffmpeg -i input.wav -c:a pcm_f64le too-large.wav", {limits: {maxInputBytes: Buffer.from(inputs[0].wav, "hex").length}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /audio output exceeds memory budget/);
+    await assert.rejects(bash.fs.stat("/too-large.wav"), {code: "ENOENT"});
+    const rejected = await bash.exec("ffmpeg -i input.wav -c:a no_such_codec rejected.wav");
+    assert.equal(rejected.exitCode, 1);
+    await assert.rejects(bash.fs.stat("/rejected.wav"), {code: "ENOENT"});
+  } finally { bash.dispose(); }
+});
+
+
+test("audio filters conflict with copy only for selected audio and preserve destinations", async () => {
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    const setup = await bash.exec("ffmpeg -f lavfi -i testsrc=s=8x8:r=1:d=1 -f lavfi -i sine=r=8000:d=0.1 av.mp4");
+    assert.equal(setup.exitCode, 0, setup.stderr);
+    for (const [selection, code] of [["", 218], ["-an", 0], ["-map 0:v", 0], ["-map 0:a", 218]]) {
+      const result = await bash.exec(`ffmpeg -i av.mp4 -c copy -af anull ${selection} -f null -`);
+      assert.equal(result.exitCode, code, result.stderr);
+      if (code) assert.match(result.stderr, /Filtering and streamcopy cannot be used together/);
+    }
+    await bash.fs.writeFile("/preserved.mp4", "preserve destination");
+    const conflict = await bash.exec("ffmpeg -y -i av.mp4 -c:a:0 copy -filter:a anull preserved.mp4");
+    assert.equal(conflict.exitCode, 218);
+    assert.equal(bash.readText("/preserved.mp4"), "preserve destination");
+  } finally {bash.dispose();}
+});
+
+
+test("anull and areverse preserve native PCM precision and conversion tails", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const {parseWav} = await import("@poe-code/mp4-ast");
+  const inputs = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-conversion.json", import.meta.url), "utf8")).cases;
+  const cases = JSON.parse(await readFile(new URL("../tests/fixtures/pcm-filters.json", import.meta.url), "utf8")).cases;
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of cases) {
+      await bash.fs.writeFile("/input.wav", Buffer.from(inputs[sample.input].wav, "hex"));
+      const result = await bash.exec(`ffmpeg -y -i input.wav -af ${sample.filter} -c:a ${sample.codec} out.wav`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const track = parseWav(await bash.fs.readFile("/out.wav"), {decodeAudio: false}).tracks[0];
+      const pcm = Buffer.concat(track.samples.map(s => Buffer.from(s.data)));
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), sample.pcm_sha256, `${sample.input}, ${sample.codec}, ${sample.filter}`);
+      if (sample.filter === "anull") {
+        const same = await bash.exec(`ffmpeg -y -i input.wav -ar 8000 -ac ${inputs[sample.input].channels} -c:a ${sample.codec} same.wav`);
+        assert.equal(same.exitCode, 0, same.stderr);
+        const samples = parseWav(await bash.fs.readFile("/same.wav"), {decodeAudio: false}).tracks[0].samples;
+        assert.deepEqual(Buffer.concat(samples.map(s => Buffer.from(s.data))), pcm);
+      }
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("MP4 timed text extraction matches native emphasis, fonts and Unicode", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/mov-text-decode.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.mp4", Buffer.from(sample.inputHex, "hex"));
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stdout, sample.output, sample.name);
+    }
+    const large = Buffer.from(fixture.cases.find(c => c.name === "many-styles").inputHex, "hex");
+    await bash.fs.writeFile("/input.mp4", large);
+    await bash.fs.writeFile("/out.lrc", "previous lyrics");
+    const limited = await bash.exec("ffmpeg -y -i input.mp4 out.lrc", {limits:{maxInputBytes:large.length}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /subtitle styles exceed memory budget/);
+    assert.equal(bash.readText("/out.lrc"), "previous lyrics");
+  } finally { bash.dispose(); }
+});
+
+
+test("MP4 subtitle extraction matches native formatting, seeking and loops", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/subtitle-extraction.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      const input = sample.args[sample.args.indexOf("-i") + 1];
+      await bash.fs.writeFile("/" + input, Buffer.from(sample.inputHex, "hex"));
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stdout, sample.output, sample.name);
+    }
+    await bash.fs.writeFile("/out.srt", "previous subtitles");
+    const limited = await bash.exec("ffmpeg -y -stream_loop 1000000 -i input.mp4 out.srt");
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /sample index exceeds memory budget/);
+    assert.equal(bash.readText("/out.srt"), "previous subtitles");
+  } finally { bash.dispose(); }
+});
+
+
+test("VPlayer detection, probing and conversion match native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/vplayer.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output, sample.name);
+    }
+    await bash.fs.writeFile("/out.srt", "previous subtitles");
+    const limited = await bash.exec("ffmpeg -y -f vplayer -i input.txt out.srt", {limits:{maxInputBytes:64}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /subtitle packets exceed memory budget/);
+    assert.equal(bash.readText("/out.srt"), "previous subtitles");
+    const demuxers = await bash.exec("ffmpeg -demuxers"), muxers = await bash.exec("ffmpeg -muxers");
+    assert.ok(demuxers.stdout.includes(" D  vplayer"));
+    assert.ok(!muxers.stdout.includes("vplayer"));
+  } finally { bash.dispose(); }
+});
+
+
+test("Spruce STL and SubViewer v1 match native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/text-subtitles.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output, sample.name);
+    }
+    for (const [format, input] of [["stl", "00:00:01:00,00:00:03:00,First\n"], ["subviewer1", "[0:0:1]\nFirst\n[0:0:3]\n\n"]]) {
+      await bash.fs.writeFile("/input.txt", input);
+      await bash.fs.writeFile("/out.srt", "previous subtitles");
+      const limited = await bash.exec(`ffmpeg -y -f ${format} -i input.txt out.srt`, {limits:{maxInputBytes:48}});
+      assert.equal(limited.exitCode, 1);
+      assert.match(limited.stderr, /subtitle packets exceed memory budget/);
+      assert.equal(bash.readText("/out.srt"), "previous subtitles");
+      const probe = await bash.exec(`ffprobe -f ${format} -show_packets input.txt`, {limits:{maxInputBytes:48}});
+      assert.equal(probe.exitCode, 1);
+      assert.match(probe.stderr, /subtitle packets exceed memory budget/);
+      const demuxers = await bash.exec("ffmpeg -demuxers"), muxers = await bash.exec("ffmpeg -muxers");
+      assert.ok(demuxers.stdout.includes(` D  ${format}`));
+      assert.ok(!muxers.stdout.includes(format));
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("VPlayer container conversion and rejection match native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/vplayer-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("STL and SubViewer v1 container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/text-subtitle-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("PJS and MPL2 match native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/mpl2-pjs.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output, sample.name);
+    }
+    for (const [format, input] of [["pjs", '10,30,"First"\n'], ["mpl2", "[10][30]First\n"]]) {
+      await bash.fs.writeFile("/input.txt", input);
+      await bash.fs.writeFile("/out.srt", "previous subtitles");
+      const limited = await bash.exec(`ffmpeg -y -f ${format} -i input.txt out.srt`, {limits:{maxInputBytes:48}});
+      assert.equal(limited.exitCode, 1);
+      assert.match(limited.stderr, /subtitle packets exceed memory budget/);
+      assert.equal(bash.readText("/out.srt"), "previous subtitles");
+      const probe = await bash.exec(`ffprobe -f ${format} -show_packets input.txt`, {limits:{maxInputBytes:48}});
+      assert.equal(probe.exitCode, 1);
+      assert.match(probe.stderr, /subtitle packets exceed memory budget/);
+      const demuxers = await bash.exec("ffmpeg -demuxers"), muxers = await bash.exec("ffmpeg -muxers");
+      assert.ok(demuxers.stdout.includes(` D  ${format}`));
+      assert.ok(!muxers.stdout.includes(format));
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("ASS and SSA match native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ass-subtitles.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.ass", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("SubViewer 2.0 matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/subviewer.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.sub", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AQTitle matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aqtitle.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.aqt", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("MicroDVD matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/microdvd.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.sub", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("RealText matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/realtext.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.rt", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("JACOsub bounds headers and packets, preserves rejected files and expands the clock", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const input of ["#T 30\n".repeat(8), "@0 @30 JL Text\n".repeat(8)]) {
+      await bash.fs.writeFile("/input.jss", input);
+      await bash.fs.writeFile("/out.srt", "keep this");
+      const result = await bash.exec("ffmpeg -y -f jacosub -i input.jss out.srt", {limits:{maxInputBytes:input.length + 8}});
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+    await bash.fs.writeFile("/input.jss", "#T 30\n".repeat(800) + "@0 @30 JC Text\n");
+    assert.equal((await bash.exec("ffmpeg -y -f jacosub -i input.jss out.srt")).exitCode, 244);
+    assert.equal(bash.readText("/out.srt"), "keep this");
+    await bash.fs.writeFile("/input.jss", "@0 @30 JC Text\n");
+    for (const options of ["-c:s copy", "-c:s jacosub", "-f jacosub"]) {
+      assert.notEqual((await bash.exec(`ffmpeg -y -f jacosub -i input.jss ${options} out.srt`)).exitCode, 0);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+    await bash.fs.writeFile("/input.jss", "@0 @30 JC \\D|\\T\n");
+    const before = await bash.exec("date -u '+%d %b %Y|%H:%M'");
+    const result = await bash.exec("ffmpeg -f jacosub -i input.jss -f srt -");
+    const after = await bash.exec("date -u '+%d %b %Y|%H:%M'");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok([before.stdout.trim(), after.stdout.trim()].some(clock => result.stdout.includes("{\\an2}" + clock)), result.stdout);
+  } finally { bash.dispose(); }
+});
+
+
+test("JACOsub matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/jacosub.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.jss", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+
+test("JACOsub container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/jacosub-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.jss", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+
+test("TTML output matches native text, timing and container conversion", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ttml.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      const path = "/" + sample.args[sample.args.indexOf("-i") + 1];
+      await bash.fs.writeFile(path, sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stdout, sample.output, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("TTML preserves production layout, stream language and escaped WebVTT text", async () => {
+  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const { ffmpegCommands } = await import("@poe-platform/safe-bash/commands/ffmpeg");
+  const input = "WEBVTT\n\n00:01.000 --> 00:02.500\n<v Maria>one &amp; <b>two</b>\n&lt;b&gt;literal&lt;/b&gt;\n";
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.vtt", new TextEncoder().encode(input));
+  const production = new Shell({fs, cwd:"/"}).use(ffmpegCommands());
+  const bash = new RustWasmBash({cwd:"/",forceNative:true,files:{"/input.vtt":input}});
+  try {
+    for (const metadata of ["", "-metadata:s:s:0 language=pl", "-metadata:s:s:0 language=und", "-metadata language=fr", "-metadata:s:s:0 'language=a&\"<b>'", "-metadata:s:s:0 language=", "-metadata:s:s:1 language=pl", "-metadata:s:a:0 language=pl"]) {
+      const command = `ffmpeg -v error -i /input.vtt ${metadata} -f ttml -`;
+      const expected = await production.exec(command);
+      assert.equal(expected.exitCode, 0, expected.stderr);
+      const actual = await bash.exec(command);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stdout, expected.stdout, metadata);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("TTML rejects unsupported operations and preserves files on budget failure", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true,files:{"/input.srt":"1\n00:00:01,000 --> 00:00:02,000\nHello\n"}});
+  try {
+    for (const options of ["-c:s copy", "-c:s subrip", "-c:s ass", "-map 0:s -map 0:s", "-sn"]) {
+      await bash.fs.writeFile("/out.ttml", "keep this");
+      const result = await bash.exec(`ffmpeg -y -i input.srt ${options} out.ttml`);
+      assert.notEqual(result.exitCode, 0, options);
+      assert.equal(bash.readText("/out.ttml"), "keep this");
+    }
+    const limited = await bash.exec("ffmpeg -y -i input.srt out.ttml", {limits:{maxInputBytes:128}});
+    assert.notEqual(limited.exitCode, 0);
+    assert.equal(bash.readText("/out.ttml"), "keep this");
+    const metadata = await bash.exec(`ffmpeg -y -i input.srt -metadata:s:s:0 'language=${"&".repeat(512)}' out.ttml`, {limits:{maxInputBytes:1024}});
+    assert.notEqual(metadata.exitCode, 0);
+    assert.equal(bash.readText("/out.ttml"), "keep this");
+    const result = await bash.exec("ffmpeg -y -i input.srt out.ttml");
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const command of ["ffmpeg -f ttml -i out.ttml -f srt -", "ffprobe -f ttml out.ttml"]) {
+      assert.notEqual((await bash.exec(command)).exitCode, 0);
+    }
+    const demuxers = await bash.exec("ffmpeg -demuxers"), muxers = await bash.exec("ffmpeg -muxers");
+    assert.ok(!demuxers.stdout.includes("ttml"));
+    assert.ok(muxers.stdout.includes("  E ttml"));
+  } finally { bash.dispose(); }
+});
+
+
+test("SAMI matches native decoding and probing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/sami.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.smi", sample.inputHex ? Uint8Array.from(Buffer.from(sample.inputHex, "hex")) : sample.input);
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe" && sample.args.includes("json=c=1")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output.replace("; Script generated by FFmpeg/Lavc61.3.100", "; Script generated by FFmpeg/Lavc61.19.100"), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("SAMI bounds allocations and preserves output on decoder failure", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const input of [
+      "<SAMI><HEAD>" + "x".repeat(128) + "</HEAD>",
+      "<SAMI>" + "<SYNC Start=1000><P>Text".repeat(8),
+      Buffer.from('\ufeff<SAMI><SYNC Start=1000><P>Text', "utf16le")
+    ]) {
+      await bash.fs.writeFile("/input.smi", input);
+      await bash.fs.writeFile("/out.srt", "keep this");
+      const limits = {maxInputBytes:input.length + 32};
+      const result = await bash.exec("ffmpeg -y -f sami -i input.smi out.srt", {limits});
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /memory budget/);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+      const probe = await bash.exec("ffprobe -f sami -show_streams -of json input.smi", {limits});
+      assert.equal(probe.exitCode, 1);
+      assert.deepEqual(JSON.parse(probe.stdout), {});
+    }
+    await bash.fs.writeFile("/input.smi", "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=3000><P>Done");
+    const mixed = await bash.exec("ffmpeg -i input.smi -f srt -");
+    assert.equal(mixed.exitCode, 0);
+    assert.equal(mixed.stderr, "ffmpeg: Error decoding subtitles: Operation not permitted\n");
+    assert.equal(mixed.stdout, "1\n00:00:03,000 --> 1193:02:50,295\nDone\n\n");
+    await bash.fs.writeFile("/input.smi", "<SAMI><SYNC Start=1000><P>&nbsp;");
+    const rejected = await bash.exec("ffmpeg -y -i input.smi out.srt");
+    assert.equal(rejected.exitCode, 69);
+    assert.equal(rejected.stderr, "ffmpeg: Error decoding subtitles: Operation not permitted\nffmpeg: Decode error rate 1 exceeds maximum 0.6666666865348816\n");
+    assert.equal(bash.readText("/out.srt"), "keep this");
+    for (const options of ["-c:s copy", "-c:s sami", "-f sami"]) {
+      assert.notEqual((await bash.exec(`ffmpeg -y -i input.smi ${options} out.srt`)).exitCode, 0);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("RealText bounds headers and packets and preserves rejected outputs", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const input of [
+      '<window title="' + "x".repeat(128) + '">',
+      '<window>' + '<time begin="1" end="2">Text'.repeat(8) + '</window>',
+      Buffer.from('\ufeff<window><time begin="1" end="2">Text</window>', "utf16le")
+    ]) {
+      await bash.fs.writeFile("/input.rt", input);
+      await bash.fs.writeFile("/out.srt", "keep this");
+      const limits = {maxInputBytes:input.length + 32};
+      const result = await bash.exec("ffmpeg -y -f realtext -i input.rt out.srt", {limits});
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /memory budget/);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+      const probe = await bash.exec("ffprobe -f realtext -show_streams -of json input.rt", {limits});
+      assert.equal(probe.exitCode, 1);
+      assert.deepEqual(JSON.parse(probe.stdout), {});
+    }
+    for (const [input, code] of [
+      ["<window><window>Text", 183],
+      ['<window><time begin="1" end="2">' + "é".repeat(2200) + '</window>', 69]
+    ]) {
+      await bash.fs.writeFile("/input.rt", input);
+      const result = await bash.exec("ffmpeg -y -i input.rt out.srt");
+      assert.equal(result.exitCode, code, result.stderr);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+    await bash.fs.writeFile("/input.rt", '<window><time begin="1" end="2">Text</window>');
+    for (const options of ["-c:s copy", "-c:s realtext", "-f realtext"]) {
+      assert.notEqual((await bash.exec(`ffmpeg -y -i input.rt ${options} out.srt`)).exitCode, 0);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("SubViewer bounds header and packet allocations without replacing output", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const input of [
+      "[INFORMATION]\n[TITLE]" + "x".repeat(128) + "\n[END INFORMATION]\n",
+      "00:00:01.00,00:00:02.00\ntext\n\n".repeat(8)
+    ]) {
+      await bash.fs.writeFile("/input.sub", input);
+      await bash.fs.writeFile("/out.srt", "keep this");
+      const limits = {maxInputBytes:input.length + 32};
+      const converted = await bash.exec("ffmpeg -y -f subviewer -i input.sub out.srt", {limits});
+      assert.equal(converted.exitCode, 1);
+      assert.match(converted.stderr, /memory budget/);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+      const probed = await bash.exec("ffprobe -f subviewer -show_streams -of json input.sub", {limits});
+      assert.equal(probed.exitCode, 1);
+      assert.deepEqual(JSON.parse(probed.stdout), {});
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("MicroDVD bounds headers and packets and preserves rejected outputs", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const input of ["{1}{1}25\n" + "{25}{50}Text\n".repeat(8), "{DEFAULT}{}{y:i}{f:Courier}\n{25}{50}Text\n"]) {
+      await bash.fs.writeFile("/input.sub", input);
+      await bash.fs.writeFile("/out.srt", "keep this");
+      const limits = {maxInputBytes:input.length + 32};
+      const result = await bash.exec("ffmpeg -y -f microdvd -i input.sub out.srt", {limits});
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /memory budget/);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+      const probe = await bash.exec("ffprobe -f microdvd -show_streams -of json input.sub", {limits});
+      assert.equal(probe.exitCode, 1);
+      assert.deepEqual(JSON.parse(probe.stdout), {});
+    }
+    await bash.fs.writeFile("/input.sub", "{1}{1}25\n{25}{50}Text\n");
+    await bash.fs.writeFile("/out.sub", "keep this");
+    for (const options of ["", "-c:s srt", "-c:s microdvd", "-map 0:s"]) {
+      assert.notEqual((await bash.exec(`ffmpeg -y -f microdvd -i input.sub ${options} out.sub`)).exitCode, 0);
+      assert.equal(bash.readText("/out.sub"), "keep this");
+    }
+    await bash.fs.writeFile("/input.srt", "1\n00:00:01,000 --> 00:00:02,000\nText\n");
+    const mp4 = await bash.exec("ffmpeg -y -i input.srt -c:s mov_text input.mp4");
+    assert.equal(mp4.exitCode, 0, mp4.stderr);
+    for (const input of ["-i input.srt", "-i input.mp4", "-f microdvd -i input.sub -f microdvd -i input.sub -map 0:s -map 1:s"]) {
+      const result = await bash.exec(`ffmpeg -y ${input} -c:s copy out.sub`);
+      assert.equal(result.exitCode, 234, result.stderr);
+      assert.equal(bash.readText("/out.sub"), "keep this");
+    }
+    const copied = await bash.exec("ffmpeg -y -f microdvd -i input.sub -c:s copy out.sub");
+    assert.equal(copied.exitCode, 0, copied.stderr);
+    assert.equal(bash.readText("/out.sub"), "{25}{50}Text\n");
+  } finally { bash.dispose(); }
+});
+
+
+test("AQTitle bounds packets and preserves output on decode or option errors", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    const input = "-->> 1\nOne\n-->> 2\nTwo\n-->> 3\n".repeat(8);
+    await bash.fs.writeFile("/input.aqt", input);
+    await bash.fs.writeFile("/out.srt", "keep this");
+    const result = await bash.exec("ffmpeg -y -f aqtitle -i input.aqt out.srt", {limits:{maxInputBytes:input.length + 32}});
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /memory budget/);
+    assert.equal(bash.readText("/out.srt"), "keep this");
+    for (const rate of ["-1", "bad", "1/0"]) {
+      assert.notEqual((await bash.exec(`ffmpeg -y -subfps '${rate}' -i input.aqt out.srt`)).exitCode, 0);
+      assert.equal(bash.readText("/out.srt"), "keep this");
+    }
+    await bash.fs.writeFile("/input.aqt", Uint8Array.from([45,45,62,62,32,49,10,255,10,45,45,62,62,32,50,10]));
+    assert.equal((await bash.exec("ffmpeg -y -i input.aqt out.srt")).exitCode, 69);
+    assert.equal(bash.readText("/out.srt"), "keep this");
+  } finally { bash.dispose(); }
+});
+
+
+test("PJS and MPL2 container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/mpl2-pjs-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.txt", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("ASS container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ass-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.ass", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("SubViewer container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/subviewer-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.sub", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AQTitle container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aqtitle-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.aqt", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("MicroDVD container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/microdvd-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.sub", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("RealText container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/realtext-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.rt", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("SAMI container conversion matches native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/sami-containers.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.smi", sample.input);
+      const destination = "/" + sample.args.at(-1);
+      await bash.fs.writeFile(destination, "previous output");
+      const result = await bash.exec(["ffmpeg", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) assert.equal(bash.readText(destination), "previous output");
+      else {
+        const decoded = await bash.exec(["ffmpeg", ...sample.after].join(" "));
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(decoded.stdout, sample.output, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC container output matches native codecs, subtitle packets and rejection", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {parseMp4} = await import("@poe-code/mp4-ast");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/lrc-containers.json", import.meta.url), "utf8"));
+  function* elements(bytes) {
+    let offset = 0;
+    const vint = mask => {
+      let width = 1;
+      while (width <= 8 && !(bytes[offset] & (128 >> (width - 1)))) width++;
+      assert.ok(width <= 8 && offset + width <= bytes.length, "invalid EBML field");
+      let value = mask ? bytes[offset] & ((128 >> (width - 1)) - 1) : bytes[offset];
+      for (let i = 1; i < width; i++) value = value * 256 + bytes[offset + i];
+      offset += width;
+      return value;
+    };
+    while (offset < bytes.length) {
+      const id = vint(false), size = vint(true);
+      yield [id, bytes.subarray(offset, offset + size)];
+      offset += size;
+    }
+  }
+  const uint = bytes => bytes.reduce((a, b) => a * 256 + b, 0);
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.lrc", sample.input);
+      await bash.fs.writeFile("/output", "previous output");
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (result.exitCode) { assert.equal(bash.readText("/output"), "previous output"); continue; }
+      const bytes = await bash.fs.readFile("/output");
+      let packets = [];
+      if (sample.codecId) {
+        const segment = new Map(elements(bytes)).get(0x18538067);
+        for (const [id, payload] of elements(segment)) {
+          if (id === 0x1654ae6b) {
+            const track = new Map(elements(new Map(elements(payload)).get(0xae)));
+            assert.equal(Buffer.from(track.get(0x86)).toString(), sample.codecId, sample.name);
+            if (sample.codec === "ass") assert.equal(Buffer.from(track.get(0x63a2)).toString(), fixture.assHeader.replace("Lavc61.3.100", "Lavc61.19.100"));
+          }
+          if (id !== 0x1f43b675) continue;
+          let time = 0;
+          for (const [cid, body] of elements(payload)) {
+            if (cid === 0xe7) time = uint(body);
+            if (cid !== 0xa0) continue;
+            const group = new Map(elements(body)), block = Buffer.from(group.get(0xa1));
+            assert.equal(block[0], 0x81);
+            packets.push({pts: time + block.readInt16BE(1), duration: uint(group.get(0x9b) ?? []), data: block.subarray(4).toString("hex")});
+          }
+        }
+      } else {
+        const track = parseMp4(bytes, {decodeSubtitles:false}).tracks[0];
+        assert.equal(track.codecDescriptions[0].codecName, sample.codec, sample.name);
+        assert.deepEqual(track.editList ?? [], sample.edits, sample.name);
+        packets = track.samples.map(p => ({pts:p.pts * 1000 / track.timescale, duration:p.duration * 1000 / track.timescale, data:Buffer.from(p.data).toString("hex")}));
+      }
+      assert.deepEqual(packets, sample.packets, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("Rust probes and reads the subtitles it muxes from LRC", async () => {
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    await bash.fs.writeFile("/input.lrc", "[ti:Song]\n[00:01.00]one\n[00:05.00]end\n");
+    for (const [format, codec] of [["matroska", "ass"], ["matroska", "subrip"], ["webm", "webvtt"]]) {
+      const result = await bash.exec(`ffmpeg -y -i input.lrc -c:s ${codec} -f ${format} output`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const probe = await bash.exec("ffprobe -show_entries stream=codec_name -of csv=p=0 output");
+      assert.equal(probe.exitCode, 0, probe.stderr);
+      assert.equal(probe.stdout, codec + "\n");
+      const lyrics = await bash.exec("ffmpeg -i output -bitexact -f lrc -");
+      assert.equal(lyrics.exitCode, 0, lyrics.stderr);
+      assert.equal(lyrics.stdout, "[ti:Song]\n\n[00:01.00]one\n[00:05.00]end\n", codec);
+    }
+    const original = await bash.fs.readFile("/output");
+    const limited = await bash.exec("ffmpeg -y -i input.lrc -f matroska output", {limits:{maxInputBytes:512}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /output byte limit exceeded/);
+    assert.deepEqual(await bash.fs.readFile("/output"), original);
+  } finally { bash.dispose(); }
+});
+
+
+test("WebVTT container copies preserve cue identifiers and settings", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {parseMkv} = await import("@poe-code/mp4-ast");
+  const input = await readFile(new URL("../../mp4-ast/src/fixtures/webvtt-subtitles.webm", import.meta.url));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    await bash.fs.writeFile("/in.webm", input);
+    const result = await bash.exec("ffmpeg -i in.webm -c copy out.webm");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const packets = bytes => parseMkv(bytes).tracks[0].samples.map(s => ({text:Buffer.from(s.data).toString(), cue:s.webvtt}));
+    assert.deepEqual(packets(await bash.fs.readFile("/out.webm")), packets(input));
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC input matches native subtitle conversion, copying and seeking", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/lrc-input.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of cases) {
+      await bash.fs.writeFile("/input.lrc", sample.input);
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stdout, sample.output, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC input detection and file conversion preserve destinations on rejection", async () => {
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    await bash.fs.writeFile("/input.lrc", "[00:01.00]one\n[00:05.00]end\n");
+    const result = await bash.exec("ffmpeg -i input.lrc out.vtt");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const expected = "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n";
+    assert.equal(bash.readText("/out.vtt"), expected);
+    for (const args of ["-sn", "-c:s copy"]) {
+      const rejected = await bash.exec(`ffmpeg -y -i input.lrc ${args} out.vtt`);
+      assert.equal(rejected.exitCode, 234, rejected.stderr);
+      assert.equal(bash.readText("/out.vtt"), expected);
+    }
+    const limited = await bash.exec("ffmpeg -y -i input.lrc out.vtt", {limits:{maxInputBytes:64}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /subtitle packets exceed memory budget/);
+    assert.equal(bash.readText("/out.vtt"), expected);
+    const combined = await bash.exec("ffmpeg -y -i input.lrc -i input.lrc out.vtt", {limits:{maxInputBytes:160}});
+    assert.equal(combined.exitCode, 1);
+    assert.match(combined.stderr, /subtitle packets exceed memory budget/);
+    assert.equal(bash.readText("/out.vtt"), expected);
+    const sync = bash.execSync("ffmpeg -i input.lrc -bitexact -f lrc -");
+    assert.equal(sync.exitCode, 0, sync.stderr);
+    assert.equal(sync.stdout, "\n[00:01.00]one\n[00:05.00]end\n");
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC output matches native rounding, text encoding and ordered metadata", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/lrc-output.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of cases) {
+      await bash.fs.writeFile("/input", sample.inputHex ? Buffer.from(sample.inputHex, "hex") : sample.input);
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stdout, sample.output, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC file output includes encoder metadata and preserves destinations on rejection", async () => {
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    await bash.fs.writeFile("/input.srt", "1\n00:00:01,000 --> 00:00:02,000\nhello\n");
+    const result = await bash.exec("ffmpeg -i input.srt out.lrc");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(bash.readText("/out.lrc"), "[re:Lavf61.7.100]\n[ve:61.7.100]\n\n[00:01.00]hello\n");
+    const original = bash.readText("/out.lrc");
+    const disabled = await bash.exec("ffmpeg -y -i input.srt -sn out.lrc");
+    assert.equal(disabled.exitCode, 234);
+    assert.equal(bash.readText("/out.lrc"), original);
+    const limited = await bash.exec(`ffmpeg -y -i input.srt -metadata title=${"x".repeat(200)} out.lrc`, {limits:{maxInputBytes:128}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /output byte limit exceeded/);
+    assert.equal(bash.readText("/out.lrc"), original);
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC probing matches native timestamps, metadata, packets and subtitle frames", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/lrc-probe.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const sample of cases) {
+      await bash.fs.writeFile("/input.lrc", sample.input);
+      const command = ["ffprobe", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, 0, `${sample.name}: ${result.stderr}`);
+      assert.deepEqual(JSON.parse(result.stdout), sample.expected, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("LRC probing bounds metadata and repeated timestamp packet allocations", async () => {
+  const bash = new RustWasmBash({cwd: "/", forceNative: true});
+  try {
+    for (const input of ["[x:a]\n[y:b]\n", "[00:01.00][00:02.00]hi\n"]) {
+      await bash.fs.writeFile("/input.lrc", input);
+      const result = await bash.exec("ffprobe -f lrc -show_entries format_tags -of json input.lrc", {limits:{maxInputBytes:32}});
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /exceed.*memory budget/);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("MP4 reused frames preserve pixels through Wasm loops, filters, maps and concatenation", async () => {
+  const {parseMp4} = await import("@poe-code/mp4-ast");
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  const run = async command => {
+    const result = await bash.exec(command);
+    assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+  };
+  try {
+    await run("ffmpeg -f lavfi -i color=c=red:s=4x4:r=25:d=0.04 still.png");
+    await run("ffmpeg -i still.png still.y4m");
+    for (const [input, tracks] of [
+      ["-stream_loop 2 -i still.png -vf null", 1],
+      ["-stream_loop 2 -i still.y4m -vf null", 1],
+      ["-i still.png -vf fps=75 -map 0:v -map 0:v", 2],
+      ["-stream_loop 2 -i still.png -i still.png -filter_complex concat=n=2:v=1:a=0 -frames:v 3", 1],
+    ]) {
+      await run(`ffmpeg -y ${input} out.mp4`);
+      const doc = parseMp4(await bash.fs.readFile("/out.mp4"), {decodeFrames:true});
+      assert.equal(doc.tracks.length, tracks);
+      const first = doc.tracks[0].decodedVideoFrames[0].data;
+      assert.ok(first.some((v, i) => i % 4 !== 3 && v > 32));
+      for (const track of doc.tracks) {
+        assert.equal(track.decodedVideoFrames.length, 3);
+        for (const frame of track.decodedVideoFrames) assert.deepEqual(frame.data, first, input);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("audio layout remapping matches native PCM through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/audio-remix.json", import.meta.url),"utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name,bytes] of Object.entries(fixture.inputs)) await bash.fs.writeFile(`/${name}`,Buffer.from(bytes,"hex"));
+    for (const sample of fixture.cases) {
+      const command = ["ffmpeg","-y",...sample.args].map(s=>"'"+s.replaceAll("'","'\\''")+"'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const decoded = await bash.exec("ffmpeg -y -i output.wv -f f64le pcm");
+      assert.equal(decoded.exitCode,0,decoded.stderr);
+      const pcm = await bash.fs.readFile("/pcm");
+      assert.equal(pcm.length,sample.length,sample.name);
+      assert.equal(createHash("sha256").update(pcm).digest("hex"),sample.pcm,sample.name);
+      const copied = await bash.exec("ffmpeg -y -i output.wv -c copy probe.mkv");
+      assert.equal(copied.exitCode,0,copied.stderr);
+      const probe = await bash.exec("ffprobe -show_entries stream=channels,channel_layout -of json probe.mkv");
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout).streams[0],sample.probe,sample.name);
+    }
+    const broken=Buffer.from(fixture.inputs["16-7.1.wav"],"hex");broken.writeUInt16LE(64,22);
+    await bash.fs.writeFile("/broken.wav",broken);await bash.fs.writeFile("/keep.wv","keep");
+    const invalid=await bash.exec("ffmpeg -y -i broken.wav -ac 2 keep.wv");
+    assert.notEqual(invalid.exitCode,0);assert.match(invalid.stderr,/Invalid PCM channel layout/);
+    assert.equal(bash.readText("/keep.wv"),"keep");
+    const limited=await bash.exec("ffmpeg -y -i '32-7.1(wide).wav' -ac 2 keep.wv",{limits:{maxInputBytes:9000}});
+    assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/budget|limit/);
+    assert.equal(bash.readText("/keep.wv"),"keep");
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack multichannel encoding preserves native PCM through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-multichannel.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name, bytes] of Object.entries(fixture.inputs)) await bash.fs.writeFile(`/${name}`, Buffer.from(bytes,"hex"));
+    for (const sample of fixture.cases) {
+      for (const destination of ["output.wv", "output.mkv", "-"]) {
+        const args = sample.args.slice(0,-1);
+        if (destination === "-") args.push("-f","wv");
+        args.push(destination);
+        const command = ["ffmpeg","-y",...args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+        const result = await bash.exec(command);
+        assert.equal(result.exitCode,0,`${sample.name} ${destination}: ${result.stderr}`);
+        const output = destination === "-" ? result.stdoutBytes : await bash.fs.readFile(`/${destination}`);
+        await bash.fs.writeFile("/encoded",output);
+        const decoded = await bash.exec("ffmpeg -y -i encoded -f f64le pcm");
+        assert.equal(decoded.exitCode,0,`${sample.name}: ${decoded.stderr}`);
+        const pcm = await bash.fs.readFile("/pcm");
+        assert.equal(pcm.length,sample.length,sample.name);
+        assert.equal(createHash("sha256").update(pcm).digest("hex"),sample.pcm,`${sample.name} ${destination}`);
+      }
+    }
+    await bash.fs.writeFile("/output.wv","keep");
+    const result = await bash.exec("ffmpeg -y -f s32le -ar 12345 -ac 64 -i 32-64.raw output.wv", {limits:{maxInputBytes:262144}});
+    assert.notEqual(result.exitCode,0);
+    assert.match(result.stderr,/budget|limit/);
+    assert.equal(bash.readText("/output.wv"),"keep");
+  } finally {bash.dispose();}
+});
+
+
+test("PNM native pixels, precision, encoding and pipes work through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/pnm.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/in.pnm",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const result=await bash.exec(["ffmpeg",...sample.args].map(quote).join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const actual=Buffer.from(sample.args.at(-1)==="-"?result.stdoutBytes:await bash.fs.readFile(sample.args.at(-1)));
+      const expected=Buffer.from(sample.output,"hex");
+      assert.equal(actual.length,expected.length,sample.name);
+      const mask=sample.mask?Buffer.from(sample.mask,"hex"):undefined;
+      for(let i=0;i<actual.length;i++) assert.equal((actual[i]^expected[i])&(mask?.[i]??255),0,`${sample.name} byte ${i}`);
+    }
+    const input=Buffer.from(fixture.inputs.two,"hex");
+    for(const format of ["image2pipe","pgm_pipe"]) {
+      const result=await bash.exec(`ffmpeg -f ${format} -i - -pix_fmt gray -f rawvideo -`,{stdin:input});
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"),fixture.cases.find(c=>c.name==="two-decode").output);
+    }
+    await bash.fs.writeFile("/in.pnm",input);
+    const numbered=await bash.exec("ffmpeg -i in.pnm out%d.pgm");
+    assert.equal(numbered.exitCode,0,numbered.stderr);
+    assert.equal(Buffer.concat([await bash.fs.readFile("/out1.pgm"),await bash.fs.readFile("/out2.pgm")]).toString("hex"),fixture.inputs.two);
+    await bash.fs.writeFile("/keep.pgm","keep");
+    const empty=await bash.exec("ffmpeg -y -i in.pnm -frames:v 0 keep.pgm");
+    assert.equal(empty.exitCode,0,empty.stderr);assert.equal(bash.readText("/keep.pgm"),"keep");
+    await bash.fs.writeFile("/wide.pgm",Buffer.from(fixture.inputs.pgm16,"hex"));
+    const emptyWide=await bash.exec("ffmpeg -y -i wide.pgm -frames:v 0 keep.pgm");
+    assert.equal(emptyWide.exitCode,0,emptyWide.stderr);assert.equal(bash.readText("/keep.pgm"),"keep");
+    for(const broken of [Buffer.from("notapgm"),Buffer.from("P5\n3 1\n255\n\0"),Buffer.from("P4\n9 2\n\xff","latin1"),Buffer.from("P5\n4294967295 4294967295\n255\n\0")]) {
+      await bash.fs.writeFile("/bad.pgm",broken);
+      const result=await bash.exec("ffmpeg -y -i bad.pgm keep.pgm");
+      assert.notEqual(result.exitCode,0);assert.equal(bash.readText("/keep.pgm"),"keep");
+    }
+    await bash.fs.writeFile("/in.pnm",Buffer.from(fixture.inputs["pgm16-random"],"hex"));
+    const limited=await bash.exec("ffmpeg -y -i in.pnm keep.pgm",{limits:{maxInputBytes:256}});
+    assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/keep.pgm"),"keep");
+  } finally {bash.dispose();}
+});
+
+
+test("QOI native encoding decoding copying and probe writers work through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/qoi.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+  try {
+    for(const section of ["cases","probes"]) for(const sample of fixture[section]) {
+      await bash.fs.writeFile("/in.qoi",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const result=await bash.exec([section==="cases"?"ffmpeg":"ffprobe",...sample.args].map(quote).join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      if(section==="probes") {
+        if(sample.args.includes("json")) assert.deepEqual(JSON.parse(result.stdout),JSON.parse(sample.output),sample.name);
+        else assert.equal(result.stdout,sample.output,sample.name);
+      } else {
+        const output=sample.args.at(-1)==="-"?result.stdoutBytes:await bash.fs.readFile(sample.args.at(-1));
+        assert.equal(Buffer.from(output).toString("hex"),sample.output,sample.name);
+      }
+    }
+    const input=Buffer.from(fixture.inputs.two,"hex");
+    const pipe=await bash.exec("ffmpeg -f qoi_pipe -i - -pix_fmt rgba -f rawvideo -",{stdin:input});
+    assert.equal(pipe.exitCode,0,pipe.stderr);
+    assert.equal(Buffer.from(pipe.stdoutBytes).toString("hex"),fixture.cases.find(c=>c.name==="two-decode").output);
+    await bash.fs.writeFile("/in.qoi",input);
+    const sequence=await bash.exec("ffmpeg -i in.qoi out%d.qoi");
+    assert.equal(sequence.exitCode,0,sequence.stderr);
+    for(const [path,expected] of [["/out1.qoi",fixture.inputs["palette-4-1"]],["/out2.qoi",fixture.cases.find(c=>c.name==="palette-4-1-hflip").output]]) assert.equal(Buffer.from(await bash.fs.readFile(path)).toString("hex"),expected);
+    await bash.fs.writeFile("/out.qoi","keep");
+    await bash.fs.writeFile("/in.qoi",Buffer.from(fixture.inputs["runs-4-0"],"hex"));
+    const limited=await bash.exec("ffmpeg -y -i in.qoi out.qoi",{limits:{maxInputBytes:128}});
+    assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/out.qoi"),"keep");
+    for(const broken of [Buffer.from("notaqoi"),input.subarray(0,20),Buffer.from("716f6966ffffffffffffffff0400","hex")]) {
+      await bash.fs.writeFile("/in.qoi",broken);
+      const result=await bash.exec("ffmpeg -y -i in.qoi out.qoi");
+      assert.notEqual(result.exitCode,0);assert.equal(bash.readText("/out.qoi"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("EXR native decoding encoding float samples operations and probes work through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/exr.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.exr",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const result=await bash.exec(["ffmpeg",...sample.args].join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output")).toString("hex"),sample.output,sample.name);
+    }
+    for(const sample of fixture.probes) {
+      await bash.fs.writeFile("/input.exr",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const result=await bash.exec("ffprobe -v error -show_streams -show_format -show_packets -show_frames -of json /input.exr");
+      assert.equal(result.exitCode,0,`${sample.input}: ${result.stderr}`);
+      assert.deepEqual(JSON.parse(result.stdout),JSON.parse(sample.output),sample.input);
+    }
+    const name="gbrapf32le-2x2-none-float",input=Buffer.from(fixture.inputs[name],"hex");
+    const pipe=await bash.exec("ffmpeg -f exr_pipe -i - -f rawvideo -",{stdin:input});
+    assert.equal(pipe.exitCode,0,pipe.stderr);
+    assert.equal(Buffer.from(pipe.stdoutBytes).toString("hex"),fixture.cases.find(c=>c.name===name+"-float").output);
+    await bash.fs.writeFile("/input.exr",input);
+    const sequence=await bash.exec("ffmpeg -stream_loop 1 -i input.exr out%d.exr");
+    assert.equal(sequence.exitCode,0,sequence.stderr);
+    const encoded=fixture.cases.find(c=>c.name===name+"-reencode").output;
+    for(const path of ["/out1.exr","/out2.exr"]) assert.equal(Buffer.from(await bash.fs.readFile(path)).toString("hex"),encoded);
+    await bash.fs.writeFile("/keep.exr","keep");
+    const limited=await bash.exec("ffmpeg -y -i input.exr keep.exr",{limits:{maxInputBytes:256}});
+    assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/keep.exr"),"keep");
+    const zero=await bash.exec("ffmpeg -y -i input.exr -frames:v 0 keep.exr");
+    assert.equal(zero.exitCode,0,zero.stderr);assert.equal(bash.readText("/keep.exr"),"keep");
+    for(const broken of [Buffer.from("notanexr"),input.subarray(0,24),input.subarray(0,input.length-1)]) {
+      await bash.fs.writeFile("/input.exr",broken);
+      const result=await bash.exec("ffmpeg -y -i input.exr keep.exr");
+      assert.notEqual(result.exitCode,0);assert.equal(bash.readText("/keep.exr"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("G726 WAV matches native encoding decoding operations and probes through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/g726.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.encoded,"hex"));
+      await bash.fs.writeFile("/input.raw",Buffer.from(sample.input,"hex"));
+      const decoded=await bash.exec("ffmpeg -i native.wav -f s16le -");
+      assert.equal(decoded.exitCode,0,`${sample.name}: ${decoded.stderr}`);
+      assert.equal(Buffer.from(decoded.stdoutBytes).toString("hex"),sample.decoded,sample.name);
+      const encoded=await bash.exec(`ffmpeg -y -f s16le -ar 8000 -ac 1 -i input.raw -c:a g726 -b:a ${sample.bits*8000} -bitexact output.wav`);
+      assert.equal(encoded.exitCode,0,`${sample.name}: ${encoded.stderr}`);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output.wav")).toString("hex"),sample.encoded,sample.name);
+      const pipe=await bash.exec(`ffmpeg -f s16le -ar 8000 -ac 1 -i input.raw -c:a g726 -b:a ${sample.bits*8000} -bitexact -f wav -`);
+      assert.equal(pipe.exitCode,0,`${sample.name}: ${pipe.stderr}`);
+      assert.equal(Buffer.from(pipe.stdoutBytes).toString("hex"),sample.pipe,sample.name);
+      const probe=await bash.exec("ffprobe -v error -show_streams -show_format -show_packets -show_frames -of json /native.wav");
+      assert.equal(probe.exitCode,0,`${sample.name}: ${probe.stderr}`);
+      assert.deepEqual(JSON.parse(probe.stdout),JSON.parse(sample.probe),sample.name);
+    }
+    for(const sample of fixture.decodeCases) {
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.input,"hex"));
+      const result=await bash.exec("ffmpeg -i native.wav -f s16le -");
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"),sample.output,sample.name);
+      const probe=await bash.exec("ffprobe -v error -show_streams -show_format -show_packets -show_frames -of json /native.wav");
+      assert.equal(probe.exitCode,0,`${sample.name}: ${probe.stderr}`);
+      assert.deepEqual(JSON.parse(probe.stdout),JSON.parse(sample.probe),sample.name);
+    }
+    for(const operation of fixture.operations) {
+      const sample=fixture.cases.find(sample=>sample.name===operation.input);
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.encoded,"hex"));
+      const result=await bash.exec(["ffmpeg",...operation.args].join(" "));
+      assert.equal(result.exitCode,0,`${operation.name}: ${result.stderr}`);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output")).toString("hex"),operation.output,operation.name);
+    }
+    await bash.fs.writeFile("/output.wav",Buffer.from("keep"));
+    for(const options of ["-ac 2","-ar 16000","-b:a -1","-b:a nan"]) {
+      const result=await bash.exec(`ffmpeg -y -i native.wav -c:a g726 ${options} output.wav`);
+      assert.notEqual(result.exitCode,0,options);assert.equal(bash.readText("/output.wav"),"keep");
+    }
+    const input=Buffer.from(fixture.cases.find(c=>c.name==="2-ramp-4099").encoded,"hex");
+    await bash.fs.writeFile("/native.wav",input);
+    const limited=await bash.exec("ffmpeg -y -i native.wav output.wav",{limits:{maxInputBytes:4096}});
+    assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/memory budget/);
+    assert.equal(bash.readText("/output.wav"),"keep");
+    for(const bits of [0,1,6,65535]) {
+      const broken=Buffer.from(input);broken.writeUInt16LE(bits,34);
+      await bash.fs.writeFile("/native.wav",broken);
+      const result=await bash.exec("ffmpeg -y -i native.wav output.wav");
+      assert.notEqual(result.exitCode,0);assert.equal(bash.readText("/output.wav"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("IMA Microsoft and Yamaha ADPCM match native encoding decoding and probes through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/adpcm-wav.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.encoded,"hex"));
+      await bash.fs.writeFile("/input.raw",Buffer.from(sample.input,"hex"));
+      const decoded=await bash.exec("ffmpeg -i native.wav -f s16le -");
+      assert.equal(decoded.exitCode,0,`${sample.name}: ${decoded.stderr}`);
+      assert.equal(Buffer.from(decoded.stdoutBytes).toString("hex"),sample.decoded,sample.name);
+      const args=`-f s16le -ar ${sample.rate} -ac ${sample.channels} -i input.raw -c:a ${sample.codec}`+
+        (sample.codec==="adpcm_yamaha"?"":` -block_size ${sample.block} -trellis ${sample.trellis}`);
+      const encoded=await bash.exec(`ffmpeg -y ${args} -map_metadata -1 -bitexact output.wav`);
+      assert.equal(encoded.exitCode,0,`${sample.name}: ${encoded.stderr}`);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output.wav")).toString("hex"),sample.encoded,sample.name);
+      const probe=await bash.exec("ffprobe -v error -show_streams -show_format -show_packets -show_frames -of json /native.wav");
+      assert.equal(probe.exitCode,0,`${sample.name}: ${probe.stderr}`);
+      assert.deepEqual(JSON.parse(probe.stdout),JSON.parse(sample.probe),sample.name);
+    }
+    for(const sample of fixture.decodeCases) {
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.input,"hex"));
+      const result=await bash.exec("ffmpeg -i native.wav -f s16le -");
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"),sample.output,sample.name);
+    }
+    for(const operation of fixture.operations) {
+      const sample=fixture.cases.find(sample=>sample.name===operation.input);
+      await bash.fs.writeFile("/native.wav",Buffer.from(sample.encoded,"hex"));
+      const result=await bash.exec(["ffmpeg",...operation.args].join(" "));
+      assert.equal(result.exitCode,0,`${operation.name}: ${result.stderr}`);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output")).toString("hex"),operation.output,operation.name);
+    }
+    await bash.fs.writeFile("/output.wav",Buffer.from("keep"));
+    const limited=await bash.exec("ffmpeg -y -f s16le -ar 22050 -ac 2 -i input.raw -c:a adpcm_ima_wav -trellis 16 output.wav",{limits:{maxInputBytes:16384}});
+    assert.notEqual(limited.exitCode,0);
+    assert.match(limited.stderr,/memory budget/);
+    assert.equal(bash.readText("/output.wav"),"keep");
+    for(const depth of ["-1","17"]) {
+      const result=await bash.exec(`ffmpeg -y -i native.wav -c:a adpcm_ima_wav -trellis ${depth} output.wav`);
+      assert.notEqual(result.exitCode,0);assert.equal(bash.readText("/output.wav"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("AMR AC3 and LATM native probes and packet copies work through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/elementary-audio.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const command = ["ffprobe",...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      if (sample.args.includes("json")) assert.deepEqual(JSON.parse(result.stdout),JSON.parse(sample.output),sample.name);
+      else assert.equal(result.stdout,sample.output,sample.name);
+    }
+    for (const sample of fixture.copies) {
+      const input=Buffer.from(fixture.inputs[sample.input],"hex");
+      await bash.fs.writeFile("/input",input);
+      const result=await bash.exec(`ffmpeg -i input -c copy -f ${sample.format} -`);
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.deepEqual(result.stdoutBytes,new Uint8Array(Buffer.from(sample.output,"hex")));
+      if (sample.input==="aac-mp4") continue;
+      await bash.fs.writeFile("/output",Buffer.from("keep"));
+      const decoded=await bash.exec("ffmpeg -y -i input -f wav output");
+      assert.equal(decoded.exitCode,0,decoded.stderr);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output")).subarray(0,4).toString(),"RIFF");
+    }
+    const limited=await bash.exec("ffprobe -show_packets -of json input",{limits:{maxOutputBytes:64}});
+    assert.notEqual(limited.exitCode,0);
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack native probe formats, layouts and stored timestamps match through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-probe.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      const input = Buffer.from(fixture.inputs[sample.input],"hex");
+      await bash.fs.writeFile("/input.wv",input);
+      const command = ["ffprobe",...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command,{stdin:input});
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      if (sample.args.includes("json")) assert.deepEqual(JSON.parse(result.stdout),JSON.parse(sample.output),sample.name);
+      else assert.equal(result.stdout,sample.output,sample.name);
+    }
+    const limited = await bash.exec("ffprobe -show_packets -of json input.wv", {limits:{maxOutputBytes:64}});
+    assert.notEqual(limited.exitCode,0);
+    assert.match(limited.stderr,/output byte limit/);
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack float encoding preserves native IEEE samples in files, pipes and Matroska through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-float.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name, bytes] of Object.entries(fixture.inputs)) await bash.fs.writeFile(`/${name}`,Buffer.from(bytes,"hex"));
+    for (const sample of fixture.cases) {
+      for (const destination of ["output.wv","-","output.mkv"]) {
+        const args = sample.args.slice(0,-1);
+        if (destination === "-") args.push("-f","wv");
+        args.push(destination);
+        const command = ["ffmpeg","-y",...args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+        const result = await bash.exec(command);
+        assert.equal(result.exitCode,0,`${sample.name} ${destination}: ${result.stderr}`);
+        const output = destination === "-" ? result.stdoutBytes : await bash.fs.readFile(`/${destination}`);
+        await bash.fs.writeFile("/encoded",output);
+        const decoded = await bash.exec("ffmpeg -y -i encoded -f f32le pcm");
+        assert.equal(decoded.exitCode,0,`${sample.name} ${destination}: ${decoded.stderr}`);
+        const pcm = await bash.fs.readFile("/pcm");
+        assert.equal(pcm.length,sample.length,sample.name);
+        assert.equal(createHash("sha256").update(pcm).digest("hex"),sample.pcm,`${sample.name} ${destination}`);
+      }
+    }
+    for (const destination of ["output.wv","output.mkv"]) {
+      await bash.fs.writeFile(`/${destination}`,"keep");
+      const result = await bash.exec(`ffmpeg -y -f f32le -ar 12345 -ac 6 -i extreme-6-le.raw -c:a wavpack ${destination}`, {limits:{maxInputBytes:8192}});
+      assert.notEqual(result.exitCode,0);
+      assert.match(result.stderr,/budget|limit/);
+      assert.equal(bash.readText(`/${destination}`),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack standalone encoding and APE metadata match native references through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-output.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name, bytes] of Object.entries(fixture.inputs)) await bash.fs.writeFile(`/${name}`,Buffer.from(bytes,"hex"));
+    for (const sample of fixture.cases) {
+      const command = ["ffmpeg","-y",...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const output = Buffer.from(sample.args.at(-1)==="-" ? result.stdoutBytes : await bash.fs.readFile("/output.wv"));
+      if (sample.copy) assert.equal(output.toString("hex"),sample.output,sample.name);
+      assert.ok(output.toString("hex").endsWith(sample.footer),`${sample.name}: APE footer`);
+      if (!sample.length) continue;
+      await bash.fs.writeFile("/encoded.wv",output);
+      const decoded = await bash.exec("ffmpeg -y -i encoded.wv -f f64le pcm");
+      assert.equal(decoded.exitCode,0,`${sample.name}: ${decoded.stderr}`);
+      const pcm = await bash.fs.readFile("/pcm");
+      assert.equal(pcm.length,sample.length,sample.name);
+      assert.equal(createHash("sha256").update(pcm).digest("hex"),sample.pcm,sample.name);
+      const probe = await bash.exec("ffprobe -show_entries format_tags -of json encoded.wv");
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout).format.tags ?? {},sample.tags,sample.name);
+    }
+    for (const command of [
+      "ffmpeg -y -f s16le -ar 8000 -ac 1 -i pcm-0.raw output.wv",
+      `ffmpeg -y -i base.wv -c copy -metadata title=${"x".repeat(4096)} output.wv`,
+    ]) {
+      await bash.fs.writeFile("/output.wv","keep");
+      const result = await bash.exec(command,{limits:{maxInputBytes:4096}});
+      assert.notEqual(result.exitCode,0);
+      assert.match(result.stderr,/budget|limit/);
+      assert.equal(bash.readText("/output.wv"),"keep");
+    }
+    await bash.fs.writeFile("/float.raw",new Uint8Array(new Float64Array([2]).buffer));
+    for (const format of ["f32le","f64le"]) {
+      await bash.fs.writeFile("/output.wv","keep");
+      const result = await bash.exec(`ffmpeg -y -f ${format} -ar 8000 -ac 1 -i float.raw -af aecho=0.8:0.9:10:0.5 output.wv`);
+      assert.equal(result.exitCode,1);
+      assert.match(result.stderr,/WavPack audio filter is not supported/);
+      assert.equal(bash.readText("/output.wv"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack trimmed and looped copies match native files and pipes through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-copy.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name, input] of Object.entries(fixture.inputs)) await bash.fs.writeFile(`/${name}`, Buffer.from(input,"hex"));
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/output.wv", "keep");
+      const result = await bash.exec(["ffmpeg", "-y", ...sample.args].join(" "));
+      assert.equal(result.exitCode, 0, `${sample.name}: ${result.stderr}`);
+      const output = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output.wv");
+      assert.equal(Buffer.from(output).toString("hex"), sample.output, sample.name);
+      if (!output.length) continue;
+      await bash.fs.writeFile("/copy.wv", output);
+      const decoded = await bash.exec("ffmpeg -y -i copy.wv -f f64le pcm");
+      assert.equal(decoded.exitCode, 0, `${sample.name}: ${decoded.stderr}`);
+      const pcm = await bash.fs.readFile("/pcm");
+      assert.equal(pcm.length, sample.length, sample.name);
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), sample.pcm, sample.name);
+      if (sample.matroskaPcm) {
+        const args = [...sample.args];
+        args[args.length - 2] = "matroska";
+        args[args.length - 1] = "copy.mkv";
+        const copy = await bash.exec(["ffmpeg", "-y", ...args].join(" "));
+        assert.equal(copy.exitCode, 0, `${sample.name}: ${copy.stderr}`);
+        const decoded = await bash.exec("ffmpeg -y -i copy.mkv -f f64le pcm");
+        assert.equal(decoded.exitCode, 0, `${sample.name}: ${decoded.stderr}`);
+        assert.equal(createHash("sha256").update(await bash.fs.readFile("/pcm")).digest("hex"), sample.matroskaPcm, `${sample.name}: Matroska copy`);
+      }
+    }
+    await bash.fs.writeFile("/output.wv", "keep");
+    const limited = await bash.exec("ffmpeg -y -stream_loop 100 -i 6ch.wv -c copy output.wv", {limits:{maxInputBytes:4096}});
+    assert.notEqual(limited.exitCode,0);
+    assert.match(limited.stderr,/budget|limit/);
+    assert.equal(bash.readText("/output.wv"),"keep");
+  } finally {bash.dispose();}
+});
+
+
+test("WavPack Matroska decoding, probing and copies match native FFmpeg through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixtures = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-matroska.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixtures) {
+      const input = Buffer.from(sample.input, "hex");
+      const source = Buffer.from(sample.source, "hex");
+      await bash.fs.writeFile("/input.mkv", input);
+      await bash.fs.writeFile("/source.wv", source);
+      const run = async command => {
+        const result = await bash.exec(command);
+        assert.equal(result.exitCode, 0, `${sample.name}: ${command}: ${result.stderr}`);
+        return result;
+      };
+      const keys = ["codec_name", "sample_fmt", "sample_rate", "channels", "bits_per_raw_sample", "bits_per_sample", "time_base", "codec_tag_string", "extradata_size", "channel_layout"];
+      const probe = await run(`ffprobe -show_entries stream=${keys.join(",")} -of json input.mkv`);
+      assert.deepEqual(JSON.parse(probe.stdout).streams[0], Object.fromEntries(Object.entries(sample.probe.streams[0]).filter(([key]) => keys.includes(key))), sample.name);
+      for (const section of ["packets", "frames"]) {
+        const result = await run(`ffprobe -show_${section} -of json input.mkv`);
+        assert.deepEqual(JSON.parse(result.stdout)[section], section === "packets" ? sample.probe.packets : sample.frames, sample.name);
+      }
+      for (const reference of sample.commands) {
+        await run(["ffmpeg", "-y", ...reference.args].join(" "));
+        const pcm = await bash.fs.readFile("/pcm");
+        assert.equal(pcm.length, reference.length, sample.name);
+        assert.equal(createHash("sha256").update(pcm).digest("hex"), reference.sha256, sample.name);
+      }
+      for (const [args, output] of [
+        ["-i input.mkv -c copy", "copy.wv"],
+        ["-i input.mkv -c copy", "copy.mkv"],
+        ["-i input.mkv -i source.wv -map 1:a -c copy", "raw-copy.mkv"],
+        ["-stream_loop 1 -i input.mkv -c copy", "loop.mkv"],
+      ]) {
+        await run(`ffmpeg -y ${args} ${output}`);
+        await run(`ffmpeg -y -i ${output} -f f64le pcm`);
+        assert.equal(createHash("sha256").update(await bash.fs.readFile("/pcm")).digest("hex"), output === "loop.mkv" ? sample.commands[3].sha256 : sample.pcm, `${sample.name}: ${output}`);
+      }
+      const broken = Buffer.from(input);
+      const offset = broken.indexOf(source.subarray(20, 32));
+      assert.ok(offset >= 0);
+      broken[offset + 8] ^= 1;
+      const rawBroken = Buffer.from(source);
+      rawBroken[28] ^= 1;
+      await bash.fs.writeFile("/broken.mkv", broken);
+      await bash.fs.writeFile("/broken.wv", rawBroken);
+      for (const filename of ["broken.mkv", "broken.wv"]) {
+        for (const format of ["f64le", "null"]) {
+          await bash.fs.writeFile("/output", "keep");
+          const result = await bash.exec(`ffmpeg -y -i ${filename} -f ${format} output`);
+          assert.notEqual(result.exitCode, 0, `${sample.name}: ${filename}: ${format}`);
+          assert.equal(bash.readText("/output"), "keep");
+        }
+      }
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec("ffmpeg -y -i input.mkv -f f64le output", {limits:{maxInputBytes:4096}});
+      assert.notEqual(result.exitCode, 0, sample.name);
+      assert.match(result.stderr, /budget|limit/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("WavPack encoding and Matroska serialization match reference bytes through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack-encoding.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.commands) {
+      const input = fixture.cases[sample.input];
+      await bash.fs.writeFile("/input.raw", Buffer.from(input.input, "hex"));
+      await bash.fs.writeFile("/input.wv", Buffer.concat(input.packets.map(p => Buffer.from(p.data, "hex"))));
+      await bash.fs.writeFile("/output", "keep");
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      assert.equal(result.stderr, sample.stderr, sample.name);
+      const bytes = await bash.fs.readFile("/output");
+      if (sample.nativePcm) {
+        const decoded = await bash.exec("ffmpeg -y -i /output -f f64le /pcm");
+        assert.equal(decoded.exitCode,0,`${sample.name}: ${decoded.stderr}`);
+        const pcm = await bash.fs.readFile("/pcm");
+        assert.equal(pcm.length,sample.nativeLength,sample.name);
+        assert.equal(createHash("sha256").update(pcm).digest("hex"),sample.nativePcm,sample.name);
+        continue;
+      }
+      assert.equal(bytes.length, sample.length, sample.name);
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+    }
+    const input = fixture.cases[0];
+    await bash.fs.writeFile("/input.raw", Buffer.from(input.input, "hex"));
+    await bash.fs.writeFile("/output", "keep");
+    const limited = await bash.exec("ffmpeg -y -f s16le -ar 8000 -ac 1 -i input.raw -c:a wavpack -f matroska output", {limits:{maxInputBytes:4096}});
+    assert.notEqual(limited.exitCode, 0);
+    assert.match(limited.stderr, /budget|limit/);
+    assert.equal(bash.readText("/output"), "keep");
+    await bash.fs.writeFile("/av.mp4", await readFile(new URL("../tests/fixtures/av.mp4", import.meta.url)));
+    for (const [flag, hash] of [["0", "7d0b0d3926d8f8117b9af445552f7958c60c5ade770f7ee2b1db26f0b1c03a95"], ["1", "76debecb77944a8dbeab9a71a55350507b7ded482d1213b3d990523c8d4eac2f"]]) {
+      const result = await bash.exec(`ffmpeg -y -i av.mp4 -c copy -write_crc32 ${flag} -f matroska output`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(createHash("sha256").update(await bash.fs.readFile("/output")).digest("hex"), hash);
+    }
+    for (const command of ["ffmpeg -y -i av.mp4 -c copy -f webm output", "ffmpeg -y -i av.mp4 -write_crc32 false -f matroska output"]) {
+      await bash.fs.writeFile("/output", "keep");
+      assert.equal((await bash.exec(command)).exitCode, 1);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("WavPack conversion, probing and rejection preserve reference bytes through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/wavpack.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.wv", Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const pipe = sample.command === "ffprobe"
+        ? ["-", "pipe:", "pipe:0"].includes(sample.args.at(-1))
+        : sample.args.some((arg, i) => arg === "-i" && ["-", "pipe:", "pipe:0"].includes(sample.args[i + 1]));
+      const result = await bash.exec((pipe ? "cat input.wv | " : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+    for (const input of ["int32-stereo", "6ch", "float-extra"]) {
+      await bash.fs.writeFile("/input.wv", Buffer.from(fixture.inputs[input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec("ffmpeg -y -i input.wv -f s16le output", {limits:{maxInputBytes:4096}});
+      assert.notEqual(result.exitCode, 0, input);
+      assert.match(result.stderr, /memory budget|limit/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+    const conflicting = Buffer.from(fixture.inputs["int32-mono"], "hex");
+    conflicting.writeUInt32LE(conflicting.readUInt32LE(24) | 0x40000000, 24);
+    await bash.fs.writeFile("/input.wv", conflicting);
+    await bash.fs.writeFile("/output", "keep");
+    const rejected = await bash.exec("ffmpeg -y -i input.wv -f s16le output");
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr, /Invalid WavPack channel flags/);
+    assert.equal(bash.readText("/output"), "keep");
+    await bash.fs.writeFile("/raw", new Uint8Array(8));
+    const incompatible = await bash.exec("ffmpeg -y -f s16le -ar 8000 -ac 1 -i raw -c:a copy -f wv output");
+    assert.equal(incompatible.exitCode, 1);
+    assert.equal(bash.readText("/output"), "keep");
+  } finally { bash.dispose(); }
+});
+
+test("NUT conversion, probing and rejection preserve reference bytes through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/nut.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.nut", Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const pipe = sample.command === "ffprobe"
+        ? ["-", "pipe:", "pipe:0"].includes(sample.args.at(-1))
+        : sample.args.some((arg, i) => arg === "-i" && ["-", "pipe:", "pipe:0"].includes(sample.args[i + 1]));
+      const result = await bash.exec((pipe ? "cat input.nut | " : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        if (sample.nativeWav) {
+          const decoded=await bash.exec("ffmpeg -y -i output -f s16le pcm");
+          assert.equal(decoded.exitCode,0,decoded.stderr);
+          assert.equal(Buffer.from(await bash.fs.readFile("/pcm")).toString("hex"),sample.pcm,sample.name);
+          await bash.fs.writeFile("/native",Buffer.from(sample.nativeWav,"hex"));
+          const report=path=>bash.exec(`ffprobe -show_entries stream=codec_name,sample_rate,channels -of csv=p=0 ${path}`);
+          assert.equal((await report("output")).stdout,(await report("native")).stdout,sample.name);
+        } else assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+    for (const [input, args, limit] of [
+      ["tone", "-f s32le", 7000],
+      ["rgb", "-vf scale=1024:1024 -c:v png -f image2", 4096],
+      ["tone", "-c:a pcm_f64le -f nut", 8192]
+    ]) {
+      await bash.fs.writeFile("/input.nut", Buffer.from(fixture.inputs[input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec(`ffmpeg -y -i input.nut ${args} output`, {limits:{maxInputBytes:limit}});
+      assert.notEqual(result.exitCode, 0, input);
+      assert.match(result.stderr, /memory budget|limit/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+    await bash.fs.writeFile("/input.nut", Buffer.from(fixture.inputs.overflow, "hex"));
+    await bash.fs.writeFile("/output", "keep");
+    const overflow = await bash.exec("ffmpeg -y -i input.nut -f nut output");
+    assert.equal(overflow.exitCode, 1);
+    assert.match(overflow.stderr, /Invalid NUT syncpoint timestamp/);
+    assert.equal(bash.readText("/output"), "keep");
+  } finally { bash.dispose(); }
+});
+
+
+test("CAF conversion, probing and rejection preserve reference bytes through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/caf.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.caf", Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const pipe = sample.command === "ffprobe"
+        ? ["-", "pipe:", "pipe:0"].includes(sample.args.at(-1))
+        : sample.args.some((arg, i) => arg === "-i" && ["-", "pipe:", "pipe:0"].includes(sample.args[i + 1]));
+      const result = await bash.exec((pipe ? "cat input.caf | " : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+    for (const input of ["alac", "ima"]) {
+      await bash.fs.writeFile("/input.caf", Buffer.from(fixture.inputs[input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec("ffmpeg -y -i input.caf -f s32le output", {limits:{maxInputBytes:12000}});
+      assert.notEqual(result.exitCode, 0, input);
+      assert.match(result.stderr, /memory budget/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("ALAC native PCM and production conversions match through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/alac.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.m4a", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, 0, `${sample.name}: ${result.stderr}`);
+      const bytes = await bash.fs.readFile("/output");
+      assert.equal(bytes.length, sample.length, sample.name);
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+    }
+    await bash.fs.writeFile("/input.m4a", Buffer.from(fixture.inputs["alac-16-1-silent"], "hex"));
+    await bash.fs.writeFile("/output", "keep");
+    const limited = await bash.exec("ffmpeg -y -i input.m4a -f s32le output", {limits:{maxInputBytes:1024}});
+    assert.notEqual(limited.exitCode, 0);
+    assert.match(limited.stderr, /memory budget/);
+    assert.equal(bash.readText("/output"), "keep");
+    const malformed = Buffer.from(fixture.inputs["alac-16-1-17"], "hex");
+    malformed[malformed.indexOf("mdat") + 4] |= 0xe0;
+    await bash.fs.writeFile("/input.m4a", malformed);
+    const rejected = await bash.exec("ffmpeg -y -i input.m4a -f s16le output");
+    assert.notEqual(rejected.exitCode, 0);
+    assert.match(rejected.stderr, /ALAC channel element/);
+    assert.equal(bash.readText("/output"), "keep");
+  } finally { bash.dispose(); }
+});
+
+
+test("AIFF conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aiff.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/" + sample.filename, Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const pipe = (sample.command === "ffprobe" ? sample.args.at(-1) : sample.args[sample.args.indexOf("-i")+1]) === "-";
+      const result = await bash.exec((pipe ? `cat /${sample.filename} | ` : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AIFF native PCM and memory limits work through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aiff.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.native) {
+      await bash.fs.writeFile("/input.aiff", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const result = await bash.exec("ffmpeg -y -i input.aiff -f s16le output");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(Buffer.from(await bash.fs.readFile("/output")).toString("hex"), sample.pcm, sample.input);
+    }
+    for(const sample of fixture.nativeTags) {
+      await bash.fs.writeFile("/input.aiff",Buffer.from(fixture.inputs[sample.input],"hex"));
+      const result=await bash.exec("ffprobe -show_format -of json input.aiff");
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout).format.tags,sample.tags,sample.input);
+    }
+    await bash.fs.writeFile("/input.aiff",Buffer.from(fixture.inputs.adpcm_ima_qt,"hex"));
+    await bash.fs.writeFile("/output","keep");
+    for(const [command,maxInputBytes] of [
+      ["ffmpeg -y -i input.aiff -f aiff output",400],
+      [`ffmpeg -y -i input.aiff -metadata title=${"☃".repeat(300)} -write_id3v2 1 -id3v2_version 3 -f aiff output`,2048],
+      ["ffmpeg -y -stream_loop 30 -i input.aiff -c:a copy -f aiff output",1024],
+      ["ffmpeg -stream_loop 30 -i input.aiff -f aiff -",1024]
+    ]) {
+      const result=await bash.exec(command,{limits:{maxInputBytes}});
+      assert.notEqual(result.exitCode,0,command);
+      assert.match(result.stderr,/memory budget|byte limit exceeded/);
+      assert.equal(bash.readText("/output"),"keep");
+    }
+  } finally {await bash.dispose();}
+});
+
+
+test("APNG conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/apng.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/" + sample.filename, Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.pipe ? `cat /${sample.filename} | ` : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      for (const [path, hex] of Object.entries(sample.files ?? {})) {
+        assert.equal(Buffer.from(await bash.fs.readFile(path)).toString("hex"), hex, `${sample.name}: ${path}`);
+        await bash.exec(`rm '${path}'`);
+      }
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("APNG native pixels and memory limits work through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {decodeImage} = await import("@poe-code/image-ast/portable");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/apng.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.nativePixels) {
+      await bash.fs.writeFile("/input.apng", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const result = await bash.exec("ffmpeg -y -i input.apng -c:v png frame-%03d.png");
+      assert.equal(result.exitCode, 0, result.stderr);
+      const pixels=[];
+      for(let i=1;;i++) {
+        const path=`/frame-${String(i).padStart(3,"0")}.png`;
+        if(bash.execSync(`test -e '${path}'`).exitCode) break;
+        pixels.push(Buffer.from(decodeImage(await bash.fs.readFile(path)).data));
+        await bash.exec(`rm '${path}'`);
+      }
+      assert.equal(Buffer.concat(pixels).toString("hex"), sample.rgba, sample.input);
+    }
+    await bash.fs.writeFile("/input.apng",Buffer.from(fixture.inputs.full,"hex"));
+    await bash.fs.writeFile("/output","keep");
+    for(const [command,maxInputBytes] of [
+      ["ffmpeg -y -i input.apng -f apng output",512],
+      ["ffmpeg -y -stream_loop 30 -i input.apng -c:v copy -f mp4 output",4096],
+      ["ffmpeg -stream_loop 30 -i input.apng -c:v copy -f image2 -",4096],
+      ["ffprobe -show_frames input.apng",512]
+    ]) {
+      const result=await bash.exec(command,{limits:{maxInputBytes}});
+      assert.notEqual(result.exitCode,0,command);
+      assert.match(result.stderr,/memory budget|byte limit exceeded/);
+      assert.equal(bash.readText("/output"),"keep");
+    }
+  } finally {await bash.dispose();}
+});
+
+
+test("ICO conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ico.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/" + sample.filename, Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.pipe ? `cat /${sample.filename} | ` : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("ICO native pixel references and allocation limits work through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {decodeImage} = await import("@poe-code/image-ast/portable");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ico.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.nativePixels) {
+      await bash.fs.writeFile("/input.ico", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const result = await bash.exec("cat input.ico | ffmpeg -i - -c:v png -f image2 -");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(Buffer.from(decodeImage(result.stdoutBytes).data).toString("hex"), sample.rgba, sample.name);
+    }
+    const small = Buffer.from(fixture.inputs[fixture.cases[0].input], "hex");
+    await bash.fs.writeFile("/loop.ico", small);
+    await bash.fs.writeFile("/output", "keep");
+    for (const command of [
+      "ffmpeg -y -stream_loop 16 -i loop.ico -c:v copy -f mp4 output",
+      "ffmpeg -stream_loop 16 -i loop.ico -c:v copy -f image2 -",
+    ]) {
+      const result = await bash.exec(command, {limits:{maxInputBytes:1024}});
+      assert.notEqual(result.exitCode, 0, command);
+      assert.match(result.stderr, /output byte limit exceeded/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+    const huge = Buffer.from(small);
+    huge[6]=128;huge[7]=128;huge.writeUInt32BE(128,38);huge.writeUInt32BE(128,42);
+    const many = Buffer.alloc(6+33*16+small.length-22);
+    many.writeUInt16LE(1,2);many.writeUInt16LE(33,4);
+    for(let i=0;i<33;i++){small.copy(many,6+i*16,6,22);many.writeUInt32LE(6+33*16,18+i*16);}
+    small.copy(many,6+33*16,22);
+    for(const [bytes,message,limit] of [[huge,/image exceeds memory budget/,1024],[many,/stream count exceeds limit/,10000]]) {
+      await bash.fs.writeFile("/bad.ico",bytes);
+      await bash.fs.writeFile("/output","keep");
+      for(const command of ["ffmpeg -y -i bad.ico -c:v png -f ico output", "ffprobe -show_streams bad.ico"]) {
+        const result=await bash.exec(command,{limits:{maxInputBytes:limit}});
+        assert.notEqual(result.exitCode,0,command);
+        assert.match(result.stderr,message);
+        assert.equal(bash.readText("/output"),"keep");
+      }
+    }
+  } finally { await bash.dispose(); }
+});
+
+
+test("VOC conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/voc.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/" + sample.filename, Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.pipe ? `cat /${sample.filename} | ` : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("VOC pipes, packet budgets and rejected codecs preserve audio and files", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    const pcm=Buffer.alloc(64); for(let i=0;i<pcm.length;i++) pcm[i]=i*13;
+    await bash.fs.writeFile("/raw",pcm);
+    const encoded=await bash.exec("ffmpeg -f s16le -ar 8000 -ac 2 -i raw output.voc");
+    assert.equal(encoded.exitCode,0,encoded.stderr);
+    const bytes=Buffer.from(await bash.fs.readFile("/output.voc"));
+    assert.equal(bytes.toString("ascii",0,19),"Creative Voice File");
+    assert.equal(bytes[26],9);
+    assert.deepEqual(bytes.subarray(42,-1),pcm);
+    const decoded=await bash.exec("cat output.voc | ffmpeg -i - -f s16le -");
+    assert.equal(decoded.exitCode,0,decoded.stderr);
+    assert.deepEqual(Buffer.from(decoded.stdoutBytes),pcm);
+    for(const command of [
+      "ffmpeg -y -i output.voc -c:a pcm_f32le -f voc output",
+      "ffmpeg -y -i output.voc -f mp3 output"
+    ]) {
+      await bash.fs.writeFile("/output","keep");
+      const result=await bash.exec(command);
+      assert.notEqual(result.exitCode,0,command);
+      assert.equal(bash.readText("/output"),"keep");
+    }
+    const first=Buffer.from(bytes.subarray(0,43));
+    first[27]=13;first[34]=8;first[35]=1;first.writeUInt16LE(0,36);
+    const fragmented=Buffer.concat([first,...Array.from({length:99},()=>Buffer.from([2,1,0,0,128])),Buffer.from([0])]);
+    await bash.fs.writeFile("/fragmented.voc",fragmented);
+    for(const command of ["ffmpeg -y -i fragmented.voc -f s16le output","ffprobe -show_packets fragmented.voc"]) {
+      const result=await bash.exec(command,{limits:{maxInputBytes:1000}});
+      assert.notEqual(result.exitCode,0,command);
+      assert.match(result.stderr,/exceeds memory budget/);
+      assert.equal(bash.readText("/output"),"keep");
+    }
+    for(const flag of ["-formats","-muxers","-demuxers"]) {
+      const result=await bash.exec(`ffmpeg ${flag}`);
+      assert.equal(result.exitCode,0);
+      assert.ok(result.stdout.split("\n").some(line=>line.split(" ").filter(Boolean)[1]==="voc"));
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("VOC output splits audio at the 24-bit block boundary", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    const pcm=Buffer.alloc(16_777_204,0x51);
+    pcm.writeInt16LE(12345,pcm.length-4);pcm.writeInt16LE(-30000,pcm.length-2);
+    await bash.fs.writeFile("/raw",pcm);
+    const limits={maxInputBytes:40*1024*1024,maxOutputBytes:40*1024*1024};
+    const encoded=await bash.exec("ffmpeg -f s16le -ar 8000 -ac 2 -i raw -c:a copy large.voc",{limits});
+    assert.equal(encoded.exitCode,0,encoded.stderr);
+    const bytes=Buffer.from(await bash.fs.readFile("/large.voc"));
+    assert.equal(bytes.readUIntLE(27,3),0xfffffc);
+    const second=30+bytes.readUIntLE(27,3);
+    assert.equal(bytes[second],9);
+    assert.equal(bytes.readUIntLE(second+1,3),16);
+    assert.deepEqual(bytes.subarray(second+16,-1),pcm.subarray(-4));
+    const decoded=await bash.exec("ffmpeg -i large.voc -c:a copy -f s16le restored",{limits});
+    assert.equal(decoded.exitCode,0,decoded.stderr);
+    assert.deepEqual(Buffer.from(await bash.fs.readFile("/restored")),pcm);
+  } finally { bash.dispose(); }
+});
+
+
+test("NIST SPHERE conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/nistsphere.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/" + sample.filename, Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.pipe ? `cat /${sample.filename} | ` : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("NIST SPHERE limits and unsupported output preserve existing files", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const bytes = await readFile(new URL("../../mp4-ast/src/fixtures/nist-little.sph", import.meta.url));
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  try {
+    await bash.fs.writeFile("/input.sph", bytes);
+    const pipe = await bash.exec("cat input.sph | ffmpeg -i - -f s16le -");
+    assert.equal(pipe.exitCode, 0, pipe.stderr);
+    assert.equal(Buffer.from(pipe.stdoutBytes).toString("hex"), "c7cfce560000ffffff7f00809d0010ff");
+    for (const command of [
+      "ffmpeg -y -i input.sph -f s16le output",
+      "ffmpeg -y -i input.sph -f ffmetadata output"
+    ]) {
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec(command, {limits:{maxInputBytes:2047}});
+      assert.notEqual(result.exitCode, 0, command);
+      assert.match(result.stderr, /exceeds memory budget/);
+      assert.equal(bash.readText("/output"), "keep");
+    }
+    const probe = await bash.exec("ffprobe -show_format input.sph", {limits:{maxInputBytes:2047}});
+    assert.notEqual(probe.exitCode, 0);
+    assert.match(probe.stderr, /exceeds memory budget/);
+    const longer = Buffer.alloc(9024);
+    bytes.copy(longer);
+    await bash.fs.writeFile("/long.sph", longer);
+    const resample = await bash.exec("ffmpeg -y -i long.sph -ar 11025 -f s16le output", {limits:{maxInputBytes:18048}});
+    assert.notEqual(resample.exitCode, 0);
+    assert.match(resample.stderr, /exceeds memory budget/);
+    assert.equal(bash.readText("/output"), "keep");
+    for (const command of [
+      "ffmpeg -y -i input.sph -f nistsphere output",
+      "ffmpeg -y -i input.sph output.sph",
+      "ffmpeg -y -i input.sph -f mp3 output"
+    ]) {
+      await bash.fs.writeFile("/output", "keep");
+      await bash.fs.writeFile("/output.sph", "keep");
+      const result = await bash.exec(command);
+      assert.notEqual(result.exitCode, 0, command);
+      assert.equal(bash.readText("/output"), "keep");
+      assert.equal(bash.readText("/output.sph"), "keep");
+    }
+    for (const flag of ["-formats", "-demuxers", "-muxers"]) {
+      const result = await bash.exec(`ffmpeg ${flag}`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout.split("\n").some(line => line.split(" ").filter(Boolean)[1] === "nistsphere"), flag !== "-muxers");
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("IRCAM conversion and probing match reference fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/ircam.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input", Buffer.from(fixture.inputs[sample.input], "hex"));
+      await bash.fs.writeFile("/output", "keep");
+      const command = [sample.command, ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.pipe ? "cat /input | " : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.command === "ffprobe") {
+        if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      } else {
+        const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+        assert.equal(bytes.length, sample.length, sample.name);
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("IRCAM filenames and pipes preserve audio and enforce output limits", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  const pcm = Buffer.from("640038ff2c0170fe", "hex");
+  try {
+    await bash.fs.writeFile("/raw", pcm);
+    const encoded = await bash.exec("ffmpeg -f s16le -ar 8000 -i raw output.sf");
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    const bytes = Buffer.from(await bash.fs.readFile("/output.sf"));
+    assert.equal(bytes.readUInt32LE(0), 0x0001a364);
+    assert.deepEqual(bytes.subarray(1024), pcm);
+    const copied = await bash.exec("ffmpeg -i output.sf -c:a copy output.ircam");
+    assert.equal(copied.exitCode, 0, copied.stderr);
+    assert.deepEqual(Buffer.from(await bash.fs.readFile("/output.ircam")), bytes);
+    const pipe = await bash.exec("cat output.sf | ffmpeg -i - -f s16le -");
+    assert.equal(pipe.exitCode, 0, pipe.stderr);
+    assert.deepEqual(Buffer.from(pipe.stdoutBytes), pcm);
+    for (const command of [
+      "ffmpeg -y -f s16le -ar 8000 -i raw output.sf",
+      "ffmpeg -y -i output.ircam -f s16le output.sf"
+    ]) {
+      await bash.fs.writeFile("/output.sf", "keep");
+      const result = await bash.exec(command, {limits:{maxInputBytes:16}});
+      assert.notEqual(result.exitCode, 0, command);
+      assert.equal(bash.readText("/output.sf"), "keep");
+    }
+    const unsupported = await bash.exec("ffmpeg -y -i output.ircam -f mp3 output.sf");
+    assert.notEqual(unsupported.exitCode, 0);
+    assert.equal(bash.readText("/output.sf"), "keep");
+    for (const flag of ["-formats", "-muxers", "-demuxers"]) {
+      const result = await bash.exec(`ffmpeg ${flag}`);
+      assert.equal(result.exitCode, 0);
+      assert.ok(result.stdout.split("\n").some(line => line.split(" ").filter(Boolean)[1] === "ircam"));
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AU FFmpeg conversions preserve native sample bytes and headers", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/au.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, 0, `${sample.name}: ${result.stderr}`);
+      const bytes = sample.args.at(-1) === "-" ? result.stdoutBytes : await bash.fs.readFile("/output");
+      assert.equal(bytes.length, sample.length, sample.name);
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.sha256, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AU FFprobe matches production metadata and packets", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/au-probe.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input.au", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const command = ["ffprobe", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec((sample.args.at(-1) === "-" ? "cat /input.au | " : "") + command);
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.exitCode === 0) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("AU pipes preserve binary audio and rejected conversions preserve files", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  const input = Buffer.from("2e736e6400000020000000080000000300001f400000000100000000000000000064ff38012cfe70", "hex");
+  try {
+    for (const size of [8, 0xffffffff]) {
+      input.writeUInt32BE(size, 8);
+      await bash.fs.writeFile("/input.snd", input);
+      const decoded = await bash.exec("cat /input.snd | ffmpeg -i - -f s16le -");
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      assert.equal(Buffer.from(decoded.stdoutBytes).toString("hex"), "640038ff2c0170fe");
+      const copied = await bash.exec("cat /input.snd | ffmpeg -i - -c:a copy -f au -");
+      assert.equal(copied.exitCode, 0, copied.stderr);
+      const expected = Buffer.from(input);
+      expected.writeUInt32BE(0xffffffff, 8);
+      assert.deepEqual(Buffer.from(copied.stdoutBytes), expected);
+    }
+    for (const command of [
+      "ffmpeg -y -i input.snd -c:a copy -f s16le output",
+      "ffmpeg -y -i input.snd -c:a pcm_u8 -f au output",
+      "ffmpeg -y -i input.snd -f mp3 output"
+    ]) {
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec(command);
+      assert.notEqual(result.exitCode, 0, command);
+      assert.equal(bash.readText("/output"), "keep", command);
+    }
+    await bash.fs.writeFile("/output", "keep");
+    const limited = await bash.exec("ffmpeg -y -i input.snd -f au output", {limits:{maxInputBytes:input.length - 1}});
+    assert.notEqual(limited.exitCode, 0);
+    assert.equal(bash.readText("/output"), "keep");
+    input.writeUInt32BE(0, 8);
+    await bash.fs.writeFile("/input.snd", input);
+    const empty = await bash.exec("ffmpeg -y -i input.snd -f au output");
+    assert.notEqual(empty.exitCode, 0);
+    assert.match(empty.stderr, /Invalid AU data size/);
+    assert.equal(bash.readText("/output"), "keep");
+  } finally { bash.dispose(); }
+});
+
+
+test("raw audio FFmpeg conversions preserve native sample bytes", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/raw-audio.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input", Buffer.from(fixture.inputs[sample.input], "hex"));
+      const command = ["ffmpeg", ...sample.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await bash.exec(command);
+      assert.equal(result.exitCode, 0, `${sample.name}: ${result.stderr}`);
+      let bytes = Buffer.from(await bash.fs.readFile("/output"));
+      if (sample.wave) {
+        let pcm;
+        for (let pos = 12; pos + 8 <= bytes.length;) {
+          const size = bytes.readUInt32LE(pos + 4), name = bytes.toString("ascii", pos, pos + 4);
+          const body = bytes.subarray(pos + 8, pos + 8 + size);
+          if (name === "fmt ") assert.deepEqual([body.readUInt32LE(4), body.readUInt16LE(2), body.readUInt16LE(14), body.readUInt16LE(0) === 65534 ? body.readUInt16LE(24) : body.readUInt16LE(0)], sample.wave, sample.name);
+          if (name === "data") pcm = body;
+          pos += 8 + size + size % 2;
+        }
+        assert.ok(pcm, sample.name); bytes = pcm;
+      }
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), sample.output, sample.name);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("raw audio rejects unavailable container codecs without replacing files", async () => {
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    await bash.fs.writeFile("/input", Uint8Array.of(0,64,0,192));
+    for (const format of ["avi", "mp3", "flac", "ogg"]) {
+      await bash.fs.writeFile("/output", "keep");
+      const result = await bash.exec(`ffmpeg -y -f s16le -ar 8000 -i input -f ${format} output`);
+      assert.equal(result.exitCode, 1, format);
+      assert.match(result.stderr, /not supported/, format);
+      assert.equal(bash.readText("/output"), "keep", format);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("raw audio FFprobe matches production metadata and packets", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/raw-audio-probe.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const sample of fixture.cases) {
+      await bash.fs.writeFile("/input", Uint8Array.from({length: sample.size}, (_, i) => i % 256));
+      const result = await bash.exec(["ffprobe", ...sample.args].join(" "));
+      assert.equal(result.exitCode, sample.exitCode, `${sample.name}: ${result.stderr}`);
+      if (sample.exitCode === 0 && sample.args.includes("json")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(sample.output), sample.name);
+      else assert.equal(result.stdout, sample.output, sample.name);
+    }
+    await bash.fs.writeFile("/input", Uint8Array.of(0,128,255,127));
+    const pipe = await bash.exec("cat /input | ffmpeg -f s16le -ar 8000 -i - -f s16be -");
+    assert.equal(pipe.exitCode, 0, pipe.stderr);
+    assert.equal(Buffer.from(pipe.stdoutBytes).toString("hex"), "80007fff");
+    await bash.fs.writeFile("/output", "keep");
+    const limited = await bash.exec("ffmpeg -y -f s16le -i input -f f64be output", {limits:{maxInputBytes:8}});
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /memory budget/);
+    assert.equal(bash.readText("/output"), "keep");
+  } finally { bash.dispose(); }
+});
+
+
+test("ffmpeg and ffprobe list the production media registry and codecs", async () => {
+  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const { ffmpegCommands } = await import("@poe-platform/safe-bash/commands/ffmpeg");
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(ffmpegCommands());
+  const wasm = new RustWasmBash();
+  try {
+    for (const name of ["ffmpeg", "ffprobe"]) {
+      for (const flag of ["-version", "-formats", "-muxers", "-demuxers", "-encoders", "-decoders", "-codecs"]) {
+        const script = name + " " + flag;
+        const expected = await shell.exec(script);
+        assert.equal(expected.exitCode, 0, expected.stderr);
+        const actual = await wasm.exec(script);
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        assert.equal(actual.stdout, expected.stdout, script);
+      }
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("pdfdetach validates all arguments before pulling stdin", {skip: !WebAssembly.Suspending},async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdfinfoCommands}=await import("@poe-platform/safe-bash/commands/pdfinfo");
+  const invalid=[
+    '--bogus -','- extra.pdf','extra.pdf -',
+    ...['-save','-savefile','-o','-upw','-opw','-enc'].map(flag=>'- '+flag),
+    ...['x','1x','1.5','', '+','-',' 1','0x1','0','-0','-1','9007199254740992'].map(value=>`-save '${value}' -`),
+  ];
+  const js=new Shell({fs:new MemoryFileSystem()}).use(agentCommands()).use(pdfinfoCommands({replace:true})),rust=new RustWasmBash();
+  try {
+    for(const command of invalid) {
+      const results=[];
+      for(const sh of [js,rust]) {
+        const stdin={[Symbol.asyncIterator](){return {async next(){throw Error('stdin must remain unread');}};}};
+        const result=await sh.exec('pdfdetach '+command,{stdin});
+        results.push([result.exitCode,result.stdout,result.stderr]);
+      }
+      assert.deepEqual(results[1],results[0],command);
+      assert.equal(results[1][0],99,command);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("pdfdetach reads stdin only for an input dash and consumes it once", {skip: !WebAssembly.Suspending},async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdfinfoCommands}=await import("@poe-platform/safe-bash/commands/pdfinfo");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage([8,8]);const bytes=doc.save();
+  const fs=new MemoryFileSystem();await fs.writeFile('/in.pdf',bytes);
+  const js=new Shell({fs,cwd:'/'}).use(agentCommands()).use(pdfinfoCommands({replace:true})),rust=new RustWasmBash({cwd:'/',files:{'/in.pdf':bytes}});
+  try {
+    for(const command of ['pdfdetach -list in.pdf','pdfdetach -list -; pdfdetach -list -']) {
+      const results=[];
+      for(const sh of [js,rust]) {
+        let reads=0;
+        const stdin={async *[Symbol.asyncIterator](){reads++;yield bytes;}};
+        const result=await sh.exec(command,{stdin});
+        results.push([result.exitCode,result.stdout,result.stderr,reads]);
+      }
+      assert.deepEqual(results[1],results[0],command);
+      assert.equal(results[1][3],command.includes('in.pdf')?0:1);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("pdftohtml switches flowing and positioned layouts at the default zoom",async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage([200,100]).drawText("Hello",{x:10,y:20,size:12});
+  const bytes=doc.save(),fs=new MemoryFileSystem();await fs.writeFile('/in.pdf',bytes);
+  const js=new Shell({fs,cwd:'/'}).use(agentCommands()).use(pdftotextCommands({replace:true})),rust=new RustWasmBash({cwd:'/',files:{'/in.pdf':bytes}});
+  try {
+    for(const flags of ['', '-s', '-s -zoom 1', '-xml', '-xml -zoom 2']) {
+      const script='pdftohtml -stdout '+flags+' in.pdf',a=await js.exec(script),b=await rust.exec(script);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],script);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+
+test("exiftool prints native byte thresholds, decimal units and rounded file sizes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+  try {
+    for (const size of [999, 1000, 1125, 1245, 1999, 2000, 2250, 4023, 9999, 10000, 10250, 10500, 100500, 999999, 1000000, 1999999, 2000000]) {
+      for (const backend of [fs, wasm.fs]) await backend.writeFile("/f", new Uint8Array(size));
+      const script = "exiftool -s3 -FileSize f";
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.equal(actual.stdout, expected.stdout, String(size));
+      assert.equal(actual.exitCode, 0);
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("magick grayscale operators preserve native luma and alpha through aliases and writes", async () => {
+  const { createHash } = await import("node:crypto");
+  const { encodePng, decodePng } = await import("@poe-code/pdf-ast");
+  const input = encodePng({width: 17, height: 13, data: Uint8Array.from({length: 17 * 13 * 4}, (_, i) => (i * 73 + 19) % 256)});
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    // Native ImageMagick 7.1.2-35, 8-bit RGBA outputs for the same input pixels.
+    for (const [operator, expected] of [
+      ["-colorspace Gray", "bf62ef9c03fbd24190cd67cb07a83d03c8cd02ecca9de1ce6e753f8a92eda584"],
+      ["-grayscale Rec709Luma", "bf62ef9c03fbd24190cd67cb07a83d03c8cd02ecca9de1ce6e753f8a92eda584"],
+      ["-grayscale Rec601Luma", "dc07a299b53f2ea2d1fa730d8d94d5c5770b71116ffecbde8156e489376d853f"],
+    ]) {
+      for (const script of [
+        `magick in.png ${operator} out.png`,
+        `convert in.png ${operator} out.png`,
+        `magick in.png ${operator} -write out.png copy.png`,
+        `mogrify ${operator} out.png`,
+      ]) {
+        await wasm.fs.writeFile("/in.png", input);
+        await wasm.fs.writeFile("/out.png", input);
+        const result = await wasm.exec(script);
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""], script);
+        for (const path of script.includes("-write") ? ["/out.png", "/copy.png"] : ["/out.png"]) {
+          const image = decodePng(await wasm.fs.readFile(path));
+          assert.deepEqual([image.width, image.height], [17, 13]);
+          assert.equal(createHash("sha256").update(image.data).digest("hex"), expected, script);
+        }
+      }
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("magick writes native pixel and alpha values into PDF files", async () => {
+  const { createHash } = await import("node:crypto");
+  const wasm = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    assert.equal((await wasm.exec("magick -size 64x48 gradient:red-blue f.png")).exitCode, 0);
+    // ImageMagick 7.1.2-35 Q16-HDRI, exported as 8-bit RGB and alpha.
+    // Compare decoded pixels: PDF compression and metadata are not image semantics.
+    for (const [operands, width, height, rgb, alpha] of [
+      ["f.png", 64, 48, "1e0dcf2838fb942082b901fb4c13f7d2ba1794ea6244ea9407cf194cd5fd5487", "1a7493ff2f2bde5f78405d46eb01abfeaea9b0a95fa5b6cec211b05faa0cf1d3"],
+      ["-size 3x2 xc:none", 3, 2, "60daa3a5f7dbfa200f8c82840ecf5b42640b70f3b7218a4c6bbd67db542e75a4", "b0f66adc83641586656866813fd9dd0b8ebb63796075661ba45d1aa8089e1d44"],
+      ["f.png -resize 11x7! -colorspace Gray", 11, 7, "7351a66fbdfc0df32b2a78dbe92d6fcc33cf032bb38f49888bada97fdfcf9619", "a225e0ca0f48807bd41b222873c5f835780f632acbdefa397ab1281d5c782d6f"],
+      ["-size 9x3 xc:'#aabbcc77'", 9, 3, "7f02ed4220ad40af3fcd957a1f1ede4b1c46cd46dc810d1e8ce4a516b94e8049", "306fd87ca0fdc303262923e88c47c0432a1fd533aacf695ab108cec34b272bd5"],
+    ]) {
+      const script = "magick " + operands + " f.pdf";
+      const got = await wasm.exec(script);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [0, "", ""], script);
+      const objects = await qpdfDecodedObjects(wasm, "f.pdf");
+      const page = Object.values(objects).find(o => o.value?.["/Type"] === "/Page").value;
+      assert.deepEqual(page["/MediaBox"], [0, 0, width, height]);
+      const image = objects["obj:" + page["/Resources"]["/XObject"]["/Im0"]].stream;
+      const mask = objects["obj:" + image.dict["/SMask"]].stream;
+      for (const [stream, colorspace, digest] of [[image, "/DeviceRGB", rgb], [mask, "/DeviceGray", alpha]]) {
+        assert.deepEqual([stream.dict["/Width"], stream.dict["/Height"], stream.dict["/ColorSpace"], stream.dict["/BitsPerComponent"]], [width, height, colorspace, 8]);
+        assert.equal(createHash("sha256").update(Buffer.from(stream.data, "base64")).digest("hex"), digest, script);
+      }
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("qpdf inspects named attachments against native results",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/attachment-inspection.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
+          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
+        const quiet=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
+        assert.deepEqual([quiet.exitCode,quiet.stderr,quiet.stdoutBytes],[want.status===3?0:want.status,got.stderr,got.stdoutBytes]);
+        const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+        if(limit>1) {
+          const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
+          assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+          const short=bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
+          if(limit<=Buffer.byteLength("qpdf: output byte limit exceeded\n")) {
+            await assert.rejects(short,{limit:"maxOutputBytes"});
+          } else {
+            const result=await short;
+            assert.deepEqual([result.exitCode,result.stdout],[2,""]);
+          }
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf inspection preserves string bytes, sorts decoded keys and selects exact generations", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument, cosArray, cosDict, cosNumber, cosStream, parseCosDocument, dictGet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const nested = cosDict({ z: cosNumber(1), a: cosNumber(2), Z: cosNumber(3), A: cosNumber(4) });
+  const ref = doc.cos.allocateObject(cosArray([
+    cosDict({ Z: nested, A: cosArray([nested]) }),
+    ...["literal", "hex"].flatMap(format => [
+      { kind: "string", format, bytes: Uint8Array.of(65, 40, 41, 92, 10, 13, 9, 8, 12) },
+      { kind: "string", format, bytes: Uint8Array.of(0, 1, 31, 127, 128, 255) },
+      { kind: "string", format, bytes: Uint8Array.of(65, 66) },
+    ]),
+  ]));
+  const stream = doc.cos.allocateObject(cosStream(Uint8Array.of(65, 0, 255), { compress: true }));
+  const generated = doc.cos.allocateObject(cosNumber(123));
+  doc.cos.objects.get(generated.objectNumber).generationNumber = 7;
+  for (const mode of ["disable", "generate", "incremental"]) {
+    let input = doc.save({ objectStreams: mode === "disable" ? "disable" : "generate" });
+    if (mode === "incremental") {
+      const text = Buffer.from(input).toString("latin1"), previous = Number(text.slice(text.lastIndexOf("startxref") + 9).split("%%EOF")[0].trim());
+      const size=dictGet(parseCosDocument(input).revisions[0].trailer,"Size").value;
+      input = new Uint8Array(Buffer.concat([input, Buffer.from(`xref\n0 1\n0000000000 65535 f \ntrailer\n<< /Root 1 0 R /Size ${size} /Prev ${previous} >>\nstartxref\n${input.length}\n%%EOF\n`)]));
+    }
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/in.pdf", input);
+    const shell = new Shell({ cwd: "/", fs }).use(agentCommands()).use(qpdfCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/", files: { "/in.pdf": input } });
+    try {
+      for (const selector of [String(ref.objectNumber), "0", "9999", "trailer", `${generated.objectNumber},7`, `${generated.objectNumber},0`,
+        ...["", ",7"].flatMap(generation => ["", " --raw-stream-data", " --filtered-stream-data"].map(flag => `${stream.objectNumber}${generation}${flag}`))]) {
+        const script = `qpdf in.pdf --show-object=${selector}`, got = await wasm.exec(script), want = await shell.exec(script);
+        assert.equal(want.exitCode, 0, want.stderr);
+        assert.deepEqual([got.exitCode, got.stdoutBytes, got.stderr], [want.exitCode, want.stdoutBytes, want.stderr], `${mode}: ${script}`);
+      }
+      const got = await wasm.exec("qpdf in.pdf --show-xref"), want = await shell.exec("qpdf in.pdf --show-xref");
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr]);
+      assert.deepEqual(await wasm.fs.readFile("/in.pdf"), input);
+    } finally { wasm.dispose(); }
+  }
+});
+
+
+test("qpdf rewrites preserve the page hierarchy and inherited attributes", async () => {
+  const { cosDict, cosRef, cosString, cosStream, cosArray, cosName, cosNumber, serializeCosDocument, parseCosDocument } = await import("@poe-code/pdf-ast");
+  const box = (w,h) => cosArray([0,0,w,h].map(k => cosNumber(k)));
+  const nodes = [
+    cosDict({Type:cosName("Catalog"),Pages:cosRef(2),Outlines:cosRef(8)}),
+    cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3)]),Count:cosNumber(2),MediaBox:box(48,80),Resources:cosDict({Font:cosRef(7)})}),
+    cosDict({Type:cosName("Pages"),Parent:cosRef(2),Count:cosNumber(2),Kids:cosArray([cosRef(4),cosRef(5)]),Rotate:cosNumber(90),CropBox:box(42,72)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(3),Contents:cosRef(6)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(3),MediaBox:box(30,20),Resources:cosDict({}),Rotate:cosNumber(180)}),
+    cosStream(Uint8Array.of(255,0,1,2,10),{compress:true}),cosDict({}),cosDict({Title:cosString("雪")}),
+  ];
+  const input = serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),version:"1.4"});
+  const wasm = new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+  const original = parseCosDocument(input);
+  try {
+    for (const [script,file] of [["qpdf in.pdf out.pdf","/out.pdf"],["cat in.pdf | qpdf - -",null],
+      ["qpdf in.pdf --replace-input","/in.pdf"]]) {
+      const got=await wasm.exec(script);
+      assert.deepEqual([got.exitCode,got.stderr],[0,""],script);
+      const output=parseCosDocument(file?await wasm.fs.readFile(file):got.stdoutBytes);
+      // qpdf 12.4.2 preserves the nested /Pages dictionaries and inherited
+      // attributes on a plain rewrite; page edits materialize them separately.
+      assert.deepEqual([...output.objects.keys()],[...original.objects.keys()]);
+      const fields=(key,value)=>key==="span"||key==="encoding"?undefined:value;
+      for(const [id,object]of original.objects)assert.equal(JSON.stringify(output.getObject(id),fields),JSON.stringify(object.value,fields),script+"/"+id);
+
+    }
+  } finally {wasm.dispose();}
+});
+
+
+test("qpdf split filenames match literal percent fields and preserve extensions", async () => {
+  const {PdfDocument} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(); for (let i=0; i<3; i++) doc.addPage();
+  const input = doc.save();
+  // Filenames independently verified with qpdf 12.4.2, --split-pages=2.
+  for (const [template, names] of [
+    ["pad-%02d.pdf", ["pad-%02d-1-2.pdf", "pad-%02d-3-3.pdf"]],
+    ["plain-%d.pdf", ["plain-1-2.pdf", "plain-3-3.pdf"]],
+    ["twice-%d-%d.pdf", ["twice-1-2-%d.pdf", "twice-3-3-%d.pdf"]],
+    ["escape-%%-%d.pdf", ["escape-%%-1-2.pdf", "escape-%%-3-3.pdf"]],
+    ["joined-%%d.pdf", ["joined-%1-2.pdf", "joined-%3-3.pdf"]],
+    ["literal-%%.pdf", ["literal-%%-1-2.pdf", "literal-%%-3-3.pdf"]],
+    ["upper.PDF", ["upper-1-2.PDF", "upper-3-3.PDF"]],
+    ["text.txt", ["text.txt-1-2", "text.txt-3-3"]],
+    ["bare", ["bare-1-2", "bare-3-3"]],
+  ]) {
+    const bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":input}});
+    try {
+      const before = new Set((await bash.fs.readdir("/")).map(entry => entry.name));
+      const result = await bash.exec("qpdf in.pdf --split-pages=2 '"+template+"'");
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""], template);
+      assert.deepEqual((await bash.fs.readdir("/")).map(entry => entry.name).filter(name => !before.has(name)).sort(), names, template);
+      for (const [index, name] of names.entries()) {
+        assert.equal((await bash.exec("qpdf '"+name+"' --show-npages")).stdout, index === 0 ? "2\n" : "1\n");
+      }
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"), input);
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf split options match native numeric bounds and reject conflicting operands", async () => {
+  const {PdfDocument} = await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create(); for(let i=0;i<3;i++) doc.addPage();
+  const input=doc.save();
+  // qpdf 12.4.2 parses a signed integer prefix, then checks 32-bit bounds.
+  for(const [option,counts] of [
+    ...["0","-0","junk","","+","\ufeff2","\u00852"].map(value=>["--split-pages="+value,[3]]),
+    ...["2junk","2.9","+2"," 2","\v2"].map(value=>["--split-pages="+value,[2,1]]),
+    ["--split-pages",[1,1,1]], ["--split-pages=2147483647",[3]],
+  ]) {
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+    try {
+      const before=new Set((await bash.fs.readdir("/")).map(entry=>entry.name));
+      const result=await bash.exec("qpdf in.pdf '"+option+"' out.pdf");
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[0,"",""],option);
+      const names=(await bash.fs.readdir("/")).map(entry=>entry.name).filter(name=>!before.has(name)).sort();
+      const expected=counts.length===1 ? [option==="--split-pages=2147483647"?"out-1-3.pdf":"out.pdf"]
+        : counts.length===2 ? ["out-1-2.pdf","out-3-3.pdf"] : ["out-1.pdf","out-2.pdf","out-3.pdf"];
+      assert.deepEqual(names,expected,option);
+      for(const [i,name] of names.entries()) assert.equal(PdfDocument.load(await bash.fs.readFile("/"+name)).pageCount,counts[i],option);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),input);
+    } finally {bash.dispose();}
+  }
+  for(const [args,message] of [
+    ...["-1","-1junk","-2147483648"].map(value=>["--split-pages="+value+" out.pdf",
+      "integer out of range converting "+parseInt(value,10)+" from a 4-byte signed type to a 8-byte unsigned type"]),
+    ...["2147483648","-2147483649","9223372036854775807"].map(value=>["--split-pages="+value+" out.pdf",
+      "integer out of range converting "+value+" from a 8-byte signed type to a 4-byte signed type"]),
+    ...["9223372036854775808","-9223372036854775809"," 9223372036854775808junk"].map(value=>["'--split-pages="+value+"' out.pdf",
+      "overflow/underflow converting "+value+" to 64-bit integer"]),
+    ["--split-pages --replace-input","--split-pages may not be used with --replace-input"],
+    ["--replace-input --split-pages=2","--split-pages may not be used with --replace-input"],
+    ["--split-pages 2 ignored.pdf","unknown argument ignored.pdf"],
+    ["out.pdf ignored.pdf","unknown argument ignored.pdf"],
+  ]) {
+    const sentinel=new TextEncoder().encode("keep existing output");
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input,"/out.pdf":sentinel}});
+    try {
+      const before=await bash.fs.readdir("/");
+      const result=await bash.exec("qpdf in.pdf "+args);
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","qpdf: "+message+"\n"],args);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),input,args);
+      assert.deepEqual(await bash.fs.readFile("/out.pdf"),sentinel,args);
+      assert.deepEqual(await bash.fs.readdir("/"),before,args);
+    } finally {bash.dispose();}
+  }
+  const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+  try {
+    for(const flags of ["--split-pages", "--split-pages=-1"]) {
+      const result=await bash.exec("qpdf in.pdf "+flags+" --split-pages=0 --replace-input");
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.equal(PdfDocument.load(await bash.fs.readFile("/in.pdf")).pageCount,3);
+      await assert.rejects(bash.fs.readFile("/in-1.pdf"),{code:"ENOENT"});
+    }
+    const inspected=await bash.exec("qpdf in.pdf --split-pages=-1 --show-npages");
+    assert.deepEqual([inspected.exitCode,inspected.stdout,inspected.stderr],[0,"3\n",""]);
+    const overridden=await bash.exec("qpdf in.pdf --split-pages=-1 --split-pages=2 part.pdf");
+    assert.equal(overridden.exitCode,0,overridden.stderr);
+    assert.equal(PdfDocument.load(await bash.fs.readFile("/part-1-2.pdf")).pageCount,2);
+  } finally {bash.dispose();}
+});
+
+
+test("qpdf rejects empty input when checking for pages",async()=>{
+  const bash=new RustWasmBash();
+  try {
+    const empty=await bash.exec("qpdf --empty --check");
+    assert.deepEqual([empty.exitCode,empty.stderr],[2,"ERROR: file does not contain any pages\nqpdf: errors detected\n"]);
+    assert.ok(empty.stdout.endsWith("File is not linearized\n"));
+  }finally{bash.dispose();}
+});
+
+
+test("qpdf inspects and rewrites inline pages against native results",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {pdf,reports}=JSON.parse(await readFile(new URL("../tests/fixtures/inline-pages.json",import.meta.url),"utf8"));
+  const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+  try {
+    for(const [flags,want]of Object.entries(reports)) {
+      const got=await bash.exec("qpdf in.pdf "+flags);
+      assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
+        [want.status,want.stderr,Buffer.from(want.stdout,"base64")],flags);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+    }
+  }finally{bash.dispose();}
+});
+
+
+test("qpdf repairs direct and compressed page trees with native diagnostics",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/page-tree-repairs.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+": "+flags);
+        if(flags.includes("--json"))assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+": "+flags);
+        else assert.deepEqual(Buffer.from(got.stdoutBytes),Buffer.from(want.stdout,"base64"),name+": "+flags);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+      if(name==="direct-root") {
+        const {PdfDocument,dictGet}=await import("@poe-code/pdf-ast");
+        assert.equal((await bash.exec("qpdf in.pdf --rotate=+90:1 out.pdf")).exitCode,3);
+        const page=PdfDocument.load(await bash.fs.readFile("/out.pdf")).getPage(0);
+        assert.deepEqual([page.width,page.height],[20,30]);
+        assert.equal(dictGet(dictGet(dictGet(page.getResourcesDict(),"Font"),"F1"),"BaseFont").decoded,"Helvetica");
+        const checked=await bash.exec("qpdf out.pdf --check");
+        assert.deepEqual([checked.exitCode,checked.stderr],[0,""]);
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf keeps header-relative offsets and linearization when input has a prefix", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixtures=JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/linearization-reports.json",import.meta.url),"utf8"));
+  for(const {name,pdf,report} of fixtures)for(const prefix of [Buffer.from("junk prefix\n"),Buffer.from([0,255,13,10]),Buffer.alloc(1018,32)]) {
+    const original=Buffer.from(pdf,"base64"),input=Buffer.concat([prefix,original]);
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input,"/plain.pdf":original}});
+    try {
+      for(const flag of ["--show-xref","--show-object=trailer","--check-linearization","--show-linearization","--check"]) {
+        const got=await bash.exec("qpdf in.pdf "+flag),plain=await bash.exec("qpdf plain.pdf "+flag);
+        const expected=flag==="--show-linearization"?report:plain.stdout.replaceAll("plain.pdf","in.pdf");
+        assert.deepEqual([got.exitCode,got.stderr,got.stdout],[0,"",expected],`${name}/${prefix.length}/${flag}`);
+      }
+      assert.equal((await bash.exec("qpdf in.pdf --linearize out.pdf")).exitCode,0);
+      const checked=await bash.exec("qpdf out.pdf --check-linearization");
+      assert.deepEqual([checked.exitCode,checked.stderr,checked.stdout],[0,"","out.pdf: no linearization errors\n"]);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(input));
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf linearization reports match native hint tables and computed object placement", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixtures=JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/linearization-reports.json",import.meta.url),"utf8"));
+  for(const {name,pdf,report} of fixtures) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const flags of ["--show-linearization","--check-linearization","--check-linearization --show-linearization","--show-linearization --check-linearization"]) {
+        const expected=(flags.includes("--check-linearization")?"in.pdf: no linearization errors\n":"")+(flags.includes("--show-linearization")?report:"");
+        const result=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([result.exitCode,result.stderr,result.stdout],[0,"",expected],name+"/"+flags);
+      }
+      const command="qpdf in.pdf --show-linearization";
+      assert.equal((await bash.exec(command,{limits:{maxOutputBytes:Buffer.byteLength(report)}})).stdout,report);
+      const limited=await bash.exec(command,{limits:{maxOutputBytes:Buffer.byteLength(report)-1}});
+      assert.notEqual(limited.exitCode,0);assert.equal(limited.stdout,"");
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      const text=bytes.toString("latin1");
+      for(const changed of [text.replace("/Linearized 1","/Linearized 0"),text.replace("/Linearized 1","/Linearized 2"),text.replace(`/L ${bytes.length}`,`/L ${bytes.length-1}`)]) {
+        assert.notEqual(changed,text);
+        await bash.fs.writeFile("/changed.pdf",Buffer.from(changed,"latin1"));
+        for(const flags of ["--show-linearization","--check-linearization","--check-linearization --show-linearization"]) {
+          const result=await bash.exec("qpdf changed.pdf "+flags);
+          assert.deepEqual([result.exitCode,result.stderr,result.stdout],[0,"","changed.pdf is not linearized\n".repeat(flags.split(" ").length)]);
+        }
+      }
+    }finally{bash.dispose();}
+  }
+  const {PdfDocument}=await import("@poe-code/pdf-ast");const plain=PdfDocument.create();plain.addPage();
+  const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":plain.save()}});
+  try {
+    for(const flags of ["--show-linearization","--check-linearization","--check-linearization --show-linearization"])
+      assert.equal((await bash.exec("qpdf in.pdf "+flags)).stdout,"in.pdf is not linearized\n".repeat(flags.split(" ").length));
+  }finally{bash.dispose();}
+});
+
+
+test("qpdf checks linearization geometry and preserves native warning status", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixtures=JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/linearization-reports.json",import.meta.url),"utf8"));
+  for(const {name,pdf,report} of fixtures) {
+    const text=Buffer.from(pdf,"base64").toString("latin1");
+    const value=key=>Number(report.split(key+": ")[1].split("\n")[0]);
+    const end=value("first_page_end"),xref=value("xref_zero_offset"),first=value("first_page_object");
+    for(const [key,before,warning,field] of [
+      ["E",end,`end of first page section (/E) mismatch: /E = 1; computed = ${end-1}..${end}`,"first_page_end"],
+      ["T",xref,`space before first xref item (/T) mismatch (computed = ${xref+1}; file = 1`,"xref_zero_offset"],
+      ["O",first,"first page object (/O) mismatch","first_page_object"]
+    ]) {
+      const changed=Buffer.from(text.replace(`/${key} ${before}`,`/${key} ${"1".padStart(String(before).length)}`),"latin1");
+      assert.notDeepEqual(changed,Buffer.from(pdf,"base64"));
+      const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":changed}});
+      try {
+        for(const flags of ["--check-linearization","--show-linearization","--check-linearization --show-linearization"])
+          for(const zero of [false,true]) {
+            const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
+            const expectedReport=flags.includes("--show-linearization")?report.replace(`${field}: ${before}\n`,`${field}: 1\n`):"";
+            assert.deepEqual([result.exitCode,result.stdout,result.stderr],[zero?0:3,expectedReport,`WARNING: in.pdf: ${warning}\n`.repeat(flags.split(" ").length)+"qpdf: operation succeeded with warnings\n"],`${name}/${key}/${flags}/${zero}`);
+          }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(changed));
+      }finally{bash.dispose();}
+    }
+  }
+});
+
+
+test("qpdf validates page, shared-object and outline hints against physical objects", async () => {
+  const {readFile}=await import("node:fs/promises");
+  // Independently mutated native qpdf 12.4.2 output and native diagnostics.
+  const {source,cases}=JSON.parse(await readFile(new URL("../tests/fixtures/linearization-hints.json",import.meta.url),"utf8"));
+  for(const {name,changes,stderr,showStderr=stderr,exitCode} of cases) {
+    const bytes=Buffer.from(source,"base64");for(const [offset,value] of changes)bytes[offset]=value;
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const flags of ["--check-linearization","--show-linearization","--check-linearization --show-linearization"])
+        for(const zero of [false,true]) {
+          const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
+          const suffix="qpdf: operation succeeded with warnings\n";
+          const expected=(flags.includes("--check-linearization")?stderr.slice(0,exitCode?-suffix.length:undefined):"")+(flags.includes("--show-linearization")?showStderr.slice(0,exitCode?-suffix.length:undefined):"")+(exitCode?suffix:"");
+          assert.deepEqual([result.exitCode,result.stderr],[zero?0:exitCode,expected],`${name}/${flags}/${zero}`);
+          if(!flags.includes("--show-linearization"))assert.equal(result.stdout,exitCode===0?"in.pdf: no linearization errors\n":"");
+          else {
+            assert.ok(result.stdout.includes("in.pdf: linearization data:\n"));
+            assert.equal(result.stdout.includes("no linearization errors"),exitCode===0&&flags.includes("--check-linearization"));
+          }
+        }
+      if(exitCode===3) {
+        const limit=Buffer.byteLength(stderr);
+        const exact=await bash.exec("qpdf in.pdf --check-linearization",{limits:{maxOutputBytes:limit}});
+        assert.deepEqual([exact.exitCode,exact.stdout,exact.stderr],[3,"",stderr]);
+        const short=await bash.exec("qpdf in.pdf --check-linearization",{limits:{maxOutputBytes:limit-1}});
+        assert.notEqual(short.exitCode,3);assert.equal(short.stdout,"");
+      }
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf general checks include linearization warnings and precede requested inspection", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {source,cases}=JSON.parse(await readFile(new URL("../tests/fixtures/linearization-hints.json",import.meta.url),"utf8"));
+  const prefix="checking in.pdf\nPDF Version: 1.7\nFile is not encrypted\nFile is linearized\n";
+  const success="No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n";
+  for(const {name,changes,stderr,showStderr=stderr,exitCode} of [{name:"valid",changes:[],stderr:"",exitCode:0},...cases]) {
+    const bytes=Buffer.from(source,"base64");for(const [offset,value]of changes)bytes[offset]=value;
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const inspect of ["","--show-npages","--check-linearization"])for(const zero of [false,true]) {
+        const result=await bash.exec(`qpdf in.pdf --check ${inspect}${zero?" --warning-exit-0":""}`);
+        const tail=inspect==="--show-npages"?"3\n":inspect==="--check-linearization"&&exitCode===0?"in.pdf: no linearization errors\n":"";
+        const suffix="qpdf: operation succeeded with warnings\n";
+        const warnings=inspect==="--check-linearization"&&exitCode?stderr.slice(0,-suffix.length).repeat(2)+suffix:stderr;
+        assert.deepEqual([result.exitCode,result.stdout,result.stderr],[zero?0:exitCode,prefix+(exitCode?"":success)+tail,warnings],`${name}/${inspect}/${zero}`);
+      }
+      const shown=await bash.exec("qpdf in.pdf --check --show-linearization");
+      assert.ok(shown.stdout.startsWith(prefix+(exitCode?"":success)+"in.pdf: linearization data:\n"),name);
+      const suffix="qpdf: operation succeeded with warnings\n";
+      assert.deepEqual([shown.exitCode,shown.stderr],[exitCode,exitCode?stderr.slice(0,-suffix.length)+showStderr.slice(0,-suffix.length)+suffix:""]);
+      const limit=Buffer.byteLength(prefix+(exitCode?"":success)+stderr);
+      const exact=await bash.exec("qpdf in.pdf --check",{limits:{maxOutputBytes:limit}});
+      assert.deepEqual([exact.exitCode,exact.stdout,exact.stderr],[exitCode,prefix+(exitCode?"":success),stderr]);
+      const short=await bash.exec("qpdf in.pdf --check",{limits:{maxOutputBytes:limit-1}});
+      assert.notEqual(short.exitCode,exitCode);assert.equal(short.stdout,"");
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf rejects malformed hint tables in show and check modes without changing input", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const [{pdf}]=JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/linearization-reports.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":Buffer.from(pdf,"base64")}});
+  try {
+    const written=await bash.exec("qpdf in.pdf --linearize --stream-data=uncompress out.pdf");
+    assert.equal(written.exitCode,0,written.stderr);
+    const plain=Buffer.from(await bash.fs.readFile("/out.pdf")),text=plain.toString("latin1");
+    const dict=text.indexOf("/Type /Hint"),start=text.indexOf("stream\n",dict)+7;
+    assert.ok(dict>=0&&start>dict);
+    const shared=Number(text.slice(dict).split("/S ")[1].split("\n")[0]);
+    for(const [name,offset,value] of [
+      ["page-width",8,Buffer.from([0,33])],
+      ["shared-width",shared+16,Buffer.from([0,33])],
+      ["shared-count",shared+12,Buffer.from([255,255,255,255])],
+      ["shared-reference-count",60,Buffer.from([255,255,255,255])]
+    ]) {
+      const damaged=Buffer.from(plain);value.copy(damaged,start+offset);
+      await bash.fs.writeFile("/bad.pdf",damaged);
+      for(const flags of ["--show-linearization","--check-linearization","--show-linearization --check-linearization"]) {
+        const result=await bash.exec(`qpdf bad.pdf ${flags}`);
+        assert.notEqual(result.exitCode,0,`${name}/${flags}`);
+        assert.equal(result.stdout,"");
+      }
+      assert.deepEqual(await bash.fs.readFile("/bad.pdf"),new Uint8Array(damaged));
+    }
+    const check="out.pdf: no linearization errors\n";
+    assert.equal((await bash.exec("qpdf out.pdf --check-linearization",{limits:{maxOutputBytes:check.length}})).stdout,check);
+  }finally{bash.dispose();}
+});
+
+
+test("qpdf stream recovery matches native diagnostics, boundaries, and lazy inspection", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/stream-recovery.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports,rewritten}] of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want] of Object.entries(reports)) for(const zero of [false,true]) {
+        const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
+        assert.deepEqual([result.exitCode,Buffer.from(result.stdoutBytes),result.stderr],
+          [zero&&want.status===3?0:want.status,Buffer.from(want.stdout,"base64"),want.stderr],`${name}/${flags}/${zero}`);
+      }
+      const measured=await bash.exec("qpdf in.pdf --show-object=4");
+      const limit=measured.stdoutBytes.length+Buffer.byteLength(measured.stderr);
+      assert.deepEqual(await bash.exec("qpdf in.pdf --show-object=4",{limits:{maxOutputBytes:limit}}),measured,name);
+      assert.equal((await bash.exec("qpdf in.pdf --show-object=4",{limits:{maxOutputBytes:limit-1}})).exitCode,2,name);
+      const written=await bash.exec("qpdf in.pdf --stream-data=uncompress out.pdf");
+      const page=await bash.exec("qpdf out.pdf --show-pages");
+      const stream=page.stdout.split("content:\n")[1].trim().split(" ")[0];
+      const output=await bash.exec(`qpdf out.pdf --show-object=${stream} --raw-stream-data`);
+      assert.deepEqual([output.exitCode,output.stderr,Buffer.from(output.stdoutBytes)],
+        [0,"",Buffer.from(rewritten.stream,"base64")],name);
+      assert.equal((await bash.exec(`qpdf out.pdf --show-object=${stream}`)).stdout,rewritten.dictionary,name);
+      assert.equal(written.exitCode,reports["--stream-data=uncompress out.pdf"].status);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+    }finally{bash.dispose();}
+  }
+});
+
+
+async function qpdfDecodedObjects(bash, path) {
+  const raw=await bash.exec(`qpdf ${path} --json --json-key=qpdf`);
+  const decoded=await bash.exec(`qpdf ${path} --json --json-key=qpdf --json-stream-data=inline`);
+  assert.equal(raw.exitCode,0,raw.stderr);assert.equal(decoded.exitCode,0,decoded.stderr);
+  const objects=JSON.parse(decoded.stdout).qpdf[1];
+  // QDF stores encoded stream lengths as separate objects. Compare the decoded
+  // graph without those storage lengths when the compression mode differs.
+  for(const value of Object.values(JSON.parse(raw.stdout).qpdf[1])) {
+    const length=value.stream?.dict["/Length"];
+    if(typeof length==="string") delete objects["obj:"+length];
+  }
+  return objects;
+}
+
+
+async function qpdfStreamSnapshot(bash, path, contentsOnly = false) {
+  const result=await bash.exec(`qpdf ${path} --json --json-key=pages --json-key=qpdf --json-stream-data=inline --decode-level=none`);
+  assert.equal(result.exitCode,0,result.stderr);
+  const report=JSON.parse(result.stdout),contents=new Set(report.pages.flatMap(p=>p.contents));
+  return Object.entries(report.qpdf[1]).filter(([key,v])=>v.stream&&!['/ObjStm','/XRef'].includes(v.stream.dict['/Type'])&&(!contentsOnly||contents.has(key.slice(4))))
+    .map(([,v])=>JSON.stringify([v.stream.dict['/Filter']??null,v.stream.data])).sort();
+}
+
+
+test("qpdf compresses unfiltered streams by default and honors ordered stream overrides", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument, cosArray, cosDict, cosName, cosStream, dictSet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  const page = doc.addPage([20, 30]);
+  const content = doc.cos.allocateObject(cosStream(new TextEncoder().encode("q\r\nBI /W 3 /H 1 /BPC 8 /CS /G ID \r\n\r EI\rQ"), { compress: true }));
+  dictSet(page.dict, "Contents", cosArray([content]));
+  doc.cos.allocateObject(cosStream(Uint8Array.of(0, 255, 1, 2), { compress: false }));
+  doc.cos.allocateObject(cosStream(Uint8Array.of(4, 5, 6), { compress: true }));
+  doc.cos.allocateObject(cosStream(new TextEncoder().encode("4142>"), { dict: cosDict({ Filter: cosName("ASCIIHexDecode") }), compress: false }));
+  const input = doc.save(), fs = new MemoryFileSystem();
+  await fs.writeFile("/in.pdf", input);
+  const shell = new Shell({ cwd: "/", fs }).use(agentCommands()).use(qpdfCommands({ replace: true }));
+  const wasm = new RustWasmBash({ cwd: "/", files: { "/in.pdf": input } });
+  const {readFile}=await import("node:fs/promises");
+  const native=JSON.parse(await readFile(new URL("../tests/fixtures/uncompressed-streams.json",import.meta.url),"utf8")).cases.compression.input;
+  try {
+    for (const flags of ["", "--stream-data=preserve", "--stream-data=compress", "--compress-streams=n", "--compress-streams=y",
+      "--compress-streams=y --stream-data=preserve", "--stream-data=preserve --compress-streams=y",
+      "--normalize-content=y", "--normalize-content=y --normalize-content=n",
+      "--stream-data=uncompress --stream-data=unknown", "--stream-data=uncompress --normalize-content=n"]) {
+      const script = `qpdf in.pdf ${flags} out.pdf`, want = await shell.exec(script), got = await wasm.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr], script);
+      // Native qpdf decodes streams independently of content normalization.
+      if(native[flags]) assert.deepEqual(await qpdfStreamSnapshot(wasm,"out.pdf"),native[flags],script);
+      else assert.deepEqual(await wasm.fs.readFile("/out.pdf"), await fs.readFile("/out.pdf"), script);
+      assert.deepEqual(await wasm.fs.readFile("/in.pdf"), input);
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("qpdf writes QDF references, stream lengths and offsets without changing source files", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, cosString, serializeCosDocument, PdfDocument } = await import("@poe-code/pdf-ast");
+  const input = serializeCosDocument({ version: "1.4", rootRef: cosRef(10, 2), infoRef: cosRef(60), idArray: cosArray([cosString("left"), cosString("right")]), objects: [
+    { objectNumber: 10, generationNumber: 2, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(20), Missing: cosRef(99) }) },
+    { objectNumber: 20, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Count: cosNumber(2), Kids: cosArray([cosRef(30), cosRef(35)]) }) },
+    ...[30, 35].map(objectNumber => ({ objectNumber, generationNumber: 0, value: cosDict({ Type: cosName("Page"), Parent: cosRef(20), Contents: cosRef(40), MediaBox: cosArray([0,0,10,20].map(v=>cosNumber(v))), Resources: cosDict({}) }) })),
+    { objectNumber: 40, generationNumber: 0, value: cosStream(Uint8Array.of(0, 13, 10, 255, 65), { compress: false }) },
+    { objectNumber: 60, generationNumber: 0, value: cosDict({ Title: cosString("雪"), Empty: cosArray([]) }) },
+  ] });
+  const files = { "/in.pdf": input, "/packed.pdf": PdfDocument.load(input).save({ objectStreams: "generate" }) };
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files });
+  for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+  const shell = new Shell({ cwd: "/", fs }).use(agentCommands()).use(qpdfCommands({ replace: true }));
+  try {
+    for (const [path, input] of Object.entries(files)) for (const flags of ["--qdf --normalize-content=n", "--object-streams=generate --qdf --normalize-content=n", "--qdf --normalize-content=n --compress-streams=y"]) {
+      const cmd = `qpdf ${path} ${flags} out.pdf`, want = await shell.exec(cmd), got = await wasm.exec(cmd);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr], cmd);
+      const actual = await wasm.fs.readFile("/out.pdf"), expected = await fs.readFile("/out.pdf");
+      assert.deepEqual(actual, expected, cmd);
+      assert.equal(PdfDocument.load(actual).getPageCount(), 2);
+      assert.deepEqual(await wasm.fs.readFile(path), input);
+      const bounded = await wasm.exec(cmd, { limits: { maxOutputBytes: expected.length } });
+      assert.equal(bounded.exitCode, 0, bounded.stderr);
+      const failed = await wasm.exec(cmd, { limits: { maxOutputBytes: expected.length - 1 } });
+      assert.notEqual(failed.exitCode, 0);
+      assert.deepEqual(await wasm.fs.readFile("/out.pdf"), expected);
+    }
+    for (const group of [1, 2]) for (const edit of ["", "--remove-info", "--flatten-rotation", "--externalize-inline-images --ii-min-bytes=2"]) {
+      const cmd = `qpdf in.pdf --split-pages=${group} --qdf --normalize-content=n ${edit} split.pdf`;
+      const want = await shell.exec(cmd), got = await wasm.exec(cmd);
+      assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr], cmd);
+      assert.equal(want.exitCode, 0, want.stderr);
+      const paths = group === 1 ? ["/split-1.pdf", "/split-2.pdf"] : ["/split-1-2.pdf"];
+      let total = 0;
+      for (const path of paths) {
+        total += (await fs.readFile(path)).length;
+        assert.deepEqual(await wasm.fs.readFile(path), await fs.readFile(path), cmd);
+      }
+      assert.equal((await wasm.exec(cmd, { limits: { maxOutputBytes: total } })).exitCode, 0);
+      assert.notEqual((await wasm.exec(cmd, { limits: { maxOutputBytes: total - 1 } })).exitCode, 0);
+      for (const path of paths) assert.deepEqual(await wasm.fs.readFile(path), await fs.readFile(path));
+    }
+  } finally { wasm.dispose(); }
+});
+
+
+test("qpdf splits edited QDF graphs with sparse object IDs within output limits", async () => {
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const content="1 0 0 rg 20 30 50 60 re f\n",offsets=[];
+  let input="%PDF-1.4\n";
+  for(const [id,body] of [
+    [10,"<< /Type /Catalog /Pages 20 0 R >>"],
+    [20,"<< /Type /Pages /Count 1 /Kids [30 0 R] >>"],
+    [30,"<< /Type /Page /Parent 20 0 R /MediaBox [0 0 100 100] /Resources << >> /Contents 100 0 R >>"],
+    [100,"<< /Length "+content.length+" >>\nstream\n"+content+"endstream"],
+  ]) {offsets.push([id,input.length]);input+=id+" 0 obj\n"+body+"\nendobj\n";}
+  const xref=input.length;
+  input+="xref\n0 1\n0000000000 65535 f \n"+offsets.map(([id,at])=>id+" 1\n"+String(at).padStart(10,"0")+" 00000 n \n").join("")+
+    "trailer << /Root 10 0 R /Size 101 >>\nstartxref\n"+xref+"\n%%EOF\n";
+  const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+  try {
+    for(const edit of ["--remove-info","--flatten-rotation","--externalize-inline-images"]) {
+      const result=await bash.exec("qpdf in.pdf --qdf --normalize-content=n --split-pages "+edit+" part.pdf",{limits:{maxOutputBytes:2048}});
+      assert.equal(result.exitCode,0,result.stderr);
+      const bytes=await bash.fs.readFile("/part-1.pdf"),doc=PdfDocument.load(bytes);
+      assert.ok(Buffer.from(bytes).includes(Buffer.from("%QDF-1.0")));
+      assert.equal(doc.getPageCount(),1);
+      assert.equal(Buffer.from(doc.getPage(0).getRawContentStream()).toString(),content);
+      assert.equal([...doc.cos.objects.values()].filter(o=>o.value.kind==="number").length,1);
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("qpdf selects JSON sections and emits versioned objects without decoding omitted streams", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument, cosName, cosStream, dictSet} = await import("@poe-code/pdf-ast");
+  const {readFile} = await import("node:fs/promises");
+  const native = JSON.parse(await readFile(new URL("../tests/fixtures/json-trailer-references.json", import.meta.url), "utf8"));
+  const doc = PdfDocument.create(); doc.setTitle("versioned 雪"); doc.addPage();
+  const data = doc.cos.allocateObject(cosStream(Uint8Array.of(0, 255, 65), {compress:true}));
+  const unsupported = cosStream(Uint8Array.of(1, 2), {compress:false});
+  dictSet(unsupported.dict, "Filter", cosName("UnsupportedJsonFilter"));
+  const files = {"/plain.pdf":doc.save(), "/packed.pdf":await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/compressed-pages.pdf", import.meta.url))};
+  doc.cos.allocateObject(unsupported); files["/unsupported.pdf"] = doc.save();
+  const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files});
+  for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+  const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const version of [1, 2]) for (const path of ["plain.pdf", "packed.pdf"]) {
+      const objects = version === 1 ? "objects" : "qpdf";
+      for (const keys of [[objects], ["attachments"], ["outlines"], ["pagelabels"], ["acroform"],
+        ["attachments", objects, "attachments"], ...(version === 1 ? [["objectinfo"], ["objectinfo", objects]] : [])]) {
+        for (const mode of ["none", "inline", "file"]) {
+          for (const backend of [shell, bash]) await backend.exec("rm -f stream-*");
+          const script = `qpdf ${path} --json=${version} ${keys.map(k => "--json-key=" + k).join(" ")} --json-stream-data=${mode} --json-stream-prefix=stream-`;
+          // Native qpdf supplies the separator; TypeScript requires it in the prefix.
+          const want = await shell.exec(script), got = await bash.exec(script.replace("--json-stream-prefix=stream-","--json-stream-prefix=stream"));
+          assert.equal(want.exitCode, 0, want.stderr);
+          assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr], script);
+          const expected = JSON.parse(want.stdout);
+          if (path === "packed.pdf" && expected.qpdf?.[1].trailer) expected.qpdf[1].trailer = native.packed;
+          assert.deepEqual(JSON.parse(got.stdout), expected, script);
+          const names = (await fs.readdir("/")).map(entry => entry.name).filter(name => name.startsWith("stream-")).sort();
+          assert.deepEqual((await bash.fs.readdir("/")).map(entry => entry.name).filter(name => name.startsWith("stream-")).sort(), names, script);
+          for (const name of names) {
+            assert.deepEqual(await bash.fs.readFile("/" + name), await fs.readFile("/" + name), script);
+          }
+        }
+      }
+      for (const selector of [String(data.objectNumber), "trailer", "99999"]) {
+        const script = `qpdf ${path} --json=${version} --json-key=${objects} --json-object=${selector}`;
+        const want = await shell.exec(script), got = await bash.exec(script);
+        assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr], script);
+        const expected = JSON.parse(want.stdout);
+        if (path === "packed.pdf" && expected.qpdf?.[1].trailer) expected.qpdf[1].trailer = native.packed;
+        assert.deepEqual(JSON.parse(got.stdout), expected, script);
+      }
+      const script = `qpdf unsupported.pdf --json=${version} --json-key=attachments --json-stream-data=inline`;
+      const want = await shell.exec(script), got = await bash.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("qpdf JSON page and outline summaries resolve inherited resources, labels and named destinations", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument, cosArray, cosBool, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet, dictDelete} = await import("@poe-code/pdf-ast");
+  const {readFile} = await import("node:fs/promises");
+  const doc = PdfDocument.create(), alloc = value => doc.cos.allocateObject(value);
+  const pages = Array.from({length:6}, () => doc.addPage());
+  pages[0].drawText("page contents", {x:10, y:20});
+  const root = doc.cos.resolveDict(doc.cos.rootRef);
+  const image = alloc(cosStream(Uint8Array.of(0), {compress:false, dict:cosDict({Type:cosName("XObject"), Subtype:cosName("Image"),
+    Width:alloc(cosNumber(2)), Height:cosNumber(3), BitsPerComponent:cosNumber(8), ColorSpace:cosName("DeviceGray")})}));
+  const jpeg = alloc(cosStream(Uint8Array.of(0), {compress:false, dict:cosDict({Subtype:cosName("Image"), Filter:cosName("DCTDecode"), DecodeParms:cosDict({ColorTransform:cosNumber(0)})})}));
+  const mask = alloc(cosStream(Uint8Array.of(0), {compress:false, dict:cosDict({Subtype:cosName("Image"), ImageMask:cosBool(true)})}));
+  const filtered = alloc(cosStream(Uint8Array.of(0), {compress:false, dict:cosDict({Subtype:cosName("Image"),
+    Filter:cosArray([cosName("FlateDecode"), cosName("ASCIIHexDecode")]), DecodeParms:cosArray([cosDict({Predictor:cosNumber(1)})])})}));
+  const resources = alloc(cosDict({XObject:alloc(cosDict({Z:jpeg, Shared:image, A:image, Mask:mask, Filters:filtered, Form:cosDict({Subtype:cosName("Form")})}))}));
+  dictSet(doc.cos.resolveDict(dictGet(root, "Pages")), "Resources", resources);
+  dictDelete(pages[1].pageDict, "Resources");
+  dictSet(pages[2].pageDict, "Resources", resources);
+  dictSet(pages[3].pageDict, "Contents", alloc(cosArray([image, jpeg])));
+  dictSet(root, "PageLabels", cosDict({Kids:cosArray([alloc(cosDict({Nums:cosArray([
+    cosNumber(0), cosDict({S:cosName("r"), St:cosNumber(1)}),
+    cosNumber(4), cosDict({S:cosName("D"), St:cosNumber(3), P:cosString("π")}),
+    cosNumber(5), cosDict({P:cosString("")})
+  ])}))])}));
+  const dest = cosArray([pages[1].ref, cosName("Fit")]);
+  dictSet(root, "Dests", cosDict({legacy:cosDict({D:dest})}));
+  dictSet(root, "Names", cosDict({Dests:cosDict({Kids:cosArray([alloc(cosDict({Names:cosArray([cosString("named"), cosDict({D:cosArray([pages[2].ref, cosName("XYZ"), cosNumber(1), cosNumber(2), cosNumber(3)])})])}))])})}));
+  const unresolved = alloc(cosDict({Title:cosString("unknown"), Dest:cosName("missing")}));
+  const next = alloc(cosDict({Title:cosString("named 雪"), A:cosDict({D:cosString("named")}), Next:unresolved}));
+  const child = alloc(cosDict({Title:cosString("legacy"), Dest:cosName("legacy")}));
+  const first = alloc(cosDict({Title:cosString("direct"), Dest:dest, Count:cosNumber(-1), First:child, Next:next}));
+  dictSet(doc.cos.resolveDict(child), "Next", first);
+  dictSet(root, "Outlines", cosDict({First:first}));
+  const files = {"/in.pdf":doc.save(), "/packed.pdf":doc.save({objectStreams:"generate"}),
+    "/native.pdf":await readFile(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))};
+  const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files});
+  for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+  const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const version of [1, 2]) for (const path of Object.keys(files)) for (const section of ["pages", "pagelabels", "outlines"]) {
+      const script = `qpdf ${path} --json=${version} --json-key=${section}`;
+      const want = await shell.exec(script), got = await bash.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("qpdf JSON forms report page widgets with inherited values, flags and choice labels", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument, cosArray, cosBool, cosDict, cosName, cosNumber, cosString, dictSet} = await import("@poe-code/pdf-ast");
+  for (const mode of ["none", "empty", "widgetless", "text", "choice", "checkbox", "radio", "push"]) {
+    const doc = PdfDocument.create(); doc.addPage(); const page = doc.addPage();
+    const alloc = value => doc.cos.allocateObject(value), flags = mode === "radio" ? 32768 : mode === "push" ? 65536 : 0;
+    const type = mode === "choice" ? "Ch" : ["checkbox", "radio", "push"].includes(mode) ? "Btn" : "Tx";
+    const parent = alloc(cosDict({T:cosString("approval"), TU:cosString("not inherited"), TM:cosString("not inherited"),
+      FT:cosName(type), Ff:cosNumber(flags), V:type === "Btn" ? cosName("Yes") : cosString("Zoë 雪"), DV:cosString("Default"),
+      Opt:cosArray([cosString("One"), alloc(cosArray([cosString("export"), alloc(cosString("Display"))]))])}));
+    const widget = alloc(cosDict({Subtype:cosName("Widget"), Parent:parent, T:cosString("reviewer"),
+      TU:cosString("Reviewer"), TM:cosString("reviewer-id"), F:cosNumber(4), AS:cosName("Yes")}));
+    dictSet(doc.cos.resolveDict(parent), "Kids", cosArray([widget]));
+    dictSet(doc.cos.resolveDict(parent), "Parent", widget);
+    if (mode !== "none") dictSet(doc.cos.resolveDict(doc.cos.rootRef), "AcroForm", alloc(cosDict({
+      Fields:cosArray(mode === "empty" ? [] : [parent]), Q:cosNumber(2), NeedAppearances:cosBool(true)})));
+    if (!["none", "empty", "widgetless"].includes(mode)) dictSet(page.pageDict, "Annots", alloc(cosArray([widget, cosDict({Subtype:cosName("Link")}),
+      cosDict({Subtype:cosName("Widget"), FT:cosName("Tx"), T:cosString("direct"), V:cosString("value")})])));
+    const files = {"/in.pdf":doc.save(), "/packed.pdf":doc.save({objectStreams:"generate"})};
+    const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files});
+    for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+    const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+    try {
+      for (const version of [1, 2]) for (const path of Object.keys(files)) {
+        const script = `qpdf ${path} --json=${version} --json-key=acroform`;
+        const want = await shell.exec(script), got = await bash.exec(script);
+        assert.equal(want.exitCode, 0, want.stderr);
+        assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], mode + ": " + script);
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf JSON preserves native string bytes and trailer metadata",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/json-string-metadata.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+": "+flags);
+        assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+": "+flags);
+        if(name==="strings")assert.deepEqual(Buffer.from(got.stdoutBytes),Buffer.from(want.stdout,"base64"),flags);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf JSON omits null dictionary entries while preserving array references",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/json-null-references.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+": "+flags);
+        if(flags.includes("--json"))assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+": "+flags);
+        else assert.deepEqual(Buffer.from(got.stdoutBytes),Buffer.from(want.stdout,"base64"),name+": "+flags);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf JSON exports the repaired attachment name tree",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/repaired-name-trees.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+        assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+"/"+flags);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf JSON attachments match native named files and warnings",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/attachment-json.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+        assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+"/"+flags);
+        const inline=await bash.exec("qpdf in.pdf "+flags+" --json-stream-data=inline --warning-exit-0");
+        assert.deepEqual([inline.exitCode,inline.stderr,inline.stdout],[want.status===3?0:want.status,got.stderr,got.stdout]);
+        const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+        const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
+        assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+        await bash.fs.writeFile("/out.json",Buffer.from("original"));
+        const failed=await bash.exec("qpdf in.pdf "+flags+" out.json",{limits:{maxOutputBytes:32}});
+        assert.notEqual(failed.exitCode,0);
+        assert.equal(bash.readText("/out.json"),"original");
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+
+test("qpdf JSON decode levels preserve raw filters and bytes or export decoded streams", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const input = await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/compressed-pages.pdf", import.meta.url));
+  const snapshots = JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/json-decode-level.json", import.meta.url), "utf8"));
+  const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":input, "/out":"unchanged"}});
+  await fs.writeFile("/in.pdf", input); await fs.writeFile("/out", Buffer.from("unchanged"));
+  const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const level of ["none", "generalized", "specialized", "all"]) for (const mode of ["none", "inline", "file"]) {
+      const script = `qpdf in.pdf --json --json-key=qpdf --json-object=7 --json-object=8 --json-stream-prefix=stream- --json-stream-data=${mode} --decode-level=${level}`;
+      const want = await shell.exec(script), got = await bash.exec(script.replace("--json-stream-prefix=stream-","--json-stream-prefix=stream"));
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+      const native = structuredClone(snapshots[`${level === "none" ? "none" : "generalized"}-${mode === "file" ? "inline" : mode}`]);
+      native.parameters.decodelevel = level;
+      if (mode === "file") for (const [key, {stream}] of Object.entries(native.qpdf[1])) {
+        stream.datafile = "stream-" + key.slice(4).split(" ")[0];
+        const bytes = Buffer.from(stream.data, "base64"); delete stream.data;
+        assert.deepEqual(Buffer.from(await bash.fs.readFile("/" + stream.datafile)), bytes, script);
+        assert.deepEqual(Buffer.from(await fs.readFile("/" + stream.datafile)), bytes, script);
+      }
+      assert.deepEqual(JSON.parse(got.stdout), native, script);
+    }
+    for (const script of ["qpdf absent --json --decode-level=invalid out", "qpdf in.pdf --decode-level= out", "qpdf in.pdf --json --decode-level=none --decode-level=all --json-key=pages"]) {
+      const want = await shell.exec(script), got = await bash.exec(script);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+      assert.equal(Buffer.from(await bash.fs.readFile("/out")).toString(), "unchanged");
+    }
+    const {PdfDocument, cosName, cosStream, dictSet} = await import("@poe-code/pdf-ast");
+    const doc = PdfDocument.create(); doc.addPage();
+    const data = cosStream(Uint8Array.of(0, 1, 255), {compress:false});
+    dictSet(data.dict, "Filter", cosName("UnsupportedJsonFilter"));
+    const reference = doc.cos.allocateObject(data);
+    const encrypted = doc.save({encrypt:{userPassword:"reader", ownerPassword:"owner"}});
+    await fs.writeFile("/secret", encrypted); await bash.fs.writeFile("/secret", encrypted);
+    for (const version of [1, 2]) {
+      const script = `qpdf secret --password=reader --json=${version} --json-key=${version === 1 ? "objects" : "qpdf"} --json-object=${reference.objectNumber} --json-stream-data=inline --decode-level=none`;
+      const want = await shell.exec(script), got = await bash.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr],[0,""]);
+      if(version===1) {
+        // Native JSON v1 reports the physical ciphertext length, including IV and padding.
+        assert.deepEqual(JSON.parse(got.stdout),{version:1,parameters:{decodelevel:"none"},
+          objects:{[reference.objectNumber+" 0 R"]:{"/Filter":"/UnsupportedJsonFilter","/Length":32}}});
+      }else assert.deepEqual(JSON.parse(got.stdout),JSON.parse(want.stdout),script);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("qpdf reports native cross-reference reconstruction warnings across inspections and writes", async () => {
+  // qpdf 12.4.2: damage only startxref in an independently constructed PDF.
+  const base=Buffer.from("JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggNCA+PgpzdHJlYW0KcSBRCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMjcwCiUlRU9GCg==","base64");
+  const text=base.toString("latin1"),start=text.indexOf("startxref");
+  for(const [name,bytes,cause] of [
+    ["missing",base.subarray(0,start),"WARNING: in.pdf: can't find startxref\n"],
+    ["bad",Buffer.from(text.slice(0,start)+"startxref\n1\n%%EOF\n","latin1"),"WARNING: in.pdf (offset 1): xref not found\n"],
+    ["outside",Buffer.from(text.slice(0,start)+"startxref\n99999\n%%EOF\n","latin1"),"WARNING: in.pdf (offset 99999): xref not found\n"]
+  ])for(const zero of [false,true]) {
+    const warnings="WARNING: in.pdf: file is damaged\n"+cause+"WARNING: in.pdf: Attempting to reconstruct cross-reference table\n";
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes,"/clean.pdf":base,"/a.pdf":bytes,"/z.pdf":bytes,"/in.pdf.~qpdf-orig":"previous backup"}});
+    try {
+      for(const flags of ["--show-npages","--show-xref","--show-object=4","--show-object=4 --raw-stream-data","--json --json-key=pages","--check","--check-linearization"]) {
+        const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
+        const clean=await bash.exec(`qpdf clean.pdf ${flags}`);
+        const stdout=flags==="--check"?"checking in.pdf\nPDF Version: 1.7\nFile is not encrypted\nFile is not linearized\n":clean.stdout.replaceAll("clean.pdf","in.pdf");
+        assert.deepEqual([result.exitCode,result.stdout,result.stderr],[zero?0:3,stdout,warnings+"qpdf: operation succeeded with warnings\n"],`${name}/${flags}/${zero}`);
+      }
+      for(const flags of ["out.pdf","--qdf out.pdf","--linearize out.pdf","--object-streams=generate out.pdf","--pages . 1 -- out.pdf","--split-pages out.pdf","--json --json-key=pages out.json","-"]) {
+        const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
+        const suffix=flags==="-"?"":"; resulting file may have some problems";
+        assert.deepEqual([result.exitCode,result.stderr],[zero?0:3,warnings+`qpdf: operation succeeded with warnings${suffix}\n`],`${name}/${flags}/${zero}`);
+        if(flags==="-")assert.ok(Buffer.from(result.stdoutBytes).subarray(0,5).equals(Buffer.from("%PDF-")));
+        else assert.equal(result.stdout,"");
+      }
+      for(const [flags,names,status] of [
+        ["--pages z.pdf 1 a.pdf 1 z.pdf 1 -- out.pdf",["a.pdf","z.pdf"],3],
+        ["--overlay z.pdf -- out.pdf",["z.pdf"],0],
+        ["--copy-attachments-from z.pdf -- out.pdf",["z.pdf"],3]
+      ]) {
+        const result=await bash.exec(`qpdf clean.pdf ${flags}${zero?" --warning-exit-0":""}`);
+        const stderr=names.map(n=>warnings.replaceAll("in.pdf",n)).join("")+(status?"qpdf: operation succeeded with warnings; resulting file may have some problems\n":"");
+        assert.deepEqual([result.exitCode,result.stdout,result.stderr],[zero?0:status,"",stderr],`${name}/${flags}/${zero}`);
+      }
+      const measured=await bash.exec("qpdf in.pdf --show-npages");
+      const total=Buffer.byteLength(measured.stdout+measured.stderr);
+      assert.deepEqual(await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:total}}),measured);
+      assert.equal((await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:total-1}})).exitCode,2);
+      const longName="x".repeat(240)+".pdf";
+      await bash.fs.writeFile("/"+longName,bytes);
+      await bash.fs.writeFile("/bounded.pdf",Buffer.from("prior"));
+      const bounded=await bash.exec(`qpdf ${longName} bounded.pdf`,{limits:{maxOutputBytes:800}});
+      assert.equal(bounded.exitCode,2);
+      assert.equal(bash.readText("/bounded.pdf"),"prior");
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      await bash.fs.writeFile("/blocked.pdf",bytes);
+      assert.equal((await bash.exec("mkdir blocked.pdf.~qpdf-orig")).exitCode,0);
+      const blocked=await bash.exec("qpdf blocked.pdf --replace-input");
+      assert.deepEqual([blocked.exitCode,blocked.stderr],[2,warnings.replaceAll("in.pdf","blocked.pdf")+"qpdf: rename blocked.pdf blocked.pdf.~qpdf-orig: Is a directory\n"]);
+      assert.deepEqual(await bash.fs.readFile("/blocked.pdf"),new Uint8Array(bytes));
+      const replaced=await bash.exec(`qpdf in.pdf --replace-input${zero?" --warning-exit-0":""}`);
+      assert.deepEqual([replaced.exitCode,replaced.stderr],[zero?0:3,warnings+"qpdf: there are warnings; original file kept in in.pdf.~qpdf-orig\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"]);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf.~qpdf-orig"),new Uint8Array(bytes));
+      assert.equal((await bash.exec("qpdf in.pdf --check")).exitCode,0);
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf validates the latest trailer and catalog against native results",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/strict-catalogs.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        await bash.fs.writeFile("/out.pdf",Buffer.from("original"));
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+        const expected=Buffer.from(want.stdout,"base64");
+        if(flags.startsWith("--json")&&want.status!==2)assert.deepEqual(JSON.parse(got.stdout),JSON.parse(expected.toString()),name+"/"+flags);
+        else assert.deepEqual(Buffer.from(got.stdoutBytes),expected,name+"/"+flags);
+        if(want.status===2||flags==="--split-pages out.pdf")assert.equal(bash.readText("/out.pdf"),"original");
+        else if(flags==="out.pdf") {
+          const reopened=await bash.exec("qpdf out.pdf --show-npages");
+          assert.deepEqual([reopened.exitCode,reopened.stderr,reopened.stdout],[0,"","0\n"],name);
+        }
+        if(flags.startsWith("--show")||flags==="--check") {
+          const zero=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
+          assert.deepEqual([zero.exitCode,zero.stderr,zero.stdoutBytes],
+            [want.status===3?0:want.status,got.stderr,got.stdoutBytes],name+"/"+flags);
+          const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+          if(got.stderr) {
+            const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
+            assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+            const short=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
+            assert.equal(short.exitCode,2);assert.equal(short.stdout,"");
+          }
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf recovers trailers and catalogs against native results",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/recovered-catalogs.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes,"/out.pdf":"original"}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
+          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
+        if(want.status===2)assert.equal(bash.readText("/out.pdf"),"original");
+        else if(flags==="out.pdf") {
+          const reopened=await bash.exec("qpdf out.pdf --show-npages");
+          assert.deepEqual([reopened.exitCode,reopened.stderr,reopened.stdout],
+            [0,"",Buffer.from(reports["--show-npages"].stdout,"base64").toString()],name);
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+      const want=reports["--show-npages"];
+      if(want.status===2)for(const flags of ["--replace-input","--split-pages out.pdf","--qdf out.pdf","--linearize out.pdf","--warning-exit-0 --show-npages"]) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.status,want.stderr,""],name+"/"+flags);
+        assert.equal(bash.readText("/out.pdf"),"original");
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+      if(!want.stderr)continue;
+      const limit=Buffer.byteLength(want.stderr)+Buffer.from(want.stdout,"base64").length;
+      assert.deepEqual((await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:limit}})).stderr,want.stderr);
+      const short=await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:limit-1}});
+      assert.deepEqual([short.exitCode,short.stdout,short.stderr],[2,"","qpdf: output byte limit exceeded\n"]);
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf reconstructs damaged object offsets against native results",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/recovered-offsets.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":Buffer.from(pdf,"base64"),"/out.pdf":"original"}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        await bash.fs.writeFile("/out.pdf",Buffer.from("original"));
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
+          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
+        if(flags==="--show-object=8") {
+          const zero=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
+          assert.deepEqual([zero.exitCode,zero.stderr,zero.stdoutBytes],[want.status===3?0:want.status,got.stderr,got.stdoutBytes]);
+          const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+          const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
+          assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+          const short=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
+          assert.deepEqual([short.exitCode,short.stdout],[2,""]);
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(Buffer.from(pdf,"base64")));
+        if(want.status===2)assert.equal(bash.readText("/out.pdf"),"original");
+        if(flags==="out.pdf"&&want.status!==2) {
+          const reopened=await bash.exec("qpdf out.pdf --show-npages");
+          assert.deepEqual([reopened.exitCode,reopened.stderr,reopened.stdout],[0,"","2\n"],name);
+        }
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf JSON includes objects discovered during recovery",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/recovered-json.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [flags,want]of Object.entries(reports)) {
+        const got=await bash.exec("qpdf in.pdf "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+        assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+"/"+flags);
+        if(flags==="--json --json-key=qpdf") {
+          const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+          const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
+          assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+          const short=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
+          assert.deepEqual([short.exitCode,short.stdout],[2,""]);
+          const quiet=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
+          assert.deepEqual([quiet.exitCode,quiet.stderr,quiet.stdout],[0,got.stderr,got.stdout]);
+          await bash.fs.writeFile("/out.json",Buffer.from("original"));
+          const failed=await bash.exec("qpdf in.pdf "+flags+" out.json",{limits:{maxOutputBytes:100}});
+          assert.notEqual(failed.exitCode,0);
+          assert.equal(bash.readText("/out.json"),"original");
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf JSON sidecars use native prefixes and destination filenames",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/json-sidecars.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases))for(const [flags,want]of Object.entries(reports)) {
+    const bytes=Buffer.from(pdf,"base64");
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes,"/sidecar4":"untouched"}});
+    try {
+      const prior=(await bash.fs.readdir("/")).map(v=>v.name);
+      const got=await bash.exec("qpdf in.pdf "+flags);
+      assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+      const stdout=Buffer.from(want.stdout,"base64").toString();
+      assert.deepEqual(got.stdout?JSON.parse(got.stdout):"",stdout?JSON.parse(stdout):"",name+"/"+flags);
+      assert.deepEqual((await bash.fs.readdir("/")).map(v=>v.name).sort(),[...prior,...Object.keys(want.files)].sort());
+      for(const [file,data]of Object.entries(want.files)) {
+        const actual=await bash.fs.readFile("/"+file),expected=Buffer.from(data,"base64");
+        if(file==="out.json")assert.deepEqual(JSON.parse(Buffer.from(actual)),JSON.parse(expected),name+"/"+flags);
+        else assert.deepEqual(actual,new Uint8Array(expected),name+"/"+file);
+      }
+      for(const file of Object.keys(want.files))await bash.fs.writeFile("/"+file,Buffer.from("prior"));
+      const failed=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:100}});
+      assert.notEqual(failed.exitCode,0);
+      for(const file of Object.keys(want.files))assert.equal(bash.readText("/"+file),"prior");
+      assert.equal(bash.readText("/sidecar4"),"untouched");
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf rejects missing page trees before inspection or replacing output", async () => {
+  // qpdf 12.4.2: valid xref tables isolate page-tree validation from recovery warnings.
+  for (const pages of ["", "/Pages 12 0 R", "/Pages 42", "/Pages null", "/Pages []", "/Pages 2 0 R",
+    "/Pages << /Type /Pages /Kids [] /Count 0 >>"]) {
+    let pdf = "%PDF-1.4\n1 0 obj << /Type /Catalog " + pages + " >> endobj\n";
+    const streamOffset = pdf.length;
+    pdf += "2 0 obj << /Type /Pages /Kids [] /Count 0 /Length 0 >> stream\n\nendstream\nendobj\n";
+    pdf += "xref\n0 3\n0000000000 65535 f \n0000000009 00000 n \n" +
+      String(streamOffset).padStart(10, "0") + " 00000 n \n" +
+      "trailer << /Size 3 /Root 1 0 R >>\nstartxref\n" + pdf.length + "\n%%EOF\n";
+    const bytes = Buffer.from(pdf), valid = pages.includes("/Kids");
+    const bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":bytes, "/out.pdf":"original"}});
+    try {
+      for (const args of ["--show-npages", "--show-xref", "--json", "--check", "-",
+        "out.pdf", "--linearize out.pdf", "--object-streams=generate out.pdf",
+        "--pages . 1 -- out.pdf", "--split-pages out.pdf", "--replace-input"]) {
+        if (valid && args !== "--show-npages") continue;
+        const result = await bash.exec("qpdf in.pdf " + args);
+        assert.equal(result.exitCode, valid ? 0 : 2, pages + ": " + args);
+        assert.equal(result.stdout, valid ? "0\n" : "");
+        assert.equal(result.stderr, valid ? "" : "qpdf: in.pdf: unable to find page tree\n");
+        assert.deepEqual(Buffer.from(await bash.fs.readFile("/in.pdf")), bytes);
+        assert.equal(bash.readText("/out.pdf"), "original");
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf encryption predicates validate the PDF and authenticate supplied or empty passwords",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("/Encrypt");doc.addPage();
+  const locked = doc.save({encrypt:{revision:3,userPassword:"reader",ownerPassword:"owner"}});
+  const files={"/locked.pdf":locked, "/empty-password.pdf":doc.save({encrypt:{revision:3,userPassword:"",ownerPassword:"owner"}}),
+    "/recovered.pdf":locked.subarray(0,Buffer.from(locked).lastIndexOf("startxref")),
+    "/plain.pdf":doc.save(),"/boundary":Buffer.concat([Buffer.alloc(65533,32),Buffer.from("/Encrypt")]),"/noise":Buffer.from("not a pdf")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,data] of Object.entries(files))await fs.writeFile(name,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const flag of ["--is-encrypted","--requires-password"])for(const input of ["locked.pdf","empty-password.pdf","recovered.pdf","plain.pdf","boundary","noise","missing","-"])for(const password of ["", " --password=reader", " --password=owner", " --password=wrong"]) {
+      const cmd=(input==="-"?"cat locked.pdf | ":"")+"qpdf "+input+" "+flag+password;
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      // Native qpdf retains repair warnings for these status-only commands.
+      const warnings=input==="recovered.pdf"?"WARNING: recovered.pdf: file is damaged\nWARNING: recovered.pdf: can't find startxref\nWARNING: recovered.pdf: Attempting to reconstruct cross-reference table\n":"";
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,warnings+want.stderr,want.stdout],cmd);
+    }
+  } finally {wasm.dispose();}
+});
+
+
+test("qpdf reports authenticated encryption permissions and password matches from native fixtures", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/encryption-reports.json", import.meta.url), "utf8"));
+  const checks = JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/encryption-check-reports.json", import.meta.url), "utf8"));
+  for (const fixture of cases) {
+    const bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":Buffer.from(fixture.pdf, "base64")}});
+    try {
+      for (const [mode, reports] of [["--show-encryption", fixture.reports], ["--check", checks.cases[fixture.name]]]) {
+        for (const [password, report] of Object.entries(reports)) {
+          const result = await bash.exec("qpdf /in.pdf " + mode + " --password=" + password);
+          assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, report, ""], fixture.name + ": " + mode + ": " + password);
+        }
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf reports incorrect input passwords consistently and preserves output", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(); doc.addPage();
+  for (const revision of [3, 6]) {
+    const input = doc.save({encrypt:{revision, userPassword:"reader", ownerPassword:"owner"}});
+    const files = {"/in.pdf":input, "/out.pdf":Buffer.from("prior output"), "/patch.json":Buffer.from("{}")};
+    const fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/", files});
+    for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+    const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+    try {
+      for (const args of ["--check", "--show-npages", "--show-pages", "--show-object=1", "--list-attachments",
+        "--json out.pdf", "--decrypt out.pdf", "--split-pages part.pdf",
+        "--pages . 1 -- out.pdf", "--update-from-json=patch.json out.pdf", "--decrypt --replace-input"]) {
+        const command = "qpdf in.pdf --password=wrong " + args;
+        const expected = await shell.exec(command), actual = await wasm.exec(command);
+        assert.deepEqual([expected.exitCode, expected.stdout, expected.stderr], [2, "", "qpdf: in.pdf: invalid password\n"], command);
+        assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], command);
+        assert.deepEqual(await wasm.fs.readFile("/in.pdf"), input);
+        assert.equal(Buffer.from(await wasm.fs.readFile("/out.pdf")).toString(), "prior output");
+        assert.equal((await wasm.exec("test -e /part-1.pdf")).exitCode, 1);
+      }
+    } finally { wasm.dispose(); }
+  }
+});
+
+
+test("qpdf reports public encryption settings after a rejected password without opening the document", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cases} = JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/encryption-reports.json", import.meta.url), "utf8"));
+  for (const fixture of cases.filter(f => f.reports.reader)) {
+    const input = Buffer.from(fixture.pdf, "base64");
+    const files = {"/in.pdf":input, "/damaged.pdf":input.subarray(0, input.lastIndexOf("startxref")), "/out.pdf":Buffer.from("prior")};
+    const fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files});
+    for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+    const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+    try {
+      for (const path of ["in.pdf", "damaged.pdf"]) for (const password of ["", " --password=wrong"]) {
+        for (const flags of ["--show-encryption", "--show-encryption --show-xref", "--show-encryption --show-npages", "--show-encryption --check"]) {
+          const cmd = "qpdf " + path + password + " " + flags;
+          // Native qpdf 12.4.2 reports public encryption settings even when another
+          // inspection was requested, retaining repair warnings without status 3.
+          const want = await shell.exec("qpdf in.pdf" + password + " --show-encryption"), got = await bash.exec(cmd);
+          const warnings = path === "damaged.pdf" ? "WARNING: damaged.pdf: file is damaged\nWARNING: damaged.pdf: can't find startxref\nWARNING: damaged.pdf: Attempting to reconstruct cross-reference table\n" : "";
+          assert.deepEqual([got.exitCode, got.stdout, got.stderr], [0, want.stdout, warnings], fixture.name + ": " + cmd);
+          assert.deepEqual(Buffer.from(await bash.fs.readFile("/out.pdf")), files["/out.pdf"]);
+        }
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf JSON encryption summaries retain permissions, ciphers and authentication results", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/encryption-summaries.json", import.meta.url), "utf8"));
+  for (const [name, {pdf, reports}] of Object.entries(cases)) {
+    const bytes = Buffer.from(pdf, "base64"), bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":bytes}});
+    try {
+      for (const [flags, want] of Object.entries(reports)) {
+        const script = "qpdf in.pdf " + flags, got = await bash.exec(script);
+        assert.deepEqual([got.exitCode, got.stderr], [want.status, want.stderr], name + ": " + script);
+        assert.deepEqual(JSON.parse(got.stdout), want.json, name + ": " + script);
+        assert.ok(Buffer.from(got.stdoutBytes).includes(Buffer.from(want.passwordLine, "base64")), name + ": " + script);
+        const saved = await bash.exec(script + " out.json");
+        assert.deepEqual([saved.exitCode, saved.stderr, saved.stdout], [want.status, want.stderr, ""], name + ": " + script);
+        assert.deepEqual(Buffer.from(await bash.fs.readFile("/out.json")), Buffer.from(got.stdoutBytes), name + ": file");
+        const exact = await bash.exec(script, {limits:{maxOutputBytes:got.stdoutBytes.length}});
+        assert.deepEqual([exact.exitCode, exact.stderr, exact.stdoutBytes], [got.exitCode, got.stderr, got.stdoutBytes], name + ": limit");
+        const failed = await bash.exec(script + " out.json", {limits:{maxOutputBytes:32}});
+        assert.notEqual(failed.exitCode, 0);
+        assert.deepEqual(Buffer.from(await bash.fs.readFile("/out.json")), Buffer.from(got.stdoutBytes), name + ": failed output");
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"), new Uint8Array(bytes));
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("qpdf retries native password encodings and retains inspection warnings",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/password-encodings.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}]of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try {
+      for(const [command,want]of Object.entries(reports)) {
+        const got=await bash.exec(command);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+": "+command);
+        if(command.includes("--json") && want.stdout)assert.deepEqual(JSON.parse(got.stdout),JSON.parse(Buffer.from(want.stdout,"base64")),name+": "+command);
+        else assert.deepEqual(Buffer.from(got.stdoutBytes),Buffer.from(want.stdout,"base64"),name+": "+command);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf inspects encrypted stream dictionaries without changing stored filters or lengths", async () => {
+  const {PdfDocument,cosStream,parseCosDocument,cosDict,cosNumber,serializeCosNodeBytes}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage();
+  const plain=Buffer.from("filtered payload"),id=doc.cos.allocateObject(cosStream(plain,{compress:false})).objectNumber;
+  for(const revision of [3,6]) {
+    const input=Buffer.from(doc.save({encrypt:{revision,userPassword:"reader",ownerPassword:"owner"}}));
+    const original=input.toString("latin1"),object=original.slice(original.indexOf(id+" 0 obj\n"));
+    const stored=Buffer.from(object.split("\nstream\n")[1].split("\nendstream")[0],"latin1");
+    const parsed=parseCosDocument(input,{password:"reader"});
+    const files={"/in":input};
+    const dictionaries=["/Filter /Crypt /DecodeParms << /Name /Identity >>","/Filter [/Crypt] /DecodeParms [<< /Name /Identity >>]"];
+    for(const [index,dict] of dictionaries.entries()) {
+      const offset=input.length+1,body=id+" 0 obj\n<< "+dict+" /Length 16 >>\nstream\n"+plain.toString()+"\nendstream\nendobj\n";
+      const trailer=cosDict({Size:cosNumber(parsed.maxObjectNumber+1),Prev:cosNumber(parsed.revisions[0].xrefOffset),Root:parsed.rootRef,Info:parsed.infoRef,Encrypt:parsed.encryptRef,ID:parsed.idArray});
+      files["/crypt"+index]=Buffer.from(original+"\n"+body+"xref\n"+id+" 1\n"+String(offset).padStart(10,"0")+" 00000 n \ntrailer\n"+
+        Buffer.from(serializeCosNodeBytes(trailer)).toString("latin1")+"\nstartxref\n"+(offset+body.length)+"\n%%EOF\n","latin1");
+    }
+    const bash=new RustWasmBash({cwd:"/",files});
+    try {
+      // Captured independently from qpdf 12.4.2: inspection retains the physical
+      // ciphertext length and the original Crypt filter and parameter shapes.
+      for(const [path,expected] of [["/in","<< /Length "+stored.length+" >>"],
+        ["/crypt0","<< /DecodeParms << /Name /Identity >> /Filter /Crypt /Length 16 >>"],
+        ["/crypt1","<< /DecodeParms [ << /Name /Identity >> ] /Filter [ /Crypt ] /Length 16 >>"]]) {
+        const r=await bash.exec("qpdf "+path+" --password=reader --show-object="+id);
+        assert.deepEqual([r.exitCode,r.stderr,r.stdout],[0,"","Object is stream.  Dictionary:\n"+expected+"\n"],revision+"/"+path);
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+for(const errors of [false,true]) test(errors ? "qpdf reports native decoding errors after decryption" : "qpdf selects native crypt filters and preserves physical inspection dictionaries",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/crypt-filters.json",import.meta.url),"utf8"));
+  for(const [name,{pdf,reports}] of Object.entries(cases)) {
+    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try{
+      for(const [flags,want] of Object.entries(reports)) {
+        if((want.status!==0)!==errors)continue;
+        const got=await bash.exec("qpdf in.pdf --password=reader "+flags);
+        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
+        const expected=Buffer.from(want.stdout,"base64");
+        if(flags.startsWith("--json "))assert.deepEqual(JSON.parse(got.stdout),JSON.parse(expected.toString()),name+"/"+flags);
+        else assert.deepEqual(Buffer.from(got.stdoutBytes),expected,name+"/"+flags);
+        if(errors) {
+          const zero=await bash.exec("qpdf in.pdf --password=reader "+flags+" --warning-exit-0");
+          assert.deepEqual([zero.exitCode,zero.stderr,zero.stdoutBytes],[0,got.stderr,got.stdoutBytes],name+"/"+flags);
+          const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
+          const exact=await bash.exec("qpdf in.pdf --password=reader "+flags,{limits:{maxOutputBytes:limit}});
+          assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
+          assert.equal((await bash.exec("qpdf in.pdf --password=reader "+flags,{limits:{maxOutputBytes:limit-1}})).exitCode,2);
+        }
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf keeps decrypted content when rewriting and selecting Crypt-filter pages",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/crypt-filters.json",import.meta.url),"utf8"));
+  for(const [name,{rewritten}] of Object.entries(cases)) {
+    if(!rewritten)continue;
+    const bytes=Buffer.from(rewritten.pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+    try{
+      for(const [flags,want] of Object.entries(rewritten.reports)) {
+        const got=await bash.exec("qpdf in.pdf --password=reader "+flags);
+        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
+          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
+        const pages=await bash.exec("qpdf out.pdf --show-pages");
+        assert.deepEqual([pages.exitCode,pages.stderr],[0,""]);
+        const id=pages.stdout.split("content:\n")[1].trim().split(" ")[0];
+        const stream=await bash.exec("qpdf out.pdf --show-object="+id+" --filtered-stream-data");
+        assert.deepEqual([stream.exitCode,stream.stderr,Buffer.from(stream.stdoutBytes)],
+          [0,"",Buffer.from(want.stream,"base64")],name+"/"+flags);
+        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
+      }
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("qpdf authenticates revision 4 with 128-bit keys despite a short or missing Length", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {cases} = JSON.parse(await readFile(new URL("../../safe-bash-command-qpdf/src/fixtures/encryption-reports.json", import.meta.url), "utf8"));
+  for (const fixture of cases.filter(c => ["r4", "r4rc4"].includes(c.name))) {
+    const original = Buffer.from(fixture.pdf, "base64").toString("latin1");
+    assert.equal(original.split("/Length 128").length, 2);
+    // Native qpdf accepts these same-width edits without repairing the xref.
+    for (const field of ["/Length 040", "/Length 064", "           "]) {
+      const bytes = Buffer.from(original.replace("/Length 128", field), "latin1");
+      const bash = new RustWasmBash({cwd:"/", files:{"/in":bytes}});
+      try {
+        for (const password of ["reader", "owner"]) {
+          const result = await bash.exec("qpdf in --password="+password+" --show-encryption");
+          assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0, "", fixture.reports[password]]);
+          assert.equal((await bash.exec("qpdf in --password="+password+" --show-npages")).stdout, "1\n");
+        }
+      } finally { bash.dispose(); }
+    }
+  }
+});
+
+
+test("qpdf rejects nonstandard short revision 4 keys and preserves files", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/"});
+  const js = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    // qpdf 12.4.2 rejects both files: V4 always authenticates with a 128-bit key.
+    for (const name of ["pdfjs-issue19484_1", "pdfjs-issue19484_2"]) {
+      const bytes = await readFile(new URL("../../pdf-ast/src/fixtures/"+name+".pdf", import.meta.url));
+      for (const backend of [fs,rust.fs]) {
+        await backend.writeFile("/in",bytes);
+        await backend.writeFile("/out",Buffer.from("original"));
+      }
+      for (const password of ["", " --password=''", " --password=wrong"]) {
+        for (const args of ["--show-npages", "--check", "--json --json-stream-data=inline", "-",
+          "--decrypt out", "--replace-input", "--show-encryption", "--is-encrypted", "--requires-password"]) {
+          const command = "qpdf in "+args+password, want = await js.exec(command), got = await rust.exec(command);
+          const publicReport = ["--show-encryption", "--is-encrypted", "--requires-password"].includes(args);
+          assert.equal(got.exitCode, publicReport ? 0 : 2, name+": "+command);
+          assert.equal(got.stderr, publicReport ? "" : "qpdf: in: invalid password\n");
+          if (args === "--show-encryption") {
+            assert.ok(got.stdout.startsWith("Incorrect password supplied\nR = 4\n"));
+            assert.ok(!got.stdout.includes("Supplied password is"));
+          } else assert.equal(got.stdout, "");
+          assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],command);
+          assert.deepEqual(Buffer.from(await rust.fs.readFile("/in")),bytes);
+          assert.equal(rust.readText("/out"),"original");
+        }
+      }
+    }
+  } finally { rust.dispose(); }
+});
+
+
+test("qpdf linearizes shared page resources and outlines with real hint tables", async () => {
+  const {PdfDocument, cosDict, cosArray, cosName, cosString, cosStream, dictSet} = await import("@poe-code/pdf-ast");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const doc = PdfDocument.create(); doc.setTitle("Linearized pages");
+  const pages = Array.from({length:3}, (_,i) => { const page=doc.addPage(); page.drawText("Page "+i,{x:10,y:20}); return page; });
+  // A font shared by all pages belongs to the first page section. A stream
+  // shared only by later pages belongs to the separate shared-object section.
+  const resources=doc.cos.allocateObject(pages[0].getResourcesDict());
+  for(const page of pages) dictSet(page.pageDict,"Resources",resources);
+  const shared=doc.cos.allocateObject(cosStream(Buffer.from("q Q"),{compress:true}));
+  for(const page of pages.slice(1)) dictSet(page.pageDict,"Contents",shared);
+  const root=doc.cos.resolveDict(doc.cos.rootRef);
+  const outline=doc.cos.allocateObject(cosDict({Title:cosString("Last page"), Dest:cosArray([pages[2].ref,cosName("Fit")])}));
+  dictSet(root,"Outlines",doc.cos.allocateObject(cosDict({First:outline,Last:outline})));
+  const files={"/in.pdf":doc.save(),"/packed.pdf":doc.save({objectStreams:"generate"})};
+  dictSet(root,"PageMode",cosName("UseOutlines")); files["/open.pdf"]=doc.save();
+  const fs=new MemoryFileSystem(), rust=new RustWasmBash({cwd:"/",files});
+  for(const [name,bytes] of Object.entries(files)) await fs.writeFile(name,bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  const {readFile}=await import("node:fs/promises");
+  const native=JSON.parse(await readFile(new URL("../tests/fixtures/uncompressed-streams.json",import.meta.url),"utf8")).cases.linearization;
+  try {
+    for(const name of Object.keys(files)) for(const flags of ["", "--object-streams=generate", "--stream-data=uncompress"]) {
+      const command="qpdf "+name+" --linearize "+flags+" out.pdf";
+      const want=await js.exec(command), got=await rust.exec(command);
+      assert.deepEqual([got.exitCode,got.stderr],[0,want.stderr],command);
+      assert.equal(want.exitCode,0,want.stderr);
+      const actual=await rust.fs.readFile("/out.pdf"),expected=await fs.readFile("/out.pdf");
+      if(flags==="--stream-data=uncompress") assert.deepEqual(await qpdfStreamSnapshot(rust,"out.pdf",true),native[name]["--linearize "+flags],command);
+      else assert.ok(Buffer.from(actual).equals(expected),command+" first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
+      assert.equal(PdfDocument.load(actual).pageCount,3);
+    }
+    for(const name of Object.keys(files)) {
+      const result=await rust.exec("qpdf "+name+" --linearize --encrypt reader owner 256 -- encrypted.pdf");
+      assert.equal(result.exitCode,0,result.stderr);
+      const bytes=await rust.fs.readFile("/encrypted.pdf");
+      assert.throws(()=>PdfDocument.load(bytes,{password:"wrong"}),/Invalid PDF password/);
+      for(const password of ["reader","owner"]) {
+        const parsed=PdfDocument.load(bytes,{password});
+        assert.equal(parsed.pageCount,3);
+        assert.equal(parsed.extractText(),PdfDocument.load(files[name]).extractText());
+        assert.equal(parsed.cos.getInfoString("Title"),"Linearized pages");
+      }
+    }
+    const before=await rust.fs.readFile("/out.pdf");
+    const empty=await rust.exec("qpdf --empty --linearize out.pdf");
+    assert.equal(empty.exitCode,2);
+    assert.match(empty.stderr,/Cannot linearize a PDF with no pages/);
+    assert.deepEqual(await rust.fs.readFile("/out.pdf"),before);
+  } finally {rust.dispose();}
+});
+
+
+test("pdftk fits and clips stamps using native crop boxes and rotation matrices", async () => {
+  const {PdfDocument,cosArray,cosNumber,dictSet,dictGet,dictDelete}=await import("@poe-code/pdf-ast");
+  // Matrices independently captured from pdftk-java 3.3.3 output.
+  const sources=[
+    ["2 0 0 2 -50 -60", "0 -1 1 0 45 90", "-2 0 0 -2 150 40", "0 1 -1 0 95 -10"],
+    ["1 0 0 1 -10 45", "0 -2 2 0 -60 150", "-1 0 0 -1 90 95", "0 2 -2 0 40 -50"],
+  ];
+  const targetMatrices=["", "0 1 -1 0 210 0 cm\n", "-1 0 0 -1 210 120 cm\n", "0 -1 1 0 0 120 cm\n"];
+  const cases=[];
+  for(const target of [0,90,180,270])for(const source of [0,90,180,270])cases.push({target,source,width:100,height:50,matrix:sources[(target/90)%2][source/90]});
+  cases.push(
+    {target:0,source:0,width:400,height:200,matrix:"0.5 0 0 0.5 -5 0"},
+    {target:0,source:0,width:199.8,height:99.8,matrix:"1 0 0 1 -20.03 -19.99"},
+    {target:90,source:270,width:100,height:50,crop:true,matrix:"0 2 -2 0 20 -40"},
+    {target:0,source:0,width:100,height:50,crop:true,matrix:"2 0 0 2 -40 -60"},
+    {target:0,source:0,width:100,height:50,inherit:true,matrix:"2 0 0 2 -50 -60"},
+    {target:0,source:0,width:1000,height:600,matrix:"0.16667 0 0 0.16667 21.67 13.33"},
+    {target:0,source:0,width:400000,height:200000,matrix:"0.0005 0 0 0.0005 9.98 19.98"},
+    {target:0,source:0,width:40000000,height:20000000,right:40000032,matrix:"0 0 0 0 10 20"},
+  );
+  for(const [index,c] of cases.entries()) {
+    const base=PdfDocument.create(),stamp=PdfDocument.create();
+    const page=base.addPage([200,100]),other=stamp.addPage([c.width,c.height]);
+    const box=values=>cosArray(values.map(n=>cosNumber(n)));
+    dictSet(page.pageDict,"MediaBox",box([10,20,210,120]));
+    dictSet(other.pageDict,"MediaBox",box([30,40,30+c.width,40+c.height]));
+    if(c.crop) {dictSet(page.pageDict,"CropBox",box([20,30,180,110]));dictSet(other.pageDict,"CropBox",box([40,45,100,85]));}
+    page.setRotation(c.target);other.setRotation(c.source);
+    page.setRawContentStream(Buffer.from("1 0 0 rg 80 60 30 20 re f"));
+    other.setRawContentStream(Buffer.from("0 0 1 rg -200 -200 1000 1000 re f 0 1 0 rg 40 50 20 10 re f"));
+    if(c.inherit)for(const [doc,p] of [[base,page],[stamp,other]])for(const key of ["MediaBox","Rotate"]) {
+      dictSet(doc.cos.resolveDict(dictGet(p.pageDict,"Parent")),key,dictGet(p.pageDict,key));dictDelete(p.pageDict,key);
+    }
+    const bash=new RustWasmBash({cwd:"/",files:{"/in":base.save(),"/stamp":stamp.save()}});
+    try {
+      for(const mode of ["stamp","background"]) {
+        const cmd="pdftk in "+mode+" stamp output out"+[""," compress"," uncompress"][index%3];
+        const result=await bash.exec(cmd);assert.equal(result.exitCode,0,result.stderr);
+        const content=Buffer.from(PdfDocument.load(await bash.fs.readFile("/out")).getPage(0).getRawContentStream()).toString();
+        assert.ok(content.includes(targetMatrices[c.target/90]+c.matrix+" cm\n"),JSON.stringify(c)+"\n"+content);
+        assert.ok(content.includes("30 40 m\n"+(c.right??30+c.width)+" 40 l\n"+(c.right??30+c.width)+" "+(40+c.height)+" l\n30 "+(40+c.height)+" l\nh W n\n"),"source MediaBox clipping: "+content);
+      }
+    } finally {bash.dispose();}
+  }
+});
+
+
+test("pdftk writes native numeric values when stamp geometry overflows single precision", async () => {
+  const {PdfDocument,cosArray,cosNumber,dictSet}=await import("@poe-code/pdf-ast");
+  const base=PdfDocument.create(),stamp=PdfDocument.create();
+  base.addPage([200,100]).setRawContentStream(Buffer.from("1 0 0 rg 80 60 30 20 re f"));
+  const page=stamp.addPage();page.setRawContentStream(Buffer.from("0 0 1 rg 40 50 20 10 re f"));
+  // Decimal PDF numbers, not exponent notation. Native pdftk-java 3.3.3
+  // writes zero for NaN arithmetic and saturates infinite box coordinates.
+  dictSet(page.pageDict,"MediaBox",cosArray([cosNumber(30),cosNumber(40),
+    cosNumber(2e40,"20000000000000000000000000000000000000000"),
+    cosNumber(1e40,"10000000000000000000000000000000000000000")]));
+  const bash=new RustWasmBash({cwd:"/",files:{"/in":base.save(),"/stamp":stamp.save()}});
+  try {
+    for(const mode of ["stamp","background"]) {
+      const result=await bash.exec("pdftk in "+mode+" stamp output out");assert.equal(result.exitCode,0,result.stderr);
+      const content=Buffer.from(PdfDocument.load(await bash.fs.readFile("/out")).getPage(0).getRawContentStream()).toString();
+      assert.ok(content.includes("0 0 0 0 0 0 cm\n"),content);
+      assert.ok(content.includes("9223372036854775807 9223372036854775807 l"),content);
+      assert.equal(content.includes("NaN"),false);
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("qpdf centers overlays at page origins without enlarging small stamps", async () => {
+  const {PdfDocument,cosArray,cosNumber,dictGet,dictSet,dictDelete}=await import("@poe-code/pdf-ast");
+  // Native qpdf 12.4.2 placement and Form matrices, combined into page space.
+  for(const [width,height,rotation,matrix] of [
+    [100,50,0,"1 0 0 1 30 5"], [100,50,90,"0 -1 1 0 45 150"],
+    [100,50,180,"-1 0 0 -1 190 135"], [100,50,270,"0 1 -1 0 175 -10"],
+    [400,200,0,"0.5 0 0 0.5 -5 0"], [199.8,99.8,0,"1 0 0 1 -19.9 -19.9"],
+  ]) for(const inherited of [false,true]) {
+    const base=PdfDocument.create(),stamp=PdfDocument.create();
+    const page=base.addPage([200,100]),other=stamp.addPage([width,height]);
+    dictSet(page.pageDict,"MediaBox",cosArray([10,20,210,120].map(n=>cosNumber(n))));
+    dictSet(other.pageDict,"MediaBox",cosArray([30,40,30+width,40+height].map(n=>cosNumber(n))));
+    other.setRotation(rotation);other.setRawContentStream(Buffer.from("0 0 1 rg 40 50 30 20 re f"));
+    if(inherited) for(const [doc,p] of [[base,page],[stamp,other]]) {
+      const parent=doc.cos.resolveDict(dictGet(p.pageDict,"Parent"));
+      for(const key of ["MediaBox","Rotate"]) {
+        const value=dictGet(p.pageDict,key);
+        if(value) {dictSet(parent,key,value);dictDelete(p.pageDict,key);}
+      }
+    }
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":base.save(),"/stamp.pdf":stamp.save()}});
+    try {
+      for(const mode of ["overlay","underlay"]) {
+        const cmd="qpdf in.pdf --"+mode+" stamp.pdf -- out.pdf";
+        const result=await bash.exec(cmd);assert.equal(result.exitCode,0,result.stderr);
+        const content=PdfDocument.load(await bash.fs.readFile("/out.pdf")).getPage(0).getRawContentStream();
+        assert.ok(Buffer.from(content).toString().includes(matrix+" cm"),cmd+" "+width+"x"+height+" rotation "+rotation+" inherited "+inherited+"\n"+Buffer.from(content));
+      }
+    } finally {bash.dispose();}
+  }
+});
+
+
+test("qpdf pairs overlay pages once unless an explicit repeat range is supplied", async () => {
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const base=PdfDocument.create(),stamp=PdfDocument.create();
+  for(let i=0;i<4;i++)base.addPage().drawText("Base"+(i+1),{x:10,y:20});
+  for(let i=0;i<2;i++)stamp.addPage().drawText("Stamp"+(i+1),{x:10,y:60});
+  const bash=new RustWasmBash({cwd:"/",files:{"/in":base.save(),"/stamp":stamp.save()}});
+  try {
+    // Selections independently checked with native qpdf 12.4.2.
+    for(const [flags,pages] of [
+      ["",[[1],[2],[],[]]], ["--from=2",[[2],[],[],[]]],
+      ["--repeat=1",[[1],[2],[1],[1]]], ["--from=2 --repeat=2,1",[[2],[2],[1],[2]]],
+      ["--from= --repeat=2",[[2],[2],[2],[2]]], ["--from=1,x1 --repeat=2",[[2],[2],[2],[2]]],
+      ["--from=1 --repeat=1,x1",[[1],[],[],[]]], ["--to=4,2,1",[[],[2],[],[1]]],
+      ["--to=1,1,3 --from=2,1,2",[[2,1],[],[2],[]]],
+    ]) for(const mode of ["overlay","underlay"]) {
+      const cmd="qpdf in --"+mode+" stamp "+flags+" -- out";
+      const result=await bash.exec(cmd);assert.equal(result.exitCode,0,result.stderr);
+      const actual=PdfDocument.load(await bash.fs.readFile("/out"));
+      assert.equal(actual.pageCount,4);
+      for(const [index,selected] of pages.entries()) {
+        const content=Buffer.from(actual.getPage(index).getRawContentStream()).toString();
+        assert.equal(content.split("(Base"+(index+1)+")").length-1,1,cmd);
+        for(const source of [1,2]) assert.equal(content.split("(Stamp"+source+")").length-1,selected.filter(n=>n===source).length,cmd+" page "+(index+1));
+      }
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("pdfunite omits source document metadata while separate pages retain it", async () => {
+  const {PdfDocument} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(); doc.setTitle("private-source-info"); doc.addPage().drawText("Page contents", {x:10,y:20});
+  const input = doc.save(), bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":input}});
+  try {
+    assert.equal((await bash.exec("pdfunite in.pdf in.pdf merged.pdf")).exitCode, 0);
+    const bytes = await bash.fs.readFile("/merged.pdf"), merged = PdfDocument.load(bytes);
+    // Native pdfunite 24.02.0 omits /Info and does not retain its strings in unused objects.
+    assert.equal(merged.cos.infoRef, undefined);
+    assert.ok(!Buffer.from(bytes).includes(Buffer.from("private-source-info")));
+    assert.equal(merged.pageCount, 2);
+    assert.equal((await bash.exec("pdfseparate in.pdf page-%d.pdf")).exitCode, 0);
+    assert.equal(PdfDocument.load(await bash.fs.readFile("/page-1.pdf")).cos.getInfoString("Title"), "private-source-info");
+    assert.deepEqual(await bash.fs.readFile("/in.pdf"), input);
+  } finally { bash.dispose(); }
+});
+
+
+test("qpdf rejects invalid page labels before publishing or replacing files", async () => {
+  const {PdfDocument} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(); for (let i=0; i<3; i++) doc.addPage();
+  const bytes = doc.save(), syntax = "page label spec must be n:[D|a|A|r|R][/start[/prefix]]";
+  // Diagnostics verified with native qpdf 12.4.2.
+  const cases = [
+    ["bad", syntax], ["1:n", syntax], ["1:Q", syntax], ["1x:D", syntax], ["1:D/2x", syntax],
+    ["1:D/title", syntax], ["1:D/-2", syntax], ["1:D/0", "starting page number must be >= 1"],
+    ...["0:D", "2:D", "r0:D", "r4:D", "z:D"].map(spec => [spec, "the first page label specification must start with page 1"]),
+    ...["1:D 1:r", "1:r 3:D 2:A", "1:D r0:R", "1:D r4:R"].map(spec => [spec, "page label specifications must be in order by first page"]),
+    ["1:D 4:r", "page label spec: page 4 is more than the total number of pages (3)"],
+    ...["1:D/2147483648", "2147483648:D"].map(spec => [spec, "integer out of range converting 2147483648 from a 8-byte signed type to a 4-byte signed type"]),
+    ...["1:D/9223372036854775808", "9223372036854775808:D"].map(spec => [spec, "overflow/underflow converting 9223372036854775808 to 64-bit integer"]),
+  ];
+  const bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":bytes,"/out.pdf":"original"}});
+  try {
+    const originalNames = (await bash.fs.readdir("/")).map(entry => entry.name).sort();
+    for (const [specs, diagnostic] of cases) for (const output of ["out.pdf", "--replace-input", "--split-pages part.pdf"]) {
+      const command = "qpdf in.pdf --set-page-labels "+specs+" -- "+output;
+      const result = await bash.exec(command);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [2, "", "qpdf: "+diagnostic+"\n"], command);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"), bytes);
+      assert.equal(bash.readText("/out.pdf"), "original");
+      assert.deepEqual((await bash.fs.readdir("/")).map(entry => entry.name).sort(), originalNames);
+    }
+  } finally { bash.dispose(); }
+});
+
+
+test("qpdf JSON page reports include externalized images in direct and inherited resources",async()=>{
+  const {PdfDocument,cosDict,dictGet,dictSet,dictDelete}=await import("@poe-code/pdf-ast");
+  for(const layout of ["direct","indirect","inherited","shared","shared-xobjects"]) {
+    const doc=PdfDocument.create(),pages=[doc.addPage(),doc.addPage()];
+    pages[0].setRawContentStream(Buffer.concat([Buffer.from("q BI /W 8 /H 1 /BPC 8 /CS /G ID "),Buffer.from([0,32,69,73,32,1,2,3]),Buffer.from(" EI Q\nBI /F /AHx /W 1 /H 1 /BPC 8 /CS /RGB ID FF0000> EI")]));
+    dictSet(pages[1].dict,"Contents",dictGet(pages[0].dict,"Contents"));
+    const resource=()=>cosDict({XObject:doc.cos.allocateObject(cosDict({}))});
+    const shared=doc.cos.allocateObject(resource());
+    for(const p of pages) {
+      dictSet(p.dict,"Resources",layout==="direct"?resource():layout==="indirect"?doc.cos.allocateObject(resource()):layout==="shared-xobjects"?doc.cos.allocateObject(doc.cos.resolveDict(shared)):shared);
+      if(layout==="inherited") {dictSet(doc.cos.resolveDict(dictGet(p.dict,"Parent")),"Resources",shared);dictDelete(p.dict,"Resources");}
+    }
+    const input=doc.save(),bash=new RustWasmBash({cwd:"/",files:{"/in":input}});
+    try {
+      for(const version of [1,2])for(const selection of ["","--json-key=pages","--json-object=1"]) {
+        const result=await bash.exec("qpdf in --externalize-inline-images --ii-min-bytes=2 --json="+version+" "+selection);
+        assert.equal(result.exitCode,0,result.stderr);
+        const report=JSON.parse(result.stdout);assert.equal(report.pages.length,2);
+        for(const page of report.pages) {
+          // qpdf 12.4.2 lists both images on both pages for every layout.
+          assert.deepEqual(page.images.map(i=>[i.width,i.height,i.bitspercomponent,i.colorspace]),[[8,1,8,"/DeviceGray"],[1,1,8,"/DeviceRGB"]],layout+"/"+version+"/"+selection);
+          for(const image of page.images)assert.equal(typeof image.object,"string");
+        }
+      }
+      const saved=await bash.exec("qpdf in --externalize-inline-images --ii-min-bytes=2 out.pdf");assert.equal(saved.exitCode,0,saved.stderr);
+      const output=PdfDocument.load(await bash.fs.readFile("/out.pdf"));
+      for(let index=0;index<2;index++)assert.equal(output.cos.resolveDict(dictGet(output.getPage(index).getResourcesDict(),"XObject")).entries.length,2,layout);
+      assert.deepEqual(await bash.fs.readFile("/in"),input);
+    }finally{bash.dispose();}
+  }
+});
+
+
+test("pdftotext reads simple-font Unicode character and range mappings", async () => {
+  const {PdfDocument, cosDict, cosName, cosStream, dictSet} = await import("@poe-code/pdf-ast");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {pdftotextCommands} = await import("@poe-platform/safe-bash/commands/pdftotext");
+  const doc = PdfDocument.create(), page = doc.addPage();
+  const cmap = doc.cos.allocateObject(cosStream(Buffer.from("/CIDInit /ProcSet findresource begin 12 dict begin begincmap\n1 begincodespacerange\n<00> <FF>\nendcodespacerange\n2 beginbfrange\n<61> <63> <0041>\n<66> <68> [<00660069> <D83DDE00> <03C0>]\nendbfrange\n1 beginbfchar\n<63> <005A>\nendbfchar\nendcmap CMapName currentdict /CMap defineresource pop end end")));
+  const font = doc.cos.allocateObject(cosDict({Type:cosName("Font"), Subtype:cosName("Type1"), BaseFont:cosName("Helvetica"), ToUnicode:cmap}));
+  dictSet(page.getResourcesDict(), "Font", cosDict({F1:font}));
+  dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(Buffer.from("BT /F1 12 Tf 20 80 Td (abcfgh) Tj ET"))));
+  const input = doc.save(), fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files:{"/in":input}});
+  await fs.writeFile("/in", input);
+  const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(pdftotextCommands({replace:true}));
+  try {
+    const want = await shell.exec("pdftotext in -"), got = await bash.exec("pdftotext in -");
+    assert.deepEqual([want.exitCode, want.stdout, want.stderr], [0, "ABZfi😀π\n\n\f", ""]);
+    assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr]);
+  } finally { bash.dispose(); }
+});
+
+
+test("pdftotext validates hyphen modes and distinguishes soft hyphens from hard hyphens", async () => {
+  const {PdfDocument, cosDict, cosName, cosStream, dictSet} = await import("@poe-code/pdf-ast");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {pdftotextCommands} = await import("@poe-platform/safe-bash/commands/pdftotext");
+  for (const soft of [false, true]) {
+    const doc = PdfDocument.create(), page = doc.addPage();
+    page.drawText("hyphen-", {x:20, y:80, size:12}); page.drawText("ation", {x:20, y:65, size:12});
+    if (soft) {
+      const cmap = doc.cos.allocateObject(cosStream(Buffer.from("/CIDInit /ProcSet findresource begin 12 dict begin begincmap\n1 begincodespacerange\n<00> <FF>\nendcodespacerange\n1 beginbfchar\n<2D> <00AD>\nendbfchar\nendcmap CMapName currentdict /CMap defineresource pop end end")));
+      const font = doc.cos.allocateObject(cosDict({Type:cosName("Font"), Subtype:cosName("Type1"), BaseFont:cosName("Helvetica"), ToUnicode:cmap}));
+      dictSet(page.getResourcesDict(), "Font", cosDict({F1:font}));
+      dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(Buffer.from("BT /F1 12 Tf 20 80 Td (hyphen-) Tj 0 -15 Td (ation) Tj ET"))));
+    }
+    const input = doc.save(), fs = new MemoryFileSystem(), bash = new RustWasmBash({cwd:"/", files:{"/in":input, "/out":"unchanged"}});
+    await fs.writeFile("/in", input); await fs.writeFile("/out", Buffer.from("unchanged"));
+    const shell = new Shell({fs, cwd:"/"}).use(agentCommands()).use(pdftotextCommands({replace:true}));
+    try {
+      for (const mode of ["all", "none", "soft", "yes", "no", "auto"]) {
+        const valid = ["all", "none", "soft"].includes(mode);
+        const script = `pdftotext -remove-hyphens ${mode} in -`, want = await shell.exec(script), got = await bash.exec(script);
+        const output = valid ? mode === "all" || mode === "soft" && soft ? "hyphenation\n\n\f" : `hyphen${soft ? "\u00ad" : "-"}\nation\n\n\f` : "";
+        assert.deepEqual([want.exitCode, want.stdout, want.stderr], [valid ? 0 : 99, output, valid ? "" : "Command Line Error: Invalid '-remove-hyphens' value\n"]);
+        assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+      }
+      for (const flags of ["-remove-hyphens", "-remove-hyphens -q", "-q -remove-hyphens invalid in out", "-remove-hyphens invalid -q in out",
+        "-remove-hyphens invalid -h", "-remove-hyphens invalid -v", "-remove-hyphens invalid -listenc", "-remove-hyphens invalid -colspacing 0 in out",
+        "-remove-hyphens none -remove-hyphens all in -", "-raw -remove-hyphens all in -", "-layout -remove-hyphens soft in -"]) {
+        const script = "pdftotext " + flags, want = await shell.exec(script), got = await bash.exec(script);
+        assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+        assert.equal(Buffer.from(await bash.fs.readFile("/out")).toString(), "unchanged");
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("HTML text extraction preserves nonbreaking space entities", async () => {
+  const shell = new RustWasmBash({cwd: "/", forceNative: true, files: {"/input": "<p>A&nbsp;B &#160; C</p>"}});
+  try {
+    const result = await shell.exec("htmlq -t p < /input");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "A\u00a0B \u00a0 C\n");
+  } finally { shell.dispose(); }
+});
+
+
+test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [expr, error] of [
+      ["2^1024","non-finite arithmetic result"], ["x=1e308; x*=10","non-finite arithmetic result"],
+      ["(-1)^0.5","non-finite arithmetic result"], ["sqrt(-1)","invalid mathematical result in 'sqrt'"],
+      ["log(0)","invalid mathematical result in 'log'"], ["exp(1000)","invalid mathematical result in 'exp'"],
+    ]) {
+      const r = await sh.exec("awk 'BEGIN{print 1;"+expr+";print 2}END{print 3}'");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"1\n","awk: "+error+"\n"],expr);
+    }
+  } finally { sh.dispose(); }
+});
+
+
+test("bzip2 names invalid inputs and stops after corruption outside test mode", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    await fs.writeFile("/source",Buffer.from("valid data\n"));
+    const good=(await js.exec("bzip2 -c /source")).stdoutBytes;
+    const crc=Buffer.from(good);crc[10]^=1;
+    for(const data of [Buffer.alloc(0),Buffer.from("plain"),good.subarray(0,-4),crc]){
+      for(const store of [fs,rust.fs]){
+        await store.writeFile("/bad.bz2",data);
+        await store.writeFile("/good.bz2",good);
+      }
+      for(const script of ["bunzip2 -c ./bad.bz2 good.bz2", "bzip2 -t ./bad.bz2 good.bz2", "bzcat < bad.bz2", "bunzip2 -c bad.bz2 < /good.bz2"]){
+        const expected=await js.exec(script),actual=await rust.exec(script);
+        assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],script+": "+Buffer.from(data).toString("hex"));
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("zstd integrity checks report successful bytes and honor quiet diagnostics", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});
+  try{
+    await fs.writeFile("/source",Buffer.from("contents\n"));
+    const good=(await js.exec("zstd -c /source")).stdoutBytes,bad=Buffer.from(good);
+    bad[bad.length-1]^=1;
+    for(const store of [fs,rust.fs]){
+      for(const path of ["/good.zst","/🦊.zst"]) await store.writeFile(path,good);
+      await store.writeFile("/also.zst",Buffer.concat([good,good]));
+      await store.writeFile("/bad.zst",bad);
+      await store.writeFile("/bad",Buffer.from("keep"));
+    }
+    for(const script of ["zstd -t good.zst", "zstd -t good.zst also.zst", "zstd -t < good.zst",
+      "zstd -qt good.zst", "zstd --quiet --test good.zst", "zstd -t bad.zst good.zst",
+      "zstd -qt bad.zst good.zst", "zstd -qqt bad.zst good.zst", "zstd --quiet --quiet -t /missing",
+      "zstd -df bad.zst", "zstd -t 🦊.zst", "zstd -t good.zst /missing"]){
+      const expected=await js.exec(script),actual=await rust.exec(script);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[expected.exitCode,expected.stdout,expected.stderr],script);
+    }
+    assert.deepEqual(Buffer.from(await rust.fs.readFile("/bad")),Buffer.from("keep"));
+    assert.deepEqual(Buffer.from(await rust.fs.readFile("/bad.zst")),bad);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+
+test("jq input reads one shared value and retains input status and location", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const store of [fs, rs.fs]) {
+      await store.writeFile("/numbers", Buffer.from("1\n2\n3\n"));
+      await store.writeFile("/invalid", Buffer.from("["));
+      await store.writeFile("/xml", Buffer.from("<r>value</r>"));
+      await store.writeFile("/badxml", Buffer.from("<r>"));
+    }
+    for (const cmd of [
+      "jq -nc input numbers", "jq -nc '[input, input]' numbers", "jq -c '[., input]' numbers",
+      "jq -nc 'try input catch .' invalid", "jq -nc input invalid", "jq -nc input </dev/null",
+      "jq -nc 'try (label $l | input) catch .' invalid", "jq -nc 'try (label $l | inputs) catch .' invalid",
+      "jq -nc 'try error(\"parse error: keep\") catch .'", "jq -nc 'try input catch error(.)' invalid",
+      "jq -nc 'def next: input; [next, next]' numbers", "jq -nc 'if false then input else 7 end' invalid",
+      "xq -nc input xml badxml", "xq -nc 'if false then input else 7 end' badxml",
+      "xq -nc 'try input catch .' badxml", "xq -nc input badxml",
+    ]) {
+      await t.test(cmd, async () => {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr]);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("xq reports named input errors before conversion errors and preserves lazy consumption", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const store of [fs, rs.fs]) {
+      await store.writeFile("/xml", Buffer.from("<r>value</r>"));
+      await store.writeFile("/bad", Buffer.from("<r>"));
+      await store.mkdir("/dir");
+      await store.symlink("/loop", "/loop");
+    }
+    for (const cmd of [
+      "xq -c . xml ./missing xml", "xq -n input /missing", "xq -nc inputs missing",
+      "xq -nc 'try input catch .' missing", "xq -nc 'try inputs catch .' missing",
+      "xq -nc 'try input catch empty' missing", "xq -nc 'try input catch halt' missing",
+      "xq -nc 7 missing", "xq -nc 'first(inputs)' xml missing", "xq -c . bad missing",
+      "xq -c . dir", "xq -nc input loop", "xq -Rc . missing", "xq -sc . xml missing",
+      "xq -c . 'missing\uE0ff'",
+    ]) {
+      await t.test(cmd, async () => {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr]);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("Rust reads host input incrementally and closes streams when parsing stops", {skip: !WebAssembly.Suspending}, async t => {
+  const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  for (const route of ["stream", "retained", "file"]) {
+    await t.test(route, async () => {
+      const base = new MemoryFileSystem(), bytes = Buffer.from("<r>é😀</r>");
+      await base.writeFile("/doc", bytes);
+      let reads = 0, closed = 0;
+      const caps = { ...base.capabilities, streamingRead: route === "stream", retainedRead: route === "retained" };
+      const fs = new Proxy(base, { get(target, key) {
+        if (key === "capabilities") return caps;
+        if (key === "capabilitiesFor") return () => caps;
+        if (key === "readFile") return async () => { assert.equal(route, "file"); reads++; return bytes; };
+        if (key === "readStream") return async function* () {
+          assert.equal(route, "stream");
+          const reused = new Uint8Array(1);
+          try { yield new Uint8Array(); for (const byte of bytes) { reads++; reused[0] = byte; yield reused; } }
+          finally { closed++; }
+        };
+        if (key === "openReadFile") return async () => {
+          assert.equal(route, "retained");
+          return { async read(position, maximum) { reads++; return bytes.subarray(position, position + Math.min(1, maximum)); }, async close() { closed++; } };
+        };
+        const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+      } });
+      const shell = new RustWasmBash({ fs, cwd: "/", forceNative: true });
+      try {
+        const result = await shell.exec("xmllint --c14n doc");
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "<r>é😀</r>", ""]);
+        assert.equal(closed, route === "file" ? 0 : 1);
+        assert.ok(reads >= (route === "file" ? 1 : bytes.length));
+      } finally { await shell.dispose(); }
+    });
+  }
+  await t.test("early error", async () => {
+    const base = new MemoryFileSystem(); await base.writeFile("/doc", Buffer.from("<r/><r/>"));
+    let closed = false;
+    const fs = new Proxy(base, { get(target, key) {
+      if (key === "readStream") return async function* () {
+        try { yield Buffer.from("<r/><r/>"); assert.fail("read beyond an XML parse error"); }
+        finally { closed = true; }
+      };
+      const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const shell = new RustWasmBash({ fs, cwd: "/", forceNative: true });
+    try {
+      const result = await shell.exec("xmllint --noout doc");
+      assert.equal(result.stderr, "xmllint: Invalid XML: multiple root elements\n");
+      assert.equal(closed, true);
+    } finally { await shell.dispose(); }
+  });
+});
+
+
+test("Rust host input yields during empty chunks and closes on cancellation", {skip: !WebAssembly.Suspending}, async () => {
+  const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const base = new MemoryFileSystem(); await base.writeFile("/doc", Buffer.from("<r/>"));
+  const controller = new AbortController(), reason = new Error("stop empty XML producer");
+  let closed = false, chunks = 0;
+  const fs = new Proxy(base, { get(target, key) {
+    if (key === "readStream") return async function* () {
+      try {
+        setTimeout(() => controller.abort(reason), 0);
+        while (true) { chunks++; yield new Uint8Array(); }
+      } finally { closed = true; }
+    };
+    const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new RustWasmBash({ fs, cwd: "/", forceNative: true });
+  try {
+    await assert.rejects(shell.exec("xmllint --noout doc", { signal: controller.signal }), error => error === reason);
+    assert.ok(chunks >= 1024);
+    assert.equal(closed, true);
+  } finally { await shell.dispose(); }
+});
+
+
+test("xq finishes XML conversion after a named reader fails and keeps early parse failures first", {skip: !WebAssembly.Suspending}, async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { FsError } = await import("safe-bash-contracts/errors");
+  for (const prefix of ["<r/>", "<r>", "<r/><r/>", Buffer.from([60, 114, 62, 195])]) {
+    await t.test(Buffer.from(prefix).toString("hex"), async () => {
+      const data = Buffer.from(prefix), base = new MemoryFileSystem();
+      await base.writeFile("/broken", Buffer.concat([data, Buffer.from(" ")]));
+      await base.writeFile("/xml", Buffer.from("<s/>"));
+      const fs = new Proxy(base, { get(target, key) {
+        if (key === "readStream") return async function* (path, options) {
+          if (path !== "/broken") { yield* target.readStream(path, options); return; }
+          yield data;
+          throw new FsError("EIO");
+        };
+        if (key === "openReadFile") return async (path, options) => {
+          const handle = await target.openReadFile(path, options);
+          if (path !== "/broken") return handle;
+          return new Proxy(handle, { get(handle, key) {
+            if (key === "read") return async (position, maximum) => {
+              if (position >= data.length) throw new FsError("EIO");
+              return data.subarray(position, position + maximum);
+            };
+            const value = Reflect.get(handle, key); return typeof value === "function" ? value.bind(handle) : value;
+          } });
+        };
+        const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+      } });
+      const js = new Shell({ fs, cwd: "/" }).use(agentCommands()), rs = new RustWasmBash({ fs, cwd: "/", forceNative: true });
+      try {
+        for (const cmd of ["xq -c . broken xml", "xq -nc 'try inputs catch .' broken xml", "xq -nc 'first(inputs)' broken xml", "xq -Rc . broken"]) {
+          const a = await js.exec(cmd), b = await rs.exec(cmd);
+          assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+        }
+      } finally { await js.dispose(); await rs.dispose(); }
+    });
+  }
+});
+
+
+test("XPath explicit axes preserve direction, node kinds and namespace scope", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    const xml='<catalog xmlns:p="urn:p" xml:lang="en"><item id="a">First</item><!--between--><?go x?><item id="b" xmlns:q="urn:q"><sub>Second</sub><p:sub/></item><item id="c"/></catalog>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const xp of [
+      'count(//sub/ancestor::*)', '//sub/ancestor::*[1]/@id', '//sub/ancestor::*[last()]',
+      '//sub/parent::item/attribute::id', '//item[2]/preceding-sibling::item/@id',
+      '//item[3]/preceding-sibling::item[1]/@id', '//item[1]/following-sibling::item[1]/@id',
+      '//item[1]/following::sub/child::text()', '//item[3]/preceding::item[1]/@id',
+      '//sub/preceding::item/@id', '//item/ancestor-or-self::*/self::item/@id',
+      '/catalog/descendant::sub', '/catalog/descendant-or-self::catalog',
+      '//item[1]/following-sibling::node()[1]', '//item[2]/preceding-sibling::node()[1]',
+      '//item[2]/attribute::node()', '//item/@id/ancestor::catalog', '//item/@id/child::node()',
+      '//item/@id/following::sub', '//item/@id/preceding-sibling::node()',
+      'count(/*/namespace::*)', 'count(/*/namespace::node())', '/*/namespace::p',
+      'name(/*/namespace::p)', 'namespace-uri(/*/namespace::p)', 'string(/*/namespace::xml)',
+      'count(/*/namespace::* | /*/namespace::*)', '/*/namespace::p/../@xml:lang',
+      'count(//item[2]/namespace::*)', 'count(//item[3]/namespace::*)',
+      'count(/*/child::item)', 'count(//attribute::id)', 'count(//item/descendant-or-self::node())',
+      '//item/bogus::x', '//item/child::', '//item/self::.', '//item/@.',
+    ]) {
+      await t.test(xp, async () => {
+        const cmd = "xmllint --xpath '" + xp + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], xp);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath namespace nodes retain defaults, shadowing, identity and document order", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<r xmlns="urn:default" xmlns:z="urn:z" xmlns:a="urn:a"><x xmlns="" xmlns:z="urn:inner"/><y/></r>'));
+    for (const xp of ['/*/namespace::*', '/*/namespace::*[name()=""]', 'count(/*/namespace::* | /*/*/namespace::*)',
+      '/*/*[1]/namespace::*', '/*/*[2]/namespace::*', '/*/namespace::* | /*/@* | /*/*',
+      '/*/namespace::*[last()]', '/*/namespace::*[1]', 'count(//namespace::node())',
+      '/*/namespace::z/..', '/*/namespace::z/self::node()', '/*/namespace::z/child::node()',
+      'count(/*/namespace::* | /*/namespace::*)']) {
+      await t.test(xp, async () => {
+        const cmd="xmllint --xpath '"+xp+"' doc", a=await js.exec(cmd), b=await rs.exec(cmd);
+        assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],xp);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath id selects xml:id values in document order and lang inherits the nearest language", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    const xml = '<catalog xml:lang="en-US" xml:id="root"><item id="a" xml:id="first" wanted="EN">text</item><item id="b" xml:id="second" xml:lang="fr"/><item id="c"/><empty xml:lang=""/><ref>second first</ref><ref>first</ref><x xml:id="  spaced  "/><x xml:id="  "/><x xml:id="first second"/></catalog>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const xp of [
+      'id("first")', 'id("missing")', 'count(id("a"))', 'count(id(""))',
+      'count(id("first first\tmissing\nfirst"))', 'count(id(//ref))',
+      'name(id("second root first"))', 'id("second first")',
+      'count(//item[id("first")])', 'count(//@*[id("root")])',
+      'count(id(true()))', 'count(id(1))', 'count(id("first\u00a0second"))',
+      'id("spaced")', 'id("first second")',
+      'count(//item[lang("en")])', 'count(//item[lang("EN-us")])',
+      'count(//item[lang("e")])', 'count(//item[lang("fr")])',
+      'count(//item[lang("en-US-extra")])', 'count(//empty[lang("en")])',
+      'count(//empty[lang("")])', 'count(//item/@id[lang("en")])',
+      'count(//item/text()[lang("en")])', 'lang("en")', 'count(//item[lang(@wanted)])',
+      'count(/*/namespace::*[lang("en")])', 'id()', 'id("a", "b")', 'lang()', 'lang("a", "b")',
+    ]) {
+      await t.test(xp, async () => {
+        const cmd = "xmllint --xpath '" + xp + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], xp);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath grouped filters retain document order, node context and sequential positions", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    const xml = '<r xmlns:p="urn:p"><x id="a" xml:id="first"><n>10</n><n>20</n></x><x id="b" xml:id="second"><n>30</n></x></r>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const xp of [
+      'string((//*[local-name()="n"])[1])', 'name((//@*)[1])', '(//n)[1]', '//n[1]',
+      '(//n)[last()]', '(//n)[position() > 1][1]', '((//n)[position() > 1])[last()]',
+      '(//n | //x/n)[2]', '(//n)[0]', '(//n)[9]', '(//n)[1.5]', '//x[(n)[1] = 10]',
+      '(id("second first"))[1]', '(//x[2]/preceding-sibling::*)[1]',
+      '(//n)[../@id="b"]', '(//x/@id)[../n=20]', '(//n/text())[../..[@id="a"]][last()]',
+      '(//namespace::p)[name(..)="x"][last()]', 'count((//n)[1]) + count((//n)[2])',
+      '(1)[1]', '("text")[1]', '(//n)[]', '(//n)[', '(//n)[1]/@id', '(//n)[1] | //x',
+    ]) {
+      await t.test(xp, async () => {
+        const cmd = "xmllint --xpath '" + xp + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], xp);
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath grouped filters handle deep nesting without recursive evaluation", async () => {
+  const shell = new RustWasmBash({ cwd: "/", forceNative: true, files: { "/doc": "<r><n>first</n><n>second</n></r>" } });
+  try {
+    const query = "(".repeat(3000) + "//n" + ")[1]".repeat(3000);
+    const result = await shell.exec("xmllint --xpath '" + query + "' doc");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "<n>first</n>\n", ""]);
+  } finally { await shell.dispose(); }
+});
+
+
+test("XPath multiplicative operators distinguish wildcard paths and preserve numeric precedence", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<catalog><item><n>1</n><n>2</n></item><item><n>2</n></item><item><n>03</n></item></catalog>'));
+    for (const xp of ["5 div 2", "5 mod 2", "3+4*2", "-5 mod 2", "5 mod -2", "6 div 2*3", "-2*-3+1",
+      "1 div 0", "-1 div 0", "0 div 0", "1 mod 0", "count(//item[position() mod 2=1])",
+      "count(//item[position()*2=4])", "count(//item[position() div 2=1])", "count(//item[n*2=4])",
+      "count(//item[* * 2=4])", "count(//item[n div 2=1])", "count(//item[n mod 2=1])",
+      "/catalog/item[1]/n*2", "/catalog/item[1]/n div 2", "count(/catalog/*)", "3*", "2 div", "4 mod )"]) {
+      const cmd = "xmllint --xpath '" + xp + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], xp);
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath continues path steps after attributes and text nodes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<r><a n="2">two</a><a n="4">four</a></r>'));
+    for (const xp of ["//a/@n/b", "//a/@n/..", "//a/@n/.", "//a/@n/../@n", "//a/text()/..", "//a/text()/../@n", "//a/text()/b"]) {
+      for (const file of ["doc", "missing"]) {
+        const cmd = "xmllint --xpath '" + xp + "' " + file;
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      }
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("XPath preserves node namespaces without registering document prefixes for queries", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const xml = '<r xmlns:a="one" xmlns:b="one" xml:lang="en"><a:t id="0" b:k="1">a<![CDATA[b]]>c</a:t><b:t/><q xmlns:a="two" xmlns="one"><a:t/><t/><z:t xmlns:z="one"/></q></r>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const q of ["//a:t", "//b:t", "//t", "count(//@*)", "/r/@*", "//a:t/@a:k",
+      "//a:t[namespace-uri()='one']", "namespace-uri(//@xml:lang)", "//a:q/a:t",
+      "//x:t", "count(//missing/x:t)", "/r/@xmlns", "//a:t/@*[local-name()='k']",
+      "//a:t/@*[last()]/..", "//a:t/text()[2]", "//a:t[count(1)]", "//missing[count(1)]",
+      "//*[namespace-uri()='one']", "//*[local-name()='t']/@*[namespace-uri()='one']",
+      "count(//@xml:lang)", "//*[local-name()='q']/*[namespace-uri()='two']", "string('a:t')"]) {
+      const cmd = "xmllint --xpath '" + q.replaceAll("'", "'\\''") + "' doc";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], q);
+    }
+  } finally { rs.dispose(); }
+});
+
+
+test("XML commands detect UTF-16 byte order and validate encoded input and declarations", async t => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const endian of ["LE", "BE"]) {
+      for (const declaration of ["", "UTF-16", "UTF-16" + endian, "UTF-8", "UTF-16" + (endian === "LE" ? "BE" : "LE")]) {
+        await t.test(endian + " " + (declaration || "no declaration"), async () => {
+          const xml = (declaration ? '<?xml version="1.0" encoding="' + declaration + '"?>' : "") + '<r>é😀</r>';
+          const bytes = Buffer.from("\ufeff" + xml, "utf16le");
+          if (endian === "BE") bytes.swap16();
+          for (const store of [fs, rs.fs]) await store.writeFile("/doc", bytes);
+          for (const cmd of ["xq -c . doc", "xmllint doc", "xmllint --encode UTF-8 --format doc", "xmllint --c14n doc", "xmllint --xpath 'string(/r)' <doc", "xmllint --noout doc", "xmllint --recover --c14n doc"]) {
+            const a = await js.exec(cmd), b = await rs.exec(cmd);
+            assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+          }
+        });
+      }
+    }
+    for (const bytes of [[0xff], [0xfe], [0xff, 0xfe, 0x3c], [0xfe, 0xff, 0xd8, 0], [0xff, 0xfe, 0, 0xdc], [0xff, 0xfe, 0, 0xd8, 60, 0]]) {
+      await t.test("invalid bytes " + bytes.join(" "), async () => {
+        for (const store of [fs, rs.fs]) await store.writeFile("/doc", Uint8Array.from(bytes));
+        for (const cmd of ["xq -c . doc", "xmllint --noout doc", "xmllint --recover --noout doc"]) {
+          const a = await js.exec(cmd), b = await rs.exec(cmd);
+          assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+        }
+      });
+    }
+  } finally { await js.dispose(); await rs.dispose(); }
+});
+
+
+test("xmllint retains UTF-16 surrogate pairs across decoder chunks", async () => {
+  const shell = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const endian of ["LE", "BE"]) {
+      const xml = '<r>' + 'a'.repeat(2043) + '😀é</r>';
+      const bytes = Buffer.from("\ufeff" + xml, "utf16le");
+      if (endian === "BE") bytes.swap16();
+      await shell.fs.writeFile("/doc", bytes);
+      for (const cmd of ["xmllint --c14n doc", "xmllint --c14n <doc"]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, xml, ""], endian + " " + cmd);
+      }
+    }
+  } finally { await shell.dispose(); }
+});
+
+
+
+test("AAC-LC ADTS LATM and MP4 decode native audio through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/aac-decoding.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+  try {
+    for(const sample of fixture.cases) {
+      const input=Buffer.from(sample.input,"hex");
+      await bash.fs.writeFile("/input",input);
+      const args=["ffmpeg","-y",...(sample.before??[]),"-f",sample.format,"-i","/input",...(sample.after??[]),"-f",sample.outputFormat??"f32le","/output"];
+      const result=await bash.exec(args.map(quote).join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const actual=Buffer.from(await bash.fs.readFile("/output")),expected=Buffer.from(sample.output,"hex");
+      assert.equal(actual.length,expected.length,sample.name);
+      if(sample.sampleFormat==="s16le") {
+        const offset=sample.outputFormat==="wav"?actual.indexOf(Buffer.from("data"))+8:0;
+        const referenceOffset=sample.outputFormat==="wav"?expected.indexOf(Buffer.from("data"))+8:0;
+        assert.equal(offset,referenceOffset,sample.name);
+        for(let i=offset;i<actual.length;i+=2) assert.ok(Math.abs(actual.readInt16LE(i)-expected.readInt16LE(i))<=1,`${sample.name} sample ${i}`);
+        continue;
+      }
+      for(let i=0;i<actual.length;i+=4) {
+        const a=actual.readFloatLE(i),b=expected.readFloatLE(i);
+        assert.ok(Number.isFinite(a)&&Math.abs(a-b)<=0.00002,`${sample.name} sample ${i/4}: ${a} vs ${b}`);
+      }
+    }
+    for(const format of ["aac","latm","mp4"]) {
+      const sample=fixture.cases.find(c=>c.format===format);
+      const input=Buffer.from(sample.input,"hex");
+      const result=await bash.exec(`ffmpeg -f ${format} -i - -f f32le -`,{stdin:input});
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.equal(result.stdoutBytes.length,Buffer.from(sample.output,"hex").length);
+      await bash.fs.writeFile("/input",input);
+      assert.equal((await bash.exec(`ffmpeg -f ${format} -i /input -f null -`)).exitCode,0);
+      await bash.fs.writeFile("/output","keep");
+      if(format==="latm") {
+        const unsupported=await bash.exec("ffmpeg -y -f latm -i /input -f amr /output");
+        assert.notEqual(unsupported.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+      }
+      const limited=await bash.exec(`ffmpeg -y -f ${format} -i /input -f f32le /output`,{limits:{maxInputBytes:65536}});
+      assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+    }
+    const truncated=Buffer.from(fixture.cases[0].input,"hex").subarray(0,12);
+    await bash.fs.writeFile("/input",truncated);
+    await bash.fs.writeFile("/output","keep");
+    for(const format of ["f32le","wav","null"]) {
+      const bad=await bash.exec(`ffmpeg -y -f aac -i /input -f ${format} /output`);
+      assert.notEqual(bad.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("AMR-NB speech modes, seeks, loops and bounded decoding match native audio through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/amr-nb-decoding.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/input",Buffer.from(sample.input,"hex"));
+      const format=sample.outputFormat??"f32le";
+      const args=["ffmpeg","-y",...(sample.before??[]),"-f",sample.format,"-i","/input",...(sample.after??[]),"-f",format,"/output"];
+      const result=await bash.exec(args.map(quote).join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const actual=Buffer.from(await bash.fs.readFile("/output")),expected=Buffer.from(sample.output,"hex");
+      assert.equal(actual.length,expected.length,sample.name);
+      if(format==="s16le") {
+        for(let i=0;i<actual.length;i+=2) assert.ok(Math.abs(actual.readInt16LE(i)-expected.readInt16LE(i))<=1,`${sample.name} sample ${i/2}`);
+      } else for(let i=0;i<actual.length;i+=4) {
+        const a=actual.readFloatLE(i),b=expected.readFloatLE(i);
+        assert.ok(Number.isFinite(a)&&Math.abs(a-b)<=0.00002,`${sample.name} sample ${i/4}: ${a} vs ${b}`);
+      }
+    }
+    for(const format of ["amr","mp4"]) {
+      const sample=fixture.cases.find(c=>c.format===format);
+      const input=Buffer.from(sample.input,"hex");
+      const piped=await bash.exec(`ffmpeg -f ${format} -i - -f f32le -`,{stdin:input});
+      assert.equal(piped.exitCode,0,piped.stderr);
+      assert.equal(piped.stdoutBytes.length,Buffer.from(sample.output,"hex").length);
+      await bash.fs.writeFile("/input",input);
+      assert.equal((await bash.exec(`ffmpeg -f ${format} -i /input -f null -`)).exitCode,0);
+      await bash.fs.writeFile("/output","keep");
+      const unsupported=await bash.exec(`ffmpeg -y -f ${format} -i /input -f amr /output`);
+      assert.notEqual(unsupported.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+      const limited=await bash.exec(`ffmpeg -y -f ${format} -i /input -f f32le /output`,{limits:{maxInputBytes:4096}});
+      assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+    }
+    for(const bytes of [Buffer.from("2321414d520a440000000000","hex"),Buffer.from(fixture.cases[0].input,"hex").subarray(0,12)]) {
+      await bash.fs.writeFile("/input",bytes);
+      await bash.fs.writeFile("/output","keep");
+      for(const format of ["f32le","wav","null"]) {
+        const bad=await bash.exec(`ffmpeg -y -f amr -i /input -f ${format} /output`);
+        assert.notEqual(bad.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+      }
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("AMR-WB speech modes, concealment, seeks, loops and bounded decoding match native audio through Wasm", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/amr-wb-decoding.json",import.meta.url),"utf8"));
+  const bash=new RustWasmBash({cwd:"/",forceNative:true});
+  const quote=s=>"'"+s.replaceAll("'","'\\''")+"'";
+  try {
+    for(const sample of fixture.cases) {
+      await bash.fs.writeFile("/input",Buffer.from(sample.input,"hex"));
+      const format=sample.outputFormat??"f32le";
+      const args=["ffmpeg","-y",...(sample.before??[]),"-f",sample.format,"-i","/input",...(sample.after??[]),"-f",format,"/output"];
+      const result=await bash.exec(args.map(quote).join(" "));
+      assert.equal(result.exitCode,0,`${sample.name}: ${result.stderr}`);
+      const actual=Buffer.from(await bash.fs.readFile("/output")),expected=Buffer.from(sample.output,"hex");
+      assert.equal(actual.length,expected.length,sample.name);
+      if(format==="f32le"&&!sample.before?.length&&!sample.after?.length) assert.deepEqual(actual,expected,`${sample.name}: native decoder rounding`);
+      if(format==="s16le") {
+        for(let i=0;i<actual.length;i+=2) assert.ok(Math.abs(actual.readInt16LE(i)-expected.readInt16LE(i))<=1,`${sample.name} sample ${i/2}`);
+      } else for(let i=0;i<actual.length;i+=4) {
+        const a=actual.readFloatLE(i),b=expected.readFloatLE(i);
+        assert.ok(Number.isFinite(a)&&Math.abs(a-b)<=0.00002,`${sample.name} sample ${i/4}: ${a} vs ${b}`);
+      }
+    }
+    for(const format of ["amr","mp4"]) {
+      const sample=fixture.cases.find(c=>c.format===format);
+      const input=Buffer.from(sample.input,"hex");
+      const piped=await bash.exec(`ffmpeg -f ${format} -i - -f f32le -`,{stdin:input});
+      assert.equal(piped.exitCode,0,piped.stderr);
+      assert.equal(piped.stdoutBytes.length,Buffer.from(sample.output,"hex").length);
+      await bash.fs.writeFile("/input",input);
+      assert.equal((await bash.exec(`ffmpeg -f ${format} -i /input -f null -`)).exitCode,0);
+      await bash.fs.writeFile("/output","keep");
+      const unsupported=await bash.exec(`ffmpeg -y -f ${format} -i /input -f amr /output`);
+      assert.notEqual(unsupported.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+      const limited=await bash.exec(`ffmpeg -y -f ${format} -i /input -f f32le /output`,{limits:{maxInputBytes:4096}});
+      assert.notEqual(limited.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+    }
+    for(const bytes of [Buffer.from("2321414d522d57420a4c0000000000","hex"),Buffer.from(fixture.cases[0].input,"hex").subarray(0,12)]) {
+      await bash.fs.writeFile("/input",bytes);
+      await bash.fs.writeFile("/output","keep");
+      for(const format of ["f32le","wav","null"]) {
+        const bad=await bash.exec(`ffmpeg -y -f amr -i /input -f ${format} /output`);
+        assert.notEqual(bad.exitCode,0);assert.equal(bash.readText("/output"),"keep");
+      }
+    }
+  } finally {bash.dispose();}
+});
+
+
+test("AAC encoding preserves native PCM, filters and container audio through Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-encoding.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile("/"+name, Buffer.from(hex,"hex"));
+    for (const c of fixture.cases) {
+      const output = c.args.at(-1);
+      const result = await sh.exec("ffmpeg -y "+c.args.map(a=>"'"+a.replaceAll("'","'\\''")+"'").join(" "));
+      assert.equal(result.exitCode,0,c.name+": "+result.stderr);
+      if (c.pts) {
+        const probe = await sh.exec(`ffprobe -show_packets -show_entries packet=pts -of csv=p=0 ${output}`);
+        assert.equal(probe.stdout,c.pts,c.name);
+      }
+      for (const [key, args] of [["packets", "-show_packets -show_entries packet=pts,duration"], ["durationTs", "-show_entries stream=duration_ts"]]) {
+        if(c[key]!==undefined) {
+          const probe=await sh.exec(`ffprobe ${args} -of csv=p=0 ${output}`);
+          assert.equal(probe.exitCode,0,probe.stderr);assert.equal(probe.stdout,c[key],c.name+': '+key);
+        }
+      }
+      const decode = await sh.exec(`ffmpeg -y -i ${output} -f f32le /pcm`);
+      assert.equal(decode.exitCode,0,c.name+": "+decode.stderr);
+      const pcm = Buffer.from(await sh.fs.readFile("/pcm")), expected = Buffer.from(c.pcm,"hex");
+      const delay = output.endsWith("mp4") ? 0 : 1024;
+      assert.equal(pcm.length,(Math.ceil(expected.length/(4*c.channels*1024))*1024+delay)*4*c.channels,c.name);
+      let signal=0,error=0;
+      for (let i=0;i<expected.length;i+=4) {
+        const x=expected.readFloatLE(i),y=pcm.readFloatLE(i+delay*c.channels*4);
+        signal+=x*x;error+=(x-y)**2;
+      }
+      const snr=error===0 ? Infinity : 10*Math.log10(signal/error);
+      assert.ok(snr>=c.snr,`${c.name}: SNR ${snr}`);
+    }
+  } finally { sh.dispose(); }
+});
+
+
+
+test("AAC encoding rejects invalid samples and unsupported processing before replacing output", async () => {
+  const sh = new RustWasmBash({cwd:"/"});
+  try {
+    await sh.fs.writeFile("/invalid",Uint8Array.of(0,0,192,127));
+    for (const input of [
+      "-f f32le -ar 16000 -ac 1 -i invalid -c:a aac",
+      "-f s16le -ar 8000 -ac 1 -i invalid -c:a copy",
+      "-f lavfi -i sine=r=16000:d=0.1 -af atempo=2",
+      "-f lavfi -i sine=r=16000:d=0.1 -af volume=banana",
+      "-f lavfi -i sine=r=16000:d=0.1 -ac 3",
+      "-f lavfi -i sine=r=16000:d=0.1 -ar 12345",
+      "-f lavfi -i sine=d=0.1 -map 0:a -map 0:a",
+      "-f lavfi -i color=s=16x16:d=0.1",
+      "-f lavfi -i color=s=16x16:d=0.1 -f lavfi -i sine=d=0.1 -map 0:v -map 1:a",
+    ]) {
+      await sh.fs.writeFile("/out.aac","keep");
+      const result=await sh.exec(`ffmpeg -y ${input} out.aac`);
+      assert.equal(result.exitCode,input === "-f lavfi -i color=s=16x16:d=0.1" ? 234 : 1,input);
+      assert.equal(sh.readText("/out.aac"),"keep",input);
+    }
+  } finally { sh.dispose(); }
+});
+
+
+test("LATM encoding preserves copied packets and rejects invalid outputs through Wasm", async () => {
+  const sh = new RustWasmBash({cwd:"/"});
+  try {
+    const source = "-f lavfi -i sine=f=713:r=48000:d=0.55 -ac 2 -b:a 192000";
+    for (const output of ["encoded.latm", "encoded.aac"]) {
+      const result = await sh.exec(`ffmpeg ${source} ${output}`);
+      assert.equal(result.exitCode,0,result.stderr);
+    }
+    const encoded = await sh.fs.readFile("/encoded.latm");
+    for (const command of [
+      "ffmpeg -y -i encoded.aac -c:a copy copied.latm",
+      "ffmpeg -y -i encoded.latm -c:a copy copied.latm",
+      "cat encoded.aac | ffmpeg -y -f aac -i - -c:a copy -f latm - > copied.latm",
+    ]) {
+      const result = await sh.exec(command);
+      assert.equal(result.exitCode,0,command+": "+result.stderr);
+      assert.deepEqual(await sh.fs.readFile("/copied.latm"),encoded,command);
+    }
+    await sh.fs.writeFile("/bad.amr",Buffer.from("2321414d520a3c00","hex"));
+    await sh.fs.writeFile("/bad.latm",encoded.subarray(0,6));
+    for (const options of [
+      "-f lavfi -i color=s=16x16:d=0.1 -map 0:v",
+      "-i encoded.aac -map 0:a -map 0:a",
+      "-i encoded.aac -an",
+      "-f lavfi -i sine=d=0.1 -c:a copy",
+      "-i encoded.aac -c:a pcm_s16le",
+      "-i encoded.aac -af atempo=2",
+      "-i bad.amr",
+      "-f latm -i bad.latm",
+    ]) {
+      await sh.fs.writeFile("/output.latm","keep");
+      const result = await sh.exec(`ffmpeg -y ${options} output.latm`);
+      assert.notEqual(result.exitCode,0,options);
+      assert.equal(sh.readText("/output.latm"),"keep",options);
+    }
+    const limited = await sh.exec("ffmpeg -y -i encoded.aac output.latm",{limits:{maxInputBytes:65536}});
+    assert.notEqual(limited.exitCode,0);
+    assert.equal(sh.readText("/output.latm"),"keep");
+  } finally { sh.dispose(); }
+});
+
+
+test("AAC shortest output matches native copied-video and encoded-audio timelines", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-timelines.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"});
+  const failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for (const c of fixture.cases) {
+      const result = await sh.exec("ffmpeg -y "+c.args.join(" "));
+      assert.equal(result.exitCode,0,c.name+": "+result.stderr);
+      const probe = await sh.exec("ffprobe -show_entries stream=codec_name,time_base,duration_ts,nb_frames -of csv=p=0 out.mp4");
+      const video = await sh.exec("ffprobe -select_streams v -show_packets -show_entries packet=pts,dts,duration -of csv=p=0 out.mp4");
+      const decode = await sh.exec("ffmpeg -y -i out.mp4 -map 0:a -f f32le /pcm");
+      assert.equal(decode.exitCode,0,decode.stderr);
+      const pcm = Buffer.from(await sh.fs.readFile("/pcm")), reference = Buffer.from(c.pcm,"hex");
+      const samples = pcm.length/4;
+      if (probe.stdout!==c.probe || video.stdout!==c.video || samples!==c.samples) failures.push({name:c.name,probe:probe.stdout,expected:c.probe,video:video.stdout,expectedVideo:c.video,samples,expectedSamples:c.samples});
+      let signal=0,error=0;
+      for(let i=0;i<reference.length;i+=4) {
+        const a=pcm.readFloatLE(i),b=reference.readFloatLE(i);signal+=b*b;error+=(a-b)**2;
+      }
+      const snr=10*Math.log10(signal/error);
+      assert.ok(snr>=40,`${c.name}: SNR ${snr}`);
+    }
+    assert.deepEqual(failures,[]);
+  } finally { sh.dispose(); }
+});
+
+
+test("copied video seeks preserve native keyframes and presentation delays", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/copy-video-seek.json",import.meta.url),"utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const [name,expected] of Object.entries(fixture.keys)) {
+      const keys=await sh.exec(`ffprobe -select_streams v -show_packets -show_entries packet=flags -of csv=p=0 ${name}`);
+      assert.equal(keys.exitCode,0,keys.stderr);
+      assert.deepEqual(keys.stdout.trim().split("\n").filter(Boolean).map(s=>s.startsWith("K")),expected,name+": native key flags");
+    }
+    for(const c of fixture.cases) {
+      const result = await sh.exec("ffmpeg -y "+c.args.join(" "));
+      if(result.exitCode) {failures.push(c.name+": "+result.stderr);continue;}
+      const streams=await sh.exec("ffprobe -show_entries stream=codec_name,start_pts,start_time,duration_ts,duration,nb_frames -of csv=p=0 out.mp4");
+      const video=await sh.exec("ffprobe -select_streams v -show_packets -show_entries packet=pts,dts,duration -of csv=p=0 out.mp4");
+      if(streams.stdout!==c.streams || video.stdout!==c.video) failures.push({name:c.name,streams:streams.stdout,expected:c.streams,video:video.stdout,expectedVideo:c.video});
+    }
+    assert.deepEqual(failures,[]);
+  } finally {sh.dispose();}
+});
+
+
+test("concat preserves native timelines, PCM and H.264 auto-conversion", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const {parseMp4}=await import("@poe-code/mp4-ast");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/concat-timelines.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases){
+      await sh.fs.writeFile("/list",c.list);
+      const result=await sh.exec("ffmpeg -y "+c.args.join(" "));
+      if(result.exitCode){failures.push(c.name+": "+result.stderr);continue;}
+      if(c.name==="option-repeat-2" || c.name==="option-repeat-3")assert.ok(result.stderr.includes("Unused options for"),c.name);
+      if(c.pcm!==undefined){
+        const pcm=Buffer.from(await sh.fs.readFile("/out.pcm")).toString("hex");
+        if(pcm!==c.pcm)failures.push(c.name+": decoded PCM differs ("+pcm.length/2+" bytes)");
+      }else{
+        const streams=await sh.exec("ffprobe -show_entries stream=codec_name,time_base,start_pts,duration_ts,nb_frames -of csv=p=0 out.mp4");
+        const video=await sh.exec("ffprobe -select_streams v -show_packets -show_entries packet=pts,dts,duration -of csv=p=0 out.mp4");
+        if(streams.stdout!==c.streams||video.stdout!==c.video)failures.push({name:c.name,streams:streams.stdout,expected:c.streams,video:video.stdout,expectedVideo:c.video});
+        if(c.name.startsWith("convert-") || c.name.startsWith("option-")) {
+          const doc=parseMp4(await sh.fs.readFile("/out.mp4"));
+          if(c.descriptions)assert.deepEqual(doc.tracks.filter(t=>t.type==="video").map(t=>t.codecDescriptions.length),c.descriptions,c.name);
+          const hashes=doc.tracks.filter(t=>t.type==="video").flatMap(t=>t.samples)
+            .map(s=>"SHA256:"+createHash("sha256").update(s.data).digest("hex"));
+          if(JSON.stringify(hashes)!==JSON.stringify(c.hashes))failures.push(c.name+": packet hashes differ");
+        }
+        if(c.audio!==undefined) {
+          const audio=await sh.exec("ffprobe -select_streams a -show_packets -show_entries packet=pts,dts,duration -of csv=p=0 out.mp4");
+          if(audio.stdout!==c.audio)failures.push({name:c.name,audio:audio.stdout,expected:c.audio});
+          const counts=await sh.exec("ffprobe -count_packets -show_entries stream=nb_read_packets -of csv=p=0 out.mp4");
+          if(counts.stdout!==c.read_packets)failures.push({name:c.name,counts:counts.stdout,expected:c.read_packets});
+        }
+      }
+    }
+    assert.deepEqual(failures,[]);
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile("/"+name)).toString("hex"),hex,name+": original input changed");
+    await sh.fs.writeFile("/list",fixture.cases.find(c=>c.name==="option-repeat-3").list);
+    const quiet=await sh.exec("ffmpeg -y -v error -f concat -safe 0 -i list -c copy out.mp4");
+    assert.equal(quiet.exitCode,0,quiet.stderr);
+    assert.equal(quiet.stderr,"");
+  }finally{sh.dispose();}
+});
+
+
+test("concat rejects invalid conversion settings and corrupt H.264 without replacing output", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/concat-timelines.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"});
+  try {
+    const input=Buffer.from(fixture.inputs["convert-a.mp4"],"hex");
+    await sh.fs.writeFile("/a.mp4",input);
+    await sh.fs.writeFile("/list","ffconcat version 1.0\nfile a.mp4\n");
+    for(const value of ["2","-1","1.0","nope","auto"]) {
+      await sh.fs.writeFile("/out.mp4","keep");
+      const result=await sh.exec(`ffmpeg -y -f concat -auto_convert ${value} -i list -c copy out.mp4`);
+      assert.equal(result.exitCode,234,value+": "+result.stderr);
+      assert.equal(sh.readText("/out.mp4"),"keep");
+    }
+    const config=Buffer.from(input);
+    const at=config.indexOf(Buffer.from("avcC"));
+    assert.ok(at>0);
+    config.writeUInt16BE(65535,at+10);
+    await sh.fs.writeFile("/a.mp4",config);
+    const corrupt=await sh.exec("ffmpeg -y -f concat -i list -c copy out.mp4");
+    assert.notEqual(corrupt.exitCode,0);
+    assert.equal(sh.readText("/out.mp4"),"keep");
+    await sh.fs.writeFile("/a.mp4",input);
+    const limited=await sh.exec("ffmpeg -y -f concat -i list -c copy out.mp4",{limits:{maxInputBytes:input.length}});
+    assert.notEqual(limited.exitCode,0);
+    assert.equal(sh.readText("/out.mp4"),"keep");
+  }finally{sh.dispose();}
+});
+
+
+test("PCM resampling bounds coefficient work and preserves destinations on failure", async () => {
+  const sh = new RustWasmBash({cwd:"/", forceNative:true});
+  try {
+    await sh.fs.writeFile('/input', new Uint8Array(256));
+    for (const [rate, name] of [[48000, 'first.wav'], [47999, 'second.wav']]) {
+      const result = await sh.exec(`ffmpeg -f f32le -ar ${rate} -ac 1 -i input ${name}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    for (const args of [
+      '-f f32le -ar 47999 -ac 1 -i input -ar 48000',
+      '-i first.wav -i second.wav -filter_complex concat=n=2:v=0:a=1',
+    ]) {
+      await sh.fs.writeFile('/output', 'keep');
+      const command = `ffmpeg -y ${args} -f f32le output`;
+      const limited = await sh.exec(command, {limits:{maxInputBytes:196608}});
+      assert.notEqual(limited.exitCode, 0, command);
+      assert.match(limited.stderr, /audio resampling work limit exceeded/);
+      assert.equal(sh.readText('/output'), 'keep');
+      const normal = await sh.exec(command);
+      assert.equal(normal.exitCode, 0, normal.stderr);
+      assert.ok((await sh.fs.readFile('/output')).length > 0);
+    }
+  } finally { sh.dispose(); }
+});
+
+
+test("MOV and MP4 preserve custom PCM speaker order and mix declared channels", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  for (const path of ["../tests/fixtures/mp4-order.json", "../tests/fixtures/concat-layouts.json", "../tests/fixtures/concat-mix.json", "../tests/fixtures/concat-mov.json", "../tests/fixtures/concat-loop.json", "../tests/fixtures/concat-output-time.json", "../tests/fixtures/direct-audio-loop.json", "../tests/fixtures/audio-copy-loop.json", "../tests/fixtures/mov-copy-edits.json", "../tests/fixtures/nested-audio-concat.json"]) {
+  const fixture=JSON.parse(await readFile(new URL(path,import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const [name,expected] of Object.entries(fixture.inputProbes)) {
+      const result=await sh.exec(`ffprobe -show_entries stream=codec_name,channels,channel_layout -of json ${name}`);
+      assert.equal(result.exitCode,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout),expected,name);
+    }
+    for(const c of fixture.cases) {
+      await sh.fs.writeFile('/output','keep');
+      const result=await sh.exec("ffmpeg -y "+c.args.map(a=>"'"+a.replaceAll("'","'\\''")+"'").join(" "));
+      if(c.exit) {assert.notEqual(result.exitCode,0,c.name);assert.equal(sh.readText('/output'),'keep',c.name);continue;}
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      if(c.movieTimescale!==undefined) {
+        const data=Buffer.from(await sh.fs.readFile('/output'));
+        assert.equal(data.readUInt32BE(data.indexOf('mvhd')+16),c.movieTimescale,c.name);
+      }
+      if(c.rawSha256) {assert.equal(createHash('sha256').update(await sh.fs.readFile('/output')).digest('hex'),c.rawSha256,c.name);continue;}
+      const probe=await sh.exec('ffprobe -show_entries stream=codec_name,channels,channel_layout -of json output');
+      if(c.probeExit) assert.notEqual(probe.exitCode,0,c.name);
+      else { assert.equal(probe.exitCode,0,probe.stderr);assert.deepEqual(JSON.parse(probe.stdout),c.probe,c.name); }
+      if(c.waveMask!==undefined) {
+        const data=Buffer.from(await sh.fs.readFile('/output')),fmt=data.indexOf('fmt ')+(c.args.at(-2)==='w64'?24:8);
+        assert.equal(data.readUInt16LE(fmt)===65534?data.readUInt32LE(fmt+20):0,c.waveMask,c.name);
+      }
+      for (const [key, entry] of [["sampleRate", "sample_rate"], ["durationTs", "duration_ts"], ["storedFrames", "nb_frames"]]) {
+        if(c[key]!==undefined) {
+          const value=await sh.exec(`ffprobe -show_entries stream=${entry} -of csv=p=0 output`);
+          assert.equal(value.exitCode,0,value.stderr);assert.equal(value.stdout.trim(),c[key],c.name);
+        }
+      }
+      await sh.fs.writeFile('/decoded','keep');
+      if(c.packetCsv!==undefined) {
+        const packets=await sh.exec('ffprobe -show_packets -show_entries packet=pts,duration,size -of csv=p=0 output');
+        assert.equal(packets.exitCode,0,packets.stderr);assert.equal(packets.stdout,c.packetCsv,c.name);
+        const count=await sh.exec('ffprobe -count_packets -show_entries stream=nb_read_packets -of csv=p=0 output');
+        assert.equal(count.exitCode,0,count.stderr);assert.equal(count.stdout.trim(),c.packetCount,c.name);
+      }
+      if(c.frameCounts!==undefined) {
+        const count=await sh.exec('ffprobe -count_frames -show_entries stream=nb_read_frames -of json output');
+        assert.equal(count.exitCode,0,count.stderr);assert.deepEqual(JSON.parse(count.stdout),c.frameCounts,c.name);
+      }
+      if(c.packetCsvHeader!==undefined) {
+        const packets=await sh.exec('ffprobe -show_packets -show_entries packet=pts,duration,size -of csv output');
+        assert.equal(packets.exitCode,0,packets.stderr);assert.equal(packets.stdout,c.packetCsvHeader,c.name);
+      }
+      const decoded=await sh.exec('ffmpeg -y -i output -f f64le decoded');
+      if(c.decodeExit) {assert.notEqual(decoded.exitCode,0,c.name);assert.equal(sh.readText('/decoded'),'keep',c.name);continue;}
+      assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);
+      const actual=Buffer.from(await sh.fs.readFile('/decoded'));
+      if(c.pcmF64le!==undefined) {
+        const expected=Buffer.from(c.pcmF64le,'hex');assert.equal(actual.length,expected.length,c.name);
+        for(let offset=0;offset<actual.length;offset+=8)assert.ok(Math.abs(actual.readDoubleLE(offset)-expected.readDoubleLE(offset))<=1e-15,c.name+': sample '+offset/8);
+      }else{assert.equal(createHash('sha256').update(actual).digest('hex'),c.pcmSha256,c.name);}
+    }
+    if (path.endsWith('nested-audio-concat.json')) {
+      for (const format of ['wav','mov','mp4']) {
+        await sh.fs.writeFile('/output','keep');
+        const result=await sh.exec(`ffmpeg -y -i 'concat:s.wav|stereo.wav' -i 'concat:s2.wav|s.wav' -filter_complex concat=n=2:v=0:a=1 -ar 192000 -ac 6 -c:a pcm_f64le -f ${format} output`,{limits:{maxInputBytes:64000}});
+        assert.notEqual(result.exitCode,0,format);
+        assert.match(result.stderr,/limit|budget/);
+        assert.equal(sh.readText('/output'),'keep',format);
+      }
+    }
+    if (path.endsWith('audio-copy-loop.json')) {
+      for (const format of ['mov','mp4']) {
+        await sh.fs.writeFile('/output','keep');
+        const result = await sh.exec(`ffmpeg -y -stream_loop 200 -i long.wav -c:a copy -f ${format} output`, {limits:{maxInputBytes:900000}});
+        assert.notEqual(result.exitCode,0,format);
+        assert.match(result.stderr,/limit|budget/);
+        assert.equal(sh.readText('/output'),'keep',format);
+      }
+      for (const format of ['f64le','wav','w64','mov','mp4']) {
+        await sh.fs.writeFile('/output','keep');
+        const result = await sh.exec(`ffmpeg -y -stream_loop 200 -i f64le-3f-16000.wav -c:a copy -f ${format} output`, {limits:{maxInputBytes:64000}});
+        assert.notEqual(result.exitCode,0,format);
+        assert.match(result.stderr,/limit|budget/);
+        assert.equal(sh.readText('/output'),'keep',format);
+      }
+    }
+    if (path.endsWith('mov-copy-edits.json')) {
+      for (const format of ['mov','mp4']) {
+        await sh.fs.writeFile('/output','keep');
+        const result=await sh.exec(`ffmpeg -y -i source.mov -c:a copy -f ${format} output`,{limits:{maxInputBytes:1900000}});
+        assert.notEqual(result.exitCode,0,format);assert.match(result.stderr,/limit|budget/);
+        assert.equal(sh.readText('/output'),'keep',format);
+      }
+    }
+    if (path.endsWith('direct-audio-loop.json')) {
+      const command = 'ffmpeg -y -stream_loop 8 -ss 0.065 -i long.wav -c:a pcm_f64le -f wav output';
+      await sh.fs.writeFile('/output', 'keep');
+      const rejected = await sh.exec(command, {limits:{maxInputBytes:500000}});
+      assert.notEqual(rejected.exitCode, 0);
+      assert.match(rejected.stderr, /limit|budget/);
+      assert.equal(sh.readText('/output'), 'keep');
+      const accepted = await sh.exec(command);
+      assert.equal(accepted.exitCode, 0, accepted.stderr);
+    }
+    if (path.endsWith('concat-loop.json')) {
+      for (const source of ['center-first-f64le.mov', 'f64le-3f-16000.wav']) {
+        await sh.fs.writeFile('/output', 'keep');
+        const result = await sh.exec(`ffmpeg -y -stream_loop 200 -ss 0.001 -i ${source} -i f64le-3-8000.wav -filter_complex concat=n=2:v=0:a=1 -c:a pcm_f64le -f mov output`, {limits:{maxInputBytes:64000}});
+        assert.notEqual(result.exitCode, 0, source);
+        assert.match(result.stderr, /limit|budget/);
+        assert.equal(sh.readText('/output'), 'keep');
+      }
+    }
+    if (path.endsWith('concat-mov.json')) {
+      for (const args of [
+        '-stream_loop 100 -i center-first-f64le.mov -i center-middle-f64le.mov -filter_complex concat=n=2:v=0:a=1',
+        '-i center-first-f64le.mov -ar 192000 -ac 6',
+      ]) {
+        await sh.fs.writeFile('/output', 'keep');
+        const result = await sh.exec(`ffmpeg -y ${args} -c:a pcm_f64le -f mov output`, {limits:{maxInputBytes:64000}});
+        assert.notEqual(result.exitCode, 0, args);
+        assert.match(result.stderr, /limit|budget/);
+        assert.equal(sh.readText('/output'), 'keep');
+      }
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+  }
+});
+
+
+test("MOV and MP4 PCM retain channel layouts through conversion, copying and mixing", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/mp4-layouts.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const [name,expected] of Object.entries(fixture.inputProbes)) {
+      const result=await sh.exec(`ffprobe -show_entries stream=codec_name,channels,channel_layout -of json ${name}`);
+      assert.equal(result.exitCode,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout),expected,name);
+    }
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      const probe=await sh.exec('ffprobe -show_entries stream=codec_name,channels,channel_layout -of json output');
+      assert.equal(probe.exitCode,0,probe.stderr);assert.deepEqual(JSON.parse(probe.stdout),c.probe,c.name);
+      if(c.waveMask!==undefined) {
+        const data=Buffer.from(await sh.fs.readFile('/output')),fmt=data.indexOf('fmt ')+8;
+        assert.equal(data.readUInt16LE(fmt)===65534?data.readUInt32LE(fmt+20):0,c.waveMask,c.name);
+      }
+      const decoded=await sh.exec('ffmpeg -y -i output -f f64le decoded');
+      assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);
+      assert.equal(createHash('sha256').update(await sh.fs.readFile('/decoded')).digest('hex'),c.pcmSha256,c.name);
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("MP4 integer and float PCM entries encode, decode and copy native samples", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/mp4-pcm.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  const entries='stream=codec_name,codec_tag_string,sample_fmt,sample_rate,channels,bits_per_sample,time_base,start_pts,duration_ts,nb_frames';
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const [name,expected] of Object.entries(fixture.inputProbes)) {
+      const probe=await sh.exec(`ffprobe -select_streams a -show_entries ${entries} -of json ${name}`);
+      assert.equal(probe.exitCode,0,probe.stderr);assert.deepEqual(JSON.parse(probe.stdout),expected,name);
+      const packets=await sh.exec(`ffprobe -select_streams a -show_packets -show_entries packet=pts,dts,duration,size -of json ${name}`);
+      assert.equal(packets.exitCode,0,packets.stderr);assert.deepEqual(JSON.parse(packets.stdout),fixture.inputPackets[name],name);
+      const decoded=await sh.exec(`ffmpeg -y -i ${name} -f f64le decoded`);
+      assert.equal(decoded.exitCode,0,decoded.stderr);
+      assert.equal(createHash('sha256').update(await sh.fs.readFile('/decoded')).digest('hex'),fixture.inputSha256[name],name);
+    }
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      const probe=await sh.exec(`ffprobe -select_streams a -show_entries ${entries} -of json output`);
+      assert.equal(probe.exitCode,0,probe.stderr);assert.deepEqual(JSON.parse(probe.stdout),c.probe,c.name);
+      const brand=await sh.exec('ffprobe -show_entries format_tags=major_brand -of json output');
+      assert.equal(brand.exitCode,0,brand.stderr);assert.deepEqual(JSON.parse(brand.stdout),c.brand,c.name);
+      const packets=await sh.exec('ffprobe -select_streams a -show_packets -show_entries packet=pts,dts,duration,size -of json output');
+      assert.equal(packets.exitCode,0,packets.stderr);assert.deepEqual(JSON.parse(packets.stdout),c.packets,c.name);
+      for(const [codec,format,file,expected] of [['-c:a copy',c.raw,'pcm',c.pcmSha256],['','f64le','decoded',c.decodedSha256]]) {
+        const result=await sh.exec(`ffmpeg -y -i output ${codec} -f ${format} ${file}`);
+        assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+        assert.equal(createHash('sha256').update(await sh.fs.readFile('/'+file)).digest('hex'),expected,c.name);
+      }
+    }
+    for(const codec of ['pcm_s8','pcm_u8','pcm_u16le','pcm_s64le','pcm_alaw','pcm_mulaw']) {
+      await sh.fs.writeFile('/output.mp4','keep');
+      const result=await sh.exec(`ffmpeg -y -i source.wav -af volume=0.5 -c:a ${codec} -f mp4 output.mp4`);
+      assert.notEqual(result.exitCode,0,codec);assert.equal(sh.readText('/output.mp4'),'keep');
+    }
+    const original=Buffer.from(fixture.inputs['s16le-16000.mp4'],'hex'),offset=original.indexOf('pcmC')+4;
+    for(const [field,value] of [[0,1],[3,1],[5,8]]) {
+      const invalid=Buffer.from(original);invalid[offset+field]=value;
+      await sh.fs.writeFile('/invalid.mp4',invalid);await sh.fs.writeFile('/output.mp4','keep');
+      const probe=await sh.exec('ffprobe -show_streams invalid.mp4');assert.notEqual(probe.exitCode,0);
+      const result=await sh.exec('ffmpeg -y -i invalid.mp4 -c:a pcm_s16le -f mp4 output.mp4');
+      assert.notEqual(result.exitCode,0);assert.equal(sh.readText('/output.mp4'),'keep');
+    }
+    for(const args of ['-stream_loop 100 -i s16le-16000.mp4 -c:a pcm_f64le','-i source.wav -ar 96000 -ac 6 -c:a pcm_f64be']) {
+      await sh.fs.writeFile('/output.mp4','keep');
+      const result=await sh.exec(`ffmpeg -y ${args} -f mp4 output.mp4`,{limits:{maxInputBytes:64000}});
+      assert.notEqual(result.exitCode,0);assert.match(result.stderr,/limit|budget/);assert.equal(sh.readText('/output.mp4'),'keep');
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("MOV PCM output encodes native samples, preserves copied packets and bounds allocations", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/mov-pcm-output.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      const probe=await sh.exec('ffprobe -select_streams a -show_entries stream=codec_name,codec_tag_string,sample_fmt,sample_rate,channels,bits_per_sample,time_base,start_pts,duration_ts,nb_frames -of json output.mov');
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout),c.probe,c.name);
+      const packets=await sh.exec('ffprobe -select_streams a -show_packets -show_entries packet=pts,dts,duration,size -of json output.mov');
+      assert.equal(packets.exitCode,0,packets.stderr);
+      assert.deepEqual(JSON.parse(packets.stdout),c.packets,c.name);
+      if(!c.probe.streams.length)continue;
+      const copied=await sh.exec(`ffmpeg -y -i output.mov -c:a copy -f ${c.raw} pcm`);
+      assert.equal(copied.exitCode,0,c.name+': '+copied.stderr);
+      assert.equal(Buffer.from(await sh.fs.readFile('/pcm')).toString('hex'),c.pcm,c.name);
+      const decoded=await sh.exec('ffmpeg -y -i output.mov -f f64le decoded');
+      assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);
+      assert.equal(createHash('sha256').update(await sh.fs.readFile('/decoded')).digest('hex'),c.decodedSha256,c.name);
+    }
+    for(const codec of ['pcm_u16le','pcm_s64le','pcm_vidc']) {
+      await sh.fs.writeFile('/output.mov','keep');
+      const result=await sh.exec(`ffmpeg -y -i source.wav -c:a ${codec} -f mov output.mov`);
+      assert.notEqual(result.exitCode,0,codec);
+      assert.equal(sh.readText('/output.mov'),'keep');
+    }
+    for(const args of ['-stream_loop 100 -i source.wav -c:a pcm_s16le','-i source.mov -ar 96000 -ac 6 -c:a pcm_f64be']) {
+      await sh.fs.writeFile('/output.mov','keep');
+      const result=await sh.exec(`ffmpeg -y ${args} -f mov output.mov`,{limits:{maxInputBytes:64000}});
+      assert.notEqual(result.exitCode,0,args);assert.match(result.stderr,/limit|budget/);
+      assert.equal(sh.readText('/output.mov'),'keep');
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("MOV PCM decoding retains native timing in raw audio and PCM containers", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/mov-pcm-timing.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      if(c.streams) {
+        const probe=await sh.exec('ffprobe -show_entries stream=codec_name,sample_rate,channels -of json output');
+        assert.equal(probe.exitCode,0,probe.stderr);assert.deepEqual(JSON.parse(probe.stdout).streams,c.streams,c.name);
+      }
+      if(c.decode) {const decoded=await sh.exec('ffmpeg -y '+c.decode.join(' '));assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);}
+      const data=await sh.fs.readFile(c.decode?'/decoded':'/output');
+      assert.equal(data.length,c.bytes,c.name);
+      assert.equal(createHash('sha256').update(data).digest('hex'),c.sha256,c.name);
+    }
+    for(const format of ['aac','mp4','latm']) {
+      const reference=await sh.exec(`ffmpeg -y -i reference.wav -c:a aac -f ${format} expected`);
+      assert.equal(reference.exitCode,0,reference.stderr);
+      for(const source of ['delayed.mov','delayed.mp4']) {
+        const result=await sh.exec(`ffmpeg -y -ss 0.03 -i ${source} -map 0:a -c:a aac -f ${format} output`);
+        assert.equal(result.exitCode,0,result.stderr);
+        if(format==='mp4')for(const name of ['output','expected']) {
+          const copy=await sh.exec(`ffmpeg -y -i ${name} -c:a copy -f aac ${name}.aac`);
+          assert.equal(copy.exitCode,0,copy.stderr);
+        }
+        const suffix=format==='mp4'?'.aac':'';
+        assert.deepEqual(await sh.fs.readFile('/output'+suffix),await sh.fs.readFile('/expected'+suffix),source+' to '+format);
+      }
+    }
+    await sh.fs.writeFile('/output','keep');
+    for(const format of ['s16le','wav','aiff','caf','aac']) {
+      const rejected=await sh.exec(`ffmpeg -y -stream_loop 100 -i delayed.mov -map 0:a -f ${format} output`,{limits:{maxInputBytes:32000}});
+      assert.notEqual(rejected.exitCode,0);assert.match(rejected.stderr,/limit|budget/);
+      assert.equal(sh.readText('/output'),'keep');
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("MOV PCM samples, packet boundaries, edits and AAC conversion match native references", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/mov-pcm.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs)) {
+      await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+      const probe=await sh.exec(`ffprobe -show_entries stream=codec_name,codec_tag_string,sample_fmt,sample_rate,channels,bits_per_sample -of json ${name}`);
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout),{programs:[],stream_groups:[],streams:[fixture.probes[name]]},name);
+      const packets=await sh.exec(`ffprobe -show_packets -show_entries packet=pts,dts,duration,size -of json ${name}`);
+      assert.equal(packets.exitCode,0,packets.stderr);
+      assert.deepEqual(JSON.parse(packets.stdout),fixture.packets[name],name);
+    }
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      assert.equal(Buffer.from(await sh.fs.readFile('/output')).toString('hex'),c.pcm,c.name);
+    }
+    for(const [name,rate] of [['s16le.mov',16000],['f32be.mov',16000],['s24le-96000-2.mov',96000]]) {
+      await sh.fs.writeFile('/reference',Buffer.from(fixture.cases.find(c=>c.name===name+'-full').pcm,'hex'));
+      for(const format of ['aac','mp4','latm']) {
+        const expected=await sh.exec(`ffmpeg -y -f s32le -ar ${rate} -ac 2 -i reference -f ${format} expected`);
+        const actual=await sh.exec(`ffmpeg -y -i ${name} -f ${format} output`);
+        assert.equal(expected.exitCode,0,expected.stderr);assert.equal(actual.exitCode,0,actual.stderr);
+        if(format==='mp4') {
+          const probes=[];
+          for(const file of ['output','expected']) {
+            probes.push((await sh.exec(`ffprobe -show_entries stream=codec_name,sample_rate,channels,start_pts,duration_ts -of json ${file}`)).stdout);
+            const copied=await sh.exec(`ffmpeg -y -i ${file} -c:a copy -f aac ${file}.aac`);
+            assert.equal(copied.exitCode,0,copied.stderr);
+          }
+          assert.equal(probes[0],probes[1],name);
+          assert.deepEqual(await sh.fs.readFile('/output.aac'),await sh.fs.readFile('/expected.aac'),name);
+        }else assert.deepEqual(await sh.fs.readFile('/output'),await sh.fs.readFile('/expected'),name+' to '+format);
+      }
+    }
+    await sh.fs.writeFile('/output','keep');
+    const limited=await sh.exec('ffmpeg -y -stream_loop 100 -i s16le.mov -f s32le output',{limits:{maxInputBytes:32000}});
+    assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/limit|budget/);
+    assert.equal(sh.readText('/output'),'keep');
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex);
+  }finally{sh.dispose();}
+});
+
+
+test("MOV interleaving and PCM encoding match native packet boundaries, payloads and physical order", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  for(const filename of ["mov-interleave.json","pcm-encoding-packets.json"]) {
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/"+filename,import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      if(c.streams) {
+        const streams=await sh.exec('ffprobe -show_entries stream=codec_name,sample_rate,channels,time_base,start_time,duration_ts,duration -of json output');
+        assert.equal(streams.exitCode,0,streams.stderr);assert.deepEqual(JSON.parse(streams.stdout).streams,c.streams,c.name);
+      }
+      const output=await sh.fs.readFile('/output');
+      const probe=await sh.exec('ffprobe -show_packets -show_entries packet=stream_index,pts,dts,duration,size,pos -of json output');
+      assert.equal(probe.exitCode,0,probe.stderr);
+      const packets=JSON.parse(probe.stdout).packets.map(({pos,...p})=>({
+        ...p,sha256:createHash('sha256').update(output.subarray(Number(pos),Number(pos)+Number(p.size))).digest('hex'),
+      }));
+      assert.deepEqual(packets,c.packets,c.name);
+    }
+    await sh.fs.writeFile('/output','keep');
+    for(const codec of ['copy','pcm_s16le']) for(const format of ['mov','mp4']) {
+      const limited=await sh.exec(`ffmpeg -y -stream_loop 100 -i mono.wav -i large.mov -map 0:a -map 1:v -c:a ${codec} -c:v copy -f ${format} output`,{limits:{maxInputBytes:32000}});
+      assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/limit|budget/);
+      assert.equal(sh.readText('/output'),'keep');
+    }
+    if(fixture.inputs['source.mov']) {
+      for(const format of ['mov','mp4']) {
+        const limited=await sh.exec(`ffmpeg -y -stream_loop 100 -i source.mov -map 0:a -map 0:v -c:a pcm_s16le -c:v copy -f ${format} output`,{limits:{maxInputBytes:32000}});
+        assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/limit|budget/);
+        assert.equal(sh.readText('/output'),'keep');
+      }
+      const original=Buffer.from(fixture.inputs['source.mov'],'hex');
+      const entry=original.indexOf('sowt')+4;
+      for(const [start,end] of [[entry+16,entry+18],[entry+24,entry+28]]) {
+        const invalid=Buffer.from(original);invalid.fill(0,start,end);
+        await sh.fs.writeFile('/invalid.mov',invalid);
+        const rejected=await sh.exec('ffmpeg -y -i invalid.mov -map 0:a -c:a pcm_s16le -ac 1 -ar 8000 -f mov output');
+        assert.notEqual(rejected.exitCode,0);assert.match(rejected.stderr,/invalid/i);
+        assert.equal(sh.readText('/output'),'keep');
+      }
+      const probe=await sh.exec('ffprobe -select_streams v -show_entries stream=codec_name,codec_tag_string -of json source.mp4');
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout).streams,[{codec_name:'png',codec_tag_string:'mp4v'}]);
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+  }
+});
+
+
+test("video output selection matches native defaults, resolution and explicit maps", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/video-output-selection.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases) {
+      const result=await sh.exec('ffmpeg -y '+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      if(c.sha256) {
+        assert.equal(createHash('sha256').update(await sh.fs.readFile('/output')).digest('hex'),c.sha256,c.name);
+      }else{
+        const probe=await sh.exec('ffprobe -show_entries stream=codec_name,width,height -of json output');
+        assert.equal(probe.exitCode,0,probe.stderr);
+        assert.deepEqual(JSON.parse(probe.stdout).streams,c.streams,c.name);
+        if(c.durations) {
+          const durations=await sh.exec('ffprobe -show_entries stream=duration -of json output');
+          assert.equal(durations.exitCode,0,durations.stderr);assert.deepEqual(JSON.parse(durations.stdout).streams,c.durations,c.name);
+        }
+        for(const [i,hash] of c.pixels.entries()) {
+          if(hash===null)continue;
+          const decoded=await sh.exec(`ffmpeg -y -i output -map 0:${i} -pix_fmt rgb24 -f rawvideo decoded`);
+          assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);
+          assert.equal(createHash('sha256').update(await sh.fs.readFile('/decoded')).digest('hex'),hash,c.name+': '+i);
+        }
+      }
+    }
+    await sh.fs.writeFile('/output','keep');
+    const limited=await sh.exec('ffmpeg -y -i small-default.mov -map 0:v -vf fps=100 -pix_fmt rgb24 -f rawvideo output',{limits:{maxInputBytes:32000}});
+    assert.notEqual(limited.exitCode,0);assert.match(limited.stderr,/limit|budget/);
+    assert.equal(sh.readText('/output'),'keep');
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("container audio selection matches native defaults, maps and staging", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/container-audio-selection.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true});
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases) {
+      const result=await sh.exec("ffmpeg -y "+c.args.join(' '));
+      assert.equal(result.exitCode,0,c.name+': '+result.stderr);
+      const probe=await sh.exec('ffprobe -show_entries stream=codec_name,channels,sample_rate -of json output');
+      assert.equal(probe.exitCode,0,probe.stderr);
+      assert.deepEqual(JSON.parse(probe.stdout).streams,c.streams,c.name);
+      for(const [i,hash] of c.pcmSha256.entries()) {
+        const decoded=await sh.exec(`ffmpeg -y -i output -map 0:${i} -f s16le decoded`);
+        assert.equal(decoded.exitCode,0,c.name+': '+decoded.stderr);
+        assert.equal(createHash('sha256').update(await sh.fs.readFile('/decoded')).digest('hex'),hash,c.name+': stream '+i);
+      }
+    }
+    for(const [source,format] of [['mono-default.mov','nut'],['no-default.nut','mov'],['mono-default.mkv','mov']]) {
+      await sh.fs.writeFile('/output','keep');
+      const limited=await sh.exec(`ffmpeg -y -stream_loop 200 -i ${source} -c:a copy -f ${format} output`,{limits:{maxInputBytes:64000}});
+      assert.notEqual(limited.exitCode,0,source);assert.match(limited.stderr,/limit|budget/);
+      assert.equal(sh.readText('/output'),'keep',source);
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+  }finally{sh.dispose();}
+});
+
+
+test("audio output selection matches native and never fabricates undecoded audio", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/audio-output-selection.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/",forceNative:true}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases) {
+      await sh.fs.writeFile("/output","keep");
+      const result=await sh.exec("ffmpeg "+c.args.join(" "));
+      if(c.exit!==0) {
+        if(result.exitCode===0||sh.readText("/output")!=="keep")failures.push({name:c.name,result});
+        continue;
+      }
+      if(result.exitCode!==0){failures.push({name:c.name,result});continue;}
+      let path="/output";
+      if(c.args.at(-2)!=="s16le") {
+        await sh.fs.writeFile("/decoded","keep");
+        const decoded=await sh.exec("ffmpeg -y -i output -c:a pcm_s16le -f s16le decoded");
+        if(c.decodeExit) {
+          if(decoded.exitCode===0||sh.readText("/decoded")!=="keep")failures.push({name:c.name,decoded});
+          continue;
+        }
+        if(decoded.exitCode!==0){failures.push({name:c.name,decoded});continue;}
+        path="/decoded";
+      }
+      if(Buffer.from(await sh.fs.readFile(path)).toString("hex")!==c.pcm)failures.push({name:c.name,pcm:"differs"});
+    }
+    for(const format of ["wav","w64"])for(const filter of ["","-af volume=0.5","-ar 8000"]) {
+      await sh.fs.writeFile("/output","keep");
+      const result=await sh.exec(`ffmpeg -y -i opus.mp4 ${filter} -f ${format} output`);
+      assert.notEqual(result.exitCode,0);
+      assert.match(result.stderr,/Audio decoding is not supported/);
+      assert.equal(sh.readText("/output"),"keep");
+    }
+    assert.deepEqual(failures,[]);
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile("/"+name)).toString("hex"),hex);
+  }finally{sh.dispose();}
+});
+
+
+test("container chapters retain native ranges, titles and input selection", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/chapter-preservation.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases) {
+      const result=await sh.exec("ffmpeg "+c.args.join(" "));
+      if(c.error) {
+        if(result.exitCode===0||!result.stderr.includes(c.error))failures.push({name:c.name,status:result.exitCode,stderr:result.stderr});
+        continue;
+      }
+      if(result.exitCode!==0){failures.push({name:c.name,stderr:result.stderr});continue;}
+      if(c.metadata!==undefined) {
+        const text=sh.readText("/output"),at=text.indexOf("[CHAPTER]");
+        if((at<0 ? "" : text.slice(at))!==c.metadata)failures.push({name:c.name,metadata:text});
+      }else{
+        await sh.fs.writeFile("/native",Buffer.from(c.native,"hex"));
+        for(const path of ["native","output"]) {
+          const report=await sh.exec(`ffprobe -show_chapters -of json ${path}`);
+          const actual=report.exitCode===0 ? JSON.parse(report.stdout).chapters : undefined;
+          if(JSON.stringify(actual)!==JSON.stringify(c.chapters))failures.push({name:c.name,path,stderr:report.stderr});
+          const data=await sh.exec(`ffprobe -select_streams d -show_packets -show_entries stream=codec_name,codec_type,codec_tag_string,time_base,start_pts,duration_ts:packet=pts,dts,duration -of json ${path}`);
+          if(data.exitCode!==0||JSON.stringify(JSON.parse(data.stdout))!==JSON.stringify(c.data))failures.push({name:c.name,path,data:data.stdout});
+          if(c.audio) {
+            const audio=await sh.exec(`ffprobe -select_streams a:0 -show_packets -show_entries packet=pts,dts,duration -of json ${path}`);
+            if(audio.exitCode!==0||JSON.stringify(JSON.parse(audio.stdout))!==JSON.stringify(c.audio))failures.push({name:c.name,path,audio:audio.stdout});
+          }
+        }
+      }
+    }
+    assert.deepEqual(failures,[]);
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile("/"+name)).toString("hex"),hex);
+  }finally{sh.dispose();}
+});
+
+
+test("concat chapters survive container output and match native probe writers", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/concat-chapter-containers.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases) {
+      await sh.fs.writeFile("/list",c.list);
+      await sh.fs.writeFile("/native",Buffer.from(c.native,"hex"));
+      const result=await sh.exec("ffmpeg "+c.args.join(" "));
+      if(result.exitCode!==0){failures.push({name:c.name,stderr:result.stderr});continue;}
+      for(const file of ["native",c.args.at(-1)]) {
+        const report=await sh.exec(`ffprobe -show_chapters -of json ${file}`);
+        const actual=report.exitCode===0 ? JSON.parse(report.stdout).chapters : undefined;
+        if(JSON.stringify(actual)!==JSON.stringify(c.chapters))failures.push({name:c.name,file,stderr:report.stderr});
+      }
+    }
+    for(const [name,c] of Object.entries(fixture.writers)) {
+      await sh.fs.writeFile("/"+c.args.at(-1),Buffer.from(c.input,"hex"));
+      const report=await sh.exec("ffprobe "+c.args.join(" "));
+      const matches=c.args.includes("json") ? report.exitCode===0&&JSON.stringify(JSON.parse(report.stdout))===JSON.stringify(JSON.parse(c.output)) : report.stdout===c.output;
+      if(report.exitCode!==0||!matches)failures.push({name,stderr:report.stderr});
+    }
+    assert.deepEqual(failures,[]);
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile("/"+name)).toString("hex"),hex);
+  }finally{sh.dispose();}
+});
+
+
+test("concat chapters match native metadata, copied audio and validation", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const {createHash}=await import("node:crypto");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/concat-chapters.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases) {
+      await sh.fs.writeFile("/list",c.list);
+      await sh.fs.writeFile("/output","keep");
+      const result=await sh.exec("ffmpeg "+c.args.join(" "));
+      const output=Buffer.from(await sh.fs.readFile("/output"));
+      const matches=c.exit!==0 ? output.toString("hex")===c.output : c.chapters!==undefined
+        ? output.toString().split("\n[CHAPTER]").slice(1).join("\n[CHAPTER]")===c.chapters
+        : createHash("sha256").update(output).digest("hex")===c.sha256;
+      if(result.exitCode!==c.exit || !matches || c.error&&!result.stderr.includes(c.error))failures.push({name:c.name,status:result.exitCode,expected:c.exit,matches,stderr:result.stderr});
+    }
+    assert.deepEqual(failures,[]);
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile("/"+name)).toString("hex"),hex);
+    await sh.fs.writeFile("/list","ffconcat version 1.0\n"+Array.from({length:1000},(_,i)=>`chapter ${i} 0 1\n`).join("")+"file a.wav\n");
+    await sh.fs.writeFile("/output","keep");
+    const limited=await sh.exec("ffmpeg -y -i list -f ffmetadata output",{limits:{maxInputBytes:25000}});
+    assert.notEqual(limited.exitCode,0);
+    assert.equal(sh.readText("/output"),"keep");
+  }finally{sh.dispose();}
+});
+
+
+test("concat manifests match native filename syntax, timing and validation", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/concat-manifests.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    await sh.exec("mkdir /sub");
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for(const c of fixture.cases) {
+      await sh.fs.writeFile("/list",c.list);
+      await sh.fs.writeFile("/out.pcm","keep");
+      const result=await sh.exec(`ffmpeg -y -f concat -safe ${c.safe} -i list -c:a pcm_s16le -f s16le out.pcm`);
+      const output=Buffer.from(await sh.fs.readFile("/out.pcm"));
+      if(result.exitCode!==c.exit || (c.exit===0 ? output.toString("hex")!==c.pcm : output.toString()!=="keep" || c.error&&!result.stderr.includes(c.error))) {
+        failures.push({name:c.name,status:result.exitCode,expected:c.exit,bytes:output.length,stderr:result.stderr});
+      }
+    }
+    assert.deepEqual(failures,[]);
+    await sh.fs.writeFile("/list","ffconcat version 1.0\nfile 'with space.wav'\n");
+    for(const args of ["-i list", "-safe 0 -i list -i list"]) {
+      await sh.fs.writeFile("/out.pcm","keep");
+      const result=await sh.exec(`ffmpeg -y ${args} -c:a pcm_s16le -f s16le out.pcm`);
+      assert.equal(result.exitCode,255,result.stderr);
+      assert.equal(sh.readText("/out.pcm"),"keep");
+    }
+    const limited=await sh.exec("ffmpeg -y -safe 0 -i list -f s16le out.pcm",{limits:{maxInputBytes:64}});
+    assert.notEqual(limited.exitCode,0);
+    assert.equal(sh.readText("/out.pcm"),"keep");
+  }finally{sh.dispose();}
+});
+
+
+
+test("AAC PCM preserves native source timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-pcm-timing.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures=[];
+  try {
+    for (const [name,hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile("/"+name,Buffer.from(hex,"hex"));
+    for (const c of fixture.cases) {
+      const result = await sh.exec("ffmpeg -y "+c.args.join(" "));
+      if(result.exitCode) { failures.push(c.name+": "+result.stderr); continue; }
+      for(const [key,args] of [
+        ["stream_csv","-show_entries stream=codec_name,sample_rate,channels,time_base,start_time,duration_ts,nb_frames"],
+        ["packet_json","-show_packets -show_entries packet=stream_index,pts,dts,duration"]
+      ]) {
+        const probe=await sh.exec(`ffprobe ${args} -of ${key==="packet_json" ? "json" : "csv=p=0"} output`);
+        if(probe.exitCode || (key==="packet_json" ? JSON.stringify(JSON.parse(probe.stdout))!==JSON.stringify(JSON.parse(c[key])) : probe.stdout!==c[key])) failures.push({name:c.name,key,actual:probe.stdout,expected:c[key]});
+      }
+      if(c.samples) {
+        const result=await sh.exec("ffmpeg -y -i output -map 0:a -f f32le /pcm");
+        if(result.exitCode) {failures.push(c.name+": "+result.stderr);continue;}
+        const samples=(await sh.fs.readFile("/pcm")).length/4;
+        if(samples!==c.samples) failures.push({name:c.name,samples,expected:c.samples});
+      }
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+    for(const args of ["","-stream_loop 2","-ss 0.03"]) {
+      await sh.fs.writeFile('/output','keep');
+      const result=await sh.exec(`ffmpeg -y ${args} -i delayed.mov -map 0:a -c:a aac -f mp4 output`,{limits:{maxInputBytes:65536}});
+      assert.notEqual(result.exitCode,0);
+      assert.equal(Buffer.from(await sh.fs.readFile('/output')).toString(),'keep');
+    }
+    assert.deepEqual(failures,[]);
+  } finally { sh.dispose(); }
+});
+
+
+
+test("AAC packet side data matches native probe writers", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/aac-probe-side-data.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases){
+      const result=await sh.exec('ffprobe '+c.args.join(' '));
+      const matches=c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout))===JSON.stringify(JSON.parse(c.expected)) : result.stdout===c.expected;
+      if(result.exitCode || !matches)failures.push({name:c.name,actual:result.stdout,expected:c.expected});
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+    const limited=await sh.exec('ffprobe -show_packets -show_entries packet=pts -of json source.mov.m4a',{limits:{maxOutputBytes:256}});
+    assert.notEqual(limited.exitCode,0);assert.equal(limited.stdout,'');
+    assert.equal(Buffer.from(await sh.fs.readFile('/source.mov.m4a')).toString('hex'),fixture.inputs['source.mov.m4a']);
+    assert.deepEqual(failures,[]);
+  }finally{sh.dispose();}
+});
+
+
+test("Probe option order matches native writers", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/probe-option-order.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases){
+      const result=await sh.exec('ffprobe '+c.args.join(' '));
+      const matches=c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout))===JSON.stringify(JSON.parse(c.expected)) : result.stdout===c.expected;
+      if(result.exitCode || !matches)failures.push({name:c.name,actual:result.stdout,expected:c.expected});
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+    const limited=await sh.exec('ffprobe -show_packets -show_entries packet=pts -of json input.m4a',{limits:{maxOutputBytes:256}});
+    assert.notEqual(limited.exitCode,0);assert.equal(limited.stdout,'');
+    assert.equal(Buffer.from(await sh.fs.readFile('/input.m4a')).toString('hex'),fixture.inputs['input.m4a']);
+    for (const [before, after] of [
+      ['-show_packets','-show_entries packet=pts:packet_side_data=skip_samples -show_packets'],
+      ['-show_entries stream','-show_entries stream=codec_name:stream_tags=language -show_streams'],
+      ['-show_format','-show_entries format=duration:format_tags=major_brand -show_format'],
+    ]) {
+      const expected=await sh.exec(`ffprobe ${before} -of json input.m4a`);
+      const actual=await sh.exec(`ffprobe ${after} -of json input.m4a`);
+      assert.equal(actual.exitCode,0,actual.stderr);
+      assert.equal(actual.stdout,expected.stdout,after);
+    }
+    const legacy=Buffer.from('\0\0\0\x18ftypmp42\n__MEDIA__:type=video;codec=h264;fmt=mp4;w=64;h=48;n=4;fps=10;dur=0.400000;sr=16000;ch=1;ha=0;title=;tags=;subs=;chaps=\n');
+    await sh.fs.writeFile('/legacy.mp4',legacy);
+    const result=await sh.exec('ffprobe -show_entries stream=width -show_entries stream=height -of csv=p=0 legacy.mp4');
+    assert.equal(result.exitCode,0,result.stderr);
+    assert.equal(result.stdout,'64,48\n');
+    assert.deepEqual(Buffer.from(await sh.fs.readFile('/legacy.mp4')),legacy);
+    assert.deepEqual(failures,[]);
+  }finally{sh.dispose();}
+});
+
+
+test("Packet flags match native containers and edits", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/probe-packet-flags.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases){
+      const result=await sh.exec('ffprobe '+c.args.join(' '));
+      const matches=c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout))===JSON.stringify(JSON.parse(c.expected)) : result.stdout===c.expected;
+      if(result.exitCode || !matches)failures.push({name:c.name,actual:result.stdout,expected:c.expected});
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+    const limited=await sh.exec('ffprobe -show_packets -show_entries packet=pts -of json source.mov.m4a',{limits:{maxOutputBytes:64}});
+    assert.notEqual(limited.exitCode,0);assert.equal(limited.stdout,'');
+    assert.equal(Buffer.from(await sh.fs.readFile('/source.mov.m4a')).toString('hex'),fixture.inputs['source.mov.m4a']);
+    assert.deepEqual(failures,[]);
+  }finally{sh.dispose();}
+});
+
+
+test("Video frame rates match native sample timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/video-frame-rate.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      const result = await sh.exec('ffprobe '+c.args.join(' '));
+      assert.equal(result.exitCode, 0, c.name+result.stderr);
+      const actual = JSON.parse(result.stdout);
+      if (JSON.stringify(actual) !== JSON.stringify(c.probe)) failures.push({name:c.name, actual, expected:c.probe});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("AAC container encoding preserves native timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-container-timing.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      const result = await sh.exec('ffmpeg -y '+c.args.join(' '));
+      if (result.exitCode) { failures.push({name:c.name, stderr:result.stderr}); continue; }
+      const probe = await sh.exec('ffprobe -show_entries stream=codec_name,sample_rate,channels,time_base,start_time,duration_ts,duration:packet=pts,dts,duration -of json output');
+      assert.equal(probe.exitCode, 0, c.name+probe.stderr);
+      const actualProbe = JSON.parse(probe.stdout);
+      for (const key of ['streams','packets']) if (JSON.stringify(actualProbe[key]) !== JSON.stringify(c.probe[key])) failures.push({name:c.name, key, actual:actualProbe[key], expected:c.probe[key]});
+      if (!c.probe.streams.length) continue;
+      const decoded = await sh.exec('ffmpeg -y -i output -f f32le decoded');
+      if (decoded.exitCode) { failures.push({name:c.name, decode:decoded.stderr}); continue; }
+      const actual = Buffer.from(await sh.fs.readFile('/decoded')), expected = Buffer.from(c.pcm, 'hex');
+      if (actual.length !== expected.length) { failures.push({name:c.name, bytes:actual.length, expected:expected.length}); continue; }
+      let max = 0;
+      for (let i = 0; i < actual.length; i += 4) {
+        const a = actual.readFloatLE(i), b = expected.readFloatLE(i);
+        assert.ok(Number.isFinite(a) && Number.isFinite(b), c.name);
+        max = Math.max(max, Math.abs(a-b));
+      }
+      if (!c.args.includes('aac') && max > 0.00002) failures.push({name:c.name, max});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    await sh.fs.writeFile('/output', Buffer.from('keep'));
+    const limited = await sh.exec('ffmpeg -y -i scaled.m4a -c:a pcm_s16le -f mov output', {limits:{maxInputBytes:24000}});
+    assert.notEqual(limited.exitCode, 0); assert.equal(Buffer.from(await sh.fs.readFile('/output')).toString(), 'keep');
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("AAC decoding preserves native skip discard and seek timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-decoding-edits.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      await sh.fs.writeFile('/output', Buffer.from('keep'));
+      const result = await sh.exec('ffmpeg -y '+c.args.join(' '));
+      const actual = Buffer.from(await sh.fs.readFile('/output')), expected = Buffer.from(c.pcm, 'hex');
+      if (result.exitCode || actual.length !== expected.length) { failures.push({name:c.name, bytes:actual.length, expected:expected.length, stderr:result.stderr}); continue; }
+      let max = 0;
+      for (let i = 0; i < actual.length; i += 4) {
+        const a = actual.readFloatLE(i), b = expected.readFloatLE(i);
+        assert.ok(Number.isFinite(a) && Number.isFinite(b), c.name); max = Math.max(max, Math.abs(a - b));
+      }
+      if (max > 0.00002) failures.push({name:c.name, max});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    await sh.fs.writeFile('/output', Buffer.from('keep'));
+    const limited = await sh.exec('ffmpeg -y -i source.mov.m4a -f f32le output', {limits:{maxInputBytes:24000}});
+    assert.notEqual(limited.exitCode, 0); assert.equal(Buffer.from(await sh.fs.readFile('/output')).toString(), 'keep');
+    assert.equal(Buffer.from(await sh.fs.readFile('/source.mov.m4a')).toString('hex'), fixture.inputs['source.mov.m4a']);
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("AAC probe counts and frames match native decoding", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/aac-probe-frames.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      const result = await sh.exec('ffprobe '+c.args.join(' '), {stdin:Buffer.from(fixture.inputs[c.input], 'hex')});
+      const read = value => { const parsed = JSON.parse(value); return c.section ? parsed[c.section] : parsed; };
+      const matches = c.args.includes('json') ? JSON.stringify(read(result.stdout)) === JSON.stringify(read(c.expected)) : result.stdout === c.expected;
+      if (result.exitCode || !matches || result.stderr) failures.push({name:c.name, actual:result.stdout, stderr:result.stderr});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    const limited = await sh.exec('ffprobe -show_frames -of json source.mov.m4a', {limits:{maxOutputBytes:64}});
+    assert.notEqual(limited.exitCode, 0); assert.equal(limited.stdout, '');
+    assert.equal(Buffer.from(await sh.fs.readFile('/source.mov.m4a')).toString('hex'), fixture.inputs['source.mov.m4a']);
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("FFprobe selection tokens and section aliases match native", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/probe-selection.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      const result = await sh.exec('ffprobe '+c.args.map(a => "'"+a.split("'").join("'\\''")+"'").join(' '));
+      const matches = !c.exitCode && c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout)) === JSON.stringify(JSON.parse(c.stdout)) : result.stdout === c.stdout;
+      if (result.exitCode !== c.exitCode || !matches || result.stderr !== c.stderr) failures.push({name:c.name, actual:result.stdout, stderr:result.stderr, expected:c.stdout});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("FFprobe only emits requested sections through files and stdin", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/probe-sections.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:"/"}), failures = [];
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile('/'+name, Buffer.from(hex, 'hex'));
+    for (const c of fixture.cases) {
+      const result = await sh.exec('ffprobe '+c.args.map(a => "'"+a.split("'").join("'\\''")+"'").join(' '), {stdin:Buffer.from(fixture.inputs[c.input], 'hex')});
+      const matches = c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout)) === JSON.stringify(JSON.parse(c.expected)) : result.stdout === c.expected;
+      if (result.exitCode || !matches) failures.push({name:c.name, actual:result.stdout, stderr:result.stderr});
+    }
+    for (const [name, hex] of Object.entries(fixture.inputs)) assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'), hex);
+    await sh.fs.writeFile('/invalid.mp4', Buffer.from('invalid'));
+    await sh.fs.mkdir('/directory', {recursive:true});
+    for (const input of ['missing.mp4', 'invalid.mp4', 'directory']) {
+      const result = await sh.exec('ffprobe -of json '+input);
+      assert.notEqual(result.exitCode, 0, input);
+    }
+    await sh.fs.writeFile('/legacy.mp4', Buffer.from('\0\0\0\x18ftypmp42\n__MEDIA__:type=video;codec=h264;fmt=mp4;w=64;h=48;n=4;fps=10;dur=0.400000;sr=16000;ch=1;ha=0;title=;tags=;subs=;chaps=\n'));
+    const legacy = await sh.exec('ffprobe -of json legacy.mp4');
+    assert.equal(legacy.exitCode, 0, legacy.stderr);
+    assert.deepEqual(JSON.parse(legacy.stdout), {});
+    const limited = await sh.exec('ffprobe -of xml input.srt', {limits:{maxOutputBytes:48}});
+    assert.notEqual(limited.exitCode, 0);
+    assert.equal(limited.stdout, '');
+    assert.equal(Buffer.from(await sh.fs.readFile('/input.srt')).toString('hex'), fixture.inputs['input.srt']);
+    assert.deepEqual(failures, []);
+  } finally { sh.dispose(); }
+});
+
+
+test("Subtitle probes match native metadata packets and frames", async () => {
+  const {readFile}=await import("node:fs/promises");
+  const fixture=JSON.parse(await readFile(new URL("../tests/fixtures/subtitle-probe.json",import.meta.url),"utf8"));
+  const sh=new RustWasmBash({cwd:"/"}),failures=[];
+  try {
+    for(const [name,hex] of Object.entries(fixture.inputs))await sh.fs.writeFile('/'+name,Buffer.from(hex,'hex'));
+    for(const c of fixture.cases){
+      const result=await sh.exec('ffprobe '+c.args.join(' '));
+      const matches=c.args.includes('json') ? JSON.stringify(JSON.parse(result.stdout))===JSON.stringify(JSON.parse(c.expected)) : result.stdout===c.expected;
+      if(result.exitCode || !matches)failures.push({name:c.name,actual:result.stdout,expected:c.expected});
+    }
+    for(const [name,hex] of Object.entries(fixture.inputs))assert.equal(Buffer.from(await sh.fs.readFile('/'+name)).toString('hex'),hex,name);
+    const limited=await sh.exec('ffprobe -show_packets -show_entries packet=pts -of json basic.srt',{limits:{maxOutputBytes:64}});
+    assert.notEqual(limited.exitCode,0);assert.equal(limited.stdout,'');
+    assert.equal(Buffer.from(await sh.fs.readFile('/basic.srt')).toString('hex'),fixture.inputs['basic.srt']);
+    const bounded=await sh.exec('ffprobe -show_packets -of json basic.srt',{limits:{maxInputBytes:128}});
+    assert.notEqual(bounded.exitCode,0);assert.deepEqual(JSON.parse(bounded.stdout),{});
+    assert.match(bounded.stderr,/subtitle packets exceed memory budget/);
+    assert.equal(Buffer.from(await sh.fs.readFile('/basic.srt')).toString('hex'),fixture.inputs['basic.srt']);
+    assert.deepEqual(failures,[]);
+  }finally{sh.dispose();}
+});

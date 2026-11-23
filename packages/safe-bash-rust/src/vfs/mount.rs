@@ -6,7 +6,7 @@ use std::sync::Arc;
 #[derive(Default)]
 pub(super) struct MovePlan {
     parent: Option<FileStat>,
-    pub(super) link_errors: BTreeMap<String,String>,
+    pub(super) link_errors: BTreeMap<String, String>,
     pub(super) atime_ms: f64,
     pub(super) children: Vec<MoveChild>,
 }
@@ -52,22 +52,45 @@ impl MountVfs {
         ("/", self.root.as_ref(), norm.to_owned())
     }
 
-    fn resolve(&self, path: &str, follow_final: bool, purpose: WalkPurpose) -> Result<String, String> {
-        walk_path(path, follow_final, purpose, |p| {
-            let (mount, fs, local) = self.location(p);
-            (Some(mount), fs, local)
-        }, |parent| self.mounts.keys().any(|m| m.strip_prefix(parent).is_some_and(|tail| tail.starts_with('/'))))
+    fn resolve(
+        &self,
+        path: &str,
+        follow_final: bool,
+        purpose: WalkPurpose,
+    ) -> Result<String, String> {
+        walk_path(
+            path,
+            follow_final,
+            purpose,
+            |p| {
+                let (mount, fs, local) = self.location(p);
+                (Some(mount), fs, local)
+            },
+            |parent| {
+                self.mounts.keys().any(|m| {
+                    m.strip_prefix(parent)
+                        .is_some_and(|tail| tail.starts_with('/'))
+                })
+            },
+        )
     }
 
     fn removal_entry(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
         let trimmed = path.trim_end_matches('/');
-        let operand = if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed };
+        let operand = if trimmed.is_empty() && !path.is_empty() {
+            "/"
+        } else {
+            trimmed
+        };
         let entry = self.resolve(operand, false, WalkPurpose::Access)?;
-        let protected = entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m));
+        let protected =
+            entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m));
         let (_, fs, local) = self.location(&entry);
         if path.ends_with('/') {
             match fs.lstat(&local) {
-                Ok(st) if st.kind != super::VfsEntryKind::Directory => return Err("ENOTDIR: not a directory".into()),
+                Ok(st) if st.kind != super::VfsEntryKind::Directory => {
+                    return Err("ENOTDIR: not a directory".into());
+                }
                 Ok(st) if st.mode & 0o100 == 0 => return Err("EACCES: permission denied".into()),
                 // A missing ancestor of a mount is a synthetic directory.
                 Err(e) if protected && e.starts_with("ENOENT:") => {}
@@ -75,19 +98,24 @@ impl MountVfs {
                 Ok(_) => {}
             }
         }
-        if protected { return Err("EBUSY: resource busy or locked".into()); }
-        if matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
+        if protected {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        if matches!(trimmed.rsplit('/').next(), Some("." | "..")) {
+            return Err("EINVAL: invalid argument".into());
+        }
         Ok((fs, local))
     }
 
     fn route(&self, path: &str, follow_final: bool) -> Result<(&dyn SafeBashFs, String), String> {
-        let (_, fs, local) = self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
+        let (_, fs, local) =
+            self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
         Ok((fs, local))
     }
     // Source and replacement capabilities follow links even though mv copies
     // the link itself. Resolve through the router before locking the backends.
-    fn inspect_move_link(&self, path: &str, errors: &mut BTreeMap<String,String>) {
-        if let Err(e) = self.inspect_command_entry(path,true,"capabilitiesFor") {
+    fn inspect_move_link(&self, path: &str, errors: &mut BTreeMap<String, String>) {
+        if let Err(e) = self.inspect_command_entry(path, true, "capabilitiesFor") {
             let code = e.split(':').next().unwrap_or("");
             let message = match code {
                 "ENOENT" => format!("ENOENT: no such file or directory, capabilitiesFor '{path}'"),
@@ -95,15 +123,23 @@ impl MountVfs {
                 "ELOOP" => format!("ELOOP: too many symbolic links encountered '{path}'"),
                 _ => e,
             };
-            errors.insert(path.to_owned(),message);
+            errors.insert(path.to_owned(), message);
         }
     }
 
     /// Inspect the same routed entries that will be published. The transfer
     /// checks the backing generations again under both namespace locks.
-    fn inspect_directory_move(&self, source: &str, target: &str, budget: Option<&crate::ExecutionBudget>) -> Result<MovePlan, String> {
-        use super::{VfsEntryKind::{Directory, Symlink}, dirname_posix_path, is_path_within};
-        let admit = |path: &str| -> Result<(),String> {
+    fn inspect_directory_move(
+        &self,
+        source: &str,
+        target: &str,
+        budget: Option<&crate::ExecutionBudget>,
+    ) -> Result<MovePlan, String> {
+        use super::{
+            VfsEntryKind::{Directory, Symlink},
+            dirname_posix_path, is_path_within,
+        };
+        let admit = |path: &str| -> Result<(), String> {
             if let Some(b) = budget {
                 b.check_cancelled()?;
                 b.limits.check_path(path)?;
@@ -111,136 +147,222 @@ impl MountVfs {
             }
             Ok(())
         };
-        let inspect = |path: &str, follow| -> Result<Option<FileStat>,String> {
+        let inspect = |path: &str, follow| -> Result<Option<FileStat>, String> {
             admit(path)?;
-            match self.inspect_command_entry(path,follow,if follow { "stat" } else { "lstat" }) {
-                Ok((_,st)) => Ok(Some(st)),
+            match self.inspect_command_entry(path, follow, if follow { "stat" } else { "lstat" }) {
+                Ok((_, st)) => Ok(Some(st)),
                 Err(e) if e.starts_with("ENOENT:") => Ok(None),
                 Err(e) => Err(e),
             }
         };
         let list = |path: &str| {
             admit(path)?;
-            self.list_dir(path).map_err(|e| format!("{}, readdir '{path}'", e.split_once(", ").map_or(e.as_str(),|(reason,_)| reason)))
+            self.list_dir(path).map_err(|e| {
+                format!(
+                    "{}, readdir '{path}'",
+                    e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
+                )
+            })
         };
         let missing = |path: &str| format!("ENOENT: no such file or directory, lstat '{path}'");
-        let root = inspect(source,false)?.ok_or_else(|| missing(source))?;
-        let existing = inspect(target,false)?;
+        let root = inspect(source, false)?.ok_or_else(|| missing(source))?;
+        let existing = inspect(target, false)?;
         let into_self = || format!("EINVAL: cannot move a directory into itself '{target}'");
-        let same = |st: &FileStat| st.kind == Directory && root.identity.is_some() && st.identity == root.identity;
-        if is_path_within(source,target) { return Err(into_self()); }
+        let same = |st: &FileStat| {
+            st.kind == Directory && root.identity.is_some() && st.identity == root.identity
+        };
+        if is_path_within(source, target) {
+            return Err(into_self());
+        }
         let mut parent = dirname_posix_path(target);
         loop {
-            let mut st = inspect(&parent,false)?;
-            if st.as_ref().is_some_and(|s| s.kind == Symlink) { st = inspect(&parent,true)?; }
+            let mut st = inspect(&parent, false)?;
+            if st.as_ref().is_some_and(|s| s.kind == Symlink) {
+                st = inspect(&parent, true)?;
+            }
             if let Some(st) = st {
-                if same(&st) { return Err(into_self()); }
+                if same(&st) {
+                    return Err(into_self());
+                }
                 admit(&parent)?; // realpath
-                if let Ok(mut canonical) = self.access_path(&parent,true) {
-                    if is_path_within(source,&canonical) { return Err(into_self()); }
+                if let Ok(mut canonical) = self.access_path(&parent, true) {
+                    if is_path_within(source, &canonical) {
+                        return Err(into_self());
+                    }
                     loop {
-                        if inspect(&canonical,true)?.as_ref().is_some_and(same) { return Err(into_self()); }
-                        if canonical == "/" { break; }
+                        if inspect(&canonical, true)?.as_ref().is_some_and(same) {
+                            return Err(into_self());
+                        }
+                        if canonical == "/" {
+                            break;
+                        }
                         canonical = dirname_posix_path(&canonical);
                     }
                 }
             }
-            if parent == "/" { break; }
+            if parent == "/" {
+                break;
+            }
             parent = dirname_posix_path(&parent);
         }
-        let source_entry = self.access_path(source,false)?;
+        let source_entry = self.access_path(source, false)?;
         let source_mount = self.location(&source_entry).0;
-        let target_entry = self.resolve(target,false,WalkPurpose::AllowMissingParents)?;
+        let target_entry = self.resolve(target, false, WalkPurpose::AllowMissingParents)?;
         let target_mount = self.location(&target_entry).0;
         let mut children = Vec::new();
         let mut link_errors = BTreeMap::new();
-        let mut pending = vec![(source.to_owned(),target.to_owned(),String::new())];
+        let mut pending = vec![(source.to_owned(), target.to_owned(), String::new())];
         let atime_ms = root.atime_ms;
-        let mut root_stats = Some((root,existing));
+        let mut root_stats = Some((root, existing));
         let mut root_parent = None;
-        while let Some((from,to,suffix)) = pending.pop() {
-            let (st,existing) = match root_stats.take() {
+        while let Some((from, to, suffix)) = pending.pop() {
+            let (st, existing) = match root_stats.take() {
                 Some(pair) => pair,
-                None => (inspect(&from,false)?.ok_or_else(|| missing(&from))?, inspect(&to,false)?),
+                None => (
+                    inspect(&from, false)?.ok_or_else(|| missing(&from))?,
+                    inspect(&to, false)?,
+                ),
             };
             if !suffix.is_empty() {
-                let source_child = self.access_path(&from,false)?;
+                let source_child = self.access_path(&from, false)?;
                 let (mount, _, local) = self.location(&source_child);
-                let target_child = self.resolve(&to,false,WalkPurpose::AllowMissingParents)?;
+                let target_child = self.resolve(&to, false, WalkPurpose::AllowMissingParents)?;
                 let (other, _, target_local) = self.location(&target_child);
                 if mount != source_mount || other != target_mount {
-                    return Err(format!("ENOTSUP: cannot bind cross-device directory entry '{from}' -> '{to}'"));
+                    return Err(format!(
+                        "ENOTSUP: cannot bind cross-device directory entry '{from}' -> '{to}'"
+                    ));
                 }
-                children.push(MoveChild { source: local, target: target_local, suffix: suffix.clone(), atime_ms: st.atime_ms });
+                children.push(MoveChild {
+                    source: local,
+                    target: target_local,
+                    suffix: suffix.clone(),
+                    atime_ms: st.atime_ms,
+                });
             }
             if st.kind == Symlink {
-                self.inspect_move_link(&from,&mut link_errors);
-                if existing.as_ref().is_some_and(|s| s.kind == Symlink) { self.inspect_move_link(&to,&mut link_errors); }
+                self.inspect_move_link(&from, &mut link_errors);
+                if existing.as_ref().is_some_and(|s| s.kind == Symlink) {
+                    self.inspect_move_link(&to, &mut link_errors);
+                }
             }
             if let Some(other) = existing {
                 if st.identity.is_some() && st.identity == other.identity {
-                    return Err(format!("EINVAL: move source and destination are aliases '{from}' -> '{to}'"));
+                    return Err(format!(
+                        "EINVAL: move source and destination are aliases '{from}' -> '{to}'"
+                    ));
                 }
                 if (st.kind == Directory) != (other.kind == Directory) {
-                    let reason = if st.kind == Directory { "ENOTDIR: not a directory" } else { "EISDIR: illegal operation on a directory" };
+                    let reason = if st.kind == Directory {
+                        "ENOTDIR: not a directory"
+                    } else {
+                        "EISDIR: illegal operation on a directory"
+                    };
                     return Err(format!("{reason} '{to}'"));
                 }
-                if st.kind == Directory && !list(&to)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty '{to}'")); }
+                if st.kind == Directory && !list(&to)?.is_empty() {
+                    return Err(format!("ENOTEMPTY: directory not empty '{to}'"));
+                }
             }
-            if st.kind == Symlink { admit(&from)?; self.readlink(&from)?; }
+            if st.kind == Symlink {
+                admit(&from)?;
+                self.readlink(&from)?;
+            }
             let dir = dirname_posix_path(&from);
-            let parent = inspect(&dir,true)?.ok_or_else(|| missing(&dir))?;
-            if from == source { root_parent = Some(parent); }
+            let parent = inspect(&dir, true)?.ok_or_else(|| missing(&dir))?;
+            if from == source {
+                root_parent = Some(parent);
+            }
             if st.kind == Directory {
                 let mut names = list(&from)?;
-                names.sort_unstable_by(|a,b| a.encode_utf16().cmp(b.encode_utf16()));
+                names.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
                 for name in names.into_iter().rev() {
-                    pending.push((normalize_posix_path(&format!("{from}/{name}")), normalize_posix_path(&format!("{to}/{name}")), format!("{suffix}/{name}")));
+                    pending.push((
+                        normalize_posix_path(&format!("{from}/{name}")),
+                        normalize_posix_path(&format!("{to}/{name}")),
+                        format!("{suffix}/{name}"),
+                    ));
                 }
             }
         }
-        Ok(MovePlan { parent: root_parent, atime_ms, children, link_errors })
+        Ok(MovePlan {
+            parent: root_parent,
+            atime_ms,
+            children,
+            link_errors,
+        })
     }
-
 }
 
 impl SafeBashFs for MountVfs {
-    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
+    fn rmdir_support(
+        &self,
+        path: &str,
+        entry: Option<&str>,
+    ) -> Result<crate::vfs::RmdirSupport, String> {
         let resolved;
         let entry = match entry {
             Some(entry) => entry,
-            None => { resolved = self.resolve(path, true, WalkPurpose::Access)?; &resolved }
+            None => {
+                resolved = self.resolve(path, true, WalkPurpose::Access)?;
+                &resolved
+            }
         };
         let (_, fs, local) = self.location(entry);
         fs.rmdir_support(&local, Some(&local))
     }
 
-    fn has_path_capabilities(&self) -> bool { true }
+    fn has_path_capabilities(&self) -> bool {
+        true
+    }
 
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
         self.resolve(path, follow_final, WalkPurpose::Access)
     }
 
-    fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, FileStat), String> {
+    fn inspect_command_entry(
+        &self,
+        path: &str,
+        follow: bool,
+        syscall: &str,
+    ) -> Result<(String, FileStat), String> {
         // The mount router reports traversal failures against the original request.
-        let entry = self.resolve(path, follow, WalkPurpose::Access).map_err(|e| {
-            let reason = if e.starts_with("EACCES:") { "EACCES: permission denied" }
-                else if e.starts_with("ENOTDIR:") { "ENOTDIR: not a directory" }
-                else if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
-                else if syscall == "capabilitiesFor" && e.starts_with("ENOENT:") { "ENOENT: no such file or directory" }
-                else { return e };
-            format!("{reason}, {syscall} '{path}'")
-        })?;
+        let entry = self
+            .resolve(path, follow, WalkPurpose::Access)
+            .map_err(|e| {
+                let reason = if e.starts_with("EACCES:") {
+                    "EACCES: permission denied"
+                } else if e.starts_with("ENOTDIR:") {
+                    "ENOTDIR: not a directory"
+                } else if e.starts_with("ELOOP:") {
+                    "ELOOP: too many symbolic links encountered"
+                } else if syscall == "capabilitiesFor" && e.starts_with("ENOENT:") {
+                    "ENOENT: no such file or directory"
+                } else {
+                    return e;
+                };
+                format!("{reason}, {syscall} '{path}'")
+            })?;
         let (_, fs, local) = self.location(&entry);
         fs.lstat(&local).map(|st| (entry, st))
     }
 
-    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
+    fn scratch_file(
+        &self,
+        directory: &str,
+    ) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
         let (fs, local) = self.route(directory, true)?;
         fs.scratch_file(&local)
     }
 
-    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
+    fn start_command_stream(
+        &self,
+        _path: &str,
+        entry: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+    ) -> Result<super::ChunkWriter<'_>, String> {
         let (_, fs, local) = self.location(entry);
         fs.start_command_stream(&local, &local, append, exclusive, mode)
     }
@@ -250,7 +372,11 @@ impl SafeBashFs for MountVfs {
         fs.supports_command_descriptor(&local)
     }
 
-    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+    fn open_exclusive_redirect(
+        &self,
+        path: &str,
+        mode: u32,
+    ) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
         if path == "/" || self.mounts.contains_key(path) {
             return Err(format!("EBUSY: resource busy or locked, open '{path}'"));
         }
@@ -258,7 +384,12 @@ impl SafeBashFs for MountVfs {
         fs.open_exclusive_redirect(&local, mode)
     }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
+    fn open_redirect_file(
+        &self,
+        path: &str,
+        access: crate::vfs::RedirectAccess,
+        create_mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
         if exclusive && (path == "/" || self.mounts.contains_key(path)) {
             return Err(format!("EBUSY: resource busy or locked, open '{path}'"));
@@ -273,7 +404,11 @@ impl SafeBashFs for MountVfs {
         fs.read_file(&rel)
     }
 
-    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+    fn open_read_file(
+        &self,
+        path: &str,
+        allow_directory: bool,
+    ) -> Result<Box<dyn super::FileReadHandle>, String> {
         let (fs, entry) = self.route(path, true)?;
         fs.open_read_file(&entry, allow_directory)
     }
@@ -288,12 +423,23 @@ impl SafeBashFs for MountVfs {
         fs.open_chunks(&path)
     }
 
-    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+    fn open_chunks_sized(
+        &self,
+        path: &str,
+        size: std::num::NonZeroUsize,
+    ) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.route(path, true)?;
         fs.open_chunks_sized(&path, size)
     }
 
-    fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+    fn commit_file_edit(
+        &self,
+        path: &str,
+        original: &FileStat,
+        before: &[u8],
+        after: &[u8],
+        in_place: bool,
+    ) -> Result<(), String> {
         let (_, fs, entry) = self.location(&self.resolve(path, false, WalkPurpose::Access)?);
         fs.commit_file_edit(&entry, original, before, after, in_place)
     }
@@ -305,7 +451,9 @@ impl SafeBashFs for MountVfs {
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         let entry = self.resolve(path, false, WalkPurpose::Rename)?;
-        if entry != path { return Err("EAGAIN: resolved entry changed".into()); }
+        if entry != path {
+            return Err("EAGAIN: resolved entry changed".into());
+        }
         let (_, fs, rel) = self.location(&entry);
         fs.create_file(&rel, data, mode)
     }
@@ -325,9 +473,18 @@ impl SafeBashFs for MountVfs {
         fs.patch_revision(&local)
     }
 
-    fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
+    fn patch_file(
+        &self,
+        path: &str,
+        bytes: Option<&[u8]>,
+        expected: (u64, u64),
+    ) -> Result<u64, String> {
         // A patch never follows symlinks. Route the inspected lexical path, not a newly resolved alias.
-        if self.mounts.keys().any(|mount| crate::vfs::is_path_within(path, mount)) {
+        if self
+            .mounts
+            .keys()
+            .any(|mount| crate::vfs::is_path_within(path, mount))
+        {
             return Err("EBUSY: cannot patch a mount or its parent".into());
         }
         let (_, fs, local) = self.location(path);
@@ -337,71 +494,151 @@ impl SafeBashFs for MountVfs {
     fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;
         let local_version = fs.generation();
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
         fs.replace_file_entry(&rel, data, local_version)
     }
-    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, check_only: bool,
-        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
-        let dest=self.resolve(destination,false,WalkPurpose::AllowMissingParents)?;
-        let (mount,fs,local)=self.location(&dest);
-        let version=fs.generation();
-        if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
-        let local_temp=if let Some((dir,id))=temporary {
-            let (where_,_,path)=self.location(dir);
-            if where_!=mount { return Err("EXDEV: ZIP staging directory is on a different mount".into()); }
-            Some((path,id))
-        }else{None};
-        let (valid,next)=fs.validate_staged_file(&local,local_temp.as_ref().map(|(p,id)|(p.as_str(),*id)),bytes,version,check_only,&mut |path|{
-            let full=format!("{}{path}",mount.trim_end_matches('/'));
-            self.location(&full).0==mount && check(&full)
-        })?;
-        let mut delta=next.wrapping_sub(version);
-        for _ in self.mounts.keys().filter(|m| mount=="/" || m.as_str()>mount) {delta=delta.wrapping_mul(31);}
-        Ok((valid,stamp.wrapping_add(delta)))
+    fn validate_staged_file(
+        &self,
+        destination: &str,
+        temporary: Option<(&str, u64)>,
+        bytes: &[u8],
+        stamp: u64,
+        check_only: bool,
+        check: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(bool, u64), String> {
+        let dest = self.resolve(destination, false, WalkPurpose::AllowMissingParents)?;
+        let (mount, fs, local) = self.location(&dest);
+        let version = fs.generation();
+        if self.generation() != stamp {
+            return Err("EAGAIN: filesystem changed before staging".into());
+        }
+        let local_temp = if let Some((dir, id)) = temporary {
+            let (where_, _, path) = self.location(dir);
+            if where_ != mount {
+                return Err("EXDEV: ZIP staging directory is on a different mount".into());
+            }
+            Some((path, id))
+        } else {
+            None
+        };
+        let (valid, next) = fs.validate_staged_file(
+            &local,
+            local_temp.as_ref().map(|(p, id)| (p.as_str(), *id)),
+            bytes,
+            version,
+            check_only,
+            &mut |path| {
+                let full = format!("{}{path}", mount.trim_end_matches('/'));
+                self.location(&full).0 == mount && check(&full)
+            },
+        )?;
+        let mut delta = next.wrapping_sub(version);
+        for _ in self
+            .mounts
+            .keys()
+            .filter(|m| mount == "/" || m.as_str() > mount)
+        {
+            delta = delta.wrapping_mul(31);
+        }
+        Ok((valid, stamp.wrapping_add(delta)))
     }
 
-    fn replace_file_batch(&self, files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
-        self.publish_zip_volumes(files,&[],None,version)
+    fn replace_file_batch(
+        &self,
+        files: Vec<(String, Vec<u8>, u32)>,
+        version: u64,
+    ) -> Result<(), String> {
+        self.publish_zip_volumes(files, &[], None, version)
     }
-    fn publish_zip_volumes(&self,mut files:Vec<(String,Vec<u8>,u32)>,guards:&[super::PublicationStamp],
-        temporary:Option<(&str,u64)>,version:u64)->Result<(),String>{
-        let Some((first, _, _)) = files.first() else { return Ok(()); };
+    fn publish_zip_volumes(
+        &self,
+        mut files: Vec<(String, Vec<u8>, u32)>,
+        guards: &[super::PublicationStamp],
+        temporary: Option<(&str, u64)>,
+        version: u64,
+    ) -> Result<(), String> {
+        let Some((first, _, _)) = files.first() else {
+            return Ok(());
+        };
         let (backend, _) = self.route(first, false)?;
         let local_version = backend.generation();
         for (path, _, _) in &mut files {
             let (fs, local) = self.route(path, false)?;
-            if !std::ptr::eq(fs, backend) { return Err("EXDEV: split destinations on different mounts".into()); }
+            if !std::ptr::eq(fs, backend) {
+                return Err("EXDEV: split destinations on different mounts".into());
+            }
             *path = local;
         }
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
-        let dir=if let Some((p,id))=temporary {
-            let (_,fs,local)=self.location(p);
-            if !std::ptr::eq(fs,backend) {return Err("EXDEV: ZIP staging directory is on a different mount".into());}
-            Some((local,id))
-        } else {None};
-        backend.publish_zip_volumes(files,guards,dir.as_ref().map(|(p,id)|(p.as_str(),*id)),local_version)
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
+        let dir = if let Some((p, id)) = temporary {
+            let (_, fs, local) = self.location(p);
+            if !std::ptr::eq(fs, backend) {
+                return Err("EXDEV: ZIP staging directory is on a different mount".into());
+            }
+            Some((local, id))
+        } else {
+            None
+        };
+        backend.publish_zip_volumes(
+            files,
+            guards,
+            dir.as_ref().map(|(p, id)| (p.as_str(), *id)),
+            local_version,
+        )
     }
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_mode(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        version: u64,
+    ) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;
         let local_version = fs.generation();
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
         fs.replace_file_entry_with_mode(&rel, data, mode, local_version)
     }
-    fn replace_file_with_backup(&self, path: &str, data: &[u8], version: u64, backup: &str, backup_version: u64) -> Result<(), String> {
+    fn replace_file_with_backup(
+        &self,
+        path: &str,
+        data: &[u8],
+        version: u64,
+        backup: &str,
+        backup_version: u64,
+    ) -> Result<(), String> {
         let source = self.resolve(path, false, WalkPurpose::Access)?;
         let dest = self.resolve(backup, false, WalkPurpose::Access)?;
         let (mount, fs, local) = self.location(&source);
         let (other, _, sibling) = self.location(&dest);
-        if mount != other || local == "/" || sibling == "/" { return Err("EXDEV: backup must be in the same mount".into()); }
+        if mount != other || local == "/" || sibling == "/" {
+            return Err("EXDEV: backup must be in the same mount".into());
+        }
         let local_version = fs.generation();
-        if self.generation() != version || version != backup_version { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if self.generation() != version || version != backup_version {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
         fs.replace_file_with_backup(&local, data, local_version, &sibling, local_version)
     }
 
-    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        version: u64,
+    ) -> Result<(), String> {
         let (fs, rel) = self.route(path, false)?;
         let local_version = fs.generation();
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
         fs.replace_file_entry_with_metadata(&rel, data, mode, times, local_version)
     }
 
@@ -431,12 +668,22 @@ impl SafeBashFs for MountVfs {
         let (_, fs, local) = self.location(path);
         fs.supports_conditional_removal(&local)
     }
-    fn remove_unchanged_entry(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
-        if path == "/" || self.mounts.keys().any(|mount| super::is_path_within(path,mount)) {
+    fn remove_unchanged_entry(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: &FileStat,
+    ) -> Result<(), String> {
+        if path == "/"
+            || self
+                .mounts
+                .keys()
+                .any(|mount| super::is_path_within(path, mount))
+        {
             return Err("EBUSY: cannot remove a mount".into());
         }
-        let (_,fs,local) = self.location(path);
-        fs.remove_unchanged_entry(&local,parent,expected)
+        let (_, fs, local) = self.location(path);
+        fs.remove_unchanged_entry(&local, parent, expected)
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
@@ -444,47 +691,106 @@ impl SafeBashFs for MountVfs {
         fs.remove_published(&rel, publication)
     }
 
-    fn move_across_devices(&self, source: &str, destination: &str, budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
+    fn move_across_devices(
+        &self,
+        source: &str,
+        destination: &str,
+        budget: Option<&crate::ExecutionBudget>,
+    ) -> Result<(), String> {
         // Bind path resolution to the two backing-store versions inspected under the transfer locks.
         let versions: BTreeMap<_, _> = std::iter::once(("/", self.root.generation()))
-            .chain(self.mounts.iter().map(|(m, fs)| (m.as_str(), fs.generation()))).collect();
+            .chain(
+                self.mounts
+                    .iter()
+                    .map(|(m, fs)| (m.as_str(), fs.generation())),
+            )
+            .collect();
         // Rename has already established the terminal entry type, including
         // trailing slash requirements. A cross-device copy accepts terminal dots.
         let entry = |path: &str| {
             let trimmed = path.trim_end_matches('/');
-            self.resolve(if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed }, false, WalkPurpose::Access)
+            self.resolve(
+                if trimmed.is_empty() && !path.is_empty() {
+                    "/"
+                } else {
+                    trimmed
+                },
+                false,
+                WalkPurpose::Access,
+            )
         };
         let from = entry(source)?;
         let to = entry(destination)?;
-        if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
+        if self.mounts.keys().any(|m| {
+            [from.as_str(), to.as_str()]
+                .iter()
+                .any(|p| crate::vfs::is_path_within(p, m))
+        }) {
             return Err("EBUSY: resource busy or locked".into());
         }
         let (src_mount, src, src_path) = self.location(&from);
         let (dst_mount, dst, dst_path) = self.location(&to);
-        let Some(src) = src.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'")); };
-        let Some(dst) = dst.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, mv '{destination}'")); };
+        let Some(src) = src.memory_backend() else {
+            return Err(format!(
+                "ENOTSUP: operation not supported, removeEntryConditional '{source}'"
+            ));
+        };
+        let Some(dst) = dst.memory_backend() else {
+            return Err(format!(
+                "ENOTSUP: operation not supported, mv '{destination}'"
+            ));
+        };
         let st = src.lstat(&src_path)?;
         let plan = if st.kind == super::VfsEntryKind::Directory {
-            self.inspect_directory_move(source,destination,budget)?
+            self.inspect_directory_move(source, destination, budget)?
         } else {
             let mut link_errors = BTreeMap::new();
             if st.kind == super::VfsEntryKind::Symlink {
-                self.inspect_move_link(source,&mut link_errors);
-                if dst.lstat(&dst_path).is_ok_and(|s| s.kind == super::VfsEntryKind::Symlink) {
-                    self.inspect_move_link(destination,&mut link_errors);
+                self.inspect_move_link(source, &mut link_errors);
+                if dst
+                    .lstat(&dst_path)
+                    .is_ok_and(|s| s.kind == super::VfsEntryKind::Symlink)
+                {
+                    self.inspect_move_link(destination, &mut link_errors);
                 }
             }
-            MovePlan { atime_ms:st.atime_ms, link_errors, ..Default::default() }
+            MovePlan {
+                atime_ms: st.atime_ms,
+                link_errors,
+                ..Default::default()
+            }
         };
-        let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), &plan, budget)?;
+        let retained = src.transfer_to(
+            dst,
+            (&src_path, source, versions[src_mount]),
+            (&dst_path, destination, versions[dst_mount]),
+            &plan,
+            budget,
+        )?;
         if let (Some(parent), Some(expected)) = (plan.parent, retained) {
             // Removing the children may have removed a component of the original operand.
-            if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // recheck root
+            if let Some(b) = budget {
+                b.check_cancelled()?;
+                b.tick_fs_op()?;
+            } // recheck root
             let version = src.generation();
-            let entry = self.resolve(source,false,WalkPurpose::Access).map_err(|e|
-                format!("{}, lstat '{source}'", e.split_once(", ").map_or(e.as_str(), |(reason,_)| reason)))?;
-            if entry != from { return Err(format!("EBUSY: move source changed before removal '{source}'")); }
-            if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // conditional rmdir
+            let entry = self
+                .resolve(source, false, WalkPurpose::Access)
+                .map_err(|e| {
+                    format!(
+                        "{}, lstat '{source}'",
+                        e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
+                    )
+                })?;
+            if entry != from {
+                return Err(format!(
+                    "EBUSY: move source changed before removal '{source}'"
+                ));
+            }
+            if let Some(b) = budget {
+                b.check_cancelled()?;
+                b.tick_fs_op()?;
+            } // conditional rmdir
             src.remove_moved_directory(&src_path, &parent, &expected, version)
                 .map_err(|e| format!("{e}, removeEntryConditional '{source}'"))?;
         }
@@ -493,7 +799,8 @@ impl SafeBashFs for MountVfs {
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         use super::VfsEntryKind::Directory;
-        let protected = |p: &str| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m));
+        let protected =
+            |p: &str| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m));
         let reason = |e: String| match e.split_once(", ").map_or(e.as_str(), |(code, _)| code) {
             "EACCES: Permission denied" => "EACCES: permission denied".into(),
             "ELOOP: too many symbolic links" => "ELOOP: too many symbolic links encountered".into(),
@@ -502,16 +809,38 @@ impl SafeBashFs for MountVfs {
         let inspect = |path: &str, allow_missing: bool, missing_directory: bool| {
             // A trailing slash requires a directory but does not follow a final symlink.
             let trimmed = path.trim_end_matches('/');
-            let entry = self.resolve(if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed }, false, WalkPurpose::Access).map_err(reason)?;
+            let entry = self
+                .resolve(
+                    if trimmed.is_empty() && !path.is_empty() {
+                        "/"
+                    } else {
+                        trimmed
+                    },
+                    false,
+                    WalkPurpose::Access,
+                )
+                .map_err(reason)?;
             let (mount, fs, local) = self.location(&entry);
-            let directory = if protected(&entry) { true } else {
+            let directory = if protected(&entry) {
+                true
+            } else {
                 match fs.lstat(&local) {
                     Ok(st) => {
-                        if path.ends_with('/') && st.kind != Directory { return Err("ENOTDIR: not a directory".to_owned()); }
-                        if path.ends_with('/') && st.mode & 0o100 == 0 { return Err("EACCES: permission denied".to_owned()); }
+                        if path.ends_with('/') && st.kind != Directory {
+                            return Err("ENOTDIR: not a directory".to_owned());
+                        }
+                        if path.ends_with('/') && st.mode & 0o100 == 0 {
+                            return Err("EACCES: permission denied".to_owned());
+                        }
                         st.kind == Directory
                     }
-                    Err(e) if allow_missing && e.starts_with("ENOENT:") && (!path.ends_with('/') || missing_directory) => false,
+                    Err(e)
+                        if allow_missing
+                            && e.starts_with("ENOENT:")
+                            && (!path.ends_with('/') || missing_directory) =>
+                    {
+                        false
+                    }
                     Err(e) => return Err(reason(e)),
                 }
             };
@@ -519,9 +848,16 @@ impl SafeBashFs for MountVfs {
         };
         let (from, mount, fs, src, directory) = inspect(source, false, false)?;
         let (to, other, _, dest, _) = inspect(destination, true, directory)?;
-        if protected(&from) || protected(&to) { return Err("EBUSY: resource busy or locked".into()); }
-        if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
-        if [source, destination].iter().any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | ".."))) {
+        if protected(&from) || protected(&to) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        if mount != other {
+            return Err("EXDEV: cross-device link not permitted".into());
+        }
+        if [source, destination]
+            .iter()
+            .any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | "..")))
+        {
             return Err("EINVAL: invalid argument".into());
         }
         fs.rename(&src, &dest, no_replace)
@@ -539,25 +875,32 @@ impl SafeBashFs for MountVfs {
 
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
         super::mkdir::creation_mode(path, recursive, |p| {
-            self.resolve(p, true, WalkPurpose::CommandCreate).map_err(|error| {
-                let reason = match error.split(':').next() {
-                    Some("ENOENT") => "ENOENT: no such file or directory",
-                    Some("ENOTDIR") => "ENOTDIR: not a directory",
-                    Some("EISDIR") => "EISDIR: illegal operation on a directory",
-                    Some("EACCES") => "EACCES: permission denied",
-                    Some("ELOOP") => "ELOOP: too many symbolic links encountered",
-                    _ => return error,
-                };
-                format!("{reason}, capabilitiesFor '{p}'")
-            })
+            self.resolve(p, true, WalkPurpose::CommandCreate)
+                .map_err(|error| {
+                    let reason = match error.split(':').next() {
+                        Some("ENOENT") => "ENOENT: no such file or directory",
+                        Some("ENOTDIR") => "ENOTDIR: not a directory",
+                        Some("EISDIR") => "EISDIR: illegal operation on a directory",
+                        Some("EACCES") => "EACCES: permission denied",
+                        Some("ELOOP") => "ELOOP: too many symbolic links encountered",
+                        _ => return error,
+                    };
+                    format!("{reason}, capabilitiesFor '{p}'")
+                })
         })
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Mounted, |p| {
-            let (prefix, fs, local) = self.location(p);
-            (Some(prefix), fs, local)
-        })
+        super::mkdir::mkdir(
+            path,
+            recursive,
+            mode,
+            super::mkdir::Namespace::Mounted,
+            |p| {
+                let (prefix, fs, local) = self.location(p);
+                (Some(prefix), fs, local)
+            },
+        )
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
@@ -602,10 +945,15 @@ impl SafeBashFs for MountVfs {
         let mut entries = fs.directory_entries(&rel, limit)?;
         for mount in self.mounts.keys() {
             if let Some(suffix) = mount.strip_prefix(&format!("{}/", parent.trim_end_matches('/')))
-                && let Some(name) = suffix.split('/').next() {
-                if let Some((_, mode)) = entries.iter_mut().find(|(n, _)| n == name) { *mode = 0o040000; }
-                else if entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
-                else { entries.push((name.to_owned(), 0o040000)); }
+                && let Some(name) = suffix.split('/').next()
+            {
+                if let Some((_, mode)) = entries.iter_mut().find(|(n, _)| n == name) {
+                    *mode = 0o040000;
+                } else if entries.len() == limit {
+                    return Err("EFBIG: directory entry limit exceeded".into());
+                } else {
+                    entries.push((name.to_owned(), 0o040000));
+                }
             }
         }
         Ok(entries)
@@ -617,7 +965,8 @@ impl SafeBashFs for MountVfs {
     }
 
     fn supports_hard_links(&self, path: &str) -> bool {
-        self.route(path, false).is_ok_and(|(fs, local)| fs.supports_hard_links(&local))
+        self.route(path, false)
+            .is_ok_and(|(fs, local)| fs.supports_hard_links(&local))
     }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
@@ -625,17 +974,28 @@ impl SafeBashFs for MountVfs {
         let (mount, fs, from) = self.location(&from_path);
         fs.lstat(&from)?;
         let to_path = self.access_path(destination, false)?;
-        if [&from_path, &to_path].into_iter().any(|p| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m))) {
+        if [&from_path, &to_path]
+            .into_iter()
+            .any(|p| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m)))
+        {
             return Err("EBUSY: resource busy or locked".into());
         }
         let (other, _, to) = self.location(&to_path);
-        if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
+        if mount != other {
+            return Err("EXDEV: cross-device link not permitted".into());
+        }
         fs.hard_link(&from, &to)
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        if target.is_empty() { return Err(format!("ENOENT: no such file or directory, symlink '{path}'")); }
-        if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{path}'")); }
+        if target.is_empty() {
+            return Err(format!(
+                "ENOENT: no such file or directory, symlink '{path}'"
+            ));
+        }
+        if target.contains('\0') {
+            return Err(format!("EINVAL: invalid argument, symlink '{path}'"));
+        }
         let entry = self.resolve(path, false, WalkPurpose::Access)?;
         if entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m)) {
             return Err(format!("EBUSY: resource busy or locked, symlink '{path}'"));
@@ -644,13 +1004,23 @@ impl SafeBashFs for MountVfs {
         fs.symlink(target, &rel)
     }
 
-    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,stamp:u64)->Result<(),String> {
-        let entry=self.resolve(path,false,WalkPurpose::Access)?;
-        if entry!=path || entry=="/" || self.mounts.keys().any(|m|super::is_path_within(&entry,m)){
+    fn publish_extraction_symlink(
+        &self,
+        path: &str,
+        target: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        stamp: u64,
+    ) -> Result<(), String> {
+        let entry = self.resolve(path, false, WalkPurpose::Access)?;
+        if entry != path
+            || entry == "/"
+            || self.mounts.keys().any(|m| super::is_path_within(&entry, m))
+        {
             return Err(format!("EBUSY: unsafe extraction destination: {path}"));
         }
-        let (_,fs,local)=self.location(&entry);
-        fs.publish_extraction_symlink(&local,target,parent,expected,stamp)
+        let (_, fs, local) = self.location(&entry);
+        fs.publish_extraction_symlink(&local, target, parent, expected, stamp)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
@@ -668,38 +1038,72 @@ impl SafeBashFs for MountVfs {
         fs.lstat(&rel)
     }
 
-    fn prepare_chmod(&self, path: &str, ancestors: &[(&str,FileStat)]) -> Result<(),String> {
-        let resolved = self.resolve(path,false,WalkPurpose::Access)?;
-        let (_,fs,local) = self.location(&resolved);
+    fn prepare_chmod(&self, path: &str, ancestors: &[(&str, FileStat)]) -> Result<(), String> {
+        let resolved = self.resolve(path, false, WalkPurpose::Access)?;
+        let (_, fs, local) = self.location(&resolved);
         let st = fs.lstat(&local)?;
-        if resolved == "/" || self.mounts.keys().any(|m| super::is_path_within(&resolved,m)) {
+        if resolved == "/"
+            || self
+                .mounts
+                .keys()
+                .any(|m| super::is_path_within(&resolved, m))
+        {
             return Err("EBUSY: resource busy or locked".into());
         }
-        if resolved != path { return Err("EAGAIN: mount resolution changed".into()); }
-        if st.mode & 0o170000 == 0o020000 || fs.memory_backend().is_none() { return Err("ENOTSUP: unsupported conditional chmod backend".into()); }
-        for (p,receipt) in ancestors {
-            let (_,fs,local) = self.location(p);
+        if resolved != path {
+            return Err("EAGAIN: mount resolution changed".into());
+        }
+        if st.mode & 0o170000 == 0o020000 || fs.memory_backend().is_none() {
+            return Err("ENOTSUP: unsupported conditional chmod backend".into());
+        }
+        for (p, receipt) in ancestors {
+            let (_, fs, local) = self.location(p);
             let st = fs.lstat(&local)?;
-            if receipt.identity.is_none() || st.identity.is_none() { return Err("ENOTSUP: missing directory identity".into()); }
-            if st.identity != receipt.identity || st.kind != super::VfsEntryKind::Directory { return Err("EAGAIN: mounted directory changed".into()); }
-            if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
+            if receipt.identity.is_none() || st.identity.is_none() {
+                return Err("ENOTSUP: missing directory identity".into());
+            }
+            if st.identity != receipt.identity || st.kind != super::VfsEntryKind::Directory {
+                return Err("EAGAIN: mounted directory changed".into());
+            }
+            if st.mode & 0o100 == 0 {
+                return Err("EACCES: permission denied".into());
+            }
         }
         Ok(())
     }
 
-    fn chmod_conditional(&self, path: &str, mode: u32, ancestors: &[(&str,FileStat)], parent: &FileStat, expected: &FileStat) -> Result<(),String> {
-        super::validate_chmod_ancestry(path,mode,ancestors)?;
-        if path == "/" || self.mounts.keys().any(|m| super::is_path_within(path,m)) {
+    fn chmod_conditional(
+        &self,
+        path: &str,
+        mode: u32,
+        ancestors: &[(&str, FileStat)],
+        parent: &FileStat,
+        expected: &FileStat,
+    ) -> Result<(), String> {
+        super::validate_chmod_ancestry(path, mode, ancestors)?;
+        if path == "/" || self.mounts.keys().any(|m| super::is_path_within(path, m)) {
             return Err("EBUSY: resource busy or locked".into());
         }
-        let (prefix,fs,local) = self.location(path);
-        if prefix == "/" { return fs.chmod_conditional(&local,mode,ancestors,parent,expected); }
-        let target = fs.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?;
-        let routed = ancestors.iter().map(|(p,receipt)| {
-            let (_,fs,local) = self.location(p);
-            Ok::<_,String>((fs.memory_backend().ok_or("ENOTSUP: unsupported mounted ancestry")?,local,receipt))
-        }).collect::<Result<Vec<_>,_>>()?;
-        target.chmod_across_mounts(&local,mode,&routed,parent,expected)
+        let (prefix, fs, local) = self.location(path);
+        if prefix == "/" {
+            return fs.chmod_conditional(&local, mode, ancestors, parent, expected);
+        }
+        let target = fs
+            .memory_backend()
+            .ok_or("ENOTSUP: unsupported conditional chmod backend")?;
+        let routed = ancestors
+            .iter()
+            .map(|(p, receipt)| {
+                let (_, fs, local) = self.location(p);
+                Ok::<_, String>((
+                    fs.memory_backend()
+                        .ok_or("ENOTSUP: unsupported mounted ancestry")?,
+                    local,
+                    receipt,
+                ))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        target.chmod_across_mounts(&local, mode, &routed, parent, expected)
     }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
@@ -707,7 +1111,12 @@ impl SafeBashFs for MountVfs {
         fs.chmod(&rel, mode)
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
+    fn set_times(
+        &self,
+        path: &str,
+        atime_ms: Option<f64>,
+        mtime_ms: Option<f64>,
+    ) -> Result<(), String> {
         let (fs, rel) = self.route(path, true)?;
         fs.set_times(&rel, atime_ms, mtime_ms)
     }
@@ -753,25 +1162,55 @@ mod tests {
 
     #[test]
     fn cross_mount_operation_limit_preserves_each_admitted_copy_and_unlink() {
-        for directory in [false,true] {
-            let (create, write, unlink, finish) = if directory { (34,35,46,48) } else { (16,17,24,24) };
+        for directory in [false, true] {
+            let (create, write, unlink, finish) = if directory {
+                (34, 35, 46, 48)
+            } else {
+                (16, 17, 24, 24)
+            };
             for limit in 0..=finish {
                 let src = Arc::new(MemoryVfs::new());
                 src.write_file("/w/f", b"A").unwrap();
                 let dst = Arc::new(MemoryVfs::new());
-                let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
-                let mut sh = crate::Shell::new(Arc::new(fs), crate::ShellOptions { cwd:Some("/".into()), ..Default::default() });
+                let fs = MountVfs::new(src.clone()).with_mount("/m", dst.clone());
+                let mut sh = crate::Shell::new(
+                    Arc::new(fs),
+                    crate::ShellOptions {
+                        cwd: Some("/".into()),
+                        ..Default::default()
+                    },
+                );
                 sh.use_provided_devices();
-                sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit, ..Default::default() });
-                let result = sh.exec(if directory { "mv -T /w /m/copy" } else { "mv -T /w/f /m/copy" });
-                if limit < finish { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
-                else { assert_eq!(result.unwrap().exit_code,0); }
-                let bytes = dst.read_file(if directory { "/copy/f" } else { "/copy" }).ok();
-                assert_eq!(bytes, (limit>=create).then(|| if limit>=write { b"A".to_vec() } else { vec![] }), "limit {limit}");
-                assert_eq!(src.exists("/w/f"),limit<unlink,"limit {limit}");
+                sh.set_limits(crate::ShellLimits {
+                    max_filesystem_operations: limit,
+                    ..Default::default()
+                });
+                let result = sh.exec(if directory {
+                    "mv -T /w /m/copy"
+                } else {
+                    "mv -T /w/f /m/copy"
+                });
+                if limit < finish {
+                    assert!(result.unwrap_err().contains("maxFileSystemOperations"));
+                } else {
+                    assert_eq!(result.unwrap().exit_code, 0);
+                }
+                let bytes = dst
+                    .read_file(if directory { "/copy/f" } else { "/copy" })
+                    .ok();
+                assert_eq!(
+                    bytes,
+                    (limit >= create).then(|| if limit >= write {
+                        b"A".to_vec()
+                    } else {
+                        vec![]
+                    }),
+                    "limit {limit}"
+                );
+                assert_eq!(src.exists("/w/f"), limit < unlink, "limit {limit}");
                 if directory {
-                    assert_eq!(dst.exists("/copy"),limit>=29);
-                    assert_eq!(src.exists("/w"),limit<finish);
+                    assert_eq!(dst.exists("/copy"), limit >= 29);
+                    assert_eq!(src.exists("/w"), limit < finish);
                 }
             }
         }
@@ -780,50 +1219,97 @@ mod tests {
     #[test]
     fn cross_mount_overwrite_only_publishes_after_staging_and_never_reuses_an_occupied_name() {
         for (occupied, limit, published, moved) in [
-            (0,18,false,false), (0,20,false,false), (0,25,false,false), (0,26,true,false), (1,26,false,false),
-            (1,27,true,false), (1,30,true,false), (1,31,true,true), (128,1000,false,false),
+            (0, 18, false, false),
+            (0, 20, false, false),
+            (0, 25, false, false),
+            (0, 26, true, false),
+            (1, 26, false, false),
+            (1, 27, true, false),
+            (1, 30, true, false),
+            (1, 31, true, true),
+            (128, 1000, false, false),
         ] {
             let src = Arc::new(MemoryVfs::new());
-            src.write_file("/source",b"A").unwrap();
-            src.chmod("/source",0o640).unwrap();
+            src.write_file("/source", b"A").unwrap();
+            src.chmod("/source", 0o640).unwrap();
             let dst = Arc::new(MemoryVfs::new());
-            dst.write_file("/copy",b"old").unwrap();
-            dst.hard_link("/copy","/alias").unwrap();
-            for n in 1..=occupied { dst.write_file(&format!("/.mv-{n}"),b"reserved").unwrap(); }
-            let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
-            let mut sh = crate::Shell::new(Arc::new(fs), crate::ShellOptions { cwd:Some("/".into()), ..Default::default() });
+            dst.write_file("/copy", b"old").unwrap();
+            dst.hard_link("/copy", "/alias").unwrap();
+            for n in 1..=occupied {
+                dst.write_file(&format!("/.mv-{n}"), b"reserved").unwrap();
+            }
+            let fs = MountVfs::new(src.clone()).with_mount("/m", dst.clone());
+            let mut sh = crate::Shell::new(
+                Arc::new(fs),
+                crate::ShellOptions {
+                    cwd: Some("/".into()),
+                    ..Default::default()
+                },
+            );
             sh.use_provided_devices();
-            sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit, ..Default::default() });
+            sh.set_limits(crate::ShellLimits {
+                max_filesystem_operations: limit,
+                ..Default::default()
+            });
             let result = sh.exec("mv -T /source /m/copy");
             if occupied == 128 {
-                assert_eq!(result.unwrap().stderr, "mv: EEXIST: move staging attempt limit exceeded '/m/copy'\n");
-            } else if moved { assert_eq!(result.unwrap().exit_code,0); }
-            else { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
-            assert_eq!(dst.read_file("/alias").unwrap(),b"old");
-            assert_eq!(dst.read_file("/copy").unwrap(), if published { &b"A"[..] } else { &b"old"[..] });
-            if published { assert_eq!(dst.lstat("/copy").unwrap().mode & 0o777,0o640); }
-            assert_eq!(src.exists("/source"),!moved);
-            for n in 1..=occupied { assert_eq!(dst.read_file(&format!("/.mv-{n}")).unwrap(),b"reserved"); }
-            let stage = format!("/.mv-{}",occupied+1);
-            assert_eq!(dst.exists(&stage), occupied < 128 && (18+occupied..27+occupied).contains(&limit));
+                assert_eq!(
+                    result.unwrap().stderr,
+                    "mv: EEXIST: move staging attempt limit exceeded '/m/copy'\n"
+                );
+            } else if moved {
+                assert_eq!(result.unwrap().exit_code, 0);
+            } else {
+                assert!(result.unwrap_err().contains("maxFileSystemOperations"));
+            }
+            assert_eq!(dst.read_file("/alias").unwrap(), b"old");
+            assert_eq!(
+                dst.read_file("/copy").unwrap(),
+                if published { &b"A"[..] } else { &b"old"[..] }
+            );
+            if published {
+                assert_eq!(dst.lstat("/copy").unwrap().mode & 0o777, 0o640);
+            }
+            assert_eq!(src.exists("/source"), !moved);
+            for n in 1..=occupied {
+                assert_eq!(dst.read_file(&format!("/.mv-{n}")).unwrap(), b"reserved");
+            }
+            let stage = format!("/.mv-{}", occupied + 1);
+            assert_eq!(
+                dst.exists(&stage),
+                occupied < 128 && (18 + occupied..27 + occupied).contains(&limit)
+            );
             let staged = dst.read_file(&format!("{stage}/entry")).ok();
-            assert_eq!(staged, (occupied < 128 && (18+occupied..26+occupied).contains(&limit))
-                .then(|| if limit < 20+occupied { vec![] } else { b"A".to_vec() }));
+            assert_eq!(
+                staged,
+                (occupied < 128 && (18 + occupied..26 + occupied).contains(&limit)).then(|| {
+                    if limit < 20 + occupied {
+                        vec![]
+                    } else {
+                        b"A".to_vec()
+                    }
+                })
+            );
         }
     }
 
     #[test]
     fn cross_mount_hardlink_copies_keep_the_access_time_from_before_either_read() {
         let src = Arc::new(MemoryVfs::new());
-        src.write_file("/w/a",b"A").unwrap();
-        src.hard_link("/w/a","/w/b").unwrap();
-        src.set_times("/w/a",Some(123456.0),Some(654321.0)).unwrap();
+        src.write_file("/w/a", b"A").unwrap();
+        src.hard_link("/w/a", "/w/b").unwrap();
+        src.set_times("/w/a", Some(123456.0), Some(654321.0))
+            .unwrap();
         let dst = Arc::new(MemoryVfs::new());
-        let fs = MountVfs::new(src).with_mount("/m",dst.clone());
-        fs.move_across_devices("/w","/m/out",None).unwrap();
-        for path in ["/out/a","/out/b"] {
+        let fs = MountVfs::new(src).with_mount("/m", dst.clone());
+        fs.move_across_devices("/w", "/m/out", None).unwrap();
+        for path in ["/out/a", "/out/b"] {
             let st = dst.lstat(path).unwrap();
-            assert_eq!((st.atime_ms,st.mtime_ms,st.nlink),(123456.0,654321.0,Some(1)),"{path}");
+            assert_eq!(
+                (st.atime_ms, st.mtime_ms, st.nlink),
+                (123456.0, 654321.0, Some(1)),
+                "{path}"
+            );
         }
     }
 
@@ -831,42 +1317,89 @@ mod tests {
     fn cross_mount_directories_keep_the_access_times_from_before_listing_their_children() {
         let src = Arc::new(MemoryVfs::new());
         src.mkdir_all("/w/d").unwrap();
-        src.set_times("/w",Some(123456.0),Some(654321.0)).unwrap();
-        src.set_times("/w/d",Some(345678.0),Some(456789.0)).unwrap();
+        src.set_times("/w", Some(123456.0), Some(654321.0)).unwrap();
+        src.set_times("/w/d", Some(345678.0), Some(456789.0))
+            .unwrap();
         let dst = Arc::new(MemoryVfs::new());
-        let fs = MountVfs::new(src).with_mount("/m",dst.clone());
-        fs.move_across_devices("/w","/m/out",None).unwrap();
+        let fs = MountVfs::new(src).with_mount("/m", dst.clone());
+        fs.move_across_devices("/w", "/m/out", None).unwrap();
         let root = dst.lstat("/out").unwrap();
         let child = dst.lstat("/out/d").unwrap();
-        assert_eq!((root.atime_ms,root.mtime_ms),(123456.0,654321.0));
-        assert_eq!((child.atime_ms,child.mtime_ms),(345678.0,456789.0));
+        assert_eq!((root.atime_ms, root.mtime_ms), (123456.0, 654321.0));
+        assert_eq!((child.atime_ms, child.mtime_ms), (345678.0, 456789.0));
     }
 
     #[test]
     fn cross_mount_links_check_the_followed_capabilities_before_replacing_any_entry() {
-        for (source_target,dest_target,remove,finish,reason) in [
-            ("f","old",13,17,""), ("f","missing",16,20,""), ("f","copy",19,23,""),
-            ("missing","old",usize::MAX,11,"ENOENT: no such file or directory, capabilitiesFor '/w/l'"),
-            ("f/x","old",usize::MAX,13,"ENOTDIR: not a directory, capabilitiesFor '/w/l'"),
-            ("l","old",usize::MAX,13,"ELOOP: too many symbolic links encountered '/w/l'"),
+        for (source_target, dest_target, remove, finish, reason) in [
+            ("f", "old", 13, 17, ""),
+            ("f", "missing", 16, 20, ""),
+            ("f", "copy", 19, 23, ""),
+            (
+                "missing",
+                "old",
+                usize::MAX,
+                11,
+                "ENOENT: no such file or directory, capabilitiesFor '/w/l'",
+            ),
+            (
+                "f/x",
+                "old",
+                usize::MAX,
+                13,
+                "ENOTDIR: not a directory, capabilitiesFor '/w/l'",
+            ),
+            (
+                "l",
+                "old",
+                usize::MAX,
+                13,
+                "ELOOP: too many symbolic links encountered '/w/l'",
+            ),
         ] {
             for limit in 0..=finish {
                 let src = Arc::new(MemoryVfs::new());
-                src.write_file("/w/f",b"A").unwrap();
-                src.symlink(source_target,"/w/l").unwrap();
+                src.write_file("/w/f", b"A").unwrap();
+                src.symlink(source_target, "/w/l").unwrap();
                 let dst = Arc::new(MemoryVfs::new());
-                dst.write_file("/old",b"B").unwrap();
-                dst.symlink(dest_target,"/copy").unwrap();
-                let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
-                let mut sh = crate::Shell::new(Arc::new(fs),crate::ShellOptions {cwd:Some("/".into()),..Default::default()});
+                dst.write_file("/old", b"B").unwrap();
+                dst.symlink(dest_target, "/copy").unwrap();
+                let fs = MountVfs::new(src.clone()).with_mount("/m", dst.clone());
+                let mut sh = crate::Shell::new(
+                    Arc::new(fs),
+                    crate::ShellOptions {
+                        cwd: Some("/".into()),
+                        ..Default::default()
+                    },
+                );
                 sh.use_provided_devices();
-                sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit,..Default::default() });
+                sh.set_limits(crate::ShellLimits {
+                    max_filesystem_operations: limit,
+                    ..Default::default()
+                });
                 let result = sh.exec("mv -T /w/l /m/copy");
-                if limit < finish { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
-                else if reason.is_empty() { assert_eq!(result.unwrap().exit_code,0); }
-                else { assert_eq!(result.unwrap().stderr, format!("mv: {reason}\n")); }
-                assert_eq!(src.readlink("/w/l").is_ok(),limit < finish || !reason.is_empty());
-                assert_eq!(dst.readlink("/copy").ok().as_deref(),if limit < remove {Some(dest_target)} else if limit == remove {None} else {Some(source_target)},"{source_target} -> {dest_target}, limit {limit}");
+                if limit < finish {
+                    assert!(result.unwrap_err().contains("maxFileSystemOperations"));
+                } else if reason.is_empty() {
+                    assert_eq!(result.unwrap().exit_code, 0);
+                } else {
+                    assert_eq!(result.unwrap().stderr, format!("mv: {reason}\n"));
+                }
+                assert_eq!(
+                    src.readlink("/w/l").is_ok(),
+                    limit < finish || !reason.is_empty()
+                );
+                assert_eq!(
+                    dst.readlink("/copy").ok().as_deref(),
+                    if limit < remove {
+                        Some(dest_target)
+                    } else if limit == remove {
+                        None
+                    } else {
+                        Some(source_target)
+                    },
+                    "{source_target} -> {dest_target}, limit {limit}"
+                );
             }
         }
     }
@@ -876,22 +1409,32 @@ mod tests {
         for existing in [false, true] {
             for input_limit in [0, 1] {
                 let root = Arc::new(MemoryVfs::new());
-                root.write_file("/source",b"A").unwrap();
+                root.write_file("/source", b"A").unwrap();
                 let dst = Arc::new(MemoryVfs::new());
-                if existing { dst.write_file("/out",b"old").unwrap(); }
-                let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
-                let budget = crate::ExecutionBudget::new(crate::ShellLimits {
-                    max_input_bytes: input_limit, max_output_bytes: 0, ..Default::default()
-                },None);
-                let result = fs.move_across_devices("/source","/m/out",Some(&budget));
+                if existing {
+                    dst.write_file("/out", b"old").unwrap();
+                }
+                let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
+                let budget = crate::ExecutionBudget::new(
+                    crate::ShellLimits {
+                        max_input_bytes: input_limit,
+                        max_output_bytes: 0,
+                        ..Default::default()
+                    },
+                    None,
+                );
+                let result = fs.move_across_devices("/source", "/m/out", Some(&budget));
                 if input_limit == 0 {
                     assert!(result.unwrap_err().contains("maxInputBytes"));
-                    assert_eq!(root.read_file("/source").unwrap(),b"A");
-                    assert_eq!(dst.read_file("/out").unwrap(),if existing { &b"old"[..] } else { &[][..] });
+                    assert_eq!(root.read_file("/source").unwrap(), b"A");
+                    assert_eq!(
+                        dst.read_file("/out").unwrap(),
+                        if existing { &b"old"[..] } else { &[][..] }
+                    );
                 } else {
                     result.unwrap();
                     assert!(!root.exists("/source"));
-                    assert_eq!(dst.read_file("/out").unwrap(),b"A");
+                    assert_eq!(dst.read_file("/out").unwrap(), b"A");
                 }
             }
         }
@@ -907,24 +1450,35 @@ mod tests {
             dst.mkdir_all("/empty/leaf").unwrap();
             dst.mkdir_all("/a").unwrap();
             dst.symlink("/empty/leaf", "/a/link").unwrap();
-            if alternate != "missing" { dst.mkdir_all("/a/copy").unwrap(); }
+            if alternate != "missing" {
+                dst.mkdir_all("/a/copy").unwrap();
+            }
             if alternate == "occupied" {
                 dst.write_file("/a/copy/file", b"old").unwrap();
                 dst.hard_link("/a/copy/file", "/old").unwrap();
             }
-            if alternate == "readonly" { dst.chmod("/a/copy", 0o555).unwrap(); }
+            if alternate == "readonly" {
+                dst.chmod("/a/copy", 0o555).unwrap();
+            }
             let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
             let result = fs.move_across_devices("/w", "/m/a/link/../copy", None);
             assert!(dst.list_dir("/empty/copy").unwrap().is_empty());
             if alternate == "occupied" {
                 result.unwrap();
-                assert_eq!(dst.read_file("/a/copy/file").unwrap(),b"original");
-                assert_eq!(dst.read_file("/a/copy/d/b").unwrap(),b"b");
-                assert_eq!(dst.read_file("/old").unwrap(),b"old");
+                assert_eq!(dst.read_file("/a/copy/file").unwrap(), b"original");
+                assert_eq!(dst.read_file("/a/copy/d/b").unwrap(), b"b");
+                assert_eq!(dst.read_file("/old").unwrap(), b"old");
                 assert!(!root.exists("/w"));
             } else {
-                let reason = if alternate == "missing" { "ENOENT: no such file or directory" } else { "EACCES: permission denied" };
-                assert_eq!(result.unwrap_err(), format!("{reason}, mkdir '/m/a/copy/d'"));
+                let reason = if alternate == "missing" {
+                    "ENOENT: no such file or directory"
+                } else {
+                    "EACCES: permission denied"
+                };
+                assert_eq!(
+                    result.unwrap_err(),
+                    format!("{reason}, mkdir '/m/a/copy/d'")
+                );
                 assert!(root.exists("/w/file") && root.exists("/w/d/b"));
             }
         }
@@ -934,19 +1488,19 @@ mod tests {
     fn cross_mount_copy_failure_retains_completed_chunks_before_cleanup_or_chmod() {
         let root = Arc::new(MemoryVfs::new());
         root.mkdir_all("/src/d").unwrap();
-        root.write_file("/src/a",b"first").unwrap();
-        root.write_file("/src/d/b",&vec![b'x';65537]).unwrap();
-        root.write_file("/src/z",b"last").unwrap();
+        root.write_file("/src/a", b"first").unwrap();
+        root.write_file("/src/d/b", &vec![b'x'; 65537]).unwrap();
+        root.write_file("/src/z", b"last").unwrap();
         let dst = Arc::new(MemoryVfs::new());
         dst.set_max_file_bytes(65536);
-        let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
-        let error = fs.move_across_devices("/src", "/m/copy",None).unwrap_err();
+        let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
+        let error = fs.move_across_devices("/src", "/m/copy", None).unwrap_err();
         assert_eq!(error, "EFBIG: file too large, writeStream '/m/copy/d/b'");
         assert_eq!(dst.read_file("/copy/a").unwrap(), b"first");
-        assert_eq!(dst.read_file("/copy/d/b").unwrap(), vec![b'x';65536]);
+        assert_eq!(dst.read_file("/copy/d/b").unwrap(), vec![b'x'; 65536]);
         assert_eq!(dst.stat("/copy").unwrap().mode & 0o777, 0o700);
         assert!(!dst.exists("/copy/z"));
-        assert_eq!(root.read_file("/src/d/b").unwrap().len(),65537);
+        assert_eq!(root.read_file("/src/d/b").unwrap().len(), 65537);
         assert!(root.exists("/src/a") && root.exists("/src/z"));
     }
 
@@ -954,44 +1508,62 @@ mod tests {
     fn cross_mount_permission_failure_keeps_the_copy_and_completed_source_unlinks() {
         let root = Arc::new(MemoryVfs::new());
         root.mkdir_all("/w/d").unwrap();
-        for p in ["/w/a","/w/z","/w/d/b"] { root.write_file(p,p.as_bytes()).unwrap(); }
-        root.chmod("/w/d",0o555).unwrap();
-        let dst = Arc::new(MemoryVfs::new());
-        let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
-        let error = fs.move_across_devices("/w/.", "/m/copy", None).unwrap_err();
-        for p in ["a","d/b","z"] {
-            assert_eq!(dst.read_file(&format!("/copy/{p}")).unwrap(),format!("/w/{p}").as_bytes());
+        for p in ["/w/a", "/w/z", "/w/d/b"] {
+            root.write_file(p, p.as_bytes()).unwrap();
         }
-        assert_eq!(error, "EACCES: permission denied, removeEntryConditional '/w/d/b'");
+        root.chmod("/w/d", 0o555).unwrap();
+        let dst = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
+        let error = fs.move_across_devices("/w/.", "/m/copy", None).unwrap_err();
+        for p in ["a", "d/b", "z"] {
+            assert_eq!(
+                dst.read_file(&format!("/copy/{p}")).unwrap(),
+                format!("/w/{p}").as_bytes()
+            );
+        }
+        assert_eq!(
+            error,
+            "EACCES: permission denied, removeEntryConditional '/w/d/b'"
+        );
         assert!(!root.exists("/w/z"));
         assert!(root.exists("/w/a"));
         assert!(root.exists("/w/d/b"));
-        let error = fs.move_across_devices("/w/d/b","/m/single",None).unwrap_err();
-        assert_eq!(error, "EACCES: permission denied, removeEntryConditional '/w/d/b'");
+        let error = fs
+            .move_across_devices("/w/d/b", "/m/single", None)
+            .unwrap_err();
+        assert_eq!(
+            error,
+            "EACCES: permission denied, removeEntryConditional '/w/d/b'"
+        );
         assert_eq!(dst.read_file("/single").unwrap(), b"/w/d/b");
         assert!(root.exists("/w/d/b"));
     }
 
     #[test]
     fn cross_mount_move_copies_only_the_child_entries_selected_during_planning() {
-        for alternate in [false,true] {
+        for alternate in [false, true] {
             let root = Arc::new(MemoryVfs::new());
             root.mkdir_all("/w/dir").unwrap();
             root.write_file("/w/file", b"original").unwrap();
             root.mkdir_all("/a").unwrap();
-            root.symlink("/w/dir","/a/link").unwrap();
+            root.symlink("/w/dir", "/a/link").unwrap();
             if alternate {
                 root.mkdir_all("/a/dir").unwrap();
-                root.write_file("/a/file",b"alternate").unwrap();
+                root.write_file("/a/file", b"alternate").unwrap();
             }
             let dst = Arc::new(MemoryVfs::new());
-            let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
-            let error = fs.move_across_devices("/a/link/..", "/m/copy", None).unwrap_err();
+            let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
+            let error = fs
+                .move_across_devices("/a/link/..", "/m/copy", None)
+                .unwrap_err();
             assert_eq!(root.read_file("/w/file").unwrap(), b"original");
             assert!(root.exists("/w/dir"));
             if alternate {
-                assert_eq!(error, "EAGAIN: resource temporarily unavailable, removeEntryConditional '/a/link/..'");
-                assert_eq!(dst.read_file("/copy/file").unwrap(),b"alternate");
+                assert_eq!(
+                    error,
+                    "EAGAIN: resource temporarily unavailable, removeEntryConditional '/a/link/..'"
+                );
+                assert_eq!(dst.read_file("/copy/file").unwrap(), b"alternate");
                 assert!(!root.exists("/a/file"));
                 assert!(!root.exists("/a/dir"));
             } else {
@@ -1004,22 +1576,34 @@ mod tests {
     #[test]
     fn cross_mount_directory_cleanup_rechecks_the_original_root_operand() {
         for (source, error) in [
-            ("/w/.", Some("EAGAIN: resource temporarily unavailable, removeEntryConditional '/w/.'")),
-            ("/w/dir/..", Some("ENOENT: no such file or directory, lstat '/w/dir/..'")),
-            ("/w/dir/../../w", Some("ENOENT: no such file or directory, lstat '/w/dir/../../w'")),
+            (
+                "/w/.",
+                Some("EAGAIN: resource temporarily unavailable, removeEntryConditional '/w/.'"),
+            ),
+            (
+                "/w/dir/..",
+                Some("ENOENT: no such file or directory, lstat '/w/dir/..'"),
+            ),
+            (
+                "/w/dir/../../w",
+                Some("ENOENT: no such file or directory, lstat '/w/dir/../../w'"),
+            ),
             ("/w/", None),
         ] {
             let root = Arc::new(MemoryVfs::new());
             root.mkdir_all("/w/dir").unwrap();
             root.write_file("/w/file", b"keep").unwrap();
             let store = Arc::new(MemoryVfs::new());
-            let fs = MountVfs::new(root.clone()).with_mount("/m",store.clone());
+            let fs = MountVfs::new(root.clone()).with_mount("/m", store.clone());
             let result = fs.move_across_devices(source, "/m/copy/", None);
             assert_eq!(result.as_ref().err().map(String::as_str), error, "{source}");
             assert_eq!(store.read_file("/copy/file").unwrap(), b"keep");
             assert!(store.list_dir("/copy/dir").unwrap().is_empty());
-            if error.is_some() { assert!(root.list_dir("/w").unwrap().is_empty()); }
-            else { assert!(!root.exists("/w")); }
+            if error.is_some() {
+                assert!(root.list_dir("/w").unwrap().is_empty());
+            } else {
+                assert!(!root.exists("/w"));
+            }
         }
     }
 
@@ -1030,14 +1614,18 @@ mod tests {
         root.symlink("/", "/rootlink").unwrap();
         let fs = MountVfs::new(root.clone()).with_mount("/dev", Arc::new(MemoryVfs::new()));
         for (src, dst, expected) in [
-            ("/missing", "/", "ENOENT"), ("/w/file/", "/", "ENOTDIR"),
-            ("/", "/rootlink/", "ENOTDIR"), ("/", "/missing/", "EBUSY"),
-            ("/w/file", "/missing/", "ENOENT"), ("/w/file", "/w/..", "EBUSY"),
-            ("/w/.", "/dev/sub", "EXDEV"), ("/rootlink/..", "/w", "EACCES"),
+            ("/missing", "/", "ENOENT"),
+            ("/w/file/", "/", "ENOTDIR"),
+            ("/", "/rootlink/", "ENOTDIR"),
+            ("/", "/missing/", "EBUSY"),
+            ("/w/file", "/missing/", "ENOENT"),
+            ("/w/file", "/w/..", "EBUSY"),
+            ("/w/.", "/dev/sub", "EXDEV"),
+            ("/rootlink/..", "/w", "EACCES"),
             ("/w/.", "/w/other", "EINVAL"),
         ] {
-            let err = fs.rename(src,dst,false).unwrap_err();
-            assert_eq!(err.split(':').next().unwrap(),expected,"{src} -> {dst}");
+            let err = fs.rename(src, dst, false).unwrap_err();
+            assert_eq!(err.split(':').next().unwrap(), expected, "{src} -> {dst}");
         }
         assert_eq!(root.read_file("/w/file").unwrap(), b"keep");
     }
@@ -1049,14 +1637,22 @@ mod tests {
         for (fs, bytes) in [(&root, b"A"), (&mounted, b"B")] {
             fs.write_file("/f", bytes).unwrap();
             fs.hard_link("/f", "/alias").unwrap();
-            let Some(crate::vfs::EntryIdentity::Memory(_, ino)) = fs.stat("/f").unwrap().identity else { panic!() };
+            let Some(crate::vfs::EntryIdentity::Memory(_, ino)) = fs.stat("/f").unwrap().identity
+            else {
+                panic!()
+            };
             assert_eq!(ino, 2);
-            assert_ne!(fs.stat("/f").unwrap().identity, fs.stat("/dev/null").unwrap().identity);
+            assert_ne!(
+                fs.stat("/f").unwrap().identity,
+                fs.stat("/dev/null").unwrap().identity
+            );
             assert_eq!(fs.stat("/dev/null").unwrap().nlink, Some(1));
         }
         let fs = MountVfs::new(root).with_mount("/mnt", mounted);
         let restored = MemoryVfs::new();
-        restored.replace_entries(&fs.export_entries().unwrap()).unwrap();
+        restored
+            .replace_entries(&fs.export_entries().unwrap())
+            .unwrap();
         restored.write_file("/alias", b"C").unwrap();
         assert_eq!(restored.read_file("/f").unwrap(), b"C");
         assert_eq!(restored.read_file("/mnt/alias").unwrap(), b"B");
@@ -1162,22 +1758,30 @@ mod tests {
         let root = Arc::new(MemoryVfs::new());
         root.mkdir_all("/top").unwrap();
         let store = Arc::new(MemoryVfs::new());
-        store.write_file("/d/f",b"original").unwrap();
-        let fs = MountVfs::new(root.clone()).with_mount("/top/m",store.clone());
+        store.write_file("/d/f", b"original").unwrap();
+        let fs = MountVfs::new(root.clone()).with_mount("/top/m", store.clone());
         let path = "/top/m/d/f";
-        let ancestor_paths = ["/","/top","/top/m","/top/m/d"];
-        let chain: Vec<_> = ancestor_paths.iter().map(|&p|(p,fs.lstat(p).unwrap())).collect();
+        let ancestor_paths = ["/", "/top", "/top/m", "/top/m/d"];
+        let chain: Vec<_> = ancestor_paths
+            .iter()
+            .map(|&p| (p, fs.lstat(p).unwrap()))
+            .collect();
         let parent = &chain.last().unwrap().1;
         let entry = fs.lstat(path).unwrap();
-        fs.prepare_chmod(path,&chain).unwrap();
-        fs.chmod_conditional(path,0o600,&chain,parent,&entry).unwrap();
-        assert_eq!(store.stat("/d/f").unwrap().mode,0o100600);
+        fs.prepare_chmod(path, &chain).unwrap();
+        fs.chmod_conditional(path, 0o600, &chain, parent, &entry)
+            .unwrap();
+        assert_eq!(store.stat("/d/f").unwrap().mode, 0o100600);
         let fresh = fs.lstat(path).unwrap();
-        fs.prepare_chmod(path,&chain).unwrap();
-        root.rename("/top","/original",false).unwrap();
+        fs.prepare_chmod(path, &chain).unwrap();
+        root.rename("/top", "/original", false).unwrap();
         root.mkdir_all("/top").unwrap();
-        assert!(fs.chmod_conditional(path,0o777,&chain,parent,&fresh).unwrap_err().starts_with("EAGAIN:"));
-        assert_eq!(store.stat("/d/f").unwrap().mode,0o100600);
+        assert!(
+            fs.chmod_conditional(path, 0o777, &chain, parent, &fresh)
+                .unwrap_err()
+                .starts_with("EAGAIN:")
+        );
+        assert_eq!(store.stat("/d/f").unwrap().mode, 0o100600);
     }
 
     #[test]

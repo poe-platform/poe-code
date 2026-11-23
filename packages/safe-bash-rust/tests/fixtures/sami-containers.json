@@ -1,0 +1,1989 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-mkv-None",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 1193:02:50,295\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-copy",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mkv-srt",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 1193:02:50,295\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-webvtt",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 1193:02:50,295\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-None",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 1193:02:50,295\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-copy",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-mov_text",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-copy",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mov-mov_text",
+      "input": "<SAMI>\n<HEAD><TITLE>Example</TITLE></HEAD>\n<BODY>\n<SYNC Start=1000><P>First<br>line\n<SYNC Start=3000><P>Second\n</BODY>\n</SAMI>\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mkv-None",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:03,000 --> 1193:02:50,295\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-copy",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mkv-srt",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:03,000 --> 1193:02:50,295\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-webvtt",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:03,000 --> 1193:02:50,295\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-None",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:03,000\nBefore\n\n2\n00:00:03,000 --> 1193:02:50,295\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-copy",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-mov_text",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-copy",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mov-mov_text",
+      "input": "<SAMI><SYNC Start=-1000><P>Before<SYNC Start=2000><P>After",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-mkv-None",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 00:00:05,000\n<i>Alice</i>\r\nSecond\n\n3\n00:00:05,000 --> 1193:02:52,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-mkv-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-mkv-srt",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 00:00:05,000\n<i>Alice</i>\r\nSecond\n\n3\n00:00:05,000 --> 1193:02:52,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-mkv-webvtt",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 00:00:05,000\n<i>Alice</i>\r\nSecond\n\n3\n00:00:05,000 --> 1193:02:52,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-webm-None",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 00:00:05,000\n<i>Alice</i>\r\nSecond\n\n3\n00:00:05,000 --> 1193:02:52,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-webm-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-mp4-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-mp4-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-mov-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=3000><P>Second<SYNC Start=5000><P ID=\"Source\">Bob<P>Last",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-order-mkv-None",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:02,000 --> 00:00:03,000\n<i>Alice</i>\r\nMiddle\n\n3\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-order-mkv-copy",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-order-mkv-srt",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:02,000 --> 00:00:03,000\n<i>Alice</i>\r\nMiddle\n\n3\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-order-mkv-webvtt",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:02,000 --> 00:00:03,000\n<i>Alice</i>\r\nMiddle\n\n3\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-order-webm-None",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:02,000 --> 00:00:03,000\n<i>Alice</i>\r\nMiddle\n\n3\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nLast\n\n"
+    },
+    {
+      "name": "source-order-webm-copy",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-order-mp4-mov_text",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-order-mp4-copy",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-order-mov-mov_text",
+      "input": "<SAMI><SYNC Start=3000><P ID=Source>Bob<P>Last<SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P>Middle",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-marker-mkv-None",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nThird\n\n"
+    },
+    {
+      "name": "source-marker-mkv-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-marker-mkv-srt",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nThird\n\n"
+    },
+    {
+      "name": "source-marker-mkv-webvtt",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nThird\n\n"
+    },
+    {
+      "name": "source-marker-webm-None",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>Alice</i>\r\nFirst\n\n2\n00:00:03,000 --> 1193:02:50,295\n<i>Bob</i>\r\nThird\n\n"
+    },
+    {
+      "name": "source-marker-webm-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-marker-mp4-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-marker-mp4-copy",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "source-marker-mov-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P ID=Source>Alice<P>First<SYNC Start=2000><P ID=Source>Bob<P>&nbsp;<SYNC Start=3000><P>Third",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-mkv-None",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n\n\n2\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-0-mkv-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-mkv-srt",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-0-mkv-webvtt",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-webm-None",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-webm-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-mp4-mov_text",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-mp4-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-0-mov-mov_text",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-29-mkv-None",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<font color=\"#123456\"><font size=\"20\"><font face=\"Times New Roman\">Font</font></font></font>\n\n2\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-29-mkv-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-29-mkv-srt",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n<font color=\"#123456\"><font size=\"20\"><font face=\"Times New Roman\">Font</font></font></font>\n\n2\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-29-mkv-webvtt",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFont\n\n2\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-29-webm-None",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFont\n\n2\n00:00:03,000 --> 1193:02:50,295\nDone\n\n"
+    },
+    {
+      "name": "paragraph-29-webm-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-29-mp4-mov_text",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-29-mp4-copy",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "paragraph-29-mov-mov_text",
+      "input": "<SAMI><BODY><SYNC Start=1000><P><font color=#123456 size=20 face=\"Times New Roman\">Font</font><SYNC Start=3000><P>Done</BODY></SAMI>",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mkv-None",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mkv-copy",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mkv-srt",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mkv-webvtt",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-webm-None",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-webm-copy",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mp4-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mp4-copy",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "markers-only-mov-mov_text",
+      "input": "<SAMI><SYNC Start=1000><P>&nbsp;<SYNC Start=2000><P>&nbsp;",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "sami",
+        "-i",
+        "input.smi",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 69,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    }
+  ]
+}

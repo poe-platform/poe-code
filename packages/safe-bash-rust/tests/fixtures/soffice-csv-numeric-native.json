@@ -1,0 +1,834 @@
+{
+  "native": "LibreOffice 24.8.7.2",
+  "inputs": {
+    "input.csv": "plain,quoted\n0,\"0\"\n-0,\"-0\"\n+0,\"+0\"\n001,\"001\"\n42,\"42\"\n-42,\"-42\"\n+42,\"+42\"\n1.25,\"1.25\"\n01.2500,\"01.2500\"\n.5,\".5\"\n1.,\"1.\"\n-.5,\"-.5\"\n1e3,\"1e3\"\n1E+03,\"1E+03\"\n1e-3,\"1e-3\"\n1e-5,\"1e-5\"\n1e-15,\"1e-15\"\n1e15,\"1e15\"\n1e17,\"1e17\"\n1e100,\"1e100\"\n1e-100,\"1e-100\"\n123456789.1234567,\"123456789.1234567\"\n1234567890123456,\"1234567890123456\"\n9007199254740991,\"9007199254740991\"\n9007199254740992,\"9007199254740992\"\n1.7976931348623157e308,\"1.7976931348623157e308\"\n1e309,\"1e309\"\n1e-999,\"1e-999\"\nNaN,\"NaN\"\nINF,\"INF\"\n0x10,\"0x10\"\n1e,\"1e\"\n1e+,\"1e+\"\n+,\"+\"\n-,\"-\"\n.,\".\"\n1%,\"1%\"\nTRUE,\"TRUE\"\n'001,\"'001\"\n 3 ,\" 3 \"\n\t3\t,\"\t3\t\"\n 3 ,\" 3 \"\n 3 ,\" 3 \"\n3 3,\"3 3\"\n3\t3,\"3\t3\"\n text ,\" text \"\n,\"\"\n\"one\"\"two\",\"one\"\"two\"\n0e-999,\"0e-999\"\n-0e-999,\"-0e-999\"\n1e-324,\"1e-324\"\n2.5e-324,\"2.5e-324\"\n4.9e-324,\"4.9e-324\"\n1e-320,\"1e-320\"\n2.2250738585072014e-308,\"2.2250738585072014e-308\"\n\"1,234\",\"1,234\"\n\"12,34\",\"12,34\"\n\"1,234.5\",\"1,234.5\"\n\"1,234,567\",\"1,234,567\"\n\"1,2345\",\"1,2345\"\n\"1234,567\",\"1234,567\"\n  +3  ,\"  +3  \"\n+ 3,\"+ 3\"\n -3 ,\" -3 \"\n3 3,\"3 3\"\n3 3,\"3 3\"\n",
+    "numbers.xlsx": {
+      "xl/_rels/workbook.xml.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme\" Target=\"theme/theme1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId4\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/>\n</Relationships>",
+      "xl/workbook.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><fileVersion appName=\"Calc\"/><workbookPr backupFile=\"false\" showObjects=\"all\" dateCompatibility=\"false\"/><workbookProtection/><bookViews><workbookView showHorizontalScroll=\"true\" showVerticalScroll=\"true\" showSheetTabs=\"true\" xWindow=\"0\" yWindow=\"0\" windowWidth=\"16384\" windowHeight=\"8192\" tabRatio=\"500\" firstSheet=\"0\" activeTab=\"0\"/></bookViews><sheets><sheet name=\"input\" sheetId=\"1\" state=\"visible\" r:id=\"rId3\"/></sheets><calcPr iterateCount=\"100\" refMode=\"A1\" iterate=\"false\" iterateDelta=\"0.001\"/><extLst><ext xmlns:loext=\"http://schemas.libreoffice.org/\" uri=\"{7626C862-2A13-11E5-B345-FEFF819CDC9F}\"><loext:extCalcPr stringRefSyntax=\"CalcA1\"/></ext></extLst></workbook>",
+      "xl/theme/theme1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" name=\"Office\"><a:themeElements><a:clrScheme name=\"LibreOffice\"><a:dk1><a:srgbClr val=\"000000\"/></a:dk1><a:lt1><a:srgbClr val=\"ffffff\"/></a:lt1><a:dk2><a:srgbClr val=\"000000\"/></a:dk2><a:lt2><a:srgbClr val=\"ffffff\"/></a:lt2><a:accent1><a:srgbClr val=\"18a303\"/></a:accent1><a:accent2><a:srgbClr val=\"0369a3\"/></a:accent2><a:accent3><a:srgbClr val=\"a33e03\"/></a:accent3><a:accent4><a:srgbClr val=\"8e03a3\"/></a:accent4><a:accent5><a:srgbClr val=\"c99c00\"/></a:accent5><a:accent6><a:srgbClr val=\"c9211e\"/></a:accent6><a:hlink><a:srgbClr val=\"0000ee\"/></a:hlink><a:folHlink><a:srgbClr val=\"551a8b\"/></a:folHlink></a:clrScheme><a:fontScheme name=\"Office\"><a:majorFont><a:latin typeface=\"Arial\" pitchFamily=\"0\" charset=\"1\"/><a:ea typeface=\"DejaVu Sans\" pitchFamily=\"0\" charset=\"1\"/><a:cs typeface=\"DejaVu Sans\" pitchFamily=\"0\" charset=\"1\"/></a:majorFont><a:minorFont><a:latin typeface=\"Arial\" pitchFamily=\"0\" charset=\"1\"/><a:ea typeface=\"DejaVu Sans\" pitchFamily=\"0\" charset=\"1\"/><a:cs typeface=\"DejaVu Sans\" pitchFamily=\"0\" charset=\"1\"/></a:minorFont></a:fontScheme><a:fmtScheme><a:fillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w=\"6350\" cap=\"flat\" cmpd=\"sng\" algn=\"ctr\"><a:prstDash val=\"solid\"/><a:miter/></a:ln><a:ln w=\"6350\" cap=\"flat\" cmpd=\"sng\" algn=\"ctr\"><a:prstDash val=\"solid\"/><a:miter/></a:ln><a:ln w=\"6350\" cap=\"flat\" cmpd=\"sng\" algn=\"ctr\"><a:prstDash val=\"solid\"/><a:miter/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"></a:schemeClr></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>",
+      "xl/styles.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"2\"><numFmt numFmtId=\"164\" formatCode=\"General\"/><numFmt numFmtId=\"165\" formatCode=\"@\"/></numFmts><fonts count=\"4\"><font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/></font><font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"0\"/></font><font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"0\"/></font><font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"0\"/></font></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border diagonalUp=\"false\" diagonalDown=\"false\"><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count=\"20\"><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"true\" applyAlignment=\"true\" applyProtection=\"true\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf><xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"2\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"2\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"43\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"41\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"44\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"42\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf><xf numFmtId=\"9\" fontId=\"1\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"></xf></cellStyleXfs><cellXfs count=\"2\"><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"false\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf><xf numFmtId=\"165\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"true\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf></cellXfs><cellStyles count=\"6\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/><cellStyle name=\"Comma\" xfId=\"15\" builtinId=\"3\"/><cellStyle name=\"Comma [0]\" xfId=\"16\" builtinId=\"6\"/><cellStyle name=\"Currency\" xfId=\"17\" builtinId=\"4\"/><cellStyle name=\"Currency [0]\" xfId=\"18\" builtinId=\"7\"/><cellStyle name=\"Percent\" xfId=\"19\" builtinId=\"5\"/></cellStyles></styleSheet>",
+      "xl/worksheets/sheet1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\" xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\" xmlns:xr2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><sheetPr filterMode=\"false\"><pageSetUpPr fitToPage=\"false\"/></sheetPr><dimension ref=\"A1:B67\"/><sheetViews><sheetView showFormulas=\"false\" showGridLines=\"true\" showRowColHeaders=\"true\" showZeros=\"true\" rightToLeft=\"false\" tabSelected=\"true\" showOutlineSymbols=\"true\" defaultGridColor=\"true\" view=\"normal\" topLeftCell=\"A1\" colorId=\"64\" zoomScale=\"100\" zoomScaleNormal=\"100\" zoomScalePageLayoutView=\"100\" workbookViewId=\"0\"><selection pane=\"topLeft\" activeCell=\"A1\" activeCellId=\"0\" sqref=\"A1\"/></sheetView></sheetViews><sheetFormatPr defaultColWidth=\"11.53515625\" defaultRowHeight=\"12.8\" zeroHeight=\"false\" outlineLevelRow=\"0\" outlineLevelCol=\"0\"></sheetFormatPr><cols><col collapsed=\"false\" customWidth=\"true\" hidden=\"false\" outlineLevel=\"0\" max=\"2\" min=\"1\" style=\"0\" width=\"23.97\"/></cols><sheetData><row r=\"1\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A1\" s=\"0\" t=\"s\"><v>0</v></c><c r=\"B1\" s=\"0\" t=\"s\"><v>1</v></c></row><row r=\"2\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A2\" s=\"0\" t=\"n\"><v>0</v></c><c r=\"B2\" s=\"0\" t=\"n\"><v>0</v></c></row><row r=\"3\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A3\" s=\"0\" t=\"n\"><v>0</v></c><c r=\"B3\" s=\"0\" t=\"n\"><v>0</v></c></row><row r=\"4\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A4\" s=\"0\" t=\"n\"><v>0</v></c><c r=\"B4\" s=\"0\" t=\"n\"><v>0</v></c></row><row r=\"5\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A5\" s=\"0\" t=\"n\"><v>1</v></c><c r=\"B5\" s=\"0\" t=\"n\"><v>1</v></c></row><row r=\"6\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A6\" s=\"0\" t=\"n\"><v>42</v></c><c r=\"B6\" s=\"0\" t=\"n\"><v>42</v></c></row><row r=\"7\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A7\" s=\"0\" t=\"n\"><v>-42</v></c><c r=\"B7\" s=\"0\" t=\"n\"><v>-42</v></c></row><row r=\"8\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A8\" s=\"0\" t=\"n\"><v>42</v></c><c r=\"B8\" s=\"0\" t=\"n\"><v>42</v></c></row><row r=\"9\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A9\" s=\"0\" t=\"n\"><v>1.25</v></c><c r=\"B9\" s=\"0\" t=\"n\"><v>1.25</v></c></row><row r=\"10\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A10\" s=\"0\" t=\"n\"><v>1.25</v></c><c r=\"B10\" s=\"0\" t=\"n\"><v>1.25</v></c></row><row r=\"11\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A11\" s=\"0\" t=\"n\"><v>0.5</v></c><c r=\"B11\" s=\"0\" t=\"n\"><v>0.5</v></c></row><row r=\"12\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A12\" s=\"0\" t=\"n\"><v>1</v></c><c r=\"B12\" s=\"0\" t=\"n\"><v>1</v></c></row><row r=\"13\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A13\" s=\"0\" t=\"n\"><v>-0.5</v></c><c r=\"B13\" s=\"0\" t=\"n\"><v>-0.5</v></c></row><row r=\"14\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A14\" s=\"0\" t=\"n\"><v>1000</v></c><c r=\"B14\" s=\"0\" t=\"n\"><v>1000</v></c></row><row r=\"15\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A15\" s=\"0\" t=\"n\"><v>1000</v></c><c r=\"B15\" s=\"0\" t=\"n\"><v>1000</v></c></row><row r=\"16\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A16\" s=\"0\" t=\"n\"><v>0.001</v></c><c r=\"B16\" s=\"0\" t=\"n\"><v>0.001</v></c></row><row r=\"17\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A17\" s=\"0\" t=\"n\"><v>1E-005</v></c><c r=\"B17\" s=\"0\" t=\"n\"><v>1E-005</v></c></row><row r=\"18\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A18\" s=\"0\" t=\"n\"><v>1E-015</v></c><c r=\"B18\" s=\"0\" t=\"n\"><v>1E-015</v></c></row><row r=\"19\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A19\" s=\"0\" t=\"n\"><v>1000000000000000</v></c><c r=\"B19\" s=\"0\" t=\"n\"><v>1000000000000000</v></c></row><row r=\"20\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A20\" s=\"0\" t=\"n\"><v>1E+017</v></c><c r=\"B20\" s=\"0\" t=\"n\"><v>1E+017</v></c></row><row r=\"21\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A21\" s=\"0\" t=\"n\"><v>1E+100</v></c><c r=\"B21\" s=\"0\" t=\"n\"><v>1E+100</v></c></row><row r=\"22\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A22\" s=\"0\" t=\"n\"><v>1E-100</v></c><c r=\"B22\" s=\"0\" t=\"n\"><v>1E-100</v></c></row><row r=\"23\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A23\" s=\"0\" t=\"n\"><v>123456789.123457</v></c><c r=\"B23\" s=\"0\" t=\"n\"><v>123456789.123457</v></c></row><row r=\"24\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A24\" s=\"0\" t=\"n\"><v>1234567890123456</v></c><c r=\"B24\" s=\"0\" t=\"n\"><v>1234567890123456</v></c></row><row r=\"25\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A25\" s=\"0\" t=\"n\"><v>9007199254740991</v></c><c r=\"B25\" s=\"0\" t=\"n\"><v>9007199254740991</v></c></row><row r=\"26\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A26\" s=\"0\" t=\"n\"><v>9007199254740990</v></c><c r=\"B26\" s=\"0\" t=\"n\"><v>9007199254740990</v></c></row><row r=\"27\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A27\" s=\"0\" t=\"n\"><v>1.7976931348623157E+308</v></c><c r=\"B27\" s=\"0\" t=\"n\"><v>1.7976931348623157E+308</v></c></row><row r=\"28\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A28\" s=\"1\" t=\"s\"><v>2</v></c><c r=\"B28\" s=\"1\" t=\"s\"><v>2</v></c></row><row r=\"29\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A29\" s=\"1\" t=\"s\"><v>3</v></c><c r=\"B29\" s=\"1\" t=\"s\"><v>3</v></c></row><row r=\"30\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A30\" s=\"0\" t=\"s\"><v>4</v></c><c r=\"B30\" s=\"0\" t=\"s\"><v>4</v></c></row><row r=\"31\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A31\" s=\"0\" t=\"s\"><v>5</v></c><c r=\"B31\" s=\"0\" t=\"s\"><v>5</v></c></row><row r=\"32\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A32\" s=\"0\" t=\"s\"><v>6</v></c><c r=\"B32\" s=\"0\" t=\"s\"><v>6</v></c></row><row r=\"33\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A33\" s=\"0\" t=\"s\"><v>7</v></c><c r=\"B33\" s=\"0\" t=\"s\"><v>7</v></c></row><row r=\"34\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A34\" s=\"0\" t=\"s\"><v>8</v></c><c r=\"B34\" s=\"0\" t=\"s\"><v>8</v></c></row><row r=\"35\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A35\" s=\"0\" t=\"s\"><v>9</v></c><c r=\"B35\" s=\"0\" t=\"s\"><v>9</v></c></row><row r=\"36\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A36\" s=\"0\" t=\"s\"><v>10</v></c><c r=\"B36\" s=\"0\" t=\"s\"><v>10</v></c></row><row r=\"37\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A37\" s=\"0\" t=\"s\"><v>11</v></c><c r=\"B37\" s=\"0\" t=\"s\"><v>11</v></c></row><row r=\"38\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A38\" s=\"1\" t=\"s\"><v>12</v></c><c r=\"B38\" s=\"1\" t=\"s\"><v>12</v></c></row><row r=\"39\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A39\" s=\"1\" t=\"s\"><v>13</v></c><c r=\"B39\" s=\"1\" t=\"s\"><v>13</v></c></row><row r=\"40\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A40\" s=\"0\" t=\"s\"><v>14</v></c><c r=\"B40\" s=\"0\" t=\"s\"><v>14</v></c></row><row r=\"41\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A41\" s=\"0\" t=\"n\"><v>3</v></c><c r=\"B41\" s=\"0\" t=\"n\"><v>3</v></c></row><row r=\"42\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A42\" s=\"0\" t=\"s\"><v>15</v></c><c r=\"B42\" s=\"0\" t=\"s\"><v>15</v></c></row><row r=\"43\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A43\" s=\"0\" t=\"n\"><v>3</v></c><c r=\"B43\" s=\"0\" t=\"n\"><v>3</v></c></row><row r=\"44\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A44\" s=\"0\" t=\"s\"><v>16</v></c><c r=\"B44\" s=\"0\" t=\"s\"><v>16</v></c></row><row r=\"45\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A45\" s=\"0\" t=\"s\"><v>17</v></c><c r=\"B45\" s=\"0\" t=\"s\"><v>17</v></c></row><row r=\"46\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A46\" s=\"0\" t=\"s\"><v>18</v></c><c r=\"B46\" s=\"0\" t=\"s\"><v>18</v></c></row><row r=\"47\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A47\" s=\"0\" t=\"s\"><v>19</v></c><c r=\"B47\" s=\"0\" t=\"s\"><v>19</v></c></row><row r=\"49\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A49\" s=\"0\" t=\"s\"><v>20</v></c><c r=\"B49\" s=\"0\" t=\"s\"><v>20</v></c></row><row r=\"50\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A50\" s=\"0\" t=\"n\"><v>0</v></c><c r=\"B50\" s=\"0\" t=\"n\"><v>0</v></c></row><row r=\"51\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A51\" s=\"0\" t=\"n\"><v>0</v></c><c r=\"B51\" s=\"0\" t=\"n\"><v>0</v></c></row><row r=\"52\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A52\" s=\"1\" t=\"s\"><v>21</v></c><c r=\"B52\" s=\"1\" t=\"s\"><v>21</v></c></row><row r=\"53\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A53\" s=\"1\" t=\"s\"><v>22</v></c><c r=\"B53\" s=\"1\" t=\"s\"><v>22</v></c></row><row r=\"54\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A54\" s=\"1\" t=\"s\"><v>23</v></c><c r=\"B54\" s=\"1\" t=\"s\"><v>23</v></c></row><row r=\"55\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A55\" s=\"1\" t=\"s\"><v>24</v></c><c r=\"B55\" s=\"1\" t=\"s\"><v>24</v></c></row><row r=\"56\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A56\" s=\"0\" t=\"n\"><v>2.2250738585072E-308</v></c><c r=\"B56\" s=\"0\" t=\"n\"><v>2.2250738585072E-308</v></c></row><row r=\"57\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A57\" s=\"0\" t=\"n\"><v>1234</v></c><c r=\"B57\" s=\"0\" t=\"n\"><v>1234</v></c></row><row r=\"58\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A58\" s=\"0\" t=\"s\"><v>25</v></c><c r=\"B58\" s=\"0\" t=\"s\"><v>25</v></c></row><row r=\"59\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A59\" s=\"0\" t=\"n\"><v>1234.5</v></c><c r=\"B59\" s=\"0\" t=\"n\"><v>1234.5</v></c></row><row r=\"60\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A60\" s=\"0\" t=\"n\"><v>1234567</v></c><c r=\"B60\" s=\"0\" t=\"n\"><v>1234567</v></c></row><row r=\"61\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A61\" s=\"0\" t=\"s\"><v>26</v></c><c r=\"B61\" s=\"0\" t=\"s\"><v>26</v></c></row><row r=\"62\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A62\" s=\"0\" t=\"n\"><v>1234567</v></c><c r=\"B62\" s=\"0\" t=\"n\"><v>1234567</v></c></row><row r=\"63\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A63\" s=\"0\" t=\"n\"><v>3</v></c><c r=\"B63\" s=\"0\" t=\"n\"><v>3</v></c></row><row r=\"64\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A64\" s=\"1\" t=\"s\"><v>27</v></c><c r=\"B64\" s=\"1\" t=\"s\"><v>27</v></c></row><row r=\"65\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A65\" s=\"0\" t=\"n\"><v>-3</v></c><c r=\"B65\" s=\"0\" t=\"n\"><v>-3</v></c></row><row r=\"66\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A66\" s=\"0\" t=\"s\"><v>28</v></c><c r=\"B66\" s=\"0\" t=\"s\"><v>28</v></c></row><row r=\"67\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\"><c r=\"A67\" s=\"0\" t=\"s\"><v>29</v></c><c r=\"B67\" s=\"0\" t=\"s\"><v>29</v></c></row></sheetData><printOptions headings=\"false\" gridLines=\"false\" gridLinesSet=\"true\" horizontalCentered=\"false\" verticalCentered=\"false\"/><pageMargins left=\"0.7875\" right=\"0.7875\" top=\"1.05277777777778\" bottom=\"1.05277777777778\" header=\"0.7875\" footer=\"0.7875\"/><pageSetup paperSize=\"1\" scale=\"100\" fitToWidth=\"1\" fitToHeight=\"1\" pageOrder=\"downThenOver\" orientation=\"portrait\" blackAndWhite=\"false\" draft=\"false\" cellComments=\"none\" firstPageNumber=\"1\" useFirstPageNumber=\"true\" horizontalDpi=\"300\" verticalDpi=\"300\" copies=\"1\"/><headerFooter differentFirst=\"false\" differentOddEven=\"false\"><oddHeader>&amp;C&amp;&quot;Times New Roman,Regular&quot;&amp;12&amp;A</oddHeader><oddFooter>&amp;C&amp;&quot;Times New Roman,Regular&quot;&amp;12Page &amp;P</oddFooter></headerFooter></worksheet>",
+      "xl/sharedStrings.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" count=\"58\" uniqueCount=\"30\"><si><t xml:space=\"preserve\">plain</t></si><si><t xml:space=\"preserve\">quoted</t></si><si><t xml:space=\"preserve\">1e309</t></si><si><t xml:space=\"preserve\">1e-999</t></si><si><t xml:space=\"preserve\">NaN</t></si><si><t xml:space=\"preserve\">INF</t></si><si><t xml:space=\"preserve\">0x10</t></si><si><t xml:space=\"preserve\">1e</t></si><si><t xml:space=\"preserve\">1e+</t></si><si><t xml:space=\"preserve\">+</t></si><si><t xml:space=\"preserve\">-</t></si><si><t xml:space=\"preserve\">.</t></si><si><t xml:space=\"preserve\">1%</t></si><si><t xml:space=\"preserve\">TRUE</t></si><si><t xml:space=\"preserve\">&apos;001</t></si><si><t xml:space=\"preserve\">&#9;3&#9;</t></si><si><t xml:space=\"preserve\"> 3 </t></si><si><t xml:space=\"preserve\">3 3</t></si><si><t xml:space=\"preserve\">3&#9;3</t></si><si><t xml:space=\"preserve\"> text </t></si><si><t xml:space=\"preserve\">one&quot;two</t></si><si><t xml:space=\"preserve\">1e-324</t></si><si><t xml:space=\"preserve\">2.5e-324</t></si><si><t xml:space=\"preserve\">4.9e-324</t></si><si><t xml:space=\"preserve\">1e-320</t></si><si><t xml:space=\"preserve\">12,34</t></si><si><t xml:space=\"preserve\">1,2345</t></si><si><t xml:space=\"preserve\">+ 3</t></si><si><t xml:space=\"preserve\">3 3</t></si><si><t xml:space=\"preserve\">3 3</t></si></sst>",
+      "_rels/.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/>\n</Relationships>",
+      "docProps/core.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:dcmitype=\"http://purl.org/dc/dcmitype/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dc:creator></dc:creator><dc:description></dc:description><dc:language>en-US</dc:language><cp:lastModifiedBy></cp:lastModifiedBy><cp:revision>0</cp:revision><dc:subject></dc:subject><dc:title></dc:title></cp:coreProperties>",
+      "docProps/app.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"><Template></Template><TotalTime>0</TotalTime><Application>LibreOffice/24.8.7.2$Linux_X86_64 LibreOffice_project/e07d0a63a46349d29051da79b1fde8160bab2a89</Application><AppVersion>15.0000</AppVersion></Properties>",
+      "[Content_Types].xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"xml\" ContentType=\"application/xml\"/><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"png\" ContentType=\"image/png\"/><Default Extension=\"jpeg\" ContentType=\"image/jpeg\"/><Override PartName=\"/xl/_rels/workbook.xml.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/sharedStrings.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml\"/><Override PartName=\"/_rels/.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>\n</Types>"
+    }
+  },
+  "cases": [
+    {
+      "name": "default",
+      "input": "input.csv",
+      "options": null,
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "text-quotes",
+      "input": "input.csv",
+      "options": "44,34,76,1,,0,true",
+      "hex": "22706c61696e222c2271756f746564220a2230222c2230220a222d30222c222d30220a222b30222c222b30220a22303031222c22303031220a223432222c223432220a222d3432222c222d3432220a222b3432222c222b3432220a22312e3235222c22312e3235220a2230312e32353030222c2230312e32353030220a222e35222c222e35220a22312e222c22312e220a222d2e35222c222d2e35220a22316533222c22316533220a2231452b3033222c2231452b3033220a2231652d33222c2231652d33220a2231652d35222c2231652d35220a2231652d3135222c2231652d3135220a2231653135222c2231653135220a2231653137222c2231653137220a223165313030222c223165313030220a2231652d313030222c2231652d313030220a223132333435363738392e31323334353637222c223132333435363738392e31323334353637220a2231323334353637383930313233343536222c2231323334353637383930313233343536220a2239303037313939323534373430393931222c2239303037313939323534373430393931220a2239303037313939323534373430393932222c2239303037313939323534373430393932220a22312e3739373639333133343836323331353765333038222c22312e3739373639333133343836323331353765333038220a223165333039222c223165333039220a2231652d393939222c2231652d393939220a224e614e222c224e614e220a22494e46222c22494e46220a2230783130222c2230783130220a223165222c223165220a2231652b222c2231652b220a222b222c222b220a222d222c222d220a222e222c222e220a223125222c223125220a2254525545222c2254525545220a2227303031222c2227303031220a22203320222c22203320220a22093309222c22093309220a22c2a033c2a0222c22c2a033c2a0220a22e2808333e28083222c22e2808333e28083220a22332033222c22332033220a22330933222c22330933220a22207465787420222c22207465787420220a22222c22220a226f6e65222274776f222c226f6e65222274776f220a2230652d393939222c2230652d393939220a222d30652d393939222c222d30652d393939220a2231652d333234222c2231652d333234220a22322e35652d333234222c22322e35652d333234220a22342e39652d333234222c22342e39652d333234220a2231652d333230222c2231652d333230220a22322e32323530373338353835303732303134652d333038222c22322e32323530373338353835303732303134652d333038220a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a2220202b332020222c2220202b332020220a222b2033222c222b2033220a22c2a02d33c2a0222c22c2a02d33c2a0220a2233c2a033222c2233c2a033220a2233e280af33222c2233e280af33220a"
+    },
+    {
+      "name": "edit",
+      "input": "input.csv",
+      "options": "44,34,76,1,,0,false,true,false",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "shown",
+      "input": "input.csv",
+      "options": "44,34,76,1,,0,false,true,true",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "number-text",
+      "input": "input.csv",
+      "options": "44,34,76,1,,0,false,false,false,false,false,0,true",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "semicolon",
+      "input": "input.csv",
+      "options": "59,34,76",
+      "hex": "706c61696e3b71756f7465640a303b300a2d303b2d300a2b303b2b300a3030313b3030310a34323b34320a2d34323b2d34320a2b34323b2b34320a312e32353b312e32350a30312e323530303b30312e323530300a2e353b2e350a312e3b312e0a2d2e353b2d2e350a3165333b3165330a31452b30333b31452b30330a31652d333b31652d330a31652d353b31652d350a31652d31353b31652d31350a316531353b316531350a316531373b316531370a31653130303b31653130300a31652d3130303b31652d3130300a3132333435363738392e313233343536373b3132333435363738392e313233343536370a313233343536373839303132333435363b313233343536373839303132333435360a393030373139393235343734303939313b393030373139393235343734303939310a393030373139393235343734303939323b393030373139393235343734303939320a312e37393736393331333438363233313537653330383b312e37393736393331333438363233313537653330380a31653330393b31653330390a31652d3939393b31652d3939390a4e614e3b4e614e0a494e463b494e460a307831303b307831300a31653b31650a31652b3b31652b0a2b3b2b0a2d3b2d0a2e3b2e0a31253b31250a545255453b545255450a273030313b273030310a2033203b2033200a0933093b0933090ac2a033c2a03bc2a033c2a00ae2808333e280833be2808333e280830a3320333b3320330a3309333b3309330a2074657874203b2074657874200a3b0a226f6e65222274776f223b226f6e65222274776f220a30652d3939393b30652d3939390a2d30652d3939393b2d30652d3939390a31652d3332343b31652d3332340a322e35652d3332343b322e35652d3332340a342e39652d3332343b342e39652d3332340a31652d3332303b31652d3332300a322e32323530373338353835303732303134652d3330383b322e32323530373338353835303732303134652d3330380a312c3233343b312c3233340a31322c33343b31322c33340a312c3233342e353b312c3233342e350a312c3233342c3536373b312c3233342c3536370a312c323334353b312c323334350a313233342c3536373b313233342c3536370a20202b3320203b20202b3320200a2b20333b2b20330ac2a02d33c2a03bc2a02d33c2a00a33c2a0333b33c2a0330a33e280af333b33e280af330a"
+    },
+    {
+      "name": "unicode-quotes",
+      "input": "input.csv",
+      "options": "44,49,76",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3130303131312c3130303131310a34322c34320a2d34322c2d34320a2b34322c2b34320a3131312e3235312c3131312e3235310a313031312e32353030312c313031312e32353030310a2e352c2e350a3131312e312c3131312e310a2d2e352c2d2e350a3131316533312c3131316533310a313131452b3033312c313131452b3033310a313131652d33312c313131652d33310a313131652d35312c313131652d35310a313131652d313135312c313131652d313135310a31313165313135312c31313165313135310a31313165313137312c31313165313137310a3131316531313030312c3131316531313030310a313131652d31313030312c313131652d31313030310a31313132333435363738392e3131323334353637312c31313132333435363738392e3131323334353637310a31313132333435363738393031313233343536312c31313132333435363738393031313233343536310a31393030373131393932353437343039393131312c31393030373131393932353437343039393131310a313930303731313939323534373430393932312c313930303731313939323534373430393932310a3131312e37393736393331313334383632333131353765333038312c3131312e37393736393331313334383632333131353765333038310a31313165333039312c31313165333039310a313131652d393939312c313131652d393939310a4e614e2c4e614e0a494e462c494e460a313078313130312c313078313130310a31313165312c31313165310a313131652b312c313131652b310a2b2c2b0a2d2c2d0a2e2c2e0a31313125312c31313125310a545255452c545255450a312730303131312c312730303131310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a6f6e652274776f2c6f6e652274776f0a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a313131652d333234312c313131652d333234310a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a313131652d333230312c313131652d333230310a31322e3232353037333835383530373230313134652d333038312c31322e3232353037333835383530373230313134652d333038310a3131312c323334312c3131312c323334310a313131322c3334312c313131322c3334310a3131312c3233342e35312c3131312c3233342e35310a3131312c3233342c353637312c3131312c3233342c353637310a3131312c32333435312c3131312c32333435310a3131313233342c353637312c3131313233342c353637310a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "utf16",
+      "input": "input.csv",
+      "options": "44,34,65535",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "cn",
+      "input": "input.csv",
+      "options": "44,34,73",
+      "hex": "706c61696e2c71756f7465640a302c300a2d302c2d300a2b302c2b300a3030312c3030310a34322c34320a2d34322c2d34320a2b34322c2b34320a312e32352c312e32350a30312e323530302c30312e323530300a2e352c2e350a312e2c312e0a2d2e352c2d2e350a3165332c3165330a31452b30332c31452b30330a31652d332c31652d330a31652d352c31652d350a31652d31352c31652d31350a316531352c316531350a316531372c316531370a31653130302c31653130300a31652d3130302c31652d3130300a3132333435363738392e313233343536372c3132333435363738392e313233343536370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939322c393030373139393235343734303939320a312e37393736393331333438363233313537653330382c312e37393736393331333438363233313537653330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a2033202c2033200a0933092c0933090ac2a033c2a02cc2a033c2a00ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a2c0a226f6e65222274776f222c226f6e65222274776f220a30652d3939392c30652d3939390a2d30652d3939392c2d30652d3939390a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732303134652d3330382c322e32323530373338353835303732303134652d3330380a22312c323334222c22312c323334220a2231322c3334222c2231322c3334220a22312c3233342e35222c22312c3233342e35220a22312c3233342c353637222c22312c3233342c353637220a22312c32333435222c22312c32333435220a22313233342c353637222c22313233342c353637220a20202b3320202c20202b3320200a2b20332c2b20330ac2a02d33c2a02cc2a02d33c2a00a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-default",
+      "input": "numbers.xlsx",
+      "options": null,
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-text-quotes",
+      "input": "numbers.xlsx",
+      "options": "44,34,76,1,,0,true",
+      "hex": "22706c61696e222c2271756f746564220a2230222c2230220a2230222c2230220a2230222c2230220a2231222c2231220a223432222c223432220a222d3432222c222d3432220a223432222c223432220a22312e3235222c22312e3235220a22312e3235222c22312e3235220a22302e35222c22302e35220a2231222c2231220a222d302e35222c222d302e35220a2231303030222c2231303030220a2231303030222c2231303030220a22302e303031222c22302e303031220a2231452d303035222c2231452d303035220a2231452d303135222c2231452d303135220a2231303030303030303030303030303030222c2231303030303030303030303030303030220a2231452b303137222c2231452b303137220a2231452b313030222c2231452b313030220a2231452d313030222c2231452d313030220a223132333435363738392e313233343537222c223132333435363738392e313233343537220a2231323334353637383930313233343536222c2231323334353637383930313233343536220a2239303037313939323534373430393931222c2239303037313939323534373430393931220a2239303037313939323534373430393930222c2239303037313939323534373430393930220a22312e37393736393331333438363233313537452b333038222c22312e37393736393331333438363233313537452b333038220a223165333039222c223165333039220a2231652d393939222c2231652d393939220a224e614e222c224e614e220a22494e46222c22494e46220a2230783130222c2230783130220a223165222c223165220a2231652b222c2231652b220a222b222c222b220a222d222c222d220a222e222c222e220a223125222c223125220a2254525545222c2254525545220a2227303031222c2227303031220a2233222c2233220a22093309222c22093309220a2233222c2233220a22e2808333e28083222c22e2808333e28083220a22332033222c22332033220a22330933222c22330933220a22207465787420222c22207465787420220a226f6e65222274776f222c226f6e65222274776f220a2230222c2230220a2230222c2230220a2231652d333234222c2231652d333234220a22322e35652d333234222c22322e35652d333234220a22342e39652d333234222c22342e39652d333234220a2231652d333230222c2231652d333230220a22322e32323530373338353835303732452d333038222c22322e32323530373338353835303732452d333038220a2231323334222c2231323334220a2231322c3334222c2231322c3334220a22313233342e35222c22313233342e35220a2231323334353637222c2231323334353637220a22312c32333435222c22312c32333435220a2231323334353637222c2231323334353637220a2233222c2233220a222b2033222c222b2033220a222d33222c222d33220a2233c2a033222c2233c2a033220a2233e280af33222c2233e280af33220a"
+    },
+    {
+      "name": "xlsx-edit",
+      "input": "numbers.xlsx",
+      "options": "44,34,76,1,,0,false,true,false",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-shown",
+      "input": "numbers.xlsx",
+      "options": "44,34,76,1,,0,false,true,true",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-number-text",
+      "input": "numbers.xlsx",
+      "options": "44,34,76,1,,0,false,false,false,false,false,0,true",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-semicolon",
+      "input": "numbers.xlsx",
+      "options": "59,34,76",
+      "hex": "706c61696e3b71756f7465640a303b300a303b300a303b300a313b310a34323b34320a2d34323b2d34320a34323b34320a312e32353b312e32350a312e32353b312e32350a302e353b302e350a313b310a2d302e353b2d302e350a313030303b313030300a313030303b313030300a302e3030313b302e3030310a31452d3030353b31452d3030350a31452d3031353b31452d3031350a313030303030303030303030303030303b313030303030303030303030303030300a31452b3031373b31452b3031370a31452b3130303b31452b3130300a31452d3130303b31452d3130300a3132333435363738392e3132333435373b3132333435363738392e3132333435370a313233343536373839303132333435363b313233343536373839303132333435360a393030373139393235343734303939313b393030373139393235343734303939310a393030373139393235343734303939303b393030373139393235343734303939300a312e37393736393331333438363233313537452b3330383b312e37393736393331333438363233313537452b3330380a31653330393b31653330390a31652d3939393b31652d3939390a4e614e3b4e614e0a494e463b494e460a307831303b307831300a31653b31650a31652b3b31652b0a2b3b2b0a2d3b2d0a2e3b2e0a31253b31250a545255453b545255450a273030313b273030310a333b330a0933093b0933090a333b330ae2808333e280833be2808333e280830a3320333b3320330a3309333b3309330a2074657874203b2074657874200a226f6e65222274776f223b226f6e65222274776f220a303b300a303b300a31652d3332343b31652d3332340a322e35652d3332343b322e35652d3332340a342e39652d3332343b342e39652d3332340a31652d3332303b31652d3332300a322e32323530373338353835303732452d3330383b322e32323530373338353835303732452d3330380a313233343b313233340a31322c33343b31322c33340a313233342e353b313233342e350a313233343536373b313233343536370a312c323334353b312c323334350a313233343536373b313233343536370a333b330a2b20333b2b20330a2d333b2d330a33c2a0333b33c2a0330a33e280af333b33e280af330a"
+    },
+    {
+      "name": "xlsx-unicode-quotes",
+      "input": "numbers.xlsx",
+      "options": "44,49,76",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a313131312c313131310a34322c34320a2d34322c2d34320a34322c34320a3131312e3235312c3131312e3235310a3131312e3235312c3131312e3235310a302e352c302e350a313131312c313131310a2d302e352c2d302e350a313131303030312c313131303030310a313131303030312c313131303030310a31302e30303131312c31302e30303131310a313131452d303035312c313131452d303035310a313131452d30313135312c313131452d30313135310a313131303030303030303030303030303030312c313131303030303030303030303030303030310a313131452b30313137312c313131452b30313137310a313131452b31313030312c313131452b31313030310a313131452d31313030312c313131452d31313030310a31313132333435363738392e31313233343537312c31313132333435363738392e31313233343537310a31313132333435363738393031313233343536312c31313132333435363738393031313233343536310a31393030373131393932353437343039393131312c31393030373131393932353437343039393131310a313930303731313939323534373430393930312c313930303731313939323534373430393930310a3131312e373937363933313133343836323331313537452b333038312c3131312e373937363933313133343836323331313537452b333038310a31313165333039312c31313165333039310a313131652d393939312c313131652d393939310a4e614e2c4e614e0a494e462c494e460a313078313130312c313078313130310a31313165312c31313165310a313131652b312c313131652b310a2b2c2b0a2d2c2d0a2e2c2e0a31313125312c31313125310a545255452c545255450a312730303131312c312730303131310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a6f6e652274776f2c6f6e652274776f0a302c300a302c300a313131652d333234312c313131652d333234310a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a313131652d333230312c313131652d333230310a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313131323334312c313131323334310a313131322c3334312c313131322c3334310a3131313233342e35312c3131313233342e35310a313131323334353637312c313131323334353637310a3131312c32333435312c3131312c32333435310a313131323334353637312c313131323334353637310a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-utf16",
+      "input": "numbers.xlsx",
+      "options": "44,34,65535",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    },
+    {
+      "name": "xlsx-cn",
+      "input": "numbers.xlsx",
+      "options": "44,34,73",
+      "hex": "706c61696e2c71756f7465640a302c300a302c300a302c300a312c310a34322c34320a2d34322c2d34320a34322c34320a312e32352c312e32350a312e32352c312e32350a302e352c302e350a312c310a2d302e352c2d302e350a313030302c313030300a313030302c313030300a302e3030312c302e3030310a31452d3030352c31452d3030350a31452d3031352c31452d3031350a313030303030303030303030303030302c313030303030303030303030303030300a31452b3031372c31452b3031370a31452b3130302c31452b3130300a31452d3130302c31452d3130300a3132333435363738392e3132333435372c3132333435363738392e3132333435370a313233343536373839303132333435362c313233343536373839303132333435360a393030373139393235343734303939312c393030373139393235343734303939310a393030373139393235343734303939302c393030373139393235343734303939300a312e37393736393331333438363233313537452b3330382c312e37393736393331333438363233313537452b3330380a31653330392c31653330390a31652d3939392c31652d3939390a4e614e2c4e614e0a494e462c494e460a307831302c307831300a31652c31650a31652b2c31652b0a2b2c2b0a2d2c2d0a2e2c2e0a31252c31250a545255452c545255450a273030312c273030310a332c330a0933092c0933090a332c330ae2808333e280832ce2808333e280830a3320332c3320330a3309332c3309330a2074657874202c2074657874200a226f6e65222274776f222c226f6e65222274776f220a302c300a302c300a31652d3332342c31652d3332340a322e35652d3332342c322e35652d3332340a342e39652d3332342c342e39652d3332340a31652d3332302c31652d3332300a322e32323530373338353835303732452d3330382c322e32323530373338353835303732452d3330380a313233342c313233340a2231322c3334222c2231322c3334220a313233342e352c313233342e350a313233343536372c313233343536370a22312c32333435222c22312c32333435220a313233343536372c313233343536370a332c330a2b20332c2b20330a2d332c2d330a33c2a0332c33c2a0330a33e280af332c33e280af330a"
+    }
+  ],
+  "xlsx": [
+    {
+      "position": "A1",
+      "type": "s",
+      "value": "plain"
+    },
+    {
+      "position": "B1",
+      "type": "s",
+      "value": "quoted"
+    },
+    {
+      "position": "A2",
+      "type": "n",
+      "value": "0"
+    },
+    {
+      "position": "B2",
+      "type": "s",
+      "value": "0"
+    },
+    {
+      "position": "A3",
+      "type": "n",
+      "value": "0"
+    },
+    {
+      "position": "B3",
+      "type": "s",
+      "value": "-0"
+    },
+    {
+      "position": "A4",
+      "type": "n",
+      "value": "0"
+    },
+    {
+      "position": "B4",
+      "type": "s",
+      "value": "+0"
+    },
+    {
+      "position": "A5",
+      "type": "n",
+      "value": "1"
+    },
+    {
+      "position": "B5",
+      "type": "s",
+      "value": "001"
+    },
+    {
+      "position": "A6",
+      "type": "n",
+      "value": "42"
+    },
+    {
+      "position": "B6",
+      "type": "s",
+      "value": "42"
+    },
+    {
+      "position": "A7",
+      "type": "n",
+      "value": "-42"
+    },
+    {
+      "position": "B7",
+      "type": "s",
+      "value": "-42"
+    },
+    {
+      "position": "A8",
+      "type": "n",
+      "value": "42"
+    },
+    {
+      "position": "B8",
+      "type": "s",
+      "value": "+42"
+    },
+    {
+      "position": "A9",
+      "type": "n",
+      "value": "1.25"
+    },
+    {
+      "position": "B9",
+      "type": "s",
+      "value": "1.25"
+    },
+    {
+      "position": "A10",
+      "type": "n",
+      "value": "1.25"
+    },
+    {
+      "position": "B10",
+      "type": "s",
+      "value": "01.2500"
+    },
+    {
+      "position": "A11",
+      "type": "n",
+      "value": "0.5"
+    },
+    {
+      "position": "B11",
+      "type": "s",
+      "value": ".5"
+    },
+    {
+      "position": "A12",
+      "type": "n",
+      "value": "1"
+    },
+    {
+      "position": "B12",
+      "type": "s",
+      "value": "1."
+    },
+    {
+      "position": "A13",
+      "type": "n",
+      "value": "-0.5"
+    },
+    {
+      "position": "B13",
+      "type": "s",
+      "value": "-.5"
+    },
+    {
+      "position": "A14",
+      "type": "n",
+      "value": "1000"
+    },
+    {
+      "position": "B14",
+      "type": "s",
+      "value": "1e3"
+    },
+    {
+      "position": "A15",
+      "type": "n",
+      "value": "1000"
+    },
+    {
+      "position": "B15",
+      "type": "s",
+      "value": "1E+03"
+    },
+    {
+      "position": "A16",
+      "type": "n",
+      "value": "0.001"
+    },
+    {
+      "position": "B16",
+      "type": "s",
+      "value": "1e-3"
+    },
+    {
+      "position": "A17",
+      "type": "n",
+      "value": "1E-005"
+    },
+    {
+      "position": "B17",
+      "type": "s",
+      "value": "1e-5"
+    },
+    {
+      "position": "A18",
+      "type": "n",
+      "value": "1E-015"
+    },
+    {
+      "position": "B18",
+      "type": "s",
+      "value": "1e-15"
+    },
+    {
+      "position": "A19",
+      "type": "n",
+      "value": "1000000000000000"
+    },
+    {
+      "position": "B19",
+      "type": "s",
+      "value": "1e15"
+    },
+    {
+      "position": "A20",
+      "type": "n",
+      "value": "1E+017"
+    },
+    {
+      "position": "B20",
+      "type": "s",
+      "value": "1e17"
+    },
+    {
+      "position": "A21",
+      "type": "n",
+      "value": "1E+100"
+    },
+    {
+      "position": "B21",
+      "type": "s",
+      "value": "1e100"
+    },
+    {
+      "position": "A22",
+      "type": "n",
+      "value": "1E-100"
+    },
+    {
+      "position": "B22",
+      "type": "s",
+      "value": "1e-100"
+    },
+    {
+      "position": "A23",
+      "type": "n",
+      "value": "123456789.1234567"
+    },
+    {
+      "position": "B23",
+      "type": "s",
+      "value": "123456789.1234567"
+    },
+    {
+      "position": "A24",
+      "type": "n",
+      "value": "1234567890123456"
+    },
+    {
+      "position": "B24",
+      "type": "s",
+      "value": "1234567890123456"
+    },
+    {
+      "position": "A25",
+      "type": "n",
+      "value": "9007199254740991"
+    },
+    {
+      "position": "B25",
+      "type": "s",
+      "value": "9007199254740991"
+    },
+    {
+      "position": "A26",
+      "type": "n",
+      "value": "9.007199254740992E15"
+    },
+    {
+      "position": "B26",
+      "type": "s",
+      "value": "9007199254740992"
+    },
+    {
+      "position": "A27",
+      "type": "n",
+      "value": "1.7976931348623157E+308"
+    },
+    {
+      "position": "B27",
+      "type": "s",
+      "value": "1.7976931348623157e308"
+    },
+    {
+      "position": "A28",
+      "type": "s",
+      "value": "1e309"
+    },
+    {
+      "position": "B28",
+      "type": "s",
+      "value": "1e309"
+    },
+    {
+      "position": "A29",
+      "type": "s",
+      "value": "1e-999"
+    },
+    {
+      "position": "B29",
+      "type": "s",
+      "value": "1e-999"
+    },
+    {
+      "position": "A30",
+      "type": "s",
+      "value": "NaN"
+    },
+    {
+      "position": "B30",
+      "type": "s",
+      "value": "NaN"
+    },
+    {
+      "position": "A31",
+      "type": "s",
+      "value": "INF"
+    },
+    {
+      "position": "B31",
+      "type": "s",
+      "value": "INF"
+    },
+    {
+      "position": "A32",
+      "type": "s",
+      "value": "0x10"
+    },
+    {
+      "position": "B32",
+      "type": "s",
+      "value": "0x10"
+    },
+    {
+      "position": "A33",
+      "type": "s",
+      "value": "1e"
+    },
+    {
+      "position": "B33",
+      "type": "s",
+      "value": "1e"
+    },
+    {
+      "position": "A34",
+      "type": "s",
+      "value": "1e+"
+    },
+    {
+      "position": "B34",
+      "type": "s",
+      "value": "1e+"
+    },
+    {
+      "position": "A35",
+      "type": "s",
+      "value": "+"
+    },
+    {
+      "position": "B35",
+      "type": "s",
+      "value": "+"
+    },
+    {
+      "position": "A36",
+      "type": "s",
+      "value": "-"
+    },
+    {
+      "position": "B36",
+      "type": "s",
+      "value": "-"
+    },
+    {
+      "position": "A37",
+      "type": "s",
+      "value": "."
+    },
+    {
+      "position": "B37",
+      "type": "s",
+      "value": "."
+    },
+    {
+      "position": "A38",
+      "type": "s",
+      "value": "1%"
+    },
+    {
+      "position": "B38",
+      "type": "s",
+      "value": "1%"
+    },
+    {
+      "position": "A39",
+      "type": "s",
+      "value": "TRUE"
+    },
+    {
+      "position": "B39",
+      "type": "s",
+      "value": "TRUE"
+    },
+    {
+      "position": "A40",
+      "type": "s",
+      "value": "'001"
+    },
+    {
+      "position": "B40",
+      "type": "s",
+      "value": "'001"
+    },
+    {
+      "position": "A41",
+      "type": "n",
+      "value": "3"
+    },
+    {
+      "position": "B41",
+      "type": "s",
+      "value": " 3 "
+    },
+    {
+      "position": "A42",
+      "type": "s",
+      "value": "\t3\t"
+    },
+    {
+      "position": "B42",
+      "type": "s",
+      "value": "\t3\t"
+    },
+    {
+      "position": "A43",
+      "type": "n",
+      "value": "3"
+    },
+    {
+      "position": "B43",
+      "type": "s",
+      "value": " 3 "
+    },
+    {
+      "position": "A44",
+      "type": "s",
+      "value": " 3 "
+    },
+    {
+      "position": "B44",
+      "type": "s",
+      "value": " 3 "
+    },
+    {
+      "position": "A45",
+      "type": "s",
+      "value": "3 3"
+    },
+    {
+      "position": "B45",
+      "type": "s",
+      "value": "3 3"
+    },
+    {
+      "position": "A46",
+      "type": "s",
+      "value": "3\t3"
+    },
+    {
+      "position": "B46",
+      "type": "s",
+      "value": "3\t3"
+    },
+    {
+      "position": "A47",
+      "type": "s",
+      "value": " text "
+    },
+    {
+      "position": "B47",
+      "type": "s",
+      "value": " text "
+    },
+    {
+      "position": "A49",
+      "type": "s",
+      "value": "one\"two"
+    },
+    {
+      "position": "B49",
+      "type": "s",
+      "value": "one\"two"
+    },
+    {
+      "position": "A50",
+      "type": "n",
+      "value": "0"
+    },
+    {
+      "position": "B50",
+      "type": "s",
+      "value": "0e-999"
+    },
+    {
+      "position": "A51",
+      "type": "n",
+      "value": "0"
+    },
+    {
+      "position": "B51",
+      "type": "s",
+      "value": "-0e-999"
+    },
+    {
+      "position": "A52",
+      "type": "s",
+      "value": "1e-324"
+    },
+    {
+      "position": "B52",
+      "type": "s",
+      "value": "1e-324"
+    },
+    {
+      "position": "A53",
+      "type": "s",
+      "value": "2.5e-324"
+    },
+    {
+      "position": "B53",
+      "type": "s",
+      "value": "2.5e-324"
+    },
+    {
+      "position": "A54",
+      "type": "s",
+      "value": "4.9e-324"
+    },
+    {
+      "position": "B54",
+      "type": "s",
+      "value": "4.9e-324"
+    },
+    {
+      "position": "A55",
+      "type": "s",
+      "value": "1e-320"
+    },
+    {
+      "position": "B55",
+      "type": "s",
+      "value": "1e-320"
+    },
+    {
+      "position": "A56",
+      "type": "n",
+      "value": "2.2250738585072014E-308"
+    },
+    {
+      "position": "B56",
+      "type": "s",
+      "value": "2.2250738585072014e-308"
+    },
+    {
+      "position": "A57",
+      "type": "s",
+      "value": "1,234"
+    },
+    {
+      "position": "B57",
+      "type": "s",
+      "value": "1,234"
+    },
+    {
+      "position": "A58",
+      "type": "s",
+      "value": "12,34"
+    },
+    {
+      "position": "B58",
+      "type": "s",
+      "value": "12,34"
+    },
+    {
+      "position": "A59",
+      "type": "s",
+      "value": "1,234.5"
+    },
+    {
+      "position": "B59",
+      "type": "s",
+      "value": "1,234.5"
+    },
+    {
+      "position": "A60",
+      "type": "s",
+      "value": "1,234,567"
+    },
+    {
+      "position": "B60",
+      "type": "s",
+      "value": "1,234,567"
+    },
+    {
+      "position": "A61",
+      "type": "s",
+      "value": "1,2345"
+    },
+    {
+      "position": "B61",
+      "type": "s",
+      "value": "1,2345"
+    },
+    {
+      "position": "A62",
+      "type": "s",
+      "value": "1234,567"
+    },
+    {
+      "position": "B62",
+      "type": "s",
+      "value": "1234,567"
+    },
+    {
+      "position": "A63",
+      "type": "n",
+      "value": "3"
+    },
+    {
+      "position": "B63",
+      "type": "s",
+      "value": "  +3  "
+    },
+    {
+      "position": "A64",
+      "type": "s",
+      "value": "+ 3"
+    },
+    {
+      "position": "B64",
+      "type": "s",
+      "value": "+ 3"
+    },
+    {
+      "position": "A65",
+      "type": "n",
+      "value": "-3"
+    },
+    {
+      "position": "B65",
+      "type": "s",
+      "value": " -3 "
+    },
+    {
+      "position": "A66",
+      "type": "s",
+      "value": "3 3"
+    },
+    {
+      "position": "B66",
+      "type": "s",
+      "value": "3 3"
+    },
+    {
+      "position": "A67",
+      "type": "s",
+      "value": "3 3"
+    },
+    {
+      "position": "B67",
+      "type": "s",
+      "value": "3 3"
+    }
+  ],
+  "numericCellPrecisionParity": {
+    "reference": "Public safe-bash-command-soffice runSofficeCli, 2026-11-21. Stored numeric values preserve source precision; native CSV typing and display expectations remain. Quoted numeric B23, B26 and B56 are text in production, a separate existing typing gap.",
+    "changes": [
+      {
+        "position": "A23",
+        "native": "123456789.123457",
+        "production": "123456789.1234567",
+        "productionType": "n"
+      },
+      {
+        "position": "B23",
+        "native": "123456789.123457",
+        "production": "123456789.1234567",
+        "productionType": "inlineStr"
+      },
+      {
+        "position": "A26",
+        "native": "9007199254740990",
+        "production": "9007199254740992",
+        "productionType": "n"
+      },
+      {
+        "position": "B26",
+        "native": "9007199254740990",
+        "production": "9007199254740992",
+        "productionType": "inlineStr"
+      },
+      {
+        "position": "A56",
+        "native": "2.2250738585072E-308",
+        "production": "2.2250738585072014e-308",
+        "productionType": "n"
+      },
+      {
+        "position": "B56",
+        "native": "2.2250738585072E-308",
+        "production": "2.2250738585072014e-308",
+        "productionType": "inlineStr"
+      }
+    ]
+  },
+  "quotedCellParity": "Quoted numeric cell types and values independently captured from current production runSofficeCli on 2026-11-21; unquoted native expectations retained.",
+  "directCsvProductionParity": "Direct CSV-input cases captured from current production runSofficeCli on 2026-11-21; archive-input native references and XLSX cell expectations retained.",
+  "xlsxCsvProductionParity": "XLSX CSV expectations recaptured with current runSofficeFileCli public-command filesystem path, 2026-11-21; non-CSV outputs retained."
+}

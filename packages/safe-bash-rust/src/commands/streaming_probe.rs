@@ -4,7 +4,7 @@ use super::super::{
     streaming_input::Manifest,
 };
 use super::{
-    Row, Sample, Stats, Track, chapters, movie, mpegts_input, read_tracks, tags, text_tags,
+    Row, Sample, Stats, Track, chapter_row, read_chapters, movie, mpegts_input, read_tracks, tags, text_tags,
 };
 use crate::commands::structured::JVal::Str;
 
@@ -22,7 +22,9 @@ struct Slot<'a> {
 struct Timeline {
     scale: u32,
     stats: Stats,
+    frames: usize,
     packets: Vec<Packet>,
+    packet_info: Vec<Option<mpegts_input::PacketInfo>>,
 }
 
 impl Timeline {
@@ -31,6 +33,7 @@ impl Timeline {
     fn append(
         &mut self,
         mut p: Packet,
+        packet_info: Option<mpegts_input::PacketInfo>,
         from: u32,
         concat: bool,
         keep: bool,
@@ -53,19 +56,25 @@ impl Timeline {
         self.stats.b_frames |= p.pts != p.dts;
         if keep {
             *remaining = remaining
-                .checked_sub(size_of::<Packet>())
+                .checked_sub(size_of::<Packet>() + size_of::<Option<mpegts_input::PacketInfo>>())
                 .ok_or("sample index exceeds memory budget")?;
             self.packets.push(p);
+            self.packet_info.push(packet_info);
         }
         Ok(())
     }
 }
 impl Slot<'_> {
-    fn record(&self, index: usize, p: Packet, frame: bool) -> Row {
+    fn record(&self, index: usize, p: Packet, packet_info: Option<mpegts_input::PacketInfo>, frame: bool, skip: &mut u64, optional: bool) -> Option<Row> {
         match &self.source {
-            Source::Transport(info) => info.codec.record(index, self.timeline.scale, p, frame),
-            Source::Movie(t) => t.record(
-                Sample {
+            Source::Transport(info) => {
+                let mut row = info.codec.record(index, self.timeline.scale, p, frame);
+                if !frame && let Some(info) = packet_info { info.add_to(&mut row); }
+                Some(row)
+            }
+            Source::Movie(t) => {
+                let sample = Sample {
+                    chunk_end: true,
                     tick: p.ticks as u32,
                     description: 1,
                     dts: p.dts as u64,
@@ -74,9 +83,10 @@ impl Slot<'_> {
                     offset: 0,
                     pos: p.pos,
                     key: p.key,
-                },
-                frame,
-            ),
+                };
+                let skipped = if frame { Some(t.frame_skip(&sample, skip)?) } else { None };
+                Some(t.record(sample, skipped, optional))
+            },
         }
     }
 }
@@ -95,10 +105,24 @@ pub(in super::super) fn report(
     let mut chapter_rows = Vec::new();
     let mut duration: f64 = 0.;
     let mut remaining = limit;
+    let mut transport_offset = 0;
     for (rep, sequence) in doc.sequences.iter().enumerate() {
         let concat = sequence.len() > 1;
         let first = tracks.len();
+        // HLS keeps its transport demuxer and codec parsers alive across segments.
+        // Read the sequence together so continuity errors and buffered access
+        // units retain their native packet flags and emission order.
+        let joined = if concat && sequence.iter().all(|input| matches!(input, MediaInput::Bytes("mpegts", _))) {
+            let mut bytes = Vec::new();
+            for input in sequence {
+                let MediaInput::Bytes(_, data) = input else { unreachable!() };
+                remaining = remaining.checked_sub(data.len()).ok_or("input byte limit exceeded")?;
+                bytes.extend_from_slice(data);
+            }
+            Some(bytes)
+        } else { None };
         for (seg, input) in sequence.iter().enumerate() {
+            if joined.is_some() && seg != 0 { continue; }
             let MediaInput::Bytes(kind, data) = input else {
                 unreachable!()
             };
@@ -109,8 +133,8 @@ pub(in super::super) fn report(
                 } else {
                     mpegts_input::Read::Summary
                 };
-                for t in mpegts_input::parse(data, limit, mode)? {
-                    headers.push((t.kind, Source::Transport(t.info), t.packets));
+                for t in mpegts_input::parse(joined.as_deref().unwrap_or(data), remaining, mode)? {
+                    headers.push((t.kind, Source::Transport(t.info), t.packets, t.packet_info));
                 }
             } else {
                 let moov = movie(data)?;
@@ -130,16 +154,16 @@ pub(in super::super) fn report(
                             }
                         }
                     }
-                    chapter_rows.extend(chapters(moov, seconds));
+                    chapter_rows.extend(read_chapters(data, moov, &native, seconds, remaining)?.iter().map(chapter_row));
                 }
                 headers.extend(
                     native
                         .into_iter()
-                        .map(|t| (t.kind, Source::Movie(Box::new(t)), vec![])),
+                        .map(|t| (t.kind, Source::Movie(Box::new(t)), vec![], vec![])),
                 );
             }
             let mut counts = std::collections::BTreeMap::new();
-            for (kind, source, transport) in headers {
+            for (kind, source, transport, packet_info) in headers {
                 let (scale, seconds) = match &source {
                     Source::Movie(t) => (t.scale, t.duration as f64 / f64::from(t.scale)),
                     Source::Transport(t) => (t.scale, t.ticks / f64::from(t.scale)),
@@ -156,26 +180,31 @@ pub(in super::super) fn report(
                         scale
                     },
                     stats: Stats::default(),
+                    frames: 0,
                     packets: Vec::new(),
+                    packet_info: Vec::new(),
                 };
                 let dst = if let Some(idx) = idx {
                     &mut tracks[idx].timeline
                 } else {
                     &mut fresh
                 };
-                if records || concat {
+                if records || concat || opts.counts.0 || opts.counts.1 {
                     match &source {
                         Source::Movie(t) => {
+                            let mut skip = 0;
                             for s in t.samples(data.len()) {
+                                dst.frames += usize::from(t.frame_skip(&s, &mut skip).is_some());
                                 dst.append(
                                     Packet {
                                         ticks: s.tick.into(),
                                         size: s.size,
                                         dts: s.dts as i64,
                                         pts: s.pts as i64,
-                                        key: s.key,
+                                        key: t.packet_key(data, &s),
                                         pos: 0,
                                     },
+                                    None,
                                     scale,
                                     concat,
                                     records,
@@ -184,8 +213,9 @@ pub(in super::super) fn report(
                             }
                         }
                         Source::Transport(_) => {
-                            for p in transport {
-                                dst.append(p, scale, concat, records, &mut remaining)?;
+                            for (p, mut info) in transport.into_iter().zip(packet_info) {
+                                info.emitted_at += transport_offset;
+                                dst.append(p, Some(info), scale, concat, records, &mut remaining)?;
                             }
                         }
                     }
@@ -204,7 +234,9 @@ pub(in super::super) fn report(
                 }
                 *ordinal += 1;
             }
+            transport_offset += joined.as_ref().map_or(data.len(), Vec::len) + 2;
         }
+        if let Some(bytes) = joined { remaining += bytes.len(); }
         for (i, slot) in tracks.iter_mut().enumerate().skip(first) {
             let sums = &mut slot.timeline.stats;
             let scale = slot.timeline.scale;
@@ -246,7 +278,17 @@ pub(in super::super) fn report(
         duration = doc.duration;
     }
     let select = opts.select;
-    let counts = opts.counts;
+    let counts = (opts.counts.0 || opts.show.contains("frame"), opts.counts.1 || opts.show.contains("packet"));
+    let optional = !matches!(opts.writer, "json" | "xml");
+    let count: usize = tracks.iter().map(|t| t.timeline.packets.len()).sum();
+    if count > remaining / size_of::<(usize, usize)>() {
+        return Err("sample index exceeds memory budget".into());
+    }
+    let mut order: Vec<_> = tracks.iter().enumerate().flat_map(|(i, t)| (0..t.timeline.packets.len()).map(move |n| (i, n))).collect();
+    if tracks.iter().all(|t| matches!(t.source, Source::Transport(_))) {
+        order.sort_unstable_by_key(|&(i, n)| (tracks[i].timeline.packet_info[n].map(|p| p.emitted_at), i, n));
+    }
+    let tracks = &tracks;
     media_probe::report(opts, |section| match section {
         "format" => Box::new(std::iter::once(media_probe::format_row(
             filename,
@@ -269,15 +311,18 @@ pub(in super::super) fn report(
                     media_probe::selected(select, t.kind, *i, ordinal)
                 })
                 .map(|(i, t)| match &t.source {
-                    Source::Movie(t) => t.stream(counts),
+                    Source::Movie(source) => source.stream(counts, t.timeline.frames, t.timeline.stats.count, optional),
                     Source::Transport(info) => info.stream(i, counts),
                 }),
         ),
-        "packet" | "frame" => Box::new(tracks.iter().enumerate().flat_map(move |(i, t)| {
-            t.timeline.packets
-                .iter()
-                .map(move |&p| t.record(i, p, section == "frame"))
-        })),
+        "packet" | "frame" => {
+            let mut skips = vec![0; tracks.len()];
+            Box::new(order.iter().filter_map(move |&(i, n)| {
+            let t = &tracks[i];
+            let ordinal = tracks[..i].iter().filter(|prior| prior.kind == t.kind).count();
+            if !media_probe::selected(select, t.kind, i, ordinal) { return None; }
+            t.record(i, t.timeline.packets[n], t.timeline.packet_info[n], section == "frame", &mut skips[i], optional)
+        })) },
         _ => Box::new(std::iter::empty()),
     })
     .map_err(str::to_owned)

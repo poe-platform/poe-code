@@ -1,0 +1,838 @@
+{
+  "source": "qpdf 12.4.2; independently constructed PDFs and serialized stream variants",
+  "cases": {
+    "short": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggMSA+PgpzdHJlYW0KcSBRCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago0CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyMTggMDAwMDAgbiAKMDAwMDAwMDI3MCAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjI4NwolJUVPRgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjcwCg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMSA+Pgo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "cSBRCg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogMQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "long": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggOTk5OTkgPj4Kc3RyZWFtCnEgUQplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKNAplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCjAwMDAwMDAyNzQgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgoyOTEKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjc0Cg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggOTk5OTkgPj4K",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "cSBRCg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogOTk5OTkKICAgICAgICAgIH0KICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 474): expected endstream\nWARNING: in.pdf (object 4 0, offset 253): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 253): recovered stream length: 4\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "missing": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9PdGhlciAxID4+CnN0cmVhbQpxIFEKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjQKZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIxOCAwMDAwMCBuIAowMDAwMDAwMjY5IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMjg2CiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjY5Cg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9PdGhlciAxID4+Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "cSBRCg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvT3RoZXIiOiAxCiAgICAgICAgICB9CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 225): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 248): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 248): recovered stream length: 4\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 /Other 1 >>\n"
+      }
+    },
+    "indirect": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggNSAwIFIgPj4Kc3RyZWFtCnEgUQplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKNAplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCjAwMDAwMDAyNzQgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgoyOTEKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjc0Cg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggNSAwIFIgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "cSBRCg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 0,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": ""
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": ""
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogIjUgMCBSIgogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": "qpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "embedded": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggMiA+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWRlbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKNAplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCjAwMDAwMDAzMDEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgozMTgKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMzAxCg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMiA+Pgo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "QQD/IA==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogMgogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 263): expected endobj\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IA==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "declared": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggMzUgPj4Kc3RyZWFtCkEA/yBlbmRzdHJlYW0gaWdub3JlZA0KcmVhbCBwYXlsb2FkZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjQKZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIxOCAwMDAwMCBuIAowMDAwMDAwMzAyIDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMzE5CiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMzAyCg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMzUgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "QQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQ=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 0,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": ""
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": ""
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogMzUKICAgICAgICAgIH0KICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": "qpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQ=",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 35 >>\n"
+      }
+    },
+    "original-wrong": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgMyAwIFIgXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovQ29udGVudHMgNCAwIFIKL01lZGlhQm94IFsgMCAwIDIwMCAyMDAgXQovUmVzb3VyY2VzIDw8Cj4+Cj4+CmVuZG9iagoKNCAwIG9iago8PAovUGFkIDAKL0xlbmd0aCAwMgo+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iagozNQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDIzNyAwMDAwMCBuIAowMDAwMDAwMzMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjM0OQolJUVPRg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTMwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMzcKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDMzMAo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMiAvUGFkIDAgPj4K",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "QQD/IA==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IA==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 /Pad 0 >>\n"
+      }
+    },
+    "original-missing": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgMyAwIFIgXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovQ29udGVudHMgNCAwIFIKL01lZGlhQm94IFsgMCAwIDIwMCAyMDAgXQovUmVzb3VyY2VzIDw8Cj4+Cj4+CmVuZG9iagoKNCAwIG9iago8PAovUGFkIDAKL0lnbm9yZSAzNQo+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iagozNQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDIzNyAwMDAwMCBuIAowMDAwMDAwMzMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjM0OQolJUVPRg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTMwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMzcKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDMzMAo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9JZ25vcmUgMzUgL1BhZCAwID4+Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "QQD/IA==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 244): stream dictionary lacks /Length key\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IA==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Ignore 35 /Length 4 /Pad 0 >>\n"
+      }
+    },
+    "original-indirect": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgMyAwIFIgXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovQ29udGVudHMgNCAwIFIKL01lZGlhQm94IFsgMCAwIDIwMCAyMDAgXQovUmVzb3VyY2VzIDw8Cj4+Cj4+CmVuZG9iagoKNCAwIG9iago8PAogICAgL0xlbmd0aCA1IDAgUgo+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iagozNQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDIzNyAwMDAwMCBuIAowMDAwMDAwMzMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjM0OQolJUVPRg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTMwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMzcKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDMzMAo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 0,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggNSAwIFIgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "QQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQ=",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": "qpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQ=",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 35 >>\n"
+      }
+    },
+    "original-repeated": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgMyAwIFIgXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovQ29udGVudHMgNCAwIFIKL01lZGlhQm94IFsgMCAwIDIwMCAyMDAgXQovUmVzb3VyY2VzIDw8Cj4+Cj4+CmVuZG9iagoKNCAwIG9iago8PAovTGVuZ3RoIDEvTGVuZ3RoIDI+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBpZ25vcmVkDQpyZWFsIHBheWxvYWQKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iagozNQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDIzNyAwMDAwMCBuIAowMDAwMDAwMzMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjM0OQolJUVPRg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTMwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMzcKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDMzMAo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMiA+Pgo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "QQD/IA==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 247): dictionary has duplicated key /Length; last occurrence overrides earlier ones\nWARNING: in.pdf (object 4 0, offset 278): expected endstream\nWARNING: in.pdf (object 4 0, offset 276): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 276): recovered stream length: 4\nWARNING: in.pdf (object 4 0, offset 290): expected endobj\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IA==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "original-declared": {
+      "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgMyAwIFIgXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovQ29udGVudHMgNCAwIFIKL01lZGlhQm94IFsgMCAwIDIwMCAyMDAgXQovUmVzb3VyY2VzIDw8Cj4+Cj4+CmVuZG9iagoKNCAwIG9iago8PAovUGFkIDAKL0xlbmd0aCAzNQo+PgpzdHJlYW0KQQD/IGVuZHN0cmVhbSBlbmRvYmogDQpyZWFsIHBheWxvYWQKZW5kc3RyZWFtCmVuZG9iagoKNSAwIG9iagozNQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDIzNyAwMDAwMCBuIAowMDAwMDAwMzMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgoKc3RhcnR4cmVmCjM0OQolJUVPRg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTMwCjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyMzcKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDMzMAo=",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 0,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMzUgL1BhZCAwID4+Cg==",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "QQD/IGVuZHN0cmVhbSBlbmRvYmogDQpyZWFsIHBheWxvYWQ=",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+          "stderr": "qpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "QQD/IGVuZHN0cmVhbSBlbmRvYmogDQpyZWFsIHBheWxvYWQ=",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 35 /Pad 0 >>\n"
+      }
+    },
+    "prefixed": {
+      "pdf": "aGFybWxlc3MgcHJlZml4CiVQREYtMS43CjEgMCBvYmoKPDwgL1R5cGUgL0NhdGFsb2cgL1BhZ2VzIDIgMCBSID4+CmVuZG9iagoyIDAgb2JqCjw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbMyAwIFJdIC9Db3VudCAxID4+CmVuZG9iagozIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMiAwIFIgL01lZGlhQm94IFswIDAgMjAwIDIwMF0gL1Jlc291cmNlcyA8PD4+IC9Db250ZW50cyA0IDAgUiA+PgplbmRvYmoKNCAwIG9iago8PCAvTGVuZ3RoIDEgPj4Kc3RyZWFtCnEgUQplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKNAplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCjAwMDAwMDAyNzAgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgoyODcKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-xref": {
+          "status": 0,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjcwCg==",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMSA+Pgo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "cSBRCg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 0,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": ""
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNQogICAgfSwKICAgIHsKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAic3RyZWFtIjogewogICAgICAgICAgImRpY3QiOiB7CiAgICAgICAgICAgICIvTGVuZ3RoIjogMQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "reconstructed": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9MZW5ndGggMSA+PgpzdHJlYW0KcSBRCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago0CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyMTggMDAwMDAgbiAKMDAwMDAwMDI3MCAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4K",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MQo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-xref": {
+          "status": 3,
+          "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIxOAo1LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMjcwCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4": {
+          "status": 3,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9MZW5ndGggMSA+Pgo=",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 3,
+          "stdout": "cSBRCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 3,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check-linearization": {
+          "status": 3,
+          "stdout": "aW4ucGRmIGlzIG5vdCBsaW5lYXJpemVkCg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=pages": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjMgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf --json-object=4": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjciLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiB0cnVlLAogICAgICAibWF4b2JqZWN0aWQiOiA1CiAgICB9LAogICAgewogICAgICAib2JqOjQgMCBSIjogewogICAgICAgICJzdHJlYW0iOiB7CiAgICAgICAgICAiZGljdCI6IHsKICAgICAgICAgICAgIi9MZW5ndGgiOiAxCiAgICAgICAgICB9CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings\n"
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--check --show-object=4 --raw-stream-data": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: file is damaged\nWARNING: in.pdf: can't find startxref\nWARNING: in.pdf: Attempting to reconstruct cross-reference table\nWARNING: in.pdf (object 4 0, offset 251): expected endstream\nWARNING: in.pdf (object 4 0, offset 249): attempting to recover stream length\nWARNING: in.pdf (object 4 0, offset 249): recovered stream length: 4\nqpdf: QPDFLogger: called setSave on standard output after standard output has already been used\n"
+        }
+      },
+      "rewritten": {
+        "stream": "cSBRCg==",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 4 >>\n"
+      }
+    },
+    "flate": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9GaWx0ZXIgL0ZsYXRlRGVjb2RlIC9MZW5ndGggMTMgPj4Kc3RyZWFtCnicK+TlCuQCAAM4AOQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyMTggMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA1IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgozMDIKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9GaWx0ZXIgL0ZsYXRlRGVjb2RlIC9MZW5ndGggMTMgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "eJwr5OUK5AIAAzgA5A==",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "rewritten": {
+        "stream": "cQ0KUQo=",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 5 >>\n"
+      }
+    },
+    "hex": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9GaWx0ZXIgL0FTQ0lJSGV4RGVjb2RlIC9MZW5ndGggMTEgPj4Kc3RyZWFtCjcxMGQwYTUxMGE+CmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNSAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMzAzCiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9GaWx0ZXIgL0FTQ0lJSGV4RGVjb2RlIC9MZW5ndGggMTEgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "NzEwZDBhNTEwYT4=",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "rewritten": {
+        "stream": "cQ0KUQo=",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Length 5 >>\n"
+      }
+    },
+    "flate-dct": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9GaWx0ZXIgWy9GbGF0ZURlY29kZSAvRENURGVjb2RlXSAvTGVuZ3RoIDEyID4+CnN0cmVhbQp4nPt/4/9NAAlfA7AKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyMTggMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA1IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgozMTQKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9GaWx0ZXIgWyAvRmxhdGVEZWNvZGUgL0RDVERlY29kZSBdIC9MZW5ndGggMTIgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "eJz7f+P/TQAJXwOw",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "rewritten": {
+        "stream": "eJz7f+P/TQAJXwOw",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Filter [ /FlateDecode /DCTDecode ] /Length 12 >>\n"
+      }
+    },
+    "run-length": {
+      "pdf": "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMjAwXSAvUmVzb3VyY2VzIDw8Pj4gL0NvbnRlbnRzIDQgMCBSID4+CmVuZG9iago0IDAgb2JqCjw8IC9GaWx0ZXIgL1J1bkxlbmd0aERlY29kZSAvTGVuZ3RoIDYgPj4Kc3RyZWFtCgNxDQpRgAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIxOCAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDUgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjI5OAolJUVPRgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MQo=",
+          "stderr": ""
+        },
+        "--show-object=4": {
+          "status": 0,
+          "stdout": "T2JqZWN0IGlzIHN0cmVhbS4gIERpY3Rpb25hcnk6Cjw8IC9GaWx0ZXIgL1J1bkxlbmd0aERlY29kZSAvTGVuZ3RoIDYgPj4K",
+          "stderr": ""
+        },
+        "--show-object=4 --raw-stream-data": {
+          "status": 0,
+          "stdout": "A3ENClGA",
+          "stderr": ""
+        },
+        "--stream-data=uncompress out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "rewritten": {
+        "stream": "A3ENClGA",
+        "dictionary": "Object is stream.  Dictionary:\n<< /Filter /RunLengthDecode /Length 6 >>\n"
+      }
+    }
+  }
+}

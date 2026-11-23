@@ -163,6 +163,9 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       row = axisR1C1("R", position.row);
       column = axisR1C1("C", position.column);
     } else { column = axisA1("column"); row = axisA1("row"); }
+    let following = offset;
+    while (whitespace(source[following])) following++;
+    if (source[following] === "(") { offset = start; return undefined; }
     if ((!row && !column) || grammar.wholeAxisReferences === false && (!row || !column) || word(source[offset]) && !source.startsWith(rangeSeparator, offset)) { offset = start; return undefined; }
     const sheetRelative = scope.workbook !== undefined ? false : scope.sheetRelative ??
       (grammar.bracketReferences && grammar.absoluteSheetReferences && scope.sheet === undefined ? true : undefined);

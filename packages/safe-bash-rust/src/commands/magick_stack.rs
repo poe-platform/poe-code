@@ -198,6 +198,7 @@ impl Scene {
                 im.height,
                 &im.pixels,
                 gif::Timing {
+                    flags: 0,
                     delays: source.map_or(&[][..], |s| s.delays.as_slice()),
                     repeat: source.and_then(|s| s.repeat),
                     explicit_delay: false,
@@ -310,6 +311,7 @@ impl Images {
             h,
             &image.pixels,
             gif::Timing {
+                    flags: 0,
                 delays: if timing.explicit_delay {
                     timing.delays
                 } else {

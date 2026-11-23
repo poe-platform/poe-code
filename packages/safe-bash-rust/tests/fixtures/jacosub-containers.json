@@ -1,0 +1,1493 @@
+{
+  "reference": "FFmpeg 7.0.2",
+  "cases": [
+    {
+      "name": "basic-mkv-None",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\n{\\an1}First\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\n{\\an1}Second\n\n"
+    },
+    {
+      "name": "basic-mkv-copy",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mkv-srt",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\n{\\an1}First\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\n{\\an1}Second\n\n"
+    },
+    {
+      "name": "basic-mkv-webvtt",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-None",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-copy",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-mov_text",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "basic-mp4-copy",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mov-mov_text",
+      "input": "#T 30\n#S 0:00:00.00\n@15 @45 JL First\\nline\n@60 @105 JL Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,500 --> 00:00:01,500\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:03,500\nSecond\n\n"
+    },
+    {
+      "name": "clock-mkv-None",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\n{\\an3}Right\n\n2\n00:00:02,750 --> 00:00:03,750\n{\\an2}Center\n\n"
+    },
+    {
+      "name": "clock-mkv-copy",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "clock-mkv-srt",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\n{\\an3}Right\n\n2\n00:00:02,750 --> 00:00:03,750\n{\\an2}Center\n\n"
+    },
+    {
+      "name": "clock-mkv-webvtt",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\nRight\n\n2\n00:00:02,750 --> 00:00:03,750\nCenter\n\n"
+    },
+    {
+      "name": "clock-webm-None",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\nRight\n\n2\n00:00:02,750 --> 00:00:03,750\nCenter\n\n"
+    },
+    {
+      "name": "clock-webm-copy",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "clock-mp4-mov_text",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\nRight\n\n2\n00:00:02,750 --> 00:00:03,750\nCenter\n\n"
+    },
+    {
+      "name": "clock-mp4-copy",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "clock-mov-mov_text",
+      "input": "#TIMERES 60\n#SHIFT -0:00:00.15\n0:00:01.00 0:00:02.00 JR Right\n@180 @240 JC Center\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,750 --> 00:00:01,750\nRight\n\n2\n00:00:02,750 --> 00:00:03,750\nCenter\n\n"
+    },
+    {
+      "name": "styles-mkv-None",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an2}<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "styles-mkv-copy",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "styles-mkv-srt",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an2}<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "styles-mkv-webvtt",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "styles-webm-None",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "styles-webm-copy",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "styles-mp4-mov_text",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "styles-mp4-copy",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "styles-mov-mov_text",
+      "input": "@0 @30 JC \\Bbold\\b \\Iitalic\\i \\Uunder\\u \\Nreset ~hard \\~tilde \\C1color \\F2font\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n<b>bold</b> <i>italic</i> <u>under</u> reset hard ~tilde color font\n\n"
+    },
+    {
+      "name": "crlf-mkv-None",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an1}First\\\r\n\n2\n00:00:02,000 --> 00:00:03,000\n{\\an2}Second\r\n\n"
+    },
+    {
+      "name": "crlf-mkv-copy",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "crlf-mkv-srt",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an1}First\\\n\n2\n00:00:02,000 --> 00:00:03,000\n{\\an2}Second\n\n"
+    },
+    {
+      "name": "crlf-mkv-webvtt",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\\\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "crlf-webm-None",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\\\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "crlf-webm-copy",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "crlf-mp4-mov_text",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\\\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "crlf-mp4-copy",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "crlf-mov-mov_text",
+      "input": "#T 60\r\n@0 @60 JL First\\\r\n continuation\r\n@120 @180 JC Second\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\\\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond\n\n"
+    },
+    {
+      "name": "reordered-mkv-None",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an1}First\n\n2\n00:00:00,000 --> 00:00:01,500\n{\\an3}Other\n\n3\n00:00:03,000 --> 00:00:04,000\n{\\an2}Later\n\n"
+    },
+    {
+      "name": "reordered-mkv-copy",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "reordered-mkv-srt",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\n{\\an1}First\n\n2\n00:00:00,000 --> 00:00:01,500\n{\\an3}Other\n\n3\n00:00:03,000 --> 00:00:04,000\n{\\an2}Later\n\n"
+    },
+    {
+      "name": "reordered-mkv-webvtt",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\n\n2\n00:00:00,000 --> 00:00:01,500\nOther\n\n3\n00:00:03,000 --> 00:00:04,000\nLater\n\n"
+    },
+    {
+      "name": "reordered-webm-None",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,000\nFirst\n\n2\n00:00:00,000 --> 00:00:01,500\nOther\n\n3\n00:00:03,000 --> 00:00:04,000\nLater\n\n"
+    },
+    {
+      "name": "reordered-webm-copy",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "reordered-mp4-mov_text",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nFirst\n\n2\n00:00:00,000 --> 00:00:01,500\nOther\n\n3\n00:00:03,000 --> 00:00:04,000\nLater\n\n"
+    },
+    {
+      "name": "reordered-mp4-copy",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "reordered-mov-mov_text",
+      "input": "@90 @120 JC Later\n@0 @30 JL First\n@0 @30 JL First\n@0 @45 JR Other\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:00,000\nFirst\n\n2\n00:00:00,000 --> 00:00:01,500\nOther\n\n3\n00:00:03,000 --> 00:00:04,000\nLater\n\n"
+    },
+    {
+      "name": "negative-mkv-None",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\n{\\an2}Before\n\n2\n00:00:02,000 --> 00:00:03,000\n{\\an1}Signed\n\n"
+    },
+    {
+      "name": "negative-mkv-copy",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mkv-srt",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\n{\\an2}Before\n\n2\n00:00:02,000 --> 00:00:03,000\n{\\an1}Signed\n\n"
+    },
+    {
+      "name": "negative-mkv-webvtt",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\nBefore\n\n2\n00:00:02,000 --> 00:00:03,000\nSigned\n\n"
+    },
+    {
+      "name": "negative-webm-None",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\nBefore\n\n2\n00:00:02,000 --> 00:00:03,000\nSigned\n\n"
+    },
+    {
+      "name": "negative-webm-copy",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-mov_text",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\nBefore\n\n2\n00:00:02,000 --> 00:00:05,000\nSigned\n\n"
+    },
+    {
+      "name": "negative-mp4-copy",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mov-mov_text",
+      "input": "@-30 @30 JC Before\n-0:00:01.0 0:00:02.0 JL Signed\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "jacosub",
+        "-i",
+        "input.jss",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:02,000\nBefore\n\n2\n00:00:02,000 --> 00:00:05,000\nSigned\n\n"
+    }
+  ]
+}

@@ -1,0 +1,3681 @@
+{
+  "oracle": "LibreOffice 24.2.7.2 420(Build:2), ODS import and XLSX export; name repair, cached values and rejected references. Empty ADDRESS sheet text and >31 UTF-16-unit export names are separate qualification gaps.",
+  "cases": [
+    {
+      "name": "name-0",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-1",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a/b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a/b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a/b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a/b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-2",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a:b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a:b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a:b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a:b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-3",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a?b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a?b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a?b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a?b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-4",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a*b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a*b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a*b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a*b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-5",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'[a]'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;[a]&quot;))\"/></table:table-row></table:table><table:table table:name=\"[a]\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'[a]'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-6",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$']'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;]&quot;))\"/></table:table-row></table:table><table:table table:name=\"]\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$']'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-7",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$''.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;&quot;))\"/></table:table-row></table:table><table:table table:name=\"\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$''.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-8",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'''lead'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;'lead&quot;))\"/></table:table-row></table:table><table:table table:name=\"'lead\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'''lead'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-9",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'trail'''.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;trail'&quot;))\"/></table:table-row></table:table><table:table table:name=\"trail'\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'trail'''.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-10",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'''quoted'''.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;'quoted'&quot;))\"/></table:table-row></table:table><table:table table:name=\"'quoted'\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'''quoted'''.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "name-11",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a''b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a'b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a'b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a''b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a'b",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "name-12",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;))\"/></table:table-row></table:table><table:table table:name=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "name-16",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a&#9;b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a&#9;b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a&#9;b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a&#9;b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a\tb",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "name-17",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a&#10;b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a&#10;b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a&#10;b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a&#10;b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a\nb",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "name-18",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a&#13;b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a&#13;b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a&#13;b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a&#13;b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a\rb",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "collision-0",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B2",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_0"
+      ]
+    },
+    {
+      "name": "collision-1",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "collision-2",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "collision-3",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet3'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet3&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'c/d'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;c/d&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"Sheet3\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"c/d\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'Sheet3'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'c/d'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B5",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet4",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1",
+        "Pick_3"
+      ]
+    },
+    {
+      "name": "collision-4",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet1'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet1&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Sheet1'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_2"
+      ]
+    },
+    {
+      "name": "collision-5",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Case\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Case'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Case&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'case'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;case&quot;))\"/></table:table-row></table:table><table:table table:name=\"case\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Case'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'case'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Case",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "case_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "collision-6",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'dup'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'dup'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "collision-7",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet3'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet3&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:table table:name=\"Sheet3\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'Sheet3'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet4",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_2"
+      ]
+    },
+    {
+      "name": "collision-8",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet1'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet1&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'Sheet1'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "collision-9",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$''.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet1'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet1&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet2&quot;))\"/></table:table-row></table:table><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"Sheet2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$''.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'Sheet1'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'Sheet2'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B2",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet1_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_0"
+      ]
+    },
+    {
+      "name": "collision-10",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$''''.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;'&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'[]'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;[]&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'?'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;?&quot;))\"/></table:table-row></table:table><table:table table:name=\"'\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"[]\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"?\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$''''.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'[]'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'?'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B5",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet4",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1",
+        "Pick_2",
+        "Pick_3"
+      ]
+    },
+    {
+      "name": "extra-0",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Case\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Case'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Case&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'case'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;case&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'CASE_2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;CASE_2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'case'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;case&quot;))\"/></table:table-row></table:table><table:table table:name=\"case\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"CASE_2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"case\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Case'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'case'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'CASE_2'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'case'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Case",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "case_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "CASE_2_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "case_3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "extra-1",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup_2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup_2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row></table:table><table:table table:name=\"dup_2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'dup'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'dup_2'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'dup'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'dup'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "dup",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_4",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "extra-2",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet1'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet1&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Sheet3'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Sheet3&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'?'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;?&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'?'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;?&quot;))\"/></table:table-row></table:table><table:table table:name=\"Sheet3\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"?\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"?\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Sheet1'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'Sheet3'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'?'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'?'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B5",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet4",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet5",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_2",
+        "Pick_3"
+      ]
+    },
+    {
+      "name": "extra-5",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀a\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀a'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀a&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀b&quot;))\"/></table:table-row></table:table><table:table table:name=\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀a'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀a",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀b",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-0",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"straße\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'straße'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;straße&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'STRASSE'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;STRASSE&quot;))\"/></table:table-row></table:table><table:table table:name=\"STRASSE\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'straße'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'STRASSE'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "straße",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "STRASSE",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-1",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Σ\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'Σ'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Σ&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'ς'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;ς&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'σ'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;σ&quot;))\"/></table:table-row></table:table><table:table table:name=\"ς\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"σ\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Σ'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'ς'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'σ'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Σ",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "ς_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "σ_3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-2",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"i\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'i'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;i&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'I'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;I&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'İ'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;İ&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'ı'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_3\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;ı&quot;))\"/></table:table-row></table:table><table:table table:name=\"I\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"İ\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:table table:name=\"ı\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'i'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'I'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'İ'.$A$1]\"/><table:named-expression table:name=\"Pick_3\" table:expression=\"of:=[$'ı'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "i",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "A5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B5",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C5",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "I_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "İ",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "ı_3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-3",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"é\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'é'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;é&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'É'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;É&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'é'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;é&quot;))\"/></table:table-row></table:table><table:table table:name=\"É\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"é\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'é'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'É'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'é'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "é",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "É_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "é",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-4",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"K\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'K'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;K&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'K'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;K&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'k'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_2\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;k&quot;))\"/></table:table-row></table:table><table:table table:name=\"K\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"k\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'K'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'K'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'k'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "K",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "K",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "k_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "unicode-5",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b''c'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b'c&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b'c\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'a\\b'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b''c'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B2",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_0",
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "unicode-6",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"SHEET2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'SHEET2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;SHEET2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'?'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;?&quot;))\"/></table:table-row></table:table><table:table table:name=\"?\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'SHEET2'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'?'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "SHEET2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet3",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "unicode-7",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"dup_2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup_2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_0\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup_2&quot;))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'dup_2'.$A$1]\"/><table:table-cell table:formula=\"of:=Pick_1\"/><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup_2&quot;))\"/></table:table-row></table:table><table:table table:name=\"dup_2\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'dup_2'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'dup_2'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "dup_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "100",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_2_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "cached-name-0",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=Pick_0\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=[$'a\\b'.$A$1]\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=Pick_1\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a\\b&quot;))\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "Pick_1"
+      ]
+    },
+    {
+      "name": "cached-collision-6",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=[$'Control'.$A$1]\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=Pick_0\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\"/></table:table-row><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=Pick_1\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=[$'dup'.$A$1]\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=Pick_2\"/><table:table-cell office:value-type=\"float\" office:value=\"777\" table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;dup&quot;))\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/></table:table-row></table:table><table:table table:name=\"dup\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Pick_0\" table:expression=\"of:=[$'Control'.$A$1]\"/><table:named-expression table:name=\"Pick_1\" table:expression=\"of:=[$'dup'.$A$1]\"/><table:named-expression table:name=\"Pick_2\" table:expression=\"of:=[$'dup'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "dup_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "102",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "cached-array",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<?xml version=\"1.0\"?><office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[$'a\\b'.$A$1]\" office:value-type=\"float\" office:value=\"777\"/><table:table-cell table:formula=\"of:=[.A2]+1\" office:value-type=\"float\" office:value=\"888\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=SUM(BadRange)\" office:value-type=\"float\" office:value=\"999\"/><table:table-cell table:formula=\"of:=SUM([$'a\\b'.$A$1])+{1;2}\" table:number-matrix-columns-spanned=\"2\" table:number-matrix-rows-spanned=\"1\" office:value-type=\"float\" office:value=\"555\"/><table:table-cell office:value-type=\"float\" office:value=\"666\"/></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\"/><table:table-cell office:value-type=\"float\" office:value=\"102\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=[.A1]\" office:value-type=\"float\" office:value=\"777\"/><table:table-cell table:formula=\"of:=Local\" office:value-type=\"float\" office:value=\"777\"/></table:table-row><table:named-expressions><table:named-expression table:name=\"Local\" table:base-cell-address=\"$'a\\b'.$A$1\" table:expression=\"of:=[.$A$1]\"/></table:named-expressions></table:table><table:named-expressions><table:named-expression table:name=\"BadRange\" table:expression=\"of:=[$'a\\b'.$A$1]\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "#REF!",
+              "errorReference": true
+            },
+            {
+              "address": "B2",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "#REF!",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": [
+        "BadRange"
+      ]
+    },
+    {
+      "name": "regression-duplicate-sheet",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\" xmlns:number=\"urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row ><table:table-cell office:value-type=\"string\"><text:p>first</text:p></table:table-cell></table:table-row></table:table><table:table table:name=\"Sheet1\"><table:table-row ><table:table-cell office:value-type=\"string\"><text:p>second</text:p></table:table-cell></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "first",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet1_2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "second",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "regression-quoted-sheet-1",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"1\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"one\"/><table:table-cell  /></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"3\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"three\"/><table:table-cell  office:value-type=\"float\" office:value=\"30\"/></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"5\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"five\"/><table:table-cell  office:value-type=\"float\" office:value=\"50\"/></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"5\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"FIVE\"/><table:table-cell  office:value-type=\"float\" office:value=\"50\"/></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row><table:table-cell  /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE;&quot;a\\b&quot;))\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=COUNTA([.B10:.D12])\" /></table:table-row></table:table><table:table table:name=\"a\\b\"><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"101\"/><table:table-cell  office:value-type=\"float\" office:value=\"102\"/><table:table-cell  office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Data\" table:expression=\"of:=[.$A$1:.$C$4]\"/><table:named-expression table:name=\"ValueName\" table:expression=\"of:=42\"/><table:named-expression table:name=\"Cycle\" table:expression=\"of:=Cycle\"/><table:named-expression table:name=\"Total\" table:expression=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE;&quot;a\\b&quot;))\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "1",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "one",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "3",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "three",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "30",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "5",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "five",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "50",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "5",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "FIVE",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "50",
+              "errorReference": false
+            },
+            {
+              "address": "B10",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A11",
+              "value": "1",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "regression-quoted-sheet-2",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"1\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"one\"/><table:table-cell  /></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"3\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"three\"/><table:table-cell  office:value-type=\"float\" office:value=\"30\"/></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"5\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"five\"/><table:table-cell  office:value-type=\"float\" office:value=\"50\"/></table:table-row><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"5\"/><table:table-cell  office:value-type=\"string\" office:string-value=\"FIVE\"/><table:table-cell  office:value-type=\"float\" office:value=\"50\"/></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row></table:table-row><table:table-row><table:table-cell  /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE;&quot;a\\b'c&quot;))\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=COUNTA([.B10:.D12])\" /></table:table-row></table:table><table:table table:name=\"a\\b'c\"><table:table-row><table:table-cell  office:value-type=\"float\" office:value=\"101\"/><table:table-cell  office:value-type=\"float\" office:value=\"102\"/><table:table-cell  office:value-type=\"float\" office:value=\"103\"/></table:table-row></table:table><table:named-expressions><table:named-expression table:name=\"Data\" table:expression=\"of:=[.$A$1:.$C$4]\"/><table:named-expression table:name=\"ValueName\" table:expression=\"of:=42\"/><table:named-expression table:name=\"Cycle\" table:expression=\"of:=Cycle\"/><table:named-expression table:name=\"Total\" table:expression=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE;&quot;a\\b'c&quot;))\"/></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "1",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "one",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "3",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "three",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "30",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "5",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "five",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "50",
+              "errorReference": false
+            },
+            {
+              "address": "A4",
+              "value": "5",
+              "errorReference": false
+            },
+            {
+              "address": "B4",
+              "value": "FIVE",
+              "errorReference": false
+            },
+            {
+              "address": "C4",
+              "value": "50",
+              "errorReference": false
+            },
+            {
+              "address": "B10",
+              "value": "#REF!",
+              "errorReference": false
+            },
+            {
+              "address": "A11",
+              "value": "1",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "Sheet2",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "102",
+              "errorReference": false
+            },
+            {
+              "address": "C1",
+              "value": "103",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "regression-sheet-A%3AB",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"A:B\"><table:table-row><table:table-cell office:value-type=\"string\"><text:p>value</text:p></table:table-cell><table:table-cell table:formula=\"of:=1+2\" office:value=\"3\"/><table:table-cell office:value-type=\"float\" office:value=\"5\"/></table:table-row></table:table><table:database-ranges><table:database-range table:target-range-address=\"'A:B'.A1:C3\" table:display-filter-buttons=\"true\"><table:filter><table:filter-condition table:field-number=\"0\" table:operator=\"=\" table:value=\"value\"/></table:filter></table:database-range></table:database-ranges></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "value",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "3",
+              "errorReference": false
+            },
+            {
+              "address": "C1",
+              "value": "5",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "regression-sheet-%5Bbook%5DSheet",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" office:version=\"1.2\"><office:body><office:spreadsheet><table:table table:name=\"[book]Sheet\"><table:table-row><table:table-cell office:value-type=\"string\"><text:p>value</text:p></table:table-cell><table:table-cell table:formula=\"of:=1+2\" office:value=\"3\"/><table:table-cell office:value-type=\"float\" office:value=\"5\"/></table:table-row></table:table><table:database-ranges><table:database-range table:target-range-address=\"'[book]Sheet'.A1:C3\" table:display-filter-buttons=\"true\"><table:filter><table:filter-condition table:field-number=\"0\" table:operator=\"=\" table:value=\"value\"/></table:filter></table:database-range></table:database-ranges></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Sheet1",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "value",
+              "errorReference": false
+            },
+            {
+              "address": "B1",
+              "value": "3",
+              "errorReference": false
+            },
+            {
+              "address": "C1",
+              "value": "5",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "relative-16",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" office:version=\"1.2\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=['Control'.$A$1]\" /><table:table-cell table:formula=\"of:=Pick_0\" /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=['a&#09;b'.$A$1]\" /><table:table-cell table:formula=\"of:=Pick_1\" /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a&#09;b&quot;))\" /></table:table-row></table:table><table:table table:name=\"a&#09;b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\" /></table:table-row></table:table><table:named-expressions><table:named-expression table:base-cell-address=\"$Control.$A$1\" table:name=\"Pick_0\" table:expression=\"of:=['Control'.$A$1]&amp;&quot;a&#09;b&quot;\" /><table:named-expression table:base-cell-address=\"$Control.$A$1\" table:name=\"Pick_1\" table:expression=\"of:=[$'a&#09;b'.$A$1]\" /></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100a\tb",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a\tb",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    },
+    {
+      "name": "relative-17",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" office:version=\"1.2\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\"><office:body><office:spreadsheet><table:table table:name=\"Control\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"100\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=['Control'.$A$1]\" /><table:table-cell table:formula=\"of:=Pick_0\" /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;Control&quot;))\" /></table:table-row><table:table-row><table:table-cell table:formula=\"of:=['a&#10;b'.$A$1]\" /><table:table-cell table:formula=\"of:=Pick_1\" /><table:table-cell table:formula=\"of:=INDIRECT(ADDRESS(1;1;1;TRUE();&quot;a&#10;b&quot;))\" /></table:table-row></table:table><table:table table:name=\"a&#10;b\"><table:table-row><table:table-cell office:value-type=\"float\" office:value=\"101\" /></table:table-row></table:table><table:named-expressions><table:named-expression table:base-cell-address=\"$Control.$A$1\" table:name=\"Pick_0\" table:expression=\"of:=['Control'.$A$1]&amp;&quot;a&#10;b&quot;\" /><table:named-expression table:base-cell-address=\"$Control.$A$1\" table:name=\"Pick_1\" table:expression=\"of:=[$'a&#10;b'.$A$1]\" /></table:named-expressions></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<?xml version=\"1.0\"?><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.2\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.2\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>"
+      },
+      "sheets": [
+        {
+          "name": "Control",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "B2",
+              "value": "100a\nb",
+              "errorReference": false
+            },
+            {
+              "address": "C2",
+              "value": "100",
+              "errorReference": false
+            },
+            {
+              "address": "A3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "B3",
+              "value": "101",
+              "errorReference": false
+            },
+            {
+              "address": "C3",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        },
+        {
+          "name": "a\nb",
+          "cells": [
+            {
+              "address": "A1",
+              "value": "101",
+              "errorReference": false
+            }
+          ],
+          "autoFilter": false
+        }
+      ],
+      "rejectedNames": []
+    }
+  ]
+}

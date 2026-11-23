@@ -1,0 +1,2004 @@
+[
+  {
+    "formula": "FLOOR(-10,-2)",
+    "csv": {
+      "formula": "FLOOR(-10,-2)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,CEILING(-10,-2),FLOOR(-10,-2))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "FLOOR(-10,0)",
+    "csv": {
+      "formula": "FLOOR(-10,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(-10<0,CEILING(-10,0),FLOOR(-10,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-10,0.1)",
+    "csv": {
+      "formula": "FLOOR(-10,0.1)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,CEILING(-10,0.1),FLOOR(-10,0.1))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "FLOOR(-10,2)",
+    "csv": {
+      "formula": "FLOOR(-10,2)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,CEILING(-10,2),FLOOR(-10,2))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "FLOOR(-10,3)",
+    "csv": {
+      "formula": "FLOOR(-10,3)",
+      "value": "-12"
+    },
+    "ods": {
+      "formula": "IF(-10<0,CEILING(-10,3),FLOOR(-10,3))",
+      "value": "-9"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,-2)",
+    "csv": {
+      "formula": "FLOOR(-2.5,-2)",
+      "value": "-2"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,-2),FLOOR(-2.5,-2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,0)",
+    "csv": {
+      "formula": "FLOOR(-2.5,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,0),FLOOR(-2.5,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,0.1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,0.1)",
+      "value": "-2.5"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,0.1),FLOOR(-2.5,0.1))",
+      "value": "-2.5"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,3)",
+    "csv": {
+      "formula": "FLOOR(-2.5,3)",
+      "value": "-3"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,3),FLOOR(-2.5,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-0,-2)",
+    "csv": {
+      "formula": "FLOOR(-0,-2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,CEILING(-0,-2),FLOOR(-0,-2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-0,0)",
+    "csv": {
+      "formula": "FLOOR(-0,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,CEILING(-0,0),FLOOR(-0,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-0,0.1)",
+    "csv": {
+      "formula": "FLOOR(-0,0.1)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,CEILING(-0,0.1),FLOOR(-0,0.1))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-0,2)",
+    "csv": {
+      "formula": "FLOOR(-0,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,CEILING(-0,2),FLOOR(-0,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(-0,3)",
+    "csv": {
+      "formula": "FLOOR(-0,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,CEILING(-0,3),FLOOR(-0,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0,-2)",
+    "csv": {
+      "formula": "FLOOR(0,-2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,CEILING(0,-2),FLOOR(0,-2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0,0)",
+    "csv": {
+      "formula": "FLOOR(0,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,CEILING(0,0),FLOOR(0,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0,0.1)",
+    "csv": {
+      "formula": "FLOOR(0,0.1)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,CEILING(0,0.1),FLOOR(0,0.1))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0,2)",
+    "csv": {
+      "formula": "FLOOR(0,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,CEILING(0,2),FLOOR(0,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0,3)",
+    "csv": {
+      "formula": "FLOOR(0,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,CEILING(0,3),FLOOR(0,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0.1,-2)",
+    "csv": {
+      "formula": "FLOOR(0.1,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,CEILING(0.1,-2),FLOOR(0.1,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(0.1,0)",
+    "csv": {
+      "formula": "FLOOR(0.1,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,CEILING(0.1,0),FLOOR(0.1,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(0.1,0.1)",
+    "csv": {
+      "formula": "FLOOR(0.1,0.1)",
+      "value": "0.1"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,CEILING(0.1,0.1),FLOOR(0.1,0.1))",
+      "value": "0.10000000000000001"
+    }
+  },
+  {
+    "formula": "FLOOR(0.1,2)",
+    "csv": {
+      "formula": "FLOOR(0.1,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,CEILING(0.1,2),FLOOR(0.1,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0.1,3)",
+    "csv": {
+      "formula": "FLOOR(0.1,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,CEILING(0.1,3),FLOOR(0.1,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0.9999999999999999,-2)",
+    "csv": {
+      "formula": "FLOOR(0.9999999999999999,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,-2),FLOOR(0.9999999999999999,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(0.9999999999999999,0)",
+    "csv": {
+      "formula": "FLOOR(0.9999999999999999,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,0),FLOOR(0.9999999999999999,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(0.9999999999999999,0.1)",
+    "csv": {
+      "formula": "FLOOR(0.9999999999999999,0.1)",
+      "value": "1"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,0.1),FLOOR(0.9999999999999999,0.1))",
+      "value": "1"
+    }
+  },
+  {
+    "formula": "FLOOR(0.9999999999999999,2)",
+    "csv": {
+      "formula": "FLOOR(0.9999999999999999,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,2),FLOOR(0.9999999999999999,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(0.9999999999999999,3)",
+    "csv": {
+      "formula": "FLOOR(0.9999999999999999,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,3),FLOOR(0.9999999999999999,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(1.0000000000000002,-2)",
+    "csv": {
+      "formula": "FLOOR(1.0000000000000002,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,-2),FLOOR(1.0000000000000002,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(1.0000000000000002,0)",
+    "csv": {
+      "formula": "FLOOR(1.0000000000000002,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,0),FLOOR(1.0000000000000002,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(1.0000000000000002,0.1)",
+    "csv": {
+      "formula": "FLOOR(1.0000000000000002,0.1)",
+      "value": "1"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,0.1),FLOOR(1.0000000000000002,0.1))",
+      "value": "1"
+    }
+  },
+  {
+    "formula": "FLOOR(1.0000000000000002,2)",
+    "csv": {
+      "formula": "FLOOR(1.0000000000000002,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,2),FLOOR(1.0000000000000002,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(1.0000000000000002,3)",
+    "csv": {
+      "formula": "FLOOR(1.0000000000000002,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,3),FLOOR(1.0000000000000002,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(2.5,-2)",
+    "csv": {
+      "formula": "FLOOR(2.5,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,CEILING(2.5,-2),FLOOR(2.5,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(2.5,0)",
+    "csv": {
+      "formula": "FLOOR(2.5,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,CEILING(2.5,0),FLOOR(2.5,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(2.5,0.1)",
+    "csv": {
+      "formula": "FLOOR(2.5,0.1)",
+      "value": "2.5"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,CEILING(2.5,0.1),FLOOR(2.5,0.1))",
+      "value": "2.5"
+    }
+  },
+  {
+    "formula": "FLOOR(2.5,2)",
+    "csv": {
+      "formula": "FLOOR(2.5,2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,CEILING(2.5,2),FLOOR(2.5,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2.5,3)",
+    "csv": {
+      "formula": "FLOOR(2.5,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,CEILING(2.5,3),FLOOR(2.5,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(7,-2)",
+    "csv": {
+      "formula": "FLOOR(7,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(7<0,CEILING(7,-2),FLOOR(7,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(7,0)",
+    "csv": {
+      "formula": "FLOOR(7,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(7<0,CEILING(7,0),FLOOR(7,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(7,0.1)",
+    "csv": {
+      "formula": "FLOOR(7,0.1)",
+      "value": "7"
+    },
+    "ods": {
+      "formula": "IF(7<0,CEILING(7,0.1),FLOOR(7,0.1))",
+      "value": "7"
+    }
+  },
+  {
+    "formula": "FLOOR(7,2)",
+    "csv": {
+      "formula": "FLOOR(7,2)",
+      "value": "6"
+    },
+    "ods": {
+      "formula": "IF(7<0,CEILING(7,2),FLOOR(7,2))",
+      "value": "6"
+    }
+  },
+  {
+    "formula": "FLOOR(7,3)",
+    "csv": {
+      "formula": "FLOOR(7,3)",
+      "value": "6"
+    },
+    "ods": {
+      "formula": "IF(7<0,CEILING(7,3),FLOOR(7,3))",
+      "value": "6"
+    }
+  },
+  {
+    "formula": "FLOOR(1e-300,-2)",
+    "csv": {
+      "formula": "FLOOR(1e-300,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,CEILING(1e-300,-2),FLOOR(1e-300,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(1e-300,0)",
+    "csv": {
+      "formula": "FLOOR(1e-300,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,CEILING(1e-300,0),FLOOR(1e-300,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(1e-300,0.1)",
+    "csv": {
+      "formula": "FLOOR(1e-300,0.1)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,CEILING(1e-300,0.1),FLOOR(1e-300,0.1))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(1e-300,2)",
+    "csv": {
+      "formula": "FLOOR(1e-300,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,CEILING(1e-300,2),FLOOR(1e-300,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(1e-300,3)",
+    "csv": {
+      "formula": "FLOOR(1e-300,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,CEILING(1e-300,3),FLOOR(1e-300,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(1e300,-2)",
+    "csv": {
+      "formula": "FLOOR(1e300,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,CEILING(1e+300,-2),FLOOR(1e+300,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "FLOOR(1e300,0)",
+    "csv": {
+      "formula": "FLOOR(1e300,0)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,CEILING(1e+300,0),FLOOR(1e+300,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(1e300,0.1)",
+    "csv": {
+      "formula": "FLOOR(1e300,0.1)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,CEILING(1e+300,0.1),FLOOR(1e+300,0.1))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "FLOOR(1e300,2)",
+    "csv": {
+      "formula": "FLOOR(1e300,2)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,CEILING(1e+300,2),FLOOR(1e+300,2))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "FLOOR(1e300,3)",
+    "csv": {
+      "formula": "FLOOR(1e300,3)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,CEILING(1e+300,3),FLOOR(1e+300,3))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "FLOOR()",
+    "csv": {
+      "formula": "FLOOR()",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "ODF.FLOOR()",
+      "value": "#NAME?"
+    }
+  },
+  {
+    "formula": "FLOOR(2)",
+    "csv": {
+      "formula": "FLOOR(2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,SIGN(2)),FLOOR(2,SIGN(2)))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2,)",
+    "csv": {
+      "formula": "FLOOR(2,)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,),FLOOR(2,))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2,Z1000)",
+    "csv": {
+      "formula": "FLOOR(2,Z1000)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,Z1000),FLOOR(2,Z1000))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2,\"2\")",
+    "csv": {
+      "formula": "FLOOR(2,\"2\")",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,\"2\"),FLOOR(2,\"2\"))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2,\"text\")",
+    "csv": {
+      "formula": "FLOOR(2,\"text\")",
+      "value": "#VALUE!"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,\"text\"),FLOOR(2,\"text\"))",
+      "value": "#VALUE!"
+    }
+  },
+  {
+    "formula": "FLOOR(2,TRUE())",
+    "csv": {
+      "formula": "FLOOR(2,TRUE())",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,TRUE),FLOOR(2,TRUE))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(2,FALSE())",
+    "csv": {
+      "formula": "FLOOR(2,FALSE())",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,FALSE),FLOOR(2,FALSE))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(2,#N/A)",
+    "csv": {
+      "formula": "FLOOR(2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(2<0,CEILING(2,#N/A),FLOOR(2,#N/A))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "FLOOR(#DIV/0!,#N/A)",
+    "csv": {
+      "formula": "FLOOR(#DIV/0!,#N/A)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(#DIV/0!<0,CEILING(#DIV/0!,#N/A),FLOOR(#DIV/0!,#N/A))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "FLOOR(TRUE(),2)",
+    "csv": {
+      "formula": "FLOOR(TRUE(),2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(TRUE<0,CEILING(TRUE,2),FLOOR(TRUE,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(\"3\",2)",
+    "csv": {
+      "formula": "FLOOR(\"3\",2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(\"3\"<0,CEILING(\"3\",2),FLOOR(\"3\",2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "FLOOR(\"text\",2)",
+    "csv": {
+      "formula": "FLOOR(\"text\",2)",
+      "value": "#VALUE!"
+    },
+    "ods": {
+      "formula": "IF(\"text\"<0,CEILING(\"text\",2),FLOOR(\"text\",2))",
+      "value": "#VALUE!"
+    }
+  },
+  {
+    "formula": "FLOOR(2,3,4)",
+    "csv": {
+      "formula": "FLOOR(2,3,4)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "FLOOR(2,3)",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "FLOOR(2,3,4,5)",
+    "csv": {
+      "formula": "FLOOR(2,3,4,5)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "ODF.FLOOR(2,3,4,5)",
+      "value": "#NAME?"
+    }
+  },
+  {
+    "formula": "CEILING(-10,-2)",
+    "csv": {
+      "formula": "CEILING(-10,-2)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,FLOOR(-10,-2),CEILING(-10,-2))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "CEILING(-10,0)",
+    "csv": {
+      "formula": "CEILING(-10,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-10<0,FLOOR(-10,0),CEILING(-10,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "CEILING(-10,0.1)",
+    "csv": {
+      "formula": "CEILING(-10,0.1)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,FLOOR(-10,0.1),CEILING(-10,0.1))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "CEILING(-10,2)",
+    "csv": {
+      "formula": "CEILING(-10,2)",
+      "value": "-10"
+    },
+    "ods": {
+      "formula": "IF(-10<0,FLOOR(-10,2),CEILING(-10,2))",
+      "value": "-10"
+    }
+  },
+  {
+    "formula": "CEILING(-10,3)",
+    "csv": {
+      "formula": "CEILING(-10,3)",
+      "value": "-9"
+    },
+    "ods": {
+      "formula": "IF(-10<0,FLOOR(-10,3),CEILING(-10,3))",
+      "value": "-12"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,-2)",
+    "csv": {
+      "formula": "CEILING(-2.5,-2)",
+      "value": "-4"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,-2),CEILING(-2.5,-2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,0)",
+    "csv": {
+      "formula": "CEILING(-2.5,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,0),CEILING(-2.5,0))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,0.1)",
+    "csv": {
+      "formula": "CEILING(-2.5,0.1)",
+      "value": "-2.5"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,0.1),CEILING(-2.5,0.1))",
+      "value": "-2.5"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2)",
+    "csv": {
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,3)",
+    "csv": {
+      "formula": "CEILING(-2.5,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,3),CEILING(-2.5,3))",
+      "value": "-3"
+    }
+  },
+  {
+    "formula": "CEILING(-0,-2)",
+    "csv": {
+      "formula": "CEILING(-0,-2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,FLOOR(-0,-2),CEILING(-0,-2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(-0,0)",
+    "csv": {
+      "formula": "CEILING(-0,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,FLOOR(-0,0),CEILING(-0,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(-0,0.1)",
+    "csv": {
+      "formula": "CEILING(-0,0.1)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,FLOOR(-0,0.1),CEILING(-0,0.1))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(-0,2)",
+    "csv": {
+      "formula": "CEILING(-0,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,FLOOR(-0,2),CEILING(-0,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(-0,3)",
+    "csv": {
+      "formula": "CEILING(-0,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(-0<0,FLOOR(-0,3),CEILING(-0,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0,-2)",
+    "csv": {
+      "formula": "CEILING(0,-2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,FLOOR(0,-2),CEILING(0,-2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0,0)",
+    "csv": {
+      "formula": "CEILING(0,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,FLOOR(0,0),CEILING(0,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0,0.1)",
+    "csv": {
+      "formula": "CEILING(0,0.1)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,FLOOR(0,0.1),CEILING(0,0.1))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0,2)",
+    "csv": {
+      "formula": "CEILING(0,2)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,FLOOR(0,2),CEILING(0,2))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0,3)",
+    "csv": {
+      "formula": "CEILING(0,3)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0<0,FLOOR(0,3),CEILING(0,3))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0.1,-2)",
+    "csv": {
+      "formula": "CEILING(0.1,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,FLOOR(0.1,-2),CEILING(0.1,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(0.1,0)",
+    "csv": {
+      "formula": "CEILING(0.1,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,FLOOR(0.1,0),CEILING(0.1,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0.1,0.1)",
+    "csv": {
+      "formula": "CEILING(0.1,0.1)",
+      "value": "0.1"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,FLOOR(0.1,0.1),CEILING(0.1,0.1))",
+      "value": "0.10000000000000001"
+    }
+  },
+  {
+    "formula": "CEILING(0.1,2)",
+    "csv": {
+      "formula": "CEILING(0.1,2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,FLOOR(0.1,2),CEILING(0.1,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(0.1,3)",
+    "csv": {
+      "formula": "CEILING(0.1,3)",
+      "value": "3"
+    },
+    "ods": {
+      "formula": "IF(0.1<0,FLOOR(0.1,3),CEILING(0.1,3))",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(0.9999999999999999,-2)",
+    "csv": {
+      "formula": "CEILING(0.9999999999999999,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,-2),CEILING(0.9999999999999999,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(0.9999999999999999,0)",
+    "csv": {
+      "formula": "CEILING(0.9999999999999999,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,0),CEILING(0.9999999999999999,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(0.9999999999999999,0.1)",
+    "csv": {
+      "formula": "CEILING(0.9999999999999999,0.1)",
+      "value": "1"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,0.1),CEILING(0.9999999999999999,0.1))",
+      "value": "1"
+    }
+  },
+  {
+    "formula": "CEILING(0.9999999999999999,2)",
+    "csv": {
+      "formula": "CEILING(0.9999999999999999,2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,2),CEILING(0.9999999999999999,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(0.9999999999999999,3)",
+    "csv": {
+      "formula": "CEILING(0.9999999999999999,3)",
+      "value": "3"
+    },
+    "ods": {
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,3),CEILING(0.9999999999999999,3))",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(1.0000000000000002,-2)",
+    "csv": {
+      "formula": "CEILING(1.0000000000000002,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,-2),CEILING(1.0000000000000002,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(1.0000000000000002,0)",
+    "csv": {
+      "formula": "CEILING(1.0000000000000002,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,0),CEILING(1.0000000000000002,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(1.0000000000000002,0.1)",
+    "csv": {
+      "formula": "CEILING(1.0000000000000002,0.1)",
+      "value": "1"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,0.1),CEILING(1.0000000000000002,0.1))",
+      "value": "1"
+    }
+  },
+  {
+    "formula": "CEILING(1.0000000000000002,2)",
+    "csv": {
+      "formula": "CEILING(1.0000000000000002,2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,2),CEILING(1.0000000000000002,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(1.0000000000000002,3)",
+    "csv": {
+      "formula": "CEILING(1.0000000000000002,3)",
+      "value": "3"
+    },
+    "ods": {
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,3),CEILING(1.0000000000000002,3))",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(2.5,-2)",
+    "csv": {
+      "formula": "CEILING(2.5,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,FLOOR(2.5,-2),CEILING(2.5,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(2.5,0)",
+    "csv": {
+      "formula": "CEILING(2.5,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,FLOOR(2.5,0),CEILING(2.5,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(2.5,0.1)",
+    "csv": {
+      "formula": "CEILING(2.5,0.1)",
+      "value": "2.5"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,FLOOR(2.5,0.1),CEILING(2.5,0.1))",
+      "value": "2.5"
+    }
+  },
+  {
+    "formula": "CEILING(2.5,2)",
+    "csv": {
+      "formula": "CEILING(2.5,2)",
+      "value": "4"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,FLOOR(2.5,2),CEILING(2.5,2))",
+      "value": "4"
+    }
+  },
+  {
+    "formula": "CEILING(2.5,3)",
+    "csv": {
+      "formula": "CEILING(2.5,3)",
+      "value": "3"
+    },
+    "ods": {
+      "formula": "IF(2.5<0,FLOOR(2.5,3),CEILING(2.5,3))",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(7,-2)",
+    "csv": {
+      "formula": "CEILING(7,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(7<0,FLOOR(7,-2),CEILING(7,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(7,0)",
+    "csv": {
+      "formula": "CEILING(7,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(7<0,FLOOR(7,0),CEILING(7,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(7,0.1)",
+    "csv": {
+      "formula": "CEILING(7,0.1)",
+      "value": "7"
+    },
+    "ods": {
+      "formula": "IF(7<0,FLOOR(7,0.1),CEILING(7,0.1))",
+      "value": "7"
+    }
+  },
+  {
+    "formula": "CEILING(7,2)",
+    "csv": {
+      "formula": "CEILING(7,2)",
+      "value": "8"
+    },
+    "ods": {
+      "formula": "IF(7<0,FLOOR(7,2),CEILING(7,2))",
+      "value": "8"
+    }
+  },
+  {
+    "formula": "CEILING(7,3)",
+    "csv": {
+      "formula": "CEILING(7,3)",
+      "value": "9"
+    },
+    "ods": {
+      "formula": "IF(7<0,FLOOR(7,3),CEILING(7,3))",
+      "value": "9"
+    }
+  },
+  {
+    "formula": "CEILING(1e-300,-2)",
+    "csv": {
+      "formula": "CEILING(1e-300,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,FLOOR(1e-300,-2),CEILING(1e-300,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(1e-300,0)",
+    "csv": {
+      "formula": "CEILING(1e-300,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,FLOOR(1e-300,0),CEILING(1e-300,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(1e-300,0.1)",
+    "csv": {
+      "formula": "CEILING(1e-300,0.1)",
+      "value": "0.1"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,FLOOR(1e-300,0.1),CEILING(1e-300,0.1))",
+      "value": "0.10000000000000001"
+    }
+  },
+  {
+    "formula": "CEILING(1e-300,2)",
+    "csv": {
+      "formula": "CEILING(1e-300,2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,FLOOR(1e-300,2),CEILING(1e-300,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(1e-300,3)",
+    "csv": {
+      "formula": "CEILING(1e-300,3)",
+      "value": "3"
+    },
+    "ods": {
+      "formula": "IF(1e-300<0,FLOOR(1e-300,3),CEILING(1e-300,3))",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(1e300,-2)",
+    "csv": {
+      "formula": "CEILING(1e300,-2)",
+      "value": "#NUM!"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,FLOOR(1e+300,-2),CEILING(1e+300,-2))",
+      "value": "#NUM!"
+    }
+  },
+  {
+    "formula": "CEILING(1e300,0)",
+    "csv": {
+      "formula": "CEILING(1e300,0)",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,FLOOR(1e+300,0),CEILING(1e+300,0))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(1e300,0.1)",
+    "csv": {
+      "formula": "CEILING(1e300,0.1)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,FLOOR(1e+300,0.1),CEILING(1e+300,0.1))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "CEILING(1e300,2)",
+    "csv": {
+      "formula": "CEILING(1e300,2)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,FLOOR(1e+300,2),CEILING(1e+300,2))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "CEILING(1e300,3)",
+    "csv": {
+      "formula": "CEILING(1e300,3)",
+      "value": "1e+300"
+    },
+    "ods": {
+      "formula": "IF(1e+300<0,FLOOR(1e+300,3),CEILING(1e+300,3))",
+      "value": "1.0000000000000001e+300"
+    }
+  },
+  {
+    "formula": "CEILING()",
+    "csv": {
+      "formula": "CEILING()",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "ODF.CEILING()",
+      "value": "#NAME?"
+    }
+  },
+  {
+    "formula": "CEILING(2)",
+    "csv": {
+      "formula": "CEILING(2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "_xlfngnumeric.CEIL(2)",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(2,)",
+    "csv": {
+      "formula": "CEILING(2,)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,),CEILING(2,))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(2,Z1000)",
+    "csv": {
+      "formula": "CEILING(2,Z1000)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,Z1000),CEILING(2,Z1000))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(2,\"2\")",
+    "csv": {
+      "formula": "CEILING(2,\"2\")",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,\"2\"),CEILING(2,\"2\"))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(2,\"text\")",
+    "csv": {
+      "formula": "CEILING(2,\"text\")",
+      "value": "#VALUE!"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,\"text\"),CEILING(2,\"text\"))",
+      "value": "#VALUE!"
+    }
+  },
+  {
+    "formula": "CEILING(2,TRUE())",
+    "csv": {
+      "formula": "CEILING(2,TRUE())",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,TRUE),CEILING(2,TRUE))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(2,FALSE())",
+    "csv": {
+      "formula": "CEILING(2,FALSE())",
+      "value": "0"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,FALSE),CEILING(2,FALSE))",
+      "value": "0"
+    }
+  },
+  {
+    "formula": "CEILING(2,#N/A)",
+    "csv": {
+      "formula": "CEILING(2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(2<0,FLOOR(2,#N/A),CEILING(2,#N/A))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "CEILING(#DIV/0!,#N/A)",
+    "csv": {
+      "formula": "CEILING(#DIV/0!,#N/A)",
+      "value": "#DIV/0!"
+    },
+    "ods": {
+      "formula": "IF(#DIV/0!<0,FLOOR(#DIV/0!,#N/A),CEILING(#DIV/0!,#N/A))",
+      "value": "#DIV/0!"
+    }
+  },
+  {
+    "formula": "CEILING(TRUE(),2)",
+    "csv": {
+      "formula": "CEILING(TRUE(),2)",
+      "value": "2"
+    },
+    "ods": {
+      "formula": "IF(TRUE<0,FLOOR(TRUE,2),CEILING(TRUE,2))",
+      "value": "2"
+    }
+  },
+  {
+    "formula": "CEILING(\"3\",2)",
+    "csv": {
+      "formula": "CEILING(\"3\",2)",
+      "value": "4"
+    },
+    "ods": {
+      "formula": "IF(\"3\"<0,FLOOR(\"3\",2),CEILING(\"3\",2))",
+      "value": "4"
+    }
+  },
+  {
+    "formula": "CEILING(\"text\",2)",
+    "csv": {
+      "formula": "CEILING(\"text\",2)",
+      "value": "#VALUE!"
+    },
+    "ods": {
+      "formula": "IF(\"text\"<0,FLOOR(\"text\",2),CEILING(\"text\",2))",
+      "value": "#VALUE!"
+    }
+  },
+  {
+    "formula": "CEILING(2,3,4)",
+    "csv": {
+      "formula": "CEILING(2,3,4)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "CEILING(2,3)",
+      "value": "3"
+    }
+  },
+  {
+    "formula": "CEILING(2,3,4,5)",
+    "csv": {
+      "formula": "CEILING(2,3,4,5)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "ODF.CEILING(2,3,4,5)",
+      "value": "#NAME?"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5)",
+    "csv": {
+      "formula": "FLOOR(-2.5)",
+      "value": "-2"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,SIGN(-2.5)),FLOOR(-2.5,SIGN(-2.5)))",
+      "value": "-3"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,)",
+    "csv": {
+      "formula": "FLOOR(-2.5,)",
+      "value": "-2"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,),FLOOR(-2.5,))",
+      "value": "-3"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,0)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,0)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,-1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,TRUE())",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,TRUE())",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=TRUE,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,FALSE())",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,FALSE())",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=FALSE,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,\"0\")",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,\"0\")",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=\"0\",IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,\"1\")",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,\"1\")",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=\"1\",IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,#N/A)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=#N/A,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "FLOOR(#DIV/0!,2,#N/A)",
+    "csv": {
+      "formula": "FLOOR(#DIV/0!,2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=#N/A,IF(#DIV/0!<0,CEILING(#DIV/0!,2),FLOOR(#DIV/0!,2)),FLOOR(#DIV/0!,2))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,,0)",
+    "csv": {
+      "formula": "FLOOR(-2.5,,0)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,CEILING(-2.5,),FLOOR(-2.5,))",
+      "value": "-3"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,,1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,,1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "FLOOR(-2.5,)",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,(0))",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,(0))",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=(0),IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,(1))",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,(1))",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=(1),IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,1%)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,1%)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=1%,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,0%)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,0%)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=0%,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,1-1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,1-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=1-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,2-1)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,2-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=2-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "FLOOR(-2.5,2,Z1000)",
+    "csv": {
+      "formula": "FLOOR(-2.5,2,Z1000)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=Z1000,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "ORG.GNUMERIC.FLOOR(-2.5,2)",
+    "csv": {
+      "formula": "ORG.GNUMERIC.FLOOR(-2.5,2)",
+      "value": "#NAME?"
+    },
+    "ods": {
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5)",
+    "csv": {
+      "formula": "CEILING(-2.5)",
+      "value": "-3"
+    },
+    "ods": {
+      "formula": "_xlfngnumeric.CEIL(-2.5)",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,)",
+    "csv": {
+      "formula": "CEILING(-2.5,)",
+      "value": "-3"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,),CEILING(-2.5,))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,0)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,0)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,1)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,-1)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,TRUE())",
+    "csv": {
+      "formula": "CEILING(-2.5,2,TRUE())",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=TRUE,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,FALSE())",
+    "csv": {
+      "formula": "CEILING(-2.5,2,FALSE())",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=FALSE,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,\"0\")",
+    "csv": {
+      "formula": "CEILING(-2.5,2,\"0\")",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=\"0\",IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,\"1\")",
+    "csv": {
+      "formula": "CEILING(-2.5,2,\"1\")",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=\"1\",IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,#N/A)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=#N/A,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "CEILING(#DIV/0!,2,#N/A)",
+    "csv": {
+      "formula": "CEILING(#DIV/0!,2,#N/A)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=#N/A,IF(#DIV/0!<0,FLOOR(#DIV/0!,2),CEILING(#DIV/0!,2)),CEILING(#DIV/0!,2))",
+      "value": "#N/A"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,,0)",
+    "csv": {
+      "formula": "CEILING(-2.5,,0)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(-2.5<0,FLOOR(-2.5,),CEILING(-2.5,))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,,1)",
+    "csv": {
+      "formula": "CEILING(-2.5,,1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "CEILING(-2.5,)",
+      "value": "-3"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,(0))",
+    "csv": {
+      "formula": "CEILING(-2.5,2,(0))",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=(0),IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,(1))",
+    "csv": {
+      "formula": "CEILING(-2.5,2,(1))",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=(1),IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,1%)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,1%)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=1%,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,0%)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,0%)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=0%,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,1-1)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,1-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=1-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,2-1)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,2-1)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=2-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2"
+    }
+  },
+  {
+    "formula": "CEILING(-2.5,2,Z1000)",
+    "csv": {
+      "formula": "CEILING(-2.5,2,Z1000)",
+      "value": "#N/A"
+    },
+    "ods": {
+      "formula": "IF(0=Z1000,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4"
+    }
+  },
+  {
+    "formula": "ORG.GNUMERIC.CEILING(-2.5,2)",
+    "csv": {
+      "formula": "ORG.GNUMERIC.CEILING(-2.5,2)",
+      "value": "#NAME?"
+    },
+    "ods": {
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2"
+    }
+  }
+]

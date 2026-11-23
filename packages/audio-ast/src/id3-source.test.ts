@@ -11,6 +11,30 @@ function fixture(version: number, flags: number, frames: number[]) { return Uint
 function frame(version: number, id: string, data: number[], flags = 0) {
   return [...new TextEncoder().encode(id), ...(version === 2 ? [data.length >>> 16, data.length >>> 8 & 255, data.length & 255] : version === 4 ? sync(data.length) : [0,0,data.length >>> 8,data.length & 255]), ...(version === 2 ? [] : [flags >>> 8, flags & 255]), ...data];
 }
+for (const version of [2, 3, 4]) it(`preserves v${version} prototype-named custom tags and duplicate replacement`, async () => {
+  const keys = ["__proto__", "constructor", "toString"];
+  const frames = ["Original", "Replacement"].flatMap(value => keys.flatMap(key =>
+    frame(version, version === 2 ? "TXX" : "TXXX", [3, ...new TextEncoder().encode(key), 0, ...new TextEncoder().encode(value)])));
+  const bytes = fixture(version, 0, frames);
+  const expected = Object.fromEntries(keys.map(key => [key, "Replacement"]));
+  for (const tags of [parseId3(bytes).tags, (await probeId3Source(source(bytes))).tags]) {
+    expect(tags).toEqual(expected);
+    expect(Object.keys(tags)).toEqual(keys);
+    expect(Object.getPrototypeOf(tags)).toBe(Object.prototype);
+  }
+  const entries: [string, string][] = [];
+  await probeId3Source(source(bytes), { onTag: async span => {
+    let value = "";
+    for await (const part of readId3Text(source(bytes), span)) value += part;
+    entries.push([span.key, value]);
+  } });
+  expect(Object.fromEntries(entries)).toEqual(expected);
+  expect(entries).toHaveLength(6);
+  if (version !== 2) {
+    const chapter = fixture(version, 0, frame(version, "CHAP", [99, 0, ...new Array<number>(16).fill(0), ...frames]));
+    expect(parseId3(chapter).chapters[0]?.tags).toEqual(expected);
+  }
+});
 async function compare(bytes: Uint8Array) {
   const input = source(bytes), spans: Id3TextSpan[] = [];
   const result = await probeId3Source(input, { onTag: async span => { spans.push(span); } });

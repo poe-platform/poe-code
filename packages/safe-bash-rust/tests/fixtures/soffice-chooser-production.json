@@ -1,0 +1,3794 @@
+[
+  {
+    "formula": "OPT_SIMPLE_CHOOSER()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 12.378483731079122
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,.2,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(0,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(-1,100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 94.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1e-10,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 95.1229424499714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1e100,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 1e+100
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(\"1\",100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 94.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(\"x\",100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(\"\",100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(TRUE(),100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 94.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(#N/A,100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(NA(),100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1/0,100,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER({0,1},100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,0,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,-1,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,1,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.04877057549929
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,1e-10,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.99999999990487
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,1e100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 9.51229424500714e+99
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,\"1\",.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.04877057549929
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,\"x\",.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,\"\",.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,TRUE(),.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.04877057549929
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,#N/A,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,NA(),.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,1/0,.25,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,{0,1},.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 16.024109594442535
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1e-10,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1e100,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 105.57352602225697
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,\"1\",1,.05,.05,.2)",
+    "kind": "number",
+    "value": 16.024109594442535
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,\"x\",1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,\"\",1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,TRUE(),1,.05,.05,.2)",
+    "kind": "number",
+    "value": 16.024109594442535
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,#N/A,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,NA(),1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1/0,1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,{0,1},1,.05,.05,.2)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 10.450583572185565
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,-1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1e-10,.05,.05,.2)",
+    "kind": "number",
+    "value": 3.987840956120607
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1e100,.05,.05,.2)",
+    "kind": "number",
+    "value": 100
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,\"1\",.05,.05,.2)",
+    "kind": "number",
+    "value": 12.378483731079122
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,\"x\",.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,\"\",.05,.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,TRUE(),.05,.05,.2)",
+    "kind": "number",
+    "value": 12.378483731079122
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,#N/A,.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,NA(),.05,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1/0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,{0,1},.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,0,.05,.2)",
+    "kind": "number",
+    "value": 13.013142163444336
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,-1,.05,.2)",
+    "kind": "number",
+    "value": 35.37338787404495
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,1,.05,.2)",
+    "kind": "number",
+    "value": 4.787267466972432
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,1e-10,.05,.2)",
+    "kind": "number",
+    "value": 13.013142162143005
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,1e100,.05,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,\"1\",.05,.2)",
+    "kind": "number",
+    "value": 4.787267466972432
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,\"x\",.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,\"\",.05,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,TRUE(),.05,.2)",
+    "kind": "number",
+    "value": 4.787267466972432
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,#N/A,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,NA(),.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,1/0,.05,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,{0,1},.05,.2)",
+    "kind": "number",
+    "value": 13.013142163444336
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,,.05,.2)",
+    "kind": "number",
+    "value": 13.013142163444336
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,0,.2)",
+    "kind": "number",
+    "value": 11.370357907000582
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,-1,.2)",
+    "kind": "number",
+    "value": 60.12916815296831
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,1,.2)",
+    "kind": "number",
+    "value": 163.44802515057205
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,1e-10,.2)",
+    "kind": "number",
+    "value": 11.370357907569094
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,1e100,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,\"1\",.2)",
+    "kind": "number",
+    "value": 163.44802515057205
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,\"x\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 163.44802515057205
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,#N/A,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,{0,1},.2)",
+    "kind": "number",
+    "value": 11.370357907000582
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,,.2)",
+    "kind": "number",
+    "value": 11.370357907000582
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,0)",
+    "kind": "number",
+    "value": 4.877057549928594
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,-1)",
+    "kind": "number",
+    "value": -56.75570914637541
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,1)",
+    "kind": "number",
+    "value": 56.755709146375416
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,1e-10)",
+    "kind": "number",
+    "value": 4.877057549928594
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,1e100)",
+    "kind": "number",
+    "value": 195.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,\"1\")",
+    "kind": "number",
+    "value": 56.755709146375416
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,\"x\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,TRUE())",
+    "kind": "number",
+    "value": 56.755709146375416
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,{0,1})",
+    "kind": "number",
+    "value": 4.877057549928594
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,)",
+    "kind": "number",
+    "value": 4.877057549928594
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 99.98999500000012
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.98999500000012
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 99.98999500000012
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 98.74778004938814
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 98.74778004938814
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 98.74778004938814
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 95.1129424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 95.1129424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 95.11294302410086
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 22.30301601484298
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 22.303016014843042
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(.01,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 22.31301599868187
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 98.99999500000013
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 98.99999500000013
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 98.99999867602048
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 97.75778004938815
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 97.75778004938815
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 97.75778782581044
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 94.1229424500714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 94.1738484624276
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 21.313016014842983
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 21.316098685967994
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 22.3141269948868
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 19.999995000000126
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 20.039909399728714
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 45.24479803452588
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 18.757780049388145
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 18.87062765206987
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 69.83549370889762
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 15.122942450071406
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 17.129932308868803
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 93.92446113282722
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 57.68698398515701
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 60.20806380465958
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(80,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 81.85443398254745
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 0.1998698746988694
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 3.995739913625556
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 38.372279738302815
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 1.2442115958170912
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 7.987774308593863
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 76.11477422441386
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 4.877057602069669
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 104.02057472916518
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 77.68698398515701
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 79.51409691076856
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 101.26506200410148
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 20.000004999999874
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 20.147337072774462
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 52.76141994071914
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 21.242219950611855
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 21.454157744810118
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 85.21907183186374
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 24.877057549928594
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 26.205547112792804
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 115.97957682350298
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 97.68698398515701
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 99.05959891718943
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(120,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 120.89981335522883
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.000001,.05,.05,.01)",
+    "kind": "number",
+    "value": 900.0000049999999
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.000001,.05,.05,.2)",
+    "kind": "number",
+    "value": 900.0000049999999
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.000001,.05,.05,2)",
+    "kind": "number",
+    "value": 901.0379327641008
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.25,.05,.05,.01)",
+    "kind": "number",
+    "value": 901.2422199506118
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.25,.05,.05,.2)",
+    "kind": "number",
+    "value": 901.2422199506118
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,.25,.05,.05,2)",
+    "kind": "number",
+    "value": 903.2305235775184
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,1,.05,.05,.01)",
+    "kind": "number",
+    "value": 904.8770575499286
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 904.8770575499286
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,1,.05,.05,2)",
+    "kind": "number",
+    "value": 931.8891845296375
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,30,.05,.05,.01)",
+    "kind": "number",
+    "value": 977.686983985157
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,30,.05,.05,.2)",
+    "kind": "number",
+    "value": 977.6963692732635
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(1000,100,.25,30,.05,.05,2)",
+    "kind": "number",
+    "value": 1000.0022407757934
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(\"x\",100,.25,1,.05,.05,#N/A)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(#N/A,100,.25,1,.05,.05,\"x\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(#VALUE!,100,.25,1,.05,.05,NA())",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(NA(),100,.25,1,.05,.05,#VALUE!)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 10.746958748455643
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,.5,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(0,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(-1,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(1,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(1e-10,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(1e100,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"1\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(TRUE(),100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(#N/A,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(NA(),100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(1/0,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX({0,1},100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(,100,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",0,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",-1,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.2261134361834866e-96
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1e-10,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1e100,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 9.51229424500714e+99
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",\"1\",90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.2261134361834866e-96
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",\"x\",90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",\"\",90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",TRUE(),90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.2261134361834866e-96
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",#N/A,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",NA(),90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1/0,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",{0,1},90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,0,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.36679532756784
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,-1,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 91.31802475206855
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,1,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 89.41556590306712
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,1e-10,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.36679532747272
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,1e100,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,\"1\",5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 89.41556590306712
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,\"x\",5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,\"\",5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,TRUE(),5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 89.41556590306712
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,#N/A,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,NA(),5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,1/0,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,{0,1},5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.36679532756784
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.36679532756784
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.850104132547791
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-1,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 14.520666686550037
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,1,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.19562865711752
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,1e-10,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.850104132481537
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,1e100,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,\"1\",1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.19562865711752
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,\"x\",1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,\"\",1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,TRUE(),1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.19562865711752
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,#N/A,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,NA(),1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,1/0,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,{0,1},1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.850104132547791
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.850104132547791
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,0,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999999999995
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,-1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1e-10,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999999974998
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1e100,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,\"1\",.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 10.746958748455643
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,\"x\",.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,\"\",.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,TRUE(),.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 10.746958748455643
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,#N/A,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,NA(),.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1/0,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,{0,1},.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999999999995
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999999999995
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,0,.2,.25,.5)",
+    "kind": "number",
+    "value": 11.297967106196861
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,-1,.2,.25,.5)",
+    "kind": "number",
+    "value": 30.711058683302955
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,1,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.15628982540104
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,1e-10,.2,.25,.5)",
+    "kind": "number",
+    "value": 11.297967105067075
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,1e100,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,\"1\",.2,.25,.5)",
+    "kind": "number",
+    "value": 4.15628982540104
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,\"x\",.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,\"\",.2,.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,TRUE(),.2,.25,.5)",
+    "kind": "number",
+    "value": 4.15628982540104
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,#N/A,.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,NA(),.2,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,1/0,.2,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,{0,1},.2,.25,.5)",
+    "kind": "number",
+    "value": 11.297967106196861
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,,.2,.25,.5)",
+    "kind": "number",
+    "value": 11.297967106196861
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,0,.25,.5)",
+    "kind": "number",
+    "value": 11.323981268232096
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,-1,.25,.5)",
+    "kind": "number",
+    "value": 42.32532473859684
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,1,.25,.5)",
+    "kind": "number",
+    "value": 34.80719361609251
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,1e-10,.25,.5)",
+    "kind": "number",
+    "value": 11.323981266438189
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,1e100,.25,.5)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,\"1\",.25,.5)",
+    "kind": "number",
+    "value": 34.80719361609251
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,\"x\",.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,\"\",.25,.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,TRUE(),.25,.5)",
+    "kind": "number",
+    "value": 34.80719361609251
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,#N/A,.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,NA(),.25,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,1/0,.25,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,{0,1},.25,.5)",
+    "kind": "number",
+    "value": 11.323981268232096
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,,.25,.5)",
+    "kind": "number",
+    "value": 11.323981268232096
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,0,.5)",
+    "kind": "number",
+    "value": 10.006496992013082
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,-1,.5)",
+    "kind": "number",
+    "value": 39.927646220842135
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,1,.5)",
+    "kind": "number",
+    "value": 33.46003125662002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,1e-10,.5)",
+    "kind": "number",
+    "value": 10.006496990326166
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,1e100,.5)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,\"1\",.5)",
+    "kind": "number",
+    "value": 33.46003125662002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,\"x\",.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,\"\",.5)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,TRUE(),.5)",
+    "kind": "number",
+    "value": 33.46003125662002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,#N/A,.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,NA(),.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,1/0,.5)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,{0,1},.5)",
+    "kind": "number",
+    "value": 10.006496992013082
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,,.5)",
+    "kind": "number",
+    "value": 10.006496992013082
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 13.95666669478865
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 18.522202655536244
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 4.883536827109254
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,1e-10)",
+    "kind": "number",
+    "value": 13.9566666942378
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,1e100)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,\"1\")",
+    "kind": "number",
+    "value": 4.883536827109254
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,\"x\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,TRUE())",
+    "kind": "number",
+    "value": 4.883536827109254
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,{0,1})",
+    "kind": "number",
+    "value": 13.95666669478865
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,)",
+    "kind": "number",
+    "value": 13.95666669478865
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 2.27680291725723
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 25.443602503289238
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 860.8626291731464
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",.01,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.35728303332283
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",1,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 89.41556590306712
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",80,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 16.54524428476795
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 5.99081162595208
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",120,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 1.6628668907713855
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",1000,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.466611359292439e-26
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",.01,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",1,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.2261134361834866e-96
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",80,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 2.27680291725723
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 10.746958748455643
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",120,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 25.443602503289238
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"CALL\",1000,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 860.8626291731464
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",.01,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 90.35728303332283
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",1,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 89.41556590306712
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",80,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 16.54524428476795
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",100,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 5.99081162595208
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",120,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 1.6628668907713855
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"Put\",1000,90,5,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.466611359292439e-26
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",.01,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",1,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",80,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",120,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"x\",1000,90,5,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 1.5426696274202334e-23
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 1.446923112965811e-7
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 8.663043061576834e-15
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 5.034852551039392e-16
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",.01,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0.0022312687241002106
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0.000001182596739303713
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 4.784294789988136e-87
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0.03247073792901258
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0.00009644393064097512
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0.0000437504168523445
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0.22312972733876923
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 0.3049287532368496
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0.24394260070176882
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 24.51842324268673
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 2.5543460917778944
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 47.63430013790417
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 7.670325990176687
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.279023421479595
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",80,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 17.85040857523001
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 4.999999750000004
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999750000004
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 4.999999750000004
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 7.350333470706488
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 7.15547706747728
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 37.557731023268865
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 11.150453098469633
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 63.23851245969466
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 10.894789104023909
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 10.453451945166428
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 22.313011277575324
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 24.99999875000002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 24.99999875000002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 24.99999875000002
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 24.789367121996605
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 24.761241517780242
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 52.06000023331548
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 25.709812412724528
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 79.34803755255537
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 14.344713062051557
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 13.869357886294102
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",120,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 26.775614029569276
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.000001,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 904.9999547500013
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.000001,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 904.9999547500013
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.000001,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 904.9999547500013
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.25,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 893.7579094469628
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.25,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 893.7579094469628
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,.25,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 894.3050946644884
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,1,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 860.8626291731464
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,1,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 881.9181762923656
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,30,.05,.01,.25,.5)",
+    "kind": "number",
+    "value": 202.86843869131553
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,30,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 202.63803801668672
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",1000,90,5,30,.05,2,.25,.5)",
+    "kind": "number",
+    "value": 223.13014552502412
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",\"x\",90,5,1,.05,.2,.25,#N/A)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",#N/A,90,5,1,.05,.2,.25,\"x\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",#VALUE!,90,5,1,.05,.2,.25,NA())",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",NA(),90,5,1,.05,.2,.25,#VALUE!)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,-1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,-1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 21.274391576589426
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 0.3364432056645418
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,-.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,-.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 19.244739631395802
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 16.434977548120045
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 0.131799115688148
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 16.859869491747038
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 0.02622708308586421
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 0.000627993448351901
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 9.540896585787511
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 2.376359842942791e-15
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-100,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,-90,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,0,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,100,1,.05,.2,.25,1.1)",
+    "kind": "number",
+    "value": 2.436510991639404e-49
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,-1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,-1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 11.762097331582272
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 13.766055533032679
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,-1)",
+    "kind": "number",
+    "value": 85.9470914107288
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,-.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,-.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 9.732445386388653
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 11.678830425616468
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,-.5)",
+    "kind": "number",
+    "value": 85.7424473207524
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 7.3475752467398925
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 9.200519572285074
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,0)",
+    "kind": "number",
+    "value": 85.63687528815014
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,.5)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 4.337809887540647
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,.5)",
+    "kind": "number",
+    "value": 85.61127619851261
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 0.028602340780365804
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 0.12738970460569732
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,1)",
+    "kind": "number",
+    "value": 85.61064820506427
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-100,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,-90,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,0,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,5,1,.05,.2,.25,1.1)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"p\",100,90,100,1,.05,.2,.25,1.1)",
+    "kind": "number",
+    "value": 85.61064820506427
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,-1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,-1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,-1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,-1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,0,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,0,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,0,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,2,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,2,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,2,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,-1,2,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,-1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,-1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,-1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,-1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,0,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,0,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,0,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 9.940902597066696
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 13.950027451711705
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,2,.05,-.05,.2)",
+    "kind": "number",
+    "value": 14.592113727584305
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,2,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,2,.05,.05,.2)",
+    "kind": "number",
+    "value": 16.126779724978633
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,0,2,.05,.1,.2)",
+    "kind": "number",
+    "value": 24.00361289504454
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,-1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,-1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,-1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,0,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,0,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,0,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 11.77477795570585
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 14.782521389381921
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,2,.05,-.05,.2)",
+    "kind": "number",
+    "value": 15.308647900062553
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,2,.05,0,.2)",
+    "kind": "number",
+    "value": 13.784340974180644
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,2,.05,.05,.2)",
+    "kind": "number",
+    "value": 16.918672454209005
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,2,.05,.1,.2)",
+    "kind": "number",
+    "value": 24.088436513183254
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,-1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,-1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,-1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,-1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,0,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,0,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,0,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 15.24260454765794
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,1,.05,0,.2)",
+    "kind": "number",
+    "value": 15.154164292854546
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 17.8958877158924
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,2,.05,-.05,.2)",
+    "kind": "number",
+    "value": 17.98834713082333
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,2,.05,0,.2)",
+    "kind": "number",
+    "value": 17.383608945018644
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,2,.05,.05,.2)",
+    "kind": "number",
+    "value": 19.880198113235465
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,1,2,.05,.1,.2)",
+    "kind": "number",
+    "value": 25.664643240476174
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,-1,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,-1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,-1,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,-1,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,0,.05,-.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,0,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,0,.05,.05,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,0,.05,.1,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 18.219766968528575
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,1,.05,0,.2)",
+    "kind": "number",
+    "value": 18.2748856346018
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,1,.05,.05,.2)",
+    "kind": "number",
+    "value": 19.1539143967207
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 20.899477666673604
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,2,.05,-.05,.2)",
+    "kind": "number",
+    "value": 20.57356095937085
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,2,.05,0,.2)",
+    "kind": "number",
+    "value": 20.35213091095597
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,2,.05,.05,.2)",
+    "kind": "number",
+    "value": 22.7373012535532
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,2,2,.05,.1,.2)",
+    "kind": "number",
+    "value": 27.973875786120253
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER({0,1},100,.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 94.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER({80,120},100,.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.129932308868803
+      },
+      {
+        "kind": "number",
+        "value": 26.205547112792804
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(IF({TRUE,FALSE},NA(),1),100,.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 94.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER({TRUE,1},100,.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 94.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 94.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER({\"x\",1},100,.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 94.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,{0,1},.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 100
+      },
+      {
+        "kind": "number",
+        "value": 99.04877057549929
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,{80,120},.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 24.597167298023294
+      },
+      {
+        "kind": "number",
+        "value": 17.857504867209997
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,IF({TRUE,FALSE},NA(),1),.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 99.04877057549929
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,{TRUE,1},.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 99.04877057549929
+      },
+      {
+        "kind": "number",
+        "value": 99.04877057549929
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,{\"x\",1},.25,1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 99.04877057549929
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,{0,1},1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.450583572185565
+      },
+      {
+        "kind": "number",
+        "value": 16.024109594442535
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,{80,120},1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 69.38733579317449
+      },
+      {
+        "kind": "number",
+        "value": 78.92004438935389
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,IF({TRUE,FALSE},NA(),1),1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.024109594442535
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,{TRUE,1},1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.024109594442535
+      },
+      {
+        "kind": "number",
+        "value": 16.024109594442535
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,{\"x\",1},1,.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 16.024109594442535
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,{0,1},.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 12.378483731079122
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,{80,120},.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.24575763415
+      },
+      {
+        "kind": "number",
+        "value": 99.75825938154449
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,IF({TRUE,FALSE},NA(),1),.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 12.378483731079122
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,{TRUE,1},.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 12.378483731079122
+      },
+      {
+        "kind": "number",
+        "value": 12.378483731079122
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,{\"x\",1},.05,.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 12.378483731079122
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,{0,1},.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13.013142163444336
+      },
+      {
+        "kind": "number",
+        "value": 4.787267466972432
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,{80,120},.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.3486787693921997e-34
+      },
+      {
+        "kind": "number",
+        "value": 9.978019444260363e-52
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,IF({TRUE,FALSE},NA(),1),.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.787267466972432
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,{TRUE,1},.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.787267466972432
+      },
+      {
+        "kind": "number",
+        "value": 4.787267466972432
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,{\"x\",1},.05,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 4.787267466972432
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 11.370357907000582
+      },
+      {
+        "kind": "number",
+        "value": 163.44802515057205
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,{80,120},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.270403042082427e+36
+      },
+      {
+        "kind": "number",
+        "value": 1.2405752263992142e+54
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 163.44802515057205
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,{TRUE,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 163.44802515057205
+      },
+      {
+        "kind": "number",
+        "value": 163.44802515057205
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,{\"x\",1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 163.44802515057205
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.877057549928594
+      },
+      {
+        "kind": "number",
+        "value": 56.755709146375416
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,{80,120})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 195.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 195.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 56.755709146375416
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,{TRUE,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 56.755709146375416
+      },
+      {
+        "kind": "number",
+        "value": 56.755709146375416
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SIMPLE_CHOOSER(100,100,.25,1,.05,.05,{\"x\",1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 56.755709146375416
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX({\"c\",\"p\"},100,90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      },
+      {
+        "kind": "number",
+        "value": 5.99081162595208
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX({0,\"c\"},100,90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(IF({TRUE,FALSE},NA(),\"c\"),100,90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",{0,1},90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 7.2261134361834866e-96
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",{80,120},90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.27680291725723
+      },
+      {
+        "kind": "number",
+        "value": 25.443602503289238
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",IF({TRUE,FALSE},NA(),1),90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 7.2261134361834866e-96
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",{TRUE,1},90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 7.2261134361834866e-96
+      },
+      {
+        "kind": "number",
+        "value": 7.2261134361834866e-96
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",{\"x\",1},90,5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 7.2261134361834866e-96
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,{0,1},5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 90.36679532756784
+      },
+      {
+        "kind": "number",
+        "value": 89.41556590306712
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,{80,120},5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.834124886054603
+      },
+      {
+        "kind": "number",
+        "value": 1.9583419692735422
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,IF({TRUE,FALSE},NA(),1),5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 89.41556590306712
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,{TRUE,1},5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 89.41556590306712
+      },
+      {
+        "kind": "number",
+        "value": 89.41556590306712
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,{\"x\",1},5,1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 89.41556590306712
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,{0,1},1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13.850104132547791
+      },
+      {
+        "kind": "number",
+        "value": 13.19562865711752
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,{80,120},1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.007991575148221037
+      },
+      {
+        "kind": "number",
+        "value": 0.00004745820978523345
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,IF({TRUE,FALSE},NA(),1),1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 13.19562865711752
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,{TRUE,1},1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13.19562865711752
+      },
+      {
+        "kind": "number",
+        "value": 13.19562865711752
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,{\"x\",1},1,.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 13.19562865711752
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,{0,1},.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.999999999999995
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,{80,120},.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.2540560531674756
+      },
+      {
+        "kind": "number",
+        "value": 0.19312449226590428
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,IF({TRUE,FALSE},NA(),1),.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,{TRUE,1},.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,{\"x\",1},.05,.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 10.746958748455643
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,{0,1},.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 11.297967106196861
+      },
+      {
+        "kind": "number",
+        "value": 4.15628982540104
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,{80,120},.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.039115161145126e-34
+      },
+      {
+        "kind": "number",
+        "value": 8.662883571880491e-52
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,IF({TRUE,FALSE},NA(),1),.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.15628982540104
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,{TRUE,1},.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.15628982540104
+      },
+      {
+        "kind": "number",
+        "value": 4.15628982540104
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,{\"x\",1},.2,.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 4.15628982540104
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,{0,1},.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 11.323981268232096
+      },
+      {
+        "kind": "number",
+        "value": 34.80719361609251
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,{80,120},.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,IF({TRUE,FALSE},NA(),1),.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 34.80719361609251
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,{TRUE,1},.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 34.80719361609251
+      },
+      {
+        "kind": "number",
+        "value": 34.80719361609251
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,{\"x\",1},.25,.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 34.80719361609251
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,{0,1},.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.006496992013082
+      },
+      {
+        "kind": "number",
+        "value": 33.46003125662002
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,{80,120},.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,IF({TRUE,FALSE},NA(),1),.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 33.46003125662002
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,{TRUE,1},.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 33.46003125662002
+      },
+      {
+        "kind": "number",
+        "value": 33.46003125662002
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,{\"x\",1},.5)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 33.46003125662002
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13.95666669478865
+      },
+      {
+        "kind": "number",
+        "value": 4.883536827109254
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,{80,120})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.883536827109254
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,{TRUE,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.883536827109254
+      },
+      {
+        "kind": "number",
+        "value": 4.883536827109254
+      }
+    ]
+  },
+  {
+    "formula": "OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.25,{\"x\",1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 4.883536827109254
+      }
+    ]
+  }
+]

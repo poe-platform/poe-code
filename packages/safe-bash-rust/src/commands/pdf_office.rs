@@ -50,7 +50,8 @@ impl Page {
                 .unwrap();
                 first = false;
             }
-            literal(&win_ansi(&text), &mut self.stream);
+            let bytes: Vec<_> = win_ansi(&text).into_iter().map(|b| if b < 32 { b'?' } else { b }).collect();
+            literal(&bytes, &mut self.stream);
             self.stream.extend_from_slice(b" Tj\n");
         }
         self.stream.extend_from_slice(b"ET\nQ\n");
@@ -68,6 +69,7 @@ pub(in super::super) fn render_office(
             .map(|block| match block {
                 Block::Text(text, heading) => LayoutBlock::Text(text, heading, Vec::new()),
                 Block::Table(rows) => LayoutBlock::Table(rows),
+                Block::Preformatted(text) => LayoutBlock::Preformatted(text),
             })
             .collect(),
         title,
@@ -84,6 +86,7 @@ pub(super) struct TextStyle {
     pub italic: bool,
 }
 pub(super) enum LayoutBlock {
+    Preformatted(String),
     Text(String, bool, Vec<TextStyle>),
     Table(Vec<Vec<String>>),
     Image(super::super::png_pixels::Raster, f64, f64),
@@ -196,6 +199,14 @@ pub(super) fn render_blocks(
                     }
                 }
                 y -= if heading { 4. } else { 5. };
+            }
+            LayoutBlock::Preformatted(text) => {
+                for line in text.split('\n') {
+                    space(&mut pages, &mut y, &mut finished, 16.)?;
+                    pages.last_mut()?.text(&[(line, "Courier")], 54., y, 11, "0.15 0.15 0.15");
+                    y -= 15.;
+                }
+                y -= 5.;
             }
             LayoutBlock::Table(rows) => {
                 let width =
@@ -323,7 +334,7 @@ pub(super) fn render_blocks(
             // Helvetica oblique variants share their upright advance widths.
             let widths = super::pdf_copy::WIDTHS[usize::from(font.contains("Bold"))][32..]
                 .iter()
-                .map(u16::to_string)
+                .map(|width| if font == "Courier" { "600".to_owned() } else { width.to_string() })
                 .collect::<Vec<_>>()
                 .join(" ");
             bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n/FirstChar 32\n/LastChar 255\n/Widths [ {widths} ]\n>>").into_bytes());

@@ -3,7 +3,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) fn effective_ifs(env: &BTreeMap<String, String>) -> &str {
     // An explicit array declaration disables IFS splitting and joining.
-    if env.get("\0attr__IFS").is_some_and(|attr| attr.contains('a') || attr.contains('A')) {
+    if env
+        .get("\0attr__IFS")
+        .is_some_and(|attr| attr.contains('a') || attr.contains('A'))
+    {
         ""
     } else {
         env.get("IFS").map(String::as_str).unwrap_or(" \t\n")
@@ -290,8 +293,12 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
                     "alnum" => Some(ch.is_ascii_alphanumeric()),
                     "ascii" => Some(ch.is_ascii()),
                     "word" => Some(ch.is_ascii_alphanumeric() || ch == '_'),
-                    "upper" => Some(ch.is_ascii_uppercase() || (nocase && ch.is_ascii_alphabetic())),
-                    "lower" => Some(ch.is_ascii_lowercase() || (nocase && ch.is_ascii_alphabetic())),
+                    "upper" => {
+                        Some(ch.is_ascii_uppercase() || (nocase && ch.is_ascii_alphabetic()))
+                    }
+                    "lower" => {
+                        Some(ch.is_ascii_lowercase() || (nocase && ch.is_ascii_alphabetic()))
+                    }
                     "xdigit" => Some(ch.is_ascii_hexdigit()),
                     "punct" => Some(ch.is_ascii_punctuation()),
                     "cntrl" => Some(ch.is_ascii_control()),
@@ -403,7 +410,11 @@ fn decode_c_escapes_inner(
                         if ctrl == '\\' && chars.peek() == Some(&'\\') {
                             chars.next();
                         }
-                        let b = if ctrl == '?' { 0x7f } else { (ctrl as u8) & 0x1f };
+                        let b = if ctrl == '?' {
+                            0x7f
+                        } else {
+                            (ctrl as u8) & 0x1f
+                        };
                         if b == 0 && truncate_on_nul {
                             break;
                         }
@@ -484,7 +495,11 @@ fn decode_c_escapes_inner(
                 }
                 Some(oct) if ('0'..='7').contains(&oct) => {
                     let mut s = String::from(oct);
-                    let max_more = if leading_zero_octal && oct == '0' { 3 } else { 2 };
+                    let max_more = if leading_zero_octal && oct == '0' {
+                        3
+                    } else {
+                        2
+                    };
                     for _ in 0..max_more {
                         if let Some(&oc) = chars.peek()
                             && ('0'..='7').contains(&oc)
@@ -502,7 +517,11 @@ fn decode_c_escapes_inner(
                 }
                 Some(other) => {
                     out_bytes.push(b'\\');
-                    if crate::vfs::is_stream_byte(other) { out_bytes.push(other as u8); } else { push_char(&mut out_bytes, other); }
+                    if crate::vfs::is_stream_byte(other) {
+                        out_bytes.push(other as u8);
+                    } else {
+                        push_char(&mut out_bytes, other);
+                    }
                 }
                 None => out_bytes.push(b'\\'),
             }
@@ -510,7 +529,11 @@ fn decode_c_escapes_inner(
             if c == '\0' && truncate_on_nul {
                 break;
             }
-            if crate::vfs::is_stream_byte(c) { out_bytes.push(c as u8); } else { push_char(&mut out_bytes, c); }
+            if crate::vfs::is_stream_byte(c) {
+                out_bytes.push(c as u8);
+            } else {
+                push_char(&mut out_bytes, c);
+            }
         }
     }
     crate::vfs::bytes_to_stream_string(&out_bytes)
@@ -689,7 +712,11 @@ fn parse_js_int10(value: &str) -> i64 {
 }
 
 pub fn read_dynamic_random(env: &mut BTreeMap<String, String>) -> Option<String> {
-    if env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false) {
+    if env
+        .get("\0random_disabled")
+        .map(|v| v == "1")
+        .unwrap_or(false)
+    {
         return env.get("RANDOM").cloned();
     }
     let cur_seed = env
@@ -703,7 +730,11 @@ pub fn read_dynamic_random(env: &mut BTreeMap<String, String>) -> Option<String>
 }
 
 pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
-    if env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+    if env
+        .get("\0seconds_disabled")
+        .map(|v| v == "1")
+        .unwrap_or(false)
+    {
         return env.get("SECONDS").cloned();
     }
     let origin_ms = env
@@ -716,7 +747,12 @@ pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
 }
 
 pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String, String>) -> bool {
-    if name == "RANDOM" && !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false) {
+    if name == "RANDOM"
+        && !env
+            .get("\0random_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    {
         let parsed = parse_js_int10(value) as i32;
         let u = parsed as u32 as u64;
         let seed = (u % 2147483647).max(1);
@@ -724,7 +760,12 @@ pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String
         env.insert("RANDOM".to_string(), value.to_string());
         return true;
     }
-    if name == "SECONDS" && !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+    if name == "SECONDS"
+        && !env
+            .get("\0seconds_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    {
         let parsed = parse_js_int10(value);
         let now_ms = crate::commands::virtual_clock_elapsed_ms().floor() as i64;
         let origin = now_ms - parsed.saturating_mul(1000);
@@ -967,7 +1008,21 @@ fn tokenize_arith_spanned(
         let op_ch = echars[idx].1;
         if !matches!(
             op_ch,
-            '~' | '?' | ':' | ',' | '+' | '-' | '*' | '/' | '%' | '^' | '!' | '=' | '&' | '|' | '<' | '>'
+            '~' | '?'
+                | ':'
+                | ','
+                | '+'
+                | '-'
+                | '*'
+                | '/'
+                | '%'
+                | '^'
+                | '!'
+                | '='
+                | '&'
+                | '|'
+                | '<'
+                | '>'
         ) {
             let quoted = op_ch == '\'' || op_ch == '\\';
             let operand_expected = match out.last().map(|(t, _)| t) {
@@ -1032,7 +1087,12 @@ pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
     let prefix = format!("{base}[");
     let mut entries: Vec<(String, String)> = env
         .keys()
-        .filter_map(|k| Some((k.strip_prefix(&prefix)?.strip_suffix(']')?.to_string(), String::new())))
+        .filter_map(|k| {
+            Some((
+                k.strip_prefix(&prefix)?.strip_suffix(']')?.to_string(),
+                String::new(),
+            ))
+        })
         .collect();
     sort_array_entries(base, env, &mut entries);
     let keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
@@ -1088,9 +1148,17 @@ fn resolve_arith_var_resolved(
     } else if resolved == "_" {
         env.get("_").or_else(|| env.get("\0last_arg")).cloned()
     } else if resolved == "$" || resolved == "BASHPID" {
-        Some(env.get(resolved).cloned().unwrap_or_else(|| "1".to_string()))
+        Some(
+            env.get(resolved)
+                .cloned()
+                .unwrap_or_else(|| "1".to_string()),
+        )
     } else if resolved == "BASH_SUBSHELL" {
-        Some(env.get("BASH_SUBSHELL").cloned().unwrap_or_else(|| "0".to_string()))
+        Some(
+            env.get("BASH_SUBSHELL")
+                .cloned()
+                .unwrap_or_else(|| "0".to_string()),
+        )
     } else {
         env.get(resolved).cloned().or_else(|| {
             if !resolved.contains('[') {
@@ -1115,8 +1183,13 @@ fn resolve_arith_var_resolved(
     if trimmed.is_empty() {
         return Ok(0);
     }
-    let digits = trimmed.strip_prefix('+').or_else(|| trimmed.strip_prefix('-')).unwrap_or(trimmed);
-    if (!digits.starts_with('0') || digits.len() == 1) && let Ok(n) = trimmed.parse::<i64>() {
+    let digits = trimmed
+        .strip_prefix('+')
+        .or_else(|| trimmed.strip_prefix('-'))
+        .unwrap_or(trimmed);
+    if (!digits.starts_with('0') || digits.len() == 1)
+        && let Ok(n) = trimmed.parse::<i64>()
+    {
         return Ok(n);
     }
     if !visiting.insert(resolved.to_string()) {
@@ -1310,7 +1383,10 @@ fn parse_arith_prefix(
     pos: &mut usize,
 ) -> Result<ArithNode, (String, usize)> {
     let Some((tok, start)) = tokens.get(*pos).cloned() else {
-        return Err(("Unexpected end of arithmetic expression".to_string(), usize::MAX));
+        return Err((
+            "Unexpected end of arithmetic expression".to_string(),
+            usize::MAX,
+        ));
     };
     match tok {
         ArithTok::Num(n) => {
@@ -1365,7 +1441,10 @@ fn parse_arith_expr(
     while let Some((ArithTok::Op(op), op_off)) = tokens.get(*pos) {
         if op == "++" || op == "--" {
             if !matches!(left, ArithNode::Var(_, _)) {
-                return Err(("Arithmetic increment/decrement requires a variable".to_string(), *op_off));
+                return Err((
+                    "Arithmetic increment/decrement requires a variable".to_string(),
+                    *op_off,
+                ));
             }
             *pos += 1;
             left = ArithNode::Unary {
@@ -1389,7 +1468,10 @@ fn parse_arith_expr(
         if op_s == "?" {
             let yes = parse_arith_expr(tokens, pos, 1)?;
             if !matches!(tokens.get(*pos), Some((ArithTok::Op(colon), _)) if colon == ":") {
-                return Err(("Expected ':' in ternary arithmetic expression".to_string(), op_pos));
+                return Err((
+                    "Expected ':' in ternary arithmetic expression".to_string(),
+                    op_pos,
+                ));
             }
             *pos += 1;
             let no = parse_arith_expr(tokens, pos, 3)?;
@@ -1404,7 +1486,10 @@ fn parse_arith_expr(
         let next_min = if right_assoc { prec } else { prec + 1 };
         if is_arith_assign_op(&op_s) {
             let ArithNode::Var(target, _) = left else {
-                return Err(("Arithmetic assignment requires a variable".to_string(), tokens.get(*pos).map_or(usize::MAX, |t| t.1)));
+                return Err((
+                    "Arithmetic assignment requires a variable".to_string(),
+                    tokens.get(*pos).map_or(usize::MAX, |t| t.1),
+                ));
             };
             left = ArithNode::Assign {
                 op: op_s,
@@ -1437,7 +1522,9 @@ fn eval_arith_ast(
             resolve_arith_var_resolved(name, &resolved_key, env, visiting)
         }
         ArithNode::Group(inner, _) => eval_arith_ast(inner, env, visiting),
-        ArithNode::Unary { op, arg, prefix, .. } => {
+        ArithNode::Unary {
+            op, arg, prefix, ..
+        } => {
             if op == "++" || op == "--" {
                 let ArithNode::Var(var, _) = arg.as_ref() else {
                     return Err("Arithmetic increment/decrement requires a variable".to_string());
@@ -1469,7 +1556,9 @@ fn eval_arith_ast(
                 eval_arith_ast(no, env, visiting)
             }
         }
-        ArithNode::Assign { op, target, right, .. } => {
+        ArithNode::Assign {
+            op, target, right, ..
+        } => {
             if op == "=" {
                 let rhs = eval_arith_ast(right, env, visiting)?;
                 let resolved_key = resolve_var_key_mut(target, &[], env, visiting)?;
@@ -1483,7 +1572,9 @@ fn eval_arith_ast(
             set_arith_var_resolved(resolved_key, next, env)?;
             Ok(next)
         }
-        ArithNode::Binary { op, left, right, .. } => {
+        ArithNode::Binary {
+            op, left, right, ..
+        } => {
             if op == "," {
                 let _ = eval_arith_ast(left, env, visiting)?;
                 return eval_arith_ast(right, env, visiting);
@@ -1568,7 +1659,10 @@ pub fn apply_var_attributes(
     raw_val: &str,
     env: &mut BTreeMap<String, String>,
 ) -> Result<String, String> {
-    let attr = env.get(&format!("\0attr__{base}")).cloned().unwrap_or_default();
+    let attr = env
+        .get(&format!("\0attr__{base}"))
+        .cloned()
+        .unwrap_or_default();
     let mut final_val = raw_val.to_string();
     if attr.contains('i') {
         let trimmed = final_val.trim();
@@ -1616,13 +1710,20 @@ pub fn expand_parameter_expr(
         return Ok(pos_args.join(" "));
     }
     if expr == "*" {
-        let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
+        let sep = effective_ifs(env)
+            .chars()
+            .next()
+            .map(|c| c.to_string())
+            .unwrap_or_default();
         return Ok(pos_args.join(&sep));
     }
 
     // Parameter transforms @E, @Q, @P, @u, @U, @L, @a, @A, @k, @K
     if let Some((var, xform)) = expr.rsplit_once('@')
-        && matches!(xform, "E" | "Q" | "P" | "u" | "U" | "L" | "a" | "A" | "k" | "K")
+        && matches!(
+            xform,
+            "E" | "Q" | "P" | "u" | "U" | "L" | "a" | "A" | "k" | "K"
+        )
     {
         let eff_var = if let Some(ptr) = var.strip_prefix('!') {
             let target = lookup_var(ptr, env, last_exit, pos_args);
@@ -1641,7 +1742,11 @@ pub fn expand_parameter_expr(
                         out.push(apply_value_transform(el, xform, env, last_exit, pos_args)?);
                     }
                     let sep = if eff_var.ends_with("[*]") || eff_var == "*" {
-                        effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default()
+                        effective_ifs(env)
+                            .chars()
+                            .next()
+                            .map(|c| c.to_string())
+                            .unwrap_or_default()
                     } else {
                         " ".to_string()
                     };
@@ -1668,7 +1773,8 @@ pub fn expand_parameter_expr(
                     .or_else(|| eff_var.strip_suffix("[*]"))
                     .unwrap_or(&eff_var);
                 let resolved = resolve_nameref_base(base, env).to_string();
-                let (has_var, is_assoc, is_array, entries, flags) = get_var_meta_info(&resolved, env);
+                let (has_var, is_assoc, is_array, entries, flags) =
+                    get_var_meta_info(&resolved, env);
                 if !has_var {
                     return Ok(String::new());
                 }
@@ -1679,7 +1785,11 @@ pub fn expand_parameter_expr(
                         let qv = bash_quote_double(&v);
                         pairs.push(format!("[{qk}]={qv}"));
                     }
-                    let fl = if flags.is_empty() { "a".to_string() } else { flags };
+                    let fl = if flags.is_empty() {
+                        "a".to_string()
+                    } else {
+                        flags
+                    };
                     return Ok(format!("declare -{fl} {resolved}=({})", pairs.join(" ")));
                 }
                 if let Some(raw_val) = env.get(&resolved) {
@@ -1734,7 +1844,10 @@ pub fn expand_parameter_expr(
         let iv_var = &rest[..iv_end];
         let iv_tail = &rest[iv_end..];
 
-        if let Some(arr_base) = iv_var.strip_suffix("[@]").or_else(|| iv_var.strip_suffix("[*]")) {
+        if let Some(arr_base) = iv_var
+            .strip_suffix("[@]")
+            .or_else(|| iv_var.strip_suffix("[*]"))
+        {
             if !iv_tail.is_empty() {
                 return Err("Syntax error: Unsupported array-key operator".to_string());
             }
@@ -1765,7 +1878,11 @@ pub fn expand_parameter_expr(
                 keys.push("0".to_string());
             }
             if iv_var.ends_with("[*]") && env.get("\0in_dquote").is_some_and(|v| v == "1") {
-                let separator = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
+                let separator = effective_ifs(env)
+                    .chars()
+                    .next()
+                    .map(|c| c.to_string())
+                    .unwrap_or_default();
                 return Ok(keys.join(&separator));
             }
             return Ok(keys.join(" "));
@@ -1773,7 +1890,11 @@ pub fn expand_parameter_expr(
         if !iv_var.is_empty() && !iv_var.contains('[') && (iv_tail == "*" || iv_tail == "@") {
             let names = collect_prefix_var_names(iv_var, env);
             if iv_tail == "*" && env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false) {
-                let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
+                let sep = effective_ifs(env)
+                    .chars()
+                    .next()
+                    .map(|c| c.to_string())
+                    .unwrap_or_default();
                 return Ok(names.join(&sep));
             }
             return Ok(names.join(" "));
@@ -1790,14 +1911,21 @@ pub fn expand_parameter_expr(
             expand_parameter_expr(iv_var, env, last_exit, pos_args)?
         };
         if !is_valid_indirect_target(&target_name) {
-            let bad = if target_name.is_empty() { iv_var } else { &target_name };
+            let bad = if target_name.is_empty() {
+                iv_var
+            } else {
+                &target_name
+            };
             return Err(format!("{bad}: invalid variable name"));
         }
         return expand_parameter_expr(&format!("{target_name}{iv_tail}"), env, last_exit, pos_args);
     }
 
     if let Some(rest) = expr.strip_prefix('#') {
-        if let Some(arr_base) = rest.strip_suffix("[@]").or_else(|| rest.strip_suffix("[*]")) {
+        if let Some(arr_base) = rest
+            .strip_suffix("[@]")
+            .or_else(|| rest.strip_suffix("[*]"))
+        {
             let resolved = resolve_nameref_base(arr_base, env).to_string();
             if resolved == "DIRSTACK" {
                 ensure_dirstack_populated(env);
@@ -1821,8 +1949,11 @@ pub fn expand_parameter_expr(
             return Ok(count.to_string());
         }
         let val = lookup_var(rest, env, last_exit, pos_args);
-        let length = if is_c_locale(env) { crate::vfs::stream_byte_len(&val) }
-            else { crate::vfs::host_text(&val).chars().count() };
+        let length = if is_c_locale(env) {
+            crate::vfs::stream_byte_len(&val)
+        } else {
+            crate::vfs::host_text(&val).chars().count()
+        };
         return Ok(length.to_string());
     }
 
@@ -1964,7 +2095,11 @@ pub fn expand_parameter_expr(
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
                 let transformed_def = apply_var_attributes(&base, &def, env)?;
-                if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
+                if env
+                    .get("\0set_allexport")
+                    .map(|v| v == "1")
+                    .unwrap_or(false)
+                {
                     let attr_key = format!("\0attr__{base}");
                     let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
                     if !attr.contains('x') {
@@ -2028,7 +2163,11 @@ pub fn expand_parameter_expr(
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
                 let transformed_def = apply_var_attributes(&base, &def, env)?;
-                if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
+                if env
+                    .get("\0set_allexport")
+                    .map(|v| v == "1")
+                    .unwrap_or(false)
+                {
                     let attr_key = format!("\0attr__{base}");
                     let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
                     if !attr.contains('x') {
@@ -2162,7 +2301,10 @@ pub fn expand_parameter_expr(
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
-            let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+            let nocase = env
+                .get("\0shopt_nocasematch")
+                .map(|v| v == "1")
+                .unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
@@ -2192,7 +2334,10 @@ pub fn expand_parameter_expr(
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
-            let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+            let nocase = env
+                .get("\0shopt_nocasematch")
+                .map(|v| v == "1")
+                .unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
@@ -2452,7 +2597,10 @@ pub fn expand_parameter_expr(
                 total_len
             };
             let slice: String = chars[start..end].iter().collect();
-            return Ok(match crate::vfs::shell_text(&slice) { std::borrow::Cow::Owned(s) => s, _ => slice });
+            return Ok(match crate::vfs::shell_text(&slice) {
+                std::borrow::Cow::Owned(s) => s,
+                _ => slice,
+            });
         }
         return Err(format!("${{{expr}}}: bad substitution"));
     }
@@ -2464,7 +2612,10 @@ pub fn expand_parameter_expr(
         && !is_var_set(expr, env, pos_args)
         && !expr.ends_with("[@]")
         && !expr.ends_with("[*]")
-        && !matches!(expr, "?" | "#" | "@" | "*" | "$" | "!" | "0" | "-" | "BASHPID" | "LINENO" | "DIRSTACK")
+        && !matches!(
+            expr,
+            "?" | "#" | "@" | "*" | "$" | "!" | "0" | "-" | "BASHPID" | "LINENO" | "DIRSTACK"
+        )
         && !(expr.chars().all(|c| c == '0') && !expr.is_empty())
     {
         return Err(format!("{expr}: unbound variable"));
@@ -2736,7 +2887,10 @@ pub fn expand_double_quoted_at_expr(
                         expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
                     let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
                         .unwrap_or_default();
-                    let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    let nocase = env
+                        .get("\0shopt_nocasematch")
+                        .map(|v| v == "1")
+                        .unwrap_or(false);
                     return Some(
                         elems
                             .iter()
@@ -2763,7 +2917,10 @@ pub fn expand_double_quoted_at_expr(
                         expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
                     let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
                         .unwrap_or_default();
-                    let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    let nocase = env
+                        .get("\0shopt_nocasematch")
+                        .map(|v| v == "1")
+                        .unwrap_or(false);
                     return Some(
                         elems
                             .iter()
@@ -2843,18 +3000,44 @@ pub fn expand_double_quoted_at_expr(
                     let c_mode = is_c_locale(env);
                     match op {
                         "Q" => return Some(elems.iter().map(|e| bash_quote_value(e)).collect()),
-                        "E" => return Some(elems.iter().map(|e| decode_ansi_c_escapes(e)).collect()),
+                        "E" => {
+                            return Some(elems.iter().map(|e| decode_ansi_c_escapes(e)).collect());
+                        }
                         "P" => {
                             return Some(
                                 elems
                                     .iter()
-                                    .map(|e| apply_value_transform(e, "P", env, 0, pos_args).unwrap_or_default())
+                                    .map(|e| {
+                                        apply_value_transform(e, "P", env, 0, pos_args)
+                                            .unwrap_or_default()
+                                    })
                                     .collect(),
-                            )
+                            );
                         }
-                        "U" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, true, c_mode, extglob)).collect()),
-                        "u" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, false, c_mode, extglob)).collect()),
-                        "L" => return Some(elems.iter().map(|e| bash_lowercase_mode(e, None, true, c_mode, extglob)).collect()),
+                        "U" => {
+                            return Some(
+                                elems
+                                    .iter()
+                                    .map(|e| bash_uppercase_mode(e, None, true, c_mode, extglob))
+                                    .collect(),
+                            );
+                        }
+                        "u" => {
+                            return Some(
+                                elems
+                                    .iter()
+                                    .map(|e| bash_uppercase_mode(e, None, false, c_mode, extglob))
+                                    .collect(),
+                            );
+                        }
+                        "L" => {
+                            return Some(
+                                elems
+                                    .iter()
+                                    .map(|e| bash_lowercase_mode(e, None, true, c_mode, extglob))
+                                    .collect(),
+                            );
+                        }
                         "k" if var.ends_with("[@]") => {
                             let arr_base = var.strip_suffix("[@]").unwrap();
                             let resolved = resolve_nameref_base(arr_base, env).to_string();
@@ -2881,7 +3064,11 @@ pub fn expand_double_quoted_at_expr(
                     if has_val {
                         return Some(elems);
                     }
-                    let def_raw = if is_colon { &op_rest[2..] } else { &op_rest[1..] };
+                    let def_raw = if is_colon {
+                        &op_rest[2..]
+                    } else {
+                        &op_rest[1..]
+                    };
                     let def = expand_nested_operand(def_raw, env, 0, pos_args).unwrap_or_default();
                     return Some(vec![def]);
                 }
@@ -2895,7 +3082,11 @@ pub fn expand_double_quoted_at_expr(
                     if !has_val {
                         return Some(vec![String::new()]);
                     }
-                    let alt_raw = if is_colon { &op_rest[2..] } else { &op_rest[1..] };
+                    let alt_raw = if is_colon {
+                        &op_rest[2..]
+                    } else {
+                        &op_rest[1..]
+                    };
                     let alt = expand_nested_operand(alt_raw, env, 0, pos_args).unwrap_or_default();
                     return Some(vec![alt]);
                 }
@@ -2990,9 +3181,7 @@ fn is_valid_indirect_target(s: &str) -> bool {
         return true;
     }
     if let Some((base, sub_rest)) = s.split_once('[') {
-        return is_valid_var_ident(base)
-            && sub_rest.ends_with(']')
-            && sub_rest.len() > 1;
+        return is_valid_var_ident(base) && sub_rest.ends_with(']') && sub_rest.len() > 1;
     }
     is_valid_var_ident(s)
 }
@@ -3064,7 +3253,10 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
     if name == "@" || name == "*" {
         return !pos_args.is_empty();
     }
-    if let Some(arr_base) = name.strip_suffix("[@]").or_else(|| name.strip_suffix("[*]")) {
+    if let Some(arr_base) = name
+        .strip_suffix("[@]")
+        .or_else(|| name.strip_suffix("[*]"))
+    {
         let resolved = resolve_nameref_base(arr_base, env);
         if resolved == "DIRSTACK" {
             return true;
@@ -3092,11 +3284,17 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
     }
     let resolved = resolve_var_key_for_lookup(name, env, pos_args);
     if resolved == "RANDOM" {
-        return !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env
+            .get("\0random_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
             || env.contains_key("RANDOM");
     }
     if resolved == "SECONDS" {
-        return !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env
+            .get("\0seconds_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
             || env.contains_key("SECONDS");
     }
     if resolved == "_" {
@@ -3129,7 +3327,9 @@ fn expand_nested_operand(
                     continue;
                 }
                 if chars[i] == '$' {
-                    out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+                    out.push_str(&expand_nested_dollar(
+                        &chars, &mut i, env, last_exit, pos_args,
+                    )?);
                     continue;
                 }
                 out.push(chars[i]);
@@ -3151,7 +3351,9 @@ fn expand_nested_operand(
             out.push(chars[i + 1]);
             i += 2;
         } else if c == '$' {
-            out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+            out.push_str(&expand_nested_dollar(
+                &chars, &mut i, env, last_exit, pos_args,
+            )?);
         } else {
             out.push(c);
             i += 1;
@@ -3292,7 +3494,11 @@ fn expand_replacement_operand(
                     && ei + 1 < exp_chars.len()
                     && matches!(exp_chars[ei + 1], '&' | '\\')
                 {
-                    out.push(if exp_chars[ei + 1] == '&' { '\x01' } else { '\\' });
+                    out.push(if exp_chars[ei + 1] == '&' {
+                        '\x01'
+                    } else {
+                        '\\'
+                    });
                     ei += 2;
                 } else {
                     out.push(exp_chars[ei]);
@@ -3412,8 +3618,6 @@ pub fn resolve_nameref_base<'a>(base: &'a str, env: &'a BTreeMap<String, String>
     cur
 }
 
-
-
 pub fn bash_quote_value(val: &str) -> String {
     bash_quote_value_mode(val, false)
 }
@@ -3423,7 +3627,10 @@ pub fn bash_quote_double(val: &str) -> String {
 }
 
 pub fn bash_quote_value_mode(val: &str, double_quoted: bool) -> String {
-    if val.chars().any(|c| (c as u32) < 0x20 || (c as u32) == 0x7f || c.is_control()) {
+    if val
+        .chars()
+        .any(|c| (c as u32) < 0x20 || (c as u32) == 0x7f || c.is_control())
+    {
         let mut out = String::new();
         out.push('$');
         out.push('\'');
@@ -3473,7 +3680,10 @@ pub fn get_var_meta_info(
     resolved: &str,
     env: &BTreeMap<String, String>,
 ) -> (bool, bool, bool, Vec<(String, String)>, String) {
-    let attr = env.get(&format!("\0attr__{resolved}")).cloned().unwrap_or_default();
+    let attr = env
+        .get(&format!("\0attr__{resolved}"))
+        .cloned()
+        .unwrap_or_default();
     let is_assoc = env
         .get(&format!("\0assoc__{resolved}"))
         .map(|v| v == "1")
@@ -3631,7 +3841,9 @@ fn lookup_array_elements(
     if var == "@" || var == "*" {
         return Some(pos_args.to_vec());
     }
-    let arr_base = var.strip_suffix("[@]").or_else(|| var.strip_suffix("[*]"))?;
+    let arr_base = var
+        .strip_suffix("[@]")
+        .or_else(|| var.strip_suffix("[*]"))?;
     let resolved = resolve_nameref_base(arr_base, env).to_string();
     if resolved == "DIRSTACK" {
         ensure_dirstack_populated(env);
@@ -3665,16 +3877,25 @@ fn expand_subscript_key(raw: &str, env: &BTreeMap<String, String>, pos_args: &[S
     if let Some(literal) = raw.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')) {
         return literal.to_string();
     }
-    let word = raw.strip_prefix('"').and_then(|s| s.strip_suffix('"')).unwrap_or(raw);
-    let Some(rest) = word.strip_prefix('$') else { return word.to_string(); };
-    let (name, suffix) = if let Some((name, suffix)) = rest.strip_prefix('{').and_then(|s| s.split_once('}')) {
-        (name, suffix)
-    } else if rest.as_bytes().first().is_some_and(u8::is_ascii_digit) {
-        rest.split_at(1)
-    } else {
-        let end = rest.bytes().take_while(|b| b.is_ascii_alphanumeric() || *b == b'_').count();
-        rest.split_at(end)
+    let word = raw
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .unwrap_or(raw);
+    let Some(rest) = word.strip_prefix('$') else {
+        return word.to_string();
     };
+    let (name, suffix) =
+        if let Some((name, suffix)) = rest.strip_prefix('{').and_then(|s| s.split_once('}')) {
+            (name, suffix)
+        } else if rest.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+            rest.split_at(1)
+        } else {
+            let end = rest
+                .bytes()
+                .take_while(|b| b.is_ascii_alphanumeric() || *b == b'_')
+                .count();
+            rest.split_at(end)
+        };
     let value = match name.parse::<usize>() {
         Ok(0) => env.get("0").map(String::as_str).unwrap_or("virtual-bash"),
         Ok(n) => pos_args.get(n - 1).map(String::as_str).unwrap_or(""),
@@ -3683,7 +3904,11 @@ fn expand_subscript_key(raw: &str, env: &BTreeMap<String, String>, pos_args: &[S
     format!("{value}{suffix}")
 }
 
-fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -> String {
+fn resolve_var_key_for_lookup(
+    name: &str,
+    env: &BTreeMap<String, String>,
+    pos_args: &[String],
+) -> String {
     if let Some((base, sub_rest)) = name.split_once('[')
         && let Some(raw_sub) = sub_rest.strip_suffix(']')
     {
@@ -3722,7 +3947,11 @@ fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>, pos_ar
     resolve_nameref_base(name, env).to_string()
 }
 
-pub(super) fn indexed_array_index(base: &str, idx: i64, env: &BTreeMap<String, String>) -> Result<i64, String> {
+pub(super) fn indexed_array_index(
+    base: &str,
+    idx: i64,
+    env: &BTreeMap<String, String>,
+) -> Result<i64, String> {
     let final_idx = if idx < 0 {
         let prefix = format!("{base}[");
         let max_idx = env
@@ -3733,11 +3962,7 @@ pub(super) fn indexed_array_index(base: &str, idx: i64, env: &BTreeMap<String, S
                     .and_then(|sub| sub.parse::<i64>().ok())
             })
             .max()
-            .unwrap_or(if env.contains_key(base) {
-                0
-            } else {
-                -1
-            });
+            .unwrap_or(if env.contains_key(base) { 0 } else { -1 });
         max_idx + (1 + idx)
     } else {
         idx
@@ -3784,7 +4009,6 @@ fn resolve_var_key_mut(
     Ok(resolve_nameref_base(name, env).to_string())
 }
 
-
 pub fn lookup_var(
     name: &str,
     env: &mut BTreeMap<String, String>,
@@ -3798,10 +4022,7 @@ pub fn lookup_var(
             .unwrap_or_else(|| "0".to_string());
     }
     if name == "$" || name == "BASHPID" {
-        return env
-            .get(name)
-            .cloned()
-            .unwrap_or_else(|| "1".to_string());
+        return env.get(name).cloned().unwrap_or_else(|| "1".to_string());
     }
     if !name.is_empty() && name.chars().all(|c| c == '0') {
         return env
@@ -3814,7 +4035,11 @@ pub fn lookup_var(
     }
     if name == "-" {
         let mut flags = String::new();
-        if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
+        if env
+            .get("\0set_allexport")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
             flags.push('a');
         }
         if env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false) {
@@ -3832,10 +4057,18 @@ pub fn lookup_var(
         if env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false) {
             flags.push('u');
         }
-        if env.get("\0set_braceexpand").map(|v| v != "0").unwrap_or(true) {
+        if env
+            .get("\0set_braceexpand")
+            .map(|v| v != "0")
+            .unwrap_or(true)
+        {
             flags.push('B');
         }
-        if env.get("\0set_noclobber").map(|v| v == "1").unwrap_or(false) {
+        if env
+            .get("\0set_noclobber")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
             flags.push('C');
         }
         if env.get("\0set_physical").is_some_and(|value| value == "1") {
@@ -3848,7 +4081,11 @@ pub fn lookup_var(
     }
     if name == "@" || name == "*" {
         if name == "*" {
-            let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
+            let sep = effective_ifs(env)
+                .chars()
+                .next()
+                .map(|c| c.to_string())
+                .unwrap_or_default();
             return pos_args.join(&sep);
         }
         return pos_args.join(" ");
@@ -3858,7 +4095,10 @@ pub fn lookup_var(
     {
         return pos_args.get(idx - 1).cloned().unwrap_or_default();
     }
-    if let Some(arr_base) = name.strip_suffix("[@]").or_else(|| name.strip_suffix("[*]")) {
+    if let Some(arr_base) = name
+        .strip_suffix("[@]")
+        .or_else(|| name.strip_suffix("[*]"))
+    {
         let is_star = name.ends_with("[*]");
         let resolved = resolve_nameref_base(arr_base, env).to_string();
         if resolved == "DIRSTACK" {
@@ -3889,7 +4129,11 @@ pub fn lookup_var(
         }
         let vals: Vec<String> = entries.into_iter().map(|(_, v)| v).collect();
         if is_star {
-            let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
+            let sep = effective_ifs(env)
+                .chars()
+                .next()
+                .map(|c| c.to_string())
+                .unwrap_or_default();
             return vals.join(&sep);
         }
         return vals.join(" ");
@@ -4101,7 +4345,12 @@ pub fn try_resolve_unquoted_alternate_operand<'a>(
     }
     let var = &expr[..var_end];
     let op_rest = &expr[var_end..];
-    if var == "*" || var.ends_with("[@]") || var.ends_with("[*]") || var.contains("$(") || var.contains('`') {
+    if var == "*"
+        || var.ends_with("[@]")
+        || var.ends_with("[*]")
+        || var.contains("$(")
+        || var.contains('`')
+    {
         return None;
     }
     if let Some(def_raw) = op_rest.strip_prefix(":-") {
@@ -4211,7 +4460,9 @@ fn expand_pattern_operand(
                 escape_glob_pattern_str(&chars[i + 1].to_string(), &mut out);
                 i += 2;
             } else if c == '$' {
-                out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+                out.push_str(&expand_nested_dollar(
+                    &chars, &mut i, env, last_exit, pos_args,
+                )?);
             } else {
                 out.push(c);
                 i += 1;
@@ -4308,12 +4559,27 @@ pub fn expand_globs_in_word_with_projection(
     }
     let globignore_raw = env.get("GLOBIGNORE").map(|s| s.as_str()).unwrap_or("");
     let has_globignore = !globignore_raw.is_empty();
-    let raw_dotglob = env.get("\0shopt_dotglob").map(|v| v == "1").unwrap_or(false);
+    let raw_dotglob = env
+        .get("\0shopt_dotglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
     let dotglob = raw_dotglob || has_globignore;
-    let nullglob = env.get("\0shopt_nullglob").map(|v| v == "1").unwrap_or(false);
-    let failglob = env.get("\0shopt_failglob").map(|v| v == "1").unwrap_or(false);
-    let nocaseglob = env.get("\0shopt_nocaseglob").map(|v| v == "1").unwrap_or(false);
-    let globstar = env.get("\0shopt_globstar").map(|v| v == "1").unwrap_or(false);
+    let nullglob = env
+        .get("\0shopt_nullglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
+    let failglob = env
+        .get("\0shopt_failglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
+    let nocaseglob = env
+        .get("\0shopt_nocaseglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
+    let globstar = env
+        .get("\0shopt_globstar")
+        .map(|v| v == "1")
+        .unwrap_or(false);
     let want_dir = projection.ends_with('/');
 
     let is_abs = pattern.starts_with('/');
@@ -4692,11 +4958,22 @@ mod tests {
             assert_eq!(eval_arith_formatted(expr, &mut env), Ok(value), "{expr}");
         }
         for (expr, token) in [
-            ("(a[0]+1)=2", "2"), ("1+=  42", "42"), ("1=2+", "2+"), ("1=", "="),
-            ("++(i+1) + 3", "+ 3"), ("++2", "2"), ("(i++)++", "++"),
+            ("(a[0]+1)=2", "2"),
+            ("1+=  42", "42"),
+            ("1=2+", "2+"),
+            ("1=", "="),
+            ("++(i+1) + 3", "+ 3"),
+            ("++2", "2"),
+            ("(i++)++", "++"),
         ] {
-            let expected = format!("{expr}: arithmetic syntax error in expression (error token is \"{token}\")");
-            assert_eq!(eval_arith_formatted(expr, &mut env), Err(expected), "{expr}");
+            let expected = format!(
+                "{expr}: arithmetic syntax error in expression (error token is \"{token}\")"
+            );
+            assert_eq!(
+                eval_arith_formatted(expr, &mut env),
+                Err(expected),
+                "{expr}"
+            );
         }
     }
 
@@ -4739,7 +5016,10 @@ mod tests {
 
         let mut env = BTreeMap::new();
         env.insert("HOME".to_string(), "/home/tester".to_string());
-        assert_eq!(expand_parameter_expr("HOME#/home/", &mut env, 0, &[]).unwrap(), "tester");
+        assert_eq!(
+            expand_parameter_expr("HOME#/home/", &mut env, 0, &[]).unwrap(),
+            "tester"
+        );
 
         let mut a = eval_arith("2 ** 8 - 6", &mut env).unwrap();
         assert_eq!(a, 250);
@@ -4772,9 +5052,18 @@ mod tests {
         let mut env = BTreeMap::new();
         env.insert("SET_VAR".to_string(), "value".to_string());
         env.insert("EMPTY_VAR".to_string(), String::new());
-        assert_eq!(expand_parameter_expr("#SET_VAR", &mut env, 0, &[]).unwrap(), "5");
-        assert_eq!(expand_parameter_expr("EMPTY_VAR:-fallback", &mut env, 0, &[]).unwrap(), "fallback");
-        assert_eq!(expand_parameter_expr("SET_VAR:+alt", &mut env, 0, &[]).unwrap(), "alt");
+        assert_eq!(
+            expand_parameter_expr("#SET_VAR", &mut env, 0, &[]).unwrap(),
+            "5"
+        );
+        assert_eq!(
+            expand_parameter_expr("EMPTY_VAR:-fallback", &mut env, 0, &[]).unwrap(),
+            "fallback"
+        );
+        assert_eq!(
+            expand_parameter_expr("SET_VAR:+alt", &mut env, 0, &[]).unwrap(),
+            "alt"
+        );
     }
 
     #[test]
@@ -4864,13 +5153,41 @@ mod tests {
         assert_eq!(eval_arith("0 ? (1 / 0) : 99", &mut env).unwrap(), 99);
 
         // Radix / octal / hex validation
-        assert!(eval_arith("08", &mut env).unwrap_err().contains("Invalid octal constant"));
-        assert!(eval_arith("65#1", &mut env).unwrap_err().contains("Invalid arithmetic base"));
-        assert!(eval_arith("1#0", &mut env).unwrap_err().contains("Invalid arithmetic base"));
-        assert!(eval_arith("2#2", &mut env).unwrap_err().contains("Digit exceeds arithmetic base"));
-        assert!(eval_arith("8#8", &mut env).unwrap_err().contains("Digit exceeds arithmetic base"));
-        assert!(eval_arith("16#g", &mut env).unwrap_err().contains("Digit exceeds arithmetic base"));
-        assert!(eval_arith("0x", &mut env).unwrap_err().contains("Invalid arithmetic constant"));
+        assert!(
+            eval_arith("08", &mut env)
+                .unwrap_err()
+                .contains("Invalid octal constant")
+        );
+        assert!(
+            eval_arith("65#1", &mut env)
+                .unwrap_err()
+                .contains("Invalid arithmetic base")
+        );
+        assert!(
+            eval_arith("1#0", &mut env)
+                .unwrap_err()
+                .contains("Invalid arithmetic base")
+        );
+        assert!(
+            eval_arith("2#2", &mut env)
+                .unwrap_err()
+                .contains("Digit exceeds arithmetic base")
+        );
+        assert!(
+            eval_arith("8#8", &mut env)
+                .unwrap_err()
+                .contains("Digit exceeds arithmetic base")
+        );
+        assert!(
+            eval_arith("16#g", &mut env)
+                .unwrap_err()
+                .contains("Digit exceeds arithmetic base")
+        );
+        assert!(
+            eval_arith("0x", &mut env)
+                .unwrap_err()
+                .contains("Invalid arithmetic constant")
+        );
         assert_eq!(
             eval_arith("64#aA@_", &mut env).unwrap(),
             10 * 64 * 64 * 64 + 36 * 64 * 64 + 62 * 64 + 63

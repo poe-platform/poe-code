@@ -18,8 +18,11 @@ pub fn normalize_posix_path(path: &str) -> String {
 
 /// Keep dot components and trailing slashes for filesystem traversal.
 pub(crate) fn absolute_operand(cwd: &str, operand: &str) -> String {
-    if operand.is_empty() || operand.starts_with('/') { operand.to_owned() }
-    else { format!("{}/{operand}", cwd.trim_end_matches('/')) }
+    if operand.is_empty() || operand.starts_with('/') {
+        operand.to_owned()
+    } else {
+        format!("{}/{operand}", cwd.trim_end_matches('/'))
+    }
 }
 
 pub fn resolve_posix_path(cwd: &str, target: &str) -> String {
@@ -93,7 +96,10 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
     mount_parent: impl Fn(&str) -> bool,
 ) -> Result<String, String> {
-    let overlay = matches!(purpose, WalkPurpose::OverlayAccess | WalkPurpose::OverlayCreate);
+    let overlay = matches!(
+        purpose,
+        WalkPurpose::OverlayAccess | WalkPurpose::OverlayCreate
+    );
     let access = overlay || matches!(purpose, WalkPurpose::Access | WalkPurpose::CommandCreate);
     let mut link_checks = Vec::new();
     let mut current = "/".to_string();
@@ -106,37 +112,78 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     let mut boundary = None;
     let mut followed_final_mount_link = false;
     let mut links = 0;
-    if purpose != WalkPurpose::AllowMissingParents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
-    if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
-    if access && path.ends_with('/') { pending.insert(0, if purpose == WalkPurpose::CommandCreate { "" } else { "." }.into()); }
+    if purpose != WalkPurpose::AllowMissingParents && path.is_empty() {
+        return Err("ENOENT: no such file or directory".into());
+    }
+    if path.contains('\0') {
+        return Err("EINVAL: invalid argument".into());
+    }
+    if access && path.ends_with('/') {
+        pending.insert(
+            0,
+            if purpose == WalkPurpose::CommandCreate {
+                ""
+            } else {
+                "."
+            }
+            .into(),
+        );
+    }
     while let Some(part) = pending.pop() {
         if purpose != WalkPurpose::AllowMissingParents {
             let (mount, backend, local) = location(&current);
             let st = match backend.stat(&local) {
                 Ok(st) => Some(st),
-                Err(e) if (e.starts_with("ENOENT:") || e.ends_with("(os error 2)")) && mount_parent(&current) => None,
+                Err(e)
+                    if (e.starts_with("ENOENT:") || e.ends_with("(os error 2)"))
+                        && mount_parent(&current) =>
+                {
+                    None
+                }
                 Err(e) if overlay => {
-                    return Err(format!("{}, overlay '{current}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)));
+                    return Err(format!(
+                        "{}, overlay '{current}'",
+                        e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
+                    ));
                 }
                 Err(e) => return Err(e),
             };
-            if let Some(ref st) = st && st.kind != super::VfsEntryKind::Directory {
-                if purpose == WalkPurpose::Access && mount.is_none() && st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0) {
+            if let Some(ref st) = st
+                && st.kind != super::VfsEntryKind::Directory
+            {
+                if purpose == WalkPurpose::Access
+                    && mount.is_none()
+                    && st.mode & 0o170000 == 0o020000
+                    && st.allocated_bytes == Some(0)
+                {
                     return Err(format!("ENOTDIR: not a directory '{path}'"));
                 }
-                return Err(if overlay { format!("ENOTDIR: not a directory, overlay '{current}'") } else { "ENOTDIR: not a directory".into() });
+                return Err(if overlay {
+                    format!("ENOTDIR: not a directory, overlay '{current}'")
+                } else {
+                    "ENOTDIR: not a directory".into()
+                });
             }
             if st.is_some_and(|st| st.mode & 0o100 == 0) {
-                if overlay { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
-                if purpose == WalkPurpose::CommandCreate { return Err(format!("EACCES: permission denied, access '{current}'")); }
+                if overlay {
+                    return Err(format!("EACCES: permission denied, overlay '{current}'"));
+                }
+                if purpose == WalkPurpose::CommandCreate {
+                    return Err(format!("EACCES: permission denied, access '{current}'"));
+                }
                 if access {
-                    if matches!(part.as_str(), "." | "..") { return Err("EACCES: permission denied".into()); }
+                    if matches!(part.as_str(), "." | "..") {
+                        return Err("EACCES: permission denied".into());
+                    }
                     let denied = format!("{}/{part}", current.trim_end_matches('/'));
                     return Err(format!("EACCES: permission denied, lstat '{denied}'"));
                 }
                 return Err("EACCES: permission denied".into());
             }
-            if purpose == WalkPurpose::Rename && pending.is_empty() && matches!(part.as_str(), "." | "..") {
+            if purpose == WalkPurpose::Rename
+                && pending.is_empty()
+                && matches!(part.as_str(), "." | "..")
+            {
                 return Err("EINVAL: invalid argument".into());
             }
         }
@@ -153,7 +200,11 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
         let candidate = format!("{}/{part}", current.trim_end_matches('/'));
         let (prefix, backend, relative) = location(&candidate);
         if part.len() > 255 {
-            return Err(if prefix.is_none() && purpose == WalkPurpose::Access { format!("ENAMETOOLONG: name too long, lstat '{candidate}'") } else { "ENAMETOOLONG: name too long".into() });
+            return Err(if prefix.is_none() && purpose == WalkPurpose::Access {
+                format!("ENAMETOOLONG: name too long, lstat '{candidate}'")
+            } else {
+                "ENAMETOOLONG: name too long".into()
+            });
         }
         if boundary.is_some() && boundary != prefix {
             return Err("EACCES: Permission denied".into());
@@ -172,10 +223,14 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                     return Err("ELOOP: too many symbolic links".into());
                 }
                 if overlay {
-                    let final_name = pending.first().filter(|p| !follow_final && *p != "." && *p != "..").cloned();
+                    let final_name = pending
+                        .first()
+                        .filter(|p| !follow_final && *p != "." && *p != "..")
+                        .cloned();
                     let mut remaining = relative.clone();
                     for part in pending[usize::from(final_name.is_some())..].iter().rev() {
-                        remaining.push('/'); remaining.push_str(part);
+                        remaining.push('/');
+                        remaining.push_str(part);
                     }
                     link_checks.push((backend, remaining, final_name));
                 }
@@ -185,7 +240,9 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                 if target.starts_with('/') {
                     current = prefix.unwrap_or("/").to_owned();
                 }
-                if access && target.ends_with('/') { pending.push(".".into()); }
+                if access && target.ends_with('/') {
+                    pending.push(".".into());
+                }
                 pending.extend(
                     target
                         .split('/')
@@ -196,7 +253,9 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             }
             Ok(_) => current = candidate,
             Err(error) if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") => {
-                if access && followed_final_mount_link { return Err(error); }
+                if access && followed_final_mount_link {
+                    return Err(error);
+                }
                 current = candidate
             }
             Err(error) => return Err(error),
@@ -210,20 +269,37 @@ pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             Err(e) => return Err(e),
         };
         if missing && follow_final && purpose != WalkPurpose::OverlayCreate {
-            return Err(format!("ENOENT: no such file or directory, overlay '{current}'"));
+            return Err(format!(
+                "ENOENT: no such file or directory, overlay '{current}'"
+            ));
         }
         for (backend, remaining, final_name) in link_checks {
-            let checked = backend.access_path(&remaining, true).and_then(|p| backend.lstat(&p).map(|_| p))
-                .map_err(|e| format!("{}, realpath '{remaining}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)))?;
+            let checked = backend
+                .access_path(&remaining, true)
+                .and_then(|p| backend.lstat(&p).map(|_| p))
+                .map_err(|e| {
+                    format!(
+                        "{}, realpath '{remaining}'",
+                        e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
+                    )
+                })?;
             let expected = if let Some(name) = final_name {
                 let child = format!("{}/{name}", checked.trim_end_matches('/'));
-                if let Err(e) = backend.lstat(&child) && !(missing && e.starts_with("ENOENT:")) {
+                if let Err(e) = backend.lstat(&child)
+                    && !(missing && e.starts_with("ENOENT:"))
+                {
                     let reason = e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason);
                     return Err(format!("{reason}, lstat '{remaining}/{name}'"));
                 }
                 child
-            } else { checked };
-            if expected != current { return Err(format!("ENOTSUP: backend cannot confirm the overlay symlink namespace, overlay '{path}'")); }
+            } else {
+                checked
+            };
+            if expected != current {
+                return Err(format!(
+                    "ENOTSUP: backend cannot confirm the overlay symlink namespace, overlay '{path}'"
+                ));
+            }
         }
     }
     Ok(current)
@@ -236,57 +312,111 @@ pub(super) fn walk_memory_entry(
     trailing_directory: bool,
     mut visit: impl FnMut(&str, bool) -> Result<Option<String>, String>,
 ) -> Result<String, String> {
-    if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
-    if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
-    let mut parts: Vec<_> = path.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned).collect();
-    if trailing_directory && path.ends_with('/') { parts.insert(0, ".".into()); }
+    if path.is_empty() {
+        return Err("ENOENT: no such file or directory".into());
+    }
+    if path.contains('\0') {
+        return Err("EINVAL: invalid argument".into());
+    }
+    let mut parts: Vec<_> = path
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .rev()
+        .map(str::to_owned)
+        .collect();
+    if trailing_directory && path.ends_with('/') {
+        parts.insert(0, ".".into());
+    }
     let mut current = String::from("/");
     let mut hops = 0;
     loop {
         if let Some(target) = visit(&current, parts.is_empty())? {
             hops += 1;
-            if hops > max_hops { return Err("ELOOP: too many symbolic links encountered".into()); }
-            current = if target.starts_with('/') { "/".into() } else { dirname_posix_path(&current) };
-            if trailing_directory && target.ends_with('/') { parts.push(".".into()); }
-            parts.extend(target.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned));
+            if hops > max_hops {
+                return Err("ELOOP: too many symbolic links encountered".into());
+            }
+            current = if target.starts_with('/') {
+                "/".into()
+            } else {
+                dirname_posix_path(&current)
+            };
+            if trailing_directory && target.ends_with('/') {
+                parts.push(".".into());
+            }
+            parts.extend(
+                target
+                    .split('/')
+                    .filter(|s| !s.is_empty())
+                    .rev()
+                    .map(str::to_owned),
+            );
             continue;
         }
-        let Some(part) = parts.pop() else { return Ok(current); };
-        if part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
+        let Some(part) = parts.pop() else {
+            return Ok(current);
+        };
+        if part.len() > 255 {
+            return Err("ENAMETOOLONG: name too long".into());
+        }
         match part.as_str() {
             "." => {}
             ".." => current = dirname_posix_path(&current),
             _ => {
-                if current != "/" { current.push('/'); }
+                if current != "/" {
+                    current.push('/');
+                }
                 current.push_str(&part);
             }
         }
     }
 }
 
-pub(crate) enum DeviceLookup { Directory(bool), Link(String), Other, Missing }
+pub(crate) enum DeviceLookup {
+    Directory(bool),
+    Link(String),
+    Other,
+    Missing,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum DeviceTraversal { Classify, Access { devices: bool } }
+pub(crate) enum DeviceTraversal {
+    Classify,
+    Access { devices: bool },
+}
 
 // Only the virtual entries shadow the backing filesystem. Ordinary paths retain
 // the backing operation's own missing-parent and creation rules.
 pub(crate) fn walk_device_path(
-    path: &str, follow_final: bool, max_hops: usize, traversal: DeviceTraversal,
-    mut namespace: impl FnMut(&str) -> Result<Option<String>,String>,
-    mut lookup: impl FnMut(&str,usize,&str) -> Result<DeviceLookup,String>,
-) -> Result<String,String> {
+    path: &str,
+    follow_final: bool,
+    max_hops: usize,
+    traversal: DeviceTraversal,
+    mut namespace: impl FnMut(&str) -> Result<Option<String>, String>,
+    mut lookup: impl FnMut(&str, usize, &str) -> Result<DeviceLookup, String>,
+) -> Result<String, String> {
     let strict = traversal != DeviceTraversal::Classify;
-    let devices = traversal != (DeviceTraversal::Access { devices:false });
-    if strict && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
-    if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
+    let devices = traversal != (DeviceTraversal::Access { devices: false });
+    if strict && path.is_empty() {
+        return Err("ENOENT: no such file or directory".into());
+    }
+    if path.contains('\0') {
+        return Err("EINVAL: paths must be strings without NUL bytes, resolve".into());
+    }
     let not_dir = || format!("ENOTDIR: not a directory '{path}'");
     // Device traversal rejects even a lexical /dev/null/.. before looking up links.
     if devices && path.contains("null/") {
         let mut parts = Vec::new();
         for part in path.split('/') {
-            if parts.as_slice() == ["dev","null"] { return Err(not_dir()); }
-            match part { "" | "." => {}, ".." => { parts.pop(); }, _ => parts.push(part) }
+            if parts.as_slice() == ["dev", "null"] {
+                return Err(not_dir());
+            }
+            match part {
+                "" | "." => {}
+                ".." => {
+                    parts.pop();
+                }
+                _ => parts.push(part),
+            }
         }
     }
     let mut pending: Vec<_> = path.split('/').rev().map(str::to_owned).collect();
@@ -297,50 +427,95 @@ pub(crate) fn walk_device_path(
     let mut boundary: Option<String> = None;
     let mut absolute = path.starts_with('/');
     while let Some(part) = pending.pop() {
-        if devices && current == "/dev/null" { return Err(not_dir()); }
+        if devices && current == "/dev/null" {
+            return Err(not_dir());
+        }
         match part.as_str() {
             "" | "." => continue,
             ".." => {
-                if boundary.as_deref() == Some(&current) { return Err("EACCES: permission denied".into()); }
+                if boundary.as_deref() == Some(&current) {
+                    return Err("EACCES: permission denied".into());
+                }
                 current.truncate(current.rfind('/').unwrap_or(0).max(1));
-                if current.len() < failed_at { failed_at = usize::MAX; }
+                if current.len() < failed_at {
+                    failed_at = usize::MAX;
+                }
                 continue;
             }
             _ => {}
         }
         let parent_len = current.len();
-        if current != "/" { current.push('/'); }
-        current.push_str(&part);
-        let virtual_entry = devices && matches!(current.as_str(), "/dev"|"/dev/null");
-        if let Some(root) = &boundary {
-            let selected = if virtual_entry { "/".to_owned() } else { namespace(&current)?.unwrap_or_else(|| "/".into()) };
-            if root != &selected { return Err("EACCES: permission denied".into()); }
+        if current != "/" {
+            current.push('/');
         }
-        if (!follow_final && pending.is_empty()) || parent_len >= failed_at || virtual_entry { continue; }
-        let display = if absolute { &current } else { current.trim_start_matches('/') };
+        current.push_str(&part);
+        let virtual_entry = devices && matches!(current.as_str(), "/dev" | "/dev/null");
+        if let Some(root) = &boundary {
+            let selected = if virtual_entry {
+                "/".to_owned()
+            } else {
+                namespace(&current)?.unwrap_or_else(|| "/".into())
+            };
+            if root != &selected {
+                return Err("EACCES: permission denied".into());
+            }
+        }
+        if (!follow_final && pending.is_empty()) || parent_len >= failed_at || virtual_entry {
+            continue;
+        }
+        let display = if absolute {
+            &current
+        } else {
+            current.trim_start_matches('/')
+        };
         match lookup(&current, parent_len, display)? {
-            DeviceLookup::Directory(false) if strict && !pending.is_empty() => return Err("EACCES: permission denied".into()),
+            DeviceLookup::Directory(false) if strict && !pending.is_empty() => {
+                return Err("EACCES: permission denied".into());
+            }
             DeviceLookup::Directory(_) => {}
             DeviceLookup::Link(target) => {
-                if boundary.is_none() { boundary = namespace(&current)?; }
+                if boundary.is_none() {
+                    boundary = namespace(&current)?;
+                }
                 links += 1;
-                if links > max_hops { return Err(format!("ELOOP: too many symbolic links encountered '{path}'")); }
-                if target.starts_with('/') { current = boundary.clone().unwrap_or_else(|| "/".into()); absolute = true; failed_at = usize::MAX; }
-                else { current.truncate(parent_len); }
+                if links > max_hops {
+                    return Err(format!(
+                        "ELOOP: too many symbolic links encountered '{path}'"
+                    ));
+                }
+                if target.starts_with('/') {
+                    current = boundary.clone().unwrap_or_else(|| "/".into());
+                    absolute = true;
+                    failed_at = usize::MAX;
+                } else {
+                    current.truncate(parent_len);
+                }
                 pending.extend(target.split('/').rev().map(str::to_owned));
             }
             node => {
-                if pending.is_empty() { continue; }
+                if pending.is_empty() {
+                    continue;
+                }
                 failed_at = current.len();
-                let error = || if matches!(node,DeviceLookup::Other) { not_dir() } else {
-                    format!("ENOENT: no such file or directory, lstat '{}'",display)
+                let error = || {
+                    if matches!(node, DeviceLookup::Other) {
+                        not_dir()
+                    } else {
+                        format!("ENOENT: no such file or directory, lstat '{}'", display)
+                    }
                 };
-                if strict { return Err(error()); }
+                if strict {
+                    return Err(error());
+                }
                 failure.get_or_insert_with(error);
             }
         }
     }
-    if matches!(current.as_str(),"/"|"/dev"|"/dev/null") && let Some(error) = failure { return Err(error); }
+    if matches!(current.as_str(), "/" | "/dev" | "/dev/null")
+        && let Some(error) = failure
+    {
+        return Err(error);
+    }
     Ok(current)
 }
 
@@ -362,7 +537,10 @@ mod tests {
         assert_eq!(normalize_posix_path(""), "/");
         assert_eq!(normalize_posix_path("///a/./b/../c//"), "/a/c");
         assert_eq!(normalize_posix_path("/../../escape"), "/escape");
-        assert_eq!(resolve_posix_path("/workspace/sub", "../file.txt"), "/workspace/file.txt");
+        assert_eq!(
+            resolve_posix_path("/workspace/sub", "../file.txt"),
+            "/workspace/file.txt"
+        );
         assert_eq!(resolve_posix_path("/", "rel/path"), "/rel/path");
         assert_eq!(resolve_posix_path("/workspace", "/abs/path"), "/abs/path");
     }

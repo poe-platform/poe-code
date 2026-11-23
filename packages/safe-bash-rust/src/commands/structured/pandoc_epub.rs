@@ -207,7 +207,7 @@ pub(super) fn read(data: &[u8], limit: usize) -> Result<Vec<PandocBlock>, Error>
         let chapter = root(&part(path)?, "html")?;
         let body = child(&chapter, "body")?;
         let mut html = String::new();
-        serialize_xml_pretty(body, false, xml::Escaping::Unicode, &mut html)
+        serialize_xml_pretty(body, false, true, xml::Escaping::Unicode, &mut html)
             .map_err(|_| INVALID)?;
         blocks.extend(
             parse_pandoc_html(&html).ok_or((1, "pandoc: document nesting limit exceeded\n"))?,

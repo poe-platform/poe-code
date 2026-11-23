@@ -1,7 +1,7 @@
 use crate::commands::search::regex_captures;
 use crate::shell::expand::{
-    decode_echo_b_escapes, decode_printf_escapes, eval_arith, glob_match_ext,
-    resolve_nameref_base, sync_array_metadata,
+    decode_echo_b_escapes, decode_printf_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
+    sync_array_metadata,
 };
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -15,23 +15,44 @@ pub struct BuiltinOutcome {
 
 pub(super) fn same_file(cwd: &str, left: &str, right: &str, fs: &dyn SafeBashFs) -> bool {
     let identity = |operand: &str| {
-        if operand.is_empty() { return None; }
+        if operand.is_empty() {
+            return None;
+        }
         let path = crate::vfs::path::absolute_operand(cwd, operand);
         fs.stat(&fs.access_path(&path, true).ok()?).ok()?.identity
     };
     matches!((identity(left), identity(right)), (Some(a), Some(b)) if a == b)
 }
 
-pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, external: Option<&str>) -> BuiltinOutcome {
+pub(super) fn pwd(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    external: Option<&str>,
+) -> BuiltinOutcome {
     let posix = env.contains_key("POSIXLY_CORRECT");
-    let mut physical = if external.is_some() { !posix } else { env.get("\0set_physical").is_some_and(|value| value == "1") };
+    let mut physical = if external.is_some() {
+        !posix
+    } else {
+        env.get("\0set_physical").is_some_and(|value| value == "1")
+    };
     let mut ignored = false;
-    let mut out = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+    let mut out = BuiltinOutcome {
+        stdout: String::new(),
+        stderr: String::new(),
+        exit_code: 0,
+    };
     for (i, arg) in args.iter().enumerate() {
-        if arg == "--" { ignored |= i + 1 < args.len(); break; }
+        if arg == "--" {
+            ignored |= i + 1 < args.len();
+            break;
+        }
         if !arg.starts_with('-') || arg == "-" {
             ignored = true;
-            if external.is_none() || posix { break; }
+            if external.is_none() || posix {
+                break;
+            }
             continue;
         }
         if external.is_none() && arg == "--help" {
@@ -50,31 +71,55 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
                 "    Exit Status:\n",
                 "    Returns 0 unless an invalid option is given or the current directory\n",
                 "    cannot be read.\n",
-            ).into();
+            )
+            .into();
             return out;
         }
         let mut diagnostic = None;
-        if external.is_some() && let Some(long) = arg.strip_prefix("--") {
+        if external.is_some()
+            && let Some(long) = arg.strip_prefix("--")
+        {
             let name = long.split('=').next().unwrap_or(long);
-            if let Some(option) = ["logical", "physical", "help", "version"].iter().find(|option| !name.is_empty() && option.starts_with(name)) {
-                if long.contains('=') { diagnostic = Some(format!("option '--{option}' doesn't allow an argument")); }
-                else if matches!(*option, "help" | "version") {
-                    return crate::commands::coreutils::gnu_information_sync("pwd", &[format!("--{option}")], posix)
-                        .expect("pwd has GNU information metadata");
-                } else { physical = *option == "physical"; }
-            } else { diagnostic = Some(format!("unrecognized option '{arg}'")); }
+            if let Some(option) = ["logical", "physical", "help", "version"]
+                .iter()
+                .find(|option| !name.is_empty() && option.starts_with(name))
+            {
+                if long.contains('=') {
+                    diagnostic = Some(format!("option '--{option}' doesn't allow an argument"));
+                } else if matches!(*option, "help" | "version") {
+                    return crate::commands::coreutils::gnu_information_sync(
+                        "pwd",
+                        &[format!("--{option}")],
+                        posix,
+                    )
+                    .expect("pwd has GNU information metadata");
+                } else {
+                    physical = *option == "physical";
+                }
+            } else {
+                diagnostic = Some(format!("unrecognized option '{arg}'"));
+            }
         } else {
             for ch in arg[1..].chars() {
                 match ch {
-                    'L' => physical = false, 'P' => physical = true,
-                    _ => { diagnostic = Some(if external.is_some() { format!("invalid option -- '{ch}'") } else { format!("-{ch}: invalid option") }); break; }
+                    'L' => physical = false,
+                    'P' => physical = true,
+                    _ => {
+                        diagnostic = Some(if external.is_some() {
+                            format!("invalid option -- '{ch}'")
+                        } else {
+                            format!("-{ch}: invalid option")
+                        });
+                        break;
+                    }
                 }
             }
         }
         if let Some(message) = diagnostic {
             if let Some(name) = external {
                 out.exit_code = 1;
-                out.stderr = format!("{name}: {message}\nTry '{name} --help' for more information.\n");
+                out.stderr =
+                    format!("{name}: {message}\nTry '{name} --help' for more information.\n");
             } else {
                 out.exit_code = 2;
                 out.stderr = format!("pwd: {message}\npwd: usage: pwd [-LP]\n");
@@ -83,23 +128,39 @@ pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs:
         }
     }
     if let Some(name) = external {
-        if ignored { out.stderr = format!("{name}: ignoring non-option arguments\n"); }
-        if !physical && let Some(logical) = env.get("PWD")
-            && logical.starts_with('/') && !logical.split('/').any(|s| matches!(s, "." | ".."))
+        if ignored {
+            out.stderr = format!("{name}: ignoring non-option arguments\n");
+        }
+        if !physical
+            && let Some(logical) = env.get("PWD")
+            && logical.starts_with('/')
+            && !logical.split('/').any(|s| matches!(s, "." | ".."))
             && same_file("/", logical, cwd, fs)
-        { out.stdout = format!("{logical}\n"); return out; }
+        {
+            out.stdout = format!("{logical}\n");
+            return out;
+        }
     }
     let path = if physical || external.is_some() {
-        fs.access_path(cwd, true).and_then(|path| fs.stat(&path).map(|_| path))
-    } else { Ok(cwd.to_owned()) };
+        fs.access_path(cwd, true)
+            .and_then(|path| fs.stat(&path).map(|_| path))
+    } else {
+        Ok(cwd.to_owned())
+    };
     match path {
         Ok(path) => out.stdout = format!("{path}\n"),
         Err(e) => {
             let message = if e.starts_with("ENOENT") {
-                if external.is_some() { "couldn't find directory entry in '..' with matching i-node" }
-                else { "error retrieving current directory: getcwd: cannot access parent directories: No such file or directory" }
-            } else { &e };
-            out.stderr.push_str(&format!("{}: {message}\n", external.unwrap_or("pwd")));
+                if external.is_some() {
+                    "couldn't find directory entry in '..' with matching i-node"
+                } else {
+                    "error retrieving current directory: getcwd: cannot access parent directories: No such file or directory"
+                }
+            } else {
+                &e
+            };
+            out.stderr
+                .push_str(&format!("{}: {message}\n", external.unwrap_or("pwd")));
             out.exit_code = 1;
         }
     }
@@ -347,7 +408,9 @@ fn builtin_cd(
                 continue;
             }
             let candidate = if physical {
-                let Ok(path) = fs.access_path(&raw, true) else { continue; };
+                let Ok(path) = fs.access_path(&raw, true) else {
+                    continue;
+                };
                 path
             } else {
                 resolve_posix_path(cwd, &raw)
@@ -383,38 +446,57 @@ fn builtin_cd(
             } else {
                 format!("{cwd}/{path}")
             };
-            if !physical { check_logical_parents(&raw)?; }
+            if !physical {
+                check_logical_parents(&raw)?;
+            }
             let candidate = if physical {
-                fs.access_path(&raw, true).map_err(|error| if error.starts_with("ENOTDIR") { "Not a directory" } else { "No such file or directory" })?
+                fs.access_path(&raw, true).map_err(|error| {
+                    if error.starts_with("ENOTDIR") {
+                        "Not a directory"
+                    } else {
+                        "No such file or directory"
+                    }
+                })?
             } else {
                 resolve_posix_path(cwd, path)
             };
-            if fs.is_dir(&candidate) { Ok(candidate) }
-            else { Err(if fs.exists(&candidate) { "Not a directory" } else { "No such file or directory" }) }
+            if fs.is_dir(&candidate) {
+                Ok(candidate)
+            } else {
+                Err(if fs.exists(&candidate) {
+                    "Not a directory"
+                } else {
+                    "No such file or directory"
+                })
+            }
         };
         let mut result = lookup(probe_target).map(|path| (path, None));
         if result.is_err()
             && env.get("\0shopt_cdable_vars").is_some_and(|v| v == "1")
-            && target.as_bytes().first().is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_')
-            && target.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            && target
+                .as_bytes()
+                .first()
+                .is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_')
+            && target
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_')
             && let Some(value) = env.get(resolve_nameref_base(&target, env))
         {
             result = lookup(value).map(|path| (path, Some(value.clone())));
         }
         match result {
             Ok(selected) => selected,
-            Err(reason) => return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{invoked}: {target}: {reason}\n"),
-                exit_code: 1,
-            },
+            Err(reason) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{invoked}: {target}: {reason}\n"),
+                    exit_code: 1,
+                };
+            }
         }
     };
 
-    if env
-        .get("\0attr__OLDPWD")
-        .is_some_and(|a| a.contains('r'))
-    {
+    if env.get("\0attr__OLDPWD").is_some_and(|a| a.contains('r')) {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: "OLDPWD: readonly variable\n".to_string(),
@@ -424,7 +506,10 @@ fn builtin_cd(
     env.insert("OLDPWD".to_string(), cwd.clone());
     env.remove("\0unexported__OLDPWD");
     *cwd = resolved.clone();
-    if matches!(invoked,"pushd" | "popd") && let Some(marker) = env.get_mut(WATCH_STACK_CWD) && marker.is_empty() {
+    if matches!(invoked, "pushd" | "popd")
+        && let Some(marker) = env.get_mut(WATCH_STACK_CWD)
+        && marker.is_empty()
+    {
         marker.push('1');
     }
     if env.get("\0attr__PWD").is_some_and(|a| a.contains('r')) {
@@ -646,7 +731,8 @@ fn builtin_directory_stack(
             None
         };
         let home = env.get("HOME").cloned();
-        let out = format_dirstack_display(cwd, &tail, long, lines, verbose, single, home.as_deref());
+        let out =
+            format_dirstack_display(cwd, &tail, long, lines, verbose, single, home.as_deref());
         return BuiltinOutcome {
             stdout: out,
             stderr: String::new(),
@@ -677,7 +763,14 @@ fn builtin_directory_stack(
                 let target_dir = at(index);
                 sync_dirstack_env(cwd, &next_tail, env);
                 if !no_cd {
-                    let cd_res = builtin_cd("pushd", std::slice::from_ref(&target_dir), true, cwd, env, fs);
+                    let cd_res = builtin_cd(
+                        "pushd",
+                        std::slice::from_ref(&target_dir),
+                        true,
+                        cwd,
+                        env,
+                        fs,
+                    );
                     if cd_res.exit_code != 0 {
                         return cd_res;
                     }
@@ -933,7 +1026,11 @@ fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> Builtin
 
     if let Some(operand) = args.get(index) {
         let Some(new_mask) = parse_umask_mode(operand, cur_val) else {
-            let reason = if operand.as_bytes().first().is_some_and(|b| b.is_ascii_digit()) {
+            let reason = if operand
+                .as_bytes()
+                .first()
+                .is_some_and(|b| b.is_ascii_digit())
+            {
                 "octal number out of range"
             } else {
                 "invalid mode"
@@ -1020,7 +1117,17 @@ pub fn is_virtual_executable_path(target: &str, cwd: &str) -> bool {
             && (crate::commands::search::is_known_command(cmd)
                 || matches!(
                     cmd,
-                    "echo" | "printf" | "test" | "[" | "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh"
+                    "echo"
+                        | "printf"
+                        | "test"
+                        | "["
+                        | "true"
+                        | "false"
+                        | "pwd"
+                        | "kill"
+                        | "bash"
+                        | "sh"
+                        | "zsh"
                 ))
         {
             return true;
@@ -1058,7 +1165,12 @@ pub fn resolve_hash_command(
     None
 }
 
-pub(super) fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: String, check_dot: bool) {
+pub(super) fn hash_order_insert(
+    env: &mut BTreeMap<String, String>,
+    name: &str,
+    target: String,
+    check_dot: bool,
+) {
     let mut order: Vec<String> = env
         .get("\0hash_order")
         .map(|s| {
@@ -1071,7 +1183,10 @@ pub(super) fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, 
     order.push(name.to_string());
     env.insert("\0hash_order".to_string(), order.join("\n"));
     env.insert(format!("\0hash__{name}"), target);
-    env.insert(format!("\0hash_dot__{name}"), if check_dot { "1" } else { "0" }.into());
+    env.insert(
+        format!("\0hash_dot__{name}"),
+        if check_dot { "1" } else { "0" }.into(),
+    );
 }
 
 pub(super) fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
@@ -1092,12 +1207,22 @@ pub(super) fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) 
 }
 
 pub(super) fn clear_command_hashes(env: &mut BTreeMap<String, String>) {
-    env.retain(|key, _| !key.starts_with("\0hash__") && !key.starts_with("\0hash_dot__") && key != "\0hash_order");
+    env.retain(|key, _| {
+        !key.starts_with("\0hash__") && !key.starts_with("\0hash_dot__") && key != "\0hash_order"
+    });
 }
 
-pub(super) fn path_search_checks_cwd(name: &str, target: &str, cwd: &str, env: &BTreeMap<String, String>) -> bool {
+pub(super) fn path_search_checks_cwd(
+    name: &str,
+    target: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+) -> bool {
     for candidate in path_targets(effective_path_env(env), name) {
-        let parent = candidate.rsplit_once('/').map(|(parent, _)| parent).unwrap_or(".");
+        let parent = candidate
+            .rsplit_once('/')
+            .map(|(parent, _)| parent)
+            .unwrap_or(".");
         if candidate.starts_with('.') && resolve_posix_path(cwd, parent) == cwd {
             return true;
         }
@@ -1108,19 +1233,40 @@ pub(super) fn path_search_checks_cwd(name: &str, target: &str, cwd: &str, env: &
     false
 }
 
-pub(super) fn cached_command_path(name: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> Option<String> {
+pub(super) fn cached_command_path(
+    name: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> Option<String> {
     if env.get("\0set_hashall").is_some_and(|v| v == "0") {
         return None;
     }
     let path = env.get(&format!("\0hash__{name}"))?;
-    if !path.starts_with('/') || env.get(&format!("\0hash_dot__{name}")).is_some_and(|v| v == "1") {
+    if !path.starts_with('/')
+        || env
+            .get(&format!("\0hash_dot__{name}"))
+            .is_some_and(|v| v == "1")
+    {
         let relative = if path.starts_with('/') { name } else { path };
-        let dotted = if relative.starts_with("./") { relative.to_string() } else { format!("./{relative}") };
+        let dotted = if relative.starts_with("./") {
+            relative.to_string()
+        } else {
+            format!("./{relative}")
+        };
         let resolved = resolve_posix_path(cwd, &dotted);
-        if is_virtual_executable_path(&dotted, cwd) || fs.stat(&resolved).is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0) {
+        if is_virtual_executable_path(&dotted, cwd)
+            || fs
+                .stat(&resolved)
+                .is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0)
+        {
             return Some(dotted);
         }
-        if path.starts_with('.') && path.rsplit_once('/').is_some_and(|(parent, _)| same_file(cwd, ".", parent, fs)) {
+        if path.starts_with('.')
+            && path
+                .rsplit_once('/')
+                .is_some_and(|(parent, _)| same_file(cwd, ".", parent, fs))
+        {
             return None;
         }
     }
@@ -1155,7 +1301,11 @@ fn builtin_hash(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     if env.get("\0set_hashall").is_some_and(|v| v == "0") {
-        return BuiltinOutcome { stdout: String::new(), stderr: "hash: hashing disabled\n".into(), exit_code: 1 };
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "hash: hashing disabled\n".into(),
+            exit_code: 1,
+        };
     }
     let mut hash_args: Vec<String> = args.to_vec();
     let mut reset = false;
@@ -1278,62 +1428,63 @@ fn builtin_hash(
             hash_order_insert(env, name, resolved, check_dot);
         } else if crate::commands::search::is_known_command(name)
             || matches!(
-            name.as_str(),
-            ":" | "true"
-                | "false"
-                | "cd"
-                | "pwd"
-                | "pushd"
-                | "popd"
-                | "dirs"
-                | "echo"
-                | "printf"
-                | "test"
-                | "["
-                | "read"
-                | "mapfile"
-                | "readarray"
-                | "getopts"
-                | "set"
-                | "shopt"
-                | "shift"
-                | "export"
-                | "local"
-                | "readonly"
-                | "declare"
-                | "typeset"
-                | "unset"
-                | "trap"
-                | "eval"
-                | "source"
-                | "."
-                | "exec"
-                | "command"
-                | "builtin"
-                | "type"
-                | "hash"
-                | "umask"
-                | "ulimit"
-                | "let"
-                | "exit"
-                | "return"
-                | "break"
-                | "continue"
-                | "wait"
-                | "kill"
-                | "jobs"
-                | "disown"
-                | "alias"
-                | "unalias"
-                | "caller"
-                | "print"
-                | "functions"
-                | "setopt"
-                | "unsetopt"
-                | "bash"
-                | "sh"
-                | "zsh"
-        ) {
+                name.as_str(),
+                ":" | "true"
+                    | "false"
+                    | "cd"
+                    | "pwd"
+                    | "pushd"
+                    | "popd"
+                    | "dirs"
+                    | "echo"
+                    | "printf"
+                    | "test"
+                    | "["
+                    | "read"
+                    | "mapfile"
+                    | "readarray"
+                    | "getopts"
+                    | "set"
+                    | "shopt"
+                    | "shift"
+                    | "export"
+                    | "local"
+                    | "readonly"
+                    | "declare"
+                    | "typeset"
+                    | "unset"
+                    | "trap"
+                    | "eval"
+                    | "source"
+                    | "."
+                    | "exec"
+                    | "command"
+                    | "builtin"
+                    | "type"
+                    | "hash"
+                    | "umask"
+                    | "ulimit"
+                    | "let"
+                    | "exit"
+                    | "return"
+                    | "break"
+                    | "continue"
+                    | "wait"
+                    | "kill"
+                    | "jobs"
+                    | "disown"
+                    | "alias"
+                    | "unalias"
+                    | "caller"
+                    | "print"
+                    | "functions"
+                    | "setopt"
+                    | "unsetopt"
+                    | "bash"
+                    | "sh"
+                    | "zsh"
+            )
+        {
             // Builtins and subshells are recognized by hash without error.
         } else {
             stderr.push_str(&format!("hash: {name}: not found\n"));
@@ -1565,7 +1716,11 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             exit_code: 1,
         };
     }
-    let BuiltinOutcome { stdout: out, stderr, exit_code } = format_printf(raw_fmt, &args[idx + 1..], env, None).unwrap();
+    let BuiltinOutcome {
+        stdout: out,
+        stderr,
+        exit_code,
+    } = format_printf(raw_fmt, &args[idx + 1..], env, None).unwrap();
     if let Some(var) = assign_var {
         let resolved = resolve_nameref_base(&var, env).to_string();
         let base = resolved
@@ -1584,7 +1739,8 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
         }
         if base != "FUNCNAME" {
             let truncated = out.split('\0').next().unwrap_or("").to_string();
-            if resolved.contains('[') && !env.contains_key(&format!("\0keys__{base}"))
+            if resolved.contains('[')
+                && !env.contains_key(&format!("\0keys__{base}"))
                 && let Some(scalar) = env.get(base).cloned()
             {
                 env.insert(format!("{base}[0]"), scalar);
@@ -1608,21 +1764,39 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
     }
 }
 
-pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<String, String>, direct_limit: Option<usize>) -> Option<BuiltinOutcome> {
+pub(super) fn format_printf(
+    raw_fmt: &str,
+    val_args: &[String],
+    env: &BTreeMap<String, String>,
+    direct_limit: Option<usize>,
+) -> Option<BuiltinOutcome> {
     if direct_limit.is_some() {
-        if raw_fmt.encode_utf16().count() > 256 { return None; }
+        if raw_fmt.encode_utf16().count() > 256 {
+            return None;
+        }
         let mut chars = raw_fmt.chars().peekable();
         while let Some(ch) = chars.next() {
-            if ch != '\\' { continue; }
+            if ch != '\\' {
+                continue;
+            }
             match chars.next()? {
                 'a' | 'b' | 'e' | 'E' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '"' | '\'' => {}
                 ch @ ('0'..='7' | 'x') => {
-                    let (base, mut n) = if ch == 'x' { (16, chars.next()?.to_digit(16)?) } else { (8, ch.to_digit(8)?) };
+                    let (base, mut n) = if ch == 'x' {
+                        (16, chars.next()?.to_digit(16)?)
+                    } else {
+                        (8, ch.to_digit(8)?)
+                    };
                     for _ in 0..if base == 16 { 1 } else { 2 } {
-                        let Some(d) = chars.peek().and_then(|c| c.to_digit(base)) else { break };
-                        chars.next(); n = n * base + d;
+                        let Some(d) = chars.peek().and_then(|c| c.to_digit(base)) else {
+                            break;
+                        };
+                        chars.next();
+                        n = n * base + d;
                     }
-                    if !(1..128).contains(&(n & 255)) { return None; }
+                    if !(1..128).contains(&(n & 255)) {
+                        return None;
+                    }
                 }
                 _ => return None,
             }
@@ -1638,7 +1812,9 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
         let start_arg_i = arg_i;
         let mut offset = 0usize;
         while offset < raw_fmt.len() && !stop_all {
-            if direct_limit.is_some_and(|limit| out.len() > limit) { return None; }
+            if direct_limit.is_some_and(|limit| out.len() > limit) {
+                return None;
+            }
             if !raw_fmt[offset..].starts_with('%') {
                 let next_pct = raw_fmt[offset..]
                     .find('%')
@@ -1704,11 +1880,7 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
                         stderr.push_str(&format!("printf: '{tok}': {msg}\n"));
                         exit_code = 1;
                     }
-                    if v < 0 {
-                        None
-                    } else {
-                        Some(v as usize)
-                    }
+                    if v < 0 { None } else { Some(v as usize) }
                 } else {
                     let mut ps = String::new();
                     while let Some(pc) = raw_fmt[offset..].chars().next() {
@@ -1726,9 +1898,15 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
             };
             if direct_limit.is_some() {
                 let spec = &raw_fmt[dir_start + 1..offset];
-                if !spec.bytes().all(|c| c.is_ascii_digit() || matches!(c, b'-' | b'.'))
-                    || width.is_some_and(|w| w > 128) || precision.is_some_and(|p| p > 128)
-                    || spec.split(['-', '.']).any(|digits| !digits.is_empty() && digits.parse::<u32>().is_err()) {
+                if !spec
+                    .bytes()
+                    .all(|c| c.is_ascii_digit() || matches!(c, b'-' | b'.'))
+                    || width.is_some_and(|w| w > 128)
+                    || precision.is_some_and(|p| p > 128)
+                    || spec
+                        .split(['-', '.'])
+                        .any(|digits| !digits.is_empty() && digits.parse::<u32>().is_err())
+                {
                     return None;
                 }
             }
@@ -1797,18 +1975,37 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
             let alt_form = flags.contains('#');
 
             if direct_limit.is_some() {
-                let direct = spec_end + conv.len_utf8() == offset && match conv {
-                    's' => !zero_pad && !raw_arg.contains('\0') && (precision.is_none() || raw_arg.is_ascii()),
-                    'c' => !zero_pad && raw_arg.as_bytes().first().is_some_and(|&b| b != 0 && b.is_ascii()),
-                    'd' | 'i' | 'u' | 'o' | 'x' | 'X' => {
-                        let arg = val_args.get(supplied_idx).map_or("0", String::as_str);
-                        let digits = if matches!(conv, 'd' | 'i') { arg.strip_prefix(['+', '-']).unwrap_or(arg) } else { arg };
-                        arg.len() <= 15 && !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
-                            && (digits.len() == 1 || !digits.starts_with('0'))
-                    }
-                    _ => false,
-                };
-                if !direct { return None; }
+                let direct = spec_end + conv.len_utf8() == offset
+                    && match conv {
+                        's' => {
+                            !zero_pad
+                                && !raw_arg.contains('\0')
+                                && (precision.is_none() || raw_arg.is_ascii())
+                        }
+                        'c' => {
+                            !zero_pad
+                                && raw_arg
+                                    .as_bytes()
+                                    .first()
+                                    .is_some_and(|&b| b != 0 && b.is_ascii())
+                        }
+                        'd' | 'i' | 'u' | 'o' | 'x' | 'X' => {
+                            let arg = val_args.get(supplied_idx).map_or("0", String::as_str);
+                            let digits = if matches!(conv, 'd' | 'i') {
+                                arg.strip_prefix(['+', '-']).unwrap_or(arg)
+                            } else {
+                                arg
+                            };
+                            arg.len() <= 15
+                                && !digits.is_empty()
+                                && digits.bytes().all(|b| b.is_ascii_digit())
+                                && (digits.len() == 1 || !digits.starts_with('0'))
+                        }
+                        _ => false,
+                    };
+                if !direct {
+                    return None;
+                }
             }
             let formatted = match conv {
                 's' | 'S' => {
@@ -2020,8 +2217,9 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
                 'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
                     let f = if supplied_idx >= val_args.len() {
                         0.0
-                    } else if let Some(rest) =
-                        raw_arg.strip_prefix('\'').or_else(|| raw_arg.strip_prefix('"'))
+                    } else if let Some(rest) = raw_arg
+                        .strip_prefix('\'')
+                        .or_else(|| raw_arg.strip_prefix('"'))
                     {
                         rest.chars().next().map(|c| c as u32 as f64).unwrap_or(0.0)
                     } else {
@@ -2067,8 +2265,14 @@ pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<S
         }
     }
 
-    if direct_limit.is_some_and(|limit| out.len() > limit) { return None; }
-    Some(BuiltinOutcome { stdout: out, stderr, exit_code })
+    if direct_limit.is_some_and(|limit| out.len() > limit) {
+        return None;
+    }
+    Some(BuiltinOutcome {
+        stdout: out,
+        stderr,
+        exit_code,
+    })
 }
 
 fn pad_string(val: &str, width: usize, left_align: bool, zero_pad: bool) -> String {
@@ -2198,8 +2402,7 @@ pub fn builtin_test(
 pub fn is_test_unary_op(op: &str) -> bool {
     matches!(
         op,
-        "-n"
-            | "-z"
+        "-n" | "-z"
             | "-e"
             | "-a"
             | "-f"
@@ -2230,8 +2433,7 @@ pub fn is_test_unary_op(op: &str) -> bool {
 fn is_test_binary_op(op: &str) -> bool {
     matches!(
         op,
-        "="
-            | "=="
+        "=" | "=="
             | "!="
             | "<"
             | ">"
@@ -2280,8 +2482,7 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
     } else {
         resolve_nameref_base(val, env).to_string()
     };
-    if let Some((base, sub_with_bracket)) = eff_val.split_once('[')
-    {
+    if let Some((base, sub_with_bracket)) = eff_val.split_once('[') {
         let Some(sub) = sub_with_bracket.strip_suffix(']') else {
             return false;
         };
@@ -2305,7 +2506,9 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
             let eff = if idx < 0 { tail_len + 1 + idx } else { idx };
             return eff >= 0 && eff <= tail_len;
         }
-        let is_assoc = env.get(&format!("\0assoc__{resolved_base}")).is_some_and(|v| v == "1");
+        let is_assoc = env
+            .get(&format!("\0assoc__{resolved_base}"))
+            .is_some_and(|v| v == "1");
         if !is_assoc && matches!(sub, "@" | "*") {
             let prefix = format!("{resolved_base}[");
             return env.contains_key(&resolved_base) || env.keys().any(|k| k.starts_with(&prefix));
@@ -2318,9 +2521,18 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
                 let prefix = format!("{resolved_base}[");
                 let max_idx = env
                     .keys()
-                    .filter_map(|k| k.strip_prefix(&prefix)?.strip_suffix(']')?.parse::<i64>().ok())
+                    .filter_map(|k| {
+                        k.strip_prefix(&prefix)?
+                            .strip_suffix(']')?
+                            .parse::<i64>()
+                            .ok()
+                    })
                     .max()
-                    .unwrap_or(if env.contains_key(&resolved_base) { 0 } else { -1 });
+                    .unwrap_or(if env.contains_key(&resolved_base) {
+                        0
+                    } else {
+                        -1
+                    });
                 let eff = max_idx + 1 + idx;
                 if eff < 0 {
                     return false;
@@ -2330,24 +2542,34 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
                 format!("{resolved_base}[{idx}]")
             }
         };
-        return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(&resolved_base));
+        return env.contains_key(&key)
+            || (key.ends_with("[0]") && env.contains_key(&resolved_base));
     }
     let resolved = eff_val.as_str();
     if !is_valid_ident(resolved) {
         return false;
     }
-    if matches!(resolved, "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "_") {
+    if matches!(
+        resolved,
+        "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "_"
+    ) {
         return true;
     }
     if resolved == "FUNCNAME" {
         return env.contains_key("FUNCNAME") || env.contains_key("FUNCNAME[0]");
     }
     if resolved == "RANDOM" {
-        return !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env
+            .get("\0random_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
             || env.contains_key("RANDOM");
     }
     if resolved == "SECONDS" {
-        return !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env
+            .get("\0seconds_disabled")
+            .map(|v| v == "1")
+            .unwrap_or(false)
             || env.contains_key("SECONDS");
     }
     if env.contains_key(resolved) || env.contains_key(&format!("{resolved}[0]")) {
@@ -2376,7 +2598,9 @@ pub fn eval_test_unary_predicate(
         }
         "-o" => {
             return if matches!(val, "braceexpand" | "hashall") {
-                env.get(&format!("\0set_{val}")).map(|v| v != "0").unwrap_or(true)
+                env.get(&format!("\0set_{val}"))
+                    .map(|v| v != "0")
+                    .unwrap_or(true)
             } else {
                 env.get(&format!("\0set_{val}")).is_some_and(|v| v == "1")
             };
@@ -2407,7 +2631,9 @@ pub fn eval_test_unary_predicate(
                 .strip_prefix("/dev/fd/")
                 .or_else(|| path.strip_prefix("/proc/self/fd/"))
                 && let Ok(fd) = fd_str.parse::<u32>()
-                && env.get(&format!("\0pipe_fd__{fd}")).is_some_and(|v| v == "1")
+                && env
+                    .get(&format!("\0pipe_fd__{fd}"))
+                    .is_some_and(|v| v == "1")
             {
                 return true;
             }
@@ -2419,9 +2645,18 @@ pub fn eval_test_unary_predicate(
             .stat(&path)
             .map(|s| (s.mode & 0o170000) == 0o140000)
             .unwrap_or(false),
-        "-u" => fs.stat(&path).map(|s| (s.mode & 0o4000) != 0).unwrap_or(false),
-        "-g" => fs.stat(&path).map(|s| (s.mode & 0o2000) != 0).unwrap_or(false),
-        "-k" => fs.stat(&path).map(|s| (s.mode & 0o1000) != 0).unwrap_or(false),
+        "-u" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o4000) != 0)
+            .unwrap_or(false),
+        "-g" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o2000) != 0)
+            .unwrap_or(false),
+        "-k" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o1000) != 0)
+            .unwrap_or(false),
         "-s" => fs.stat(&path).is_ok_and(|s| s.size > 0),
         "-L" | "-h" => fs.readlink(&path).is_ok(),
         "-r" => fs.stat(&path).map(|s| s.mode & 0o444 != 0).unwrap_or(false),
@@ -2806,7 +3041,20 @@ fn eval_test_primary(
         && let Some(op) = args.get(*pos + 1).map(|s| s.as_str())
         && matches!(
             op,
-            "=" | "==" | "!=" | "=~" | "<" | ">" | "-eq" | "-ne" | "-lt" | "-le" | "-gt" | "-ge" | "-nt" | "-ot" | "-ef"
+            "=" | "=="
+                | "!="
+                | "=~"
+                | "<"
+                | ">"
+                | "-eq"
+                | "-ne"
+                | "-lt"
+                | "-le"
+                | "-gt"
+                | "-ge"
+                | "-nt"
+                | "-ot"
+                | "-ef"
         )
     {
         let left = &args[*pos];
@@ -2857,24 +3105,12 @@ fn eval_test_primary(
             }
             "<" => left.as_str() < right,
             ">" => left.as_str() > right,
-            "-eq" => {
-                eval_arith(left, env).unwrap_or(0) == eval_arith(right, env).unwrap_or(0)
-            }
-            "-ne" => {
-                eval_arith(left, env).unwrap_or(0) != eval_arith(right, env).unwrap_or(0)
-            }
-            "-lt" => {
-                eval_arith(left, env).unwrap_or(0) < eval_arith(right, env).unwrap_or(0)
-            }
-            "-le" => {
-                eval_arith(left, env).unwrap_or(0) <= eval_arith(right, env).unwrap_or(0)
-            }
-            "-gt" => {
-                eval_arith(left, env).unwrap_or(0) > eval_arith(right, env).unwrap_or(0)
-            }
-            "-ge" => {
-                eval_arith(left, env).unwrap_or(0) >= eval_arith(right, env).unwrap_or(0)
-            }
+            "-eq" => eval_arith(left, env).unwrap_or(0) == eval_arith(right, env).unwrap_or(0),
+            "-ne" => eval_arith(left, env).unwrap_or(0) != eval_arith(right, env).unwrap_or(0),
+            "-lt" => eval_arith(left, env).unwrap_or(0) < eval_arith(right, env).unwrap_or(0),
+            "-le" => eval_arith(left, env).unwrap_or(0) <= eval_arith(right, env).unwrap_or(0),
+            "-gt" => eval_arith(left, env).unwrap_or(0) > eval_arith(right, env).unwrap_or(0),
+            "-ge" => eval_arith(left, env).unwrap_or(0) >= eval_arith(right, env).unwrap_or(0),
             "-nt" => {
                 let lp = resolve_posix_path(cwd, left);
                 let rp = resolve_posix_path(cwd, right);
@@ -2899,9 +3135,7 @@ fn eval_test_primary(
     }
 
     // Unary expression: -op arg
-    if *pos + 1 < args.len()
-        && is_test_unary_op(args[*pos].as_str())
-    {
+    if *pos + 1 < args.len() && is_test_unary_op(args[*pos].as_str()) {
         let op = args[*pos].as_str();
         let val = &args[*pos + 1];
         *pos += 2;
@@ -2919,12 +3153,25 @@ enum EreNode {
     Start,
     End,
     Dot,
-    Literal { code: u8, insensitive: bool },
-    Set { members: [bool; 128], non_ascii: bool },
+    Literal {
+        code: u8,
+        insensitive: bool,
+    },
+    Set {
+        members: [bool; 128],
+        non_ascii: bool,
+    },
     Sequence(Vec<EreNode>),
     Alternative(Vec<EreNode>),
-    Group { index: usize, child: Box<EreNode> },
-    Repeat { child: Box<EreNode>, min: usize, max: Option<usize> },
+    Group {
+        index: usize,
+        child: Box<EreNode>,
+    },
+    Repeat {
+        child: Box<EreNode>,
+        min: usize,
+        max: Option<usize>,
+    },
 }
 
 impl EreNode {
@@ -3063,7 +3310,9 @@ impl<'a> EreParser<'a> {
                     self.offset += 1;
                 }
                 if matches!(child, EreNode::Start | EreNode::End) {
-                    return Err(format!("unsupported ERE profile at {begin}: repeated anchor"));
+                    return Err(format!(
+                        "unsupported ERE profile at {begin}: repeated anchor"
+                    ));
                 }
                 if child.is_nullable() && child.is_captured() && max.is_none_or(|m| m > 1) {
                     return Err(format!(
@@ -3309,7 +3558,9 @@ impl<'a> EreParser<'a> {
                 }
             }
         }
-        Err(format!("invalid ERE at {begin}: unclosed bracket expression"))
+        Err(format!(
+            "invalid ERE at {begin}: unclosed bracket expression"
+        ))
     }
 }
 
@@ -3403,7 +3654,11 @@ fn match_ere_ast(root: &EreNode, groups: usize, subject: &[u8]) -> Option<Vec<Op
                 continue;
             };
             match *current {
-                EreTask::Close { group, start: g_start, next } => {
+                EreTask::Close {
+                    group,
+                    start: g_start,
+                    next,
+                } => {
                     let span = (g_start, state.position);
                     let mut captures = state.captures.clone();
                     captures[group] = Some(span);
@@ -3601,9 +3856,8 @@ fn match_ere_ast(root: &EreNode, groups: usize, subject: &[u8]) -> Option<Vec<Op
                 String::from_utf8_lossy(&subject[start..best_state.position]).to_string(),
             ));
             for group in 1..width {
-                let val = best_state.captures[group].map(|(s, e)| {
-                    String::from_utf8_lossy(&subject[s..e]).to_string()
-                });
+                let val = best_state.captures[group]
+                    .map(|(s, e)| String::from_utf8_lossy(&subject[s..e]).to_string());
                 out.push(val);
             }
             return Some(out);
@@ -3632,7 +3886,9 @@ pub fn eval_ere_match(
         loc.split('.')
             .nth(1)
             .and_then(|s| s.split('@').next())
-            .is_some_and(|enc| enc.eq_ignore_ascii_case("utf-8") || enc.eq_ignore_ascii_case("utf8"))
+            .is_some_and(|enc| {
+                enc.eq_ignore_ascii_case("utf-8") || enc.eq_ignore_ascii_case("utf8")
+            })
     };
     if !((is_c(collation) || is_utf8(collation)) && (is_c(characters) || is_utf8(characters))) {
         stderr.push_str("[[ unsupported ERE profile: locale must be C, POSIX or UTF-8\n");
@@ -3657,9 +3913,7 @@ pub fn eval_ere_match(
         }
     }
 
-    let nocase = env
-        .get("\0shopt_nocasematch")
-        .is_some_and(|v| v == "1");
+    let nocase = env.get("\0shopt_nocasematch").is_some_and(|v| v == "1");
     let mut parser = EreParser {
         pattern: &pattern,
         quoted: &quoted,
@@ -3820,7 +4074,13 @@ mod tests {
         assert_eq!(ec.exit_code, 0);
         assert_eq!(ec.stdout, "alpha\tbeta");
 
-        let t_num = builtin_test("[", &args(&["42", "-gt", "10", "-a", "a", "=", "a", "]"]), "/", &mut env, &vfs);
+        let t_num = builtin_test(
+            "[",
+            &args(&["42", "-gt", "10", "-a", "a", "=", "a", "]"]),
+            "/",
+            &mut env,
+            &vfs,
+        );
         assert_eq!(t_num.exit_code, 0);
     }
 
@@ -3859,7 +4119,15 @@ mod tests {
         assert_eq!(env.get("A").map(String::as_str), Some("42"));
         assert_eq!(env.get("B").map(String::as_str), Some("50"));
 
-        let um = try_run_builtin("umask", &args(&["0027"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        let um = try_run_builtin(
+            "umask",
+            &args(&["0027"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(um.exit_code, 0);
         let um_get = try_run_builtin("umask", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(um_get.stdout, "0027\n");
@@ -3872,10 +4140,30 @@ mod tests {
         let mut env = BTreeMap::new();
         let mut cwd = "/work/dir".to_string();
         let mut stdin = String::new();
-        assert_eq!(try_run_builtin("true", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 0);
-        assert_eq!(try_run_builtin(":", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 0);
-        assert_eq!(try_run_builtin("false", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 1);
-        assert_eq!(try_run_builtin("pwd", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().stdout, "/work/dir\n");
+        assert_eq!(
+            try_run_builtin("true", &[], &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap()
+                .exit_code,
+            0
+        );
+        assert_eq!(
+            try_run_builtin(":", &[], &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap()
+                .exit_code,
+            0
+        );
+        assert_eq!(
+            try_run_builtin("false", &[], &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap()
+                .exit_code,
+            1
+        );
+        assert_eq!(
+            try_run_builtin("pwd", &[], &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap()
+                .stdout,
+            "/work/dir\n"
+        );
     }
 
     #[test]
@@ -3975,11 +4263,23 @@ mod tests {
         assert_eq!(cdpath_out.stdout, "/opt/libs/target_dir\n");
         assert_eq!(cwd, "/opt/libs/target_dir");
 
-        let pwd_err = try_run_builtin("pwd", &args(&["-z"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        let pwd_err =
+            try_run_builtin("pwd", &args(&["-z"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(pwd_err.exit_code, 2);
-        assert_eq!(pwd_err.stderr, "pwd: -z: invalid option\npwd: usage: pwd [-LP]\n");
+        assert_eq!(
+            pwd_err.stderr,
+            "pwd: -z: invalid option\npwd: usage: pwd [-LP]\n"
+        );
 
-        let let_help = try_run_builtin("let", &args(&["--help"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        let let_help = try_run_builtin(
+            "let",
+            &args(&["--help"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(let_help.exit_code, 2);
         assert_eq!(let_help.stderr, "let: --help: unsupported option\n");
     }
@@ -3992,18 +4292,33 @@ mod tests {
         let mut stdin = String::new();
 
         env.insert("\0shopt_xpg_echo".to_string(), "1".to_string());
-        let echo_xpg =
-            try_run_builtin("echo", &args(&["a\\tb\\c", "ignored"]), &mut stdin, &mut cwd, &mut env, &vfs)
-                .unwrap();
+        let echo_xpg = try_run_builtin(
+            "echo",
+            &args(&["a\\tb\\c", "ignored"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(echo_xpg.exit_code, 0);
         assert_eq!(echo_xpg.stdout, "a\tb");
 
-        let echo_no_esc =
-            try_run_builtin("echo", &args(&["-E", "a\\tb"]), &mut stdin, &mut cwd, &mut env, &vfs)
-                .unwrap();
+        let echo_no_esc = try_run_builtin(
+            "echo",
+            &args(&["-E", "a\\tb"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(echo_no_esc.stdout, "a\\tb\n");
 
-        let pf_v = builtin_printf(&args(&["-vout_var", "%#q|%Q|%(%Y-%m-%d)T", "a b", "x\ny", "0"]), &mut env);
+        let pf_v = builtin_printf(
+            &args(&["-vout_var", "%#q|%Q|%(%Y-%m-%d)T", "a b", "x\ny", "0"]),
+            &mut env,
+        );
         assert_eq!(pf_v.exit_code, 0);
         assert_eq!(
             env.get("out_var").map(String::as_str),
@@ -4018,14 +4333,26 @@ mod tests {
             "printf: '12abc': value not completely converted\n"
         );
 
-        let test_len =
-            try_run_builtin("test", &args(&["-l", "hello", "-eq", "5"]), &mut stdin, &mut cwd, &mut env, &vfs)
-                .unwrap();
+        let test_len = try_run_builtin(
+            "test",
+            &args(&["-l", "hello", "-eq", "5"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(test_len.exit_code, 0);
 
-        let test_bad_int =
-            try_run_builtin("[", &args(&["1+2", "-eq", "3", "]"]), &mut stdin, &mut cwd, &mut env, &vfs)
-                .unwrap();
+        let test_bad_int = try_run_builtin(
+            "[",
+            &args(&["1+2", "-eq", "3", "]"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(test_bad_int.exit_code, 2);
         assert_eq!(
             test_bad_int.stderr,
@@ -4051,22 +4378,12 @@ mod tests {
         assert_eq!(env.get("BASH_REMATCH[2]").map(String::as_str), Some("b"));
         assert_eq!(env.get("BASH_REMATCH[3]").map(String::as_str), Some(""));
 
-        let lit_status = eval_ere_match(
-            "a+b",
-            &[("a+b".to_string(), true)],
-            &mut env,
-            &mut stderr,
-        );
+        let lit_status = eval_ere_match("a+b", &[("a+b".to_string(), true)], &mut env, &mut stderr);
         assert_eq!(lit_status, 0);
         assert_eq!(env.get("BASH_REMATCH[0]").map(String::as_str), Some("a+b"));
 
         let mut err = String::new();
-        let bad_syntax = eval_ere_match(
-            "abc",
-            &[("[a-z".to_string(), false)],
-            &mut env,
-            &mut err,
-        );
+        let bad_syntax = eval_ere_match("abc", &[("[a-z".to_string(), false)], &mut env, &mut err);
         assert_eq!(bad_syntax, 2);
         assert_eq!(err, "[[ invalid ERE at 0: unclosed bracket expression\n");
 

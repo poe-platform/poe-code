@@ -1,5 +1,6 @@
 use safe_bash_rust::{
-    BackendMode, MemoryVfs, MemoryVfsLimits, MountVfs, OverlayVfs, SafeBashFs, Shell, ShellOptions, VfsFileEntry, vfs::ChunkReader,
+    BackendMode, MemoryVfs, MemoryVfsLimits, MountVfs, OverlayVfs, SafeBashFs, Shell, ShellOptions,
+    VfsFileEntry, vfs::ChunkReader,
 };
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -23,14 +24,37 @@ fn factor_parses_gnu_options_before_reading_numbers() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     for (script, status, stdout, stderr) in [
         ("factor --v --bad", 0, "factor (virtual-bash)\n", ""),
-        ("factor ---de 6 x 8", 1, "6: 2 3\n8: 2 2 2\n",
-            "[using single-precision arithmetic] factor: 'x' is not a valid positive integer\n[using single-precision arithmetic] "),
-        ("factor --exp=y", 1, "", "factor: option '--exponents' doesn't allow an argument\nTry 'factor --help' for more information.\n"),
-        ("factor -hx", 1, "", "factor: invalid option -- 'x'\nTry 'factor --help' for more information.\n"),
-        ("POSIXLY_CORRECT= factor 8 -h", 1, "8: 2 2 2\n", "factor: '-h' is not a valid positive integer\n"),
+        (
+            "factor ---de 6 x 8",
+            1,
+            "6: 2 3\n8: 2 2 2\n",
+            "[using single-precision arithmetic] factor: 'x' is not a valid positive integer\n[using single-precision arithmetic] ",
+        ),
+        (
+            "factor --exp=y",
+            1,
+            "",
+            "factor: option '--exponents' doesn't allow an argument\nTry 'factor --help' for more information.\n",
+        ),
+        (
+            "factor -hx",
+            1,
+            "",
+            "factor: invalid option -- 'x'\nTry 'factor --help' for more information.\n",
+        ),
+        (
+            "POSIXLY_CORRECT= factor 8 -h",
+            1,
+            "8: 2 2 2\n",
+            "factor: '-h' is not a valid positive integer\n",
+        ),
     ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr), "{script}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (status, stdout, stderr),
+            "{script}"
+        );
     }
 }
 
@@ -38,9 +62,18 @@ fn factor_parses_gnu_options_before_reading_numbers() {
 fn numfmt_quotes_invalid_input_in_the_message_locale() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     for (script, expected) in [
-        ("LC_ALL=C.UTF-8 numfmt bad", "numfmt: invalid number: ‘bad’\n"),
-        ("LC_MESSAGES=C.UTF-8 numfmt 'é’'", "numfmt: invalid number: ‘é\\’’\n"),
-        ("LC_ALL=C LC_MESSAGES=C.UTF-8 numfmt 'é'", "numfmt: invalid number: '\\303\\251'\n"),
+        (
+            "LC_ALL=C.UTF-8 numfmt bad",
+            "numfmt: invalid number: ‘bad’\n",
+        ),
+        (
+            "LC_MESSAGES=C.UTF-8 numfmt 'é’'",
+            "numfmt: invalid number: ‘é\\’’\n",
+        ),
+        (
+            "LC_ALL=C LC_MESSAGES=C.UTF-8 numfmt 'é'",
+            "numfmt: invalid number: '\\303\\251'\n",
+        ),
     ] {
         let r = shell.exec(script).unwrap();
         assert_eq!((r.exit_code, r.stderr.as_str()), (2, expected), "{script}");
@@ -49,11 +82,18 @@ fn numfmt_quotes_invalid_input_in_the_message_locale() {
 
 struct JqStreamFs;
 impl SafeBashFs for JqStreamFs {
-    fn access_path(&self, path: &str, _: bool) -> Result<String, String> { Ok(path.into()) }
+    fn access_path(&self, path: &str, _: bool) -> Result<String, String> {
+        Ok(path.into())
+    }
     fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
         let source: &[u8] = match path {
             "/late-error" | "/json-error" => {
-                let mut chunks = if path == "/json-error" { [b"1 ".as_slice(), b"\n2\n".as_slice()] } else { [b"a\xc3".as_slice(), b"\xa9\n".as_slice()] }.into_iter();
+                let mut chunks = if path == "/json-error" {
+                    [b"1 ".as_slice(), b"\n2\n".as_slice()]
+                } else {
+                    [b"a\xc3".as_slice(), b"\xa9\n".as_slice()]
+                }
+                .into_iter();
                 return Ok(Box::new(move |out| {
                     out.clear();
                     out.extend_from_slice(chunks.next().ok_or("EIO: late read")?);
@@ -75,28 +115,65 @@ impl SafeBashFs for JqStreamFs {
             _ => return Err("ENOENT: no such file or directory".into()),
         };
         let mut chunks = source.chunks(1);
-        Ok(Box::new(move |out| { out.clear(); out.extend_from_slice(chunks.next().unwrap_or_default()); Ok(()) }))
+        Ok(Box::new(move |out| {
+            out.clear();
+            out.extend_from_slice(chunks.next().unwrap_or_default());
+            Ok(())
+        }))
     }
-    fn read_file(&self, _: &str) -> Result<Vec<u8>, String> { Err("EIO: whole-file read".into()) }
-    fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> { unreachable!() }
-    fn mkdir_all(&self, _: &str) -> Result<(), String> { Ok(()) }
-    fn remove_path(&self, _: &str) -> Result<(), String> { unreachable!() }
-    fn exists(&self, _: &str) -> bool { true }
-    fn is_dir(&self, path: &str) -> bool { matches!(path, "/" | "/lib") }
-    fn list_dir(&self, _: &str) -> Result<Vec<String>, String> { unreachable!() }
-    fn symlink(&self, _: &str, _: &str) -> Result<(), String> { unreachable!() }
-    fn readlink(&self, _: &str) -> Result<String, String> { unreachable!() }
-    fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> { unreachable!() }
-    fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> { unreachable!() }
+    fn read_file(&self, _: &str) -> Result<Vec<u8>, String> {
+        Err("EIO: whole-file read".into())
+    }
+    fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> {
+        unreachable!()
+    }
+    fn mkdir_all(&self, _: &str) -> Result<(), String> {
+        Ok(())
+    }
+    fn remove_path(&self, _: &str) -> Result<(), String> {
+        unreachable!()
+    }
+    fn exists(&self, _: &str) -> bool {
+        true
+    }
+    fn is_dir(&self, path: &str) -> bool {
+        matches!(path, "/" | "/lib")
+    }
+    fn list_dir(&self, _: &str) -> Result<Vec<String>, String> {
+        unreachable!()
+    }
+    fn symlink(&self, _: &str, _: &str) -> Result<(), String> {
+        unreachable!()
+    }
+    fn readlink(&self, _: &str) -> Result<String, String> {
+        unreachable!()
+    }
+    fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
+        unreachable!()
+    }
+    fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> {
+        unreachable!()
+    }
 }
 
 #[test]
 fn jq_compiles_streamed_programs_and_modules_before_reading_input() {
     let mut shell = Shell::new(Arc::new(JqStreamFs), ShellOptions::default());
     let r = shell.exec("jq -L/lib -nr -f /filter").unwrap();
-    assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "é\n", ""));
-    shell.set_limits(safe_bash_rust::ShellLimits { max_memory_bytes: 1024, ..Default::default() });
-    assert!(shell.exec("jq -n -f /oversized").unwrap_err().contains("maxMemoryBytes"));
+    assert_eq!(
+        (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+        (0, "é\n", "")
+    );
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_memory_bytes: 1024,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("jq -n -f /oversized")
+            .unwrap_err()
+            .contains("maxMemoryBytes")
+    );
 }
 
 #[test]
@@ -105,39 +182,91 @@ fn jq_json_file_reads_stop_on_the_requested_value() {
     for (cmd, code, stdout, stderr) in [
         ("jq -nc 'first(inputs)' /json-error", 0, "1\n", ""),
         ("jq -nc 'first(inputs)' /json-error /absent", 0, "1\n", ""),
-        ("jq -nc 'first(inputs) | error' /json-error", 5, "", "jq: error (at /json-error:0): 1\n"),
-        ("jq error /json-error", 2, "", "jq: error (at /json-error:1): 1\njq: error (at /json-error:2): 2\njq: EIO: input/output error, readStream '/json-error'\n"),
-        ("jq --seq error /seq", 5, "", "jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\njq: error (at /seq:1): 1\njq: error (at /seq:2): 2\n"),
+        (
+            "jq -nc 'first(inputs) | error' /json-error",
+            5,
+            "",
+            "jq: error (at /json-error:0): 1\n",
+        ),
+        (
+            "jq error /json-error",
+            2,
+            "",
+            "jq: error (at /json-error:1): 1\njq: error (at /json-error:2): 2\njq: EIO: input/output error, readStream '/json-error'\n",
+        ),
+        (
+            "jq --seq error /seq",
+            5,
+            "",
+            "jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\njq: error (at /seq:1): 1\njq: error (at /seq:2): 2\n",
+        ),
         ("jq -nc '[inputs]' /nul", 0, "[1,2,3]\n", ""),
     ] {
         let r = shell.exec(cmd).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{cmd}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (code, stdout, stderr),
+            "{cmd}"
+        );
     }
 }
 
 #[test]
 fn jq_raw_inputs_only_pull_as_far_as_the_requested_line() {
     let mut shell = Shell::new(Arc::new(JqStreamFs), ShellOptions::default());
-    let r = shell.exec("jq -nRr 'first(inputs)' /late-error /absent").unwrap();
-    assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "aé\n", ""));
-    shell.set_limits(safe_bash_rust::ShellLimits { max_memory_bytes: 1024, ..Default::default() });
-    assert!(shell.exec("jq -nR 'first(inputs)' /oversized").unwrap_err().contains("maxMemoryBytes"));
-    for script in ["jq -nR '[inputs]' /late-error", "jq --rawfile v /late-error -n '$v'"] {
+    let r = shell
+        .exec("jq -nRr 'first(inputs)' /late-error /absent")
+        .unwrap();
+    assert_eq!(
+        (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+        (0, "aé\n", "")
+    );
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_memory_bytes: 1024,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("jq -nR 'first(inputs)' /oversized")
+            .unwrap_err()
+            .contains("maxMemoryBytes")
+    );
+    for script in [
+        "jq -nR '[inputs]' /late-error",
+        "jq --rawfile v /late-error -n '$v'",
+    ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "jq: EIO: input/output error, readStream '/late-error'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                2,
+                "",
+                "jq: EIO: input/output error, readStream '/late-error'\n"
+            )
+        );
     }
 }
 
 #[test]
 fn recursive_jq_functions_return_a_diagnostic_and_leave_the_shell_usable() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
-    for filter in ["def f: f; f", "def f: f; path(f)", "def f: if . > 0 then .-1 | f else . end; 10000 | f"] {
+    for filter in [
+        "def f: f; f",
+        "def f: f; path(f)",
+        "def f: if . > 0 then .-1 | f else . end; 10000 | f",
+    ] {
         let result = shell.exec(&format!("jq -n '{filter}'")).unwrap();
-        assert_eq!((result.exit_code, result.stderr.as_str()), (5, "jq: maxDepth limit exceeded\n"));
+        assert_eq!(
+            (result.exit_code, result.stderr.as_str()),
+            (5, "jq: maxDepth limit exceeded\n")
+        );
     }
     let chain = vec!["first(range(1; 2))"; 2500].join("+");
     let result = shell.exec(&format!("jq -n '{chain}'")).unwrap();
-    assert_eq!((result.exit_code, result.stderr.as_str()), (5, "jq: maxDepth limit exceeded\n"));
+    assert_eq!(
+        (result.exit_code, result.stderr.as_str()),
+        (5, "jq: maxDepth limit exceeded\n")
+    );
     assert_eq!(shell.exec("echo ok").unwrap().stdout, "ok\n");
 }
 
@@ -153,13 +282,27 @@ fn version_flags_follow_each_command_provider() {
     ] {
         let result = shell.exec(&format!("{command} --version")).unwrap();
         assert_eq!(result.exit_code, 0, "{command}: {}", result.stderr);
-        assert!(result.stdout.contains(version), "{command}: {}", result.stdout);
+        assert!(
+            result.stdout.contains(version),
+            "{command}: {}",
+            result.stdout
+        );
     }
-    for (command, code) in [("mogrify", 0), ("compare", 2), ("montage", 1), ("composite", 1)] {
+    for (command, code) in [
+        ("mogrify", 0),
+        ("compare", 2),
+        ("montage", 1),
+        ("composite", 1),
+    ] {
         let result = shell.exec(&format!("{command} --version")).unwrap();
         assert_eq!(result.exit_code, code, "{command}: {}", result.stderr);
         assert!(result.stdout.is_empty());
-        if code != 0 { assert_eq!(result.stderr, format!("{command}: missing an image filename\n")); }
+        if code != 0 {
+            assert_eq!(
+                result.stderr,
+                format!("{command}: missing an image filename\n")
+            );
+        }
     }
 }
 
@@ -167,19 +310,52 @@ fn version_flags_follow_each_command_provider() {
 fn saved_stdout_bypasses_pipeline_and_substitution_capture() {
     for (script, expected, bytes) in [
         ("exec 2>&1; printf a >&2 | tr a z", "a", 1),
-        ("exec 3>&1; { printf a >&3; printf b; } | tr ab yz | tr z q", "aq", 4),
-        ("shopt -s lastpipe; exec 2>&1; printf a >&2 | tr a z", "a", 1),
-        ("exec 3>&1; v=$(printf a >&3; printf b); printf '[%s]' \"$v\"", "a[b]", 5),
-        ("exec 2>&1; v=$(printf a >&2; printf b); printf '[%s]' \"$v\"", "a[b]", 5),
+        (
+            "exec 3>&1; { printf a >&3; printf b; } | tr ab yz | tr z q",
+            "aq",
+            4,
+        ),
+        (
+            "shopt -s lastpipe; exec 2>&1; printf a >&2 | tr a z",
+            "a",
+            1,
+        ),
+        (
+            "exec 3>&1; v=$(printf a >&3; printf b); printf '[%s]' \"$v\"",
+            "a[b]",
+            5,
+        ),
+        (
+            "exec 2>&1; v=$(printf a >&2; printf b); printf '[%s]' \"$v\"",
+            "a[b]",
+            5,
+        ),
     ] {
         let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
-        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: bytes, ..Default::default() });
+        shell.set_limits(safe_bash_rust::ShellLimits {
+            max_output_bytes: bytes,
+            ..Default::default()
+        });
         let result = shell.exec(script).unwrap();
-        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected, ""), "{script}");
+        assert_eq!(
+            (
+                result.exit_code,
+                result.stdout.as_str(),
+                result.stderr.as_str()
+            ),
+            (0, expected, ""),
+            "{script}"
+        );
         if bytes > 1 {
             let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
-            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: bytes - 1, ..Default::default() });
-            assert!(shell.exec(script).unwrap_err().contains("maxOutputBytes"), "{script}");
+            shell.set_limits(safe_bash_rust::ShellLimits {
+                max_output_bytes: bytes - 1,
+                ..Default::default()
+            });
+            assert!(
+                shell.exec(script).unwrap_err().contains("maxOutputBytes"),
+                "{script}"
+            );
         }
     }
 }
@@ -189,19 +365,59 @@ fn merged_descriptors_emit_in_command_order() {
     for (script, stdout, stderr) in [
         ("{ printf a; printf b >&2; printf c; } 2>&1", "abc", ""),
         ("{ printf a; printf b >&2; printf c; } >&2", "", "abc"),
-        ("{ printf a >&3; printf b >&2; printf c; } 3>&2 2>&1", "bc", "a"),
-        ("{ sh -c 'printf x; printf a >&2' | tr a z; } 2>&1", "ax", ""),
-        ("{ printf a; printf b >&2; printf c; } 2>&1 | tr b z", "azc", ""),
-        ("{ x=$(printf a; printf b >&2); printf %s \"$x\"; } 2>&1", "ba", ""),
-        ("f(){ printf a; printf b >&2; printf c; }; f 2>&1", "abc", ""),
-        ("f(){ printf a; printf b >&2; printf c; } 2>&1; f", "abc", ""),
+        (
+            "{ printf a >&3; printf b >&2; printf c; } 3>&2 2>&1",
+            "bc",
+            "a",
+        ),
+        (
+            "{ sh -c 'printf x; printf a >&2' | tr a z; } 2>&1",
+            "ax",
+            "",
+        ),
+        (
+            "{ printf a; printf b >&2; printf c; } 2>&1 | tr b z",
+            "azc",
+            "",
+        ),
+        (
+            "{ x=$(printf a; printf b >&2); printf %s \"$x\"; } 2>&1",
+            "ba",
+            "",
+        ),
+        (
+            "f(){ printf a; printf b >&2; printf c; }; f 2>&1",
+            "abc",
+            "",
+        ),
+        (
+            "f(){ printf a; printf b >&2; printf c; } 2>&1; f",
+            "abc",
+            "",
+        ),
         ("{ exec 3>&2; printf a >&3; } 2>&1; printf b >&3", "ab", ""),
-        ("{ select x in 1; do printf b >&2; break; done <<<1; } 2>&1", "1) 1\n#? b", ""),
-        ("{ exec 2>/file; printf a >&2; printf b; } 2>&1; cat /file", "ba", ""),
+        (
+            "{ select x in 1; do printf b >&2; break; done <<<1; } 2>&1",
+            "1) 1\n#? b",
+            "",
+        ),
+        (
+            "{ exec 2>/file; printf a >&2; printf b; } 2>&1; cat /file",
+            "ba",
+            "",
+        ),
     ] {
         let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
         let result = shell.exec(script).unwrap();
-        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, stdout, stderr), "{script}");
+        assert_eq!(
+            (
+                result.exit_code,
+                result.stdout.as_str(),
+                result.stderr.as_str()
+            ),
+            (0, stdout, stderr),
+            "{script}"
+        );
     }
 }
 
@@ -209,31 +425,95 @@ fn merged_descriptors_emit_in_command_order() {
 fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     for (script, expected, err) in [
-        ("env sh -c 'printf x; printf y >&2; printf z' 2>&1", "xyz", ""),
-        ("timeout 1 sh -c 'printf x; printf y >&2; printf z' >&2", "", "xyz"),
-        ("env sh -c 'printf x; printf y >&3; printf z' 3>&1 2>&1", "xyz", ""),
-        ("env sh -c 'printf x; printf y >&2; printf z' 2>&1 | tr y Y", "xYz", ""),
-        ("env sh -c 'printf x; cat /f >&2; printf z' >/f; cat /f", "xz", "x"),
-        ("env sh -c 'printf x >&2; printf y' 3>&1 1>&2 2>&3", "x", "y"),
-        ("env -v sh -c 'printf x; printf y >&2; printf z' 2>&1", "executing: sh\n   arg[0]= 'sh'\n   arg[1]= '-c'\n   arg[2]= 'printf x; printf y >&2; printf z'\nxyz", ""),
+        (
+            "env sh -c 'printf x; printf y >&2; printf z' 2>&1",
+            "xyz",
+            "",
+        ),
+        (
+            "timeout 1 sh -c 'printf x; printf y >&2; printf z' >&2",
+            "",
+            "xyz",
+        ),
+        (
+            "env sh -c 'printf x; printf y >&3; printf z' 3>&1 2>&1",
+            "xyz",
+            "",
+        ),
+        (
+            "env sh -c 'printf x; printf y >&2; printf z' 2>&1 | tr y Y",
+            "xYz",
+            "",
+        ),
+        (
+            "env sh -c 'printf x; cat /f >&2; printf z' >/f; cat /f",
+            "xz",
+            "x",
+        ),
+        (
+            "env sh -c 'printf x >&2; printf y' 3>&1 1>&2 2>&3",
+            "x",
+            "y",
+        ),
+        (
+            "env -v sh -c 'printf x; printf y >&2; printf z' 2>&1",
+            "executing: sh\n   arg[0]= 'sh'\n   arg[1]= '-c'\n   arg[2]= 'printf x; printf y >&2; printf z'\nxyz",
+            "",
+        ),
     ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, err), "{script}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, expected, err),
+            "{script}"
+        );
     }
-    let stopped = shell.exec("env -v touch /should-not-run 2>&-; echo rc=$?; test ! -e /should-not-run").unwrap();
-    assert_eq!((stopped.exit_code, stopped.stdout.as_str(), stopped.stderr.as_str()), (0, "rc=1\n", ""));
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 1, ..Default::default() });
-    assert!(shell.exec("env -v touch /quota").unwrap_err().contains("maxOutputBytes"));
+    let stopped = shell
+        .exec("env -v touch /should-not-run 2>&-; echo rc=$?; test ! -e /should-not-run")
+        .unwrap();
+    assert_eq!(
+        (
+            stopped.exit_code,
+            stopped.stdout.as_str(),
+            stopped.stderr.as_str()
+        ),
+        (0, "rc=1\n", "")
+    );
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: 1,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("env -v touch /quota")
+            .unwrap_err()
+            .contains("maxOutputBytes")
+    );
     assert!(!fs.exists("/quota"));
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 54, ..Default::default() });
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: 54,
+        ..Default::default()
+    });
     for redirects in ["", " 2>&1", " 2>/f"] {
-        assert_eq!(shell.exec(&format!("env -v printf x{redirects}")).unwrap().exit_code, 0);
+        assert_eq!(
+            shell
+                .exec(&format!("env -v printf x{redirects}"))
+                .unwrap()
+                .exit_code,
+            0
+        );
     }
     for limit in [2, 3] {
-        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+        shell.set_limits(safe_bash_rust::ShellLimits {
+            max_output_bytes: limit,
+            ..Default::default()
+        });
         let result = shell.exec("env sh -c 'printf x; printf y >&2; printf z' 2>&1");
-        if limit == 3 { assert_eq!(result.unwrap().stdout, "xyz"); }
-        else { assert!(result.unwrap_err().contains("maxOutputBytes")); }
+        if limit == 3 {
+            assert_eq!(result.unwrap().stdout, "xyz");
+        } else {
+            assert!(result.unwrap_err().contains("maxOutputBytes"));
+        }
     }
 }
 
@@ -241,9 +521,19 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 fn fd_rejects_invalid_argument_bytes_before_help_or_command_effects() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.write_file("/work/ÿ", b"").unwrap();
-    for script in [r"fd --version $'\x80'", r"fd -x sh -c 'touch /invoked' $'\xff'"] {
+    for script in [
+        r"fd --version $'\x80'",
+        r"fd -x sh -c 'touch /invoked' $'\xff'",
+    ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "", "fd: The encoded data was not valid for encoding utf-8\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "",
+                "fd: The encoded data was not valid for encoding utf-8\n"
+            )
+        );
         assert!(!fs.exists("/invoked"));
     }
     assert_eq!(shell.exec(r"fd -F $'\xc3\xbf'").unwrap().stdout, "ÿ\n");
@@ -252,17 +542,41 @@ fn fd_rejects_invalid_argument_bytes_before_help_or_command_effects() {
 #[test]
 fn fd_executes_matches_during_traversal_and_stops_at_the_result_limit() {
     for (script, code, stdout, stderr) in [
-        ("fd -I -x sh -c 'printf x; printf y >&2; printf z' 2>&1", 0, "xyzxyz", ""),
-        ("fd -I -x sh -c 'echo \"$0\"; if test -d \"$0\"; then rm -r \"$0\"; fi' {}", 1, "./tree\n", "fd: ENOENT: no such file or directory, realpath '/work/tree'\n"),
+        (
+            "fd -I -x sh -c 'printf x; printf y >&2; printf z' 2>&1",
+            0,
+            "xyzxyz",
+            "",
+        ),
+        (
+            "fd -I -x sh -c 'echo \"$0\"; if test -d \"$0\"; then rm -r \"$0\"; fi' {}",
+            1,
+            "./tree\n",
+            "fd: ENOENT: no such file or directory, realpath '/work/tree'\n",
+        ),
         ("fd -I -x sh -c 'exit 42'", 1, "", ""),
         ("fd -I -X sh -c 'exit 42'", 1, "", ""),
-        ("fd -I -tf -1 --search-path tree --search-path missing", 0, "tree/file\n", ""),
-        ("fd -I -tf -q --search-path missing --search-path tree", 0, "", "fd: ENOENT: no such file or directory, stat '/work/missing'\n"),
+        (
+            "fd -I -tf -1 --search-path tree --search-path missing",
+            0,
+            "tree/file\n",
+            "",
+        ),
+        (
+            "fd -I -tf -q --search-path missing --search-path tree",
+            0,
+            "",
+            "fd: ENOENT: no such file or directory, stat '/work/missing'\n",
+        ),
     ] {
         let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
         fs.write_file("/work/tree/file", b"ok").unwrap();
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (code, stdout, stderr),
+            "{script}"
+        );
     }
 }
 
@@ -270,22 +584,56 @@ fn fd_executes_matches_during_traversal_and_stops_at_the_result_limit() {
 fn find_writes_each_action_to_the_inherited_descriptors() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     for (script, stdout, stderr) in [
-        ("find . -maxdepth 0 -printf A -exec sh -c 'printf x; printf y >&2; printf z' \\; -printf B 2>&1", "AxyzB", ""),
-        ("find . -maxdepth 0 -printf A -exec sh -c 'cat /out >&2; printf z' sh {} + >/out; cat /out", "Az", "A"),
-        ("find . -maxdepth 0 -printf '' -exec touch /empty \\; 1>&-; test -e /empty", "", ""),
-        ("find . -maxdepth 0 -print -exec touch /closed \\; 1>&-; test ! -e /closed", "", "find: Bad file descriptor\n"),
+        (
+            "find . -maxdepth 0 -printf A -exec sh -c 'printf x; printf y >&2; printf z' \\; -printf B 2>&1",
+            "AxyzB",
+            "",
+        ),
+        (
+            "find . -maxdepth 0 -printf A -exec sh -c 'cat /out >&2; printf z' sh {} + >/out; cat /out",
+            "Az",
+            "A",
+        ),
+        (
+            "find . -maxdepth 0 -printf '' -exec touch /empty \\; 1>&-; test -e /empty",
+            "",
+            "",
+        ),
+        (
+            "find . -maxdepth 0 -print -exec touch /closed \\; 1>&-; test ! -e /closed",
+            "",
+            "find: Bad file descriptor\n",
+        ),
     ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, stdout, stderr),
+            "{script}"
+        );
     }
     for (limit, pass) in [(5, true), (4, false)] {
-        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+        shell.set_limits(safe_bash_rust::ShellLimits {
+            max_output_bytes: limit,
+            ..Default::default()
+        });
         let result = shell.exec("find . -maxdepth 0 -printf A -exec sh -c 'printf x; printf y >&2; printf z' \\; -printf B 2>&1");
-        if pass { assert_eq!(result.unwrap().stdout, "AxyzB"); }
-        else { assert!(result.unwrap_err().contains("maxOutputBytes")); }
+        if pass {
+            assert_eq!(result.unwrap().stdout, "AxyzB");
+        } else {
+            assert!(result.unwrap_err().contains("maxOutputBytes"));
+        }
     }
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 1, ..Default::default() });
-    assert!(shell.exec("find . -maxdepth 0 -printf xx -exec touch /ran \\;").unwrap_err().contains("maxOutputBytes"));
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: 1,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("find . -maxdepth 0 -printf xx -exec touch /ran \\;")
+            .unwrap_err()
+            .contains("maxOutputBytes")
+    );
     assert!(!fs.exists("/ran"));
 }
 
@@ -293,8 +641,13 @@ fn find_writes_each_action_to_the_inherited_descriptors() {
 fn env_shebang_lookup_reports_its_own_errors_before_redirection() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.mkdir_all("/bin").unwrap();
-    for (path, source) in [("/bad", "#!/usr/bin/env helper\n"), ("/bin/helper", "echo ran\n"),
-        ("/nested", "#!/usr/bin/env -S env missing\n"), ("/builtin", "#!/usr/bin/env cd\n"), ("/body", "#!/usr/bin/env sh\nmissing\n")] {
+    for (path, source) in [
+        ("/bad", "#!/usr/bin/env helper\n"),
+        ("/bin/helper", "echo ran\n"),
+        ("/nested", "#!/usr/bin/env -S env missing\n"),
+        ("/builtin", "#!/usr/bin/env cd\n"),
+        ("/body", "#!/usr/bin/env sh\nmissing\n"),
+    ] {
         fs.write_file(path, source.as_bytes()).unwrap();
         fs.chmod(path, 0o755).unwrap();
     }
@@ -306,22 +659,36 @@ fn env_shebang_lookup_reports_its_own_errors_before_redirection() {
         ("env missing", "shell: line 1: missing: command not found\n"),
     ] {
         let r = shell.exec(command).unwrap();
-        assert_eq!((r.exit_code, r.stderr.as_str()), (127, expected), "{command}");
+        assert_eq!(
+            (r.exit_code, r.stderr.as_str()),
+            (127, expected),
+            "{command}"
+        );
         let r = shell.exec(&format!("{command} 2>&1")).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (127, expected, ""), "{command}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (127, expected, ""),
+            "{command}"
+        );
     }
 }
 
 #[test]
 fn invoked_children_keep_directory_and_environment_changes_local() {
     for invocation in [
-        "find . -maxdepth 0 -exec cd / \\; -exec export CHILD=yes \\;",
-        "xargs -I{} cd / <<< path; xargs -I{} export CHILD=yes <<< path",
-        "timeout 0 cd /; timeout 0 export CHILD=yes",
+        "find . -maxdepth 0 -exec sh -c 'cd /; export CHILD=yes' \\;",
+        "xargs -I{} sh -c 'cd /; export CHILD=yes' <<< path",
+        "timeout 0 sh -c 'cd /; export CHILD=yes'",
     ] {
         let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
-        let r = shell.exec(&format!("{invocation}; pwd; echo \"[$CHILD]\"")).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "/work\n[]\n", ""), "{invocation}");
+        let r = shell
+            .exec(&format!("{invocation}; pwd; echo \"[$CHILD]\""))
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "/work\n[]\n", ""),
+            "{invocation}"
+        );
     }
 }
 
@@ -329,25 +696,62 @@ fn invoked_children_keep_directory_and_environment_changes_local() {
 fn xargs_traces_and_forwards_each_batch_before_starting_the_next() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     for (script, stdout, stderr) in [
-        ("xargs -n1 sh -c 'printf x; printf y >&2; printf z' <<< 'a b' 2>&1", "xyzxyz", ""),
-        ("xargs -tn1 printf %s <<< 'a b' 2>&1", "printf '%s' a\naprintf '%s' b\nb", ""),
-        ("xargs -n1 sh -c 'printf x; cat /out >&2; printf z' <<< 'a b' >/out; cat /out", "xzxz", "xxzx"),
-        ("xargs -n1 sh -c 'printf x; printf y >&2' <<< 'a b' 3>&1 1>&2 2>&3", "yy", "xx"),
+        (
+            "xargs -n1 sh -c 'printf x; printf y >&2; printf z' <<< 'a b' 2>&1",
+            "xyzxyz",
+            "",
+        ),
+        (
+            "xargs -tn1 printf %s <<< 'a b' 2>&1",
+            "printf '%s' a\naprintf '%s' b\nb",
+            "",
+        ),
+        (
+            "xargs -n1 sh -c 'printf x; cat /out >&2; printf z' <<< 'a b' >/out; cat /out",
+            "xzxz",
+            "xxzx",
+        ),
+        (
+            "xargs -n1 sh -c 'printf x; printf y >&2' <<< 'a b' 3>&1 1>&2 2>&3",
+            "yy",
+            "xx",
+        ),
     ] {
         let r = shell.exec(script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, stdout, stderr),
+            "{script}"
+        );
     }
     let r = shell.exec("xargs -t touch <<< /ran 2>&-").unwrap();
-    assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "", ""));
+    assert_eq!(
+        (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+        (1, "", "")
+    );
     assert!(!fs.exists("/ran"));
     let script = "xargs -tn1 printf %s <<< 'a b' 2>&1";
     let expected = "printf '%s' a\naprintf '%s' b\nb";
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: expected.len(), ..Default::default() });
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: expected.len(),
+        ..Default::default()
+    });
     assert_eq!(shell.exec(script).unwrap().stdout, expected);
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: expected.len() - 1, ..Default::default() });
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: expected.len() - 1,
+        ..Default::default()
+    });
     assert!(shell.exec(script).unwrap_err().contains("maxOutputBytes"));
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: "touch /first\n".len(), ..Default::default() });
-    assert!(shell.exec("xargs -tn1 touch <<< '/first /next'").unwrap_err().contains("maxOutputBytes"));
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: "touch /first\n".len(),
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("xargs -tn1 touch <<< '/first /next'")
+            .unwrap_err()
+            .contains("maxOutputBytes")
+    );
     assert!(fs.exists("/first"));
     assert!(!fs.exists("/next"));
 }
@@ -355,17 +759,30 @@ fn xargs_traces_and_forwards_each_batch_before_starting_the_next() {
 #[test]
 fn op_run_masks_writes_to_a_saved_copy_of_its_stdout() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
-    let result = shell.exec(r#"op vault create V >/dev/null
+    let result = shell
+        .exec(
+            r#"op vault create V >/dev/null
         op item create --category login --title T --vault V password=fixture_value >/dev/null
         export V=op://V/T/password
-        { op run -- sh -c 'printf "%s" "$V" >&3'; } 3>&1"#).unwrap();
-    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "<concealed by 1Password>", ""));
+        { op run -- sh -c 'printf "%s" "$V" >&3'; } 3>&1"#,
+        )
+        .unwrap();
+    assert_eq!(
+        (
+            result.exit_code,
+            result.stdout.as_str(),
+            result.stderr.as_str()
+        ),
+        (0, "<concealed by 1Password>", "")
+    );
 }
 
 #[test]
 fn redirected_pipeline_writes_before_the_next_command() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
-    let result = shell.exec("(printf A | cat; cat output >&2; printf B) > output").unwrap();
+    let result = shell
+        .exec("(printf A | cat; cat output >&2; printf B) > output")
+        .unwrap();
     assert_eq!(result.exit_code, 0);
     assert_eq!(result.stderr, "A");
     assert_eq!(fs.read_file("/work/output").unwrap(), b"AB");
@@ -379,8 +796,14 @@ fn canonical_paths_resume_after_cycles_and_repeated_symlinks() {
     fs.symlink("b", "/work/a").unwrap();
     fs.symlink("a", "/work/b").unwrap();
     for command in ["realpath -m", "readlink -m"] {
-        let result = shell.exec(&format!("{command} a/tail a/../link/../link/tail")).unwrap();
-        assert_eq!(result.stdout, "/work/a/tail\n/work/sub/tail\n", "{command}: {}", result.stderr);
+        let result = shell
+            .exec(&format!("{command} a/tail a/../link/../link/tail"))
+            .unwrap();
+        assert_eq!(
+            result.stdout, "/work/a/tail\n/work/sub/tail\n",
+            "{command}: {}",
+            result.stderr
+        );
         assert_eq!(result.exit_code, 0);
     }
     let result = shell.exec("realpath -s missing/sub").unwrap();
@@ -520,7 +943,10 @@ fn pure_rust_op_and_gh_full_workflows() {
     assert!(!res.used_typescript_bridge);
     assert!(res.stdout.contains("/bin/op\n/bin/gh\n"));
     assert!(res.stdout.contains("READ_CERT=cert-body-xyz\n"));
-    assert!(res.stdout.contains("literal={{keep}} secret=super-secret-val\n"));
+    assert!(
+        res.stdout
+            .contains("literal={{keep}} secret=super-secret-val\n")
+    );
     assert!(res.stdout.contains("MASKED=<concealed by 1Password>\n"));
     assert!(res.stdout.contains("OPEN_COUNT=1\n"));
     assert!(res.stdout.contains("ALL_COUNT=2\n"));
@@ -630,20 +1056,39 @@ fn pure_rust_structured_text_search_math_and_graphviz_pipeline() {
 #[test]
 fn xmllint_checks_cumulative_encoded_output_before_opening_the_next_document() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
-    fs.write_file("/a", b"<root>123456789012345</root>").unwrap();
-    fs.write_file("/big", format!("<s>{}</s>", "a".repeat(300)).as_bytes()).unwrap();
-    for (flags, bytes) in [("--format", 102), ("--encode UTF-16", 280), ("--c14n", 56), ("--xpath 'string(/root)'", 32)] {
+    fs.write_file("/a", b"<root>123456789012345</root>")
+        .unwrap();
+    fs.write_file("/big", format!("<s>{}</s>", "a".repeat(300)).as_bytes())
+        .unwrap();
+    for (flags, bytes) in [
+        ("--format", 102),
+        ("--encode UTF-16", 280),
+        ("--c14n", 56),
+        ("--xpath 'string(/root)'", 32),
+    ] {
         let script = format!("printf abc; xmllint {flags} /a /a /big");
         for (limit, error) in [(bytes + 2, "maxOutputBytes"), (bytes + 3, "maxInputBytes")] {
-            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, max_input_bytes: 65, ..Default::default() });
+            shell.set_limits(safe_bash_rust::ShellLimits {
+                max_output_bytes: limit,
+                max_input_bytes: 65,
+                ..Default::default()
+            });
             let result = shell.exec(&script).unwrap_err();
             assert!(result.contains(error), "{script}: {result}");
         }
     }
     fs.write_file("/bad", b"<r>&bad;</r>").unwrap();
     fs.write_file("/dest", b"old").unwrap();
-    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 60, ..Default::default() });
-    assert!(shell.exec("xmllint --recover -o /dest /bad").unwrap_err().contains("maxOutputBytes"));
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_output_bytes: 60,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("xmllint --recover -o /dest /bad")
+            .unwrap_err()
+            .contains("maxOutputBytes")
+    );
     assert_eq!(fs.read_file("/dest").unwrap(), b"old");
 }
 
@@ -655,23 +1100,51 @@ fn jq_opens_input_variable_and_program_files_in_path_traversal_order() {
     fs.write_file("/f", b"7").unwrap();
     fs.write_file("/real/f", b"8").unwrap();
     fs.write_file("/doc", b"<r/>").unwrap();
-    for script in ["jq . /link/../f", "jq -n -f /link/../f", "jq --rawfile v /link/../f -nr '$v'",
-        "jq --slurpfile v /link/../f -n '$v[0]'", "xq -f /link/../f /doc"] {
+    for script in [
+        "jq . /link/../f",
+        "jq -n -f /link/../f",
+        "jq --rawfile v /link/../f -nr '$v'",
+        "jq --slurpfile v /link/../f -n '$v[0]'",
+        "xq -f /link/../f /doc",
+    ] {
         let out = shell.exec(script).unwrap();
-        assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, "8\n", ""), "{script}");
+        assert_eq!(
+            (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
+            (0, "8\n", ""),
+            "{script}"
+        );
     }
     fs.mkdir_all("/locked").unwrap();
     fs.chmod("/locked", 0).unwrap();
     for (script, error) in [
         ("jq . /f///", "ENOTDIR: not a directory, readStream '/f///'"),
-        ("jq -f /f/../f -n", "ENOTDIR: not a directory, readStream '/f/../f'"),
-        ("jq --slurpfile v /missing/../f -n .", "ENOENT: no such file or directory, readStream '/missing/../f'"),
-        ("jq --rawfile v '' -n .", "ENOENT: no such file or directory ''"),
-        ("jq . /locked/f", "EACCES: permission denied, lstat '/locked/f'"),
-        ("jq . /real", "EISDIR: illegal operation on a directory, readStream '/real'"),
+        (
+            "jq -f /f/../f -n",
+            "ENOTDIR: not a directory, readStream '/f/../f'",
+        ),
+        (
+            "jq --slurpfile v /missing/../f -n .",
+            "ENOENT: no such file or directory, readStream '/missing/../f'",
+        ),
+        (
+            "jq --rawfile v '' -n .",
+            "ENOENT: no such file or directory ''",
+        ),
+        (
+            "jq . /locked/f",
+            "EACCES: permission denied, lstat '/locked/f'",
+        ),
+        (
+            "jq . /real",
+            "EISDIR: illegal operation on a directory, readStream '/real'",
+        ),
     ] {
         let out = shell.exec(script).unwrap();
-        assert_eq!((out.exit_code, out.stderr), (2, format!("jq: {error}\n")), "{script}");
+        assert_eq!(
+            (out.exit_code, out.stderr),
+            (2, format!("jq: {error}\n")),
+            "{script}"
+        );
     }
 }
 
@@ -683,15 +1156,48 @@ fn jq_waits_for_a_newline_after_nul_before_publishing_json_values() {
     fs.write_file("/str", b"\"a\0b\"").unwrap();
     fs.write_file("/seq", b"\x1e1\n\x1e2\0ignored").unwrap();
     for (script, expected) in [
-        ("jq -n 'first(inputs)' /a /absent", (2, "", "jq: ENOENT: no such file or directory, readStream '/absent'\n")),
-        ("jq -c . /a", (0, "1\n", "")), ("jq -c . /a /b", (0, "1\n2\n", "")),
-        ("jq 'error(.)' /a /b", (5, "", "jq: error (at /b:1): 1\njq: error (at /b:1): 2\n")),
-        ("jq --stream-errors -c . /str", (0, "[\"Unfinished string at EOF at line 1, column 2\",[]]\n", "")),
-        ("jq --seq -c . /seq", (0, "\x1e1\n", "jq: ignoring parse error: Potentially truncated top-level numeric value at EOF at line 2, column 2\n")),
+        (
+            "jq -n 'first(inputs)' /a /absent",
+            (
+                2,
+                "",
+                "jq: ENOENT: no such file or directory, readStream '/absent'\n",
+            ),
+        ),
+        ("jq -c . /a", (0, "1\n", "")),
+        ("jq -c . /a /b", (0, "1\n2\n", "")),
+        (
+            "jq 'error(.)' /a /b",
+            (5, "", "jq: error (at /b:1): 1\njq: error (at /b:1): 2\n"),
+        ),
+        (
+            "jq --stream-errors -c . /str",
+            (
+                0,
+                "[\"Unfinished string at EOF at line 1, column 2\",[]]\n",
+                "",
+            ),
+        ),
+        (
+            "jq --seq -c . /seq",
+            (
+                0,
+                "\x1e1\n",
+                "jq: ignoring parse error: Potentially truncated top-level numeric value at EOF at line 2, column 2\n",
+            ),
+        ),
         ("jq -R . /a", (0, "\"1\\u0000 2\"\n", "")),
     ] {
         let result = shell.exec(script).unwrap();
-        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), expected, "{script}");
+        assert_eq!(
+            (
+                result.exit_code,
+                result.stdout.as_str(),
+                result.stderr.as_str()
+            ),
+            expected,
+            "{script}"
+        );
     }
 }
 
@@ -705,10 +1211,17 @@ fn jq_sequence_warnings_stop_input_at_the_shared_output_limit() {
     for (filter, threshold) in [(".", 185), ("-n inputs", 185), ("-s .", 182)] {
         for limit in [threshold - 1, threshold] {
             fs.set_times("/end", Some(1.0), Some(1.0)).unwrap();
-            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+            shell.set_limits(safe_bash_rust::ShellLimits {
+                max_output_bytes: limit,
+                ..Default::default()
+            });
             let script = format!("printf ab; jq --seq -c {filter} /bad /end");
             assert!(shell.exec(&script).unwrap_err().contains("maxOutputBytes"));
-            assert_eq!(fs.stat("/end").unwrap().atime_ms != 1.0, limit == threshold, "{script}: {limit}");
+            assert_eq!(
+                fs.stat("/end").unwrap().atime_ms != 1.0,
+                limit == threshold,
+                "{script}: {limit}"
+            );
         }
     }
 }
@@ -717,11 +1230,22 @@ fn jq_sequence_warnings_stop_input_at_the_shared_output_limit() {
 fn xq_enforces_the_output_budget_before_reading_another_document() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.write_file("/doc", "<r>é</r>".as_bytes()).unwrap();
-    fs.write_file("/big", format!("<r>{}</r>", "a".repeat(200)).as_bytes()).unwrap();
-    for (filter, bytes) in [("-r .r", 3), ("-a .r", 9), ("-c .", 11), ("--raw-output0 .r", 3), ("-j .r", 2)] {
+    fs.write_file("/big", format!("<r>{}</r>", "a".repeat(200)).as_bytes())
+        .unwrap();
+    for (filter, bytes) in [
+        ("-r .r", 3),
+        ("-a .r", 9),
+        ("-c .", 11),
+        ("--raw-output0 .r", 3),
+        ("-j .r", 2),
+    ] {
         let script = format!("printf abc; xq {filter} /doc /big");
         for (limit, expected) in [(bytes + 2, "maxOutputBytes"), (bytes + 3, "maxInputBytes")] {
-            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, max_input_bytes: 24, ..Default::default() });
+            shell.set_limits(safe_bash_rust::ShellLimits {
+                max_output_bytes: limit,
+                max_input_bytes: 24,
+                ..Default::default()
+            });
             let error = shell.exec(&script).unwrap_err();
             assert!(error.contains(expected), "{script}: {error}");
         }
@@ -733,8 +1257,13 @@ fn gh_clear_cache_charges_the_filesystem_budget_before_removal() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.mkdir_all("/cache/gh").unwrap();
     fs.write_file("/cache/gh/value", b"retained").unwrap();
-    shell.set_limits(safe_bash_rust::ShellLimits { max_filesystem_operations: 0, ..Default::default() });
-    let error = shell.exec("XDG_CACHE_HOME=/cache gh config clear-cache").unwrap_err();
+    shell.set_limits(safe_bash_rust::ShellLimits {
+        max_filesystem_operations: 0,
+        ..Default::default()
+    });
+    let error = shell
+        .exec("XDG_CACHE_HOME=/cache gh config clear-cache")
+        .unwrap_err();
     assert!(error.contains("maxFileSystemOperations"), "{error}");
     assert_eq!(fs.read_file("/cache/gh/value").unwrap(), b"retained");
 }

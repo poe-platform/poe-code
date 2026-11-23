@@ -24,7 +24,10 @@ struct Token<'a> {
 }
 
 pub(super) fn starts_number(source: &str) -> bool {
-    matches!(source.as_bytes(), [b'0'..=b'9', ..] | [b'.', b'0'..=b'9', ..])
+    matches!(
+        source.as_bytes(),
+        [b'0'..=b'9', ..] | [b'.', b'0'..=b'9', ..]
+    )
 }
 
 struct Lexer<'a> {
@@ -225,9 +228,7 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
     let mut lowest = u8::MAX;
     let mut root: Option<Token<'_>> = None;
     let mut chain: Option<usize> = None;
-    let single_number = |operand: &str, last: &str| {
-        starts_number(last) && operand.trim() == last
-    };
+    let single_number = |operand: &str, last: &str| starts_number(last) && operand.trim() == last;
     let (mut depth, mut strings, mut conditions) = (0usize, 0usize, 0usize);
     let mut can_end = false;
     let mut previous = "";
@@ -267,7 +268,9 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
             && let Some(prec) = precedence(t.text)
         {
             if prec < lowest || (prec == lowest && prec != 4) {
-                if let Some(prev) = root && prec == lowest && prec >= 9
+                if let Some(prev) = root
+                    && prec == lowest
+                    && prec >= 9
                     && single_number(&source[prev.at + prev.text.len()..t.at], previous)
                 {
                     chain.get_or_insert(prev.at);
@@ -287,8 +290,13 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
     }
     let root = root.filter(|_| lowest >= 3)?;
     let right = &source[root.at + root.text.len()..];
-    if let Some(start) = chain && single_number(right, previous) {
-        Some(Binary::LiteralChain { left: &source[..start], suffix: &source[start..] })
+    if let Some(start) = chain
+        && single_number(right, previous)
+    {
+        Some(Binary::LiteralChain {
+            left: &source[..start],
+            suffix: &source[start..],
+        })
     } else {
         Some(Binary::Pair(&source[..root.at], root.text, right))
     }
@@ -296,11 +304,17 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
 
 // Literal right operands cannot consume input or yield extra values. Apply the
 // suffix in source order, keeping only the accumulator and the current token.
-pub(super) fn apply_literal_chain(mut value: super::JVal, suffix: &str, max_value_bytes: usize) -> Result<super::JVal, super::JqFault> {
+pub(super) fn apply_literal_chain(
+    mut value: super::JVal,
+    suffix: &str,
+    max_value_bytes: usize,
+) -> Result<super::JVal, super::JqFault> {
     let mut lexer = Lexer::new(suffix);
     loop {
         let op = lexer.next()?;
-        if op.kind == Kind::End { return Ok(value); }
+        if op.kind == Kind::End {
+            return Ok(value);
+        }
         let operand = lexer.next()?;
         let number = super::jq_number::literal(operand.text).ok_or("invalid numeric literal")?;
         value = super::apply_jq_arith(&value, &number, op.text, max_value_bytes)?;
@@ -436,8 +450,8 @@ fn builtin(name: &str, arity: usize) -> bool {
     match name {
         "abs" | "add" | "arrays" | "ascii_downcase" | "ascii_upcase" | "booleans" | "ceil"
         | "empty" | "env" | "explode" | "fabs" | "floor" | "from_entries" | "fromdate"
-        | "fromdateiso8601" | "fromjson" | "gmtime" | "halt" | "implode" | "infinite"
-        | "input" | "inputs" | "isfinite" | "isinfinite" | "isnan" | "iterables" | "keys"
+        | "fromdateiso8601" | "fromjson" | "gmtime" | "halt" | "implode" | "infinite" | "input"
+        | "inputs" | "isfinite" | "isinfinite" | "isnan" | "iterables" | "keys"
         | "keys_unsorted" | "leaf_paths" | "length" | "ltrim" | "max" | "min" | "mktime"
         | "nan" | "not" | "nulls" | "numbers" | "objects" | "reverse" | "round" | "rtrim"
         | "scalars" | "sort" | "sqrt" | "strings" | "to_entries" | "todate" | "todateiso8601"
@@ -978,11 +992,22 @@ fn parse<'a>(
 pub(super) struct ProgramError(pub i32, pub String);
 
 impl<T: Into<String>> From<T> for ProgramError {
-    fn from(message: T) -> Self { Self(3, message.into()) }
+    fn from(message: T) -> Self {
+        Self(3, message.into())
+    }
 }
 
-pub(super) fn read_program(fs: &dyn SafeBashFs, path: &str, remaining_source: usize) -> Result<String, ProgramError> {
-    let read_error = |e| ProgramError(2, super::super::coreutils::stream_file_error(e, "readStream", path));
+pub(super) fn read_program(
+    fs: &dyn SafeBashFs,
+    path: &str,
+    remaining_source: usize,
+) -> Result<String, ProgramError> {
+    let read_error = |e| {
+        ProgramError(
+            2,
+            super::super::coreutils::stream_file_error(e, "readStream", path),
+        )
+    };
     let entry = fs.access_path(path, true).map_err(read_error)?;
     let mut next = fs.open_chunks(&entry).map_err(read_error)?;
     let memory = fs.shell_limits().max_memory_bytes;
@@ -990,7 +1015,9 @@ pub(super) fn read_program(fs: &dyn SafeBashFs, path: &str, remaining_source: us
     let mut chunk = Vec::new();
     loop {
         next(&mut chunk).map_err(read_error)?;
-        if chunk.is_empty() { break; }
+        if chunk.is_empty() {
+            break;
+        }
         if chunk.len() > remaining_source.saturating_sub(bytes.len()) {
             return Err(ProgramError(5, "maxSourceBytes limit exceeded".into()));
         }
@@ -1096,7 +1123,11 @@ impl Modules<'_> {
                 }
                 let contents = match read_program(self.fs, &full, self.remaining) {
                     Ok(source) => source,
-                    Err(ProgramError(2, e)) if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") => continue,
+                    Err(ProgramError(2, e))
+                        if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") =>
+                    {
+                        continue;
+                    }
                     Err(e) => return Err(e),
                 };
                 self.active.push(full);

@@ -1,9 +1,9 @@
 mod session;
 use crate::budget::{ExecutionBudget, ShellLimits};
 use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
-use crate::vfs::{FileStat, host_text, shell_text};
 use crate::shell::eval::{EvalError, EvalState};
 use crate::shell::parser::CommandNode;
+use crate::vfs::{FileStat, host_text, shell_text};
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
@@ -130,10 +130,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn limit_error(&self, name: &str, maximum: usize) -> String {
-        self.budget.record_exceeded(ShellLimits::limit_error(name, maximum))
+        self.budget
+            .record_exceeded(ShellLimits::limit_error(name, maximum))
     }
 
-    fn remaining_output_bytes(&self) -> usize { self.budget.remaining_output_bytes() }
+    fn remaining_output_bytes(&self) -> usize {
+        self.budget.remaining_output_bytes()
+    }
 
     fn max_input_bytes(&self) -> usize {
         self.budget.limits.max_input_bytes
@@ -142,60 +145,123 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.access_path(&host_text(path), follow_final).map(quote_host_text).map_err(quote_host_text)
+        self.inner
+            .access_path(&host_text(path), follow_final)
+            .map(quote_host_text)
+            .map_err(quote_host_text)
     }
 
     fn command_create_path(&self, path: &str) -> Result<String, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.command_create_path(&host_text(path)).map(quote_host_text).map_err(quote_host_text)
+        self.inner
+            .command_create_path(&host_text(path))
+            .map(quote_host_text)
+            .map_err(quote_host_text)
     }
 
-    fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, crate::vfs::FileStat), String> {
+    fn inspect_command_entry(
+        &self,
+        path: &str,
+        follow: bool,
+        syscall: &str,
+    ) -> Result<(String, crate::vfs::FileStat), String> {
         self.budget.tick_fs_op()?;
         self.budget.limits.check_path(path)?;
-        self.inner.inspect_command_entry(&host_text(path), follow, syscall).map(|(p, st)| (quote_host_text(p), st)).map_err(quote_host_text)
+        self.inner
+            .inspect_command_entry(&host_text(path), follow, syscall)
+            .map(|(p, st)| (quote_host_text(p), st))
+            .map_err(quote_host_text)
     }
 
-    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>, String> {
+    fn scratch_file(
+        &self,
+        directory: &str,
+    ) -> Result<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>, String> {
         self.budget.limits.check_path(directory)?;
         self.budget.tick_fs_op()?;
-        self.inner.scratch_file(&host_text(directory)).map_err(quote_host_text)
+        self.inner
+            .scratch_file(&host_text(directory))
+            .map_err(quote_host_text)
     }
 
     fn supports_command_descriptor(&self, entry: &str) -> bool {
         self.inner.supports_command_descriptor(&host_text(entry))
     }
 
-    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+    fn open_exclusive_redirect(
+        &self,
+        path: &str,
+        mode: u32,
+    ) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let stream = self.inner.open_exclusive_redirect(&host_text(path), mode).map_err(quote_host_text)?;
-        Ok(stream.map(|mut write| Box::new(move |chunk: Option<&[u8]>| write(chunk).map_err(quote_host_text)) as crate::vfs::ChunkWriter<'static>))
+        let stream = self
+            .inner
+            .open_exclusive_redirect(&host_text(path), mode)
+            .map_err(quote_host_text)?;
+        Ok(stream.map(|mut write| {
+            Box::new(move |chunk: Option<&[u8]>| write(chunk).map_err(quote_host_text))
+                as crate::vfs::ChunkWriter<'static>
+        }))
     }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
+    fn open_redirect_file(
+        &self,
+        path: &str,
+        access: crate::vfs::RedirectAccess,
+        create_mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
+        self.inner
+            .open_redirect_file(&host_text(path), access, create_mode)
+            .map_err(quote_host_text)
     }
 
-    fn open_command_stream<'b>(&'b self, path: &str, append: bool, exclusive: bool, mode: u32, _: Option<&'b ExecutionBudget>) -> Result<crate::vfs::ChunkWriter<'b>, String> {
+    fn open_command_stream<'b>(
+        &'b self,
+        path: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+        _: Option<&'b ExecutionBudget>,
+    ) -> Result<crate::vfs::ChunkWriter<'b>, String> {
         self.budget.limits.check_path(path)?;
-        let mut stream = self.inner.open_command_stream(&host_text(path), append, exclusive, mode, Some(self.budget)).map_err(quote_host_text)?;
-        Ok(Box::new(move |chunk| stream(chunk).map_err(quote_host_text)))
+        let mut stream = self
+            .inner
+            .open_command_stream(&host_text(path), append, exclusive, mode, Some(self.budget))
+            .map_err(quote_host_text)?;
+        Ok(Box::new(move |chunk| {
+            stream(chunk).map_err(quote_host_text)
+        }))
     }
 
-    fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
+    fn write_command_path(
+        &self,
+        path: &str,
+        bytes: &[u8],
+        append: bool,
+        mode: u32,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(bytes.len())?;
-        self.inner.write_command_path(&host_text(path), bytes, append, mode).map_err(quote_host_text)
+        self.inner
+            .write_command_path(&host_text(path), bytes, append, mode)
+            .map_err(quote_host_text)
     }
 
-    fn command_descriptor_op(&self) -> Result<(), String> { self.budget.tick_fs_op() }
+    fn command_descriptor_op(&self) -> Result<(), String> {
+        self.budget.tick_fs_op()
+    }
 
-    fn write_command_file_at(&self, file: &dyn crate::vfs::OpenRedirectFile, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
+    fn write_command_file_at(
+        &self,
+        file: &dyn crate::vfs::OpenRedirectFile,
+        offset: Option<usize>,
+        bytes: &[u8],
+    ) -> Result<(), String> {
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(bytes.len())?;
         file.write_at(offset, bytes).map_err(quote_host_text)
@@ -204,68 +270,114 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.tick_fs_op()?;
         self.budget.limits.check_path(path)?;
-        self.inner.read_file(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .read_file(&host_text(path))
+            .map_err(quote_host_text)
     }
 
-    fn has_path_capabilities(&self) -> bool { self.inner.has_path_capabilities() }
+    fn has_path_capabilities(&self) -> bool {
+        self.inner.has_path_capabilities()
+    }
 
-    fn supplies_single_chunk_input(&self) -> bool { self.inner.supplies_single_chunk_input() }
+    fn supplies_single_chunk_input(&self) -> bool {
+        self.inner.supplies_single_chunk_input()
+    }
 
-    fn read_single_chunk_input(&self, path: &str, _: Option<&ExecutionBudget>) -> Result<Vec<u8>, String> {
+    fn read_single_chunk_input(
+        &self,
+        path: &str,
+        _: Option<&ExecutionBudget>,
+    ) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.read_single_chunk_input(&host_text(path), Some(self.budget)).map_err(quote_host_text)
+        self.inner
+            .read_single_chunk_input(&host_text(path), Some(self.budget))
+            .map_err(quote_host_text)
     }
 
-    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
+    fn open_read_file(
+        &self,
+        path: &str,
+        allow_directory: bool,
+    ) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.open_read_file(&host_text(path), allow_directory).map_err(quote_host_text)
+        self.inner
+            .open_read_file(&host_text(path), allow_directory)
+            .map_err(quote_host_text)
     }
 
-    fn open_stream_reader(&self, path: &str) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
+    fn open_stream_reader(
+        &self,
+        path: &str,
+    ) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.open_stream_reader(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .open_stream_reader(&host_text(path))
+            .map_err(quote_host_text)
     }
 
     fn open_chunks(&self, path: &str) -> Result<crate::vfs::ChunkReader<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let mut next = self.inner.open_chunks(&host_text(path)).map_err(quote_host_text)?;
+        let mut next = self
+            .inner
+            .open_chunks(&host_text(path))
+            .map_err(quote_host_text)?;
         Ok(Box::new(move |chunk| {
             self.budget.check_cancelled()?;
             next(chunk)
         }))
     }
 
-    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<crate::vfs::ChunkReader<'_>, String> {
+    fn open_chunks_sized(
+        &self,
+        path: &str,
+        size: std::num::NonZeroUsize,
+    ) -> Result<crate::vfs::ChunkReader<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let mut next = self.inner.open_chunks_sized(&host_text(path), size).map_err(quote_host_text)?;
+        let mut next = self
+            .inner
+            .open_chunks_sized(&host_text(path), size)
+            .map_err(quote_host_text)?;
         Ok(Box::new(move |chunk| {
             self.budget.check_cancelled()?;
             next(chunk)
         }))
     }
 
-    fn commit_file_edit(&self, path: &str, original: &crate::vfs::FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+    fn commit_file_edit(
+        &self,
+        path: &str,
+        original: &crate::vfs::FileStat,
+        before: &[u8],
+        after: &[u8],
+        in_place: bool,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(after.len())?;
-        self.inner.commit_file_edit(&host_text(path), original, before, after, in_place).map_err(quote_host_text)
+        self.inner
+            .commit_file_edit(&host_text(path), original, before, after, in_place)
+            .map_err(quote_host_text)
     }
 
     fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.create_temp(&host_text(path), directory, mode).map_err(quote_host_text)
+        self.inner
+            .create_temp(&host_text(path), directory, mode)
+            .map_err(quote_host_text)
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.create_file(&host_text(path), data, mode).map_err(quote_host_text)
+        self.inner
+            .create_file(&host_text(path), data, mode)
+            .map_err(quote_host_text)
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
@@ -275,138 +387,314 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.patch_revision(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .patch_revision(&host_text(path))
+            .map_err(quote_host_text)
     }
 
-    fn observe_patch(&self,path:&str)->Result<(u64,crate::vfs::PublicationStamp),String> {
+    fn observe_patch(&self, path: &str) -> Result<(u64, crate::vfs::PublicationStamp), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.observe_patch(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .observe_patch(&host_text(path))
+            .map_err(quote_host_text)
     }
-    fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
+    fn patch_file(
+        &self,
+        path: &str,
+        bytes: Option<&[u8]>,
+        expected: (u64, u64),
+    ) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        if let Some(data) = bytes { self.budget.add_output_bytes(data.len())?; }
-        self.inner.patch_file(&host_text(path), bytes, expected).map_err(quote_host_text)
+        if let Some(data) = bytes {
+            self.budget.add_output_bytes(data.len())?;
+        }
+        self.inner
+            .patch_file(&host_text(path), bytes, expected)
+            .map_err(quote_host_text)
     }
 
     fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry(&host_text(path), data, version).map_err(quote_host_text)
+        self.inner
+            .replace_file_entry(&host_text(path), data, version)
+            .map_err(quote_host_text)
     }
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_mode(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        version: u64,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry_with_mode(&host_text(path), data, mode, version).map_err(quote_host_text)
+        self.inner
+            .replace_file_entry_with_mode(&host_text(path), data, mode, version)
+            .map_err(quote_host_text)
     }
-    fn replace_file_with_backup(&self, path: &str, data: &[u8], version: u64, backup: &str, backup_version: u64) -> Result<(), String> {
+    fn replace_file_with_backup(
+        &self,
+        path: &str,
+        data: &[u8],
+        version: u64,
+        backup: &str,
+        backup_version: u64,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.limits.check_path(backup)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_with_backup(&host_text(path), data, version, &host_text(backup), backup_version).map_err(quote_host_text)
+        self.inner
+            .replace_file_with_backup(
+                &host_text(path),
+                data,
+                version,
+                &host_text(backup),
+                backup_version,
+            )
+            .map_err(quote_host_text)
     }
-    fn replace_file_batch(&self, files: Vec<(String,Vec<u8>,u32)>, version:u64) -> Result<(),String>{
-        self.publish_zip_volumes(files,&[],None,version)
+    fn replace_file_batch(
+        &self,
+        files: Vec<(String, Vec<u8>, u32)>,
+        version: u64,
+    ) -> Result<(), String> {
+        self.publish_zip_volumes(files, &[], None, version)
     }
-    fn publish_zip_volumes(&self, mut files:Vec<(String,Vec<u8>,u32)>, guards:&[crate::vfs::PublicationStamp],
-        temporary:Option<(&str,u64)>, version:u64)->Result<(),String>{
-        for (path,bytes,_) in &mut files {
+    fn publish_zip_volumes(
+        &self,
+        mut files: Vec<(String, Vec<u8>, u32)>,
+        guards: &[crate::vfs::PublicationStamp],
+        temporary: Option<(&str, u64)>,
+        version: u64,
+    ) -> Result<(), String> {
+        for (path, bytes, _) in &mut files {
             self.budget.limits.check_path(path)?;
             self.budget.tick_fs_op()?;
             self.budget.add_output_bytes(bytes.len())?;
-            if let std::borrow::Cow::Owned(p)=host_text(path) { *path=p; }
+            if let std::borrow::Cow::Owned(p) = host_text(path) {
+                *path = p;
+            }
         }
-        let dir=temporary.map(|(p,id)|(host_text(p),id));
-        self.inner.publish_zip_volumes(files,guards,dir.as_ref().map(|(p,id)|(p.as_ref(),*id)),version).map_err(quote_host_text)
+        let dir = temporary.map(|(p, id)| (host_text(p), id));
+        self.inner
+            .publish_zip_volumes(
+                files,
+                guards,
+                dir.as_ref().map(|(p, id)| (p.as_ref(), *id)),
+                version,
+            )
+            .map_err(quote_host_text)
     }
-    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, check_only: bool,
-        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
+    fn validate_staged_file(
+        &self,
+        path: &str,
+        temporary: Option<(&str, u64)>,
+        bytes: &[u8],
+        stamp: u64,
+        check_only: bool,
+        check: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(bool, u64), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let temp=temporary.map(|(dir,id)|(host_text(dir),id));
-        self.inner.validate_staged_file(&host_text(path), temp.as_ref().map(|(p,id)|(p.as_ref(),*id)), bytes, stamp, check_only, &mut |p| check(&quote_host_text(p.into())))
+        let temp = temporary.map(|(dir, id)| (host_text(dir), id));
+        self.inner
+            .validate_staged_file(
+                &host_text(path),
+                temp.as_ref().map(|(p, id)| (p.as_ref(), *id)),
+                bytes,
+                stamp,
+                check_only,
+                &mut |p| check(&quote_host_text(p.into())),
+            )
             .map_err(quote_host_text)
     }
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.replace_staged_file(&host_text(path), data, version).map_err(quote_host_text)
+        self.inner
+            .replace_staged_file(&host_text(path), data, version)
+            .map_err(quote_host_text)
     }
 
     fn supports_conditional_removal(&self, path: &str) -> bool {
         self.inner.supports_conditional_removal(&host_text(path))
     }
-    fn retain_removal(&self,path:&str,parent:crate::vfs::FileStat,expected:crate::vfs::FileStat)->Result<crate::vfs::RemovalReceipt<'_>,String>{
+    fn retain_removal(
+        &self,
+        path: &str,
+        parent: crate::vfs::FileStat,
+        expected: crate::vfs::FileStat,
+    ) -> Result<crate::vfs::RemovalReceipt<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let receipt=self.inner.retain_removal(&host_text(path),parent,expected).map_err(quote_host_text)?;
-        Ok(crate::vfs::RemovalReceipt {parent:receipt.parent,entry:receipt.entry,remove:Box::new(move |advance|{
-            self.budget.tick_fs_op()?;
-            (receipt.remove)(advance).map_err(quote_host_text)
-        })})
+        let receipt = self
+            .inner
+            .retain_removal(&host_text(path), parent, expected)
+            .map_err(quote_host_text)?;
+        Ok(crate::vfs::RemovalReceipt {
+            parent: receipt.parent,
+            entry: receipt.entry,
+            remove: Box::new(move |advance| {
+                self.budget.tick_fs_op()?;
+                (receipt.remove)(advance).map_err(quote_host_text)
+            }),
+        })
     }
-    fn remove_unchanged_entry(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat) -> Result<(), String> {
+    fn remove_unchanged_entry(
+        &self,
+        path: &str,
+        parent: &crate::vfs::FileStat,
+        expected: &crate::vfs::FileStat,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_unchanged_entry(&host_text(path),parent,expected).map_err(quote_host_text)
+        self.inner
+            .remove_unchanged_entry(&host_text(path), parent, expected)
+            .map_err(quote_host_text)
     }
 
-    fn remove_command_entry(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat, force: bool) -> Result<(), String> {
+    fn remove_command_entry(
+        &self,
+        path: &str,
+        parent: &crate::vfs::FileStat,
+        expected: &crate::vfs::FileStat,
+        force: bool,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_command_entry(&host_text(path),parent,expected,force).map_err(quote_host_text)
+        self.inner
+            .remove_command_entry(&host_text(path), parent, expected, force)
+            .map_err(quote_host_text)
     }
-    fn remove_unchanged_file(&self, path: &str, parent: &crate::vfs::FileStat, expected: &crate::vfs::FileStat) -> Result<(), String> {
+    fn remove_unchanged_file(
+        &self,
+        path: &str,
+        parent: &crate::vfs::FileStat,
+        expected: &crate::vfs::FileStat,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_unchanged_file(&host_text(path), parent, expected).map_err(quote_host_text)
+        self.inner
+            .remove_unchanged_file(&host_text(path), parent, expected)
+            .map_err(quote_host_text)
     }
 
-    fn inspect_extraction(&self,path:&str,allow_trusted_ancestry:bool)->Result<(Option<FileStat>,crate::vfs::PublicationStamp),String> {
+    fn inspect_extraction(
+        &self,
+        path: &str,
+        allow_trusted_ancestry: bool,
+    ) -> Result<(Option<FileStat>, crate::vfs::PublicationStamp), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.inspect_extraction(&host_text(path),allow_trusted_ancestry).map_err(quote_host_text)
+        self.inner
+            .inspect_extraction(&host_text(path), allow_trusted_ancestry)
+            .map_err(quote_host_text)
     }
-    fn charge_extraction_bytes(&self,bytes:usize)->Result<(),String>{self.budget.add_output_bytes(bytes)}
-    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,stamp:u64)->Result<(),String> {
+    fn charge_extraction_bytes(&self, bytes: usize) -> Result<(), String> {
+        self.budget.add_output_bytes(bytes)
+    }
+    fn publish_extraction_symlink(
+        &self,
+        path: &str,
+        target: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        stamp: u64,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.publish_extraction_symlink(&host_text(path),&host_text(target),parent,expected,stamp).map_err(quote_host_text)
+        self.inner
+            .publish_extraction_symlink(
+                &host_text(path),
+                &host_text(target),
+                parent,
+                expected,
+                stamp,
+            )
+            .map_err(quote_host_text)
     }
-    fn prepare_extraction_directory(&self,path:&str,parent:&FileStat,expected:Option<&FileStat>,mode:u32,times:(Option<f64>,Option<f64>),stamp:u64)->Result<FileStat,String> {
+    fn prepare_extraction_directory(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        stamp: u64,
+    ) -> Result<FileStat, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.prepare_extraction_directory(&host_text(path),parent,expected,mode,times,stamp).map_err(quote_host_text)
+        self.inner
+            .prepare_extraction_directory(&host_text(path), parent, expected, mode, times, stamp)
+            .map_err(quote_host_text)
     }
-    fn remove_extraction_entry(&self,path:&str,expected:&FileStat,version:u64)->Result<(),String> {
+    fn remove_extraction_entry(
+        &self,
+        path: &str,
+        expected: &FileStat,
+        version: u64,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_extraction_entry(&host_text(path),expected,version).map_err(quote_host_text)
+        self.inner
+            .remove_extraction_entry(&host_text(path), expected, version)
+            .map_err(quote_host_text)
     }
-    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        version: u64,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry_with_metadata(&host_text(path), data, mode, times, version).map_err(quote_host_text)
+        self.inner
+            .replace_file_entry_with_metadata(&host_text(path), data, mode, times, version)
+            .map_err(quote_host_text)
     }
 
-    fn observe_publication(&self,path:&str,generation:u64,mode:crate::vfs::PublicationMode)->Result<crate::vfs::PublicationStamp,String> {
+    fn observe_publication(
+        &self,
+        path: &str,
+        generation: u64,
+        mode: crate::vfs::PublicationMode,
+    ) -> Result<crate::vfs::PublicationStamp, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.observe_publication(&host_text(path),generation,mode).map_err(quote_host_text)
+        self.inner
+            .observe_publication(&host_text(path), generation, mode)
+            .map_err(quote_host_text)
     }
-    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
+    fn publish_file(
+        &self,
+        path: &str,
+        data: &[u8],
+        inputs: &[String],
+        version: u64,
+    ) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        if inputs.iter().any(|p| p.contains(crate::vfs::is_stream_byte)) {
+        if inputs
+            .iter()
+            .any(|p| p.contains(crate::vfs::is_stream_byte))
+        {
             let inputs: Vec<_> = inputs.iter().map(|p| host_text(p).into_owned()).collect();
-            self.inner.publish_file(&host_text(path), data, &inputs, version).map_err(quote_host_text)
+            self.inner
+                .publish_file(&host_text(path), data, &inputs, version)
+                .map_err(quote_host_text)
         } else {
-            self.inner.publish_file(&host_text(path), data, inputs, version).map_err(quote_host_text)
+            self.inner
+                .publish_file(&host_text(path), data, inputs, version)
+                .map_err(quote_host_text)
         }
     }
 
@@ -414,86 +702,148 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.write_redirect_path(path, data, true, crate::vfs::RedirectCharge(0))
     }
 
-    fn write_redirect_path(&self, path: &str, data: &[u8], append: bool, charge: crate::vfs::RedirectCharge) -> Result<(), String> {
+    fn write_redirect_path(
+        &self,
+        path: &str,
+        data: &[u8],
+        append: bool,
+        charge: crate::vfs::RedirectCharge,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len() - charge.0)?;
         let path = host_text(path);
-        if append { self.inner.append_file(&path, data) } else { self.inner.write_file(&path, data) }
-            .map_err(quote_host_text)
+        if append {
+            self.inner.append_file(&path, data)
+        } else {
+            self.inner.write_file(&path, data)
+        }
+        .map_err(quote_host_text)
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.remove_published(&host_text(path), publication).map_err(quote_host_text)
+        self.inner
+            .remove_published(&host_text(path), publication)
+            .map_err(quote_host_text)
     }
 
-    fn move_across_devices(&self, source: &str, destination: &str, _: Option<&ExecutionBudget>) -> Result<(), String> {
+    fn move_across_devices(
+        &self,
+        source: &str,
+        destination: &str,
+        _: Option<&ExecutionBudget>,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
-        self.inner.move_across_devices(&host_text(source), &host_text(destination), Some(self.budget)).map_err(quote_host_text)
+        self.inner
+            .move_across_devices(
+                &host_text(source),
+                &host_text(destination),
+                Some(self.budget),
+            )
+            .map_err(quote_host_text)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
         self.budget.tick_fs_op()?;
-        self.inner.rename(&host_text(source), &host_text(destination), no_replace).map_err(quote_host_text)
+        self.inner
+            .rename(&host_text(source), &host_text(destination), no_replace)
+            .map_err(quote_host_text)
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_one(&host_text(path), directory).map_err(quote_host_text)
+        self.inner
+            .remove_one(&host_text(path), directory)
+            .map_err(quote_host_text)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.remove_path(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .remove_path(&host_text(path))
+            .map_err(quote_host_text)
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        self.mkdir_with_operation(path, recursive, mode, false).map_err(|(code, _, at)| (code, at))
+        self.mkdir_with_operation(path, recursive, mode, false)
+            .map_err(|(code, _, at)| (code, at))
     }
 
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.check_mkdir_creation_mode(&host_text(path), recursive).map_err(quote_host_text)
+        self.inner
+            .check_mkdir_creation_mode(&host_text(path), recursive)
+            .map_err(quote_host_text)
     }
 
-    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
-        self.inner.rmdir_support(&host_text(path), entry.map(host_text).as_deref())
+    fn rmdir_support(
+        &self,
+        path: &str,
+        entry: Option<&str>,
+    ) -> Result<crate::vfs::RmdirSupport, String> {
+        self.inner
+            .rmdir_support(&host_text(path), entry.map(host_text).as_deref())
     }
 
-    fn default_device_view(&self) -> bool { self.inner.default_device_view() }
-    fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>,String> {
+    fn default_device_view(&self) -> bool {
+        self.inner.default_device_view()
+    }
+    fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.reserved_device(&host_text(path),follow)
+        self.inner.reserved_device(&host_text(path), follow)
     }
 
-    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, try_backing: bool) -> Result<(), (String, &'static str, String)> {
-        self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
+    fn mkdir_with_operation(
+        &self,
+        path: &str,
+        recursive: bool,
+        mode: u32,
+        try_backing: bool,
+    ) -> Result<(), (String, &'static str, String)> {
+        self.budget
+            .limits
+            .check_path(path)
+            .and_then(|()| self.budget.tick_fs_op())
             .map_err(|error| (error, "mkdir", path.to_owned()))?;
-        self.inner.mkdir_with_operation(&host_text(path), recursive, mode, try_backing)
+        self.inner
+            .mkdir_with_operation(&host_text(path), recursive, mode, try_backing)
             .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
     }
 
-    fn mkdir_with_default_mode(&self, path: &str, recursive: bool, try_backing: bool) -> Result<(), (String, &'static str, String)> {
-        self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
+    fn mkdir_with_default_mode(
+        &self,
+        path: &str,
+        recursive: bool,
+        try_backing: bool,
+    ) -> Result<(), (String, &'static str, String)> {
+        self.budget
+            .limits
+            .check_path(path)
+            .and_then(|()| self.budget.tick_fs_op())
             .map_err(|error| (error, "mkdir", path.to_owned()))?;
-        self.inner.mkdir_with_default_mode(&host_text(path), recursive, try_backing)
+        self.inner
+            .mkdir_with_default_mode(&host_text(path), recursive, try_backing)
             .map_err(|(code, op, at)| (code, op, quote_host_text(at)))
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.mkdir_one(&host_text(path), mode).map_err(quote_host_text)
+        self.inner
+            .mkdir_one(&host_text(path), mode)
+            .map_err(quote_host_text)
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.mkdir_all(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .mkdir_all(&host_text(path))
+            .map_err(quote_host_text)
     }
 
     fn exists(&self, path: &str) -> bool {
@@ -504,7 +854,9 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(&host_text(path))
     }
 
-    fn link_free_memory(&self) -> bool { self.inner.link_free_memory() }
+    fn link_free_memory(&self) -> bool {
+        self.inner.link_free_memory()
+    }
 
     fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
         self.inner.indexed_directory_entry(&host_text(path))
@@ -512,39 +864,74 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.list_dir(&host_text(path)).map(|mut names| { for name in &mut names { if let std::borrow::Cow::Owned(s) = shell_text(name) { *name = s; } } names }).map_err(quote_host_text)
+        self.inner
+            .list_dir(&host_text(path))
+            .map(|mut names| {
+                for name in &mut names {
+                    if let std::borrow::Cow::Owned(s) = shell_text(name) {
+                        *name = s;
+                    }
+                }
+                names
+            })
+            .map_err(quote_host_text)
     }
 
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.directory_entries(&host_text(path), limit).map(|mut entries| { for (name, _) in &mut entries { if let std::borrow::Cow::Owned(s) = shell_text(name) { *name = s; } } entries }).map_err(quote_host_text)
+        self.inner
+            .directory_entries(&host_text(path), limit)
+            .map(|mut entries| {
+                for (name, _) in &mut entries {
+                    if let std::borrow::Cow::Owned(s) = shell_text(name) {
+                        *name = s;
+                    }
+                }
+                entries
+            })
+            .map_err(quote_host_text)
     }
 
-    fn needs_readlink_lookup(&self, path: &str) -> bool { self.inner.needs_readlink_lookup(&host_text(path)) }
+    fn needs_readlink_lookup(&self, path: &str) -> bool {
+        self.inner.needs_readlink_lookup(&host_text(path))
+    }
     fn readlink_supported(&self, path: &str) -> Result<bool, String> {
         self.budget.tick_fs_op()?;
         self.budget.limits.check_path(path)?;
-        self.inner.readlink_supported(&host_text(path)).map_err(quote_host_text)
+        self.inner
+            .readlink_supported(&host_text(path))
+            .map_err(quote_host_text)
     }
 
-    fn supports_symbolic_links(&self, entry: &str) -> bool { self.inner.supports_symbolic_links(&host_text(entry)) }
-    fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(&host_text(path)) }
+    fn supports_symbolic_links(&self, entry: &str) -> bool {
+        self.inner.supports_symbolic_links(&host_text(entry))
+    }
+    fn supports_hard_links(&self, path: &str) -> bool {
+        self.inner.supports_hard_links(&host_text(path))
+    }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
         self.budget.tick_fs_op()?;
-        self.inner.hard_link(&host_text(source), &host_text(destination)).map_err(quote_host_text)
+        self.inner
+            .hard_link(&host_text(source), &host_text(destination))
+            .map_err(quote_host_text)
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.symlink(&host_text(target), &host_text(path)).map_err(quote_host_text)
+        self.inner
+            .symlink(&host_text(target), &host_text(path))
+            .map_err(quote_host_text)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.readlink(&host_text(path)).map(quote_host_text).map_err(quote_host_text)
+        self.inner
+            .readlink(&host_text(path))
+            .map(quote_host_text)
+            .map_err(quote_host_text)
     }
 
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
@@ -567,12 +954,21 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.chmod(&host_text(path), mode).map_err(quote_host_text)
+        self.inner
+            .chmod(&host_text(path), mode)
+            .map_err(quote_host_text)
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
+    fn set_times(
+        &self,
+        path: &str,
+        atime_ms: Option<f64>,
+        mtime_ms: Option<f64>,
+    ) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.set_times(&host_text(path), atime_ms, mtime_ms).map_err(quote_host_text)
+        self.inner
+            .set_times(&host_text(path), atime_ms, mtime_ms)
+            .map_err(quote_host_text)
     }
 
     fn generation(&self) -> u64 {
@@ -644,15 +1040,30 @@ impl HybridBackend {
         };
         let allow_fallback = self.mode == BackendMode::Hybrid && stream.is_none();
         let mut shell_cwd = shell_text(cwd).into_owned();
-        let mut eval = EvalState::new(&mut shell_cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
+        let mut eval = EvalState::new(
+            &mut shell_cwd,
+            env,
+            &budgeted_fs,
+            &budget,
+            &self.commands,
+            allow_fallback,
+        );
         eval.middleware = self.middleware.as_ref();
-        if stdin.is_none() && stream.is_none() && (!self.commands.is_empty() || self.middleware.is_some()) { eval.default_input_fds.insert(0); }
-        if let Some(input) = stream { eval.fd_table.insert(0, input); }
+        if stdin.is_none()
+            && stream.is_none()
+            && (!self.commands.is_empty() || self.middleware.is_some())
+        {
+            eval.default_input_fds.insert(0);
+        }
+        if let Some(input) = stream {
+            eval.fd_table.insert(0, input);
+        }
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
         if let Ok(bindings) = self.bindings.lock() {
             eval.functions.clone_from(&bindings.functions);
-            eval.exported_functions.clone_from(&bindings.exported_functions);
+            eval.exported_functions
+                .clone_from(&bindings.exported_functions);
             eval.pos_args.clone_from(&bindings.positional);
         }
         let (eval_res, elapsed_ms) = eval.eval_script_timed(script, stdin.unwrap_or(""));
@@ -678,7 +1089,11 @@ impl HybridBackend {
                 Some(Ok(res))
             }
             Err(EvalError::Syntax(msg)) => {
-                let code = if msg.starts_with("__exit127__") { 127 } else { 2 };
+                let code = if msg.starts_with("__exit127__") {
+                    127
+                } else {
+                    2
+                };
                 let stderr = eval.format_active_syntax_diagnostic(script, &msg);
                 if script != ":" {
                     env.insert("\0last_exit".to_string(), code.to_string());
@@ -707,14 +1122,21 @@ impl HybridBackend {
         _fs: &dyn SafeBashFs,
     ) -> Result<CommandResult, String> {
         let _ = (jstr, from_jstr, obj_get, base64_encode, base64_decode);
-        let _ = (Limits::default, Value::Null, parse, stringify, VfsEntryKind::File, VfsFileEntry {
-            path: String::new(),
-            kind: VfsEntryKind::File,
-            data: Default::default(),
-            link_group: None,
-            symlink_target: None,
-            mode: 0,
-        });
+        let _ = (
+            Limits::default,
+            Value::Null,
+            parse,
+            stringify,
+            VfsEntryKind::File,
+            VfsFileEntry {
+                path: String::new(),
+                kind: VfsEntryKind::File,
+                data: Default::default(),
+                link_group: None,
+                symlink_target: None,
+                mode: 0,
+            },
+        );
         Err("TypeScript subprocess bridge is not available on wasm32".into())
     }
 
@@ -746,11 +1168,19 @@ impl HybridBackend {
                 (jstr("kind"), Value::String(jstr(kind_str))),
                 (
                     jstr("dataBase64"),
-                    Value::String(jstr(&if entry.link_group.is_some_and(|id| !emitted.insert(id)) { String::new() } else { base64_encode(&entry.data) })),
+                    Value::String(jstr(
+                        &if entry.link_group.is_some_and(|id| !emitted.insert(id)) {
+                            String::new()
+                        } else {
+                            base64_encode(&entry.data)
+                        },
+                    )),
                 ),
                 (jstr("mode"), Value::Number(entry.mode as f64)),
             ];
-            if let Some(id) = entry.link_group { obj.push((jstr("linkGroup"), Value::String(jstr(&id.to_string())))); }
+            if let Some(id) = entry.link_group {
+                obj.push((jstr("linkGroup"), Value::String(jstr(&id.to_string()))));
+            }
             if let Some(target) = entry.symlink_target {
                 obj.push((jstr("symlinkTarget"), Value::String(jstr(&target))));
             }
@@ -766,7 +1196,12 @@ impl HybridBackend {
             (jstr("script"), Value::String(jstr(script))),
             (jstr("cwd"), Value::String(jstr(cwd))),
             (jstr("env"), Value::Object(env_obj)),
-            (jstr("stdinBase64"), Value::String(jstr(&base64_encode(&crate::vfs::stream_string_to_bytes(stdin))))),
+            (
+                jstr("stdinBase64"),
+                Value::String(jstr(&base64_encode(&crate::vfs::stream_string_to_bytes(
+                    stdin,
+                )))),
+            ),
             (jstr("files"), Value::Array(files_json)),
         ];
         if let Some(ms) = timeout_ms {
@@ -820,7 +1255,9 @@ impl HybridBackend {
         }
 
         let out_stdout = match obj_get(&resp, "stdoutBase64") {
-            Some(Value::String(s)) => crate::vfs::bytes_to_stream_string(&base64_decode(&from_jstr(s))?),
+            Some(Value::String(s)) => {
+                crate::vfs::bytes_to_stream_string(&base64_decode(&from_jstr(s))?)
+            }
             _ => String::new(),
         };
         let out_stderr = match obj_get(&resp, "stderr") {
@@ -837,7 +1274,9 @@ impl HybridBackend {
         if let Some(Value::Object(next_env)) = obj_get(&resp, "env") {
             env.retain(|k, _| k.starts_with('\0'));
             for (k, v) in next_env {
-                if !k.contains(&0) && let Value::String(s) = v {
+                if !k.contains(&0)
+                    && let Value::String(s) = v
+                {
                     env.insert(from_jstr(k), shell_text(&from_jstr(s)).into_owned());
                 }
             }
@@ -875,7 +1314,9 @@ impl HybridBackend {
                         kind,
                         data: bytes.into(),
                         link_group: match obj_get(f, "linkGroup") {
-                            Some(Value::String(id)) => Some(from_jstr(id).parse().map_err(|_| "invalid link group")?),
+                            Some(Value::String(id)) => {
+                                Some(from_jstr(id).parse().map_err(|_| "invalid link group")?)
+                            }
                             _ => None,
                         },
                         symlink_target,
@@ -1048,16 +1489,24 @@ mod tests {
     fn middleware_continues_in_the_original_shell_without_recharging_command_output() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.mkdir_all("/other").unwrap();
-        shell.set_limits(ShellLimits {max_output_bytes: 8,..Default::default()});
+        shell.set_limits(ShellLimits {
+            max_output_bytes: 8,
+            ..Default::default()
+        });
         shell.set_middleware(Arc::new(|ctx| {
             let mut input = ctx.stdin.to_owned();
             let result = ctx.proceed(&mut input)?;
             assert!(ctx.proceed(&mut input).is_err());
-            Ok(CommandResult {stdout:result.stdout,stderr:result.stderr,exit_code:result.exit_code,
-                cwd:ctx.cwd.clone(),env:ctx.env.clone()})
+            Ok(CommandResult {
+                stdout: result.stdout,
+                stderr: result.stderr,
+                exit_code: result.exit_code,
+                cwd: ctx.cwd.clone(),
+                env: ctx.env.clone(),
+            })
         }));
         let r = shell.exec("cd /other; pwd; printf X").unwrap();
-        assert_eq!((r.stdout.as_str(),r.cwd.as_str()),("/other\nX","/other"));
+        assert_eq!((r.stdout.as_str(), r.cwd.as_str()), ("/other\nX", "/other"));
     }
 
     #[test]
@@ -1067,32 +1516,54 @@ mod tests {
         shell.set_middleware(Arc::new(|ctx| {
             if ctx.command == "probe" {
                 *ctx.cwd = "/work".into();
-                ctx.env.insert("LABEL".into(),"inner".into());
+                ctx.env.insert("LABEL".into(), "inner".into());
             }
             let mut input = ctx.stdin.to_owned();
             let r = ctx.proceed(&mut input)?;
-            Ok(CommandResult {stdout:r.stdout,stderr:r.stderr,exit_code:r.exit_code,cwd:ctx.cwd.clone(),env:ctx.env.clone()})
+            Ok(CommandResult {
+                stdout: r.stdout,
+                stderr: r.stderr,
+                exit_code: r.exit_code,
+                cwd: ctx.cwd.clone(),
+                env: ctx.env.clone(),
+            })
         }));
-        let r = shell.exec("export LABEL=outer; probe(){ pwd; echo $LABEL; }; probe; pwd; echo $LABEL").unwrap();
-        assert_eq!(r.stdout,"/work\ninner\n/\nouter\n");
+        let r = shell
+            .exec("export LABEL=outer; probe(){ pwd; echo $LABEL; }; probe; pwd; echo $LABEL")
+            .unwrap();
+        assert_eq!(r.stdout, "/work\ninner\n/\nouter\n");
     }
 
     #[test]
     fn registered_commands_override_executables_but_not_forced_shell_builtins() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for name in ["pwd", "true", "false", "kill", "echo", "cd", "cat"] {
-            shell.register_command(name, Arc::new(|ctx| Ok(CommandResult {
-                stdout: "extension\n".into(), stderr: String::new(), exit_code: 23,
-                cwd: ctx.cwd.clone(), env: ctx.env.clone(),
-            })));
+            shell.register_command(
+                name,
+                Arc::new(|ctx| {
+                    Ok(CommandResult {
+                        stdout: "extension\n".into(),
+                        stderr: String::new(),
+                        exit_code: 23,
+                        cwd: ctx.cwd.clone(),
+                        env: ctx.env.clone(),
+                    })
+                }),
+            );
         }
         for (script, code, out) in [
-            ("pwd", 23, "extension\n"), ("command true", 23, "extension\n"),
-            ("/usr/bin/false", 23, "extension\n"), ("/bin/kill", 23, "extension\n"),
-            ("builtin pwd", 0, "/\n"), ("builtin false", 1, ""),
-            ("builtin echo test", 23, "extension\n"), ("cd /", 0, ""),
-            ("/bin/cd", 23, "extension\n"), ("pwd() { return 7; }; pwd", 7, ""),
-            ("command pwd", 23, "extension\n"), ("cat", 23, "extension\n"),
+            ("pwd", 23, "extension\n"),
+            ("command true", 23, "extension\n"),
+            ("/usr/bin/false", 23, "extension\n"),
+            ("/bin/kill", 23, "extension\n"),
+            ("builtin pwd", 0, "/\n"),
+            ("builtin false", 1, ""),
+            ("builtin echo test", 23, "extension\n"),
+            ("cd /", 0, ""),
+            ("/bin/cd", 23, "extension\n"),
+            ("pwd() { return 7; }; pwd", 7, ""),
+            ("command pwd", 23, "extension\n"),
+            ("cat", 23, "extension\n"),
         ] {
             let r = shell.exec(script).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str()), (code, out), "{script}");
@@ -1102,18 +1573,40 @@ mod tests {
     #[test]
     fn registered_command_discovery_uses_which_options_and_the_callers_path() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
-        shell.register_command("probe", Arc::new(|_| panic!("discovery executed the command")));
+        shell.register_command(
+            "probe",
+            Arc::new(|_| panic!("discovery executed the command")),
+        );
         for (script, code, out, err) in [
             ("which probe", 0, "/bin/probe\n", ""),
             ("PATH=/nowhere which probe", 1, "", ""),
-            ("PATH=/usr/bin:/bin which -a probe", 0, "/usr/bin/probe\n/bin/probe\n", ""),
+            (
+                "PATH=/usr/bin:/bin which -a probe",
+                0,
+                "/usr/bin/probe\n/bin/probe\n",
+                "",
+            ),
             ("/bin/which /usr/bin/probe", 0, "/usr/bin/probe\n", ""),
-            ("which -z probe", 1, "", "which: illegal option -- z\nusage: which [-as] program ...\n"),
+            (
+                "which -z probe",
+                1,
+                "",
+                "which: illegal option -- z\nusage: which [-as] program ...\n",
+            ),
             ("which probe -z", 1, "/bin/probe\n", ""),
-            ("mkdir -p /bin; touch /bin/probe; chmod 000 /bin/probe; which probe", 0, "/bin/probe\n", ""),
+            (
+                "mkdir -p /bin; touch /bin/probe; chmod 000 /bin/probe; which probe",
+                0,
+                "/bin/probe\n",
+                "",
+            ),
         ] {
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, out, err), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (code, out, err),
+                "{script}"
+            );
         }
     }
 
@@ -1138,7 +1631,13 @@ mod tests {
         let mut cwd = "/work".to_string();
         let mut env = BTreeMap::new();
         let out = backend
-            .try_execute_native("printf 'ok' > /work/f.txt && cat /work/f.txt", &mut cwd, &mut env, "", &vfs)
+            .try_execute_native(
+                "printf 'ok' > /work/f.txt && cat /work/f.txt",
+                &mut cwd,
+                &mut env,
+                "",
+                &vfs,
+            )
             .unwrap()
             .unwrap();
         assert_eq!(out.exit_code, 0);

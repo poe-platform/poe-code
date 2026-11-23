@@ -1143,7 +1143,6 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
       }
       const picture = encodeH264IdrFrame(frame.data, width, height, i - gopStart, refBuffer, maxBFrames);
       const encoded = stereoSei && (picture[4]! & 0x1f) === 5 ? concatBytes([stereoSei, picture]) : picture;
-      detachBytesBuffer(frame.data);
       samples.push({
         data: encoded,
         // Frames are encoded in display order, so input decode preroll no longer applies.
@@ -2299,6 +2298,11 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         duration = Math.max(duration, sample.pts - offset + sample.duration);
       }
       slicedTracks.push({ ...track, samples, duration, declaredSampleCount: undefined });
+      continue;
+    }
+
+    if (track.type === "audio" && options.copyAudio && track.samples.length === 0) {
+      slicedTracks.push({ ...track, duration: 0, editList: undefined, declaredSampleCount: undefined });
       continue;
     }
 

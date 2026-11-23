@@ -1,0 +1,2366 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "empty-srt",
+      "input": "[00:01.20]First\n[00:02.00]\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,200 --> 00:00:02,000\nFirst\n\n2\n00:00:02,000 --> 00:00:03,000\n\n\n3\n00:00:03,000 --> 1193:02:50,295\nTwo\n\n"
+    },
+    {
+      "name": "spaces-srt",
+      "input": "[00:01.00]   spaces   \n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\nspaces   \n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "tabs-srt",
+      "input": "[00:01.00]\tword\t\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\nword\t\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "markup-srt",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\n<b>bold</b> &amp; \\\r\n \\<i>text</i>\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "negative-srt",
+      "input": "[-00:01.00]First\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nFirst\n\n2\n00:00:04,000 --> 1193:02:51,295\nTwo\n\n"
+    },
+    {
+      "name": "duplicate-srt",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nword\n\n2\n00:00:03,000 --> 00:00:03,000\nword\n\n3\n00:00:03,000 --> 1193:02:50,295\nnext\n\n"
+    },
+    {
+      "name": "no-newline-srt",
+      "input": "[00:01.00]one",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\none\n\n"
+    },
+    {
+      "name": "tags-srt",
+      "input": "[ar:Artist]\n[ti:Title]\n[offset:250]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,750 --> 00:00:04,750\none\n\n2\n00:00:04,750 --> 1193:02:52,045\nend\n\n"
+    },
+    {
+      "name": "metadata-only-srt",
+      "input": "[ar:Artist]\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "blank-srt",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "input-seek-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\none\n\n2\n00:00:04,000 --> 1193:02:51,295\nend\n\n"
+    },
+    {
+      "name": "output-seek-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "input-duration-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "output-duration-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n"
+    },
+    {
+      "name": "input-seek-duration-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\none\n\n2\n00:00:04,000 --> 1193:02:51,295\nend\n\n"
+    },
+    {
+      "name": "output-seek-duration-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "copy-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n\n"
+    },
+    {
+      "name": "basic-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "empty-webvtt",
+      "input": "[00:01.20]First\n[00:02.00]\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.200 --> 00:02.000\nFirst\n\n00:02.000 --> 00:03.000\n\n\n00:03.000 --> 1193:02:50.295\nTwo\n"
+    },
+    {
+      "name": "spaces-webvtt",
+      "input": "[00:01.00]   spaces   \n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\nspaces   \n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "tabs-webvtt",
+      "input": "[00:01.00]\tword\t\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\nword\t\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "markup-webvtt",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\n<b>bold</b> &amp; \\\n \\<i>text</i>\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "negative-webvtt",
+      "input": "[-00:01.00]First\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\nFirst\n\n00:04.000 --> 1193:02:51.295\nTwo\n"
+    },
+    {
+      "name": "duplicate-webvtt",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nword\n\n00:03.000 --> 00:03.000\nword\n\n00:03.000 --> 1193:02:50.295\nnext\n"
+    },
+    {
+      "name": "no-newline-webvtt",
+      "input": "[00:01.00]one",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\none\n"
+    },
+    {
+      "name": "tags-webvtt",
+      "input": "[ar:Artist]\n[ti:Title]\n[offset:250]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.750 --> 00:04.750\none\n\n00:04.750 --> 1193:02:52.045\nend\n"
+    },
+    {
+      "name": "metadata-only-webvtt",
+      "input": "[ar:Artist]\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "blank-webvtt",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "input-seek-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\none\n\n00:04.000 --> 1193:02:51.295\nend\n"
+    },
+    {
+      "name": "output-seek-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "input-duration-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "output-duration-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n"
+    },
+    {
+      "name": "input-seek-duration-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\none\n\n00:04.000 --> 1193:02:51.295\nend\n"
+    },
+    {
+      "name": "output-seek-duration-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "copy-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "basic-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:05.00]end\n"
+    },
+    {
+      "name": "empty-lrc",
+      "input": "[00:01.20]First\n[00:02.00]\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.20]First\n[00:02.00]\n[00:03.00]Two\n"
+    },
+    {
+      "name": "spaces-lrc",
+      "input": "[00:01.00]   spaces   \n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]spaces   \n[00:05.00]end\n"
+    },
+    {
+      "name": "tabs-lrc",
+      "input": "[00:01.00]\tword\t\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]word\t\n[00:05.00]end\n"
+    },
+    {
+      "name": "markup-lrc",
+      "input": "[00:01.00]<b>bold</b> &amp; \\N {\\i1}text\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]<b>bold</b> &amp; \\\n[00:01.00] \\<i>text</i>\n[00:05.00]end\n"
+    },
+    {
+      "name": "negative-lrc",
+      "input": "[-00:01.00]First\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]First\n[00:03.00]Two\n"
+    },
+    {
+      "name": "duplicate-lrc",
+      "input": "[00:01.00][00:03.00]word\n[00:03.00]next\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]word\n[00:03.00]word\n[00:03.00]next\n"
+    },
+    {
+      "name": "no-newline-lrc",
+      "input": "[00:01.00]one",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n"
+    },
+    {
+      "name": "tags-lrc",
+      "input": "[ar:Artist]\n[ti:Title]\n[offset:250]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "[ar:Artist]\n[ti:Title]\n\n[00:00.75]one\n[00:04.75]end\n"
+    },
+    {
+      "name": "metadata-only-lrc",
+      "input": "[ar:Artist]\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "[ar:Artist]\n\n"
+    },
+    {
+      "name": "blank-lrc",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n"
+    },
+    {
+      "name": "input-seek-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]one\n[00:03.00]end\n"
+    },
+    {
+      "name": "output-seek-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:05.00]end\n"
+    },
+    {
+      "name": "input-duration-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:05.00]end\n"
+    },
+    {
+      "name": "output-duration-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n"
+    },
+    {
+      "name": "input-seek-duration-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]one\n[00:03.00]end\n"
+    },
+    {
+      "name": "output-seek-duration-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "2",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n"
+    },
+    {
+      "name": "copy-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:05.00]end\n"
+    },
+    {
+      "name": "braces-srt",
+      "input": "[00:01.00]x {hello} y {world",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\nx \\{hello\\} y \\{world\n\n"
+    },
+    {
+      "name": "braces-webvtt",
+      "input": "[00:01.00]x {hello} y {world",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\nx \\{hello\\} y \\{world\n"
+    },
+    {
+      "name": "braces-lrc",
+      "input": "[00:01.00]x {hello} y {world",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]x \\{hello\\} y \\{world\n"
+    },
+    {
+      "name": "ass-srt",
+      "input": "[00:01.00]a{\\b1}bold{\\b0}z{\\i1}it{\\i0}{\\u1}u{\\u0}{\\s1}s{\\s0}",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\na\\<b>bold\\</b>z\\<i>it\\</i>\\<u>u\\</u>\\<s>s\\</s>\n\n"
+    },
+    {
+      "name": "ass-webvtt",
+      "input": "[00:01.00]a{\\b1}bold{\\b0}z{\\i1}it{\\i0}{\\u1}u{\\u0}{\\s1}s{\\s0}",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\na\\<b>bold\\</b>z\\<i>it\\</i>\\<u>u\\</u>\\s\\\n"
+    },
+    {
+      "name": "ass-lrc",
+      "input": "[00:01.00]a{\\b1}bold{\\b0}z{\\i1}it{\\i0}{\\u1}u{\\u0}{\\s1}s{\\s0}",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]a\\<b>bold\\</b>z\\<i>it\\</i>\\<u>u\\</u>\\<s>s\\</s>\n"
+    },
+    {
+      "name": "slash-srt",
+      "input": "[00:01.00]path\\text \\h \\n \\N",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\npath\\\\text \\\\h \\\r\n \\\r\n\n\n"
+    },
+    {
+      "name": "slash-webvtt",
+      "input": "[00:01.00]path\\text \\h \\n \\N",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\npath\\\\text \\\\h \\\n \\\n\n"
+    },
+    {
+      "name": "slash-lrc",
+      "input": "[00:01.00]path\\text \\h \\n \\N",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]path\\\\text \\\\h \\\n[00:01.00] \\\n"
+    },
+    {
+      "name": "html-srt",
+      "input": "[00:01.00]<i>it</i><font color=\"red\">red</font><br>next &gt;",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\n<i>it</i><font color=\"red\">red</font><br>next &gt;\n\n"
+    },
+    {
+      "name": "html-webvtt",
+      "input": "[00:01.00]<i>it</i><font color=\"red\">red</font><br>next &gt;",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\n<i>it</i><font color=\"red\">red</font><br>next &gt;\n"
+    },
+    {
+      "name": "html-lrc",
+      "input": "[00:01.00]<i>it</i><font color=\"red\">red</font><br>next &gt;",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]<i>it</i><font color=\"red\">red</font><br>next &gt;\n"
+    },
+    {
+      "name": "nul-srt",
+      "input": "[00:01.00]before\u0000after",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\nbefore\n\n"
+    },
+    {
+      "name": "nul-webvtt",
+      "input": "[00:01.00]before\u0000after",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\nbefore\n"
+    },
+    {
+      "name": "nul-lrc",
+      "input": "[00:01.00]before\u0000after",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]before\n"
+    },
+    {
+      "name": "empty-eof-srt",
+      "input": "[00:01.00]",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "empty-eof-webvtt",
+      "input": "[00:01.00]",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "empty-eof-lrc",
+      "input": "[00:01.00]",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n"
+    },
+    {
+      "name": "unknown-srt",
+      "input": "[00:01.00]{\\unknown}x",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\n\\x\n\n"
+    },
+    {
+      "name": "unknown-webvtt",
+      "input": "[00:01.00]{\\unknown}x",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\n\\x\n"
+    },
+    {
+      "name": "unknown-lrc",
+      "input": "[00:01.00]{\\unknown}x",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]\\x\n"
+    },
+    {
+      "name": "large-srt",
+      "input": "[00:01.00][chorus] line",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\nchorus] line\n\n"
+    },
+    {
+      "name": "large-webvtt",
+      "input": "[00:01.00][chorus] line",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\nchorus] line\n"
+    },
+    {
+      "name": "large-lrc",
+      "input": "[00:01.00][chorus] line",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]chorus] line\n"
+    },
+    {
+      "name": "seek-past-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "8",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\none\n\n2\n00:00:04,000 --> 1193:02:51,295\nend\n\n"
+    },
+    {
+      "name": "copy-seek-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\none\n\n\n"
+    },
+    {
+      "name": "map-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-map",
+        "0:s:0",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "disabled-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-sn",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "negative-copy-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nfirst\n\n\n"
+    },
+    {
+      "name": "negative-copyts-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-copyts",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nfirst\n\n2\n00:00:04,000 --> 1193:02:51,295\nlast\n\n"
+    },
+    {
+      "name": "tags-override-srt",
+      "input": "[ti:Old]\n[ar:A]\n[custom:X]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-metadata",
+        "title=New",
+        "-metadata",
+        "artist=",
+        "-metadata",
+        "custom=Y",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "unicode-srt",
+      "input": "[00:01.00]\u4e16\u754c {\\\u00e9}\u6b4c\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\n\u4e16\u754c \\\u6b4c\n\n"
+    },
+    {
+      "name": "literal-space-srt",
+      "input": "[00:01.00]\ufeff space\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,295\n\ufeff space\n\n"
+    },
+    {
+      "name": "seek-past-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "8",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\none\n\n00:04.000 --> 1193:02:51.295\nend\n"
+    },
+    {
+      "name": "copy-seek-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "map-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-map",
+        "0:s:0",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "disabled-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-sn",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "negative-copy-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "negative-copyts-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-copyts",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\nfirst\n\n00:04.000 --> 1193:02:51.295\nlast\n"
+    },
+    {
+      "name": "tags-override-webvtt",
+      "input": "[ti:Old]\n[ar:A]\n[custom:X]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-metadata",
+        "title=New",
+        "-metadata",
+        "artist=",
+        "-metadata",
+        "custom=Y",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "unicode-webvtt",
+      "input": "[00:01.00]\u4e16\u754c {\\\u00e9}\u6b4c\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\n\u4e16\u754c \\\u6b4c\n"
+    },
+    {
+      "name": "literal-space-webvtt",
+      "input": "[00:01.00]\ufeff space\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.295\n\ufeff space\n"
+    },
+    {
+      "name": "seek-past-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "8",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:07.00]one\n[-00:03.00]end\n"
+    },
+    {
+      "name": "copy-seek-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]one\n[00:03.00]end\n"
+    },
+    {
+      "name": "map-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-map",
+        "0:s:0",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:05.00]end\n"
+    },
+    {
+      "name": "disabled-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-sn",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "negative-copy-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-c",
+        "copy",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]first\n[00:03.00]last\n"
+    },
+    {
+      "name": "negative-copyts-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-copyts",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]first\n[00:03.00]last\n"
+    },
+    {
+      "name": "tags-override-lrc",
+      "input": "[ti:Old]\n[ar:A]\n[custom:X]\n[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-metadata",
+        "title=New",
+        "-metadata",
+        "artist=",
+        "-metadata",
+        "custom=Y",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "[ti:New]\n[custom:Y]\n\n[00:01.00]one\n[00:05.00]end\n"
+    },
+    {
+      "name": "unicode-lrc",
+      "input": "[00:01.00]\u4e16\u754c {\\\u00e9}\u6b4c\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]\u4e16\u754c \\\u6b4c\n"
+    },
+    {
+      "name": "literal-space-lrc",
+      "input": "[00:01.00]\ufeff space\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]\ufeff space\n"
+    },
+    {
+      "name": "negative-duration-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nfirst\n\n"
+    },
+    {
+      "name": "negative-sszero-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "0",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:03,000 --> 1193:02:50,295\nlast\n\n"
+    },
+    {
+      "name": "input-seek-output-duration-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nfirst\n\n2\n00:00:04,000 --> 1193:02:51,295\nlast\n\n"
+    },
+    {
+      "name": "negative-output-seek-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "-2",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,000\nfirst\n\n2\n00:00:04,000 --> 1193:02:51,295\nlast\n\n"
+    },
+    {
+      "name": "negative-input-seek-srt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "-2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\nfirst\n\n2\n00:00:05,000 --> 1193:02:52,295\nlast\n\n"
+    },
+    {
+      "name": "negative-duration-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\nfirst\n"
+    },
+    {
+      "name": "negative-sszero-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "0",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:03.000 --> 1193:02:50.295\nlast\n"
+    },
+    {
+      "name": "input-seek-output-duration-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\nfirst\n\n00:04.000 --> 1193:02:51.295\nlast\n"
+    },
+    {
+      "name": "negative-output-seek-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "-2",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 00:04.000\nfirst\n\n00:04.000 --> 1193:02:51.295\nlast\n"
+    },
+    {
+      "name": "negative-input-seek-webvtt",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "-2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\nfirst\n\n00:05.000 --> 1193:02:52.295\nlast\n"
+    },
+    {
+      "name": "negative-duration-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]first\n"
+    },
+    {
+      "name": "negative-sszero-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "0",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:03.00]last\n"
+    },
+    {
+      "name": "input-seek-output-duration-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-t",
+        "2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:03.00]first\n[00:01.00]last\n"
+    },
+    {
+      "name": "negative-output-seek-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-ss",
+        "-2",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-00:01.00]first\n[00:03.00]last\n"
+    },
+    {
+      "name": "negative-input-seek-lrc",
+      "input": "[-00:01.00]first\n[00:03.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "-2",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]first\n[00:05.00]last\n"
+    },
+    {
+      "name": "shortest-srt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-shortest",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:05,000\none\n\n2\n00:00:05,000 --> 1193:02:52,295\nend\n\n"
+    },
+    {
+      "name": "shortest-webvtt",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-shortest",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:05.000\none\n\n00:05.000 --> 1193:02:52.295\nend\n"
+    },
+    {
+      "name": "shortest-lrc",
+      "input": "[00:01.00]one\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-i",
+        "input.lrc",
+        "-bitexact",
+        "-shortest",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:05.00]end\n"
+    }
+  ]
+}

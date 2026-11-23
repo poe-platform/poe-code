@@ -145,5 +145,6 @@ export function probeSampleFormat(type: MediaTrackType, codecName: string): stri
   if (type !== 'audio') return undefined;
   return ({ pcm_u8: 'u8', pcm_s8: 'u8', pcm_mulaw: 's16', pcm_alaw: 's16', pcm_vidc: 's16',
     pcm_s16le: 's16', pcm_s16be: 's16', pcm_s24le: 's32', pcm_s24be: 's32',
-    pcm_s64le: 's64', pcm_s32le: 's32', pcm_s32be: 's32', pcm_f32le: 'flt', pcm_f32be: 'flt', pcm_f64le: 'dbl', pcm_f64be: 'dbl' } as Record<string, string>)[codecName] ?? 'fltp';
+    pcm_s64le: 's64', pcm_s64be: 's64',
+    pcm_u16le: 's16', pcm_u16be: 's16', pcm_u24le: 's32', pcm_u24be: 's32', pcm_u32le: 's32', pcm_u32be: 's32', pcm_s32le: 's32', pcm_s32be: 's32', pcm_f32le: 'flt', pcm_f32be: 'flt', pcm_f64le: 'dbl', pcm_f64be: 'dbl' } as Record<string, string>)[codecName] ?? 'fltp';
 }

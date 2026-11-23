@@ -1,0 +1,812 @@
+{
+  "source": "Current public runSofficeFileCli --convert-to xlsx: ordinary modern/legacy scalars, inferred number formats, Boolean type queries and missing-sheet array references.",
+  "cases": [
+    {
+      "name": "modern",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" xmlns:number=\"urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\" xmlns:fo=\"urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0\"><office:automatic-styles><number:number-style style:name=\"NG\"><number:number number:min-integer-digits=\"1\"/></number:number-style><style:style style:name=\"G\" style:family=\"table-cell\" style:data-style-name=\"NG\"/><style:style style:name=\"B\" style:family=\"table-cell\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles><office:body><office:spreadsheet><table:table table:name=\"Values\"><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-number\"/><table:table-cell office:value=\"42\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-bool\"/><table:table-cell office:boolean-value=\"false\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-string\"/><table:table-cell office:string-value=\"0012\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-date\"/><table:table-cell office:date-value=\"2024-01-02\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-time\"/><table:table-cell office:time-value=\"PT01H02M03S\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"untyped-paragraph\"/><table:table-cell ><text:p>hidden</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"typed-paragraph\"/><table:table-cell office:value-type=\"float\"><text:p>shown</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"typed-empty-paragraph\"/><table:table-cell office:value-type=\"string\"><text:p/></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"typed-no-value\"/><table:table-cell office:value-type=\"float\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"typed-bool-no-value\"/><table:table-cell office:value-type=\"boolean\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"unknown-kind\"/><table:table-cell office:value-type=\"unknown\" office:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"conflicting-kind\"/><table:table-cell office:value-type=\"string\" office:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"first-number\"/><table:table-cell office:value=\"12\" office:string-value=\"text\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"first-string\"/><table:table-cell office:string-value=\"text\" office:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"invalid-number-fallback\"/><table:table-cell office:value=\"invalid\" office:string-value=\"text\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"empty-number\"/><table:table-cell office:value=\"\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"hex-number\"/><table:table-cell office:value=\"0x2a\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"partial-number\"/><table:table-cell office:value=\"12junk\"><text:p>fallback</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"infinite-number\"/><table:table-cell office:value=\"Infinity\" office:boolean-value=\"true\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"invalid-date-fallback\"/><table:table-cell office:date-value=\"2024-02-30\" office:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"invalid-time-fallback\"/><table:table-cell office:time-value=\"invalid\" office:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"blank-time-fallback\"/><table:table-cell office:time-value=\" \" office:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"boolean-case\"/><table:table-cell office:boolean-value=\"FALSE\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"boolean-other\"/><table:table-cell office:boolean-value=\"no\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"empty-string\"/><table:table-cell office:string-value=\"\"><text:p>ignored</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"unknown-wrapper\"/><table:table-cell office:value-type=\"string\"><text:p>a<other:span xmlns:other=\"urn:other\">hidden</other:span>b</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"literal-whitespace\"/><table:table-cell office:value-type=\"string\"><text:p> a\r\nb </text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"styled-number\"/><table:table-cell office:value=\"42\" table:style-name=\"B\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"styled-boolean\"/><table:table-cell office:boolean-value=\"true\" table:style-name=\"B\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"date-time\"/><table:table-cell office:date-value=\"2024-01-02T01:02:03\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"negative-time\"/><table:table-cell office:time-value=\"-PT01H\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"integer-boolean\"/><table:table-cell office:boolean-value=\"true\" table:style-name=\"G\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"integer-boolean-islogical\"/><table:table-cell table:formula=\"of:=ISLOGICAL([.B32])\"></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type=\"string\" office:string-value=\"integer-boolean-type\"/><table:table-cell table:formula=\"of:=TYPE([.B32])\"></table:table-cell></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/></manifest:manifest>"
+      },
+      "exitCode": 0,
+      "stdout": "convert /input.ods -> /input.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "cells": [
+        {
+          "cell": "A1",
+          "type": "text",
+          "value": "untyped-number",
+          "format": "General"
+        },
+        {
+          "cell": "B1",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A2",
+          "type": "text",
+          "value": "untyped-bool",
+          "format": "General"
+        },
+        {
+          "cell": "B2",
+          "type": "b",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A3",
+          "type": "text",
+          "value": "untyped-string",
+          "format": "General"
+        },
+        {
+          "cell": "B3",
+          "type": "text",
+          "value": "0012",
+          "format": "General"
+        },
+        {
+          "cell": "A4",
+          "type": "text",
+          "value": "untyped-date",
+          "format": "General"
+        },
+        {
+          "cell": "B4",
+          "type": "n",
+          "value": "45293",
+          "format": "yyyy/mm/dd"
+        },
+        {
+          "cell": "A5",
+          "type": "text",
+          "value": "untyped-time",
+          "format": "General"
+        },
+        {
+          "cell": "B5",
+          "type": "n",
+          "value": "0.043090277777777776",
+          "format": "hh:mm:ss"
+        },
+        {
+          "cell": "A6",
+          "type": "text",
+          "value": "untyped-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "A7",
+          "type": "text",
+          "value": "typed-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "B7",
+          "type": "text",
+          "value": "shown",
+          "format": "General"
+        },
+        {
+          "cell": "A8",
+          "type": "text",
+          "value": "typed-empty-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "B8",
+          "type": "text",
+          "value": "",
+          "format": "General"
+        },
+        {
+          "cell": "A9",
+          "type": "text",
+          "value": "typed-no-value",
+          "format": "General"
+        },
+        {
+          "cell": "A10",
+          "type": "text",
+          "value": "typed-bool-no-value",
+          "format": "General"
+        },
+        {
+          "cell": "A11",
+          "type": "text",
+          "value": "unknown-kind",
+          "format": "General"
+        },
+        {
+          "cell": "B11",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A12",
+          "type": "text",
+          "value": "conflicting-kind",
+          "format": "General"
+        },
+        {
+          "cell": "B12",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A13",
+          "type": "text",
+          "value": "first-number",
+          "format": "General"
+        },
+        {
+          "cell": "B13",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A14",
+          "type": "text",
+          "value": "first-string",
+          "format": "General"
+        },
+        {
+          "cell": "B14",
+          "type": "text",
+          "value": "text",
+          "format": "General"
+        },
+        {
+          "cell": "A15",
+          "type": "text",
+          "value": "invalid-number-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B15",
+          "type": "text",
+          "value": "text",
+          "format": "General"
+        },
+        {
+          "cell": "A16",
+          "type": "text",
+          "value": "empty-number",
+          "format": "General"
+        },
+        {
+          "cell": "B16",
+          "type": "n",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A17",
+          "type": "text",
+          "value": "hex-number",
+          "format": "General"
+        },
+        {
+          "cell": "B17",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A18",
+          "type": "text",
+          "value": "partial-number",
+          "format": "General"
+        },
+        {
+          "cell": "A19",
+          "type": "text",
+          "value": "infinite-number",
+          "format": "General"
+        },
+        {
+          "cell": "B19",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A20",
+          "type": "text",
+          "value": "invalid-date-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B20",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A21",
+          "type": "text",
+          "value": "invalid-time-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B21",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A22",
+          "type": "text",
+          "value": "blank-time-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B22",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A23",
+          "type": "text",
+          "value": "boolean-case",
+          "format": "General"
+        },
+        {
+          "cell": "B23",
+          "type": "b",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A24",
+          "type": "text",
+          "value": "boolean-other",
+          "format": "General"
+        },
+        {
+          "cell": "B24",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A25",
+          "type": "text",
+          "value": "empty-string",
+          "format": "General"
+        },
+        {
+          "cell": "B25",
+          "type": "text",
+          "value": "",
+          "format": "General"
+        },
+        {
+          "cell": "A26",
+          "type": "text",
+          "value": "unknown-wrapper",
+          "format": "General"
+        },
+        {
+          "cell": "B26",
+          "type": "text",
+          "value": "ab",
+          "format": "General"
+        },
+        {
+          "cell": "A27",
+          "type": "text",
+          "value": "literal-whitespace",
+          "format": "General"
+        },
+        {
+          "cell": "B27",
+          "type": "text",
+          "value": " a\nb ",
+          "format": "General"
+        },
+        {
+          "cell": "A28",
+          "type": "text",
+          "value": "styled-number",
+          "format": "General"
+        },
+        {
+          "cell": "B28",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A29",
+          "type": "text",
+          "value": "styled-boolean",
+          "format": "General"
+        },
+        {
+          "cell": "B29",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A30",
+          "type": "text",
+          "value": "date-time",
+          "format": "General"
+        },
+        {
+          "cell": "B30",
+          "type": "n",
+          "value": "45293.043090277781",
+          "format": "yyyy/mm/dd hh:mm:ss"
+        },
+        {
+          "cell": "A31",
+          "type": "text",
+          "value": "negative-time",
+          "format": "General"
+        },
+        {
+          "cell": "B31",
+          "type": "n",
+          "value": "-0.041666666666666664",
+          "format": "hh:mm:ss"
+        },
+        {
+          "cell": "A32",
+          "type": "text",
+          "value": "integer-boolean",
+          "format": "General"
+        },
+        {
+          "cell": "B32",
+          "type": "b",
+          "value": "1",
+          "format": "0"
+        },
+        {
+          "cell": "A33",
+          "type": "text",
+          "value": "integer-boolean-islogical",
+          "format": "General"
+        },
+        {
+          "cell": "B33",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A34",
+          "type": "text",
+          "value": "integer-boolean-type",
+          "format": "General"
+        },
+        {
+          "cell": "B34",
+          "type": "n",
+          "value": "4",
+          "format": "General"
+        }
+      ]
+    },
+    {
+      "name": "legacy",
+      "parts": {
+        "mimetype": "application/vnd.sun.xml.calc",
+        "content.xml": "<office:document-content xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" xmlns:number=\"urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\" xmlns:fo=\"urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0\"><office:automatic-styles><number:number-style style:name=\"NG\"><number:number number:min-integer-digits=\"1\"/></number:number-style><style:style style:name=\"G\" style:family=\"table-cell\" style:data-style-name=\"NG\"/><style:style style:name=\"B\" style:family=\"table-cell\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles><office:body><table:table table:name=\"Values\"><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-number\"/><table:table-cell table:value=\"42\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-bool\"/><table:table-cell table:boolean-value=\"false\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-string\"/><table:table-cell table:string-value=\"0012\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-date\"/><table:table-cell table:date-value=\"2024-01-02\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-time\"/><table:table-cell table:time-value=\"PT01H02M03S\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"untyped-paragraph\"/><table:table-cell ><text:p>hidden</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"typed-paragraph\"/><table:table-cell table:value-type=\"float\"><text:p>shown</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"typed-empty-paragraph\"/><table:table-cell table:value-type=\"string\"><text:p/></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"typed-no-value\"/><table:table-cell table:value-type=\"float\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"typed-bool-no-value\"/><table:table-cell table:value-type=\"boolean\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"unknown-kind\"/><table:table-cell table:value-type=\"unknown\" table:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"conflicting-kind\"/><table:table-cell table:value-type=\"string\" table:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"first-number\"/><table:table-cell table:value=\"12\" table:string-value=\"text\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"first-string\"/><table:table-cell table:string-value=\"text\" table:value=\"12\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"invalid-number-fallback\"/><table:table-cell table:value=\"invalid\" table:string-value=\"text\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"empty-number\"/><table:table-cell table:value=\"\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"hex-number\"/><table:table-cell table:value=\"0x2a\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"partial-number\"/><table:table-cell table:value=\"12junk\"><text:p>fallback</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"infinite-number\"/><table:table-cell table:value=\"Infinity\" table:boolean-value=\"true\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"invalid-date-fallback\"/><table:table-cell table:date-value=\"2024-02-30\" table:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"invalid-time-fallback\"/><table:table-cell table:time-value=\"invalid\" table:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"blank-time-fallback\"/><table:table-cell table:time-value=\" \" table:value=\"17\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"boolean-case\"/><table:table-cell table:boolean-value=\"FALSE\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"boolean-other\"/><table:table-cell table:boolean-value=\"no\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"empty-string\"/><table:table-cell table:string-value=\"\"><text:p>ignored</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"unknown-wrapper\"/><table:table-cell table:value-type=\"string\"><text:p>a<other:span xmlns:other=\"urn:other\">hidden</other:span>b</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"literal-whitespace\"/><table:table-cell table:value-type=\"string\"><text:p> a\r\nb </text:p></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"styled-number\"/><table:table-cell table:value=\"42\" table:style-name=\"B\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"styled-boolean\"/><table:table-cell table:boolean-value=\"true\" table:style-name=\"B\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"date-time\"/><table:table-cell table:date-value=\"2024-01-02T01:02:03\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"negative-time\"/><table:table-cell table:time-value=\"-PT01H\"></table:table-cell></table:table-row><table:table-row><table:table-cell table:value-type=\"string\" table:string-value=\"integer-boolean\"/><table:table-cell table:boolean-value=\"true\" table:style-name=\"G\"></table:table-cell></table:table-row></table:table></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.sun.xml.calc\"/></manifest:manifest>"
+      },
+      "exitCode": 0,
+      "stdout": "convert /input.ods -> /input.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "cells": [
+        {
+          "cell": "A1",
+          "type": "text",
+          "value": "untyped-number",
+          "format": "General"
+        },
+        {
+          "cell": "B1",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A2",
+          "type": "text",
+          "value": "untyped-bool",
+          "format": "General"
+        },
+        {
+          "cell": "B2",
+          "type": "b",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A3",
+          "type": "text",
+          "value": "untyped-string",
+          "format": "General"
+        },
+        {
+          "cell": "B3",
+          "type": "text",
+          "value": "0012",
+          "format": "General"
+        },
+        {
+          "cell": "A4",
+          "type": "text",
+          "value": "untyped-date",
+          "format": "General"
+        },
+        {
+          "cell": "B4",
+          "type": "n",
+          "value": "45293",
+          "format": "yyyy/mm/dd"
+        },
+        {
+          "cell": "A5",
+          "type": "text",
+          "value": "untyped-time",
+          "format": "General"
+        },
+        {
+          "cell": "B5",
+          "type": "n",
+          "value": "0.043090277777777776",
+          "format": "hh:mm:ss"
+        },
+        {
+          "cell": "A6",
+          "type": "text",
+          "value": "untyped-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "B6",
+          "type": "text",
+          "value": "hidden",
+          "format": "General"
+        },
+        {
+          "cell": "A7",
+          "type": "text",
+          "value": "typed-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "B7",
+          "type": "text",
+          "value": "shown",
+          "format": "General"
+        },
+        {
+          "cell": "A8",
+          "type": "text",
+          "value": "typed-empty-paragraph",
+          "format": "General"
+        },
+        {
+          "cell": "B8",
+          "type": "text",
+          "value": "",
+          "format": "General"
+        },
+        {
+          "cell": "A9",
+          "type": "text",
+          "value": "typed-no-value",
+          "format": "General"
+        },
+        {
+          "cell": "A10",
+          "type": "text",
+          "value": "typed-bool-no-value",
+          "format": "General"
+        },
+        {
+          "cell": "A11",
+          "type": "text",
+          "value": "unknown-kind",
+          "format": "General"
+        },
+        {
+          "cell": "B11",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A12",
+          "type": "text",
+          "value": "conflicting-kind",
+          "format": "General"
+        },
+        {
+          "cell": "B12",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A13",
+          "type": "text",
+          "value": "first-number",
+          "format": "General"
+        },
+        {
+          "cell": "B13",
+          "type": "n",
+          "value": "12",
+          "format": "General"
+        },
+        {
+          "cell": "A14",
+          "type": "text",
+          "value": "first-string",
+          "format": "General"
+        },
+        {
+          "cell": "B14",
+          "type": "text",
+          "value": "text",
+          "format": "General"
+        },
+        {
+          "cell": "A15",
+          "type": "text",
+          "value": "invalid-number-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B15",
+          "type": "text",
+          "value": "text",
+          "format": "General"
+        },
+        {
+          "cell": "A16",
+          "type": "text",
+          "value": "empty-number",
+          "format": "General"
+        },
+        {
+          "cell": "B16",
+          "type": "n",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A17",
+          "type": "text",
+          "value": "hex-number",
+          "format": "General"
+        },
+        {
+          "cell": "B17",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A18",
+          "type": "text",
+          "value": "partial-number",
+          "format": "General"
+        },
+        {
+          "cell": "B18",
+          "type": "text",
+          "value": "fallback",
+          "format": "General"
+        },
+        {
+          "cell": "A19",
+          "type": "text",
+          "value": "infinite-number",
+          "format": "General"
+        },
+        {
+          "cell": "B19",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A20",
+          "type": "text",
+          "value": "invalid-date-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B20",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A21",
+          "type": "text",
+          "value": "invalid-time-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B21",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A22",
+          "type": "text",
+          "value": "blank-time-fallback",
+          "format": "General"
+        },
+        {
+          "cell": "B22",
+          "type": "n",
+          "value": "17",
+          "format": "General"
+        },
+        {
+          "cell": "A23",
+          "type": "text",
+          "value": "boolean-case",
+          "format": "General"
+        },
+        {
+          "cell": "B23",
+          "type": "b",
+          "value": "0",
+          "format": "General"
+        },
+        {
+          "cell": "A24",
+          "type": "text",
+          "value": "boolean-other",
+          "format": "General"
+        },
+        {
+          "cell": "B24",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A25",
+          "type": "text",
+          "value": "empty-string",
+          "format": "General"
+        },
+        {
+          "cell": "B25",
+          "type": "text",
+          "value": "",
+          "format": "General"
+        },
+        {
+          "cell": "A26",
+          "type": "text",
+          "value": "unknown-wrapper",
+          "format": "General"
+        },
+        {
+          "cell": "B26",
+          "type": "text",
+          "value": "ab",
+          "format": "General"
+        },
+        {
+          "cell": "A27",
+          "type": "text",
+          "value": "literal-whitespace",
+          "format": "General"
+        },
+        {
+          "cell": "B27",
+          "type": "text",
+          "value": " a\nb ",
+          "format": "General"
+        },
+        {
+          "cell": "A28",
+          "type": "text",
+          "value": "styled-number",
+          "format": "General"
+        },
+        {
+          "cell": "B28",
+          "type": "n",
+          "value": "42",
+          "format": "General"
+        },
+        {
+          "cell": "A29",
+          "type": "text",
+          "value": "styled-boolean",
+          "format": "General"
+        },
+        {
+          "cell": "B29",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A30",
+          "type": "text",
+          "value": "date-time",
+          "format": "General"
+        },
+        {
+          "cell": "B30",
+          "type": "n",
+          "value": "45293.043090277781",
+          "format": "yyyy/mm/dd hh:mm:ss"
+        },
+        {
+          "cell": "A31",
+          "type": "text",
+          "value": "negative-time",
+          "format": "General"
+        },
+        {
+          "cell": "B31",
+          "type": "n",
+          "value": "-0.041666666666666664",
+          "format": "hh:mm:ss"
+        },
+        {
+          "cell": "A32",
+          "type": "text",
+          "value": "integer-boolean",
+          "format": "General"
+        },
+        {
+          "cell": "B32",
+          "type": "b",
+          "value": "1",
+          "format": "0"
+        }
+      ]
+    },
+    {
+      "name": "missing-reference-array",
+      "parts": {
+        "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+        "content.xml": "<office:document-content xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\" xmlns:number=\"urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0\" xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\" xmlns:fo=\"urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0\"><office:automatic-styles><number:number-style style:name=\"NG\"><number:number number:min-integer-digits=\"1\"/></number:number-style><style:style style:name=\"G\" style:family=\"table-cell\" style:data-style-name=\"NG\"/><style:style style:name=\"B\" style:family=\"table-cell\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles><office:body><office:spreadsheet><table:table table:name=\"Values\"><table:table-row><table:table-cell office:boolean-value=\"true\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=ISLOGICAL([Missing.A1])\" table:number-matrix-columns-spanned=\"1\" table:number-matrix-rows-spanned=\"1\"/></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>",
+        "META-INF/manifest.xml": "<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/></manifest:manifest>"
+      },
+      "exitCode": 0,
+      "stdout": "convert /input.ods -> /input.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "cells": [
+        {
+          "cell": "A1",
+          "type": "b",
+          "value": "1",
+          "format": "General"
+        },
+        {
+          "cell": "A2",
+          "type": "b",
+          "value": "0",
+          "format": "General"
+        }
+      ]
+    }
+  ]
+}

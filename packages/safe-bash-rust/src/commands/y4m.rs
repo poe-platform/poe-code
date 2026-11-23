@@ -359,6 +359,7 @@ impl<'a> Clip<'a> {
         render_frames(
             self.width,
             self.height,
+            f64::from(rate_ratio(self.fps).0),
             self.times(),
             options,
             |i| Ok(self.image(i)),
@@ -426,13 +427,12 @@ fn render(
             let n = n as i128;
             let size =
                 n * d as i128 + (n - 1) * i128::from(stage.padding) + 2 * i128::from(stage.margin);
-            usize::try_from(size)
-                .ok()
-                .ok_or("invalid tile dimensions")
+            usize::try_from(size).ok().ok_or("invalid tile dimensions")
         };
         if canvas.is_none() {
             let (dw, dh) = (dim(stage.cols, w)?, dim(stage.rows, h)?);
-            if dw.max(1).saturating_mul(dh.max(1)) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
+            if dw.max(1).saturating_mul(dh.max(1)) > limit.saturating_sub(cell.pixels.len() * 4) / 4
+            {
                 return Err("image exceeds memory budget".into());
             }
             charge_pixels(work, dw * dh)?;
@@ -464,12 +464,39 @@ fn render(
     canvas.ok_or_else(|| "missing tile frame".into())
 }
 
-pub(super) fn header(w: usize, h: usize, fps: u32) -> Vec<u8> {
-    format!("YUV4MPEG2 W{w} H{h} F{fps}:1 Ip A1:1 C420jpeg\n").into_bytes()
+pub(super) fn rate_ratio(ratio: f64) -> (u32, u32) {
+    let mut value = ratio;
+    let (mut numerator, mut denominator, mut previous_numerator, mut previous_denominator) =
+        (1u64, 0u64, 0u64, 1u64);
+    while value.is_finite() {
+        let whole = value.floor() as u64;
+        let next_numerator = whole
+            .saturating_mul(numerator)
+            .saturating_add(previous_numerator);
+        let next_denominator = whole
+            .saturating_mul(denominator)
+            .saturating_add(previous_denominator);
+        if next_numerator > i32::MAX as u64 || next_denominator > i32::MAX as u64 {
+            break;
+        }
+        (previous_numerator, numerator) = (numerator, next_numerator);
+        (previous_denominator, denominator) = (denominator, next_denominator);
+        if (numerator as f64 / denominator as f64 - ratio).abs() <= ratio * 1e-12 {
+            break;
+        }
+        value = 1. / (value - whole as f64);
+    }
+    (numerator as u32, denominator as u32)
+}
+
+pub(super) fn header(w: usize, h: usize, fps: f64) -> Vec<u8> {
+    let (n, d) = rate_ratio(fps);
+    format!("YUV4MPEG2 W{w} H{h} F{n}:{d} Ip A1:1 C420jpeg XYSCSS=420JPEG\n").into_bytes()
 }
 pub(super) fn render_frames(
     w: usize,
     h: usize,
+    mut timescale: f64,
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
@@ -478,7 +505,7 @@ pub(super) fn render_frames(
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
         if (opts.start == 0. && opts.end.is_none())
-            || pts + duration > opts.start && opts.end.is_none_or(|t| pts < t)
+            || ((pts + duration) * timescale).round() > (opts.start * timescale).round() && opts.end.is_none_or(|t| (pts * timescale).round() < (t * timescale).round())
         {
             if frames.len() >= opts.limit / size_of::<TimedFrame>() {
                 return Err("frame index exceeds memory budget".into());
@@ -491,6 +518,7 @@ pub(super) fn render_frames(
             });
         }
     }
+    let mut end_time = frames.last().map_or(0., |f| f.pts + f.duration);
     let mut ops = Vec::new();
     let mut stages = Vec::new();
     for stage in opts
@@ -571,11 +599,16 @@ pub(super) fn render_frames(
                 }
                 let mut pts = 0.;
                 for f in &mut frames {
-                    f.pts = pts;
                     if key == "setpts" {
+                        f.pts = ((f.pts * timescale).round() * factor).trunc() / timescale;
                         f.duration = (f.duration * factor).max(0.001);
+                    } else {
+                        f.pts = pts;
+                        pts += f.duration;
                     }
-                    pts += f.duration;
+                }
+                if key == "setpts" {
+                    end_time = ((end_time * timescale).round() * factor).trunc() / timescale;
                 }
             }
             "fps" if !frames.is_empty() => {
@@ -585,15 +618,21 @@ pub(super) fn render_frames(
                     .ok()
                     .filter(|v| *v > 0.)
                     .unwrap_or(25.);
-                let total: f64 = frames.iter().map(|f| f.duration).sum();
-                let n = (total * rate).round().max(1.) as usize;
+                let first = (frames[0].pts * rate).round() as i64;
+                let end = (end_time * rate).round() as i64;
+                let n = end.saturating_sub(first) as usize;
                 if n > opts.limit / size_of::<TimedFrame>() {
                     return Err("frame index exceeds memory budget".into());
                 }
-                frames = (0..n)
+                let mut source = 0;
+                frames = (first..end)
                     .map(|i| {
-                        let src =
-                            frames[((i as f64 / n as f64) * frames.len() as f64).floor() as usize];
+                        while source + 1 < frames.len()
+                            && (frames[source + 1].pts * rate).round() as i64 <= i
+                        {
+                            source += 1;
+                        }
+                        let src = frames[source];
                         TimedFrame {
                             pts: i as f64 / rate,
                             duration: 1. / rate,
@@ -601,6 +640,8 @@ pub(super) fn render_frames(
                         }
                     })
                     .collect();
+                timescale = rate;
+                end_time = end as f64 / rate;
             }
             "trim" => {
                 let mut start = 0.;
@@ -613,16 +654,15 @@ pub(super) fn render_frames(
                     match k {
                         "start" => start = super::parse_ffmpeg_timestamp(v),
                         "end" if !v.is_empty() => end = super::parse_ffmpeg_timestamp(v),
-                        "duration" if !v.is_empty() => duration = Some(super::parse_ffmpeg_timestamp(v)),
+                        "duration" if !v.is_empty() => {
+                            duration = Some(super::parse_ffmpeg_timestamp(v))
+                        }
                         _ => {}
                     }
                 }
                 let end = duration.map_or(end, |d| start + d);
-                frames.retain_mut(|f| {
-                    let keep = f.pts + f.duration > start && f.pts < end;
-                    f.pts = (f.pts - start).max(0.);
-                    keep
-                });
+                end_time = end_time.min(end);
+                frames.retain(|f| f.pts >= start && f.pts < end);
             }
             _ => {
                 // A spatial transform gives each occurrence its own pixel buffer.
@@ -639,7 +679,8 @@ pub(super) fn render_frames(
                         | "drawbox"
                         | "drawtext"
                         | "subtitles"
-                ) || key == "format" && arg.contains("gray")
+                        | "format"
+                )
                 {
                     for (i, f) in frames.iter_mut().enumerate() {
                         f.buffer = Buffer::Filtered(i);
@@ -650,7 +691,7 @@ pub(super) fn render_frames(
         }
     }
     if let Some(n) = opts.frames {
-        frames.truncate(n.max(1) as usize);
+        frames.truncate(n as usize);
     }
     if frames.is_empty() {
         return Ok(());
@@ -677,11 +718,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn fps_selects_variable_duration_frames_by_presentation_time() {
+        let spec = super::super::lavfi::Video::parse("color=s=2x2:r=10:d=1").unwrap();
+        let mut selected = Vec::new();
+        render_frames(
+            2,
+            2,
+            1000000.,
+            [(0., 0.2), (0.2, 0.4), (0.6, 0.2)].into_iter(),
+            Options {
+                filters: &["fps=10".into()],
+                frames: None,
+                start: 0.,
+                end: None,
+                no_video: false,
+                limit: 65536,
+            },
+            |i| {
+                let mut image = spec.image(i);
+                image.pixels.fill([i as u8, 0, 0, 255]);
+                Ok(image)
+            },
+            |image, _| {
+                selected.push(image.pixels[0][0]);
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(selected, [0, 0, 1, 1, 1, 1, 2, 2]);
+    }
+
+    #[test]
     fn repeated_frames_cannot_hide_pixel_work_behind_a_small_encoded_output() {
         let spec = super::super::lavfi::Video::parse("color=s=128x128:r=100:d=1").unwrap();
         let result = render_frames(
             128,
             128,
+            100.,
             (0..100).map(|i| (i as f64 / 100., 0.01)),
             Options {
                 filters: &[],

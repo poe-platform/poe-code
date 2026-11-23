@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { cafAst } from "@poe-code/mp4-ast";
+import { cafAlac } from "../../mp4-ast/dist/caf-alac-fixture.js";
+import { cafIma } from "../../mp4-ast/dist/caf-ima-fixture.js";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 // Eight complete mono PCM16 frames, one packet, and no packet table.
@@ -15,19 +17,21 @@ it("reports CAF sample frames independently of demuxed packets in the AST", () =
   });
 });
 
-for (const count of [false, true]) {
-  it(`reports CAF sample frames through synchronous and filesystem ffprobe (count=${count})`, async () => {
+for (const [name, bytes, duration, packets] of [
+  ["PCM", input, 8, 1], ["ALAC", cafAlac, 12288, 3], ["IMA", cafIma, 8256, 129]
+] as const) for (const count of [false, true]) {
+  it(`reports CAF ${name} sample frames through synchronous and filesystem ffprobe (count=${count})`, async () => {
     const expected = {
-      streams: [{ sample_rate: "8000", duration_ts: 8, nb_frames: "8",
-        ...(count ? { nb_read_packets: "1", nb_read_frames: "1" } : {}) }],
-      packets: [{ pts: 0, duration: 8, size: "16" }]
+      streams: [{ sample_rate: "8000", duration_ts: duration, nb_frames: String(duration),
+        ...(count ? { nb_read_packets: String(packets), nb_read_frames: String(packets) } : {}) }],
+      ...(name === "PCM" ? { packets: [{ pts: 0, duration: 8, size: "16" }] } : {})
     };
     const args = ["-v", "error", ...(count ? ["-count_packets", "-count_frames"] : []),
       "-show_entries", "packet=pts,duration,size:stream=sample_rate,duration_ts,nb_frames" +
         (count ? ",nb_read_packets,nb_read_frames" : ""), "-of", "json", "/plain.caf"];
-    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => input)!)).toMatchObject(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)).toMatchObject(expected);
     const fs = new MemoryFileSystem();
-    await fs.writeFile("/plain.caf", input);
+    await fs.writeFile("/plain.caf", bytes);
     let output = "", diagnostic = "";
     const result = await createFfprobeCommand().execute({
       command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,

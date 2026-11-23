@@ -1,0 +1,2247 @@
+{
+  "reference": "Current TypeScript runSofficeCli CSV/ODS to XLSX, independently captured; values checked again after public XLSX reopening.",
+  "input": "\"=FLOOR(-10,-2)\"\n\"=FLOOR(-10,0)\"\n\"=FLOOR(-10,0.1)\"\n\"=FLOOR(-10,2)\"\n\"=FLOOR(-10,3)\"\n\"=FLOOR(-2.5,-2)\"\n\"=FLOOR(-2.5,0)\"\n\"=FLOOR(-2.5,0.1)\"\n\"=FLOOR(-2.5,2)\"\n\"=FLOOR(-2.5,3)\"\n\"=FLOOR(-0,-2)\"\n\"=FLOOR(-0,0)\"\n\"=FLOOR(-0,0.1)\"\n\"=FLOOR(-0,2)\"\n\"=FLOOR(-0,3)\"\n\"=FLOOR(0,-2)\"\n\"=FLOOR(0,0)\"\n\"=FLOOR(0,0.1)\"\n\"=FLOOR(0,2)\"\n\"=FLOOR(0,3)\"\n\"=FLOOR(0.1,-2)\"\n\"=FLOOR(0.1,0)\"\n\"=FLOOR(0.1,0.1)\"\n\"=FLOOR(0.1,2)\"\n\"=FLOOR(0.1,3)\"\n\"=FLOOR(0.9999999999999999,-2)\"\n\"=FLOOR(0.9999999999999999,0)\"\n\"=FLOOR(0.9999999999999999,0.1)\"\n\"=FLOOR(0.9999999999999999,2)\"\n\"=FLOOR(0.9999999999999999,3)\"\n\"=FLOOR(1.0000000000000002,-2)\"\n\"=FLOOR(1.0000000000000002,0)\"\n\"=FLOOR(1.0000000000000002,0.1)\"\n\"=FLOOR(1.0000000000000002,2)\"\n\"=FLOOR(1.0000000000000002,3)\"\n\"=FLOOR(2.5,-2)\"\n\"=FLOOR(2.5,0)\"\n\"=FLOOR(2.5,0.1)\"\n\"=FLOOR(2.5,2)\"\n\"=FLOOR(2.5,3)\"\n\"=FLOOR(7,-2)\"\n\"=FLOOR(7,0)\"\n\"=FLOOR(7,0.1)\"\n\"=FLOOR(7,2)\"\n\"=FLOOR(7,3)\"\n\"=FLOOR(1e-300,-2)\"\n\"=FLOOR(1e-300,0)\"\n\"=FLOOR(1e-300,0.1)\"\n\"=FLOOR(1e-300,2)\"\n\"=FLOOR(1e-300,3)\"\n\"=FLOOR(1e300,-2)\"\n\"=FLOOR(1e300,0)\"\n\"=FLOOR(1e300,0.1)\"\n\"=FLOOR(1e300,2)\"\n\"=FLOOR(1e300,3)\"\n\"=FLOOR()\"\n\"=FLOOR(2)\"\n\"=FLOOR(2,)\"\n\"=FLOOR(2,Z1000)\"\n\"=FLOOR(2,\"\"2\"\")\"\n\"=FLOOR(2,\"\"text\"\")\"\n\"=FLOOR(2,TRUE())\"\n\"=FLOOR(2,FALSE())\"\n\"=FLOOR(2,#N/A)\"\n\"=FLOOR(#DIV/0!,#N/A)\"\n\"=FLOOR(TRUE(),2)\"\n\"=FLOOR(\"\"3\"\",2)\"\n\"=FLOOR(\"\"text\"\",2)\"\n\"=FLOOR(2,3,4)\"\n\"=FLOOR(2,3,4,5)\"\n\"=CEILING(-10,-2)\"\n\"=CEILING(-10,0)\"\n\"=CEILING(-10,0.1)\"\n\"=CEILING(-10,2)\"\n\"=CEILING(-10,3)\"\n\"=CEILING(-2.5,-2)\"\n\"=CEILING(-2.5,0)\"\n\"=CEILING(-2.5,0.1)\"\n\"=CEILING(-2.5,2)\"\n\"=CEILING(-2.5,3)\"\n\"=CEILING(-0,-2)\"\n\"=CEILING(-0,0)\"\n\"=CEILING(-0,0.1)\"\n\"=CEILING(-0,2)\"\n\"=CEILING(-0,3)\"\n\"=CEILING(0,-2)\"\n\"=CEILING(0,0)\"\n\"=CEILING(0,0.1)\"\n\"=CEILING(0,2)\"\n\"=CEILING(0,3)\"\n\"=CEILING(0.1,-2)\"\n\"=CEILING(0.1,0)\"\n\"=CEILING(0.1,0.1)\"\n\"=CEILING(0.1,2)\"\n\"=CEILING(0.1,3)\"\n\"=CEILING(0.9999999999999999,-2)\"\n\"=CEILING(0.9999999999999999,0)\"\n\"=CEILING(0.9999999999999999,0.1)\"\n\"=CEILING(0.9999999999999999,2)\"\n\"=CEILING(0.9999999999999999,3)\"\n\"=CEILING(1.0000000000000002,-2)\"\n\"=CEILING(1.0000000000000002,0)\"\n\"=CEILING(1.0000000000000002,0.1)\"\n\"=CEILING(1.0000000000000002,2)\"\n\"=CEILING(1.0000000000000002,3)\"\n\"=CEILING(2.5,-2)\"\n\"=CEILING(2.5,0)\"\n\"=CEILING(2.5,0.1)\"\n\"=CEILING(2.5,2)\"\n\"=CEILING(2.5,3)\"\n\"=CEILING(7,-2)\"\n\"=CEILING(7,0)\"\n\"=CEILING(7,0.1)\"\n\"=CEILING(7,2)\"\n\"=CEILING(7,3)\"\n\"=CEILING(1e-300,-2)\"\n\"=CEILING(1e-300,0)\"\n\"=CEILING(1e-300,0.1)\"\n\"=CEILING(1e-300,2)\"\n\"=CEILING(1e-300,3)\"\n\"=CEILING(1e300,-2)\"\n\"=CEILING(1e300,0)\"\n\"=CEILING(1e300,0.1)\"\n\"=CEILING(1e300,2)\"\n\"=CEILING(1e300,3)\"\n\"=CEILING()\"\n\"=CEILING(2)\"\n\"=CEILING(2,)\"\n\"=CEILING(2,Z1000)\"\n\"=CEILING(2,\"\"2\"\")\"\n\"=CEILING(2,\"\"text\"\")\"\n\"=CEILING(2,TRUE())\"\n\"=CEILING(2,FALSE())\"\n\"=CEILING(2,#N/A)\"\n\"=CEILING(#DIV/0!,#N/A)\"\n\"=CEILING(TRUE(),2)\"\n\"=CEILING(\"\"3\"\",2)\"\n\"=CEILING(\"\"text\"\",2)\"\n\"=CEILING(2,3,4)\"\n\"=CEILING(2,3,4,5)\"\n\"=FLOOR(-2.5)\"\n\"=FLOOR(-2.5,)\"\n\"=FLOOR(-2.5,2,0)\"\n\"=FLOOR(-2.5,2,1)\"\n\"=FLOOR(-2.5,2,-1)\"\n\"=FLOOR(-2.5,2,TRUE())\"\n\"=FLOOR(-2.5,2,FALSE())\"\n\"=FLOOR(-2.5,2,\"\"0\"\")\"\n\"=FLOOR(-2.5,2,\"\"1\"\")\"\n\"=FLOOR(-2.5,2,#N/A)\"\n\"=FLOOR(#DIV/0!,2,#N/A)\"\n\"=FLOOR(-2.5,,0)\"\n\"=FLOOR(-2.5,,1)\"\n\"=FLOOR(-2.5,2,(0))\"\n\"=FLOOR(-2.5,2,(1))\"\n\"=FLOOR(-2.5,2,1%)\"\n\"=FLOOR(-2.5,2,0%)\"\n\"=FLOOR(-2.5,2,1-1)\"\n\"=FLOOR(-2.5,2,2-1)\"\n\"=FLOOR(-2.5,2,Z1000)\"\n\"=ORG.GNUMERIC.FLOOR(-2.5,2)\"\n\"=CEILING(-2.5)\"\n\"=CEILING(-2.5,)\"\n\"=CEILING(-2.5,2,0)\"\n\"=CEILING(-2.5,2,1)\"\n\"=CEILING(-2.5,2,-1)\"\n\"=CEILING(-2.5,2,TRUE())\"\n\"=CEILING(-2.5,2,FALSE())\"\n\"=CEILING(-2.5,2,\"\"0\"\")\"\n\"=CEILING(-2.5,2,\"\"1\"\")\"\n\"=CEILING(-2.5,2,#N/A)\"\n\"=CEILING(#DIV/0!,2,#N/A)\"\n\"=CEILING(-2.5,,0)\"\n\"=CEILING(-2.5,,1)\"\n\"=CEILING(-2.5,2,(0))\"\n\"=CEILING(-2.5,2,(1))\"\n\"=CEILING(-2.5,2,1%)\"\n\"=CEILING(-2.5,2,0%)\"\n\"=CEILING(-2.5,2,1-1)\"\n\"=CEILING(-2.5,2,2-1)\"\n\"=CEILING(-2.5,2,Z1000)\"\n\"=ORG.GNUMERIC.CEILING(-2.5,2)\"\n",
+  "odsInput": {
+    "mimetype": "application/vnd.oasis.opendocument.spreadsheet",
+    "META-INF/manifest.xml": "<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>",
+    "content.xml": "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:of=\"urn:oasis:names:tc:opendocument:xmlns:of:1.2\"><office:body><office:spreadsheet><table:table table:name=\"Sheet1\"><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-10;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-10;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-10;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-10;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-10;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-0;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-0;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-0;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-0;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-0;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.1;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.1;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.1;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.1;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.1;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.9999999999999999;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.9999999999999999;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.9999999999999999;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.9999999999999999;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(0.9999999999999999;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1.0000000000000002;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1.0000000000000002;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1.0000000000000002;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1.0000000000000002;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1.0000000000000002;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2.5;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2.5;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2.5;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2.5;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2.5;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(7;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(7;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(7;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(7;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(7;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e-300;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e-300;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e-300;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e-300;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e-300;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e300;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e300;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e300;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e300;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(1e300;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR()\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;Z1000)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;&quot;2&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;&quot;text&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;TRUE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;FALSE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(#DIV/0!;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(TRUE();2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(&quot;3&quot;;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(&quot;text&quot;;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;3;4)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(2;3;4;5)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-10;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-10;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-10;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-10;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-10;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-0;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-0;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-0;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-0;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-0;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.1;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.1;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.1;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.1;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.1;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.9999999999999999;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.9999999999999999;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.9999999999999999;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.9999999999999999;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(0.9999999999999999;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1.0000000000000002;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1.0000000000000002;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1.0000000000000002;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1.0000000000000002;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1.0000000000000002;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2.5;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2.5;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2.5;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2.5;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2.5;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(7;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(7;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(7;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(7;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(7;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e-300;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e-300;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e-300;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e-300;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e-300;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e300;-2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e300;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e300;0.1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e300;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(1e300;3)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING()\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;Z1000)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;&quot;2&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;&quot;text&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;TRUE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;FALSE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(#DIV/0!;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(TRUE();2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(&quot;3&quot;;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(&quot;text&quot;;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;3;4)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(2;3;4;5)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;TRUE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;FALSE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;&quot;0&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;&quot;1&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(#DIV/0!;2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;;1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;(0))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;(1))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;1%)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;0%)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;1-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;2-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=FLOOR(-2.5;2;Z1000)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=ORG.GNUMERIC.FLOOR(-2.5;2)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;TRUE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;FALSE())\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;&quot;0&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;&quot;1&quot;)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(#DIV/0!;2;#N/A)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;;0)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;;1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;(0))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;(1))\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;1%)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;0%)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;1-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;2-1)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=CEILING(-2.5;2;Z1000)\"/></table:table-row><table:table-row><table:table-cell table:formula=\"of:=ORG.GNUMERIC.CEILING(-2.5;2)\"/></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>"
+  },
+  "csv": [
+    {
+      "reference": "A1",
+      "formula": "FLOOR(-10,-2)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A2",
+      "formula": "FLOOR(-10,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A3",
+      "formula": "FLOOR(-10,0.1)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A4",
+      "formula": "FLOOR(-10,2)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A5",
+      "formula": "FLOOR(-10,3)",
+      "value": "-12",
+      "type": "n"
+    },
+    {
+      "reference": "A6",
+      "formula": "FLOOR(-2.5,-2)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A7",
+      "formula": "FLOOR(-2.5,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A8",
+      "formula": "FLOOR(-2.5,0.1)",
+      "value": "-2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A9",
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A10",
+      "formula": "FLOOR(-2.5,3)",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A11",
+      "formula": "FLOOR(-0,-2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A12",
+      "formula": "FLOOR(-0,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A13",
+      "formula": "FLOOR(-0,0.1)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A14",
+      "formula": "FLOOR(-0,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A15",
+      "formula": "FLOOR(-0,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A16",
+      "formula": "FLOOR(0,-2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A17",
+      "formula": "FLOOR(0,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A18",
+      "formula": "FLOOR(0,0.1)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A19",
+      "formula": "FLOOR(0,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A20",
+      "formula": "FLOOR(0,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A21",
+      "formula": "FLOOR(0.1,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A22",
+      "formula": "FLOOR(0.1,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A23",
+      "formula": "FLOOR(0.1,0.1)",
+      "value": "0.1",
+      "type": "n"
+    },
+    {
+      "reference": "A24",
+      "formula": "FLOOR(0.1,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A25",
+      "formula": "FLOOR(0.1,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A26",
+      "formula": "FLOOR(0.9999999999999999,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A27",
+      "formula": "FLOOR(0.9999999999999999,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A28",
+      "formula": "FLOOR(0.9999999999999999,0.1)",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A29",
+      "formula": "FLOOR(0.9999999999999999,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A30",
+      "formula": "FLOOR(0.9999999999999999,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A31",
+      "formula": "FLOOR(1.0000000000000002,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A32",
+      "formula": "FLOOR(1.0000000000000002,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A33",
+      "formula": "FLOOR(1.0000000000000002,0.1)",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A34",
+      "formula": "FLOOR(1.0000000000000002,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A35",
+      "formula": "FLOOR(1.0000000000000002,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A36",
+      "formula": "FLOOR(2.5,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A37",
+      "formula": "FLOOR(2.5,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A38",
+      "formula": "FLOOR(2.5,0.1)",
+      "value": "2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A39",
+      "formula": "FLOOR(2.5,2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A40",
+      "formula": "FLOOR(2.5,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A41",
+      "formula": "FLOOR(7,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A42",
+      "formula": "FLOOR(7,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A43",
+      "formula": "FLOOR(7,0.1)",
+      "value": "7",
+      "type": "n"
+    },
+    {
+      "reference": "A44",
+      "formula": "FLOOR(7,2)",
+      "value": "6",
+      "type": "n"
+    },
+    {
+      "reference": "A45",
+      "formula": "FLOOR(7,3)",
+      "value": "6",
+      "type": "n"
+    },
+    {
+      "reference": "A46",
+      "formula": "FLOOR(1e-300,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A47",
+      "formula": "FLOOR(1e-300,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A48",
+      "formula": "FLOOR(1e-300,0.1)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A49",
+      "formula": "FLOOR(1e-300,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A50",
+      "formula": "FLOOR(1e-300,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A51",
+      "formula": "FLOOR(1e300,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A52",
+      "formula": "FLOOR(1e300,0)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A53",
+      "formula": "FLOOR(1e300,0.1)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A54",
+      "formula": "FLOOR(1e300,2)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A55",
+      "formula": "FLOOR(1e300,3)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A56",
+      "formula": "FLOOR()",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A57",
+      "formula": "FLOOR(2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A58",
+      "formula": "FLOOR(2,)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A59",
+      "formula": "FLOOR(2,Z1000)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A60",
+      "formula": "FLOOR(2,\"2\")",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A61",
+      "formula": "FLOOR(2,\"text\")",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A62",
+      "formula": "FLOOR(2,TRUE())",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A63",
+      "formula": "FLOOR(2,FALSE())",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A64",
+      "formula": "FLOOR(2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A65",
+      "formula": "FLOOR(#DIV/0!,#N/A)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A66",
+      "formula": "FLOOR(TRUE(),2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A67",
+      "formula": "FLOOR(\"3\",2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A68",
+      "formula": "FLOOR(\"text\",2)",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A69",
+      "formula": "FLOOR(2,3,4)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A70",
+      "formula": "FLOOR(2,3,4,5)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A71",
+      "formula": "CEILING(-10,-2)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A72",
+      "formula": "CEILING(-10,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A73",
+      "formula": "CEILING(-10,0.1)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A74",
+      "formula": "CEILING(-10,2)",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A75",
+      "formula": "CEILING(-10,3)",
+      "value": "-9",
+      "type": "n"
+    },
+    {
+      "reference": "A76",
+      "formula": "CEILING(-2.5,-2)",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A77",
+      "formula": "CEILING(-2.5,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A78",
+      "formula": "CEILING(-2.5,0.1)",
+      "value": "-2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A79",
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A80",
+      "formula": "CEILING(-2.5,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A81",
+      "formula": "CEILING(-0,-2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A82",
+      "formula": "CEILING(-0,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A83",
+      "formula": "CEILING(-0,0.1)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A84",
+      "formula": "CEILING(-0,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A85",
+      "formula": "CEILING(-0,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A86",
+      "formula": "CEILING(0,-2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A87",
+      "formula": "CEILING(0,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A88",
+      "formula": "CEILING(0,0.1)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A89",
+      "formula": "CEILING(0,2)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A90",
+      "formula": "CEILING(0,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A91",
+      "formula": "CEILING(0.1,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A92",
+      "formula": "CEILING(0.1,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A93",
+      "formula": "CEILING(0.1,0.1)",
+      "value": "0.1",
+      "type": "n"
+    },
+    {
+      "reference": "A94",
+      "formula": "CEILING(0.1,2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A95",
+      "formula": "CEILING(0.1,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A96",
+      "formula": "CEILING(0.9999999999999999,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A97",
+      "formula": "CEILING(0.9999999999999999,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A98",
+      "formula": "CEILING(0.9999999999999999,0.1)",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A99",
+      "formula": "CEILING(0.9999999999999999,2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A100",
+      "formula": "CEILING(0.9999999999999999,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A101",
+      "formula": "CEILING(1.0000000000000002,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A102",
+      "formula": "CEILING(1.0000000000000002,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A103",
+      "formula": "CEILING(1.0000000000000002,0.1)",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A104",
+      "formula": "CEILING(1.0000000000000002,2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A105",
+      "formula": "CEILING(1.0000000000000002,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A106",
+      "formula": "CEILING(2.5,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A107",
+      "formula": "CEILING(2.5,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A108",
+      "formula": "CEILING(2.5,0.1)",
+      "value": "2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A109",
+      "formula": "CEILING(2.5,2)",
+      "value": "4",
+      "type": "n"
+    },
+    {
+      "reference": "A110",
+      "formula": "CEILING(2.5,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A111",
+      "formula": "CEILING(7,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A112",
+      "formula": "CEILING(7,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A113",
+      "formula": "CEILING(7,0.1)",
+      "value": "7",
+      "type": "n"
+    },
+    {
+      "reference": "A114",
+      "formula": "CEILING(7,2)",
+      "value": "8",
+      "type": "n"
+    },
+    {
+      "reference": "A115",
+      "formula": "CEILING(7,3)",
+      "value": "9",
+      "type": "n"
+    },
+    {
+      "reference": "A116",
+      "formula": "CEILING(1e-300,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A117",
+      "formula": "CEILING(1e-300,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A118",
+      "formula": "CEILING(1e-300,0.1)",
+      "value": "0.1",
+      "type": "n"
+    },
+    {
+      "reference": "A119",
+      "formula": "CEILING(1e-300,2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A120",
+      "formula": "CEILING(1e-300,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A121",
+      "formula": "CEILING(1e300,-2)",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A122",
+      "formula": "CEILING(1e300,0)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A123",
+      "formula": "CEILING(1e300,0.1)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A124",
+      "formula": "CEILING(1e300,2)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A125",
+      "formula": "CEILING(1e300,3)",
+      "value": "1e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A126",
+      "formula": "CEILING()",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A127",
+      "formula": "CEILING(2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A128",
+      "formula": "CEILING(2,)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A129",
+      "formula": "CEILING(2,Z1000)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A130",
+      "formula": "CEILING(2,\"2\")",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A131",
+      "formula": "CEILING(2,\"text\")",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A132",
+      "formula": "CEILING(2,TRUE())",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A133",
+      "formula": "CEILING(2,FALSE())",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A134",
+      "formula": "CEILING(2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A135",
+      "formula": "CEILING(#DIV/0!,#N/A)",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A136",
+      "formula": "CEILING(TRUE(),2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A137",
+      "formula": "CEILING(\"3\",2)",
+      "value": "4",
+      "type": "n"
+    },
+    {
+      "reference": "A138",
+      "formula": "CEILING(\"text\",2)",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A139",
+      "formula": "CEILING(2,3,4)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A140",
+      "formula": "CEILING(2,3,4,5)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A141",
+      "formula": "FLOOR(-2.5)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A142",
+      "formula": "FLOOR(-2.5,)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A143",
+      "formula": "FLOOR(-2.5,2,0)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A144",
+      "formula": "FLOOR(-2.5,2,1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A145",
+      "formula": "FLOOR(-2.5,2,-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A146",
+      "formula": "FLOOR(-2.5,2,TRUE())",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A147",
+      "formula": "FLOOR(-2.5,2,FALSE())",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A148",
+      "formula": "FLOOR(-2.5,2,\"0\")",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A149",
+      "formula": "FLOOR(-2.5,2,\"1\")",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A150",
+      "formula": "FLOOR(-2.5,2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A151",
+      "formula": "FLOOR(#DIV/0!,2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A152",
+      "formula": "FLOOR(-2.5,,0)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A153",
+      "formula": "FLOOR(-2.5,,1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A154",
+      "formula": "FLOOR(-2.5,2,(0))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A155",
+      "formula": "FLOOR(-2.5,2,(1))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A156",
+      "formula": "FLOOR(-2.5,2,1%)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A157",
+      "formula": "FLOOR(-2.5,2,0%)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A158",
+      "formula": "FLOOR(-2.5,2,1-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A159",
+      "formula": "FLOOR(-2.5,2,2-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A160",
+      "formula": "FLOOR(-2.5,2,Z1000)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A161",
+      "formula": "ORG.GNUMERIC.FLOOR(-2.5,2)",
+      "value": "#NAME?",
+      "type": "e"
+    },
+    {
+      "reference": "A162",
+      "formula": "CEILING(-2.5)",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A163",
+      "formula": "CEILING(-2.5,)",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A164",
+      "formula": "CEILING(-2.5,2,0)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A165",
+      "formula": "CEILING(-2.5,2,1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A166",
+      "formula": "CEILING(-2.5,2,-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A167",
+      "formula": "CEILING(-2.5,2,TRUE())",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A168",
+      "formula": "CEILING(-2.5,2,FALSE())",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A169",
+      "formula": "CEILING(-2.5,2,\"0\")",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A170",
+      "formula": "CEILING(-2.5,2,\"1\")",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A171",
+      "formula": "CEILING(-2.5,2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A172",
+      "formula": "CEILING(#DIV/0!,2,#N/A)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A173",
+      "formula": "CEILING(-2.5,,0)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A174",
+      "formula": "CEILING(-2.5,,1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A175",
+      "formula": "CEILING(-2.5,2,(0))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A176",
+      "formula": "CEILING(-2.5,2,(1))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A177",
+      "formula": "CEILING(-2.5,2,1%)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A178",
+      "formula": "CEILING(-2.5,2,0%)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A179",
+      "formula": "CEILING(-2.5,2,1-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A180",
+      "formula": "CEILING(-2.5,2,2-1)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A181",
+      "formula": "CEILING(-2.5,2,Z1000)",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A182",
+      "formula": "ORG.GNUMERIC.CEILING(-2.5,2)",
+      "value": "#NAME?",
+      "type": "e"
+    }
+  ],
+  "ods": [
+    {
+      "reference": "A1",
+      "formula": "IF(-10<0,CEILING(-10,-2),FLOOR(-10,-2))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A2",
+      "formula": "IF(-10<0,CEILING(-10,0),FLOOR(-10,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A3",
+      "formula": "IF(-10<0,CEILING(-10,0.1),FLOOR(-10,0.1))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A4",
+      "formula": "IF(-10<0,CEILING(-10,2),FLOOR(-10,2))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A5",
+      "formula": "IF(-10<0,CEILING(-10,3),FLOOR(-10,3))",
+      "value": "-9",
+      "type": "n"
+    },
+    {
+      "reference": "A6",
+      "formula": "IF(-2.5<0,CEILING(-2.5,-2),FLOOR(-2.5,-2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A7",
+      "formula": "IF(-2.5<0,CEILING(-2.5,0),FLOOR(-2.5,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A8",
+      "formula": "IF(-2.5<0,CEILING(-2.5,0.1),FLOOR(-2.5,0.1))",
+      "value": "-2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A9",
+      "formula": "IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A10",
+      "formula": "IF(-2.5<0,CEILING(-2.5,3),FLOOR(-2.5,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A11",
+      "formula": "IF(-0<0,CEILING(-0,-2),FLOOR(-0,-2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A12",
+      "formula": "IF(-0<0,CEILING(-0,0),FLOOR(-0,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A13",
+      "formula": "IF(-0<0,CEILING(-0,0.1),FLOOR(-0,0.1))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A14",
+      "formula": "IF(-0<0,CEILING(-0,2),FLOOR(-0,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A15",
+      "formula": "IF(-0<0,CEILING(-0,3),FLOOR(-0,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A16",
+      "formula": "IF(0<0,CEILING(0,-2),FLOOR(0,-2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A17",
+      "formula": "IF(0<0,CEILING(0,0),FLOOR(0,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A18",
+      "formula": "IF(0<0,CEILING(0,0.1),FLOOR(0,0.1))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A19",
+      "formula": "IF(0<0,CEILING(0,2),FLOOR(0,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A20",
+      "formula": "IF(0<0,CEILING(0,3),FLOOR(0,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A21",
+      "formula": "IF(0.1<0,CEILING(0.1,-2),FLOOR(0.1,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A22",
+      "formula": "IF(0.1<0,CEILING(0.1,0),FLOOR(0.1,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A23",
+      "formula": "IF(0.1<0,CEILING(0.1,0.1),FLOOR(0.1,0.1))",
+      "value": "0.10000000000000001",
+      "type": "n"
+    },
+    {
+      "reference": "A24",
+      "formula": "IF(0.1<0,CEILING(0.1,2),FLOOR(0.1,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A25",
+      "formula": "IF(0.1<0,CEILING(0.1,3),FLOOR(0.1,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A26",
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,-2),FLOOR(0.9999999999999999,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A27",
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,0),FLOOR(0.9999999999999999,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A28",
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,0.1),FLOOR(0.9999999999999999,0.1))",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A29",
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,2),FLOOR(0.9999999999999999,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A30",
+      "formula": "IF(0.9999999999999999<0,CEILING(0.9999999999999999,3),FLOOR(0.9999999999999999,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A31",
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,-2),FLOOR(1.0000000000000002,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A32",
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,0),FLOOR(1.0000000000000002,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A33",
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,0.1),FLOOR(1.0000000000000002,0.1))",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A34",
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,2),FLOOR(1.0000000000000002,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A35",
+      "formula": "IF(1.0000000000000002<0,CEILING(1.0000000000000002,3),FLOOR(1.0000000000000002,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A36",
+      "formula": "IF(2.5<0,CEILING(2.5,-2),FLOOR(2.5,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A37",
+      "formula": "IF(2.5<0,CEILING(2.5,0),FLOOR(2.5,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A38",
+      "formula": "IF(2.5<0,CEILING(2.5,0.1),FLOOR(2.5,0.1))",
+      "value": "2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A39",
+      "formula": "IF(2.5<0,CEILING(2.5,2),FLOOR(2.5,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A40",
+      "formula": "IF(2.5<0,CEILING(2.5,3),FLOOR(2.5,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A41",
+      "formula": "IF(7<0,CEILING(7,-2),FLOOR(7,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A42",
+      "formula": "IF(7<0,CEILING(7,0),FLOOR(7,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A43",
+      "formula": "IF(7<0,CEILING(7,0.1),FLOOR(7,0.1))",
+      "value": "7",
+      "type": "n"
+    },
+    {
+      "reference": "A44",
+      "formula": "IF(7<0,CEILING(7,2),FLOOR(7,2))",
+      "value": "6",
+      "type": "n"
+    },
+    {
+      "reference": "A45",
+      "formula": "IF(7<0,CEILING(7,3),FLOOR(7,3))",
+      "value": "6",
+      "type": "n"
+    },
+    {
+      "reference": "A46",
+      "formula": "IF(1e-300<0,CEILING(1e-300,-2),FLOOR(1e-300,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A47",
+      "formula": "IF(1e-300<0,CEILING(1e-300,0),FLOOR(1e-300,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A48",
+      "formula": "IF(1e-300<0,CEILING(1e-300,0.1),FLOOR(1e-300,0.1))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A49",
+      "formula": "IF(1e-300<0,CEILING(1e-300,2),FLOOR(1e-300,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A50",
+      "formula": "IF(1e-300<0,CEILING(1e-300,3),FLOOR(1e-300,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A51",
+      "formula": "IF(1e+300<0,CEILING(1e+300,-2),FLOOR(1e+300,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A52",
+      "formula": "IF(1e+300<0,CEILING(1e+300,0),FLOOR(1e+300,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A53",
+      "formula": "IF(1e+300<0,CEILING(1e+300,0.1),FLOOR(1e+300,0.1))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A54",
+      "formula": "IF(1e+300<0,CEILING(1e+300,2),FLOOR(1e+300,2))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A55",
+      "formula": "IF(1e+300<0,CEILING(1e+300,3),FLOOR(1e+300,3))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A56",
+      "formula": "ODF.FLOOR()",
+      "value": "#NAME?",
+      "type": "e"
+    },
+    {
+      "reference": "A57",
+      "formula": "IF(2<0,CEILING(2,SIGN(2)),FLOOR(2,SIGN(2)))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A58",
+      "formula": "IF(2<0,CEILING(2,),FLOOR(2,))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A59",
+      "formula": "IF(2<0,CEILING(2,Z1000),FLOOR(2,Z1000))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A60",
+      "formula": "IF(2<0,CEILING(2,\"2\"),FLOOR(2,\"2\"))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A61",
+      "formula": "IF(2<0,CEILING(2,\"text\"),FLOOR(2,\"text\"))",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A62",
+      "formula": "IF(2<0,CEILING(2,TRUE),FLOOR(2,TRUE))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A63",
+      "formula": "IF(2<0,CEILING(2,FALSE),FLOOR(2,FALSE))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A64",
+      "formula": "IF(2<0,CEILING(2,#N/A),FLOOR(2,#N/A))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A65",
+      "formula": "IF(#DIV/0!<0,CEILING(#DIV/0!,#N/A),FLOOR(#DIV/0!,#N/A))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A66",
+      "formula": "IF(TRUE<0,CEILING(TRUE,2),FLOOR(TRUE,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A67",
+      "formula": "IF(\"3\"<0,CEILING(\"3\",2),FLOOR(\"3\",2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A68",
+      "formula": "IF(\"text\"<0,CEILING(\"text\",2),FLOOR(\"text\",2))",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A69",
+      "formula": "FLOOR(2,3)",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A70",
+      "formula": "ODF.FLOOR(2,3,4,5)",
+      "value": "#NAME?",
+      "type": "e"
+    },
+    {
+      "reference": "A71",
+      "formula": "IF(-10<0,FLOOR(-10,-2),CEILING(-10,-2))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A72",
+      "formula": "IF(-10<0,FLOOR(-10,0),CEILING(-10,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A73",
+      "formula": "IF(-10<0,FLOOR(-10,0.1),CEILING(-10,0.1))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A74",
+      "formula": "IF(-10<0,FLOOR(-10,2),CEILING(-10,2))",
+      "value": "-10",
+      "type": "n"
+    },
+    {
+      "reference": "A75",
+      "formula": "IF(-10<0,FLOOR(-10,3),CEILING(-10,3))",
+      "value": "-12",
+      "type": "n"
+    },
+    {
+      "reference": "A76",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,-2),CEILING(-2.5,-2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A77",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,0),CEILING(-2.5,0))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A78",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,0.1),CEILING(-2.5,0.1))",
+      "value": "-2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A79",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A80",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,3),CEILING(-2.5,3))",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A81",
+      "formula": "IF(-0<0,FLOOR(-0,-2),CEILING(-0,-2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A82",
+      "formula": "IF(-0<0,FLOOR(-0,0),CEILING(-0,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A83",
+      "formula": "IF(-0<0,FLOOR(-0,0.1),CEILING(-0,0.1))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A84",
+      "formula": "IF(-0<0,FLOOR(-0,2),CEILING(-0,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A85",
+      "formula": "IF(-0<0,FLOOR(-0,3),CEILING(-0,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A86",
+      "formula": "IF(0<0,FLOOR(0,-2),CEILING(0,-2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A87",
+      "formula": "IF(0<0,FLOOR(0,0),CEILING(0,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A88",
+      "formula": "IF(0<0,FLOOR(0,0.1),CEILING(0,0.1))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A89",
+      "formula": "IF(0<0,FLOOR(0,2),CEILING(0,2))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A90",
+      "formula": "IF(0<0,FLOOR(0,3),CEILING(0,3))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A91",
+      "formula": "IF(0.1<0,FLOOR(0.1,-2),CEILING(0.1,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A92",
+      "formula": "IF(0.1<0,FLOOR(0.1,0),CEILING(0.1,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A93",
+      "formula": "IF(0.1<0,FLOOR(0.1,0.1),CEILING(0.1,0.1))",
+      "value": "0.10000000000000001",
+      "type": "n"
+    },
+    {
+      "reference": "A94",
+      "formula": "IF(0.1<0,FLOOR(0.1,2),CEILING(0.1,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A95",
+      "formula": "IF(0.1<0,FLOOR(0.1,3),CEILING(0.1,3))",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A96",
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,-2),CEILING(0.9999999999999999,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A97",
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,0),CEILING(0.9999999999999999,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A98",
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,0.1),CEILING(0.9999999999999999,0.1))",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A99",
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,2),CEILING(0.9999999999999999,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A100",
+      "formula": "IF(0.9999999999999999<0,FLOOR(0.9999999999999999,3),CEILING(0.9999999999999999,3))",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A101",
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,-2),CEILING(1.0000000000000002,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A102",
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,0),CEILING(1.0000000000000002,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A103",
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,0.1),CEILING(1.0000000000000002,0.1))",
+      "value": "1",
+      "type": "n"
+    },
+    {
+      "reference": "A104",
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,2),CEILING(1.0000000000000002,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A105",
+      "formula": "IF(1.0000000000000002<0,FLOOR(1.0000000000000002,3),CEILING(1.0000000000000002,3))",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A106",
+      "formula": "IF(2.5<0,FLOOR(2.5,-2),CEILING(2.5,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A107",
+      "formula": "IF(2.5<0,FLOOR(2.5,0),CEILING(2.5,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A108",
+      "formula": "IF(2.5<0,FLOOR(2.5,0.1),CEILING(2.5,0.1))",
+      "value": "2.5",
+      "type": "n"
+    },
+    {
+      "reference": "A109",
+      "formula": "IF(2.5<0,FLOOR(2.5,2),CEILING(2.5,2))",
+      "value": "4",
+      "type": "n"
+    },
+    {
+      "reference": "A110",
+      "formula": "IF(2.5<0,FLOOR(2.5,3),CEILING(2.5,3))",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A111",
+      "formula": "IF(7<0,FLOOR(7,-2),CEILING(7,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A112",
+      "formula": "IF(7<0,FLOOR(7,0),CEILING(7,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A113",
+      "formula": "IF(7<0,FLOOR(7,0.1),CEILING(7,0.1))",
+      "value": "7",
+      "type": "n"
+    },
+    {
+      "reference": "A114",
+      "formula": "IF(7<0,FLOOR(7,2),CEILING(7,2))",
+      "value": "8",
+      "type": "n"
+    },
+    {
+      "reference": "A115",
+      "formula": "IF(7<0,FLOOR(7,3),CEILING(7,3))",
+      "value": "9",
+      "type": "n"
+    },
+    {
+      "reference": "A116",
+      "formula": "IF(1e-300<0,FLOOR(1e-300,-2),CEILING(1e-300,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A117",
+      "formula": "IF(1e-300<0,FLOOR(1e-300,0),CEILING(1e-300,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A118",
+      "formula": "IF(1e-300<0,FLOOR(1e-300,0.1),CEILING(1e-300,0.1))",
+      "value": "0.10000000000000001",
+      "type": "n"
+    },
+    {
+      "reference": "A119",
+      "formula": "IF(1e-300<0,FLOOR(1e-300,2),CEILING(1e-300,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A120",
+      "formula": "IF(1e-300<0,FLOOR(1e-300,3),CEILING(1e-300,3))",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A121",
+      "formula": "IF(1e+300<0,FLOOR(1e+300,-2),CEILING(1e+300,-2))",
+      "value": "#NUM!",
+      "type": "e"
+    },
+    {
+      "reference": "A122",
+      "formula": "IF(1e+300<0,FLOOR(1e+300,0),CEILING(1e+300,0))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A123",
+      "formula": "IF(1e+300<0,FLOOR(1e+300,0.1),CEILING(1e+300,0.1))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A124",
+      "formula": "IF(1e+300<0,FLOOR(1e+300,2),CEILING(1e+300,2))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A125",
+      "formula": "IF(1e+300<0,FLOOR(1e+300,3),CEILING(1e+300,3))",
+      "value": "1.0000000000000001e+300",
+      "type": "n"
+    },
+    {
+      "reference": "A126",
+      "formula": "ODF.CEILING()",
+      "value": "#NAME?",
+      "type": "e"
+    },
+    {
+      "reference": "A127",
+      "formula": "_xlfngnumeric.CEIL(2)",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A128",
+      "formula": "IF(2<0,FLOOR(2,),CEILING(2,))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A129",
+      "formula": "IF(2<0,FLOOR(2,Z1000),CEILING(2,Z1000))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A130",
+      "formula": "IF(2<0,FLOOR(2,\"2\"),CEILING(2,\"2\"))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A131",
+      "formula": "IF(2<0,FLOOR(2,\"text\"),CEILING(2,\"text\"))",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A132",
+      "formula": "IF(2<0,FLOOR(2,TRUE),CEILING(2,TRUE))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A133",
+      "formula": "IF(2<0,FLOOR(2,FALSE),CEILING(2,FALSE))",
+      "value": "0",
+      "type": "n"
+    },
+    {
+      "reference": "A134",
+      "formula": "IF(2<0,FLOOR(2,#N/A),CEILING(2,#N/A))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A135",
+      "formula": "IF(#DIV/0!<0,FLOOR(#DIV/0!,#N/A),CEILING(#DIV/0!,#N/A))",
+      "value": "#DIV/0!",
+      "type": "e"
+    },
+    {
+      "reference": "A136",
+      "formula": "IF(TRUE<0,FLOOR(TRUE,2),CEILING(TRUE,2))",
+      "value": "2",
+      "type": "n"
+    },
+    {
+      "reference": "A137",
+      "formula": "IF(\"3\"<0,FLOOR(\"3\",2),CEILING(\"3\",2))",
+      "value": "4",
+      "type": "n"
+    },
+    {
+      "reference": "A138",
+      "formula": "IF(\"text\"<0,FLOOR(\"text\",2),CEILING(\"text\",2))",
+      "value": "#VALUE!",
+      "type": "e"
+    },
+    {
+      "reference": "A139",
+      "formula": "CEILING(2,3)",
+      "value": "3",
+      "type": "n"
+    },
+    {
+      "reference": "A140",
+      "formula": "ODF.CEILING(2,3,4,5)",
+      "value": "#NAME?",
+      "type": "e"
+    },
+    {
+      "reference": "A141",
+      "formula": "IF(-2.5<0,CEILING(-2.5,SIGN(-2.5)),FLOOR(-2.5,SIGN(-2.5)))",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A142",
+      "formula": "IF(-2.5<0,CEILING(-2.5,),FLOOR(-2.5,))",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A143",
+      "formula": "IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A144",
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A145",
+      "formula": "IF(0=-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A146",
+      "formula": "IF(0=TRUE,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A147",
+      "formula": "IF(0=FALSE,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A148",
+      "formula": "IF(0=\"0\",IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A149",
+      "formula": "IF(0=\"1\",IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A150",
+      "formula": "IF(0=#N/A,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A151",
+      "formula": "IF(0=#N/A,IF(#DIV/0!<0,CEILING(#DIV/0!,2),FLOOR(#DIV/0!,2)),FLOOR(#DIV/0!,2))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A152",
+      "formula": "IF(-2.5<0,CEILING(-2.5,),FLOOR(-2.5,))",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A153",
+      "formula": "FLOOR(-2.5,)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A154",
+      "formula": "IF(0=(0),IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A155",
+      "formula": "IF(0=(1),IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A156",
+      "formula": "IF(0=1%,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A157",
+      "formula": "IF(0=0%,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A158",
+      "formula": "IF(0=1-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A159",
+      "formula": "IF(0=2-1,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A160",
+      "formula": "IF(0=Z1000,IF(-2.5<0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A161",
+      "formula": "FLOOR(-2.5,2)",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A162",
+      "formula": "_xlfngnumeric.CEIL(-2.5)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A163",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,),CEILING(-2.5,))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A164",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A165",
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A166",
+      "formula": "IF(0=-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A167",
+      "formula": "IF(0=TRUE,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A168",
+      "formula": "IF(0=FALSE,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A169",
+      "formula": "IF(0=\"0\",IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A170",
+      "formula": "IF(0=\"1\",IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A171",
+      "formula": "IF(0=#N/A,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A172",
+      "formula": "IF(0=#N/A,IF(#DIV/0!<0,FLOOR(#DIV/0!,2),CEILING(#DIV/0!,2)),CEILING(#DIV/0!,2))",
+      "value": "#N/A",
+      "type": "e"
+    },
+    {
+      "reference": "A173",
+      "formula": "IF(-2.5<0,FLOOR(-2.5,),CEILING(-2.5,))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A174",
+      "formula": "CEILING(-2.5,)",
+      "value": "-3",
+      "type": "n"
+    },
+    {
+      "reference": "A175",
+      "formula": "IF(0=(0),IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A176",
+      "formula": "IF(0=(1),IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A177",
+      "formula": "IF(0=1%,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A178",
+      "formula": "IF(0=0%,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A179",
+      "formula": "IF(0=1-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A180",
+      "formula": "IF(0=2-1,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-2",
+      "type": "n"
+    },
+    {
+      "reference": "A181",
+      "formula": "IF(0=Z1000,IF(-2.5<0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))",
+      "value": "-4",
+      "type": "n"
+    },
+    {
+      "reference": "A182",
+      "formula": "CEILING(-2.5,2)",
+      "value": "-2",
+      "type": "n"
+    }
+  ],
+  "publicExports": [
+    {
+      "source": "/rounding.csv",
+      "parts": {
+        "[Content_Types].xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/></Types>",
+        "_rels/.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>",
+        "xl/workbook.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheets><sheet name=\"Sheet1\" sheetId=\"1\" r:id=\"rId1\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/></sheets></workbook>",
+        "xl/_rels/workbook.xml.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>",
+        "xl/styles.xml": "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd\"/></numFmts><fonts count=\"1\"><font/></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"2\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>",
+        "xl/worksheets/sheet1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\" t=\"n\"><f>FLOOR(-10,-2)</f><v>-10</v></c></row><row r=\"2\"><c r=\"A2\" t=\"e\"><f>FLOOR(-10,0)</f><v>#DIV/0!</v></c></row><row r=\"3\"><c r=\"A3\" t=\"n\"><f>FLOOR(-10,0.1)</f><v>-10</v></c></row><row r=\"4\"><c r=\"A4\" t=\"n\"><f>FLOOR(-10,2)</f><v>-10</v></c></row><row r=\"5\"><c r=\"A5\" t=\"n\"><f>FLOOR(-10,3)</f><v>-12</v></c></row><row r=\"6\"><c r=\"A6\" t=\"n\"><f>FLOOR(-2.5,-2)</f><v>-2</v></c></row><row r=\"7\"><c r=\"A7\" t=\"e\"><f>FLOOR(-2.5,0)</f><v>#DIV/0!</v></c></row><row r=\"8\"><c r=\"A8\" t=\"n\"><f>FLOOR(-2.5,0.1)</f><v>-2.5</v></c></row><row r=\"9\"><c r=\"A9\" t=\"n\"><f>FLOOR(-2.5,2)</f><v>-4</v></c></row><row r=\"10\"><c r=\"A10\" t=\"n\"><f>FLOOR(-2.5,3)</f><v>-3</v></c></row><row r=\"11\"><c r=\"A11\" t=\"n\"><f>FLOOR(-0,-2)</f><v>0</v></c></row><row r=\"12\"><c r=\"A12\" t=\"n\"><f>FLOOR(-0,0)</f><v>0</v></c></row><row r=\"13\"><c r=\"A13\" t=\"n\"><f>FLOOR(-0,0.1)</f><v>0</v></c></row><row r=\"14\"><c r=\"A14\" t=\"n\"><f>FLOOR(-0,2)</f><v>0</v></c></row><row r=\"15\"><c r=\"A15\" t=\"n\"><f>FLOOR(-0,3)</f><v>0</v></c></row><row r=\"16\"><c r=\"A16\" t=\"n\"><f>FLOOR(0,-2)</f><v>0</v></c></row><row r=\"17\"><c r=\"A17\" t=\"n\"><f>FLOOR(0,0)</f><v>0</v></c></row><row r=\"18\"><c r=\"A18\" t=\"n\"><f>FLOOR(0,0.1)</f><v>0</v></c></row><row r=\"19\"><c r=\"A19\" t=\"n\"><f>FLOOR(0,2)</f><v>0</v></c></row><row r=\"20\"><c r=\"A20\" t=\"n\"><f>FLOOR(0,3)</f><v>0</v></c></row><row r=\"21\"><c r=\"A21\" t=\"e\"><f>FLOOR(0.1,-2)</f><v>#NUM!</v></c></row><row r=\"22\"><c r=\"A22\" t=\"e\"><f>FLOOR(0.1,0)</f><v>#DIV/0!</v></c></row><row r=\"23\"><c r=\"A23\" t=\"n\"><f>FLOOR(0.1,0.1)</f><v>0.1</v></c></row><row r=\"24\"><c r=\"A24\" t=\"n\"><f>FLOOR(0.1,2)</f><v>0</v></c></row><row r=\"25\"><c r=\"A25\" t=\"n\"><f>FLOOR(0.1,3)</f><v>0</v></c></row><row r=\"26\"><c r=\"A26\" t=\"e\"><f>FLOOR(0.9999999999999999,-2)</f><v>#NUM!</v></c></row><row r=\"27\"><c r=\"A27\" t=\"e\"><f>FLOOR(0.9999999999999999,0)</f><v>#DIV/0!</v></c></row><row r=\"28\"><c r=\"A28\" t=\"n\"><f>FLOOR(0.9999999999999999,0.1)</f><v>1</v></c></row><row r=\"29\"><c r=\"A29\" t=\"n\"><f>FLOOR(0.9999999999999999,2)</f><v>0</v></c></row><row r=\"30\"><c r=\"A30\" t=\"n\"><f>FLOOR(0.9999999999999999,3)</f><v>0</v></c></row><row r=\"31\"><c r=\"A31\" t=\"e\"><f>FLOOR(1.0000000000000002,-2)</f><v>#NUM!</v></c></row><row r=\"32\"><c r=\"A32\" t=\"e\"><f>FLOOR(1.0000000000000002,0)</f><v>#DIV/0!</v></c></row><row r=\"33\"><c r=\"A33\" t=\"n\"><f>FLOOR(1.0000000000000002,0.1)</f><v>1</v></c></row><row r=\"34\"><c r=\"A34\" t=\"n\"><f>FLOOR(1.0000000000000002,2)</f><v>0</v></c></row><row r=\"35\"><c r=\"A35\" t=\"n\"><f>FLOOR(1.0000000000000002,3)</f><v>0</v></c></row><row r=\"36\"><c r=\"A36\" t=\"e\"><f>FLOOR(2.5,-2)</f><v>#NUM!</v></c></row><row r=\"37\"><c r=\"A37\" t=\"e\"><f>FLOOR(2.5,0)</f><v>#DIV/0!</v></c></row><row r=\"38\"><c r=\"A38\" t=\"n\"><f>FLOOR(2.5,0.1)</f><v>2.5</v></c></row><row r=\"39\"><c r=\"A39\" t=\"n\"><f>FLOOR(2.5,2)</f><v>2</v></c></row><row r=\"40\"><c r=\"A40\" t=\"n\"><f>FLOOR(2.5,3)</f><v>0</v></c></row><row r=\"41\"><c r=\"A41\" t=\"e\"><f>FLOOR(7,-2)</f><v>#NUM!</v></c></row><row r=\"42\"><c r=\"A42\" t=\"e\"><f>FLOOR(7,0)</f><v>#DIV/0!</v></c></row><row r=\"43\"><c r=\"A43\" t=\"n\"><f>FLOOR(7,0.1)</f><v>7</v></c></row><row r=\"44\"><c r=\"A44\" t=\"n\"><f>FLOOR(7,2)</f><v>6</v></c></row><row r=\"45\"><c r=\"A45\" t=\"n\"><f>FLOOR(7,3)</f><v>6</v></c></row><row r=\"46\"><c r=\"A46\" t=\"e\"><f>FLOOR(1e-300,-2)</f><v>#NUM!</v></c></row><row r=\"47\"><c r=\"A47\" t=\"e\"><f>FLOOR(1e-300,0)</f><v>#DIV/0!</v></c></row><row r=\"48\"><c r=\"A48\" t=\"n\"><f>FLOOR(1e-300,0.1)</f><v>0</v></c></row><row r=\"49\"><c r=\"A49\" t=\"n\"><f>FLOOR(1e-300,2)</f><v>0</v></c></row><row r=\"50\"><c r=\"A50\" t=\"n\"><f>FLOOR(1e-300,3)</f><v>0</v></c></row><row r=\"51\"><c r=\"A51\" t=\"e\"><f>FLOOR(1e300,-2)</f><v>#NUM!</v></c></row><row r=\"52\"><c r=\"A52\" t=\"e\"><f>FLOOR(1e300,0)</f><v>#DIV/0!</v></c></row><row r=\"53\"><c r=\"A53\" t=\"n\"><f>FLOOR(1e300,0.1)</f><v>1e+300</v></c></row><row r=\"54\"><c r=\"A54\" t=\"n\"><f>FLOOR(1e300,2)</f><v>1e+300</v></c></row><row r=\"55\"><c r=\"A55\" t=\"n\"><f>FLOOR(1e300,3)</f><v>1e+300</v></c></row><row r=\"56\"><c r=\"A56\" t=\"e\"><f>FLOOR()</f><v>#N/A</v></c></row><row r=\"57\"><c r=\"A57\" t=\"n\"><f>FLOOR(2)</f><v>2</v></c></row><row r=\"58\"><c r=\"A58\" t=\"n\"><f>FLOOR(2,)</f><v>2</v></c></row><row r=\"59\"><c r=\"A59\" t=\"n\"><f>FLOOR(2,Z1000)</f><v>2</v></c></row><row r=\"60\"><c r=\"A60\" t=\"n\"><f>FLOOR(2,\"2\")</f><v>2</v></c></row><row r=\"61\"><c r=\"A61\" t=\"e\"><f>FLOOR(2,\"text\")</f><v>#VALUE!</v></c></row><row r=\"62\"><c r=\"A62\" t=\"n\"><f>FLOOR(2,TRUE())</f><v>2</v></c></row><row r=\"63\"><c r=\"A63\" t=\"e\"><f>FLOOR(2,FALSE())</f><v>#DIV/0!</v></c></row><row r=\"64\"><c r=\"A64\" t=\"e\"><f>FLOOR(2,#N/A)</f><v>#N/A</v></c></row><row r=\"65\"><c r=\"A65\" t=\"e\"><f>FLOOR(#DIV/0!,#N/A)</f><v>#DIV/0!</v></c></row><row r=\"66\"><c r=\"A66\" t=\"n\"><f>FLOOR(TRUE(),2)</f><v>0</v></c></row><row r=\"67\"><c r=\"A67\" t=\"n\"><f>FLOOR(\"3\",2)</f><v>2</v></c></row><row r=\"68\"><c r=\"A68\" t=\"e\"><f>FLOOR(\"text\",2)</f><v>#VALUE!</v></c></row><row r=\"69\"><c r=\"A69\" t=\"e\"><f>FLOOR(2,3,4)</f><v>#N/A</v></c></row><row r=\"70\"><c r=\"A70\" t=\"e\"><f>FLOOR(2,3,4,5)</f><v>#N/A</v></c></row><row r=\"71\"><c r=\"A71\" t=\"n\"><f>CEILING(-10,-2)</f><v>-10</v></c></row><row r=\"72\"><c r=\"A72\" t=\"n\"><f>CEILING(-10,0)</f><v>0</v></c></row><row r=\"73\"><c r=\"A73\" t=\"n\"><f>CEILING(-10,0.1)</f><v>-10</v></c></row><row r=\"74\"><c r=\"A74\" t=\"n\"><f>CEILING(-10,2)</f><v>-10</v></c></row><row r=\"75\"><c r=\"A75\" t=\"n\"><f>CEILING(-10,3)</f><v>-9</v></c></row><row r=\"76\"><c r=\"A76\" t=\"n\"><f>CEILING(-2.5,-2)</f><v>-4</v></c></row><row r=\"77\"><c r=\"A77\" t=\"n\"><f>CEILING(-2.5,0)</f><v>0</v></c></row><row r=\"78\"><c r=\"A78\" t=\"n\"><f>CEILING(-2.5,0.1)</f><v>-2.5</v></c></row><row r=\"79\"><c r=\"A79\" t=\"n\"><f>CEILING(-2.5,2)</f><v>-2</v></c></row><row r=\"80\"><c r=\"A80\" t=\"n\"><f>CEILING(-2.5,3)</f><v>0</v></c></row><row r=\"81\"><c r=\"A81\" t=\"n\"><f>CEILING(-0,-2)</f><v>0</v></c></row><row r=\"82\"><c r=\"A82\" t=\"n\"><f>CEILING(-0,0)</f><v>0</v></c></row><row r=\"83\"><c r=\"A83\" t=\"n\"><f>CEILING(-0,0.1)</f><v>0</v></c></row><row r=\"84\"><c r=\"A84\" t=\"n\"><f>CEILING(-0,2)</f><v>0</v></c></row><row r=\"85\"><c r=\"A85\" t=\"n\"><f>CEILING(-0,3)</f><v>0</v></c></row><row r=\"86\"><c r=\"A86\" t=\"n\"><f>CEILING(0,-2)</f><v>0</v></c></row><row r=\"87\"><c r=\"A87\" t=\"n\"><f>CEILING(0,0)</f><v>0</v></c></row><row r=\"88\"><c r=\"A88\" t=\"n\"><f>CEILING(0,0.1)</f><v>0</v></c></row><row r=\"89\"><c r=\"A89\" t=\"n\"><f>CEILING(0,2)</f><v>0</v></c></row><row r=\"90\"><c r=\"A90\" t=\"n\"><f>CEILING(0,3)</f><v>0</v></c></row><row r=\"91\"><c r=\"A91\" t=\"e\"><f>CEILING(0.1,-2)</f><v>#NUM!</v></c></row><row r=\"92\"><c r=\"A92\" t=\"n\"><f>CEILING(0.1,0)</f><v>0</v></c></row><row r=\"93\"><c r=\"A93\" t=\"n\"><f>CEILING(0.1,0.1)</f><v>0.1</v></c></row><row r=\"94\"><c r=\"A94\" t=\"n\"><f>CEILING(0.1,2)</f><v>2</v></c></row><row r=\"95\"><c r=\"A95\" t=\"n\"><f>CEILING(0.1,3)</f><v>3</v></c></row><row r=\"96\"><c r=\"A96\" t=\"e\"><f>CEILING(0.9999999999999999,-2)</f><v>#NUM!</v></c></row><row r=\"97\"><c r=\"A97\" t=\"n\"><f>CEILING(0.9999999999999999,0)</f><v>0</v></c></row><row r=\"98\"><c r=\"A98\" t=\"n\"><f>CEILING(0.9999999999999999,0.1)</f><v>1</v></c></row><row r=\"99\"><c r=\"A99\" t=\"n\"><f>CEILING(0.9999999999999999,2)</f><v>2</v></c></row><row r=\"100\"><c r=\"A100\" t=\"n\"><f>CEILING(0.9999999999999999,3)</f><v>3</v></c></row><row r=\"101\"><c r=\"A101\" t=\"e\"><f>CEILING(1.0000000000000002,-2)</f><v>#NUM!</v></c></row><row r=\"102\"><c r=\"A102\" t=\"n\"><f>CEILING(1.0000000000000002,0)</f><v>0</v></c></row><row r=\"103\"><c r=\"A103\" t=\"n\"><f>CEILING(1.0000000000000002,0.1)</f><v>1</v></c></row><row r=\"104\"><c r=\"A104\" t=\"n\"><f>CEILING(1.0000000000000002,2)</f><v>2</v></c></row><row r=\"105\"><c r=\"A105\" t=\"n\"><f>CEILING(1.0000000000000002,3)</f><v>3</v></c></row><row r=\"106\"><c r=\"A106\" t=\"e\"><f>CEILING(2.5,-2)</f><v>#NUM!</v></c></row><row r=\"107\"><c r=\"A107\" t=\"n\"><f>CEILING(2.5,0)</f><v>0</v></c></row><row r=\"108\"><c r=\"A108\" t=\"n\"><f>CEILING(2.5,0.1)</f><v>2.5</v></c></row><row r=\"109\"><c r=\"A109\" t=\"n\"><f>CEILING(2.5,2)</f><v>4</v></c></row><row r=\"110\"><c r=\"A110\" t=\"n\"><f>CEILING(2.5,3)</f><v>3</v></c></row><row r=\"111\"><c r=\"A111\" t=\"e\"><f>CEILING(7,-2)</f><v>#NUM!</v></c></row><row r=\"112\"><c r=\"A112\" t=\"n\"><f>CEILING(7,0)</f><v>0</v></c></row><row r=\"113\"><c r=\"A113\" t=\"n\"><f>CEILING(7,0.1)</f><v>7</v></c></row><row r=\"114\"><c r=\"A114\" t=\"n\"><f>CEILING(7,2)</f><v>8</v></c></row><row r=\"115\"><c r=\"A115\" t=\"n\"><f>CEILING(7,3)</f><v>9</v></c></row><row r=\"116\"><c r=\"A116\" t=\"e\"><f>CEILING(1e-300,-2)</f><v>#NUM!</v></c></row><row r=\"117\"><c r=\"A117\" t=\"n\"><f>CEILING(1e-300,0)</f><v>0</v></c></row><row r=\"118\"><c r=\"A118\" t=\"n\"><f>CEILING(1e-300,0.1)</f><v>0.1</v></c></row><row r=\"119\"><c r=\"A119\" t=\"n\"><f>CEILING(1e-300,2)</f><v>2</v></c></row><row r=\"120\"><c r=\"A120\" t=\"n\"><f>CEILING(1e-300,3)</f><v>3</v></c></row><row r=\"121\"><c r=\"A121\" t=\"e\"><f>CEILING(1e300,-2)</f><v>#NUM!</v></c></row><row r=\"122\"><c r=\"A122\" t=\"n\"><f>CEILING(1e300,0)</f><v>0</v></c></row><row r=\"123\"><c r=\"A123\" t=\"n\"><f>CEILING(1e300,0.1)</f><v>1e+300</v></c></row><row r=\"124\"><c r=\"A124\" t=\"n\"><f>CEILING(1e300,2)</f><v>1e+300</v></c></row><row r=\"125\"><c r=\"A125\" t=\"n\"><f>CEILING(1e300,3)</f><v>1e+300</v></c></row><row r=\"126\"><c r=\"A126\" t=\"e\"><f>CEILING()</f><v>#N/A</v></c></row><row r=\"127\"><c r=\"A127\" t=\"n\"><f>CEILING(2)</f><v>2</v></c></row><row r=\"128\"><c r=\"A128\" t=\"n\"><f>CEILING(2,)</f><v>2</v></c></row><row r=\"129\"><c r=\"A129\" t=\"n\"><f>CEILING(2,Z1000)</f><v>2</v></c></row><row r=\"130\"><c r=\"A130\" t=\"n\"><f>CEILING(2,\"2\")</f><v>2</v></c></row><row r=\"131\"><c r=\"A131\" t=\"e\"><f>CEILING(2,\"text\")</f><v>#VALUE!</v></c></row><row r=\"132\"><c r=\"A132\" t=\"n\"><f>CEILING(2,TRUE())</f><v>2</v></c></row><row r=\"133\"><c r=\"A133\" t=\"n\"><f>CEILING(2,FALSE())</f><v>0</v></c></row><row r=\"134\"><c r=\"A134\" t=\"e\"><f>CEILING(2,#N/A)</f><v>#N/A</v></c></row><row r=\"135\"><c r=\"A135\" t=\"e\"><f>CEILING(#DIV/0!,#N/A)</f><v>#DIV/0!</v></c></row><row r=\"136\"><c r=\"A136\" t=\"n\"><f>CEILING(TRUE(),2)</f><v>2</v></c></row><row r=\"137\"><c r=\"A137\" t=\"n\"><f>CEILING(\"3\",2)</f><v>4</v></c></row><row r=\"138\"><c r=\"A138\" t=\"e\"><f>CEILING(\"text\",2)</f><v>#VALUE!</v></c></row><row r=\"139\"><c r=\"A139\" t=\"e\"><f>CEILING(2,3,4)</f><v>#N/A</v></c></row><row r=\"140\"><c r=\"A140\" t=\"e\"><f>CEILING(2,3,4,5)</f><v>#N/A</v></c></row><row r=\"141\"><c r=\"A141\" t=\"n\"><f>FLOOR(-2.5)</f><v>-2</v></c></row><row r=\"142\"><c r=\"A142\" t=\"n\"><f>FLOOR(-2.5,)</f><v>-2</v></c></row><row r=\"143\"><c r=\"A143\" t=\"e\"><f>FLOOR(-2.5,2,0)</f><v>#N/A</v></c></row><row r=\"144\"><c r=\"A144\" t=\"e\"><f>FLOOR(-2.5,2,1)</f><v>#N/A</v></c></row><row r=\"145\"><c r=\"A145\" t=\"e\"><f>FLOOR(-2.5,2,-1)</f><v>#N/A</v></c></row><row r=\"146\"><c r=\"A146\" t=\"e\"><f>FLOOR(-2.5,2,TRUE())</f><v>#N/A</v></c></row><row r=\"147\"><c r=\"A147\" t=\"e\"><f>FLOOR(-2.5,2,FALSE())</f><v>#N/A</v></c></row><row r=\"148\"><c r=\"A148\" t=\"e\"><f>FLOOR(-2.5,2,\"0\")</f><v>#N/A</v></c></row><row r=\"149\"><c r=\"A149\" t=\"e\"><f>FLOOR(-2.5,2,\"1\")</f><v>#N/A</v></c></row><row r=\"150\"><c r=\"A150\" t=\"e\"><f>FLOOR(-2.5,2,#N/A)</f><v>#N/A</v></c></row><row r=\"151\"><c r=\"A151\" t=\"e\"><f>FLOOR(#DIV/0!,2,#N/A)</f><v>#N/A</v></c></row><row r=\"152\"><c r=\"A152\" t=\"e\"><f>FLOOR(-2.5,,0)</f><v>#N/A</v></c></row><row r=\"153\"><c r=\"A153\" t=\"e\"><f>FLOOR(-2.5,,1)</f><v>#N/A</v></c></row><row r=\"154\"><c r=\"A154\" t=\"e\"><f>FLOOR(-2.5,2,(0))</f><v>#N/A</v></c></row><row r=\"155\"><c r=\"A155\" t=\"e\"><f>FLOOR(-2.5,2,(1))</f><v>#N/A</v></c></row><row r=\"156\"><c r=\"A156\" t=\"e\"><f>FLOOR(-2.5,2,1%)</f><v>#N/A</v></c></row><row r=\"157\"><c r=\"A157\" t=\"e\"><f>FLOOR(-2.5,2,0%)</f><v>#N/A</v></c></row><row r=\"158\"><c r=\"A158\" t=\"e\"><f>FLOOR(-2.5,2,1-1)</f><v>#N/A</v></c></row><row r=\"159\"><c r=\"A159\" t=\"e\"><f>FLOOR(-2.5,2,2-1)</f><v>#N/A</v></c></row><row r=\"160\"><c r=\"A160\" t=\"e\"><f>FLOOR(-2.5,2,Z1000)</f><v>#N/A</v></c></row><row r=\"161\"><c r=\"A161\" t=\"e\"><f>ORG.GNUMERIC.FLOOR(-2.5,2)</f><v>#NAME?</v></c></row><row r=\"162\"><c r=\"A162\" t=\"n\"><f>CEILING(-2.5)</f><v>-3</v></c></row><row r=\"163\"><c r=\"A163\" t=\"n\"><f>CEILING(-2.5,)</f><v>-3</v></c></row><row r=\"164\"><c r=\"A164\" t=\"e\"><f>CEILING(-2.5,2,0)</f><v>#N/A</v></c></row><row r=\"165\"><c r=\"A165\" t=\"e\"><f>CEILING(-2.5,2,1)</f><v>#N/A</v></c></row><row r=\"166\"><c r=\"A166\" t=\"e\"><f>CEILING(-2.5,2,-1)</f><v>#N/A</v></c></row><row r=\"167\"><c r=\"A167\" t=\"e\"><f>CEILING(-2.5,2,TRUE())</f><v>#N/A</v></c></row><row r=\"168\"><c r=\"A168\" t=\"e\"><f>CEILING(-2.5,2,FALSE())</f><v>#N/A</v></c></row><row r=\"169\"><c r=\"A169\" t=\"e\"><f>CEILING(-2.5,2,\"0\")</f><v>#N/A</v></c></row><row r=\"170\"><c r=\"A170\" t=\"e\"><f>CEILING(-2.5,2,\"1\")</f><v>#N/A</v></c></row><row r=\"171\"><c r=\"A171\" t=\"e\"><f>CEILING(-2.5,2,#N/A)</f><v>#N/A</v></c></row><row r=\"172\"><c r=\"A172\" t=\"e\"><f>CEILING(#DIV/0!,2,#N/A)</f><v>#N/A</v></c></row><row r=\"173\"><c r=\"A173\" t=\"e\"><f>CEILING(-2.5,,0)</f><v>#N/A</v></c></row><row r=\"174\"><c r=\"A174\" t=\"e\"><f>CEILING(-2.5,,1)</f><v>#N/A</v></c></row><row r=\"175\"><c r=\"A175\" t=\"e\"><f>CEILING(-2.5,2,(0))</f><v>#N/A</v></c></row><row r=\"176\"><c r=\"A176\" t=\"e\"><f>CEILING(-2.5,2,(1))</f><v>#N/A</v></c></row><row r=\"177\"><c r=\"A177\" t=\"e\"><f>CEILING(-2.5,2,1%)</f><v>#N/A</v></c></row><row r=\"178\"><c r=\"A178\" t=\"e\"><f>CEILING(-2.5,2,0%)</f><v>#N/A</v></c></row><row r=\"179\"><c r=\"A179\" t=\"e\"><f>CEILING(-2.5,2,1-1)</f><v>#N/A</v></c></row><row r=\"180\"><c r=\"A180\" t=\"e\"><f>CEILING(-2.5,2,2-1)</f><v>#N/A</v></c></row><row r=\"181\"><c r=\"A181\" t=\"e\"><f>CEILING(-2.5,2,Z1000)</f><v>#N/A</v></c></row><row r=\"182\"><c r=\"A182\" t=\"e\"><f>ORG.GNUMERIC.CEILING(-2.5,2)</f><v>#NAME?</v></c></row></sheetData></worksheet>"
+      }
+    },
+    {
+      "source": "/reopened.xlsx",
+      "parts": {
+        "[Content_Types].xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/></Types>",
+        "_rels/.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>",
+        "xl/workbook.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheets><sheet name=\"Sheet1\" sheetId=\"1\" r:id=\"rId1\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/></sheets></workbook>",
+        "xl/_rels/workbook.xml.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>",
+        "xl/styles.xml": "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd\"/></numFmts><fonts count=\"1\"><font/></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"2\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>",
+        "xl/worksheets/sheet1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"3\"><c r=\"A3\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"4\"><c r=\"A4\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"5\"><c r=\"A5\" t=\"inlineStr\"><is><t>-12</t></is></c></row><row r=\"6\"><c r=\"A6\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"7\"><c r=\"A7\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"8\"><c r=\"A8\" t=\"inlineStr\"><is><t>-2.5</t></is></c></row><row r=\"9\"><c r=\"A9\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"10\"><c r=\"A10\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"11\"><c r=\"A11\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"12\"><c r=\"A12\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"13\"><c r=\"A13\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"14\"><c r=\"A14\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"15\"><c r=\"A15\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"16\"><c r=\"A16\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"17\"><c r=\"A17\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"18\"><c r=\"A18\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"19\"><c r=\"A19\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"20\"><c r=\"A20\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"21\"><c r=\"A21\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"22\"><c r=\"A22\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"23\"><c r=\"A23\" t=\"inlineStr\"><is><t>0.1</t></is></c></row><row r=\"24\"><c r=\"A24\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"25\"><c r=\"A25\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"26\"><c r=\"A26\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"27\"><c r=\"A27\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"28\"><c r=\"A28\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"29\"><c r=\"A29\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"30\"><c r=\"A30\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"31\"><c r=\"A31\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"32\"><c r=\"A32\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"33\"><c r=\"A33\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"34\"><c r=\"A34\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"35\"><c r=\"A35\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"36\"><c r=\"A36\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"37\"><c r=\"A37\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"38\"><c r=\"A38\" t=\"inlineStr\"><is><t>2.5</t></is></c></row><row r=\"39\"><c r=\"A39\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"40\"><c r=\"A40\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"41\"><c r=\"A41\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"42\"><c r=\"A42\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"43\"><c r=\"A43\" t=\"inlineStr\"><is><t>7</t></is></c></row><row r=\"44\"><c r=\"A44\" t=\"inlineStr\"><is><t>6</t></is></c></row><row r=\"45\"><c r=\"A45\" t=\"inlineStr\"><is><t>6</t></is></c></row><row r=\"46\"><c r=\"A46\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"47\"><c r=\"A47\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"48\"><c r=\"A48\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"49\"><c r=\"A49\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"50\"><c r=\"A50\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"51\"><c r=\"A51\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"52\"><c r=\"A52\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"53\"><c r=\"A53\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"54\"><c r=\"A54\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"55\"><c r=\"A55\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"56\"><c r=\"A56\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"57\"><c r=\"A57\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"58\"><c r=\"A58\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"59\"><c r=\"A59\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"60\"><c r=\"A60\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"61\"><c r=\"A61\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"62\"><c r=\"A62\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"63\"><c r=\"A63\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"64\"><c r=\"A64\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"65\"><c r=\"A65\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"66\"><c r=\"A66\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"67\"><c r=\"A67\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"68\"><c r=\"A68\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"69\"><c r=\"A69\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"70\"><c r=\"A70\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"71\"><c r=\"A71\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"72\"><c r=\"A72\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"73\"><c r=\"A73\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"74\"><c r=\"A74\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"75\"><c r=\"A75\" t=\"inlineStr\"><is><t>-9</t></is></c></row><row r=\"76\"><c r=\"A76\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"77\"><c r=\"A77\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"78\"><c r=\"A78\" t=\"inlineStr\"><is><t>-2.5</t></is></c></row><row r=\"79\"><c r=\"A79\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"80\"><c r=\"A80\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"81\"><c r=\"A81\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"82\"><c r=\"A82\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"83\"><c r=\"A83\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"84\"><c r=\"A84\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"85\"><c r=\"A85\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"86\"><c r=\"A86\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"87\"><c r=\"A87\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"88\"><c r=\"A88\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"89\"><c r=\"A89\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"90\"><c r=\"A90\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"91\"><c r=\"A91\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"92\"><c r=\"A92\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"93\"><c r=\"A93\" t=\"inlineStr\"><is><t>0.1</t></is></c></row><row r=\"94\"><c r=\"A94\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"95\"><c r=\"A95\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"96\"><c r=\"A96\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"97\"><c r=\"A97\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"98\"><c r=\"A98\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"99\"><c r=\"A99\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"100\"><c r=\"A100\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"101\"><c r=\"A101\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"102\"><c r=\"A102\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"103\"><c r=\"A103\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"104\"><c r=\"A104\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"105\"><c r=\"A105\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"106\"><c r=\"A106\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"107\"><c r=\"A107\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"108\"><c r=\"A108\" t=\"inlineStr\"><is><t>2.5</t></is></c></row><row r=\"109\"><c r=\"A109\" t=\"inlineStr\"><is><t>4</t></is></c></row><row r=\"110\"><c r=\"A110\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"111\"><c r=\"A111\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"112\"><c r=\"A112\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"113\"><c r=\"A113\" t=\"inlineStr\"><is><t>7</t></is></c></row><row r=\"114\"><c r=\"A114\" t=\"inlineStr\"><is><t>8</t></is></c></row><row r=\"115\"><c r=\"A115\" t=\"inlineStr\"><is><t>9</t></is></c></row><row r=\"116\"><c r=\"A116\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"117\"><c r=\"A117\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"118\"><c r=\"A118\" t=\"inlineStr\"><is><t>0.1</t></is></c></row><row r=\"119\"><c r=\"A119\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"120\"><c r=\"A120\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"121\"><c r=\"A121\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"122\"><c r=\"A122\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"123\"><c r=\"A123\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"124\"><c r=\"A124\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"125\"><c r=\"A125\" t=\"inlineStr\"><is><t>1e+300</t></is></c></row><row r=\"126\"><c r=\"A126\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"127\"><c r=\"A127\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"128\"><c r=\"A128\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"129\"><c r=\"A129\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"130\"><c r=\"A130\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"131\"><c r=\"A131\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"132\"><c r=\"A132\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"133\"><c r=\"A133\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"134\"><c r=\"A134\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"135\"><c r=\"A135\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"136\"><c r=\"A136\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"137\"><c r=\"A137\" t=\"inlineStr\"><is><t>4</t></is></c></row><row r=\"138\"><c r=\"A138\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"139\"><c r=\"A139\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"140\"><c r=\"A140\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"141\"><c r=\"A141\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"142\"><c r=\"A142\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"143\"><c r=\"A143\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"144\"><c r=\"A144\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"145\"><c r=\"A145\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"146\"><c r=\"A146\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"147\"><c r=\"A147\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"148\"><c r=\"A148\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"149\"><c r=\"A149\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"150\"><c r=\"A150\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"151\"><c r=\"A151\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"152\"><c r=\"A152\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"153\"><c r=\"A153\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"154\"><c r=\"A154\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"155\"><c r=\"A155\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"156\"><c r=\"A156\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"157\"><c r=\"A157\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"158\"><c r=\"A158\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"159\"><c r=\"A159\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"160\"><c r=\"A160\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"161\"><c r=\"A161\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row><row r=\"162\"><c r=\"A162\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"163\"><c r=\"A163\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"164\"><c r=\"A164\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"165\"><c r=\"A165\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"166\"><c r=\"A166\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"167\"><c r=\"A167\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"168\"><c r=\"A168\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"169\"><c r=\"A169\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"170\"><c r=\"A170\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"171\"><c r=\"A171\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"172\"><c r=\"A172\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"173\"><c r=\"A173\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"174\"><c r=\"A174\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"175\"><c r=\"A175\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"176\"><c r=\"A176\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"177\"><c r=\"A177\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"178\"><c r=\"A178\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"179\"><c r=\"A179\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"180\"><c r=\"A180\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"181\"><c r=\"A181\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"182\"><c r=\"A182\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row></sheetData></worksheet>"
+      }
+    },
+    {
+      "source": "/rounding.ods",
+      "parts": {
+        "xl/worksheets/sheet1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:gnmx=\"http://www.gnumeric.org/ext/spreadsheetml\"><sheetPr><pageSetUpPr fitToPage=\"0\"/></sheetPr><dimension ref=\"A1:A182\"/><sheetViews><sheetView workbookViewId=\"0\" tabSelected=\"1\"><selection activeCell=\"A1\" sqref=\"A1\"/></sheetView></sheetViews><sheetFormatPr defaultColWidth=\"9.142307692307693\" defaultRowHeight=\"12.75\"/><cols><col min=\"1\" max=\"256\" style=\"0\" width=\"9.142307692307693\"/></cols><sheetData><row r=\"1\" spans=\"1:1\"><c r=\"A1\"><f>IF(-10&lt;0,CEILING(-10,-2),FLOOR(-10,-2))</f><v>-10</v></c></row><row r=\"2\" spans=\"1:1\"><c r=\"A2\"><f>IF(-10&lt;0,CEILING(-10,0),FLOOR(-10,0))</f><v>0</v></c></row><row r=\"3\" spans=\"1:1\"><c r=\"A3\"><f>IF(-10&lt;0,CEILING(-10,0.1),FLOOR(-10,0.1))</f><v>-10</v></c></row><row r=\"4\" spans=\"1:1\"><c r=\"A4\"><f>IF(-10&lt;0,CEILING(-10,2),FLOOR(-10,2))</f><v>-10</v></c></row><row r=\"5\" spans=\"1:1\"><c r=\"A5\"><f>IF(-10&lt;0,CEILING(-10,3),FLOOR(-10,3))</f><v>-9</v></c></row><row r=\"6\" spans=\"1:1\"><c r=\"A6\"><f>IF(-2.5&lt;0,CEILING(-2.5,-2),FLOOR(-2.5,-2))</f><v>-4</v></c></row><row r=\"7\" spans=\"1:1\"><c r=\"A7\"><f>IF(-2.5&lt;0,CEILING(-2.5,0),FLOOR(-2.5,0))</f><v>0</v></c></row><row r=\"8\" spans=\"1:1\"><c r=\"A8\"><f>IF(-2.5&lt;0,CEILING(-2.5,0.1),FLOOR(-2.5,0.1))</f><v>-2.5</v></c></row><row r=\"9\" spans=\"1:1\"><c r=\"A9\"><f>IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"10\" spans=\"1:1\"><c r=\"A10\"><f>IF(-2.5&lt;0,CEILING(-2.5,3),FLOOR(-2.5,3))</f><v>0</v></c></row><row r=\"11\" spans=\"1:1\"><c r=\"A11\"><f>IF(-0&lt;0,CEILING(-0,-2),FLOOR(-0,-2))</f><v>0</v></c></row><row r=\"12\" spans=\"1:1\"><c r=\"A12\"><f>IF(-0&lt;0,CEILING(-0,0),FLOOR(-0,0))</f><v>0</v></c></row><row r=\"13\" spans=\"1:1\"><c r=\"A13\"><f>IF(-0&lt;0,CEILING(-0,0.1),FLOOR(-0,0.1))</f><v>0</v></c></row><row r=\"14\" spans=\"1:1\"><c r=\"A14\"><f>IF(-0&lt;0,CEILING(-0,2),FLOOR(-0,2))</f><v>0</v></c></row><row r=\"15\" spans=\"1:1\"><c r=\"A15\"><f>IF(-0&lt;0,CEILING(-0,3),FLOOR(-0,3))</f><v>0</v></c></row><row r=\"16\" spans=\"1:1\"><c r=\"A16\"><f>IF(0&lt;0,CEILING(0,-2),FLOOR(0,-2))</f><v>0</v></c></row><row r=\"17\" spans=\"1:1\"><c r=\"A17\"><f>IF(0&lt;0,CEILING(0,0),FLOOR(0,0))</f><v>0</v></c></row><row r=\"18\" spans=\"1:1\"><c r=\"A18\"><f>IF(0&lt;0,CEILING(0,0.1),FLOOR(0,0.1))</f><v>0</v></c></row><row r=\"19\" spans=\"1:1\"><c r=\"A19\"><f>IF(0&lt;0,CEILING(0,2),FLOOR(0,2))</f><v>0</v></c></row><row r=\"20\" spans=\"1:1\"><c r=\"A20\"><f>IF(0&lt;0,CEILING(0,3),FLOOR(0,3))</f><v>0</v></c></row><row r=\"21\" spans=\"1:1\"><c r=\"A21\" t=\"e\"><f>IF(0.1&lt;0,CEILING(0.1,-2),FLOOR(0.1,-2))</f><v>#NUM!</v></c></row><row r=\"22\" spans=\"1:1\"><c r=\"A22\" t=\"e\"><f>IF(0.1&lt;0,CEILING(0.1,0),FLOOR(0.1,0))</f><v>#DIV/0!</v></c></row><row r=\"23\" spans=\"1:1\"><c r=\"A23\"><f>IF(0.1&lt;0,CEILING(0.1,0.1),FLOOR(0.1,0.1))</f><v>0.10000000000000001</v></c></row><row r=\"24\" spans=\"1:1\"><c r=\"A24\"><f>IF(0.1&lt;0,CEILING(0.1,2),FLOOR(0.1,2))</f><v>0</v></c></row><row r=\"25\" spans=\"1:1\"><c r=\"A25\"><f>IF(0.1&lt;0,CEILING(0.1,3),FLOOR(0.1,3))</f><v>0</v></c></row><row r=\"26\" spans=\"1:1\"><c r=\"A26\" t=\"e\"><f>IF(0.9999999999999999&lt;0,CEILING(0.9999999999999999,-2),FLOOR(0.9999999999999999,-2))</f><v>#NUM!</v></c></row><row r=\"27\" spans=\"1:1\"><c r=\"A27\" t=\"e\"><f>IF(0.9999999999999999&lt;0,CEILING(0.9999999999999999,0),FLOOR(0.9999999999999999,0))</f><v>#DIV/0!</v></c></row><row r=\"28\" spans=\"1:1\"><c r=\"A28\"><f>IF(0.9999999999999999&lt;0,CEILING(0.9999999999999999,0.1),FLOOR(0.9999999999999999,0.1))</f><v>1</v></c></row><row r=\"29\" spans=\"1:1\"><c r=\"A29\"><f>IF(0.9999999999999999&lt;0,CEILING(0.9999999999999999,2),FLOOR(0.9999999999999999,2))</f><v>0</v></c></row><row r=\"30\" spans=\"1:1\"><c r=\"A30\"><f>IF(0.9999999999999999&lt;0,CEILING(0.9999999999999999,3),FLOOR(0.9999999999999999,3))</f><v>0</v></c></row><row r=\"31\" spans=\"1:1\"><c r=\"A31\" t=\"e\"><f>IF(1.0000000000000002&lt;0,CEILING(1.0000000000000002,-2),FLOOR(1.0000000000000002,-2))</f><v>#NUM!</v></c></row><row r=\"32\" spans=\"1:1\"><c r=\"A32\" t=\"e\"><f>IF(1.0000000000000002&lt;0,CEILING(1.0000000000000002,0),FLOOR(1.0000000000000002,0))</f><v>#DIV/0!</v></c></row><row r=\"33\" spans=\"1:1\"><c r=\"A33\"><f>IF(1.0000000000000002&lt;0,CEILING(1.0000000000000002,0.1),FLOOR(1.0000000000000002,0.1))</f><v>1</v></c></row><row r=\"34\" spans=\"1:1\"><c r=\"A34\"><f>IF(1.0000000000000002&lt;0,CEILING(1.0000000000000002,2),FLOOR(1.0000000000000002,2))</f><v>0</v></c></row><row r=\"35\" spans=\"1:1\"><c r=\"A35\"><f>IF(1.0000000000000002&lt;0,CEILING(1.0000000000000002,3),FLOOR(1.0000000000000002,3))</f><v>0</v></c></row><row r=\"36\" spans=\"1:1\"><c r=\"A36\" t=\"e\"><f>IF(2.5&lt;0,CEILING(2.5,-2),FLOOR(2.5,-2))</f><v>#NUM!</v></c></row><row r=\"37\" spans=\"1:1\"><c r=\"A37\" t=\"e\"><f>IF(2.5&lt;0,CEILING(2.5,0),FLOOR(2.5,0))</f><v>#DIV/0!</v></c></row><row r=\"38\" spans=\"1:1\"><c r=\"A38\"><f>IF(2.5&lt;0,CEILING(2.5,0.1),FLOOR(2.5,0.1))</f><v>2.5</v></c></row><row r=\"39\" spans=\"1:1\"><c r=\"A39\"><f>IF(2.5&lt;0,CEILING(2.5,2),FLOOR(2.5,2))</f><v>2</v></c></row><row r=\"40\" spans=\"1:1\"><c r=\"A40\"><f>IF(2.5&lt;0,CEILING(2.5,3),FLOOR(2.5,3))</f><v>0</v></c></row><row r=\"41\" spans=\"1:1\"><c r=\"A41\" t=\"e\"><f>IF(7&lt;0,CEILING(7,-2),FLOOR(7,-2))</f><v>#NUM!</v></c></row><row r=\"42\" spans=\"1:1\"><c r=\"A42\" t=\"e\"><f>IF(7&lt;0,CEILING(7,0),FLOOR(7,0))</f><v>#DIV/0!</v></c></row><row r=\"43\" spans=\"1:1\"><c r=\"A43\"><f>IF(7&lt;0,CEILING(7,0.1),FLOOR(7,0.1))</f><v>7</v></c></row><row r=\"44\" spans=\"1:1\"><c r=\"A44\"><f>IF(7&lt;0,CEILING(7,2),FLOOR(7,2))</f><v>6</v></c></row><row r=\"45\" spans=\"1:1\"><c r=\"A45\"><f>IF(7&lt;0,CEILING(7,3),FLOOR(7,3))</f><v>6</v></c></row><row r=\"46\" spans=\"1:1\"><c r=\"A46\" t=\"e\"><f>IF(1e-300&lt;0,CEILING(1e-300,-2),FLOOR(1e-300,-2))</f><v>#NUM!</v></c></row><row r=\"47\" spans=\"1:1\"><c r=\"A47\" t=\"e\"><f>IF(1e-300&lt;0,CEILING(1e-300,0),FLOOR(1e-300,0))</f><v>#DIV/0!</v></c></row><row r=\"48\" spans=\"1:1\"><c r=\"A48\"><f>IF(1e-300&lt;0,CEILING(1e-300,0.1),FLOOR(1e-300,0.1))</f><v>0</v></c></row><row r=\"49\" spans=\"1:1\"><c r=\"A49\"><f>IF(1e-300&lt;0,CEILING(1e-300,2),FLOOR(1e-300,2))</f><v>0</v></c></row><row r=\"50\" spans=\"1:1\"><c r=\"A50\"><f>IF(1e-300&lt;0,CEILING(1e-300,3),FLOOR(1e-300,3))</f><v>0</v></c></row><row r=\"51\" spans=\"1:1\"><c r=\"A51\" t=\"e\"><f>IF(1e+300&lt;0,CEILING(1e+300,-2),FLOOR(1e+300,-2))</f><v>#NUM!</v></c></row><row r=\"52\" spans=\"1:1\"><c r=\"A52\" t=\"e\"><f>IF(1e+300&lt;0,CEILING(1e+300,0),FLOOR(1e+300,0))</f><v>#DIV/0!</v></c></row><row r=\"53\" spans=\"1:1\"><c r=\"A53\"><f>IF(1e+300&lt;0,CEILING(1e+300,0.1),FLOOR(1e+300,0.1))</f><v>1.0000000000000001e+300</v></c></row><row r=\"54\" spans=\"1:1\"><c r=\"A54\"><f>IF(1e+300&lt;0,CEILING(1e+300,2),FLOOR(1e+300,2))</f><v>1.0000000000000001e+300</v></c></row><row r=\"55\" spans=\"1:1\"><c r=\"A55\"><f>IF(1e+300&lt;0,CEILING(1e+300,3),FLOOR(1e+300,3))</f><v>1.0000000000000001e+300</v></c></row><row r=\"56\" spans=\"1:1\"><c r=\"A56\" t=\"e\"><f>ODF.FLOOR()</f><v>#NAME?</v></c></row><row r=\"57\" spans=\"1:1\"><c r=\"A57\"><f>IF(2&lt;0,CEILING(2,SIGN(2)),FLOOR(2,SIGN(2)))</f><v>2</v></c></row><row r=\"58\" spans=\"1:1\"><c r=\"A58\"><f>IF(2&lt;0,CEILING(2,),FLOOR(2,))</f><v>2</v></c></row><row r=\"59\" spans=\"1:1\"><c r=\"A59\"><f>IF(2&lt;0,CEILING(2,Z1000),FLOOR(2,Z1000))</f><v>2</v></c></row><row r=\"60\" spans=\"1:1\"><c r=\"A60\"><f>IF(2&lt;0,CEILING(2,&quot;2&quot;),FLOOR(2,&quot;2&quot;))</f><v>2</v></c></row><row r=\"61\" spans=\"1:1\"><c r=\"A61\" t=\"e\"><f>IF(2&lt;0,CEILING(2,&quot;text&quot;),FLOOR(2,&quot;text&quot;))</f><v>#VALUE!</v></c></row><row r=\"62\" spans=\"1:1\"><c r=\"A62\"><f>IF(2&lt;0,CEILING(2,TRUE),FLOOR(2,TRUE))</f><v>2</v></c></row><row r=\"63\" spans=\"1:1\"><c r=\"A63\" t=\"e\"><f>IF(2&lt;0,CEILING(2,FALSE),FLOOR(2,FALSE))</f><v>#DIV/0!</v></c></row><row r=\"64\" spans=\"1:1\"><c r=\"A64\" t=\"e\"><f>IF(2&lt;0,CEILING(2,#N/A),FLOOR(2,#N/A))</f><v>#N/A</v></c></row><row r=\"65\" spans=\"1:1\"><c r=\"A65\" t=\"e\"><f>IF(#DIV/0!&lt;0,CEILING(#DIV/0!,#N/A),FLOOR(#DIV/0!,#N/A))</f><v>#DIV/0!</v></c></row><row r=\"66\" spans=\"1:1\"><c r=\"A66\"><f>IF(TRUE&lt;0,CEILING(TRUE,2),FLOOR(TRUE,2))</f><v>0</v></c></row><row r=\"67\" spans=\"1:1\"><c r=\"A67\"><f>IF(&quot;3&quot;&lt;0,CEILING(&quot;3&quot;,2),FLOOR(&quot;3&quot;,2))</f><v>2</v></c></row><row r=\"68\" spans=\"1:1\"><c r=\"A68\" t=\"e\"><f>IF(&quot;text&quot;&lt;0,CEILING(&quot;text&quot;,2),FLOOR(&quot;text&quot;,2))</f><v>#VALUE!</v></c></row><row r=\"69\" spans=\"1:1\"><c r=\"A69\"><f>FLOOR(2,3)</f><v>0</v></c></row><row r=\"70\" spans=\"1:1\"><c r=\"A70\" t=\"e\"><f>ODF.FLOOR(2,3,4,5)</f><v>#NAME?</v></c></row><row r=\"71\" spans=\"1:1\"><c r=\"A71\"><f>IF(-10&lt;0,FLOOR(-10,-2),CEILING(-10,-2))</f><v>-10</v></c></row><row r=\"72\" spans=\"1:1\"><c r=\"A72\" t=\"e\"><f>IF(-10&lt;0,FLOOR(-10,0),CEILING(-10,0))</f><v>#DIV/0!</v></c></row><row r=\"73\" spans=\"1:1\"><c r=\"A73\"><f>IF(-10&lt;0,FLOOR(-10,0.1),CEILING(-10,0.1))</f><v>-10</v></c></row><row r=\"74\" spans=\"1:1\"><c r=\"A74\"><f>IF(-10&lt;0,FLOOR(-10,2),CEILING(-10,2))</f><v>-10</v></c></row><row r=\"75\" spans=\"1:1\"><c r=\"A75\"><f>IF(-10&lt;0,FLOOR(-10,3),CEILING(-10,3))</f><v>-12</v></c></row><row r=\"76\" spans=\"1:1\"><c r=\"A76\"><f>IF(-2.5&lt;0,FLOOR(-2.5,-2),CEILING(-2.5,-2))</f><v>-2</v></c></row><row r=\"77\" spans=\"1:1\"><c r=\"A77\" t=\"e\"><f>IF(-2.5&lt;0,FLOOR(-2.5,0),CEILING(-2.5,0))</f><v>#DIV/0!</v></c></row><row r=\"78\" spans=\"1:1\"><c r=\"A78\"><f>IF(-2.5&lt;0,FLOOR(-2.5,0.1),CEILING(-2.5,0.1))</f><v>-2.5</v></c></row><row r=\"79\" spans=\"1:1\"><c r=\"A79\"><f>IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"80\" spans=\"1:1\"><c r=\"A80\"><f>IF(-2.5&lt;0,FLOOR(-2.5,3),CEILING(-2.5,3))</f><v>-3</v></c></row><row r=\"81\" spans=\"1:1\"><c r=\"A81\"><f>IF(-0&lt;0,FLOOR(-0,-2),CEILING(-0,-2))</f><v>0</v></c></row><row r=\"82\" spans=\"1:1\"><c r=\"A82\"><f>IF(-0&lt;0,FLOOR(-0,0),CEILING(-0,0))</f><v>0</v></c></row><row r=\"83\" spans=\"1:1\"><c r=\"A83\"><f>IF(-0&lt;0,FLOOR(-0,0.1),CEILING(-0,0.1))</f><v>0</v></c></row><row r=\"84\" spans=\"1:1\"><c r=\"A84\"><f>IF(-0&lt;0,FLOOR(-0,2),CEILING(-0,2))</f><v>0</v></c></row><row r=\"85\" spans=\"1:1\"><c r=\"A85\"><f>IF(-0&lt;0,FLOOR(-0,3),CEILING(-0,3))</f><v>0</v></c></row><row r=\"86\" spans=\"1:1\"><c r=\"A86\"><f>IF(0&lt;0,FLOOR(0,-2),CEILING(0,-2))</f><v>0</v></c></row><row r=\"87\" spans=\"1:1\"><c r=\"A87\"><f>IF(0&lt;0,FLOOR(0,0),CEILING(0,0))</f><v>0</v></c></row><row r=\"88\" spans=\"1:1\"><c r=\"A88\"><f>IF(0&lt;0,FLOOR(0,0.1),CEILING(0,0.1))</f><v>0</v></c></row><row r=\"89\" spans=\"1:1\"><c r=\"A89\"><f>IF(0&lt;0,FLOOR(0,2),CEILING(0,2))</f><v>0</v></c></row><row r=\"90\" spans=\"1:1\"><c r=\"A90\"><f>IF(0&lt;0,FLOOR(0,3),CEILING(0,3))</f><v>0</v></c></row><row r=\"91\" spans=\"1:1\"><c r=\"A91\" t=\"e\"><f>IF(0.1&lt;0,FLOOR(0.1,-2),CEILING(0.1,-2))</f><v>#NUM!</v></c></row><row r=\"92\" spans=\"1:1\"><c r=\"A92\"><f>IF(0.1&lt;0,FLOOR(0.1,0),CEILING(0.1,0))</f><v>0</v></c></row><row r=\"93\" spans=\"1:1\"><c r=\"A93\"><f>IF(0.1&lt;0,FLOOR(0.1,0.1),CEILING(0.1,0.1))</f><v>0.10000000000000001</v></c></row><row r=\"94\" spans=\"1:1\"><c r=\"A94\"><f>IF(0.1&lt;0,FLOOR(0.1,2),CEILING(0.1,2))</f><v>2</v></c></row><row r=\"95\" spans=\"1:1\"><c r=\"A95\"><f>IF(0.1&lt;0,FLOOR(0.1,3),CEILING(0.1,3))</f><v>3</v></c></row><row r=\"96\" spans=\"1:1\"><c r=\"A96\" t=\"e\"><f>IF(0.9999999999999999&lt;0,FLOOR(0.9999999999999999,-2),CEILING(0.9999999999999999,-2))</f><v>#NUM!</v></c></row><row r=\"97\" spans=\"1:1\"><c r=\"A97\"><f>IF(0.9999999999999999&lt;0,FLOOR(0.9999999999999999,0),CEILING(0.9999999999999999,0))</f><v>0</v></c></row><row r=\"98\" spans=\"1:1\"><c r=\"A98\"><f>IF(0.9999999999999999&lt;0,FLOOR(0.9999999999999999,0.1),CEILING(0.9999999999999999,0.1))</f><v>1</v></c></row><row r=\"99\" spans=\"1:1\"><c r=\"A99\"><f>IF(0.9999999999999999&lt;0,FLOOR(0.9999999999999999,2),CEILING(0.9999999999999999,2))</f><v>2</v></c></row><row r=\"100\" spans=\"1:1\"><c r=\"A100\"><f>IF(0.9999999999999999&lt;0,FLOOR(0.9999999999999999,3),CEILING(0.9999999999999999,3))</f><v>3</v></c></row><row r=\"101\" spans=\"1:1\"><c r=\"A101\" t=\"e\"><f>IF(1.0000000000000002&lt;0,FLOOR(1.0000000000000002,-2),CEILING(1.0000000000000002,-2))</f><v>#NUM!</v></c></row><row r=\"102\" spans=\"1:1\"><c r=\"A102\"><f>IF(1.0000000000000002&lt;0,FLOOR(1.0000000000000002,0),CEILING(1.0000000000000002,0))</f><v>0</v></c></row><row r=\"103\" spans=\"1:1\"><c r=\"A103\"><f>IF(1.0000000000000002&lt;0,FLOOR(1.0000000000000002,0.1),CEILING(1.0000000000000002,0.1))</f><v>1</v></c></row><row r=\"104\" spans=\"1:1\"><c r=\"A104\"><f>IF(1.0000000000000002&lt;0,FLOOR(1.0000000000000002,2),CEILING(1.0000000000000002,2))</f><v>2</v></c></row><row r=\"105\" spans=\"1:1\"><c r=\"A105\"><f>IF(1.0000000000000002&lt;0,FLOOR(1.0000000000000002,3),CEILING(1.0000000000000002,3))</f><v>3</v></c></row><row r=\"106\" spans=\"1:1\"><c r=\"A106\" t=\"e\"><f>IF(2.5&lt;0,FLOOR(2.5,-2),CEILING(2.5,-2))</f><v>#NUM!</v></c></row><row r=\"107\" spans=\"1:1\"><c r=\"A107\"><f>IF(2.5&lt;0,FLOOR(2.5,0),CEILING(2.5,0))</f><v>0</v></c></row><row r=\"108\" spans=\"1:1\"><c r=\"A108\"><f>IF(2.5&lt;0,FLOOR(2.5,0.1),CEILING(2.5,0.1))</f><v>2.5</v></c></row><row r=\"109\" spans=\"1:1\"><c r=\"A109\"><f>IF(2.5&lt;0,FLOOR(2.5,2),CEILING(2.5,2))</f><v>4</v></c></row><row r=\"110\" spans=\"1:1\"><c r=\"A110\"><f>IF(2.5&lt;0,FLOOR(2.5,3),CEILING(2.5,3))</f><v>3</v></c></row><row r=\"111\" spans=\"1:1\"><c r=\"A111\" t=\"e\"><f>IF(7&lt;0,FLOOR(7,-2),CEILING(7,-2))</f><v>#NUM!</v></c></row><row r=\"112\" spans=\"1:1\"><c r=\"A112\"><f>IF(7&lt;0,FLOOR(7,0),CEILING(7,0))</f><v>0</v></c></row><row r=\"113\" spans=\"1:1\"><c r=\"A113\"><f>IF(7&lt;0,FLOOR(7,0.1),CEILING(7,0.1))</f><v>7</v></c></row><row r=\"114\" spans=\"1:1\"><c r=\"A114\"><f>IF(7&lt;0,FLOOR(7,2),CEILING(7,2))</f><v>8</v></c></row><row r=\"115\" spans=\"1:1\"><c r=\"A115\"><f>IF(7&lt;0,FLOOR(7,3),CEILING(7,3))</f><v>9</v></c></row><row r=\"116\" spans=\"1:1\"><c r=\"A116\" t=\"e\"><f>IF(1e-300&lt;0,FLOOR(1e-300,-2),CEILING(1e-300,-2))</f><v>#NUM!</v></c></row><row r=\"117\" spans=\"1:1\"><c r=\"A117\"><f>IF(1e-300&lt;0,FLOOR(1e-300,0),CEILING(1e-300,0))</f><v>0</v></c></row><row r=\"118\" spans=\"1:1\"><c r=\"A118\"><f>IF(1e-300&lt;0,FLOOR(1e-300,0.1),CEILING(1e-300,0.1))</f><v>0.10000000000000001</v></c></row><row r=\"119\" spans=\"1:1\"><c r=\"A119\"><f>IF(1e-300&lt;0,FLOOR(1e-300,2),CEILING(1e-300,2))</f><v>2</v></c></row><row r=\"120\" spans=\"1:1\"><c r=\"A120\"><f>IF(1e-300&lt;0,FLOOR(1e-300,3),CEILING(1e-300,3))</f><v>3</v></c></row><row r=\"121\" spans=\"1:1\"><c r=\"A121\" t=\"e\"><f>IF(1e+300&lt;0,FLOOR(1e+300,-2),CEILING(1e+300,-2))</f><v>#NUM!</v></c></row><row r=\"122\" spans=\"1:1\"><c r=\"A122\"><f>IF(1e+300&lt;0,FLOOR(1e+300,0),CEILING(1e+300,0))</f><v>0</v></c></row><row r=\"123\" spans=\"1:1\"><c r=\"A123\"><f>IF(1e+300&lt;0,FLOOR(1e+300,0.1),CEILING(1e+300,0.1))</f><v>1.0000000000000001e+300</v></c></row><row r=\"124\" spans=\"1:1\"><c r=\"A124\"><f>IF(1e+300&lt;0,FLOOR(1e+300,2),CEILING(1e+300,2))</f><v>1.0000000000000001e+300</v></c></row><row r=\"125\" spans=\"1:1\"><c r=\"A125\"><f>IF(1e+300&lt;0,FLOOR(1e+300,3),CEILING(1e+300,3))</f><v>1.0000000000000001e+300</v></c></row><row r=\"126\" spans=\"1:1\"><c r=\"A126\" t=\"e\"><f>ODF.CEILING()</f><v>#NAME?</v></c></row><row r=\"127\" spans=\"1:1\"><c r=\"A127\"><f>_xlfngnumeric.CEIL(2)</f><v>2</v></c></row><row r=\"128\" spans=\"1:1\"><c r=\"A128\"><f>IF(2&lt;0,FLOOR(2,),CEILING(2,))</f><v>2</v></c></row><row r=\"129\" spans=\"1:1\"><c r=\"A129\"><f>IF(2&lt;0,FLOOR(2,Z1000),CEILING(2,Z1000))</f><v>2</v></c></row><row r=\"130\" spans=\"1:1\"><c r=\"A130\"><f>IF(2&lt;0,FLOOR(2,&quot;2&quot;),CEILING(2,&quot;2&quot;))</f><v>2</v></c></row><row r=\"131\" spans=\"1:1\"><c r=\"A131\" t=\"e\"><f>IF(2&lt;0,FLOOR(2,&quot;text&quot;),CEILING(2,&quot;text&quot;))</f><v>#VALUE!</v></c></row><row r=\"132\" spans=\"1:1\"><c r=\"A132\"><f>IF(2&lt;0,FLOOR(2,TRUE),CEILING(2,TRUE))</f><v>2</v></c></row><row r=\"133\" spans=\"1:1\"><c r=\"A133\"><f>IF(2&lt;0,FLOOR(2,FALSE),CEILING(2,FALSE))</f><v>0</v></c></row><row r=\"134\" spans=\"1:1\"><c r=\"A134\" t=\"e\"><f>IF(2&lt;0,FLOOR(2,#N/A),CEILING(2,#N/A))</f><v>#N/A</v></c></row><row r=\"135\" spans=\"1:1\"><c r=\"A135\" t=\"e\"><f>IF(#DIV/0!&lt;0,FLOOR(#DIV/0!,#N/A),CEILING(#DIV/0!,#N/A))</f><v>#DIV/0!</v></c></row><row r=\"136\" spans=\"1:1\"><c r=\"A136\"><f>IF(TRUE&lt;0,FLOOR(TRUE,2),CEILING(TRUE,2))</f><v>2</v></c></row><row r=\"137\" spans=\"1:1\"><c r=\"A137\"><f>IF(&quot;3&quot;&lt;0,FLOOR(&quot;3&quot;,2),CEILING(&quot;3&quot;,2))</f><v>4</v></c></row><row r=\"138\" spans=\"1:1\"><c r=\"A138\" t=\"e\"><f>IF(&quot;text&quot;&lt;0,FLOOR(&quot;text&quot;,2),CEILING(&quot;text&quot;,2))</f><v>#VALUE!</v></c></row><row r=\"139\" spans=\"1:1\"><c r=\"A139\"><f>CEILING(2,3)</f><v>3</v></c></row><row r=\"140\" spans=\"1:1\"><c r=\"A140\" t=\"e\"><f>ODF.CEILING(2,3,4,5)</f><v>#NAME?</v></c></row><row r=\"141\" spans=\"1:1\"><c r=\"A141\"><f>IF(-2.5&lt;0,CEILING(-2.5,SIGN(-2.5)),FLOOR(-2.5,SIGN(-2.5)))</f><v>-3</v></c></row><row r=\"142\" spans=\"1:1\"><c r=\"A142\"><f>IF(-2.5&lt;0,CEILING(-2.5,),FLOOR(-2.5,))</f><v>-3</v></c></row><row r=\"143\" spans=\"1:1\"><c r=\"A143\"><f>IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"144\" spans=\"1:1\"><c r=\"A144\"><f>FLOOR(-2.5,2)</f><v>-4</v></c></row><row r=\"145\" spans=\"1:1\"><c r=\"A145\"><f>IF(0=-1,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"146\" spans=\"1:1\"><c r=\"A146\"><f>IF(0=TRUE,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"147\" spans=\"1:1\"><c r=\"A147\"><f>IF(0=FALSE,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"148\" spans=\"1:1\"><c r=\"A148\"><f>IF(0=&quot;0&quot;,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"149\" spans=\"1:1\"><c r=\"A149\"><f>IF(0=&quot;1&quot;,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"150\" spans=\"1:1\"><c r=\"A150\" t=\"e\"><f>IF(0=#N/A,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>#N/A</v></c></row><row r=\"151\" spans=\"1:1\"><c r=\"A151\" t=\"e\"><f>IF(0=#N/A,IF(#DIV/0!&lt;0,CEILING(#DIV/0!,2),FLOOR(#DIV/0!,2)),FLOOR(#DIV/0!,2))</f><v>#N/A</v></c></row><row r=\"152\" spans=\"1:1\"><c r=\"A152\"><f>IF(-2.5&lt;0,CEILING(-2.5,),FLOOR(-2.5,))</f><v>-3</v></c></row><row r=\"153\" spans=\"1:1\"><c r=\"A153\"><f>FLOOR(-2.5,)</f><v>-2</v></c></row><row r=\"154\" spans=\"1:1\"><c r=\"A154\"><f>IF(0=(0),IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"155\" spans=\"1:1\"><c r=\"A155\"><f>IF(0=(1),IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"156\" spans=\"1:1\"><c r=\"A156\"><f>IF(0=1%,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"157\" spans=\"1:1\"><c r=\"A157\"><f>IF(0=0%,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"158\" spans=\"1:1\"><c r=\"A158\"><f>IF(0=1-1,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"159\" spans=\"1:1\"><c r=\"A159\"><f>IF(0=2-1,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-4</v></c></row><row r=\"160\" spans=\"1:1\"><c r=\"A160\"><f>IF(0=Z1000,IF(-2.5&lt;0,CEILING(-2.5,2),FLOOR(-2.5,2)),FLOOR(-2.5,2))</f><v>-2</v></c></row><row r=\"161\" spans=\"1:1\"><c r=\"A161\"><f>FLOOR(-2.5,2)</f><v>-4</v></c></row><row r=\"162\" spans=\"1:1\"><c r=\"A162\"><f>_xlfngnumeric.CEIL(-2.5)</f><v>-2</v></c></row><row r=\"163\" spans=\"1:1\"><c r=\"A163\"><f>IF(-2.5&lt;0,FLOOR(-2.5,),CEILING(-2.5,))</f><v>-2</v></c></row><row r=\"164\" spans=\"1:1\"><c r=\"A164\"><f>IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"165\" spans=\"1:1\"><c r=\"A165\"><f>CEILING(-2.5,2)</f><v>-2</v></c></row><row r=\"166\" spans=\"1:1\"><c r=\"A166\"><f>IF(0=-1,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"167\" spans=\"1:1\"><c r=\"A167\"><f>IF(0=TRUE,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"168\" spans=\"1:1\"><c r=\"A168\"><f>IF(0=FALSE,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"169\" spans=\"1:1\"><c r=\"A169\"><f>IF(0=&quot;0&quot;,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"170\" spans=\"1:1\"><c r=\"A170\"><f>IF(0=&quot;1&quot;,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"171\" spans=\"1:1\"><c r=\"A171\" t=\"e\"><f>IF(0=#N/A,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>#N/A</v></c></row><row r=\"172\" spans=\"1:1\"><c r=\"A172\" t=\"e\"><f>IF(0=#N/A,IF(#DIV/0!&lt;0,FLOOR(#DIV/0!,2),CEILING(#DIV/0!,2)),CEILING(#DIV/0!,2))</f><v>#N/A</v></c></row><row r=\"173\" spans=\"1:1\"><c r=\"A173\"><f>IF(-2.5&lt;0,FLOOR(-2.5,),CEILING(-2.5,))</f><v>-2</v></c></row><row r=\"174\" spans=\"1:1\"><c r=\"A174\"><f>CEILING(-2.5,)</f><v>-3</v></c></row><row r=\"175\" spans=\"1:1\"><c r=\"A175\"><f>IF(0=(0),IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"176\" spans=\"1:1\"><c r=\"A176\"><f>IF(0=(1),IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"177\" spans=\"1:1\"><c r=\"A177\"><f>IF(0=1%,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"178\" spans=\"1:1\"><c r=\"A178\"><f>IF(0=0%,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"179\" spans=\"1:1\"><c r=\"A179\"><f>IF(0=1-1,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"180\" spans=\"1:1\"><c r=\"A180\"><f>IF(0=2-1,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-2</v></c></row><row r=\"181\" spans=\"1:1\"><c r=\"A181\"><f>IF(0=Z1000,IF(-2.5&lt;0,FLOOR(-2.5,2),CEILING(-2.5,2)),CEILING(-2.5,2))</f><v>-4</v></c></row><row r=\"182\" spans=\"1:1\"><c r=\"A182\"><f>CEILING(-2.5,2)</f><v>-2</v></c></row></sheetData><sheetProtection formatCells=\"0\" formatColumns=\"0\" formatRows=\"0\" insertColumns=\"0\" insertRows=\"0\" insertHyperlinks=\"0\" deleteColumns=\"0\" deleteRows=\"0\" selectLockedCells=\"1\" sort=\"0\" autoFilter=\"0\" pivotTables=\"0\" selectUnlockedCells=\"1\"/><printOptions/><pageMargins left=\"1\" right=\"1\" top=\"1.6666666666666667\" bottom=\"1.6666666666666667\" header=\"1\" footer=\"1\"/><pageSetup blackAndWhite=\"0\" cellComments=\"asDisplayed\" draft=\"0\" errors=\"displayed\" fitToHeight=\"0\" fitToWidth=\"0\" orientation=\"portrait\" pageOrder=\"downThenOver\" paperSize=\"9\" scale=\"100\" useFirstPageNumber=\"0\"/><headerFooter><oddHeader/><oddFooter/></headerFooter></worksheet>\n",
+        "xl/styles.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><fonts count=\"1\"><font><b val=\"0\"/><i val=\"0\"/><u val=\"none\"/><color rgb=\"FF000000\"/><name val=\"Sans\"/><vertAlign val=\"baseline\"/><sz val=\"10\"/><strike val=\"0\"/></font></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border diagonalUp=\"0\" diagonalDown=\"0\"><start style=\"none\"><color rgb=\"FFC7C7C7\"/></start><end style=\"none\"><color rgb=\"FFC7C7C7\"/></end><top style=\"none\"><color rgb=\"FFC7C7C7\"/></top><bottom style=\"none\"><color rgb=\"FFC7C7C7\"/></bottom></border></borders><cellStyleXfs count=\"1\"><xf fontId=\"0\" fillId=\"0\" borderId=\"0\" numFmtId=\"0\"><alignment horizontal=\"general\" vertical=\"bottom\" wrapText=\"0\" shrinkToFit=\"0\" textRotation=\"0\" indent=\"0\"/><protection locked=\"1\" hidden=\"0\"/></xf></cellStyleXfs><cellXfs count=\"1\"><xf applyAlignment=\"1\" applyBorder=\"1\" applyFont=\"1\" applyFill=\"1\" applyNumberFormat=\"1\" fontId=\"0\" fillId=\"0\" borderId=\"0\" numFmtId=\"0\" xfId=\"0\"><alignment horizontal=\"general\" vertical=\"bottom\" wrapText=\"0\" shrinkToFit=\"0\" textRotation=\"0\" indent=\"0\"/><protection locked=\"1\" hidden=\"0\"/></xf></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>\n",
+        "docProps/app.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"><Application>gnumeric</Application><AppVersion>1.1261</AppVersion></Properties>\n",
+        "docProps/core.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcmitype=\"http://purl.org/dc/dcmitype/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"/>\n",
+        "docProps/custom.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/custom-properties\" xmlns:vt=\"http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes\"/>\n",
+        "xl/workbook.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><fileVersion lastEdited=\"4\" lowestEdited=\"4\" rupBuild=\"3820\"/><workbookPr date1904=\"0\"/><bookViews><workbookView activeTab=\"0\"/></bookViews><sheets><sheet name=\"Sheet1\" sheetId=\"1\" r:id=\"rId1\"/></sheets><definedNames><definedName name=\"_xlnm.Sheet_Title\" localSheetId=\"0\">&quot;Sheet1&quot;</definedName><definedName name=\"_xlnm.Print_Area\" localSheetId=\"0\">#REF!</definedName></definedNames><calcPr calcMode=\"auto\" iterate=\"1\" iterateCount=\"100\" iterateDelta=\"0.001\"/><webPublishing allowPng=\"1\" css=\"0\" characterSet=\"UTF-8\"/></workbook>\n",
+        "xl/_rels/workbook.xml.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>\n",
+        "[Content_Types].xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xlbin\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.printerSettings\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Default Extension=\"vml\" ContentType=\"application/vnd.openxmlformats-officedocument.vmlDrawing\"/><Override PartName=\"/docProps/custom.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.custom-properties+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/></Types>\n",
+        "_rels/.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId4\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties\" Target=\"docProps/custom.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>\n"
+      }
+    },
+    {
+      "source": "/reopened.xlsx",
+      "parts": {
+        "[Content_Types].xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/></Types>",
+        "_rels/.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>",
+        "xl/workbook.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheets><sheet name=\"Sheet1\" sheetId=\"1\" r:id=\"rId1\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/></sheets></workbook>",
+        "xl/_rels/workbook.xml.rels": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>",
+        "xl/styles.xml": "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd\"/></numFmts><fonts count=\"1\"><font/></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"2\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>",
+        "xl/worksheets/sheet1.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"2\"><c r=\"A2\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"3\"><c r=\"A3\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"4\"><c r=\"A4\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"5\"><c r=\"A5\" t=\"inlineStr\"><is><t>-9</t></is></c></row><row r=\"6\"><c r=\"A6\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"7\"><c r=\"A7\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"8\"><c r=\"A8\" t=\"inlineStr\"><is><t>-2.5</t></is></c></row><row r=\"9\"><c r=\"A9\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"10\"><c r=\"A10\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"11\"><c r=\"A11\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"12\"><c r=\"A12\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"13\"><c r=\"A13\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"14\"><c r=\"A14\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"15\"><c r=\"A15\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"16\"><c r=\"A16\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"17\"><c r=\"A17\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"18\"><c r=\"A18\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"19\"><c r=\"A19\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"20\"><c r=\"A20\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"21\"><c r=\"A21\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"22\"><c r=\"A22\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"23\"><c r=\"A23\" t=\"inlineStr\"><is><t>0.10000000000000001</t></is></c></row><row r=\"24\"><c r=\"A24\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"25\"><c r=\"A25\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"26\"><c r=\"A26\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"27\"><c r=\"A27\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"28\"><c r=\"A28\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"29\"><c r=\"A29\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"30\"><c r=\"A30\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"31\"><c r=\"A31\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"32\"><c r=\"A32\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"33\"><c r=\"A33\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"34\"><c r=\"A34\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"35\"><c r=\"A35\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"36\"><c r=\"A36\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"37\"><c r=\"A37\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"38\"><c r=\"A38\" t=\"inlineStr\"><is><t>2.5</t></is></c></row><row r=\"39\"><c r=\"A39\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"40\"><c r=\"A40\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"41\"><c r=\"A41\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"42\"><c r=\"A42\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"43\"><c r=\"A43\" t=\"inlineStr\"><is><t>7</t></is></c></row><row r=\"44\"><c r=\"A44\" t=\"inlineStr\"><is><t>6</t></is></c></row><row r=\"45\"><c r=\"A45\" t=\"inlineStr\"><is><t>6</t></is></c></row><row r=\"46\"><c r=\"A46\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"47\"><c r=\"A47\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"48\"><c r=\"A48\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"49\"><c r=\"A49\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"50\"><c r=\"A50\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"51\"><c r=\"A51\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"52\"><c r=\"A52\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"53\"><c r=\"A53\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"54\"><c r=\"A54\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"55\"><c r=\"A55\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"56\"><c r=\"A56\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row><row r=\"57\"><c r=\"A57\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"58\"><c r=\"A58\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"59\"><c r=\"A59\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"60\"><c r=\"A60\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"61\"><c r=\"A61\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"62\"><c r=\"A62\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"63\"><c r=\"A63\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"64\"><c r=\"A64\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"65\"><c r=\"A65\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"66\"><c r=\"A66\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"67\"><c r=\"A67\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"68\"><c r=\"A68\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"69\"><c r=\"A69\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"70\"><c r=\"A70\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row><row r=\"71\"><c r=\"A71\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"72\"><c r=\"A72\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"73\"><c r=\"A73\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"74\"><c r=\"A74\" t=\"inlineStr\"><is><t>-10</t></is></c></row><row r=\"75\"><c r=\"A75\" t=\"inlineStr\"><is><t>-12</t></is></c></row><row r=\"76\"><c r=\"A76\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"77\"><c r=\"A77\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"78\"><c r=\"A78\" t=\"inlineStr\"><is><t>-2.5</t></is></c></row><row r=\"79\"><c r=\"A79\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"80\"><c r=\"A80\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"81\"><c r=\"A81\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"82\"><c r=\"A82\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"83\"><c r=\"A83\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"84\"><c r=\"A84\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"85\"><c r=\"A85\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"86\"><c r=\"A86\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"87\"><c r=\"A87\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"88\"><c r=\"A88\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"89\"><c r=\"A89\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"90\"><c r=\"A90\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"91\"><c r=\"A91\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"92\"><c r=\"A92\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"93\"><c r=\"A93\" t=\"inlineStr\"><is><t>0.10000000000000001</t></is></c></row><row r=\"94\"><c r=\"A94\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"95\"><c r=\"A95\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"96\"><c r=\"A96\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"97\"><c r=\"A97\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"98\"><c r=\"A98\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"99\"><c r=\"A99\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"100\"><c r=\"A100\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"101\"><c r=\"A101\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"102\"><c r=\"A102\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"103\"><c r=\"A103\" t=\"inlineStr\"><is><t>1</t></is></c></row><row r=\"104\"><c r=\"A104\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"105\"><c r=\"A105\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"106\"><c r=\"A106\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"107\"><c r=\"A107\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"108\"><c r=\"A108\" t=\"inlineStr\"><is><t>2.5</t></is></c></row><row r=\"109\"><c r=\"A109\" t=\"inlineStr\"><is><t>4</t></is></c></row><row r=\"110\"><c r=\"A110\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"111\"><c r=\"A111\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"112\"><c r=\"A112\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"113\"><c r=\"A113\" t=\"inlineStr\"><is><t>7</t></is></c></row><row r=\"114\"><c r=\"A114\" t=\"inlineStr\"><is><t>8</t></is></c></row><row r=\"115\"><c r=\"A115\" t=\"inlineStr\"><is><t>9</t></is></c></row><row r=\"116\"><c r=\"A116\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"117\"><c r=\"A117\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"118\"><c r=\"A118\" t=\"inlineStr\"><is><t>0.10000000000000001</t></is></c></row><row r=\"119\"><c r=\"A119\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"120\"><c r=\"A120\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"121\"><c r=\"A121\" t=\"inlineStr\"><is><t>#NUM!</t></is></c></row><row r=\"122\"><c r=\"A122\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"123\"><c r=\"A123\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"124\"><c r=\"A124\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"125\"><c r=\"A125\" t=\"inlineStr\"><is><t>1.0000000000000001e+300</t></is></c></row><row r=\"126\"><c r=\"A126\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row><row r=\"127\"><c r=\"A127\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"128\"><c r=\"A128\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"129\"><c r=\"A129\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"130\"><c r=\"A130\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"131\"><c r=\"A131\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"132\"><c r=\"A132\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"133\"><c r=\"A133\" t=\"inlineStr\"><is><t>0</t></is></c></row><row r=\"134\"><c r=\"A134\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"135\"><c r=\"A135\" t=\"inlineStr\"><is><t>#DIV/0!</t></is></c></row><row r=\"136\"><c r=\"A136\" t=\"inlineStr\"><is><t>2</t></is></c></row><row r=\"137\"><c r=\"A137\" t=\"inlineStr\"><is><t>4</t></is></c></row><row r=\"138\"><c r=\"A138\" t=\"inlineStr\"><is><t>#VALUE!</t></is></c></row><row r=\"139\"><c r=\"A139\" t=\"inlineStr\"><is><t>3</t></is></c></row><row r=\"140\"><c r=\"A140\" t=\"inlineStr\"><is><t>#NAME?</t></is></c></row><row r=\"141\"><c r=\"A141\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"142\"><c r=\"A142\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"143\"><c r=\"A143\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"144\"><c r=\"A144\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"145\"><c r=\"A145\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"146\"><c r=\"A146\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"147\"><c r=\"A147\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"148\"><c r=\"A148\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"149\"><c r=\"A149\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"150\"><c r=\"A150\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"151\"><c r=\"A151\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"152\"><c r=\"A152\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"153\"><c r=\"A153\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"154\"><c r=\"A154\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"155\"><c r=\"A155\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"156\"><c r=\"A156\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"157\"><c r=\"A157\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"158\"><c r=\"A158\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"159\"><c r=\"A159\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"160\"><c r=\"A160\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"161\"><c r=\"A161\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"162\"><c r=\"A162\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"163\"><c r=\"A163\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"164\"><c r=\"A164\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"165\"><c r=\"A165\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"166\"><c r=\"A166\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"167\"><c r=\"A167\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"168\"><c r=\"A168\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"169\"><c r=\"A169\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"170\"><c r=\"A170\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"171\"><c r=\"A171\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"172\"><c r=\"A172\" t=\"inlineStr\"><is><t>#N/A</t></is></c></row><row r=\"173\"><c r=\"A173\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"174\"><c r=\"A174\" t=\"inlineStr\"><is><t>-3</t></is></c></row><row r=\"175\"><c r=\"A175\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"176\"><c r=\"A176\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"177\"><c r=\"A177\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"178\"><c r=\"A178\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"179\"><c r=\"A179\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"180\"><c r=\"A180\" t=\"inlineStr\"><is><t>-2</t></is></c></row><row r=\"181\"><c r=\"A181\" t=\"inlineStr\"><is><t>-4</t></is></c></row><row r=\"182\"><c r=\"A182\" t=\"inlineStr\"><is><t>-2</t></is></c></row></sheetData></worksheet>"
+      }
+    }
+  ],
+  "publicExportReferences": "Export and reopen sequence captured from runSofficeFileCli with MemoryFileSystem on Node 26.0.0."
+}

@@ -1,10 +1,10 @@
 use super::{HybridBackend, ShellBindings, from_jstr, jstr};
 use crate::budget::ShellLimits;
-use crate::vfs::{host_text, shell_text, stream_byte_len};
 use crate::shell::{
     eval::format_function_display,
     parser::{CommandNode, parse_script_with_extglob},
 };
+use crate::vfs::{host_text, shell_text, stream_byte_len};
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -51,7 +51,9 @@ fn entries(v: Option<&Value>) -> impl Iterator<Item = (String, &Value)> {
         Some(Value::Object(pairs)) => pairs.as_slice(),
         _ => &[],
     };
-    pairs.iter().map(|(k, v)| (shell_text(&from_jstr(k)).into_owned(), v))
+    pairs
+        .iter()
+        .map(|(k, v)| (shell_text(&from_jstr(k)).into_owned(), v))
 }
 fn text(v: &Value) -> Option<String> {
     match v {
@@ -129,7 +131,9 @@ impl HybridBackend {
             let name = jstr("OPTIND");
             if let Some((_, value)) = attrs.iter_mut().find(|(key, _)| *key == name) {
                 let mut flags = text(value).unwrap_or_default();
-                if !flags.contains('i') { flags.push('i'); }
+                if !flags.contains('i') {
+                    flags.push('i');
+                }
                 *value = string(&flags);
             } else {
                 attrs.push((name, string("i")));
@@ -253,7 +257,8 @@ impl HybridBackend {
             .ok_or("Session state needs cwd")?;
         let cwd = crate::vfs::normalize_posix_path(&cwd);
         let positional = list(v.get("positionalParams"));
-        if positional.iter().map(|s| stream_byte_len(s)).sum::<usize>() > limits.max_expansion_bytes {
+        if positional.iter().map(|s| stream_byte_len(s)).sum::<usize>() > limits.max_expansion_bytes
+        {
             return Err("Shell limit exceeded: maxExpansionBytes".into());
         }
         let exported: BTreeSet<_> = list(v.get("exported")).into_iter().collect();
@@ -313,8 +318,14 @@ impl HybridBackend {
                 .extend(flags.chars().filter(|c| "ilnu".contains(*c)));
         }
         if let Some(attrs) = v.get("variableAttributes") {
-            let integer = attrs.get("OPTIND").and_then(text).is_some_and(|s| s.contains('i'));
-            env.insert("\0getopts_int".into(), if integer { "1" } else { "0" }.into());
+            let integer = attrs
+                .get("OPTIND")
+                .and_then(text)
+                .is_some_and(|s| s.contains('i'));
+            env.insert(
+                "\0getopts_int".into(),
+                if integer { "1" } else { "0" }.into(),
+            );
         }
         for k in exported.iter().filter(|k| public_name(k)) {
             env.remove(&format!("\0unexported__{k}"));
@@ -388,7 +399,10 @@ mod tests {
         original.exec(":").unwrap();
         let state = original.session_snapshot(0);
         let snapshot = super::parse(state.as_bytes(), super::Limits::default()).unwrap();
-        assert_eq!(snapshot.get("options").unwrap().get("hashall"), Some(&super::Value::Bool(true)));
+        assert_eq!(
+            snapshot.get("options").unwrap().get("hashall"),
+            Some(&super::Value::Bool(true))
+        );
     }
 
     #[test]
@@ -396,7 +410,9 @@ mod tests {
         let fs = Arc::new(MemoryVfs::new());
         fs.mkdir_all("/work").unwrap();
         let mut original = Shell::new(fs.clone(), ShellOptions::default());
-        let setup = original.exec("shopt -s cdable_vars checkhash shift_verbose; set +h; dest=/work").unwrap();
+        let setup = original
+            .exec("shopt -s cdable_vars checkhash shift_verbose; set +h; dest=/work")
+            .unwrap();
         assert_eq!(setup.exit_code, 0, "{}", setup.stderr);
         let snapshot = original.session_snapshot(setup.exit_code);
         let mut restored = Shell::new(fs, ShellOptions::default());
@@ -418,7 +434,16 @@ mod tests {
             original.exec(setup).unwrap();
             let state = original.session_snapshot(0);
             let snapshot = super::parse(state.as_bytes(), super::Limits::default()).unwrap();
-            assert_eq!(snapshot.get("variableAttributes").unwrap().get("OPTIND").and_then(super::text).as_deref(), flags, "{setup}");
+            assert_eq!(
+                snapshot
+                    .get("variableAttributes")
+                    .unwrap()
+                    .get("OPTIND")
+                    .and_then(super::text)
+                    .as_deref(),
+                flags,
+                "{setup}"
+            );
             let mut restored = Shell::new(Arc::new(fs), ShellOptions::default());
             restored.restore_session(state.as_bytes()).unwrap();
             for sh in [&mut original, &mut restored] {

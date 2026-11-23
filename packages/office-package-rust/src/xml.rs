@@ -13,8 +13,10 @@ pub enum Node {
 #[derive(Clone, Debug)]
 pub struct Element {
     pub tag: String,
+    pub namespace: String,
     pub attrs: Vec<(String, String)>,
     pub children: Vec<Node>,
+    pub self_closing: bool,
 }
 
 impl Drop for Element {
@@ -64,6 +66,30 @@ fn name<'a>(input: &mut &'a str) -> Result<&'a str, &'static str> {
     }
     *input = rest;
     Ok(name)
+}
+
+fn namespace_attribute(
+    key: &str,
+    value: &str,
+    namespaces: &mut HashMap<String, Vec<String>>,
+    declarations: &mut Vec<String>,
+) -> Result<(), &'static str> {
+    if key == "xmlns" || key.starts_with("xmlns:") {
+        let prefix = key.strip_prefix("xmlns:").unwrap_or("");
+        if prefix == "xmlns"
+            || value == XMLNS
+            || (prefix == "xml") != (value == XML)
+            || (!prefix.is_empty() && value.is_empty())
+        {
+            return Err("invalid namespace binding");
+        }
+        namespaces
+            .entry(prefix.into())
+            .or_default()
+            .push(value.into());
+        declarations.push(prefix.into());
+    }
+    Ok(())
 }
 
 type Warnings<'a> = Option<&'a mut Vec<&'static str>>;
@@ -165,7 +191,10 @@ fn declaration(
         && (!["utf-8", "utf-16", "utf-16le", "utf-16be"]
             .iter()
             .any(|e| enc.eq_ignore_ascii_case(e))
-            || expected_encoding.is_some_and(|e| !enc.eq_ignore_ascii_case(e)))
+            || expected_encoding.is_some_and(|e| {
+                !enc.eq_ignore_ascii_case(e)
+                    && !(enc.eq_ignore_ascii_case("UTF-16") && matches!(e, "UTF-16LE" | "UTF-16BE"))
+            }))
     {
         return None;
     }
@@ -200,7 +229,7 @@ struct StartTag {
 }
 
 pub struct Parser<'a> {
-    expected_encoding: Option<&'a str>,
+    pub expected_encoding: Option<&'a str>,
     warnings: Warnings<'a>,
     retain_nodes: bool,
     first: bool,
@@ -244,6 +273,11 @@ impl<'a> Parser<'a> {
             after_cr: false,
             started: false,
         }
+    }
+
+    pub fn bind_namespace(&mut self, prefix: &str, uri: &str) {
+        self.namespaces
+            .insert(prefix.to_owned(), vec![uri.to_owned()]);
     }
 
     pub fn feed(&mut self, mut chunk: &str) -> Result<(), String> {
@@ -367,8 +401,10 @@ impl<'a> Parser<'a> {
                 self.start_tag = Some(StartTag {
                     element: Element {
                         tag: String::new(),
+                        namespace: String::new(),
                         attrs: Vec::new(),
                         children: Vec::new(),
+                        self_closing: false,
                     },
                     names: HashSet::new(),
                     part: TagPart::Name,
@@ -433,6 +469,8 @@ impl<'a> Parser<'a> {
                     for (key, _) in &tag.element.attrs {
                         if let Some((prefix, local)) = key.split_once(':')
                             && prefix != "xmlns"
+                            && !prefix.is_empty()
+                            && !local.is_empty()
                         {
                             let uri = self
                                 .namespaces
@@ -444,7 +482,9 @@ impl<'a> Parser<'a> {
                             }
                         }
                     }
-                    if let Some((prefix, _)) = tag.element.tag.split_once(':')
+                    if let Some((prefix, local)) = tag.element.tag.split_once(':')
+                        && !prefix.is_empty()
+                        && !local.is_empty()
                         && !self.namespaces.contains_key(prefix)
                     {
                         return Err("unbound element prefix");
@@ -495,21 +535,7 @@ impl<'a> Parser<'a> {
                     }
                     let (key, value) = tag.element.attrs.last_mut().unwrap();
                     *value = decode(raw, true, &mut self.warnings)?;
-                    if key == "xmlns" || key.starts_with("xmlns:") {
-                        let prefix = key.strip_prefix("xmlns:").unwrap_or("");
-                        if prefix == "xmlns"
-                            || value == XMLNS
-                            || (prefix == "xml") != (value == XML)
-                            || (!prefix.is_empty() && value.is_empty())
-                        {
-                            return Err("invalid namespace binding");
-                        }
-                        self.namespaces
-                            .entry(prefix.into())
-                            .or_default()
-                            .push(value.clone());
-                        self.declarations.push(prefix.into());
-                    }
+                    namespace_attribute(key, value, &mut self.namespaces, &mut self.declarations)?;
                     *s = &s[end + 1..];
                     tag.part = TagPart::Between(false);
                 }
@@ -522,9 +548,23 @@ impl<'a> Parser<'a> {
                     // and node boundaries still follow the normal text path.
                     if let Some(c) = s.chars().next() {
                         self.split_scalar = c.len_utf16() == 2;
-                        if !self.split_scalar { *s = &s[c.len_utf8()..]; }
+                        if !self.split_scalar {
+                            *s = &s[c.len_utf8()..];
+                        }
                     }
-                    let el = self.start_tag.take().unwrap().element;
+                    let mut el = self.start_tag.take().unwrap().element;
+                    el.self_closing = empty;
+                    let prefix = el
+                        .tag
+                        .split_once(':')
+                        .filter(|(prefix, local)| !prefix.is_empty() && !local.is_empty())
+                        .map_or("", |(prefix, _)| prefix);
+                    el.namespace = self
+                        .namespaces
+                        .get(prefix)
+                        .and_then(|bindings| bindings.last())
+                        .cloned()
+                        .unwrap_or_default();
                     if empty {
                         self.attach(Node::Element(el));
                     } else {
@@ -614,9 +654,13 @@ impl<'a> Parser<'a> {
             let (text, low) = if std::mem::take(&mut self.split_scalar) {
                 let c = text.chars().next().unwrap();
                 (&text[c.len_utf8()..], Some(c.encode_utf16(&mut [0; 2])[1]))
-            } else { (text, None) };
+            } else {
+                (text, None)
+            };
             let mut decoded = decode(text, false, warnings)?;
-            if low.is_some() { decoded.insert(0, char::REPLACEMENT_CHARACTER); }
+            if low.is_some() {
+                decoded.insert(0, char::REPLACEMENT_CHARACTER);
+            }
             if decoded.is_empty() {
                 return Ok(());
             }

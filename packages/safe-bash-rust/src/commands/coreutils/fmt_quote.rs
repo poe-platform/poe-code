@@ -25,12 +25,23 @@ fn units(mut bytes: &[u8], unicode: bool) -> impl Iterator<Item = (&[u8], Option
 
 pub(in crate::commands) fn filename(text: &str, unicode: bool) -> String {
     let bytes = crate::vfs::stream_string_to_bytes(text);
-    let bare = !bytes.is_empty() && !matches!(bytes.as_slice(), b"{" | b"}")
-        && !matches!(bytes[0], b'#' | b'~') && units(&bytes, unicode).all(|(_, ch)| ch.is_some_and(|c|
-            if c.is_ascii() { !c.is_ascii_control() && !r#" !"'$&()*:;<=>?[\^`|"#.contains(c) }
-            else { BOUNDARIES.partition_point(|&start| start <= c as u32) % 2 == 1 }
-        ));
-    if bare { text.to_string() } else { quote(text, true, unicode) }
+    let bare = !bytes.is_empty()
+        && !matches!(bytes.as_slice(), b"{" | b"}")
+        && !matches!(bytes[0], b'#' | b'~')
+        && units(&bytes, unicode).all(|(_, ch)| {
+            ch.is_some_and(|c| {
+                if c.is_ascii() {
+                    !c.is_ascii_control() && !r#" !"'$&()*:;<=>?[\^`|"#.contains(c)
+                } else {
+                    BOUNDARIES.partition_point(|&start| start <= c as u32) % 2 == 1
+                }
+            })
+        });
+    if bare {
+        text.to_string()
+    } else {
+        quote(text, true, unicode)
+    }
 }
 
 pub(in crate::commands) fn quote(text: &str, shell: bool, unicode: bool) -> String {

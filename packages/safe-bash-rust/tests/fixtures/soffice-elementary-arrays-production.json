@@ -1,0 +1,291 @@
+[
+  {
+    "formula": "SIGN({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -1
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ],
+    "reference": "Production recalculateWorkbook array-group evaluation, 2026-11-21. Explicit groups calculate all three values, including errors and text coercion."
+  },
+  {
+    "formula": "SIGN({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "SQRTPI({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1.7724538509055159
+      }
+    ]
+  },
+  {
+    "formula": "SQRTPI({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.5066282746310002
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "EVEN({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -2
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "formula": "EVEN({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "ODD({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "ODD({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "LOG2({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "LOG2({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "EXPM1({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -0.6321205588285577
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1.718281828459045
+      }
+    ]
+  },
+  {
+    "formula": "EXPM1({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.38905609893065
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "LN1P({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.6931471805599453
+      }
+    ]
+  },
+  {
+    "formula": "LN1P({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.0986122886681098
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "CEIL({-1,0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": -1
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "formula": "CEIL({\"2\",\"text\",#N/A})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  }
+]

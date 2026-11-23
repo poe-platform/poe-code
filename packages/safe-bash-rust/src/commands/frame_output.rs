@@ -4,7 +4,9 @@ use super::jpeg;
 
 pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
     Some(match name {
-        "png" | "image2" | "pgm" | "tga" => "png",
+        "png" | "image2" | "tga" => "png",
+        "pgm" => "pgm",
+        "pbm" => "pbm",
         "tiff" | "tif" if numbered => "png",
         "tiff" | "tif" => "tiff",
         "jpg" | "jpeg" => "jpeg",
@@ -12,12 +14,16 @@ pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
         "webp" => "webp",
         "gif" => "gif",
         "ppm" => "ppm",
+        "qoi" => "qoi",
+        "exr" => "exr",
         _ => return None,
     })
 }
 
-fn tiff(im: &Raster, density:u32, limit: usize) -> Result<Vec<u8>, &'static str> {
-    if im.width==0 || im.height==0 {return Err("TIFF layout exceeds classic TIFF offsets");}
+fn tiff(im: &Raster, density: u32, limit: usize) -> Result<Vec<u8>, &'static str> {
+    if im.width == 0 || im.height == 0 {
+        return Err("TIFF layout exceeds classic TIFF offsets");
+    }
     let byte_count = im
         .pixels
         .len()
@@ -84,14 +90,20 @@ fn pdf(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
     for (id, color, mask) in [(5, "DeviceRGB", " /SMask 7 0 R"), (7, "DeviceGray", "")] {
         let mut raw = Vec::with_capacity(im.pixels.len() * if id == 5 { 3 } else { 1 });
         for pixel in &im.pixels {
-            if id == 7 { raw.push(pixel[3]); }
-            else if im.gray { raw.extend_from_slice(&[pixel[0]; 3]); }
-            else { raw.extend_from_slice(&pixel[..3]); }
+            if id == 7 {
+                raw.push(pixel[3]);
+            } else if im.gray {
+                raw.extend_from_slice(&[pixel[0]; 3]);
+            } else {
+                raw.extend_from_slice(&pixel[..3]);
+            }
         }
         let data = crate::commands::codecs::zlib_compress(&raw);
         offsets[id - 1] = out.len();
         writeln!(out, "{id} 0 obj\n<< /Type /XObject /Subtype /Image /Width {w} /Height {h} /ColorSpace /{color} /BitsPerComponent 8 /Filter /FlateDecode /Length {} 0 R{mask} >>\nstream", id + 1).unwrap();
-        if data.len() > limit.saturating_sub(out.len()) { return Err("output byte limit exceeded"); }
+        if data.len() > limit.saturating_sub(out.len()) {
+            return Err("output byte limit exceeded");
+        }
         out.extend_from_slice(&data);
         out.extend_from_slice(b"\nendstream\nendobj\n");
         offsets[id] = out.len();
@@ -99,8 +111,14 @@ fn pdf(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
     }
     let xref = out.len();
     out.extend_from_slice(b"xref\n0 9\n0000000000 65535 f \n");
-    for offset in offsets { writeln!(out, "{offset:010} 00000 n ").unwrap(); }
-    writeln!(out, "trailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF").unwrap();
+    for offset in offsets {
+        writeln!(out, "{offset:010} 00000 n ").unwrap();
+    }
+    writeln!(
+        out,
+        "trailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF"
+    )
+    .unwrap();
     Ok(out)
 }
 
@@ -119,18 +137,29 @@ pub(super) fn encode(
         "rgb" | "rgba" => {
             let channels = if format == "rgba" { 4 } else { 3 };
             let mut out = Vec::with_capacity(im.pixels.len() * channels);
-            for pixel in &im.pixels { out.extend_from_slice(&pixel[..channels]); }
+            for pixel in &im.pixels {
+                out.extend_from_slice(&pixel[..channels]);
+            }
             out
         }
+        "exr" => super::exr::encode_raster(im, limit)?,
+        "qoi" => super::qoi::encode(im, im.alpha, false, limit)?,
         "pdf" => pdf(im, limit)?,
         "heic" | "heif" | "avif" => super::heif::encode(im, format, density, limit)?,
         "jpeg" => jpeg::encode(jpeg::Input::Raster(im, quality, density), limit)?,
         "tiff" => tiff(im, density, limit)?,
-        "gif" => super::gif::encode(w,h,&im.pixels,Default::default(),limit)?,
+        "gif" => super::gif::encode(w, h, &im.pixels, Default::default(), limit)?,
         "webp" => super::webp::encode(im, density, limit)?,
-        "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
-            im.pixels[y * w + x]
-        }),
+        "png" => super::pixel_png(
+            w,
+            h,
+            if density == 0 {
+                super::PngEncoding::Unspecified
+            } else {
+                super::PngEncoding::Density(density)
+            },
+            |x, y| im.pixels[y * w + x],
+        ),
         "ppm" => {
             let mut out = format!("P6\n{w} {h}\n255\n").into_bytes();
             for p in &im.pixels {
@@ -179,8 +208,8 @@ pub(super) fn encode(
                 24 << 16 | 1,
                 0,
                 size as u32,
-                (f64::from(density)/0.0254).round() as u32,
-                (f64::from(density)/0.0254).round() as u32,
+                (f64::from(density) / 0.0254).round() as u32,
+                (f64::from(density) / 0.0254).round() as u32,
                 0,
                 0,
             ] {
@@ -263,7 +292,14 @@ impl ImageSequence {
             if bytes.len() > remaining {
                 return Err("image exceeds memory budget".into());
             }
-            let frame = Raster::decode(&bytes, remaining).map_err(|e| match e {
+            let frame = (if super::exr::signature(&bytes) {
+                super::exr::Image::read(&bytes, remaining).and_then(|im| im.raster(remaining))
+            } else if super::netpbm::signature(&bytes) {
+                super::ffmpeg_pnm::Image::read(&bytes, remaining).map(|im| im.decode())
+            } else {
+                Raster::decode(&bytes, remaining)
+            })
+            .map_err(|e| match e {
                 "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
                 _ => e,
             })?;
@@ -288,6 +324,7 @@ impl ImageSequence {
         super::y4m::render_frames(
             w,
             h,
+            f64::from(super::y4m::rate_ratio(self.fps).0),
             (0..self.frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
             opts,
             |i| Ok(self.frames[i].clone()),
@@ -301,30 +338,47 @@ pub(super) fn still_info(
     bytes: &[u8],
     limit: usize,
 ) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
+    if super::exr::signature(bytes) {
+        let im = super::exr::Image::read(bytes, limit)?;
+        return Ok((im.width, im.height, b"exr "));
+    }
+    if bytes.starts_with(b"qoif") {
+        let im = super::qoi::Image::read(bytes, limit)?;
+        return Ok((im.width, im.height, b"qoi "));
+    }
     if super::webp::signature(bytes) {
-        let (w,h)=super::webp::header(bytes).map_or((64,64), |h| (h.width as usize,h.height as usize));
-        if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
-        return Ok((w,h,b"webp"));
+        let (w, h) =
+            super::webp::header(bytes).map_or((64, 64), |h| (h.width as usize, h.height as usize));
+        if w.saturating_mul(h) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        return Ok((w, h, b"webp"));
     }
     if super::jpeg_decode::signature(bytes) {
         let header = super::image_header::jpeg(bytes)?;
-        let (w,h)=(header.width as usize,header.height as usize);
-        if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
-        return Ok((w,h,b"mjpe"));
+        let (w, h) = (header.width as usize, header.height as usize);
+        if w.saturating_mul(h) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        return Ok((w, h, b"mjpe"));
     }
     if super::netpbm::signature(bytes) {
-        let image = super::netpbm::Netpbm::parse(bytes, limit)?;
+        let image = super::ffmpeg_pnm::Image::read(bytes, limit)?;
         return Ok((image.width, image.height, image.codec()));
     }
-    let header=if super::bmp::signature(bytes) {
-        Some(super::bmp::Bmp::parse(bytes,limit).map(|im|(im.width,im.height,b"bmp ")))
-    }else if super::tiff::signature(bytes) {
-        Some(super::tiff::dimensions(bytes,limit).map(|(w,h)|(w,h,b"tiff")))
-    }else{None};
-    if let Some(header)=header {
+    let header = if super::bmp::signature(bytes) {
+        Some(super::bmp::Bmp::parse(bytes, limit).map(|im| (im.width, im.height, b"bmp ")))
+    } else if super::tiff::signature(bytes) {
+        Some(super::tiff::dimensions(bytes, limit).map(|(w, h)| (w, h, b"tiff")))
+    } else {
+        None
+    };
+    if let Some(header) = header {
         return match header {
-            Err("Offset is outside the bounds of the DataView") if limit < 64*64*4 => Err("image exceeds memory budget"),
-            Err("Offset is outside the bounds of the DataView") => Ok((64,64,b"png ")),
+            Err("Offset is outside the bounds of the DataView") if limit < 64 * 64 * 4 => {
+                Err("image exceeds memory budget")
+            }
+            Err("Offset is outside the bounds of the DataView") => Ok((64, 64, b"png ")),
             other => other,
         };
     }
@@ -348,6 +402,15 @@ pub(super) fn still_info(
 }
 
 pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    if super::exr::signature(bytes) {
+        return super::exr::Image::read(bytes, limit)?.raster(limit);
+    }
+    if super::netpbm::signature(bytes) {
+        return super::ffmpeg_pnm::Image::read(bytes, limit).map(|im| im.decode());
+    }
+    if bytes.starts_with(b"qoif") {
+        return Raster::decode(bytes, limit);
+    }
     Ok(match Raster::decode(bytes, limit) {
         Ok(im) => im,
         Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
@@ -377,6 +440,12 @@ pub(super) fn render_still(
     reslice: bool,
     emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
+    if bytes.starts_with(b"qoif") {
+        return super::qoi::render(bytes, opts, seek, emit);
+    }
+    if super::netpbm::signature(bytes) {
+        return super::ffmpeg_pnm::render(bytes, opts, seek, emit);
+    }
     let im = decode_still(bytes, opts.limit)?;
     let (w, h) = (im.width, im.height);
     // A still has one 25 Hz sample. A sub-tick input cut may preserve
@@ -394,7 +463,7 @@ pub(super) fn render_still(
         return Err("frame index exceeds memory budget".into());
     }
     let times = (0..count).map(|i| (i as f64 / 25., 0.04));
-    super::y4m::render_frames(w, h, times, opts, |_| Ok(im.clone()), emit)?;
+    super::y4m::render_frames(w, h, 25., times, opts, |_| Ok(im.clone()), emit)?;
     Ok((w, h, 30))
 }
 
@@ -405,7 +474,10 @@ pub(super) fn render(
     image_format: Option<&str>,
     pattern: Option<(usize, usize, usize)>,
     mut index: u64,
-    unfiltered: bool,
+    filters: &[String],
+    png_channels: Option<usize>,
+    gif_flags: u8,
+    (pixel_format, linear, image_pipe): (Option<&str>, bool, bool),
     decode: impl FnOnce(
         bool,
         &mut dyn FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
@@ -416,59 +488,200 @@ pub(super) fn render(
     let mut failure = None;
     let mut total = 0usize;
     let mut geometry = None;
-    let animation=image_format==Some("gif") && pattern.is_none();
-    let mut gif_pixels=Vec::new();
-    let mut delays=Vec::new();
-    let mut elapsed=0.;
-    let mut previous=0u64;
-    let dims = decode(pattern.is_some() || animation, &mut |mut im, frame| {
-        let duration = frame.duration;
-        if animation {
-            let (w,h)=*geometry.get_or_insert((im.width,im.height));
-            let n=w.saturating_mul(h);
-            if n==0 {return Err("GIF dimensions exceed 16-bit frame fields");}
-            if im.pixels.len()>n {return Err("offset is out of bounds");}
-            let end=gif_pixels.len().saturating_add(n);
-            if end.saturating_mul(4).saturating_add((delays.len()+1)*2)>limit {return Err("image exceeds memory budget");}
-            gif_pixels.append(&mut im.pixels);
-            gif_pixels.resize(end,[0;4]);
-            elapsed+=duration;
-            let ticks=(elapsed*100.).round() as u64;
-            delays.push(ticks.saturating_sub(previous) as u16);
-            previous=ticks;
-        } else if let Some(fmt) = image_format {
-            if fmt=="tiff" { im.orientation=None; }
-            let frame = encode(&im, fmt, 85., 72, limit)?;
-            if let Some((i, j, width)) = pattern {
-                total = total.saturating_add(frame.len());
-                if total > limit {
+    let animation = image_format == Some("gif") && pattern.is_none();
+    let mut gif_pixels = Vec::new();
+    let mut delays = Vec::new();
+    let mut elapsed = 0.;
+    let mut previous = 0u64;
+    let raw = matches!(
+        image_format,
+        Some("rgb24" | "bgr24" | "rgba" | "bgra" | "gray" | "yuv420p")
+    );
+    let dims = decode(
+        pattern.is_some() || animation || raw || image_pipe,
+        &mut |mut im, frame| {
+            let duration = frame.duration;
+            if animation {
+                let (w, h) = *geometry.get_or_insert((im.width, im.height));
+                let n = w.saturating_mul(h);
+                if n == 0 {
+                    return Err("GIF dimensions exceed 16-bit frame fields");
+                }
+                if im.pixels.len() > n {
+                    return Err("offset is out of bounds");
+                }
+                let end = gif_pixels.len().saturating_add(n);
+                if end.saturating_mul(4).saturating_add((delays.len() + 1) * 2) > limit {
+                    return Err("image exceeds memory budget");
+                }
+                gif_pixels.append(&mut im.pixels);
+                gif_pixels.resize(end, [0; 4]);
+                elapsed += duration;
+                let ticks = (elapsed * 100.).round() as u64;
+                delays.push(ticks.saturating_sub(previous) as u16);
+                previous = ticks;
+            } else if raw {
+                let format = image_format.unwrap();
+                if format == "gray" {
+                    if !im.gray {
+                        super::video_filter::Filter::new("format", "gray")
+                            .apply(&mut im, limit)
+                            .map_err(|_| "gray conversion failed")?;
+                    }
+                    if im.pixels.len() > limit.saturating_sub(data.len()) {
+                        return Err("output byte limit exceeded");
+                    }
+                    data.extend(im.pixels.iter().map(|p| p[0]));
+                } else if format == "yuv420p" {
+                    let (w, h) = (im.width, im.height);
+                    let cw = w.div_ceil(2);
+                    let chroma = cw * h.div_ceil(2);
+                    let size = w
+                        .checked_mul(h)
+                        .and_then(|n| n.checked_add(2 * chroma))
+                        .filter(|&n| n <= limit.saturating_sub(data.len()))
+                        .ok_or("output byte limit exceeded")?;
+                    let start = data.len();
+                    data.try_reserve_exact(size)
+                        .map_err(|_| "output byte limit exceeded")?;
+                    data.resize(start + size, 0);
+                    let (y, uv) = data[start..].split_at_mut(w * h);
+                    let (u, v) = uv.split_at_mut(chroma);
+                    for (i, p) in im.pixels.iter().enumerate() {
+                        let [r, g, b, _] = p.map(i32::from);
+                        let luma = (8414 * r + 16519 * g + 3208 * b + (16 << 15) + 256) >> 9;
+                        y[i] = ((luma + 32) >> 6) as u8;
+                    }
+                    for row in 0..h.div_ceil(2) {
+                        for col in 0..cw {
+                            let (mut r, mut g, mut b) = (0, 0, 0);
+                            for dy in 0..2 {
+                                for dx in 0..2 {
+                                    let p = im.pixels
+                                        [(row * 2 + dy).min(h - 1) * w + (col * 2 + dx).min(w - 1)]
+                                    .map(i32::from);
+                                    r += p[0];
+                                    g += p[1];
+                                    b += p[2];
+                                }
+                            }
+                            let i = row * cw + col;
+                            // Chroma uses one final rounding after the 2x2 average.
+                            u[i] = ((-4857 * r - 9535 * g + 14392 * b + 65536).div_euclid(131072)
+                                + 128) as u8;
+                            v[i] = ((14392 * r - 12052 * g - 2340 * b + 65536).div_euclid(131072)
+                                + 128) as u8;
+                        }
+                    }
+                } else {
+                    let channels = if matches!(format, "rgba" | "bgra") {
+                        4
+                    } else {
+                        3
+                    };
+                    let size = im
+                        .pixels
+                        .len()
+                        .checked_mul(channels)
+                        .filter(|&n| n <= limit.saturating_sub(data.len()))
+                        .ok_or("output byte limit exceeded")?;
+                    data.try_reserve_exact(size)
+                        .map_err(|_| "output byte limit exceeded")?;
+                    for p in &im.pixels {
+                        if matches!(format, "bgr24" | "bgra") {
+                            data.extend_from_slice(&[p[2], p[1], p[0]]);
+                        } else {
+                            data.extend_from_slice(&p[..3]);
+                        }
+                        if channels == 4 {
+                            data.push(p[3]);
+                        }
+                    }
+                }
+            } else if let Some(fmt) = image_format {
+                if fmt == "tiff" {
+                    im.orientation = None;
+                }
+                let frame = if matches!(fmt, "pgm" | "pbm") {
+                    super::ffmpeg_pnm::encode(
+                        &im,
+                        fmt == "pbm",
+                        limit.saturating_sub(im.pixels.capacity() * 4),
+                    )?
+                } else if fmt == "qoi" {
+                    let alpha = pixel_format.map_or(im.alpha, |f| {
+                        matches!(f, "rgba" | "bgra" | "argb" | "abgr" | "ya8" | "yuva420p")
+                    });
+                    super::qoi::encode(
+                        &im,
+                        alpha,
+                        linear,
+                        limit.saturating_sub(im.pixels.capacity() * 4),
+                    )?
+                } else if fmt == "png" && png_channels == Some(3) {
+                    super::pixel_png(im.width, im.height, super::PngEncoding::Ffmpeg, |x, y| {
+                        let p = im.pixels[y * im.width + x];
+                        [p[0], p[1], p[2]]
+                    })
+                } else if fmt == "png" && png_channels.is_some() {
+                    super::pixel_png(im.width, im.height, super::PngEncoding::Ffmpeg, |x, y| {
+                        im.pixels[y * im.width + x]
+                    })
+                } else {
+                    encode(&im, fmt, 85., if fmt == "png" { 0 } else { 72 }, limit)?
+                };
+                if frame.len() > limit {
                     return Err("output byte limit exceeded");
                 }
-                let name = format!("{}{index:0width$}{}", &path[..i], &path[j..]);
-                if let Err(e) =
-                    super::write_ffmpeg_output(fs, &super::resolve_posix_path(cwd, &name), &frame)
-                {
-                    failure = Some(e);
-                    return Err("writing image sequence");
+                if let Some((i, j, width)) = pattern {
+                    total = total.saturating_add(frame.len());
+                    if total > limit {
+                        return Err("output byte limit exceeded");
+                    }
+                    let name = format!("{}{index:0width$}{}", &path[..i], &path[j..]);
+                    if let Err(e) = super::write_ffmpeg_output(
+                        fs,
+                        &super::resolve_posix_path(cwd, &name),
+                        &frame,
+                    ) {
+                        failure = Some(e);
+                        return Err("writing image sequence");
+                    }
+                    index += 1;
+                } else if image_pipe {
+                    if frame.len() > limit.saturating_sub(data.len()) {
+                        return Err("output byte limit exceeded");
+                    }
+                    data.extend_from_slice(&frame);
+                } else {
+                    data = frame;
                 }
-                index += 1;
             } else {
-                data = frame;
+                if data.is_empty() {
+                    data = super::y4m::header(
+                        im.width,
+                        im.height,
+                        if filters
+                            .iter()
+                            .flat_map(|s| s.split(','))
+                            .any(|s| s.trim().starts_with("fps="))
+                        {
+                            1. / duration
+                        } else {
+                            (1. / duration).round().max(1.)
+                        },
+                    );
+                }
+                let (w, h) = *geometry.get_or_insert((im.width, im.height));
+                im.width = w;
+                im.height = h;
+                im.pixels.resize(w * h, [0; 4]);
+                data.extend_from_slice(b"FRAME\n");
+                super::y4m::append_planes(&mut data, &im, limit)?;
             }
-        } else {
-            if data.is_empty() {
-                data =
-                    super::y4m::header(im.width, im.height, (1. / duration).round().max(1.) as u32);
-            }
-            let (w, h) = *geometry.get_or_insert((im.width, im.height));
-            im.width = w;
-            im.height = h;
-            im.pixels.resize(w * h, [0; 4]);
-            data.extend_from_slice(b"FRAME\n");
-            super::y4m::append_planes(&mut data, &im, limit)?;
-        }
-        Ok(())
-    });
+            Ok(())
+        },
+    );
     let (w, h, fps) = dims.map_err(|e| failure.unwrap_or(e))?;
     if pattern.is_some() {
         return Ok(None);
@@ -476,43 +689,47 @@ pub(super) fn render(
     if animation {
         // The GIF muxer reserves the track dimensions. Decoded AVC pixels
         // may still include padding; JavaScript rejects an oversized copy.
-        let (fw,fh)=geometry.unwrap_or((w,h));
-        let (w,h)=if unfiltered {(w,h)} else {(fw,fh)};
-        if fw.saturating_mul(fh)>w.saturating_mul(h) {return Err("offset is out of bounds".into());}
-        if fw*fh<w*h && !delays.is_empty() {
-            let n=w.saturating_mul(h);
-            if n.saturating_mul(delays.len())>limit/4 {return Err("image exceeds memory budget".into());}
-            gif_pixels.resize(n*delays.len(),[0;4]);
-            let src=fw*fh;
+        let (fw, fh) = geometry.unwrap_or((w, h));
+        let (w, h) = if filters.is_empty() { (w, h) } else { (fw, fh) };
+        if fw.saturating_mul(fh) > w.saturating_mul(h) {
+            return Err("offset is out of bounds".into());
+        }
+        if fw * fh < w * h && !delays.is_empty() {
+            let n = w.saturating_mul(h);
+            if n.saturating_mul(delays.len()) > limit / 4 {
+                return Err("image exceeds memory budget".into());
+            }
+            gif_pixels.resize(n * delays.len(), [0; 4]);
+            let src = fw * fh;
             for i in (0..delays.len()).rev() {
-                gif_pixels.copy_within(i*src..(i+1)*src,i*n);
-                gif_pixels[i*n+src..(i+1)*n].fill([0;4]);
+                gif_pixels.copy_within(i * src..(i + 1) * src, i * n);
+                gif_pixels[i * n + src..(i + 1) * n].fill([0; 4]);
             }
         }
         if delays.is_empty() {
-            if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget".into());}
-            gif_pixels.resize(w*h,[0;4]);
-        }
-        return Ok(Some(super::gif::encode(w,h,&gif_pixels,super::gif::Timing { delays:&delays, explicit_delay:true, repeat:None },limit)?));
-    }
-    if data.is_empty() {
-        data = if let Some(fmt) = image_format {
             if w.saturating_mul(h) > limit / 4 {
                 return Err("image exceeds memory budget".into());
             }
-            let blank = Raster {
-                width: w,
-                height: h,
-                alpha: true,
-                gray: false,
-                density: 72,
-                orientation: None,
-                pixels: vec![[0; 4]; w * h],
-            };
-            encode(&blank, fmt, 85., 72, limit)?
-        } else {
-            super::y4m::header(w, h, fps)
-        };
+            gif_pixels.resize(w * h, [0; 4]);
+        }
+        return Ok(Some(super::gif::encode(
+            w,
+            h,
+            &gif_pixels,
+            super::gif::Timing {
+                flags: gif_flags,
+                delays: &delays,
+                explicit_delay: true,
+                repeat: None,
+            },
+            limit,
+        )?));
+    }
+    if data.is_empty() {
+        if image_format.is_some() {
+            return Ok((raw || image_pipe).then_some(data));
+        }
+        data = super::y4m::header(w, h, f64::from(fps));
     }
     Ok(Some(data))
 }

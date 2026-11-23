@@ -83,7 +83,7 @@ impl Video {
                     .or(params.get("_0"))
                     .copied()
                     .filter(|v| !v.is_empty())
-                    .unwrap_or("blue");
+                    .unwrap_or("black");
                 Pattern::Color(color_rgb(color))
             }
             _ => return None,
@@ -216,6 +216,7 @@ impl Video {
         y4m::render_frames(
             w,
             h,
+            f64::from(y4m::rate_ratio(self.fps).0),
             (0..n).map(|i| (i as f64 / fps, 1. / fps)),
             y4m::Options {
                 start: 0.,
@@ -234,4 +235,57 @@ impl Video {
         )?;
         Ok((w, h, 30))
     }
+}
+
+// FFmpeg's sine oscillator uses integer midpoints, rather than quantized sin().
+pub(super) fn sine(
+    frequency: f64,
+    rate: u32,
+    channels: usize,
+    frames: usize,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
+    let bytes = frames
+        .checked_mul(channels)
+        .and_then(|n| n.checked_mul(2))
+        .filter(|&n| n <= limit.saturating_sub(65536))
+        .ok_or("audio output exceeds memory budget")?;
+    if limit < 65536 {
+        return Err("audio output exceeds memory budget");
+    }
+    let mut table = vec![0i16; 32768];
+    table[8192] = 32760;
+    let mut step = 8192;
+    while step > 1 {
+        for i in (0..4096).step_by(step) {
+            let sine = i64::from(table[i]) + i64::from(table[i + step]);
+            let cosine = i64::from(table[8192 - i]) + i64::from(table[8192 - i - step]);
+            let scale =
+                (32760. * 65536. / ((sine * sine + cosine * cosine) as f64).sqrt()).round() as i64;
+            table[i + step / 2] = ((sine * scale + 32767) / 65536) as i16;
+            table[8192 - i - step / 2] = ((cosine * scale + 32768) / 65536) as i16;
+        }
+        step /= 2;
+    }
+    for value in &mut table[..=8192] {
+        *value = (*value + 4) >> 3;
+    }
+    for i in 0..8192 {
+        table[16384 - i] = table[i];
+    }
+    for i in 0..16384 {
+        table[i + 16384] = -table[i];
+    }
+    let step = (frequency * 4294967296. / f64::from(rate))
+        .round()
+        .rem_euclid(4294967296.) as u32;
+    let mut phase = 0u32;
+    let mut pcm = Vec::with_capacity(bytes);
+    for _ in 0..frames {
+        for _ in 0..channels {
+            pcm.extend_from_slice(&table[(phase >> 17) as usize].to_le_bytes());
+        }
+        phase = phase.wrapping_add(step);
+    }
+    Ok(pcm)
 }

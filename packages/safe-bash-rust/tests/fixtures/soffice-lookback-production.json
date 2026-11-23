@@ -1,0 +1,7149 @@
+[
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"Call\",100,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"PUT\",100,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"x\",100,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"\",100,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(0,100,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(TRUE(),100,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(NA(),100,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",0,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",-1,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",1,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 540.7958148006123
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",1e-8,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 5414492.805828117
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",-1e-8,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",1e6,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 980113.0626585502
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",-1e6,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",80,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.187771064743574
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",90,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 14.378318790212571
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",110,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 24.629158746934202
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",120,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 32.9878844387505
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",.001,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17122.12898754699
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",.2,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1210.5867045950938
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",2,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 381.55552640427857
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",\"2\",90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 381.55552640427857
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",\"\",90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",\"text\",90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",TRUE(),90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 540.7958148006123
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",FALSE(),90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",1/0,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",NA(),90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{0,1},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 540.7958148006123
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{90,110},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 14.378318790212571
+      },
+      {
+        "kind": "number",
+        "value": 24.629158746934202
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{.01,.2},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5414.486271170335
+      },
+      {
+        "kind": "number",
+        "value": 1210.5867045950938
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{\"2\",\"bad\"},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 381.55552640427857
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{TRUE,FALSE},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 540.7958148006123
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",{#N/A,100},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",IF({TRUE,FALSE},NA(),1),90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 540.7958148006123
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,0,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,-1,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,1,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 97.06863790617481
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,1e-8,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 98.01986732116323
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,-1e-8,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,1e6,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 63415229.6201358
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,-1e6,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,80,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 23.644735423486498
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,100,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.975909766902852
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,110,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.92712868078914
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,120,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 23.317047774074698
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,.001,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 98.01891610125102
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,.2,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 97.82962144577539
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,2,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 96.11740848167409
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,\"2\",110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 96.11740848167409
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,\"\",110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,\"text\",110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,TRUE(),110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 97.06863790617481
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,FALSE(),110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,1/0,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,NA(),110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{0,1},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.01986733067552
+      },
+      {
+        "kind": "number",
+        "value": 97.06863790617481
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{90,110},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 17.92712868078914
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{.01,.2},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.01035503643051
+      },
+      {
+        "kind": "number",
+        "value": 97.82962144577539
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{\"2\",\"bad\"},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 96.11740848167409
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{TRUE,FALSE},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 97.06863790617481
+      },
+      {
+        "kind": "number",
+        "value": 98.01986733067552
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,{#N/A,100},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.975909766902852
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,IF({TRUE,FALSE},NA(),1),110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 97.06863790617481
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,-1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,-1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,-1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,80,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,90,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,120,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,.001,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,.2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,\"2\",1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,\"\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,\"text\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,TRUE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,FALSE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,1/0,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,NA(),1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{0,1},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{90,110},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{.01,.2},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{\"2\",\"bad\"},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{TRUE,FALSE},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,{#N/A,100},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,IF({TRUE,FALSE},NA(),1),1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,0,.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,-1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1e-8,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.000000025000006
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,-1e-8,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,-1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,80,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.359421975357368
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,90,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.037358017940285
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,100,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.240553919549098
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,110,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.90566358334021
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,120,.05,.03,.2)",
+    "kind": "number",
+    "value": 8.967490055243932
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.002499907501743
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.2,.05,.03,.2)",
+    "kind": "number",
+    "value": 11.365443107715418
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 23.608857157661102
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 23.608857157661102
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 17.98696654912108
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,FALSE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{90,110},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.037358017940285
+      },
+      {
+        "kind": "number",
+        "value": 10.90566358334021
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.02499079459549
+      },
+      {
+        "kind": "number",
+        "value": 11.365443107715418
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 23.608857157661102
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,{#N/A,100},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 13.240553919549098
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,0,.03,.2)",
+    "kind": "number",
+    "value": 18.909178044573416
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,-1,.03,.2)",
+    "kind": "number",
+    "value": 51.400475069660615
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,1,.03,.2)",
+    "kind": "number",
+    "value": 6.956297852048969
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 18.90917785548161
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 18.90917823366518
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,80,.03,.2)",
+    "kind": "number",
+    "value": 3.4128256236764536e-34
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,90,.03,.2)",
+    "kind": "number",
+    "value": 1.549420436065196e-38
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,100,.03,.2)",
+    "kind": "number",
+    "value": 7.034357896991854e-43
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,110,.03,.2)",
+    "kind": "number",
+    "value": 3.1935935444761054e-47
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,120,.03,.2)",
+    "kind": "number",
+    "value": 1.4498892260914028e-51
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.001,.03,.2)",
+    "kind": "number",
+    "value": 18.890278317967113
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.2,.03,.2)",
+    "kind": "number",
+    "value": 15.481525580519227
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,2,.03,.2)",
+    "kind": "number",
+    "value": 2.559078966433878
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 2.559078966433878
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 6.956297852048969
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 18.909178044573416
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.909178044573416
+      },
+      {
+        "kind": "number",
+        "value": 6.956297852048969
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{90,110},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.549420436065196e-38
+      },
+      {
+        "kind": "number",
+        "value": 3.1935935444761054e-47
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.721028579363303
+      },
+      {
+        "kind": "number",
+        "value": 15.481525580519227
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.559078966433878
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.956297852048969
+      },
+      {
+        "kind": "number",
+        "value": 18.909178044573416
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,{#N/A,100},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 7.034357896991854e-43
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 6.956297852048969
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,-1,.2)",
+    "kind": "number",
+    "value": 0.6998764470994517
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,1,.2)",
+    "kind": "number",
+    "value": 172.97012254669403
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 15.997710376827367
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 15.997709105999515
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,-1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,80,.2)",
+    "kind": "number",
+    "value": 5.270403042082427e+36
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,90,.2)",
+    "kind": "number",
+    "value": 1.1608835233127385e+41
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,100,.2)",
+    "kind": "number",
+    "value": 2.557016121800274e+45
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,110,.2)",
+    "kind": "number",
+    "value": 5.632202814360306e+49
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,120,.2)",
+    "kind": "number",
+    "value": 1.2405752263992142e+54
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.001,.2)",
+    "kind": "number",
+    "value": 16.061132222803597
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.2,.2)",
+    "kind": "number",
+    "value": 32.65862542356083
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,2,.2)",
+    "kind": "number",
+    "value": 617.2581351198492
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 617.2581351198492
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 172.97012254669403
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,FALSE(),.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 172.97012254669403
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{90,110},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.1608835233127385e+41
+      },
+      {
+        "kind": "number",
+        "value": 5.632202814360306e+49
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.64085898131932
+      },
+      {
+        "kind": "number",
+        "value": 32.65862542356083
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 617.2581351198492
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 172.97012254669403
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,{#N/A,100},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.557016121800274e+45
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 172.97012254669403
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,-1)",
+    "kind": "number",
+    "value": -103.61230656602368
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,1)",
+    "kind": "number",
+    "value": 57.74885376522673
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,1e-8)",
+    "kind": "number",
+    "value": 12.409219125611259
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,-1e-8)",
+    "kind": "number",
+    "value": -1.6336644555112591e-13
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,1e6)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,-1e6)",
+    "kind": "number",
+    "value": -48282081343497.93
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,80)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,90)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,100)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,110)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,120)",
+    "kind": "number",
+    "value": 98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.001)",
+    "kind": "number",
+    "value": 12.409219125611259
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,2)",
+    "kind": "number",
+    "value": 83.5144865990275
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 83.5144865990275
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 57.74885376522673
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,FALSE())",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 57.74885376522673
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{90,110})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.01986733067552
+      },
+      {
+        "kind": "number",
+        "value": 98.01986733067552
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 12.409219125611259
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 83.5144865990275
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 57.74885376522673
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,{#N/A,100})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 98.01986733067552
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 57.74885376522673
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",0,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",-1,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",1,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 103.65503802177179
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",1e-8,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 104.63523668527657
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",-1e-8,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",1e6,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 653465.0505887565
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",-1e6,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",80,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 27.402422814243558
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",90,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 20.514258059507817
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",110,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.51129495403831
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",120,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.49324929121689
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",.001,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 104.63425649640524
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",.2,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 104.43919696041719
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",2,90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 102.67483934846504
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",\"2\",90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 102.67483934846504
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",\"\",90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",\"text\",90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",TRUE(),90,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 103.65503802177179
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",FALSE(),90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",1/0,90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",NA(),90,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{0,1},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 103.65503802177179
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{90,110},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 20.514258059507817
+      },
+      {
+        "kind": "number",
+        "value": 16.51129495403831
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{.01,.2},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 104.62543470834548
+      },
+      {
+        "kind": "number",
+        "value": 104.43919696041719
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{\"2\",\"bad\"},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 102.67483934846504
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{TRUE,FALSE},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 103.65503802177179
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",{#N/A,100},90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",IF({TRUE,FALSE},NA(),1),90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 103.65503802177179
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,0,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,-1,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,1,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,1e-8,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,-1e-8,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,1e6,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,-1e6,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,80,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,100,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,110,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,120,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,.001,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,.2,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,2,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,\"2\",110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,\"\",110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,\"text\",110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,TRUE(),110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,FALSE(),110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,1/0,110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,NA(),110,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{0,1},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{90,110},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{.01,.2},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{\"2\",\"bad\"},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{TRUE,FALSE},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,{#N/A,100},110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,IF({TRUE,FALSE},NA(),1),110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.34657822045038
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,-1,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.28316292548365
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.34657822045031
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,-1e-8,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 951131.4046333834
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,-1e6,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,80,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 21.693508958510982
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,90,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.77939758567841
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.01026814003483
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,120,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 21.4297194980635
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,.001,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.34657621508266
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,.2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.34090618403602
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.16721268004274
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,\"2\",1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.16721268004274
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,\"\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,\"text\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,TRUE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.28316292548365
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,FALSE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 65.34657822045038
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,1/0,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,NA(),1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{0,1},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 65.34657822045038
+      },
+      {
+        "kind": "number",
+        "value": 65.28316292548365
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{90,110},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.77939758567841
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{.01,.2},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 65.34651480515542
+      },
+      {
+        "kind": "number",
+        "value": 65.34090618403602
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{\"2\",\"bad\"},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 65.16721268004274
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{TRUE,FALSE},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 65.28316292548365
+      },
+      {
+        "kind": "number",
+        "value": 65.34657822045038
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,{#N/A,100},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.01026814003483
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,IF({TRUE,FALSE},NA(),1),1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 65.28316292548365
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,0,.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,-1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1e-8,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.999999965
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,-1e-8,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,-1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,80,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.235327922046231
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,90,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.894829448145689
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,100,.05,.03,.2)",
+    "kind": "number",
+    "value": 8.952240170276818
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,110,.05,.03,.2)",
+    "kind": "number",
+    "value": 7.3473989315965795
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,120,.05,.03,.2)",
+    "kind": "number",
+    "value": 6.02554600878064
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.996500117497845
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.2,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.845130398472481
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 21.477317828153332
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 21.477317828153332
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 16.727501548191526
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,FALSE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{90,110},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.894829448145689
+      },
+      {
+        "kind": "number",
+        "value": 7.3473989315965795
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.965012576738708
+      },
+      {
+        "kind": "number",
+        "value": 10.845130398472481
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 21.477317828153332
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      },
+      {
+        "kind": "number",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,{#N/A,100},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 8.952240170276818
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,0,.03,.2)",
+    "kind": "number",
+    "value": 17.585138892198927
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,-1,.03,.2)",
+    "kind": "number",
+    "value": 47.801363501592796
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,1,.03,.2)",
+    "kind": "number",
+    "value": 6.469211068584344
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 17.585138716347565
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 17.58513906805033
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,80,.03,.2)",
+    "kind": "number",
+    "value": 3.17385623350395e-34
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,90,.03,.2)",
+    "kind": "number",
+    "value": 1.44092850077304e-38
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,100,.03,.2)",
+    "kind": "number",
+    "value": 6.5418052727858695e-43
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,110,.03,.2)",
+    "kind": "number",
+    "value": 2.9699749990433144e-47
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,120,.03,.2)",
+    "kind": "number",
+    "value": 1.348366563529026e-51
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.001,.03,.2)",
+    "kind": "number",
+    "value": 17.567562542946074
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.2,.03,.2)",
+    "kind": "number",
+    "value": 14.397494008190943
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,2,.03,.2)",
+    "kind": "number",
+    "value": 2.379889752730918
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 2.379889752730918
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 6.469211068584344
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 17.585138892198927
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.585138892198927
+      },
+      {
+        "kind": "number",
+        "value": 6.469211068584344
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{90,110},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.44092850077304e-38
+      },
+      {
+        "kind": "number",
+        "value": 2.9699749990433144e-47
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.41016383667759
+      },
+      {
+        "kind": "number",
+        "value": 14.397494008190943
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.379889752730918
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.469211068584344
+      },
+      {
+        "kind": "number",
+        "value": 17.585138892198927
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,{#N/A,100},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 6.5418052727858695e-43
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 6.469211068584344
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,-1,.2)",
+    "kind": "number",
+    "value": 69.65766796501696
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,1,.2)",
+    "kind": "number",
+    "value": 5.171421343785141
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 18.134636690404776
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 18.134637667354568
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,-1e6,.2)",
+    "kind": "number",
+    "value": 104.63523669507855
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,80,.2)",
+    "kind": "number",
+    "value": 1.3176007605206033e+33
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,90,.2)",
+    "kind": "number",
+    "value": 2.57974116291719e+37
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,100,.2)",
+    "kind": "number",
+    "value": 5.114032243600535e+41
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,110,.2)",
+    "kind": "number",
+    "value": 1.0240368753382348e+46
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,120,.2)",
+    "kind": "number",
+    "value": 2.0676253773320177e+50
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.001,.2)",
+    "kind": "number",
+    "value": 18.0862532313346
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.2,.2)",
+    "kind": "number",
+    "value": 10.635074542763576
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,2,.2)",
+    "kind": "number",
+    "value": 7.028687580589295
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 7.028687580589295
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 5.171421343785141
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,FALSE(),.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 5.171421343785141
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{90,110},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.57974116291719e+37
+      },
+      {
+        "kind": "number",
+        "value": 1.0240368753382348e+46
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.655314714524835
+      },
+      {
+        "kind": "number",
+        "value": 10.635074542763576
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 7.028687580589295
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.171421343785141
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,{#N/A,100},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 5.114032243600535e+41
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 5.171421343785141
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,-1)",
+    "kind": "number",
+    "value": -57.72330295895459
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,1)",
+    "kind": "number",
+    "value": 103.52859644214678
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,-1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,1e6)",
+    "kind": "number",
+    "value": 48282081343497.766
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,-1e6)",
+    "kind": "number",
+    "value": -98.01986733067552
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,80)",
+    "kind": "number",
+    "value": 309100.88964567066
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,90)",
+    "kind": "number",
+    "value": 391180.42793030356
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,100)",
+    "kind": "number",
+    "value": 482916.3824833769
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,110)",
+    "kind": "number",
+    "value": 584308.7533049718
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,120)",
+    "kind": "number",
+    "value": 695357.5403951403
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,.001)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,2)",
+    "kind": "number",
+    "value": 274.1800929325195
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 274.1800929325195
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 103.52859644214678
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,FALSE())",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 103.52859644214678
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{90,110})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 391180.42793030356
+      },
+      {
+        "kind": "number",
+        "value": 584308.7533049718
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.615369364410465
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 274.1800929325195
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 103.52859644214678
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,{#N/A,100})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 482916.3824833769
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 103.52859644214678
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 9.945038788455888
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 10.044964443887704
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 10.004996796058396
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.985006537605924
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 10.095001289356464
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 9.895002230773276
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 10.294253825294605
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 12.705237291057921
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 11.449882553761034
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 11.627855374316123
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 13.317030661054025
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 10.108590499170655
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 13.075514121939605
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 20.67442246841427
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 16.64085898131932
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 17.655314714524835
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 23.332087323612626
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 13.82364460377729
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 14.276200902369228
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 39.5125556718549
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 27.42771702789258
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 31.546618060871282
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 65.38097451860779
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK(\"p\",100,90,110,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 23.588747284747107
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK({\"c\",\"p\"},100,90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK({\"bad\",\"c\"},100,90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 17.98696654912108
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK({TRUE,\"p\"},100,90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FLOAT_STRK_LKBK({#N/A,\"p\"},100,90,110,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 16.727501548191526
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"Call\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"PUT\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"x\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"\",100,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(0,100,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(TRUE(),100,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(NA(),100,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",0,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",-1,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",1,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",1e-8,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",-1e-8,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",1e6,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1633568.6009530616
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",-1e6,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",80,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.695374228712561
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",90,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.609196207044373
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",110,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 29.210206567709978
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",120,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 41.99414763795611
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",.001,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",.2,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",2,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",\"2\",90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",\"\",90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",\"text\",90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",TRUE(),90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",FALSE(),90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",1/0,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",NA(),90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{0,1},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{90,110},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13.609196207044373
+      },
+      {
+        "kind": "number",
+        "value": 29.210206567709978
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{.01,.2},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      },
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{\"2\",\"bad\"},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{TRUE,FALSE},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",{#N/A,100},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",IF({TRUE,FALSE},NA(),1),90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,0,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,-1,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,1,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,1e-8,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,-1e-8,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,1e6,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,-1e6,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,80,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,100,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,110,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,120,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,.001,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,.2,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,2,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,\"2\",110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,\"\",110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,\"text\",110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,TRUE(),110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,FALSE(),110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,1/0,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,NA(),110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{0,1},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{90,110},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{.01,.2},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{\"2\",\"bad\"},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{TRUE,FALSE},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,{#N/A,100},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,IF({TRUE,FALSE},NA(),1),110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,0,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,-1,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,1,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,1e-8,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,-1e-8,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,1e6,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 951134.301558264
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,-1e6,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,80,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,90,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,100,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,120,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 24.32664437866761
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,.001,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,.2,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,2,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,\"2\",100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,\"\",100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,\"text\",100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,TRUE(),100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,FALSE(),100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17.907193020638942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,1/0,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,NA(),100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{0,1},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      },
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{90,110},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{.01,.2},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      },
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{\"2\",\"bad\"},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{TRUE,FALSE},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      },
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,{#N/A,100},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,IF({TRUE,FALSE},NA(),1),100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 17.907193020638942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.74736887886705
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,-1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 115.69859830336775
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 113.79613945436633
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.74736886935476
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,-1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.74736888837931
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,-1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 951344.1718695929
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 38.649014918809925
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 29.136720673802778
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.112132183788496
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 5.30205588865333
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,.001,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.74641764944253
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,.2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.5571229939669
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 112.8449100298656
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,\"2\",1,.05,.03,.2)",
+    "kind": "number",
+    "value": 112.8449100298656
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,\"\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,\"text\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,TRUE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 113.79613945436633
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,FALSE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 114.74736887886705
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,1/0,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,NA(),1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{0,1},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 114.74736887886705
+      },
+      {
+        "kind": "number",
+        "value": 113.79613945436633
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{90,110},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 29.136720673802778
+      },
+      {
+        "kind": "number",
+        "value": 10.112132183788496
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{.01,.2},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 114.73785658462204
+      },
+      {
+        "kind": "number",
+        "value": 114.5571229939669
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{\"2\",\"bad\"},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 112.8449100298656
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{TRUE,FALSE},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 113.79613945436633
+      },
+      {
+        "kind": "number",
+        "value": 114.74736887886705
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,{#N/A,100},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,IF({TRUE,FALSE},NA(),1),1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 113.79613945436633
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,0,.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,-1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1e-8,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.999999995
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,-1e-8,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,-1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,80,.05,.03,.2)",
+    "kind": "number",
+    "value": 31.593415832638346
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,90,.05,.03,.2)",
+    "kind": "number",
+    "value": 26.31381861648011
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,100,.05,.03,.2)",
+    "kind": "number",
+    "value": 21.811973794029534
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,110,.05,.03,.2)",
+    "kind": "number",
+    "value": 18.019037623983557
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,120,.05,.03,.2)",
+    "kind": "number",
+    "value": 14.84946612005525
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.99950001249979
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.2,.05,.03,.2)",
+    "kind": "number",
+    "value": 11.440945957954824
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 27.072519939789693
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 27.072519939789693
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 19.624426428795637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,FALSE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{90,110},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 26.31381861648011
+      },
+      {
+        "kind": "number",
+        "value": 18.019037623983557
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.995002078688447
+      },
+      {
+        "kind": "number",
+        "value": 11.440945957954824
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 27.072519939789693
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,{#N/A,100},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 21.811973794029534
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,0,.03,.2)",
+    "kind": "number",
+    "value": 20.63059228755062
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,-1,.03,.2)",
+    "kind": "number",
+    "value": 56.079764125596164
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,1,.03,.2)",
+    "kind": "number",
+    "value": 7.58957076177999
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 20.630592081244686
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 20.63059249385654
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,80,.03,.2)",
+    "kind": "number",
+    "value": 3.7235153122258758e-34
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,90,.03,.2)",
+    "kind": "number",
+    "value": 1.690473336445915e-38
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,100,.03,.2)",
+    "kind": "number",
+    "value": 7.674737073999795e-43
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,110,.03,.2)",
+    "kind": "number",
+    "value": 3.4843252410512927e-47
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,120,.03,.2)",
+    "kind": "number",
+    "value": 1.5818812121338175e-51
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.001,.03,.2)",
+    "kind": "number",
+    "value": 20.609972007121637
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.2,.03,.2)",
+    "kind": "number",
+    "value": 16.890900360031125
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,2,.03,.2)",
+    "kind": "number",
+    "value": 2.79204705057474
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 2.79204705057474
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 7.58957076177999
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 20.63059228755062
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 20.63059228755062
+      },
+      {
+        "kind": "number",
+        "value": 7.58957076177999
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{90,110},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.690473336445915e-38
+      },
+      {
+        "kind": "number",
+        "value": 3.4843252410512927e-47
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 20.42531446443636
+      },
+      {
+        "kind": "number",
+        "value": 16.890900360031125
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.79204705057474
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 7.58957076177999
+      },
+      {
+        "kind": "number",
+        "value": 20.63059228755062
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,{#N/A,100},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 7.674737073999795e-43
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 7.58957076177999
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,-1,.2)",
+    "kind": "number",
+    "value": 9.52850042606108
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,1,.2)",
+    "kind": "number",
+    "value": 168.61944482529833
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 18.134637641634193
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 18.134636716125147
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,-1e6,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,80,.2)",
+    "kind": "number",
+    "value": 5.271720642842948e+36
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,90,.2)",
+    "kind": "number",
+    "value": 1.1611414974290301e+41
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,100,.2)",
+    "kind": "number",
+    "value": 2.557527525024634e+45
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,110,.2)",
+    "kind": "number",
+    "value": 5.633226851235644e+49
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,120,.2)",
+    "kind": "number",
+    "value": 1.2407819889369473e+54
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.001,.2)",
+    "kind": "number",
+    "value": 18.181423751113684
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.2,.2)",
+    "kind": "number",
+    "value": 31.695556365520474
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,2,.2)",
+    "kind": "number",
+    "value": 614.7745031894473
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 614.7745031894473
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 168.61944482529833
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,FALSE(),.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 168.61944482529833
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{90,110},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.1611414974290301e+41
+      },
+      {
+        "kind": "number",
+        "value": 5.633226851235644e+49
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.611316179685748
+      },
+      {
+        "kind": "number",
+        "value": 31.695556365520474
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 614.7745031894473
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 168.61944482529833
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,{#N/A,100},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.557527525024634e+45
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 168.61944482529833
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,-1)",
+    "kind": "number",
+    "value": -54.82637807835047
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,1)",
+    "kind": "number",
+    "value": 106.42552132275088
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,-1e-8)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,1e6)",
+    "kind": "number",
+    "value": 48282081343500.664
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,-1e6)",
+    "kind": "number",
+    "value": -95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,80)",
+    "kind": "number",
+    "value": 309103.7865705513
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,90)",
+    "kind": "number",
+    "value": 391183.3248551842
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,100)",
+    "kind": "number",
+    "value": 482919.2794082575
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,110)",
+    "kind": "number",
+    "value": 584311.6502298524
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,120)",
+    "kind": "number",
+    "value": 695360.4373200209
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.001)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,2)",
+    "kind": "number",
+    "value": 277.0770178131237
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 277.0770178131237
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 106.42552132275088
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,FALSE())",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 106.42552132275088
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{90,110})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 391183.3248551842
+      },
+      {
+        "kind": "number",
+        "value": 584311.6502298524
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.512294245014589
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 277.0770178131237
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 106.42552132275088
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,{#N/A,100})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 482919.2794082575
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 106.42552132275088
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",0,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",-1,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",1,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 634.938558577377
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",1e-8,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 5414587.928770557
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",-1e-8,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",1e6,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",-1e6,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",80,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 31.894819650274563
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",90,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 21.283380642676004
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",110,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 11.93024713326254
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",120,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.486986092011277
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",.001,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 17217.250949798385
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",.2,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1305.5136073105039
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",2,90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 474.71807150773645
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",\"2\",90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 474.71807150773645
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",\"\",90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",\"text\",90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",TRUE(),90,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 634.938558577377
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",FALSE(),90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",1/0,90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",NA(),90,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{0,1},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 634.938558577377
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{90,110},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 21.283380642676004
+      },
+      {
+        "kind": "number",
+        "value": 11.93024713326254
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{.01,.2},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5509.599411633673
+      },
+      {
+        "kind": "number",
+        "value": 1305.5136073105039
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{\"2\",\"bad\"},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 474.71807150773645
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{TRUE,FALSE},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 634.938558577377
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",{#N/A,100},90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",IF({TRUE,FALSE},NA(),1),90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 634.938558577377
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,0,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,-1,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,1,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 94.17171302557068
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,1e-8,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 95.12294244055911
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,-1e-8,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,1e6,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.078984886298741
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,-1e6,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,80,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 20.747810542882387
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,100,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.078984886298741
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,110,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.078984886298741
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,120,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.078984886298741
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,.001,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 95.12199122064689
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,.2,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 94.93269656517126
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,2,110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 93.22048360106997
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,\"2\",110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 93.22048360106997
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,\"\",110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,\"text\",110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,TRUE(),110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 94.17171302557068
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,FALSE(),110,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,1/0,110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,NA(),110,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{0,1},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 94.17171302557068
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{90,110},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 13.078984886298741
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{.01,.2},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.11343015582639
+      },
+      {
+        "kind": "number",
+        "value": 94.93269656517126
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{\"2\",\"bad\"},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 93.22048360106997
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{TRUE,FALSE},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 94.17171302557068
+      },
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,{#N/A,100},110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 13.078984886298741
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,IF({TRUE,FALSE},NA(),1),110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 94.17171302557068
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,0,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,-1,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,1,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,1e-8,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,-1e-8,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,1e6,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,-1e6,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,80,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,90,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,100,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,120,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,.001,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,.2,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,2,100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,\"2\",100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,\"\",100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,\"text\",100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,TRUE(),100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,FALSE(),100,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,1/0,100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,NA(),100,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{0,1},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{90,110},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{.01,.2},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{\"2\",\"bad\"},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{TRUE,FALSE},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,{#N/A,100},100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,IF({TRUE,FALSE},NA(),1),100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,-1,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,1,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 6.605765861576129e-120
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,1e-8,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,-1e-8,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,1e6,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 951149.3915999325
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,-1e6,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.7232220528681075
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 5.57774742350982
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 24.6023359135241
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 34.11463015853124
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,.001,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,.2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4269506877854125e-215
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,2,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.42823029645269e-87
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,\"2\",1,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.42823029645269e-87
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,\"\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,\"text\",1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,TRUE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 6.605765861576129e-120
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,FALSE(),1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,1/0,1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,NA(),1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{0,1},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 6.605765861576129e-120
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{90,110},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.57774742350982
+      },
+      {
+        "kind": "number",
+        "value": 24.6023359135241
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{.01,.2},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1.4269506877854125e-215
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{\"2\",\"bad\"},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.42823029645269e-87
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{TRUE,FALSE},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.605765861576129e-120
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,{#N/A,100},1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,IF({TRUE,FALSE},NA(),1),1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 6.605765861576129e-120
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,0,.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,-1,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1e-8,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.999999995
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,-1e-8,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,-1e6,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,80,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.00133406476525
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,90,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.618368849605865
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,100,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.3808202957963837
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,110,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.23402489095323592
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,120,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.1435699439693212
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 9.99950001249979
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.2,.05,.03,.2)",
+    "kind": "number",
+    "value": 10.769627548233087
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 18.013655046024734
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 18.013655046024734
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 15.09004166851696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,FALSE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 10
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{90,110},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.618368849605865
+      },
+      {
+        "kind": "number",
+        "value": 0.23402489095323592
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.995001292645743
+      },
+      {
+        "kind": "number",
+        "value": 10.769627548233087
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.013655046024734
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      },
+      {
+        "kind": "number",
+        "value": 10
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,{#N/A,100},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.3808202957963837
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,0,.03,.2)",
+    "kind": "number",
+    "value": 15.863724649221709
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,-1,.03,.2)",
+    "kind": "number",
+    "value": 43.12207444565722
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,1,.03,.2)",
+    "kind": "number",
+    "value": 5.835938158853317
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 15.863724490584467
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 15.863724807858956
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,80,.03,.2)",
+    "kind": "number",
+    "value": 2.863166544954527e-34
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,90,.03,.2)",
+    "kind": "number",
+    "value": 1.2998756003923194e-38
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,100,.03,.2)",
+    "kind": "number",
+    "value": 5.901426095777914e-43
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,110,.03,.2)",
+    "kind": "number",
+    "value": 2.6792433024681256e-47
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,120,.03,.2)",
+    "kind": "number",
+    "value": 1.2163745774866087e-51
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.001,.03,.2)",
+    "kind": "number",
+    "value": 15.847868853791523
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.2,.03,.2)",
+    "kind": "number",
+    "value": 12.988119228679034
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,2,.03,.2)",
+    "kind": "number",
+    "value": 2.1469216685900547
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 2.1469216685900547
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 5.835938158853317
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 15.863724649221709
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.863724649221709
+      },
+      {
+        "kind": "number",
+        "value": 5.835938158853317
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{90,110},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.2998756003923194e-38
+      },
+      {
+        "kind": "number",
+        "value": 2.6792433024681256e-47
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.705877951604538
+      },
+      {
+        "kind": "number",
+        "value": 12.988119228679034
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.1469216685900547
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.835938158853317
+      },
+      {
+        "kind": "number",
+        "value": 15.863724649221709
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,{#N/A,100},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 5.901426095777914e-43
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 5.835938158853317
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,0,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,-1,.2)",
+    "kind": "number",
+    "value": 60.82904398605533
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,1,.2)",
+    "kind": "number",
+    "value": 9.522099065180793
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 15.997709425597947
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 15.997710057228943
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,-1e6,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,80,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,90,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,100,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,110,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,120,.2)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.001,.2)",
+    "kind": "number",
+    "value": 15.965961703024501
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.2,.2)",
+    "kind": "number",
+    "value": 11.598143600803942
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,2,.2)",
+    "kind": "number",
+    "value": 9.512319510991318
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 9.512319510991318
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 9.522099065180793
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,FALSE(),.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 9.522099065180793
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{90,110},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      },
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 15.684857516158424
+      },
+      {
+        "kind": "number",
+        "value": 11.598143600803942
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.512319510991318
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.522099065180793
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,{#N/A,100},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 9.522099065180793
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,-1)",
+    "kind": "number",
+    "value": -106.5092314466278
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,1)",
+    "kind": "number",
+    "value": 54.8519288846226
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,1e-8)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,-1e-8)",
+    "kind": "number",
+    "value": -2.8969248806042813
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,1e6)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,-1e6)",
+    "kind": "number",
+    "value": -48282081343500.83
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,80)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,90)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,100)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,110)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,120)",
+    "kind": "number",
+    "value": 95.1229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,.001)",
+    "kind": "number",
+    "value": 9.51229424500714
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,2)",
+    "kind": "number",
+    "value": 80.61756171842339
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 80.61756171842339
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 54.8519288846226
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,FALSE())",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 54.8519288846226
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{90,110})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      },
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9.51229424500714
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 80.61756171842339
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 54.8519288846226
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,{#N/A,100})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 95.1229424500714
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 54.8519288846226
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 29.985004428891642
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 19.99000317909995
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 9.995001929308257
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 6.795165637669856e-7
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 1.4526994043044045e-20
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 1.3784579111781598e-29
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 5.3243616147570186e-8
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 9.995001303035309
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 19.990002552827004
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.01,.05,-.05,.2)",
+    "kind": "number",
+    "value": 29.985003802618696
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 29.985004538205825
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 19.990003288414133
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.995002038622438
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 7.888307460827907e-7
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 1.9168314357238326e-20
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.843374745627548e-30
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 4.5250175648322205e-8
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.995001295041869
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 19.990002544833562
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.01,.05,.01,.2)",
+    "kind": "number",
+    "value": 29.985003794625253
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 29.985004734523308
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 19.990003484731616
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 9.995002234939921
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 9.851482289304296e-7
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 2.9005990655175897e-20
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 5.9299849623481294e-30
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 3.539810753723129e-8
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 9.995001285189803
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 19.990002534981496
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.01,.05,.1,.2)",
+    "kind": "number",
+    "value": 29.985003784773188
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 31.230004454380683
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 21.354226449441867
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 11.478448444503053
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 1.60267043956424
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 0.22324243427884388
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 0.10554857452658829
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 1.6452646669106743
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 11.52104267184949
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 21.396820676788302
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.25,.05,-.05,.2)",
+    "kind": "number",
+    "value": 31.272598681727118
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 31.62661470972242
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 21.750836704783612
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 11.875058699844796
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 1.99928069490598
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 0.313141449802132
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 0.07286497048951296
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 1.3269012232935795
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 11.202679228232393
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 21.078457233171207
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.25,.05,.01,.2)",
+    "kind": "number",
+    "value": 30.954235238110023
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 32.3602116137236
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 22.484433608784784
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 12.608655603845966
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 2.732877598907154
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 0.5060486617862476
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 0.04053707100928276
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 0.9411875514399116
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 10.816965556378726
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 20.69274356131754
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,.25,.05,.1,.2)",
+    "kind": "number",
+    "value": 30.568521566256354
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 35.059810311953086
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 25.54751606694595
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 16.03522182193881
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 6.5229275769316715
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 2.936923051733976
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 3.07299118128076
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 8.20242052340792
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 17.71471476841506
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 27.2270090134222
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,1,.05,-.05,.2)",
+    "kind": "number",
+    "value": 36.73930325842934
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 37.635904669700025
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 28.123610424692888
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 18.611316179685748
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.099021934678607
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 4.603843575847465
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 2.0068143476777607
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 6.172563271151283
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 15.684857516158424
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 25.197151761165564
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,1,.05,.01,.2)",
+    "kind": "number",
+    "value": 34.709446006172705
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 42.85240028132259
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 33.34010603631543
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 23.827811791308307
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 14.315517546301159
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 8.401261137856851
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 0.9707506479440534
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 3.8156258910744865
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 13.327920136081627
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 22.840214381088767
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,1,.05,.1,.2)",
+    "kind": "number",
+    "value": 32.35250862609591
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 37.86155899740586
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 30.073551166691814
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 22.285543335977763
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 14.497535505263711
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 10.152799641952445
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 16.83554011990532
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 23.715205407532324
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 31.503213238246374
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 39.291221068960425
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,5,.05,-.05,.2)",
+    "kind": "number",
+    "value": 47.07922889967447
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 51.115630722957086
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 43.327622892243035
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 35.53961506152899
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 27.75160723081494
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 22.074386935464595
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 9.849912355146767
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 15.646712196520834
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 23.434720027234885
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 31.222727857948932
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,5,.05,.01,.2)",
+    "kind": "number",
+    "value": 39.010735688662976
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,80,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 89.68722630780887
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,90,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 81.89921847709483
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 74.11121064638078
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,110,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 66.32320281566673
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"c\",100,90,110,120,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 59.17182503811239
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,80,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 3.370059980799083
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,90,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 7.070503326260066
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,100,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 14.858511156974114
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,110,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 22.64651898768816
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK(\"p\",100,90,110,120,5,.05,.1,.2)",
+    "kind": "number",
+    "value": 30.43452681840221
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK({\"c\",\"p\"},100,90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK({\"bad\",\"c\"},100,90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 19.624426428795637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK({TRUE,\"p\"},100,90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  },
+  {
+    "formula": "OPT_FIXED_STRK_LKBK({#N/A,\"p\"},100,90,110,100,1,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 15.09004166851696
+      }
+    ]
+  }
+]

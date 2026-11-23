@@ -1,0 +1,429 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-None-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-copy-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-subrip-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-webvtt-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-None-webm",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-mov_text-mp4",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\n<i>Second</i>\n\n"
+    },
+    {
+      "name": "basic-copy-mp4",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "basic-copy-webm",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "custom-style-None-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u>First\r\nline</u></i></b></font>\n\n2\n00:00:04,000 --> 00:00:06,000\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u><i>Second</i></u></i></b></font>\n\n"
+    },
+    {
+      "name": "custom-style-copy-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u>First\r\nline</u></i></b></font>\n\n2\n00:00:04,000 --> 00:00:06,000\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u><i>Second</i></u></i></b></font>\n\n"
+    },
+    {
+      "name": "custom-style-subrip-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<font face=\"Georgia\"><font size=\"24\"><font color=\"#112233\"><b><i><u>First\r\nline</u></i></b></font></font></font>\n\n2\n00:00:04,000 --> 00:00:06,000\n<font face=\"Georgia\"><font size=\"24\"><font color=\"#112233\"><b><i><u><i>Second</i></u></i></b></font></font></font>\n\n"
+    },
+    {
+      "name": "custom-style-webvtt-mkv",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<b><i><u>First\r\nline</u></i></b>\n\n2\n00:00:04,000 --> 00:00:06,000\n<b><i><u><i>Second</i></u></i></b>\n\n"
+    },
+    {
+      "name": "custom-style-None-webm",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<b><i><u>First\r\nline</u></i></b>\n\n2\n00:00:04,000 --> 00:00:06,000\n<b><i><u><i>Second</i></u></i></b>\n\n"
+    },
+    {
+      "name": "custom-style-mov_text-mp4",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u>First\r\nline</u></i></b></font>\n\n2\n00:00:04,000 --> 00:00:06,000\n<font face=\"Georgia\" size=\"24\" color=\"#112233\"><b><i><u>Second</u></i></b></font>\n\n"
+    },
+    {
+      "name": "custom-style-copy-mp4",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "custom-style-copy-webm",
+      "input": "[Script Info]\nScriptType: v4.00+\nPlayResX: 384\nPlayResY: 288\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Georgia,24,&H332211,&Hffffff,&H0,&H0,-1,-1,-1,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:01.25,0:00:03.50,Default,,0,0,0,,First\\Nline\nDialogue: 2,0:00:04.00,0:00:06.00,Default,Alice,10,20,30,,{\\i1}Second{\\i0}\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "ass",
+        "-i",
+        "input.ass",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    }
+  ]
+}

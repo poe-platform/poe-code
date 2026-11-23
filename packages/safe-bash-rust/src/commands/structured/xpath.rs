@@ -408,7 +408,9 @@ fn expression<'a>(
                         while previous > begin && space(s.as_bytes()[previous - 1]) {
                             previous -= 1;
                         }
-                        if previous > begin && !matches!(s.as_bytes()[previous - 1], b'/' | b'@' | b':' | b'|') {
+                        if previous > begin
+                            && !matches!(s.as_bytes()[previous - 1], b'/' | b'@' | b':' | b'|')
+                        {
                             break;
                         }
                     }
@@ -490,7 +492,11 @@ mod tests {
     #[test]
     fn unknown_xpath_axis_reports_its_separator() {
         for source in ["//a::b", "count(//a::b)"] {
-            assert_eq!(super::compile(source).err().as_deref(), Some("unsupported XPath syntax at offset 3"), "{source}");
+            assert_eq!(
+                super::compile(source).err().as_deref(),
+                Some("unsupported XPath syntax at offset 3"),
+                "{source}"
+            );
         }
         assert!(super::compile("//a:b").is_ok());
     }

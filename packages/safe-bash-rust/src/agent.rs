@@ -167,7 +167,10 @@ impl PoeAgentShellHost {
 
         if exec_res.exit_code != 0 {
             if combined.is_empty() {
-                return Err(format!("Command failed with exit code {}", exec_res.exit_code));
+                return Err(format!(
+                    "Command failed with exit code {}",
+                    exec_res.exit_code
+                ));
             }
             return Err(format!("Command failed: {combined}"));
         }
@@ -267,7 +270,11 @@ mod tests {
         let bg = host.read_background(&handle).unwrap();
         assert_eq!(bg.exit_code, Some(0));
         assert!(bg.stdout.contains("bg-task"));
-        assert!(host.kill_background(&handle).unwrap().contains("already exited"));
+        assert!(
+            host.kill_background(&handle)
+                .unwrap()
+                .contains("already exited")
+        );
         assert!(host.read_background("background-999").is_err());
     }
 
@@ -275,7 +282,8 @@ mod tests {
     fn unit_poe_agent_shell_host_read_mode_and_multiple_background_handles() {
         let vfs = Arc::new(MemoryVfs::new());
         vfs.mkdir_all("/workspace/proj").unwrap();
-        vfs.write_file("/workspace/proj/readme.md", b"agent-doc\n").unwrap();
+        vfs.write_file("/workspace/proj/readme.md", b"agent-doc\n")
+            .unwrap();
         let mut host = PoeAgentShellHost::new(
             vfs,
             PoeAgentShellOptions {
@@ -304,8 +312,18 @@ mod tests {
             .unwrap();
         assert_eq!(h1, "background-1");
         assert_eq!(h2, "background-2");
-        assert!(host.read_background(&h1).unwrap().stdout.contains("agent-doc"));
-        assert!(host.read_background(&h2).unwrap().stdout.contains("second-bg"));
+        assert!(
+            host.read_background(&h1)
+                .unwrap()
+                .stdout
+                .contains("agent-doc")
+        );
+        assert!(
+            host.read_background(&h2)
+                .unwrap()
+                .stdout
+                .contains("second-bg")
+        );
     }
 
     #[test]

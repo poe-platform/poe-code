@@ -9831,7 +9831,7 @@ export function evalSyncFfmpeg(
       if (audioCodec !== "copy" && workingDoc.tracks.some(track => track.decodedAudio)) return undefined;
       if (audioCodec === "copy" && outputSs !== undefined) {
         workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
-          workingDoc.containerFormat === "au" || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
+          (workingDoc.containerFormat === "au" || workingDoc.containerFormat === "voc" || workingDoc.containerFormat === "ircam" || workingDoc.containerFormat === "nistsphere") || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
             ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
             : track) };
       }
@@ -13277,9 +13277,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const rawSeek = rawCodec !== undefined && startSeconds !== undefined && startSeconds > 0 &&
                   (audioCodec === "copy" || startSeconds > doc.durationSeconds) &&
                   (rawCodec?.codecName === `pcm_${doc.containerFormat}` ||
-                    (doc.containerFormat === "au" && rawCodec?.codecName?.startsWith("pcm_")));
+                    ((doc.containerFormat === "au" || doc.containerFormat === "ircam" || doc.containerFormat === "nistsphere") && rawCodec?.codecName?.startsWith("pcm_")));
                 if (rawSeek) {
-                  // Raw PCM and AU input seeks start a new packet at the exact sample frame.
+                  // Raw PCM and PCM container input seeks start a new packet at the exact sample frame.
                   const bytes = concatBytes(rawTrack!.samples.map(sample => sample.data));
                   const requestedOffset = Math.round(startSeconds * rawCodec.sampleRate!) *
                     rawCodec.channels! * rawCodec.bitsPerSample! / 8;
@@ -14359,7 +14359,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             ) {
               if (audioCodec === "copy" && outputSs !== undefined) {
                 workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
-                  workingDoc.containerFormat === "au" || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
+                  (workingDoc.containerFormat === "au" || workingDoc.containerFormat === "voc" || workingDoc.containerFormat === "ircam" || workingDoc.containerFormat === "nistsphere") || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
                     ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
                     : track) };
               }
@@ -14506,14 +14506,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const rawSync = outputFormat === "rawvideo" && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync);
                   const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
-                    const start = Math.round((outputSs ?? 0) * diagnostics.timescale) / diagnostics.timescale;
+                    const startTick = Math.round((outputSs ?? 0) * diagnostics.timescale);
+                    const start = startTick / diagnostics.timescale;
                     // Native output trim measures duration from the first admitted frame;
                     // the encoder then enforces the limit on synchronized timestamps.
                     const end = rawSync && duration !== undefined
-                      ? (filtered.find(frame => frame.ptsSeconds >= start)?.ptsSeconds ?? start) + Math.round(duration * diagnostics.timescale) / diagnostics.timescale
+                      ? (filtered.find(frame => Math.round(frame.ptsSeconds * diagnostics.timescale) >= startTick)?.ptsSeconds ?? start) + Math.round(duration * diagnostics.timescale) / diagnostics.timescale
                       : Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
-                    filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
-                      .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
+                    const endTick = Math.round(end * diagnostics.timescale);
+                    filtered = filtered.filter(frame => {
+                      const tick = Math.round(frame.ptsSeconds * diagnostics.timescale);
+                      return tick >= startTick && tick < endTick;
+                    }).map(frame => ({ ...frame,
+                      ptsSeconds: (Math.round(frame.ptsSeconds * diagnostics.timescale) - startTick) / diagnostics.timescale }));
                   }
                   if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
                   const rawTimeBase = outputFormat === "rawvideo" && diagnostics.frameRateKnown
@@ -20886,7 +20891,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
                   const nextDescs = t.codecDescriptions.map((d) => ({
                     ...d,
-                    ...(filter ? filteredPcm[packedFormat] : {}),
+                    ...(filter ? filteredPcm[packedFormat] : inputCodec === "alac" &&
+                      (targetRate !== audio.sampleRate || targetCh !== origCh) ? filteredPcm.dbl : {}),
                     sampleRate: targetRate,
                     channels: targetCh,
                     channelLayout: outputChannelMask === undefined

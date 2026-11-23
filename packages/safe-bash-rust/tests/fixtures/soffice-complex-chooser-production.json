@@ -1,0 +1,2227 @@
+[
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.15420156174332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 27.088427169906204
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 27.147868422142572
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 30.325310397061827
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 46.113008784750015
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 46.114638520092676
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 47.59130399841322
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 65.13759727474792
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 65.13763520443985
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,80,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 65.83396819141535
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 27.088427169906204
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 27.147867241544823
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 30.232756526615383
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 46.113008784750015
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 46.114638514601296
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 47.55881257413439
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 65.13759727474792
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 65.13763520442788
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,100,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 65.82321554804956
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 27.088427169906204
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 27.147867241207663
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 30.214175905079408
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 46.113008784750015
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 46.11463851459996
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 47.55249528543639
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 65.13759727474792
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 65.13763520442788
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(50,120,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 65.82111537690218
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 3.984709980155678
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 8.123361249394655
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 20.715607576068916
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 16.869378111583316
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 19.097395927518946
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 30.913929152978874
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 35.73190142955299
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 36.062267522734714
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,80,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 44.269442660934956
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 2.060520701156154
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 5.235429385367109
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 16.841905231612273
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 16.7949207628655
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 18.271642137416464
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 28.38517156091745
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 35.731831974627426
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 35.95579042348608
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,100,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 42.76641946825982
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 2.059538960596896
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 5.067763928838637
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 15.194184266803383
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 16.794913458231207
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 18.23835135887026
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 27.353215950256157
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 35.73183197325008
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 35.95263750296458
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(80,120,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 42.17102573107081
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 20.980801669476133
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 21.260354383686334
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 28.5069805534554
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 20.996739503711993
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 22.132524070665564
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 33.400885095117985
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 22.917732503534793
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 26.87801579082538
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,80,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 41.32847003001767
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 3.574514404004515
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.674417544154617
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 19.22446163747837
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 4.980887475194596
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 25.894509470086177
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 16.66547498807843
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 20.32023749653208
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 35.7382125814824
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 0.03811851747446976
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 1.6065566430189593
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 13.87249587229504
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 2.583529369579111
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.746897623941116
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 21.730440744285488
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 16.4216664862861
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 18.967447582121594
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,120,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 32.74476289661721
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 40.78118708912466
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 40.786962572845226
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 43.49042409844845
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 40.78118708960949
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 40.79395585595163
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 45.31953929564402
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 40.781227660326394
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 40.95553566465984
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,80,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 49.000339141500234
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 21.28096528158124
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 21.842129945744166
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 29.67053222529475
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 21.28105087002217
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 21.99706180389092
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 32.757486961452976
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 21.340873010218413
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 23.387787156150573
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,100,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 38.23401282102843
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 4.284728962352349
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 7.599926966407747
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 19.8978338052764
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 4.303572773016879
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 8.29549121882756
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 24.127459943068036
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 5.977064970233531
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 12.185041874091972
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(120,120,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 31.07341136410338
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 70.4826821001086
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 70.48269030517592
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 71.08009494102885
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 70.4826821001086
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 70.48269064127592
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 71.39294453348805
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 70.4826821001086
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 70.48274632619113
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,80,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 72.24108364450576
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 50.97648386140581
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 50.98361820316108
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 53.640992005090744
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 50.97648386140582
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 50.983703216056554
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 54.363030123060604
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 50.97648386144091
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 50.98763394615183
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,100,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 56.03125763826742
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,80,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 31.47120008688431
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,80,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 31.82419320915513
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,80,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 38.87573899375682
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,100,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 31.471200086979188
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 31.826932798799657
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,100,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 40.136187628660565
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,120,0.25,0.5,1,0.05,0.03,0.1)",
+    "kind": "number",
+    "value": 31.47120250421423
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,120,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 31.89053157552956
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(150,120,120,0.25,0.5,1,0.05,0.03,0.5)",
+    "kind": "number",
+    "value": 42.760470841552994
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.565410638201891
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 7.08337336635854
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,0.5,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 8.12550460896935
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,1,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 9.237474543409396
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,1,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 9.283601059421006
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,1,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 9.489159342401216
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,2,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.521805779391299
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,2,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.521856350523034
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.01,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.522513791285032
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 9.533296837137776
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.935315464901489
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,1,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 11.45358551222473
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,1,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 11.801429205461332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,1,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 12.300466119914006
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,2,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 14.778265350581242
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,2,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 14.889468679839936
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 15.093437089577993
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 11.086010578845993
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 11.799767761237554
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,0.5,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 12.602342111412845
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,1,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.096362693872432
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,1,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.290889576759795
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,1,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.77346502111423
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,2,0.5,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 16.286978057164777
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,2,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 16.225801298968896
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.49,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 16.399834355082884
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,0.5,2,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,1,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,1,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.344280448069238
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,1,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.82623803843995
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,2,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,2,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 16.276444527470645
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.5,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 16.447990782242872
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,0.5,2,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,1,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,1,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 14.54264434746295
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,1,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 15.023954377232553
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,2,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,2,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 17.46003462280403
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.75,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 17.543124143377167
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,0.5,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,0.5,2,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,1,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,1,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,1,2,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,2,0.5,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,2,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1,2,2,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 18.4852418407349
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,-0.1,-0.1,0.2)",
+    "kind": "number",
+    "value": 15.693308144444295
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,-0.1,0,0.2)",
+    "kind": "number",
+    "value": 11.877341763246292
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,-0.1,0.03,0.2)",
+    "kind": "number",
+    "value": 11.366415142409608
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,-0.1,0.2,0.2)",
+    "kind": "number",
+    "value": 13.850035022879911
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0,-0.1,0.2)",
+    "kind": "number",
+    "value": 14.285189566084092
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0,0,0.2)",
+    "kind": "number",
+    "value": 10.954480521225797
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0,0.03,0.2)",
+    "kind": "number",
+    "value": 10.540856356242493
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0,0.2,0.2)",
+    "kind": "number",
+    "value": 13.133362966576634
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,-0.1,0.2)",
+    "kind": "number",
+    "value": 13.631467380261903
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0,0.2)",
+    "kind": "number",
+    "value": 10.523661397222163
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.2,0.2)",
+    "kind": "number",
+    "value": 12.79007540342992
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.2,-0.1,0.2)",
+    "kind": "number",
+    "value": 11.852522918165377
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.2,0,0.2)",
+    "kind": "number",
+    "value": 9.34229752226982
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.2,0.03,0.2)",
+    "kind": "number",
+    "value": 9.08925625782911
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.2,0.2,0.2)",
+    "kind": "number",
+    "value": 11.816659947394092
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(-1,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(0,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(1e-10,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 95.12294244997338
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(1000000,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 989952.3027579653
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(\"100\",100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.15420156174332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(\"\",100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(\"bad\",100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(TRUE,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 94.14274377676465
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(FALSE,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(#N/A,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(#DIV/0!,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(,100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER({80,120},100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.271642137416464
+      },
+      {
+        "kind": "number",
+        "value": 21.99706180389092
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER({0,1},100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 94.14274377676465
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER({TRUE,FALSE},100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 94.14274377676465
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER({\"1\",\"bad\"},100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 94.14274377676465
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER({#N/A,#DIV/0!},100,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,-1,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,0,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,1e-10,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 99.00498337481959
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,1000000,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.330080627549833
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,\"100\",100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.15420156174332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,\"\",100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,\"bad\",100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,TRUE,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 98.02967346288911
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,FALSE,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,#N/A,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,#DIV/0!,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,,100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,{80,120},100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 22.132524070665564
+      },
+      {
+        "kind": "number",
+        "value": 6.746897623941116
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,{0,1},100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 98.02967346288911
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,{TRUE,FALSE},100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.02967346288911
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,{\"1\",\"bad\"},100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 98.02967346288911
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,{#N/A,#DIV/0!},100,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,-1,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,0,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,1e-10,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.307635089972457
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,1000000,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 951131.4046333834
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,\"100\",0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.15420156174332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,\"\",0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,\"bad\",0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,TRUE,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.307635089972457
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,FALSE,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,#N/A,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,#DIV/0!,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,,0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,{80,120},0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.674417544154617
+      },
+      {
+        "kind": "number",
+        "value": 20.32023749653208
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,{0,1},0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 6.307635089972457
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,{TRUE,FALSE},0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.307635089972457
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,{\"1\",\"bad\"},0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.307635089972457
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,{#N/A,#DIV/0!},0.25,0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,-1,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1e-10,0.5,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.3300806275499255
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,1000000,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,\"100\",0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,\"\",0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,\"bad\",0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,TRUE,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,FALSE,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,#N/A,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,#DIV/0!,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,,0.5,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,{80,120},0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,{0,1},0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,{TRUE,FALSE},0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,{\"1\",\"bad\"},0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,{#N/A,#DIV/0!},0.5,1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,-1,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,1e-10,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,1000000,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.330080627549833
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,\"100\",1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 13.408224140682362
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,\"\",1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,\"bad\",1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,TRUE,1,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 11.801429205461332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,FALSE,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,#N/A,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,#DIV/0!,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,,1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,{80,120},1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 18.813867716927152
+      },
+      {
+        "kind": "number",
+        "value": 9.940372855599971
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,{0,1},1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 11.801429205461332
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,{TRUE,FALSE},1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 11.801429205461332
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,{\"1\",\"bad\"},1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 11.801429205461332
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,{#N/A,#DIV/0!},1,0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,-1,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,0,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1e-10,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1000000,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.307635089972457
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,\"100\",0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 6.3100521375828125
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,\"\",0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,\"bad\",0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,TRUE,0.05,0.03,0.2)",
+    "kind": "number",
+    "value": 10.15420156174332
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,FALSE,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,#N/A,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,#DIV/0!,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,,0.05,0.03,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,{80,120},0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 6.323829514361124
+      },
+      {
+        "kind": "number",
+        "value": 6.307982767633032
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,{0,1},0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 10.15420156174332
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,{TRUE,FALSE},0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.15420156174332
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,{\"1\",\"bad\"},0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.15420156174332
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,{#N/A,#DIV/0!},0.05,0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,-1,0.03,0.2)",
+    "kind": "number",
+    "value": 23.300157773336608
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,1e-10,0.03,0.2)",
+    "kind": "number",
+    "value": 10.540856355452327
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,1000000,0.03,0.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,\"100\",0.03,0.2)",
+    "kind": "number",
+    "value": 1.0741267685577363e-21
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,\"\",0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,\"bad\",0.03,0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,TRUE,0.03,0.2)",
+    "kind": "number",
+    "value": 5.19989665482697
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,FALSE,0.03,0.2)",
+    "kind": "number",
+    "value": 10.540856356242493
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,#N/A,0.03,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,#DIV/0!,0.03,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,,0.03,0.2)",
+    "kind": "number",
+    "value": 10.540856356242493
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,{80,120},0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.3659216526923277e-17
+      },
+      {
+        "kind": "number",
+        "value": 4.876527984852606e-26
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,{0,1},0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.540856356242493
+      },
+      {
+        "kind": "number",
+        "value": 5.19989665482697
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,{TRUE,FALSE},0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.19989665482697
+      },
+      {
+        "kind": "number",
+        "value": 10.540856356242493
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,{\"1\",\"bad\"},0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.19989665482697
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,{#N/A,#DIV/0!},0.03,0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,-1,0.2)",
+    "kind": "number",
+    "value": 60.129168152968965
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,1e-10,0.2)",
+    "kind": "number",
+    "value": 10.52366139553429
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,1000000,0.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,\"100\",0.2)",
+    "kind": "number",
+    "value": 5.056694692979074e+23
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,\"\",0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,\"bad\",0.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,TRUE,0.2)",
+    "kind": "number",
+    "value": 63.27132523579981
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,FALSE,0.2)",
+    "kind": "number",
+    "value": 10.523661397222163
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,#N/A,0.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,#DIV/0!,0.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,,0.2)",
+    "kind": "number",
+    "value": 10.523661397222163
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,{80,120},0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 22957358389157990000
+      },
+      {
+        "kind": "number",
+        "value": 1.1138111268968424e+28
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,{0,1},0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10.523661397222163
+      },
+      {
+        "kind": "number",
+        "value": 63.27132523579981
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,{TRUE,FALSE},0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 63.27132523579981
+      },
+      {
+        "kind": "number",
+        "value": 10.523661397222163
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,{\"1\",\"bad\"},0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 63.27132523579981
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,{#N/A,#DIV/0!},0.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,-1)",
+    "kind": "number",
+    "value": -52.62566610667771
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,0)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,1e-10)",
+    "kind": "number",
+    "value": 1.4739921720835412
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,1000000)",
+    "kind": "number",
+    "value": 194.1279258249882
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,\"100\")",
+    "kind": "number",
+    "value": 194.1279258249882
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,\"bad\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,TRUE)",
+    "kind": "number",
+    "value": 51.33395328207344
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,FALSE)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,#N/A)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,#DIV/0!)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,{80,120})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 194.1279258249882
+      },
+      {
+        "kind": "number",
+        "value": 194.1279258249882
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 51.33395328207344
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 51.33395328207344
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,{\"1\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 51.33395328207344
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,{#N/A,#DIV/0!})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_COMPLEX_CHOOSER(100,100,100,0.25,0.5,1,0.05,0.03,0.2,1)",
+    "kind": "error",
+    "value": "#N/A"
+  }
+]

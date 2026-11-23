@@ -5,18 +5,25 @@ use safe_bash_rust::{
 use std::sync::Arc;
 
 #[test]
-fn hybrid_ls_long_listings_retain_metadata_without_replaying_commands() {
+fn hybrid_ls_long_listings_run_natively_without_replaying_commands() {
     let vfs = MemoryVfs::new();
     vfs.mkdir_all("/work").unwrap();
-    vfs.write_file("/work/sample file.txt", b"twelve bytes").unwrap();
+    vfs.write_file("/work/sample file.txt", b"twelve bytes")
+        .unwrap();
     vfs.chmod("/work/sample file.txt", 0o100640).unwrap();
-    let mut shell = Shell::new(Arc::new(vfs.clone()), ShellOptions {
-        cwd: Some("/work".into()), mode: BackendMode::Hybrid,
-        ..Default::default()
-    });
-    let result = shell.exec("printf once >> visits; ls -l 'sample file.txt'; printf after").unwrap();
+    let mut shell = Shell::new(
+        Arc::new(vfs.clone()),
+        ShellOptions {
+            cwd: Some("/work".into()),
+            mode: BackendMode::Hybrid,
+            ..Default::default()
+        },
+    );
+    let result = shell
+        .exec("printf once >> visits; ls -l 'sample file.txt'; printf after")
+        .unwrap();
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
-    assert!(result.used_typescript_bridge);
+    assert!(!result.used_typescript_bridge);
     let listing = result.stdout.lines().next().unwrap();
     assert!(listing.starts_with("-rw-r----- "), "{listing}");
     assert_eq!(listing.split_whitespace().nth(4), Some("12"));
@@ -26,7 +33,7 @@ fn hybrid_ls_long_listings_retain_metadata_without_replaying_commands() {
     let directory = shell.exec("ls -ld .").unwrap();
     assert_eq!(directory.exit_code, 0, "{}", directory.stderr);
     assert!(directory.stdout.starts_with('d'), "{}", directory.stdout);
-    assert!(directory.used_typescript_bridge);
+    assert!(!directory.used_typescript_bridge);
     let plain = shell.exec("ls 'sample file.txt'").unwrap();
     assert_eq!(plain.stdout, "sample file.txt\n");
     assert!(!plain.used_typescript_bridge);
@@ -111,26 +118,74 @@ fn plugins_invoke_literal_children_in_the_current_execution() {
     use safe_bash_rust::{InvokeOptions, ShellLimits};
     let (mut shell, fs) = Shell::with_memory_fs();
     fs.mkdir_all("/nested").unwrap();
-    shell.register_command("inspect", Arc::new(|ctx| Ok(CommandResult {
-        stdout: format!("{} {} {} {:?} {}", ctx.argv0.unwrap(), ctx.cwd, ctx.env["X"], ctx.env.get("HOME"), ctx.args[0]),
-        stderr: ctx.stdin.into(), exit_code: 17, env: ctx.env.clone(), cwd: ctx.cwd.clone(),
-    })));
-    shell.register_command("delegate", Arc::new(|ctx| {
-        let external = !ctx.args.is_empty();
-        let mut input = "child input".to_owned();
-        let o = ctx.invoke("inspect", &["$(touch /injected); *".into()], InvokeOptions {
-            argv0: Some("child0"), cwd: Some("/nested"), env: [("X".into(),"child".into())].into(),
-            replace_env: true, external_invocation: external, ..Default::default()
-        }, &mut input)?;
-        Ok(CommandResult { stdout:o.stdout, stderr:o.stderr, exit_code:o.exit_code, env:ctx.env.clone(), cwd:ctx.cwd.clone() })
-    }));
-    shell.exec("export HOME=/parent X=parent; inspect() { printf shadow; }").unwrap();
+    shell.register_command(
+        "inspect",
+        Arc::new(|ctx| {
+            Ok(CommandResult {
+                stdout: format!(
+                    "{} {} {} {:?} {}",
+                    ctx.argv0.unwrap(),
+                    ctx.cwd,
+                    ctx.env["X"],
+                    ctx.env.get("HOME"),
+                    ctx.args[0]
+                ),
+                stderr: ctx.stdin.into(),
+                exit_code: 17,
+                env: ctx.env.clone(),
+                cwd: ctx.cwd.clone(),
+            })
+        }),
+    );
+    shell.register_command(
+        "delegate",
+        Arc::new(|ctx| {
+            let external = !ctx.args.is_empty();
+            let mut input = "child input".to_owned();
+            let o = ctx.invoke(
+                "inspect",
+                &["$(touch /injected); *".into()],
+                InvokeOptions {
+                    argv0: Some("child0"),
+                    cwd: Some("/nested"),
+                    env: [("X".into(), "child".into())].into(),
+                    replace_env: true,
+                    external_invocation: external,
+                    ..Default::default()
+                },
+                &mut input,
+            )?;
+            Ok(CommandResult {
+                stdout: o.stdout,
+                stderr: o.stderr,
+                exit_code: o.exit_code,
+                env: ctx.env.clone(),
+                cwd: ctx.cwd.clone(),
+            })
+        }),
+    );
+    shell
+        .exec("export HOME=/parent X=parent; inspect() { printf shadow; }")
+        .unwrap();
     assert_eq!(shell.exec("delegate").unwrap().stdout, "shadow");
     let r = shell.exec("delegate external").unwrap();
-    assert_eq!((r.exit_code,r.stdout.as_str(),r.stderr.as_str()),(17,"child0 /nested child None $(touch /injected); *","child input"));
+    assert_eq!(
+        (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+        (
+            17,
+            "child0 /nested child None $(touch /injected); *",
+            "child input"
+        )
+    );
     assert!(!fs.exists("/injected"));
-    assert_eq!(shell.exec("echo $X:$HOME").unwrap().stdout, "parent:/parent\n");
-    shell.set_limits(ShellLimits { max_commands:1, ..Default::default() });
+    assert_eq!(
+        shell.exec("echo $X:$HOME").unwrap().stdout,
+        "parent:/parent\n"
+    );
+    shell.set_limits(ShellLimits {
+        max_commands: 1,
+        ..Default::default()
+    });
     assert!(shell.exec("delegate").unwrap_err().contains("maxCommands"));
 }
 
@@ -138,17 +193,47 @@ fn plugins_invoke_literal_children_in_the_current_execution() {
 fn invoked_builtins_and_recursive_plugins_cannot_escape_resource_limits() {
     use safe_bash_rust::{InvokeOptions, ShellLimits};
     let (mut shell, _) = Shell::with_memory_fs();
-    shell.register_command("call", Arc::new(|ctx| {
-        let (name, args) = ctx.args.split_first().unwrap();
-        let output = ctx.invoke(name,args,InvokeOptions::default(),&mut ctx.stdin.to_string())?;
-        Ok(CommandResult { stdout:output.stdout, stderr:output.stderr, exit_code:output.exit_code, env:ctx.env.clone(), cwd:ctx.cwd.clone() })
-    }));
+    shell.register_command(
+        "call",
+        Arc::new(|ctx| {
+            let (name, args) = ctx.args.split_first().unwrap();
+            let output = ctx.invoke(
+                name,
+                args,
+                InvokeOptions::default(),
+                &mut ctx.stdin.to_string(),
+            )?;
+            Ok(CommandResult {
+                stdout: output.stdout,
+                stderr: output.stderr,
+                exit_code: output.exit_code,
+                env: ctx.env.clone(),
+                cwd: ctx.cwd.clone(),
+            })
+        }),
+    );
     let r = shell.exec("printf 'data' | call call cat").unwrap();
-    assert_eq!((r.exit_code,r.stdout.as_str()),(0,"data"));
-    shell.set_limits(ShellLimits { max_substitution_depth:1, ..Default::default() });
-    assert!(shell.exec("call call true").unwrap_err().contains("maxSubstitutionDepth"));
-    shell.set_limits(ShellLimits { max_output_bytes:2, ..Default::default() });
-    assert!(shell.exec("call printf 123").unwrap_err().contains("maxOutputBytes"));
+    assert_eq!((r.exit_code, r.stdout.as_str()), (0, "data"));
+    shell.set_limits(ShellLimits {
+        max_substitution_depth: 1,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("call call true")
+            .unwrap_err()
+            .contains("maxSubstitutionDepth")
+    );
+    shell.set_limits(ShellLimits {
+        max_output_bytes: 2,
+        ..Default::default()
+    });
+    assert!(
+        shell
+            .exec("call printf 123")
+            .unwrap_err()
+            .contains("maxOutputBytes")
+    );
 }
 
 #[test]

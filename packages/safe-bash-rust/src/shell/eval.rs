@@ -1,33 +1,42 @@
-use crate::backend::{BackendMode, CommandContext, CommandFailure, CommandResult, HybridBackend, RustCommand};
+use crate::backend::{
+    BackendMode, CommandContext, CommandFailure, CommandResult, HybridBackend, RustCommand,
+};
 use crate::budget::ExecutionBudget;
-use crate::commands::{ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
+use crate::commands::{
+    ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input,
+};
 use crate::shell::builtins::{
-    BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
-    path_targets, same_file, try_run_builtin, cached_command_path, clear_command_hashes,
-    hash_order_insert, hash_order_remove, path_search_checks_cwd,
+    BuiltinOutcome, cached_command_path, clear_command_hashes, effective_path_env, eval_ere_match,
+    eval_test_unary_predicate, hash_order_insert, hash_order_remove, path_search_checks_cwd,
+    path_targets, same_file, try_run_builtin,
 };
 use crate::shell::expand::{
-    apply_var_attributes, effective_ifs, bash_quote_double, decimal_index, decode_ansi_c_escapes,
-    decode_ansi_c_escapes_with_locale, eval_arith, eval_arith_formatted,
+    apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
+    decode_ansi_c_escapes_with_locale, effective_ifs, eval_arith, eval_arith_formatted,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
     has_glob_meta_ext, indexed_array_index, is_param_operand_active, resolve_nameref_base,
-    sync_array_metadata, sync_getopts_env,
-    try_resolve_unquoted_alternate_operand, write_dynamic_variable,
+    sync_array_metadata, sync_getopts_env, try_resolve_unquoted_alternate_operand,
+    write_dynamic_variable,
 };
 use crate::shell::lexer::{DupOrigin, UNSUPPORTED_DOLLAR};
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
-    SimpleCommand, is_incomplete_shell_unit_with_extglob,
-    parse_script, parse_script_with_aliases_and_extglob, parse_script_with_extglob,
-    validate_basic_syntax, validate_basic_syntax_with_extglob,
+    SimpleCommand, is_incomplete_shell_unit_with_extglob, parse_script,
+    parse_script_with_aliases_and_extglob, parse_script_with_extglob, validate_basic_syntax,
+    validate_basic_syntax_with_extglob,
 };
-use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes};
+use crate::vfs::{
+    SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes,
+};
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use std::rc::Rc;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
 #[derive(Debug, Clone)]
 pub enum EvalError {
@@ -58,178 +67,370 @@ type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>, bool)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum DispatchMode { Shell, External, BypassFunctions, Builtin, EnvShebang }
+enum DispatchMode {
+    Shell,
+    External,
+    BypassFunctions,
+    Builtin,
+    EnvShebang,
+}
 
 pub(crate) trait CommandCaller {
     fn state(&self) -> &EvalState<'_>;
-    fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow>;
-    fn restore_flow(&mut self, flow:&MiddlewareFlow);
-    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, cwd:Option<&str>, env:Vec<(String,Option<String>)>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String>;
+    fn take_flow(&mut self, status: i32, previous: Option<i32>) -> Option<MiddlewareFlow>;
+    fn restore_flow(&mut self, flow: &MiddlewareFlow);
+    fn proceed(
+        &mut self,
+        stdin: &mut String,
+        words: Option<&[String]>,
+        cwd: Option<&str>,
+        env: Vec<(String, Option<String>)>,
+        host_terminal: Option<(&str, &mut bool)>,
+    ) -> Result<BuiltinOutcome, String>;
 }
 
 pub(crate) enum MiddlewareFlow {
-    Exit {status:i32, explicit:bool, discard:bool, previous:Option<i32>},
-    Return {status:i32, previous:Option<i32>},
-    Break {levels:usize, status:i32},
-    Continue {levels:usize, status:i32},
+    Exit {
+        status: i32,
+        explicit: bool,
+        discard: bool,
+        previous: Option<i32>,
+    },
+    Return {
+        status: i32,
+        previous: Option<i32>,
+    },
+    Break {
+        levels: usize,
+        status: i32,
+    },
+    Continue {
+        levels: usize,
+        status: i32,
+    },
 }
 
-struct DispatchFrame<'a,'b> {
+struct DispatchFrame<'a, 'b> {
     state: &'a mut EvalState<'b>,
     words: &'a [String],
     next: Option<DispatchMode>,
 }
 
-impl CommandCaller for DispatchFrame<'_,'_> {
-    fn state(&self) -> &EvalState<'_> { self.state }
-    fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow> {
+impl CommandCaller for DispatchFrame<'_, '_> {
+    fn state(&self) -> &EvalState<'_> {
+        self.state
+    }
+    fn take_flow(&mut self, status: i32, previous: Option<i32>) -> Option<MiddlewareFlow> {
         let state = &mut self.state;
         if let Some(status) = state.exit_requested.take() {
-            Some(MiddlewareFlow::Exit {status, explicit:std::mem::take(&mut state.explicit_exit),discard:std::mem::take(&mut state.discard_requested),previous})
+            Some(MiddlewareFlow::Exit {
+                status,
+                explicit: std::mem::take(&mut state.explicit_exit),
+                discard: std::mem::take(&mut state.discard_requested),
+                previous,
+            })
         } else if let Some(status) = state.return_requested.take() {
-            Some(MiddlewareFlow::Return {status,previous})
+            Some(MiddlewareFlow::Return { status, previous })
         } else if state.break_count != 0 {
-            Some(MiddlewareFlow::Break {levels:std::mem::take(&mut state.break_count),status})
+            Some(MiddlewareFlow::Break {
+                levels: std::mem::take(&mut state.break_count),
+                status,
+            })
         } else if state.continue_count != 0 {
-            Some(MiddlewareFlow::Continue {levels:std::mem::take(&mut state.continue_count),status})
-        } else { None }
-    }
-    fn restore_flow(&mut self, flow:&MiddlewareFlow) {
-        match *flow {
-            MiddlewareFlow::Exit {status,explicit,discard,..} => { self.state.exit_requested=Some(status); self.state.explicit_exit=explicit; self.state.discard_requested=discard; },
-            MiddlewareFlow::Return {status,..} => self.state.return_requested=Some(status),
-            MiddlewareFlow::Break {levels,..} => self.state.break_count=levels,
-            MiddlewareFlow::Continue {levels,..} => self.state.continue_count=levels,
+            Some(MiddlewareFlow::Continue {
+                levels: std::mem::take(&mut state.continue_count),
+                status,
+            })
+        } else {
+            None
         }
     }
-    fn proceed(&mut self, stdin: &mut String, words:Option<&[String]>, cwd:Option<&str>, env:Vec<(String,Option<String>)>, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String> {
-        let mode = self.next.take().ok_or("next() may only be called once per middleware")?;
+    fn restore_flow(&mut self, flow: &MiddlewareFlow) {
+        match *flow {
+            MiddlewareFlow::Exit {
+                status,
+                explicit,
+                discard,
+                ..
+            } => {
+                self.state.exit_requested = Some(status);
+                self.state.explicit_exit = explicit;
+                self.state.discard_requested = discard;
+            }
+            MiddlewareFlow::Return { status, .. } => self.state.return_requested = Some(status),
+            MiddlewareFlow::Break { levels, .. } => self.state.break_count = levels,
+            MiddlewareFlow::Continue { levels, .. } => self.state.continue_count = levels,
+        }
+    }
+    fn proceed(
+        &mut self,
+        stdin: &mut String,
+        words: Option<&[String]>,
+        cwd: Option<&str>,
+        env: Vec<(String, Option<String>)>,
+        host_terminal: Option<(&str, &mut bool)>,
+    ) -> Result<BuiltinOutcome, String> {
+        let mode = self
+            .next
+            .take()
+            .ok_or("next() may only be called once per middleware")?;
         let state = &mut self.state;
         let prior = state.forwarded_output.take();
         let words = words.unwrap_or(self.words);
-        let indexed = |k:&str| state.env.contains_key(&format!("\0keys__{k}")) || state.env.contains_key(&format!("\0assoc__{k}"));
-        if env.iter().any(|(k,_)| indexed(k)) && env.iter().any(|(k,_)| state.env.get(&format!("\0attr__{k}")).is_some_and(|a| a.contains('r'))) {
+        let indexed = |k: &str| {
+            state.env.contains_key(&format!("\0keys__{k}"))
+                || state.env.contains_key(&format!("\0assoc__{k}"))
+        };
+        if env.iter().any(|(k, _)| indexed(k))
+            && env.iter().any(|(k, _)| {
+                state
+                    .env
+                    .get(&format!("\0attr__{k}"))
+                    .is_some_and(|a| a.contains('r'))
+            })
+        {
             return Err("indexed array: readonly environment collision".into());
         }
-        let saved_cwd = cwd.map(|directory| (
-            std::mem::replace(state.cwd,resolve_posix_path("/",directory)),
-            state.env.insert(super::builtins::WATCH_STACK_CWD.into(),String::new()),
-        ));
+        let saved_cwd = cwd.map(|directory| {
+            (
+                std::mem::replace(state.cwd, resolve_posix_path("/", directory)),
+                state
+                    .env
+                    .insert(super::builtins::WATCH_STACK_CWD.into(), String::new()),
+            )
+        });
         let mut saved_env = Vec::new();
-        for (key,value) in env {
-            let indexed = state.env.contains_key(&format!("\0keys__{key}")) || state.env.contains_key(&format!("\0assoc__{key}"));
-            let binding = PrefixBinding::save(state.env,key.clone(),indexed);
-            for slot in binding.values.keys() { state.env.remove(slot); }
-            if let Some(v) = &value { state.env.insert(key,v.clone()); }
-            saved_env.push((binding,value));
+        for (key, value) in env {
+            let indexed = state.env.contains_key(&format!("\0keys__{key}"))
+                || state.env.contains_key(&format!("\0assoc__{key}"));
+            let binding = PrefixBinding::save(state.env, key.clone(), indexed);
+            for slot in binding.values.keys() {
+                state.env.remove(slot);
+            }
+            if let Some(v) = &value {
+                state.env.insert(key, v.clone());
+            }
+            saved_env.push((binding, value));
         }
-        let result = state.dispatch_terminal(words,stdin,mode,host_terminal);
-        for (mut binding,value) in saved_env {
+        let result = state.dispatch_terminal(words, stdin, mode, host_terminal);
+        for (mut binding, value) in saved_env {
             if state.env.get(&binding.name) == value.as_ref()
-                && !state.env.contains_key(&format!("\0keys__{}",binding.name))
-                && !state.env.contains_key(&format!("\0assoc__{}",binding.name)) {
+                && !state.env.contains_key(&format!("\0keys__{}", binding.name))
+                && !state
+                    .env
+                    .contains_key(&format!("\0assoc__{}", binding.name))
+            {
                 binding.exchange(state.env);
             }
         }
-        if let Some((saved,outer)) = saved_cwd {
-            let marker = state.env.remove(super::builtins::WATCH_STACK_CWD).unwrap_or_default();
-            if marker.is_empty() && words[0] != "cd" && Some(state.cwd.as_str()) == cwd { *state.cwd=saved; }
+        if let Some((saved, outer)) = saved_cwd {
+            let marker = state
+                .env
+                .remove(super::builtins::WATCH_STACK_CWD)
+                .unwrap_or_default();
+            if marker.is_empty() && words[0] != "cd" && Some(state.cwd.as_str()) == cwd {
+                *state.cwd = saved;
+            }
             if let Some(prior) = outer {
-                state.env.insert(super::builtins::WATCH_STACK_CWD.into(),if marker.is_empty() {prior} else {marker});
+                state.env.insert(
+                    super::builtins::WATCH_STACK_CWD.into(),
+                    if marker.is_empty() { prior } else { marker },
+                );
             }
         }
         let credit = state.forwarded_output.replace(prior);
-        result.and_then(|mut out| {
-            for (fd,paid) in [(1,credit.0),(2,credit.1)] {
-                if let Some(target) = state.fd_table.get(&fd).filter(|t| t.is_redirected_output()) {
-                    let data = std::mem::take(if fd == 1 { &mut out.stdout } else { &mut out.stderr });
-                    state.fd_writer().write(target,&data,paid.min(stream_byte_len(&data)),&mut out);
+        result
+            .and_then(|mut out| {
+                for (fd, paid) in [(1, credit.0), (2, credit.1)] {
+                    if let Some(target) =
+                        state.fd_table.get(&fd).filter(|t| t.is_redirected_output())
+                    {
+                        let data = std::mem::take(if fd == 1 {
+                            &mut out.stdout
+                        } else {
+                            &mut out.stderr
+                        });
+                        state.fd_writer().write(
+                            target,
+                            &data,
+                            paid.min(stream_byte_len(&data)),
+                            &mut out,
+                        );
+                    }
                 }
-            }
-            state.budget.add_output_bytes(stream_byte_len(&out.stdout).saturating_sub(credit.0)
-                + stream_byte_len(&out.stderr).saturating_sub(credit.1)).map_err(EvalError::Budget)?;
-            Ok(out)
-        }).map_err(|e| match e {
-            EvalError::Budget(m) | EvalError::Syntax(m) | EvalError::OutputClose(m) | EvalError::UnportedCommand(m) => m,
-        })
+                state
+                    .budget
+                    .add_output_bytes(
+                        stream_byte_len(&out.stdout).saturating_sub(credit.0)
+                            + stream_byte_len(&out.stderr).saturating_sub(credit.1),
+                    )
+                    .map_err(EvalError::Budget)?;
+                Ok(out)
+            })
+            .map_err(|e| match e {
+                EvalError::Budget(m)
+                | EvalError::Syntax(m)
+                | EvalError::OutputClose(m)
+                | EvalError::UnportedCommand(m) => m,
+            })
     }
 }
 
 impl CommandContext<'_> {
     /// Continue the intercepted command in its original shell, at most once.
-    pub fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome,String> {
+    pub fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome, String> {
         let current = self.caller.state();
         let cwd = (self.cwd != current.cwd).then_some(self.cwd.as_str());
-        let env = self.env.iter().filter(|(k,v)| !k.contains('\0') && current.env.get(*k) != Some(v))
-            .map(|(k,v)|(k.clone(),Some(v.clone())))
-            .chain(current.env.keys().filter(|k| !k.contains('\0') && !self.env.contains_key(*k)).map(|k|(k.clone(),None)))
+        let env = self
+            .env
+            .iter()
+            .filter(|(k, v)| !k.contains('\0') && current.env.get(*k) != Some(v))
+            .map(|(k, v)| (k.clone(), Some(v.clone())))
+            .chain(
+                current
+                    .env
+                    .keys()
+                    .filter(|k| !k.contains('\0') && !self.env.contains_key(*k))
+                    .map(|k| (k.clone(), None)),
+            )
             .collect();
-        let out = self.caller.proceed(stdin,None,cwd,env,None)?;
-        self.forwarded = (stream_byte_len(&out.stdout),stream_byte_len(&out.stderr));
+        let out = self.caller.proceed(stdin, None, cwd, env, None)?;
+        self.forwarded = (stream_byte_len(&out.stdout), stream_byte_len(&out.stderr));
         self.unread_stdin = Some(stdin.clone());
         Ok(out)
     }
 
-    pub(crate) fn read_middleware_input(&self, input:&mut String) -> Result<Vec<u8>,String> {
+    pub(crate) fn read_middleware_input(&self, input: &mut String) -> Result<Vec<u8>, String> {
         let state = self.caller.state();
-        if !state.is_fd_readable(0) { return Err("Bad file descriptor".into()); }
-        if let Some(source) = state.fd_table.get(&0).and_then(|fd| fd.file_input(state.budget)) {
+        if !state.is_fd_readable(0) {
+            return Err("Bad file descriptor".into());
+        }
+        if let Some(source) = state
+            .fd_table
+            .get(&0)
+            .and_then(|fd| fd.file_input(state.budget))
+        {
             source.admit_bounded_read()?;
             let mut bytes = Vec::new();
-            source.read(input,65536,|chunk,_|{bytes.extend_from_slice(chunk);Ok((false,chunk.len()))})?;
+            source.read(input, 65536, |chunk, _| {
+                bytes.extend_from_slice(chunk);
+                Ok((false, chunk.len()))
+            })?;
             source.unread.borrow_mut().clone_from(input);
             Ok(bytes)
-        } else { Ok(stream_string_to_bytes(&std::mem::take(input))) }
+        } else {
+            Ok(stream_string_to_bytes(&std::mem::take(input)))
+        }
     }
 
-    pub(crate) fn write_middleware_output(&self, fd:u32, data:&str, paid:usize) -> Result<(),String> {
+    pub(crate) fn write_middleware_output(
+        &self,
+        fd: u32,
+        data: &str,
+        paid: usize,
+    ) -> Result<(), String> {
         let state = self.caller.state();
-        let target = state.fd_table.get(&fd).filter(|t| t.is_redirected_output()).ok_or("Bad output descriptor")?;
-        let mut out = BuiltinOutcome {stdout:String::new(), stderr:String::new(), exit_code:0};
-        state.fd_writer().write(target,data,paid,&mut out);
+        let target = state
+            .fd_table
+            .get(&fd)
+            .filter(|t| t.is_redirected_output())
+            .ok_or("Bad output descriptor")?;
+        let mut out = BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+        state.fd_writer().write(target, data, paid, &mut out);
         state.budget.check_exceeded()?;
-        if out.exit_code == 0 { Ok(()) } else { Err(out.stderr) }
+        if out.exit_code == 0 {
+            Ok(())
+        } else {
+            Err(out.stderr)
+        }
     }
 
     /// Invoke literal words in an isolated child, capturing both streams for the plugin.
-    pub fn invoke(&self, name: &str, args: &[String], options: crate::InvokeOptions<'_>, stdin: &mut String) -> Result<BuiltinOutcome, String> {
-        if name.contains('\0') || args.iter().any(|s| s.contains('\0')) || options.argv0.is_some_and(|s| s.contains('\0')) {
+    pub fn invoke(
+        &self,
+        name: &str,
+        args: &[String],
+        options: crate::InvokeOptions<'_>,
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, String> {
+        if name.contains('\0')
+            || args.iter().any(|s| s.contains('\0'))
+            || options.argv0.is_some_and(|s| s.contains('\0'))
+        {
             return Err("invoke requires literal arguments without NUL".into());
         }
-        if options.env.iter().any(|(k,v)| k.contains(['\0','=']) || v.contains('\0')) {
+        if options
+            .env
+            .iter()
+            .any(|(k, v)| k.contains(['\0', '=']) || v.contains('\0'))
+        {
             return Err("Invalid invoke environment entry".into());
         }
         if args.len() >= self.budget.limits.max_expansion_fields {
-            return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxExpansionFields", self.budget.limits.max_expansion_fields)));
+            return Err(self
+                .budget
+                .record_exceeded(crate::budget::ShellLimits::limit_error(
+                    "maxExpansionFields",
+                    self.budget.limits.max_expansion_fields,
+                )));
         }
         self.budget.tick_command()?;
         self.budget.enter_substitution()?;
         let result = (|| {
             let mut cwd = resolve_posix_path(self.cwd, options.cwd.unwrap_or("."));
-            let source = if options.replace_env { &*self.caller.state().env } else { &*self.env };
+            let source = if options.replace_env {
+                &*self.caller.state().env
+            } else {
+                &*self.env
+            };
             let mut env = source.clone();
             if options.replace_env {
-                env.retain(|k,_| !super::is_exported_scalar(source,k));
+                env.retain(|k, _| !super::is_exported_scalar(source, k));
             }
             let external = options.external_invocation;
-            let exported_functions = self.caller.state().exported_functions.iter().filter(|name| {
-                let key = format!("BASH_FUNC_{name}%%");
-                if let Some(value) = options.env.get(&key) {
-                    self.caller.state().functions.get(*name).is_some_and(|body| {
-                        let text = format_function_display(name,body);
-                        value == text[name.len()+1..].trim_end()
-                    })
-                } else { !options.replace_env }
-            }).cloned().collect();
-            for (k,v) in options.env {
+            let exported_functions = self
+                .caller
+                .state()
+                .exported_functions
+                .iter()
+                .filter(|name| {
+                    let key = format!("BASH_FUNC_{name}%%");
+                    if let Some(value) = options.env.get(&key) {
+                        self.caller
+                            .state()
+                            .functions
+                            .get(*name)
+                            .is_some_and(|body| {
+                                let text = format_function_display(name, body);
+                                value == text[name.len() + 1..].trim_end()
+                            })
+                    } else {
+                        !options.replace_env
+                    }
+                })
+                .cloned()
+                .collect();
+            for (k, v) in options.env {
                 env.remove(&format!("\0unexported__{k}"));
-                env.insert(k,v);
+                env.insert(k, v);
             }
-            if !options.replace_env { env.insert("PWD".into(),cwd.clone()); }
-            if let Some(arg0) = options.argv0 { env.insert("\0argv0".into(),arg0.into()); }
+            if !options.replace_env {
+                env.insert("PWD".into(), cwd.clone());
+            }
+            if let Some(arg0) = options.argv0 {
+                env.insert("\0argv0".into(), arg0.into());
+            }
             let mut child = self.caller.state().make_child(&mut cwd, &mut env);
             child.exported_functions = exported_functions;
-            if external { child.functions.retain(|k,_| child.exported_functions.contains(k)); }
+            if external {
+                child
+                    .functions
+                    .retain(|k, _| child.exported_functions.contains(k));
+            }
             child.allow_unported_fallback = false;
             child.source_depth = 0;
             child.func_stack.clear();
@@ -240,13 +441,38 @@ impl CommandContext<'_> {
                 child.in_fd_aliases.remove(&fd);
                 child.in_fds.remove(&fd);
             }
-            child.fd_table.insert(1,FdTarget::Stdout);
-            child.fd_table.insert(2,if options.merge_stderr { FdTarget::Stdout } else { FdTarget::Stderr });
-            if options.stdin_is_default { child.default_input_fds.insert(0); } else { child.default_input_fds.remove(&0); }
-            let words = std::iter::once(name.to_string()).chain(args.iter().cloned()).collect::<Vec<_>>();
-            let mut out = child.dispatch_words(&words,stdin,if external { DispatchMode::External } else { DispatchMode::Shell })?;
+            child.fd_table.insert(1, FdTarget::Stdout);
+            child.fd_table.insert(
+                2,
+                if options.merge_stderr {
+                    FdTarget::Stdout
+                } else {
+                    FdTarget::Stderr
+                },
+            );
+            if options.stdin_is_default {
+                child.default_input_fds.insert(0);
+            } else {
+                child.default_input_fds.remove(&0);
+            }
+            let words = std::iter::once(name.to_string())
+                .chain(args.iter().cloned())
+                .collect::<Vec<_>>();
+            let mut out = child.dispatch_words(
+                &words,
+                stdin,
+                if external {
+                    DispatchMode::External
+                } else {
+                    DispatchMode::Shell
+                },
+            )?;
             child.close_child_outputs(&mut out);
-            child.account_forwarded_output(&out.stdout,&out.stderr,child.forwarded_output.get())?;
+            child.account_forwarded_output(
+                &out.stdout,
+                &out.stderr,
+                child.forwarded_output.get(),
+            )?;
             Ok(out)
         })();
         self.budget.leave_substitution();
@@ -274,11 +500,18 @@ impl PrefixBinding {
                 values.insert(key.clone(), env.get(&key).cloned());
             }
             let prefix = format!("{name}[");
-            for (key, value) in env.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
+            for (key, value) in env
+                .range(prefix.clone()..)
+                .take_while(|(k, _)| k.starts_with(&prefix))
+            {
                 values.insert(key.clone(), Some(value.clone()));
             }
         }
-        Self { name, values, array }
+        Self {
+            name,
+            values,
+            array,
+        }
     }
 
     fn exchange(&mut self, env: &mut BTreeMap<String, String>) {
@@ -287,7 +520,10 @@ impl PrefixBinding {
         }
         if self.array {
             let prefix = format!("{}[", self.name);
-            for (key, _) in env.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
+            for (key, _) in env
+                .range(prefix.clone()..)
+                .take_while(|(k, _)| k.starts_with(&prefix))
+            {
                 self.values.entry(key.clone()).or_default();
             }
         }
@@ -304,19 +540,27 @@ impl PrefixBinding {
 pub struct StdinStream(Rc<RefCell<crate::commands::StdinChunks>>);
 
 impl std::fmt::Debug for StdinStream {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str("StdinStream") }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("StdinStream")
+    }
 }
 impl PartialEq for StdinStream {
-    fn eq(&self, other: &Self) -> bool { Rc::ptr_eq(&self.0, &other.0) }
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
 }
 impl Eq for StdinStream {}
 
 pub struct ExclusiveOutput(RefCell<crate::vfs::ChunkWriter<'static>>);
 impl std::fmt::Debug for ExclusiveOutput {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str("ExclusiveOutput") }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ExclusiveOutput")
+    }
 }
 impl PartialEq for ExclusiveOutput {
-    fn eq(&self, other: &Self) -> bool { std::ptr::eq(self, other) }
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Eq for ExclusiveOutput {}
 
@@ -329,7 +573,14 @@ pub struct PathOutput {
 }
 
 impl PathOutput {
-    fn write(&self, fs: &dyn SafeBashFs, path: &str, offset: Option<usize>, bytes: &[u8], credited: usize) -> Result<(), String> {
+    fn write(
+        &self,
+        fs: &dyn SafeBashFs,
+        path: &str,
+        offset: Option<usize>,
+        bytes: &[u8],
+        credited: usize,
+    ) -> Result<(), String> {
         let mut data = self.data.borrow_mut();
         let append = match offset {
             None => true,
@@ -341,11 +592,15 @@ impl PathOutput {
         };
         if append {
             fs.write_redirect_path(path, bytes, true, crate::vfs::RedirectCharge(credited))?;
-            if let Some(old) = data.as_mut() { old.extend_from_slice(bytes); }
+            if let Some(old) = data.as_mut() {
+                old.extend_from_slice(bytes);
+            }
         } else {
             let pos = offset.unwrap();
             let mut next = data.clone().unwrap_or_default();
-            if next.len() < pos + bytes.len() { next.resize(pos + bytes.len(), 0); }
+            if next.len() < pos + bytes.len() {
+                next.resize(pos + bytes.len(), 0);
+            }
             next[pos..pos + bytes.len()].copy_from_slice(bytes);
             let credit = next.len() - bytes.len() + credited;
             fs.write_redirect_path(path, &next, false, crate::vfs::RedirectCharge(credit))?;
@@ -358,12 +613,25 @@ impl PathOutput {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
-    PipeStdout { peer_retired: bool },
-    SavedStdout { data: Rc<RefCell<String>>, pipe_peer_retired: Option<bool> },
+    PipeStdout {
+        peer_retired: bool,
+    },
+    SavedStdout {
+        data: Rc<RefCell<String>>,
+        pipe_peer_retired: Option<bool>,
+    },
     Stderr,
     SavedStderr(Rc<RefCell<String>>),
-    Exclusive { path: String, output: Rc<ExclusiveOutput> },
-    File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>>, image: Option<Rc<PathOutput>> },
+    Exclusive {
+        path: String,
+        output: Rc<ExclusiveOutput>,
+    },
+    File {
+        path: String,
+        file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
+        offset: Option<Rc<Cell<usize>>>,
+        image: Option<Rc<PathOutput>>,
+    },
     InputFile {
         writable: bool,
         path: String,
@@ -371,32 +639,80 @@ pub enum FdTarget {
         file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
-    InputStream { endless: bool, reader: StdinStream, unread: InputCursor, position: Rc<Cell<FileInputPosition>> },
+    InputStream {
+        endless: bool,
+        reader: StdinStream,
+        unread: InputCursor,
+        position: Rc<Cell<FileInputPosition>>,
+    },
     Closed,
 }
 
 impl FdTarget {
     fn is_redirected_output(&self) -> bool {
-        matches!(self, Self::Exclusive {..} | Self::File {..} | Self::SavedStdout {..} | Self::SavedStderr(_) | Self::InputFile {writable:true,..})
+        matches!(
+            self,
+            Self::Exclusive { .. }
+                | Self::File { .. }
+                | Self::SavedStdout { .. }
+                | Self::SavedStderr(_)
+                | Self::InputFile { writable: true, .. }
+        )
     }
 
     fn shares_output(&self, other: &Self) -> bool {
         use FdTarget::*;
         match (self, other) {
             (Stdout | PipeStdout { .. }, Stdout | PipeStdout { .. }) | (Stderr, Stderr) => true,
-            (SavedStdout { data: a, .. }, SavedStdout { data: b, .. }) | (SavedStderr(a), SavedStderr(b)) => Rc::ptr_eq(a, b),
+            (SavedStdout { data: a, .. }, SavedStdout { data: b, .. })
+            | (SavedStderr(a), SavedStderr(b)) => Rc::ptr_eq(a, b),
             (Exclusive { output: a, .. }, Exclusive { output: b, .. }) => Rc::ptr_eq(a, b),
-            (File { offset: Some(a), .. }, File { offset: Some(b), .. }) => Rc::ptr_eq(a, b),
+            (
+                File {
+                    offset: Some(a), ..
+                },
+                File {
+                    offset: Some(b), ..
+                },
+            ) => Rc::ptr_eq(a, b),
             (File { file: Some(a), .. }, File { file: Some(b), .. }) => Rc::ptr_eq(a, b),
-            (File { path: a, file: None, offset: None, .. }, File { path: b, file: None, offset: None, .. }) => a == b,
-            (InputFile { position: a, writable: true, .. }, InputFile { position: b, writable: true, .. }) => Rc::ptr_eq(a, b),
+            (
+                File {
+                    path: a,
+                    file: None,
+                    offset: None,
+                    ..
+                },
+                File {
+                    path: b,
+                    file: None,
+                    offset: None,
+                    ..
+                },
+            ) => a == b,
+            (
+                InputFile {
+                    position: a,
+                    writable: true,
+                    ..
+                },
+                InputFile {
+                    position: b,
+                    writable: true,
+                    ..
+                },
+            ) => Rc::ptr_eq(a, b),
             _ => false,
         }
     }
 
-    pub(crate) fn input_stream(endless: bool, next: impl FnMut(&ExecutionBudget) -> Option<Result<Vec<u8>, String>> + 'static) -> Self {
+    pub(crate) fn input_stream(
+        endless: bool,
+        next: impl FnMut(&ExecutionBudget) -> Option<Result<Vec<u8>, String>> + 'static,
+    ) -> Self {
         Self::InputStream {
-            endless, reader: StdinStream(Rc::new(RefCell::new(next))),
+            endless,
+            reader: StdinStream(Rc::new(RefCell::new(next))),
             unread: Rc::default(),
             position: Rc::default(),
         }
@@ -411,10 +727,29 @@ impl FdTarget {
 
     fn file_input<'a>(&'a self, budget: &'a ExecutionBudget) -> Option<FileCommandInput<'a>> {
         match self {
-            Self::InputFile { position, unread, path, file: Some(handle), .. } =>
-                Some(FileCommandInput { position, unread, source: crate::commands::InputSource::File(handle.as_ref(), path), budget }),
-            Self::InputStream { position, unread, reader, .. } =>
-                Some(FileCommandInput { position, unread, source: crate::commands::InputSource::Chunks(reader.0.as_ref()), budget }),
+            Self::InputFile {
+                position,
+                unread,
+                path,
+                file: Some(handle),
+                ..
+            } => Some(FileCommandInput {
+                position,
+                unread,
+                source: crate::commands::InputSource::File(handle.as_ref(), path),
+                budget,
+            }),
+            Self::InputStream {
+                position,
+                unread,
+                reader,
+                ..
+            } => Some(FileCommandInput {
+                position,
+                unread,
+                source: crate::commands::InputSource::Chunks(reader.0.as_ref()),
+                budget,
+            }),
             _ => None,
         }
     }
@@ -443,36 +778,73 @@ impl FdWriter<'_> {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
             FdTarget::SavedStdout { data: saved, .. } | FdTarget::SavedStderr(saved) => {
-                if self.budget.add_output_bytes(stream_byte_len(data) - charged).is_ok() {
+                if self
+                    .budget
+                    .add_output_bytes(stream_byte_len(data) - charged)
+                    .is_ok()
+                {
                     saved.borrow_mut().push_str(data);
                 }
             }
-            FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
-                let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
+            FdTarget::InputFile {
+                path,
+                writable: true,
+                ..
+            } if !self.provided_devices && path == "/dev/null" => {
+                let _ = self
+                    .budget
+                    .add_output_bytes(stream_byte_len(data) - charged);
             }
             FdTarget::Exclusive { path, output } => {
                 let bytes = stream_string_to_bytes(data);
-                if let Err(e) = self.budget.add_output_bytes(bytes.len() - charged)
-                    .and_then(|_| output.0.borrow_mut()(Some(&bytes))) {
+                if let Err(e) = self
+                    .budget
+                    .add_output_bytes(bytes.len() - charged)
+                    .and_then(|_| output.0.borrow_mut()(Some(&bytes)))
+                {
                     out.stderr.push_str(&format!("{path}: {e}\n"));
                     out.exit_code = 1;
                 }
             }
-            FdTarget::File { path, file, offset, image } => {
+            FdTarget::File {
+                path,
+                file,
+                offset,
+                image,
+            } => {
                 let null = !self.provided_devices && path == "/dev/null";
                 let bytes = (!null).then(|| stream_string_to_bytes(data));
-                let len = bytes.as_ref().map_or_else(|| stream_byte_len(data), Vec::len);
+                let len = bytes
+                    .as_ref()
+                    .map_or_else(|| stream_byte_len(data), Vec::len);
                 // The filesystem output sink writes at most 64 KiB at a time. Each
                 // successful write remains visible if the next one exceeds a quota.
                 for start in (0..len).step_by(64 * 1024) {
                     let end = (start + 64 * 1024).min(len);
                     let size = end - start;
                     let credit = charged.saturating_sub(start).min(size);
-                    let charge = || self.budget.tick_fs_op().and_then(|_| self.budget.add_output_bytes(size - credit));
+                    let charge = || {
+                        self.budget
+                            .tick_fs_op()
+                            .and_then(|_| self.budget.add_output_bytes(size - credit))
+                    };
                     let result = match (&bytes, file) {
-                        (Some(bytes), Some(file)) => charge().and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes[start..end])),
-                        (Some(bytes), None) if let Some(image) = image => image.write(self.fs, path, offset.as_ref().map(|p| p.get()), &bytes[start..end], credit),
-                        (Some(bytes), None) => self.fs.write_redirect_path(path, &bytes[start..end], true, crate::vfs::RedirectCharge(credit)),
+                        (Some(bytes), Some(file)) => charge().and_then(|_| {
+                            file.write_at(offset.as_ref().map(|p| p.get()), &bytes[start..end])
+                        }),
+                        (Some(bytes), None) if let Some(image) = image => image.write(
+                            self.fs,
+                            path,
+                            offset.as_ref().map(|p| p.get()),
+                            &bytes[start..end],
+                            credit,
+                        ),
+                        (Some(bytes), None) => self.fs.write_redirect_path(
+                            path,
+                            &bytes[start..end],
+                            true,
+                            crate::vfs::RedirectCharge(credit),
+                        ),
                         (None, _) => charge(),
                     };
                     if let Err(e) = result {
@@ -480,27 +852,45 @@ impl FdWriter<'_> {
                         out.exit_code = 1;
                         break;
                     }
-                    if let Some(p) = offset { p.set(p.get() + size); }
+                    if let Some(p) = offset {
+                        p.set(p.get() + size);
+                    }
                 }
             }
-            FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. } => {
+            FdTarget::InputFile {
+                writable: false, ..
+            }
+            | FdTarget::InputStream { .. } => {
                 out.stderr.push_str("Bad file descriptor\n");
                 out.exit_code = 1;
             }
-            FdTarget::InputFile { path, unread, file, position, writable: true } => {
+            FdTarget::InputFile {
+                path,
+                unread,
+                file,
+                position,
+                writable: true,
+            } => {
                 let mut pos = position.get();
                 pos.consume(stream_byte_len(&unread.borrow()));
                 let cur_off = pos.offset;
                 let write_bytes = stream_string_to_bytes(data);
                 let Some(file) = file else {
-                    if let Err(e) = self.fs.write_redirect_path(path, &write_bytes, false, crate::vfs::RedirectCharge(charged)) {
+                    if let Err(e) = self.fs.write_redirect_path(
+                        path,
+                        &write_bytes,
+                        false,
+                        crate::vfs::RedirectCharge(charged),
+                    ) {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
                     }
                     return;
                 };
                 let end_off = cur_off + write_bytes.len();
-                if let Err(e) = self.budget.tick_fs_op()
+                if let Err(e) = self
+                    .budget
+                    .tick_fs_op()
                     .and_then(|_| self.budget.add_output_bytes(write_bytes.len() - charged))
                     .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
                 {
@@ -631,7 +1021,10 @@ impl<'a> EvalState<'a> {
         let errexit = env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false);
         let nounset = env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false);
         let pipefail = env.get("\0set_pipefail").map(|v| v == "1").unwrap_or(false);
-        let noclobber = env.get("\0set_noclobber").map(|v| v == "1").unwrap_or(false);
+        let noclobber = env
+            .get("\0set_noclobber")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         let noexec = env.get("\0set_noexec").is_some_and(|v| v == "1");
         let last_exit = env
             .get("\0last_exit")
@@ -651,7 +1044,7 @@ impl<'a> EvalState<'a> {
             fs,
             budget,
             custom_commands,
-            middleware:None,
+            middleware: None,
             functions: BTreeMap::new(),
             exported_functions: BTreeSet::new(),
             func_stack: Vec::new(),
@@ -811,7 +1204,7 @@ impl<'a> EvalState<'a> {
             fs: self.fs,
             budget: self.budget,
             custom_commands: self.custom_commands,
-            middleware:self.middleware,
+            middleware: self.middleware,
             functions: self.functions.clone(),
             exported_functions: self.exported_functions.clone(),
             func_stack: self.func_stack.clone(),
@@ -893,11 +1286,7 @@ impl<'a> EvalState<'a> {
                 break;
             }
         }
-        if fd == 0 {
-            STDIN_STREAM_FD
-        } else {
-            fd
-        }
+        if fd == 0 { STDIN_STREAM_FD } else { fd }
     }
 
     fn is_fd_open(&self, fd: u32) -> bool {
@@ -940,8 +1329,10 @@ impl<'a> EvalState<'a> {
                 FdTarget::Stdout
                     | FdTarget::PipeStdout { .. }
                     | FdTarget::SavedStdout { .. }
-                    | FdTarget::Stderr | FdTarget::SavedStderr(_)
-                    | FdTarget::File { .. } | FdTarget::Exclusive { .. }
+                    | FdTarget::Stderr
+                    | FdTarget::SavedStderr(_)
+                    | FdTarget::File { .. }
+                    | FdTarget::Exclusive { .. }
                     | FdTarget::InputFile { writable: true, .. }
             )
         )
@@ -951,22 +1342,23 @@ impl<'a> EvalState<'a> {
     // descriptors still pointing at the old stdout must bypass that capture.
     fn redirect_child_stdout(&mut self, target: FdTarget, saved: &mut Option<Rc<RefCell<String>>>) {
         for (&fd, dest) in &mut self.fd_table {
-            if fd == 1 { continue; }
+            if fd == 1 {
+                continue;
+            }
             let pipe_peer_retired = match dest {
                 FdTarget::Stdout => None,
                 FdTarget::PipeStdout { peer_retired } => Some(*peer_retired),
                 _ => continue,
             };
-            *dest = FdTarget::SavedStdout { data: saved.get_or_insert_with(Rc::default).clone(), pipe_peer_retired };
+            *dest = FdTarget::SavedStdout {
+                data: saved.get_or_insert_with(Rc::default).clone(),
+                pipe_peer_retired,
+            };
         }
         self.fd_table.insert(1, target);
     }
 
-    fn evacuate_in_fd_owner(
-        &mut self,
-        fd: u32,
-        saved_aliases: &mut Vec<(u32, Option<u32>)>,
-    ) {
+    fn evacuate_in_fd_owner(&mut self, fd: u32, saved_aliases: &mut Vec<(u32, Option<u32>)>) {
         let new_owner = self
             .in_fd_aliases
             .iter()
@@ -1019,29 +1411,47 @@ impl<'a> EvalState<'a> {
     }
 
     /// Run a script with a forward-only source on fd 0. Descriptor copies share its cursor.
-    pub fn eval_script_with_stream(&mut self, script: &str, mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static) -> Result<CommandResult, EvalError> {
-        let saved = self.fd_table.insert(0, FdTarget::input_stream(false, move |_| chunks.next()));
+    pub fn eval_script_with_stream(
+        &mut self,
+        script: &str,
+        mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
+    ) -> Result<CommandResult, EvalError> {
+        let saved = self
+            .fd_table
+            .insert(0, FdTarget::input_stream(false, move |_| chunks.next()));
         let alias = self.in_fd_aliases.remove(&0);
         let cursor = self.in_fds.remove(&0);
         let default_input = self.default_input_fds.remove(&0);
         let result = self.eval_script_str(script, "");
-        self.restore_redirects((vec![(0, saved, default_input)], vec![(0, alias)]), vec![(0, cursor)]);
+        self.restore_redirects(
+            (vec![(0, saved, default_input)], vec![(0, alias)]),
+            vec![(0, cursor)],
+        );
         result
     }
 
-    pub fn eval_script_str(&mut self, script: &str, stdin: &str) -> Result<CommandResult, EvalError> {
+    pub fn eval_script_str(
+        &mut self,
+        script: &str,
+        stdin: &str,
+    ) -> Result<CommandResult, EvalError> {
         let result = self.eval_script_timed(script, stdin).0;
         self.budget.check_exceeded().map_err(EvalError::Budget)?;
         result
     }
 
-    pub(crate) fn eval_script_timed(&mut self, script: &str, stdin: &str) -> (Result<CommandResult, EvalError>, u32) {
+    pub(crate) fn eval_script_timed(
+        &mut self,
+        script: &str,
+        stdin: &str,
+    ) -> (Result<CommandResult, EvalError>, u32) {
         crate::commands::with_execution_clock(|| {
             self.budget
                 .add_source_bytes(script.len())
                 .map_err(EvalError::Budget)?;
             let mut stdin_buf = stdin.to_string();
-            let mut out = self.eval_script_units(&crate::vfs::shell_text(script), &mut stdin_buf)?;
+            let mut out =
+                self.eval_script_units(&crate::vfs::shell_text(script), &mut stdin_buf)?;
             out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
             self.last_exit = out.exit_code;
             self.run_exit_trap_if_needed(&mut out);
@@ -1154,16 +1564,25 @@ impl<'a> EvalState<'a> {
             let is_last = idx + 1 == lines.len();
             let aliases = self.active_alias_map();
             if !is_last
-                && is_incomplete_shell_unit_with_extglob(&unit_buf, &aliases, self.extglob_enabled())
+                && is_incomplete_shell_unit_with_extglob(
+                    &unit_buf,
+                    &aliases,
+                    self.extglob_enabled(),
+                )
             {
                 continue;
             }
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
                 Err(mut syn_err) => {
-                    if unit_start_line > 0 && let Some((reason, offset)) = syn_err.rsplit_once(" at offset ")
-                        && let Ok(offset) = offset.parse::<usize>() {
-                        let prefix: usize = lines[..unit_start_line].iter().map(|s| crate::vfs::host_text(s).encode_utf16().count()).sum();
+                    if unit_start_line > 0
+                        && let Some((reason, offset)) = syn_err.rsplit_once(" at offset ")
+                        && let Ok(offset) = offset.parse::<usize>()
+                    {
+                        let prefix: usize = lines[..unit_start_line]
+                            .iter()
+                            .map(|s| crate::vfs::host_text(s).encode_utf16().count())
+                            .sum();
                         syn_err = format!("{reason} at offset {}", prefix + offset);
                     }
                     if !executed && self.mapfile_callback_depth == 0 {
@@ -1266,7 +1685,11 @@ impl<'a> EvalState<'a> {
         })
     }
 
-    pub(crate) fn format_active_syntax_diagnostic(&self, script_text: &str, syn_err: &str) -> String {
+    pub(crate) fn format_active_syntax_diagnostic(
+        &self,
+        script_text: &str,
+        syn_err: &str,
+    ) -> String {
         let syn_err = syn_err.strip_prefix("__exit127__").unwrap_or(syn_err);
         if self.mapfile_callback_depth > 0 {
             let outer_script = self
@@ -1352,11 +1775,7 @@ impl<'a> EvalState<'a> {
         let cur_ver = self.trap_versions.get("DEBUG").copied();
         if self.source_depth > 0
             && !functrace
-            && self
-                .source_debug_snapshots
-                .last()
-                .and_then(|(_, v)| *v)
-                == cur_ver
+            && self.source_debug_snapshots.last().and_then(|(_, v)| *v) == cur_ver
         {
             return (debug_out, false);
         }
@@ -1479,13 +1898,22 @@ impl<'a> EvalState<'a> {
         code
     }
 
-    fn eval_script(&mut self, script: &Script, stdin: &mut String) -> Result<BuiltinOutcome, EvalError> {
+    fn eval_script(
+        &mut self,
+        script: &Script,
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, EvalError> {
         let mut stdout = String::new();
         let mut stderr = String::new();
         let mut last_code = self.last_exit;
         let prev_unit_locale = self.env.insert(
             "\0unit_byte_locale".to_string(),
-            if self.is_current_byte_locale() { "1" } else { "0" }.to_string(),
+            if self.is_current_byte_locale() {
+                "1"
+            } else {
+                "0"
+            }
+            .to_string(),
         );
 
         for list in &script.lists {
@@ -1589,8 +2017,10 @@ impl<'a> EvalState<'a> {
                 }
                 stdout.push_str(&bg_out.stdout);
                 stderr.push_str(&bg_out.stderr);
-                self.env
-                    .insert(format!("\0job_status__{pid_str}"), bg_out.exit_code.to_string());
+                self.env.insert(
+                    format!("\0job_status__{pid_str}"),
+                    bg_out.exit_code.to_string(),
+                );
                 self.env
                     .insert(format!("\0job_active__{pid_str}"), "1".to_string());
                 self.env.remove(&format!("\0job_notified__{pid_str}"));
@@ -1765,10 +2195,7 @@ impl<'a> EvalState<'a> {
             .iter()
             .any(|f| f.contains_key("PIPESTATUS"));
         if !is_indexed
-            && (self.env.contains_key("PIPESTATUS")
-                || is_readonly
-                || is_exported
-                || in_local_scope)
+            && (self.env.contains_key("PIPESTATUS") || is_readonly || is_exported || in_local_scope)
         {
             return;
         }
@@ -1808,7 +2235,11 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn eval_pipeline(&mut self, pipe: &Pipeline, stdin: &mut String) -> Result<BuiltinOutcome, EvalError> {
+    fn eval_pipeline(
+        &mut self,
+        pipe: &Pipeline,
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, EvalError> {
         if pipe.commands.is_empty() {
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
@@ -1898,7 +2329,9 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
-                if let Some(reader) = pipeline_reader.take() { self.fd_table.insert(0, reader); }
+                if let Some(reader) = pipeline_reader.take() {
+                    self.fd_table.insert(0, reader);
+                }
                 let outer_default = self.default_input_fds.remove(&0);
                 let previously_replaced = std::mem::take(&mut self.exec_replaced_stdin);
                 let stage_res = self.eval_pipeline_stage(cmd_node, &mut cur_stdin, None);
@@ -1906,8 +2339,12 @@ impl<'a> EvalState<'a> {
                     *stdin = std::mem::take(&mut cur_stdin);
                 } else {
                     self.fd_table.remove(&0);
-                    if outer_default { self.default_input_fds.insert(0); }
-                    if let Some(target) = outer_input { self.fd_table.insert(0, target); }
+                    if outer_default {
+                        self.default_input_fds.insert(0);
+                    }
+                    if let Some(target) = outer_input {
+                        self.fd_table.insert(0, target);
+                    }
                 }
                 self.exec_replaced_stdin |= previously_replaced;
                 if let Some(p0) = prev_pipe0 {
@@ -1937,7 +2374,9 @@ impl<'a> EvalState<'a> {
                 sub.async_default_stdin = self.async_default_stdin;
             } else {
                 sub.fd_table.remove(&0);
-                if let Some(reader) = pipeline_reader.take() { sub.fd_table.insert(0, reader); }
+                if let Some(reader) = pipeline_reader.take() {
+                    sub.fd_table.insert(0, reader);
+                }
                 sub.default_input_fds.remove(&0);
                 sub.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
             }
@@ -1955,7 +2394,9 @@ impl<'a> EvalState<'a> {
                 sub.redirect_child_stdout(FdTarget::PipeStdout { peer_retired }, &mut saved_stdout);
                 sub.env.insert("\0pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
-                if matches!(cmd_node, CommandNode::Simple(_)) { sub.pipeline_reader = Some(None); }
+                if matches!(cmd_node, CommandNode::Simple(_)) {
+                    sub.pipeline_reader = Some(None);
+                }
             }
             let stage_res = if idx == 0 {
                 sub.eval_pipeline_stage(cmd_node, stdin, None)
@@ -1978,7 +2419,8 @@ impl<'a> EvalState<'a> {
             if !is_last {
                 // The next stage consumes stdout. Only stderr flows out of the pipeline.
                 let (stdout, stderr) = self.forwarded_output.get();
-                self.forwarded_output.set((stdout - stream_byte_len(&stage_out.stdout), stderr));
+                self.forwarded_output
+                    .set((stdout - stream_byte_len(&stage_out.stdout), stderr));
             }
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
@@ -1989,7 +2431,8 @@ impl<'a> EvalState<'a> {
         if let Some(saved) = saved_stdout {
             let mut data = saved.take();
             let (out, err) = self.forwarded_output.get();
-            self.forwarded_output.set((out + stream_byte_len(&data), err));
+            self.forwarded_output
+                .set((out + stream_byte_len(&data), err));
             data.push_str(&cur_stdin);
             cur_stdin = data;
         }
@@ -2022,12 +2465,19 @@ impl<'a> EvalState<'a> {
         })
     }
 
-    fn account_forwarded_output(&self, stdout: &str, stderr: &str, charged: (usize, usize)) -> Result<(), EvalError> {
+    fn account_forwarded_output(
+        &self,
+        stdout: &str,
+        stderr: &str,
+        charged: (usize, usize),
+    ) -> Result<(), EvalError> {
         let (out, err) = (stream_byte_len(stdout), stream_byte_len(stderr));
-        self.budget.add_output_bytes(out.saturating_sub(charged.0) + err.saturating_sub(charged.1))
+        self.budget
+            .add_output_bytes(out.saturating_sub(charged.0) + err.saturating_sub(charged.1))
             .map_err(EvalError::Budget)?;
         let (prior_out, prior_err) = self.forwarded_output.get();
-        self.forwarded_output.set((prior_out + out, prior_err + err));
+        self.forwarded_output
+            .set((prior_out + out, prior_err + err));
         Ok(())
     }
 
@@ -2040,14 +2490,21 @@ impl<'a> EvalState<'a> {
     }
 
     fn finish_exclusive_outputs(&mut self, out: &mut BuiltinOutcome) -> Result<(), EvalError> {
-        if self.exclusive_outputs.is_empty() { return Ok(()); }
+        if self.exclusive_outputs.is_empty() {
+            return Ok(());
+        }
         let mut failure = None;
         let prefix = self.diag_prefix();
         let cancelled = self.budget.check_cancelled().is_err();
         self.exclusive_outputs.retain_mut(|(depth, output)| {
-            if *depth != 0 && *depth < self.stage_depth { return true; }
+            if *depth != 0 && *depth < self.stage_depth {
+                return true;
+            }
             let persistent = *depth == 0;
-            if Rc::strong_count(output) > 1 { *depth = 0; return true; }
+            if Rc::strong_count(output) > 1 {
+                *depth = 0;
+                return true;
+            }
             if !cancelled && let Err(e) = output.0.borrow_mut()(None) {
                 if persistent {
                     failure.get_or_insert(EvalError::OutputClose(e));
@@ -2063,7 +2520,8 @@ impl<'a> EvalState<'a> {
 
     fn close_shell_outputs(&mut self, out: &mut BuiltinOutcome) -> Result<(), EvalError> {
         if !self.exclusive_outputs.is_empty() {
-            self.fd_table.retain(|_, fd| !matches!(fd, FdTarget::Exclusive { .. }));
+            self.fd_table
+                .retain(|_, fd| !matches!(fd, FdTarget::Exclusive { .. }));
             return self.finish_exclusive_outputs(out);
         }
         Ok(())
@@ -2073,7 +2531,9 @@ impl<'a> EvalState<'a> {
         if let Err(EvalError::OutputClose(e)) = self.close_shell_outputs(out) {
             out.stderr.push_str(&format!("{}{e}\n", self.diag_prefix()));
             out.exit_code = 1;
-            if self.exit_requested.is_some() { self.exit_requested = Some(1); }
+            if self.exit_requested.is_some() {
+                self.exit_requested = Some(1);
+            }
         }
     }
 
@@ -2090,40 +2550,69 @@ impl<'a> EvalState<'a> {
         // sinks before applying its redirects, so nested commands can write to
         // the same stream in execution order (and saved fds retain their sink).
         if matches!(self.fd_table.get(&1), Some(FdTarget::Stderr))
-            || matches!(self.fd_table.get(&2), Some(FdTarget::Stdout | FdTarget::PipeStdout { .. }))
-            || command_redirects(node).iter().any(|r| matches!(r.kind, RedirectKind::DupOut { .. } | RedirectKind::DupIn { .. }))
+            || matches!(
+                self.fd_table.get(&2),
+                Some(FdTarget::Stdout | FdTarget::PipeStdout { .. })
+            )
+            || command_redirects(node).iter().any(|r| {
+                matches!(
+                    r.kind,
+                    RedirectKind::DupOut { .. } | RedirectKind::DupIn { .. }
+                )
+            })
         {
             for dest in self.fd_table.values_mut() {
                 let pipe_peer_retired = match dest {
                     FdTarget::Stdout => None,
                     FdTarget::PipeStdout { peer_retired } => Some(*peer_retired),
                     FdTarget::Stderr => {
-                        *dest = FdTarget::SavedStderr(Rc::clone(stderr.get_or_insert_with(Rc::default)));
+                        *dest = FdTarget::SavedStderr(Rc::clone(
+                            stderr.get_or_insert_with(Rc::default),
+                        ));
                         continue;
                     }
                     _ => continue,
                 };
-                *dest = FdTarget::SavedStdout { data: Rc::clone(stdout.get_or_insert_with(Rc::default)), pipe_peer_retired };
+                *dest = FdTarget::SavedStdout {
+                    data: Rc::clone(stdout.get_or_insert_with(Rc::default)),
+                    pipe_peer_retired,
+                };
             }
         }
         self.stage_depth += 1;
         let mut res = self.eval_command_node(node, stdin, standalone);
-        if let Ok(out) = &mut res && let Err(e) = self.finish_exclusive_outputs(out) { res = Err(e); }
+        if let Ok(out) = &mut res
+            && let Err(e) = self.finish_exclusive_outputs(out)
+        {
+            res = Err(e);
+        }
         self.stage_depth -= 1;
         if stdout.is_some() || stderr.is_some() {
             for dest in self.fd_table.values_mut() {
                 match dest {
-                    FdTarget::SavedStdout { data, pipe_peer_retired } if stdout.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) =>
-                        *dest = pipe_peer_retired.map_or(FdTarget::Stdout, |peer_retired| FdTarget::PipeStdout { peer_retired }),
-                    FdTarget::SavedStderr(data) if stderr.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) =>
-                        *dest = FdTarget::Stderr,
+                    FdTarget::SavedStdout {
+                        data,
+                        pipe_peer_retired,
+                    } if stdout.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) => {
+                        *dest = pipe_peer_retired.map_or(FdTarget::Stdout, |peer_retired| {
+                            FdTarget::PipeStdout { peer_retired }
+                        })
+                    }
+                    FdTarget::SavedStderr(data)
+                        if stderr.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) =>
+                    {
+                        *dest = FdTarget::Stderr
+                    }
                     _ => {}
                 }
             }
         }
         let mut forwarded = self.forwarded_output.replace(outer);
         let mut out = res?;
-        for (sink, stream, credit) in [(stdout, &mut out.stdout, &mut forwarded.0), (stderr, &mut out.stderr, &mut forwarded.1)] {
+        for (sink, stream, credit) in [
+            (stdout, &mut out.stdout, &mut forwarded.0),
+            (stderr, &mut out.stderr, &mut forwarded.1),
+        ] {
             if let Some(sink) = sink {
                 let mut data = sink.take();
                 *credit += stream_byte_len(&data);
@@ -2159,7 +2648,12 @@ impl<'a> EvalState<'a> {
                 )
             });
             if !matches!(self.fd_table.get(&0), Some(FdTarget::Closed)) && !redirects_fd0 {
-                let stream = if matches!(self.fd_table.get(&0), Some(FdTarget::InputStream { .. })) { self.fd_table.remove(&0) } else { None };
+                let stream = if matches!(self.fd_table.get(&0), Some(FdTarget::InputStream { .. }))
+                {
+                    self.fd_table.remove(&0)
+                } else {
+                    None
+                };
                 let saved_alias0 = if !self.fd_table.contains_key(&0) {
                     self.in_fd_aliases.remove(&0)
                 } else {
@@ -2169,8 +2663,12 @@ impl<'a> EvalState<'a> {
                 let mut empty_stdin = String::new();
                 let was_default = self.default_input_fds.replace(0).is_some();
                 let res = self.eval_command_node(node, &mut empty_stdin, standalone);
-                if !was_default { self.default_input_fds.remove(&0); }
-                if let Some(stream) = stream { self.fd_table.insert(0, stream); }
+                if !was_default {
+                    self.default_input_fds.remove(&0);
+                }
+                if let Some(stream) = stream {
+                    self.fd_table.insert(0, stream);
+                }
                 if let Some(a0) = saved_alias0 {
                     self.in_fd_aliases.insert(0, a0);
                 }
@@ -2311,9 +2809,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
 
-                if !executed
-                    && let Some(eb) = else_branch
-                {
+                if !executed && let Some(eb) = else_branch {
                     let eb_out = self.eval_script(eb, eff_stdin)?;
                     stdout.push_str(&eb_out.stdout);
                     stderr.push_str(&eb_out.stderr);
@@ -2516,10 +3012,18 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
-                    let mut prompt = if show_menu { format_select_menu(&expanded_items, self.env) } else { String::new() };
+                    let mut prompt = if show_menu {
+                        format_select_menu(&expanded_items, self.env)
+                    } else {
+                        String::new()
+                    };
                     prompt.push_str(self.env.get("PS3").map_or("#? ", String::as_str));
                     let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
-                    let mut emitted = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                    let mut emitted = BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    };
                     self.fd_writer().write(&fd2, &prompt, 0, &mut emitted);
                     self.budget.check_exceeded().map_err(EvalError::Budget)?;
                     stdout.push_str(&emitted.stdout);
@@ -2541,9 +3045,13 @@ impl<'a> EvalState<'a> {
                     let budget = self.budget;
                     if let Err(error) = self.read_fd_chunks(0, eff_stdin, &mut |chunk, _| {
                         for (i, &byte) in chunk.iter().enumerate() {
-                            if byte == 0 { continue; }
+                            if byte == 0 {
+                                continue;
+                            }
                             if std::mem::take(&mut escaped) {
-                                if byte == b'\n' { continue; }
+                                if byte == b'\n' {
+                                    continue;
+                                }
                             } else if byte == b'\\' {
                                 escaped = true;
                                 continue;
@@ -2552,7 +3060,10 @@ impl<'a> EvalState<'a> {
                                 return Ok((false, i + 1));
                             }
                             if line_bytes.len() >= budget.limits.max_output_bytes {
-                                return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
+                                return Err(budget.record_exceeded(format!(
+                                    "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                                    budget.limits.max_output_bytes
+                                )));
                             }
                             line_bytes.push(byte);
                         }
@@ -2686,7 +3197,11 @@ impl<'a> EvalState<'a> {
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
-                        let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                        let context = if e.ends_with(": readonly variable") {
+                            ""
+                        } else {
+                            "((: "
+                        };
                         stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                         let mut out = BuiltinOutcome {
                             stdout,
@@ -2719,7 +3234,11 @@ impl<'a> EvalState<'a> {
                                     self.restore_redirects(saved_fds, saved_in);
                                     return Err(EvalError::Syntax(nu.to_string()));
                                 }
-                                let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                                let context = if e.ends_with(": readonly variable") {
+                                    ""
+                                } else {
+                                    "((: "
+                                };
                                 stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                                 code = 1;
                                 break;
@@ -2754,7 +3273,11 @@ impl<'a> EvalState<'a> {
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
-                            let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                            let context = if e.ends_with(": readonly variable") {
+                                ""
+                            } else {
+                                "((: "
+                            };
                             stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                             code = 1;
                             break;
@@ -3015,7 +3538,11 @@ impl<'a> EvalState<'a> {
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
                         self.env.insert("\0arith_diag".to_string(), "1".to_string());
-                        let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                        let context = if e.ends_with(": readonly variable") {
+                            ""
+                        } else {
+                            "((: "
+                        };
                         let mut diag_out = BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!("{}{context}{e}\n", self.diag_prefix()),
@@ -3039,8 +3566,7 @@ impl<'a> EvalState<'a> {
                 if is_posix
                     && matches!(
                         name.as_str(),
-                        ":"
-                            | "."
+                        ":" | "."
                             | "break"
                             | "continue"
                             | "eval"
@@ -3093,7 +3619,11 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn with_expansion_input<T>(&mut self, input: &mut String, expand: impl FnOnce(&mut Self) -> T) -> T {
+    fn with_expansion_input<T>(
+        &mut self,
+        input: &mut String,
+        expand: impl FnOnce(&mut Self) -> T,
+    ) -> T {
         if input.is_empty() || self.in_fds.contains_key(&0) {
             return expand(self);
         }
@@ -3104,7 +3634,12 @@ impl<'a> EvalState<'a> {
     }
 
     // An invalid index fails this command. Errors expanding its words can stop the shell.
-    fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<Option<String>, EvalError> {
+    fn assign_shell_word(
+        &mut self,
+        lhs: &str,
+        word: &str,
+        append: bool,
+    ) -> Result<Option<String>, EvalError> {
         if word.starts_with('(') && word.ends_with(')') {
             return self.assign_value(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append);
         }
@@ -3122,18 +3657,26 @@ impl<'a> EvalState<'a> {
     fn associative_write_key(&mut self, word: &str) -> Result<String, EvalError> {
         let key = self.expand_word_to_string(word)?;
         if key.is_empty() {
-            return Err(EvalError::Syntax("associative array: bad array subscript".into()));
+            return Err(EvalError::Syntax(
+                "associative array: bad array subscript".into(),
+            ));
         }
         Ok(key)
     }
 
-    fn indexed_write_subscript(&mut self, base: &str, raw: &str) -> Result<Result<i64, String>, EvalError> {
+    fn indexed_write_subscript(
+        &mut self,
+        base: &str,
+        raw: &str,
+    ) -> Result<Result<i64, String>, EvalError> {
         if raw.is_empty() {
             return Ok(Err("indexed array: bad array subscript".into()));
         }
         let expanded = self.expand_word_to_string(raw)?;
         let word = expanded.trim_matches('"').trim_matches('\'');
-        match eval_arith_formatted(word, self.env).and_then(|i| indexed_array_index(base, i, self.env)) {
+        match eval_arith_formatted(word, self.env)
+            .and_then(|i| indexed_array_index(base, i, self.env))
+        {
             Err(msg) if msg.starts_with("__nounset__") => Err(EvalError::Syntax(msg)),
             result => Ok(result),
         }
@@ -3152,7 +3695,9 @@ impl<'a> EvalState<'a> {
             .get(&format!("\0attr__{resolved_base}"))
             .is_some_and(|a| a.contains('r'))
         {
-            return Err(EvalError::Syntax(format!("{resolved_base}: readonly variable")));
+            return Err(EvalError::Syntax(format!(
+                "{resolved_base}: readonly variable"
+            )));
         }
         let is_assoc = self
             .env
@@ -3176,9 +3721,7 @@ impl<'a> EvalState<'a> {
         if !is_assoc {
             let prefix = format!("{resolved_base}[");
             let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
-            if !has_arr_elems
-                && let Some(scalar_v) = self.env.get(&resolved_base).cloned()
-            {
+            if !has_arr_elems && let Some(scalar_v) = self.env.get(&resolved_base).cloned() {
                 self.env.insert(format!("{resolved_base}[0]"), scalar_v);
                 sync_array_metadata(&resolved_base, self.env);
             }
@@ -3248,14 +3791,24 @@ impl<'a> EvalState<'a> {
         Ok(None)
     }
 
-    pub fn assign_variable(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<(), EvalError> {
+    pub fn assign_variable(
+        &mut self,
+        lhs: &str,
+        raw_val: &str,
+        append: bool,
+    ) -> Result<(), EvalError> {
         match self.assign_value(lhs, raw_val, append)? {
             Some(msg) => Err(EvalError::Syntax(msg)),
             None => Ok(()),
         }
     }
 
-    fn assign_value(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<Option<String>, EvalError> {
+    fn assign_value(
+        &mut self,
+        lhs: &str,
+        raw_val: &str,
+        append: bool,
+    ) -> Result<Option<String>, EvalError> {
         if let Some((base, sub_rest)) = lhs.split_once('[')
             && let Some(raw_sub) = sub_rest.strip_suffix(']')
         {
@@ -3288,13 +3841,27 @@ impl<'a> EvalState<'a> {
             let inner = &arr_lit[1..arr_lit.len() - 1];
             let entries = scan_array_literal_entries(inner)?;
             if is_assoc && entries.iter().any(|(_, _, selector)| selector.is_none()) {
-                return Ok(Some("indexed array: associative compound entry requires a subscript".into()));
+                return Ok(Some(
+                    "indexed array: associative compound entry requires a subscript".into(),
+                ));
             }
             let append_cursor = |env: &BTreeMap<String, String>| -> i64 {
-                if !append || is_assoc { return 0; }
+                if !append || is_assoc {
+                    return 0;
+                }
                 let prefix = format!("{resolved}[");
-                env.keys().filter_map(|k| k.strip_prefix(&prefix)?.strip_suffix(']')?.parse::<i32>().ok())
-                    .max().map_or_else(|| i64::from(env.contains_key(&resolved)), |n| i64::from(n) + 1)
+                env.keys()
+                    .filter_map(|k| {
+                        k.strip_prefix(&prefix)?
+                            .strip_suffix(']')?
+                            .parse::<i32>()
+                            .ok()
+                    })
+                    .max()
+                    .map_or_else(
+                        || i64::from(env.contains_key(&resolved)),
+                        |n| i64::from(n) + 1,
+                    )
             };
             let max_index = i64::from(i32::MAX);
             if !is_assoc {
@@ -3309,23 +3876,36 @@ impl<'a> EvalState<'a> {
                             continue;
                         }
                         let (required, single) = compound_field_count(&inner[start..end]);
-                        if required && n > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
+                        if required && n > max_index {
+                            return Ok(Some(INDEX_OUT_OF_RANGE.into()));
+                        }
                         cursor = single.then_some(n + 1);
                     }
                 }
             }
             let mut items = self.expand_array_literal_items(inner, is_assoc, entries)?;
             let mut next_idx = append_cursor(self.env);
-            let integer = self.env.get(&format!("\0attr__{resolved}")).is_some_and(|a| a.contains('i'));
+            let integer = self
+                .env
+                .get(&format!("\0attr__{resolved}"))
+                .is_some_and(|a| a.contains('i'));
             // Literal indices publish together. A computed index or integer attribute
             // instead observes the writes already made in this assignment.
-            if !is_assoc && !integer && items.iter().all(|(sub, _, _)| sub.as_deref().is_none_or(|s| literal_compound_index(s).is_some())) {
+            if !is_assoc
+                && !integer
+                && items.iter().all(|(sub, _, _)| {
+                    sub.as_deref()
+                        .is_none_or(|s| literal_compound_index(s).is_some())
+                })
+            {
                 let mut cursor = next_idx;
                 for (sub, _, _) in &items {
                     if let Some(n) = sub.as_deref().and_then(literal_compound_index) {
                         cursor = n + 1;
                     } else {
-                        if cursor > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
+                        if cursor > max_index {
+                            return Ok(Some(INDEX_OUT_OF_RANGE.into()));
+                        }
                         cursor += 1;
                     }
                 }
@@ -3356,9 +3936,7 @@ impl<'a> EvalState<'a> {
             } else if !is_assoc {
                 let prefix = format!("{resolved}[");
                 let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
-                if !has_arr_elems
-                    && let Some(scalar_v) = self.env.get(&resolved).cloned()
-                {
+                if !has_arr_elems && let Some(scalar_v) = self.env.get(&resolved).cloned() {
                     self.env.insert(format!("{resolved}[0]"), scalar_v);
                     sync_array_metadata(&resolved, self.env);
                 }
@@ -3433,7 +4011,9 @@ impl<'a> EvalState<'a> {
                     self.env.insert(elem_key, final_item_val);
                     sync_array_metadata(&resolved, self.env);
                 } else {
-                    if next_idx > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
+                    if next_idx > max_index {
+                        return Ok(Some(INDEX_OUT_OF_RANGE.into()));
+                    }
                     let final_item_val = apply_var_attributes(&resolved, &item_val, self.env)
                         .map_err(EvalError::Syntax)?;
                     self.env
@@ -3530,9 +4110,7 @@ impl<'a> EvalState<'a> {
             .map(|v| v == "1")
             .unwrap_or(false);
         let already_existed = self.env.contains_key(&resolved);
-        let was_unexported = self
-            .env
-            .contains_key(&format!("\0unexported__{resolved}"));
+        let was_unexported = self.env.contains_key(&format!("\0unexported__{resolved}"));
         if allexport || self.in_prefix_assignment || attr.contains('x') {
             self.env.remove(&format!("\0unexported__{resolved}"));
             if allexport && !attr.contains('x') {
@@ -3624,57 +4202,125 @@ impl<'a> EvalState<'a> {
         Ok(out)
     }
     fn direct_builtin_words<'s>(&self, simple: &'s SimpleCommand) -> Option<&'s [String]> {
-        if self.middleware.is_some() || !simple.assignments.is_empty() || self.budget.limits.max_expansion_bytes < 65536
+        if self.middleware.is_some()
+            || !simple.assignments.is_empty()
+            || self.budget.limits.max_expansion_bytes < 65536
             || self.budget.limits.max_commands < 1000
-            || self.env.get("\0attr__PIPESTATUS").is_some_and(|a| a.contains('r')) {
+            || self
+                .env
+                .get("\0attr__PIPESTATUS")
+                .is_some_and(|a| a.contains('r'))
+        {
             return None;
         }
         let mut words = simple.words.as_slice();
-        if let [prefix, rest @ ..] = words && matches!(prefix.as_str(), "builtin" | "command") {
-            if self.functions.contains_key(prefix) { return None; }
-            words = if rest.first().is_some_and(|s| s == "--") { &rest[1..] } else { rest };
+        if let [prefix, rest @ ..] = words
+            && matches!(prefix.as_str(), "builtin" | "command")
+        {
+            if self.functions.contains_key(prefix) {
+                return None;
+            }
+            words = if rest.first().is_some_and(|s| s == "--") {
+                &rest[1..]
+            } else {
+                rest
+            };
         }
-        if self.functions.contains_key(words.first()?) { return None; }
+        if self.functions.contains_key(words.first()?) {
+            return None;
+        }
         Some(words)
     }
 
     fn try_mapfile_here_string(&mut self, simple: &SimpleCommand) -> Result<bool, EvalError> {
-        let [redirect] = simple.redirects.as_slice() else { return Ok(false) };
-        if !matches!(redirect.kind, RedirectKind::HereString(0)) || self.env.get("\0set_allexport").is_some_and(|v| v == "1") {
+        let [redirect] = simple.redirects.as_slice() else {
+            return Ok(false);
+        };
+        if !matches!(redirect.kind, RedirectKind::HereString(0))
+            || self.env.get("\0set_allexport").is_some_and(|v| v == "1")
+        {
             return Ok(false);
         }
-        let Some(words) = self.direct_builtin_words(simple) else { return Ok(false) };
-        if !matches!(words.len(), 2 | 3) || words[1] != "-t"
-            || !matches!(words[0].as_str(), "mapfile" | "readarray") {
+        let Some(words) = self.direct_builtin_words(simple) else {
+            return Ok(false);
+        };
+        if !matches!(words.len(), 2 | 3)
+            || words[1] != "-t"
+            || !matches!(words[0].as_str(), "mapfile" | "readarray")
+        {
             return Ok(false);
         }
         // Production uses the plain array name or MAPFILE, even for a quoted target.
-        let name = words.get(2).filter(|s| !s.contains(['\'', '"', '\\', '$', '`', '<', '>']))
-            .map(String::as_str).unwrap_or("MAPFILE");
-        if !is_valid_shell_ident(name) || self.local_scopes.iter().any(|f| f.contains_key(name))
-            || self.env.get(&format!("\0attr__{name}")).is_some_and(|a| !a.is_empty() && a != "a")
-            || self.env.contains_key(&format!("\0assoc__{name}")) || self.env.contains_key(&format!("\0nameref__{name}"))
+        let name = words
+            .get(2)
+            .filter(|s| !s.contains(['\'', '"', '\\', '$', '`', '<', '>']))
+            .map(String::as_str)
+            .unwrap_or("MAPFILE");
+        if !is_valid_shell_ident(name)
+            || self.local_scopes.iter().any(|f| f.contains_key(name))
+            || self
+                .env
+                .get(&format!("\0attr__{name}"))
+                .is_some_and(|a| !a.is_empty() && a != "a")
+            || self.env.contains_key(&format!("\0assoc__{name}"))
+            || self.env.contains_key(&format!("\0nameref__{name}"))
             || (self.env.contains_key(name) && super::is_exported_scalar(self.env, name))
-            || matches!(name, "PATH" | "PWD" | "OLDPWD" | "HOME" | "CDPATH" | "IFS" | "OPTIND" | "OPTERR" | "OPTARG" | "REPLY" | "LANG" | "LC_ALL" | "LC_CTYPE" | "RANDOM" | "SECONDS" | "LINENO") {
+            || matches!(
+                name,
+                "PATH"
+                    | "PWD"
+                    | "OLDPWD"
+                    | "HOME"
+                    | "CDPATH"
+                    | "IFS"
+                    | "OPTIND"
+                    | "OPTERR"
+                    | "OPTARG"
+                    | "REPLY"
+                    | "LANG"
+                    | "LC_ALL"
+                    | "LC_CTYPE"
+                    | "RANDOM"
+                    | "SECONDS"
+                    | "LINENO"
+            )
+        {
             return Ok(false);
         }
         // Only try words whose expansion can be repeated without effects if the
         // direct operation declines the input. Substitutions use descriptor setup.
         let word = redirect.target.as_str();
-        let unquoted = word.strip_prefix('"').and_then(|v| v.strip_suffix('"')).unwrap_or(word);
-        let variable = unquoted.strip_prefix('$').map(|v| v.strip_prefix('{').and_then(|s| s.strip_suffix('}')).unwrap_or(v))
+        let unquoted = word
+            .strip_prefix('"')
+            .and_then(|v| v.strip_suffix('"'))
+            .unwrap_or(word);
+        let variable = unquoted
+            .strip_prefix('$')
+            .map(|v| {
+                v.strip_prefix('{')
+                    .and_then(|s| s.strip_suffix('}'))
+                    .unwrap_or(v)
+            })
             .filter(|v| is_valid_shell_ident(v));
-        if word.contains(['`', '<', '>']) || (word.contains('$') &&
-            !word.strip_prefix("$'").and_then(|v| v.strip_suffix('\'')).is_some_and(|v| !v.contains('\'')) &&
-            !variable.is_some_and(|v| !matches!(v, "RANDOM" | "SRANDOM" | "SECONDS"))) {
+        if word.contains(['`', '<', '>'])
+            || (word.contains('$')
+                && !word
+                    .strip_prefix("$'")
+                    .and_then(|v| v.strip_suffix('\''))
+                    .is_some_and(|v| !v.contains('\''))
+                && !variable.is_some_and(|v| !matches!(v, "RANDOM" | "SRANDOM" | "SECONDS")))
+        {
             return Ok(false);
         }
         let value = self.expand_word_to_string(word)?;
         let units = value.encode_utf16().count() + 1;
         let fields = value.split('\n').count();
-        if units > self.budget.limits.max_input_bytes || units >= self.budget.limits.max_expansion_bytes
-            || value.contains('\0') || stream_byte_len(&value) != value.len()
-            || fields > self.budget.limits.max_expansion_fields.min(4096) {
+        if units > self.budget.limits.max_input_bytes
+            || units >= self.budget.limits.max_expansion_bytes
+            || value.contains('\0')
+            || stream_byte_len(&value) != value.len()
+            || fields > self.budget.limits.max_expansion_fields.min(4096)
+        {
             return Ok(false);
         }
         let prefix = format!("{name}[");
@@ -3682,10 +4328,14 @@ impl<'a> EvalState<'a> {
         for (i, line) in value.split('\n').enumerate() {
             self.env.insert(format!("{name}[{i}]"), line.to_string());
         }
-        self.env.insert(format!("\0declared__{name}"), "1".to_string());
+        self.env
+            .insert(format!("\0declared__{name}"), "1".to_string());
         sync_array_metadata(name, self.env);
         self.env.remove("_");
-        self.env.insert("\0last_arg".into(), if words.len() == 2 { "-t" } else { name }.to_string());
+        self.env.insert(
+            "\0last_arg".into(),
+            if words.len() == 2 { "-t" } else { name }.to_string(),
+        );
         Ok(true)
     }
 
@@ -3730,11 +4380,21 @@ impl<'a> EvalState<'a> {
             false
         };
         let mut print_index = if standalone.is_some()
-            && matches!(simple.redirects.as_slice(), [Redirect { kind: RedirectKind::HereString(_), .. }])
-            && matches!(self.fd_table.get(&1), None | Some(FdTarget::Stdout)) {
-            self.direct_builtin_words(simple).filter(|words| words.len() >= 2 && matches!(words[0].as_str(), "echo" | "printf"))
+            && matches!(
+                simple.redirects.as_slice(),
+                [Redirect {
+                    kind: RedirectKind::HereString(_),
+                    ..
+                }]
+            )
+            && matches!(self.fd_table.get(&1), None | Some(FdTarget::Stdout))
+        {
+            self.direct_builtin_words(simple)
+                .filter(|words| words.len() >= 2 && matches!(words[0].as_str(), "echo" | "printf"))
                 .map(|words| simple.words.len() - words.len())
-        } else { None };
+        } else {
+            None
+        };
         let mut expanded_words = Vec::new();
         if is_double_bracket {
             let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
@@ -3754,8 +4414,14 @@ impl<'a> EvalState<'a> {
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
             }
-            let cmd_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-            let cmd_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+            let cmd_fd1 = self
+                .fd_table
+                .insert(1, FdTarget::Stdout)
+                .unwrap_or(FdTarget::Stdout);
+            let cmd_fd2 = self
+                .fd_table
+                .insert(2, FdTarget::Stderr)
+                .unwrap_or(FdTarget::Stderr);
             let db_res = self.eval_double_bracket_words(&simple.words);
             self.fd_table.insert(1, cmd_fd1);
             self.fd_table.insert(2, cmd_fd2);
@@ -3870,7 +4536,8 @@ impl<'a> EvalState<'a> {
                                     Ok(v) => v,
                                     Err(e) => {
                                         if synced_fd0 {
-                                            *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
+                                            *stdin =
+                                                self.in_fds.remove(&0).unwrap_or_default().take();
                                         }
                                         return Err(e);
                                     }
@@ -3905,15 +4572,28 @@ impl<'a> EvalState<'a> {
                 } else {
                     match self.expand_word_to_fields(w) {
                         Ok(fields) => {
-                            if let Some(index) = print_index && idx > index {
-                                let members = (simple.words[index] == "echo" || idx > index + 1) && w.strip_prefix("\"${")
-                                    .and_then(|w| w.strip_suffix("[@]}\"")).is_some_and(is_valid_shell_ident);
+                            if let Some(index) = print_index
+                                && idx > index
+                            {
+                                let members = (simple.words[index] == "echo" || idx > index + 1)
+                                    && w.strip_prefix("\"${")
+                                        .and_then(|w| w.strip_suffix("[@]}\""))
+                                        .is_some_and(is_valid_shell_ident);
                                 let direct = if members {
-                                    fields.iter().all(|s| !s.contains('\0') && stream_byte_len(s) == s.len())
+                                    fields
+                                        .iter()
+                                        .all(|s| !s.contains('\0') && stream_byte_len(s) == s.len())
                                 } else {
-                                    fields.len() == 1 && direct_print_word(w, &fields[0], self.env.get("\0set_noglob").is_some_and(|s| s == "1"))
+                                    fields.len() == 1
+                                        && direct_print_word(
+                                            w,
+                                            &fields[0],
+                                            self.env.get("\0set_noglob").is_some_and(|s| s == "1"),
+                                        )
                                 };
-                                if !direct { print_index = None; }
+                                if !direct {
+                                    print_index = None;
+                                }
                             }
                             expanded_words.extend(fields);
                             if expanded_words.len() > self.budget.limits.max_expansion_fields {
@@ -3963,18 +4643,35 @@ impl<'a> EvalState<'a> {
             let args = &expanded_words[index + 1..];
             let available = self.budget.remaining_output_bytes();
             let output = match expanded_words[index].as_str() {
-                "echo" if args.first().is_none_or(|a| !a.starts_with('-')) && self.env.get("\0shopt_xpg_echo").is_none_or(|s| s != "1")
-                    && args.iter().map(|s| s.len() + 1).sum::<usize>().max(1) <= available => Some(args.join(" ") + "\n"),
+                "echo"
+                    if args.first().is_none_or(|a| !a.starts_with('-'))
+                        && self.env.get("\0shopt_xpg_echo").is_none_or(|s| s != "1")
+                        && args.iter().map(|s| s.len() + 1).sum::<usize>().max(1) <= available =>
+                {
+                    Some(args.join(" ") + "\n")
+                }
                 "printf" => {
-                    let formats = if args.first().is_some_and(|s| s == "--") { &args[1..] } else if args.first().is_some_and(|s| s.starts_with('-')) { &[] } else { args };
-                    formats.split_first().and_then(|(fmt, vals)| super::builtins::format_printf(fmt, vals, self.env, Some(available)))
-                        .filter(|out| out.exit_code == 0).map(|out| out.stdout)
+                    let formats = if args.first().is_some_and(|s| s == "--") {
+                        &args[1..]
+                    } else if args.first().is_some_and(|s| s.starts_with('-')) {
+                        &[]
+                    } else {
+                        args
+                    };
+                    formats
+                        .split_first()
+                        .and_then(|(fmt, vals)| {
+                            super::builtins::format_printf(fmt, vals, self.env, Some(available))
+                        })
+                        .filter(|out| out.exit_code == 0)
+                        .map(|out| out.stdout)
                 }
                 _ => None,
             };
             if let Some(stdout) = output {
                 self.env.remove("_");
-                self.env.insert("\0last_arg".into(), expanded_words.last().unwrap().clone());
+                self.env
+                    .insert("\0last_arg".into(), expanded_words.last().unwrap().clone());
                 let mut out = debug_out;
                 out.stdout.push_str(&stdout);
                 self.route_outcome(&mut out);
@@ -4000,13 +4697,17 @@ impl<'a> EvalState<'a> {
                 *stdin = local_stdin;
             }
             if self.middleware.is_some() {
-                let mut out = self.dispatch_words(&expanded_words,stdin,DispatchMode::Shell)?;
+                let mut out = self.dispatch_words(&expanded_words, stdin, DispatchMode::Shell)?;
                 self.route_outcome(&mut out);
-                out.stdout.insert_str(0,&debug_out.stdout);
-                out.stderr.insert_str(0,&debug_out.stderr);
+                out.stdout.insert_str(0, &debug_out.stdout);
+                out.stderr.insert_str(0, &debug_out.stderr);
                 return Ok(out);
             }
-            return Ok(BuiltinOutcome {stdout:debug_out.stdout,stderr:debug_out.stderr,exit_code:0});
+            return Ok(BuiltinOutcome {
+                stdout: debug_out.stdout,
+                stderr: debug_out.stderr,
+                exit_code: 0,
+            });
         }
 
         let has_inline_input = simple.redirects.iter().any(|r| {
@@ -4021,16 +4722,31 @@ impl<'a> EvalState<'a> {
             && !Self::is_shell_builtin_name(&expanded_words[0]);
         let outer_env = is_external_inline.then(|| self.env.clone());
         let cache_name = is_external_inline.then(|| expanded_words[0].clone());
-        let path_prefix = simple.assignments.iter().any(|(name, _, _)| resolve_nameref_base(name, self.env) == "PATH");
-        let result = self.run_expanded_simple(simple, expanded_words, stdin, debug_out, has_inline_input, is_external_inline);
+        let path_prefix = simple
+            .assignments
+            .iter()
+            .any(|(name, _, _)| resolve_nameref_base(name, self.env) == "PATH");
+        let result = self.run_expanded_simple(
+            simple,
+            expanded_words,
+            stdin,
+            debug_out,
+            has_inline_input,
+            is_external_inline,
+        );
         if let Some(mut env) = outer_env {
             if path_prefix {
                 clear_command_hashes(&mut env);
-            } else if effective_path_env(&env).is_some_and(|path| !path.is_empty()) && let Some(name) = cache_name {
+            } else if effective_path_env(&env).is_some_and(|path| !path.is_empty())
+                && let Some(name) = cache_name
+            {
                 // Redirect expansion is isolated, but command lookup belongs
                 // to the invoking shell, just as it does without a redirect.
                 if let Some(path) = self.env.get(&format!("\0hash__{name}")).cloned() {
-                    let check_dot = self.env.get(&format!("\0hash_dot__{name}")).is_some_and(|v| v == "1");
+                    let check_dot = self
+                        .env
+                        .get(&format!("\0hash_dot__{name}"))
+                        .is_some_and(|v| v == "1");
                     hash_order_insert(&mut env, &name, path, check_dot);
                 } else {
                     hash_order_remove(&mut env, &name);
@@ -4042,8 +4758,13 @@ impl<'a> EvalState<'a> {
     }
 
     fn run_expanded_simple(
-        &mut self, simple: &SimpleCommand, expanded_words: Vec<String>, stdin: &mut String,
-        mut debug_out: BuiltinOutcome, has_inline_input: bool, is_external_inline: bool,
+        &mut self,
+        simple: &SimpleCommand,
+        expanded_words: Vec<String>,
+        stdin: &mut String,
+        mut debug_out: BuiltinOutcome,
+        has_inline_input: bool,
+        is_external_inline: bool,
     ) -> Result<BuiltinOutcome, EvalError> {
         let is_posix = self
             .env
@@ -4055,8 +4776,7 @@ impl<'a> EvalState<'a> {
                 !self.functions.contains_key(w)
                     && matches!(
                         w.as_str(),
-                        ":"
-                            | "."
+                        ":" | "."
                             | "break"
                             | "continue"
                             | "eval"
@@ -4093,13 +4813,15 @@ impl<'a> EvalState<'a> {
                         self.route_outcome(&mut out);
                         return Ok(out);
                     }
-                    Err(EvalError::Syntax(msg)) if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") => {
-                        let code =
-                            if is_posix && (is_special_head || expanded_words.is_empty()) {
-                                127
-                            } else {
-                                1
-                            };
+                    Err(EvalError::Syntax(msg))
+                        if !msg.starts_with("__arith_expansion__")
+                            && msg.contains("readonly variable") =>
+                    {
+                        let code = if is_posix && (is_special_head || expanded_words.is_empty()) {
+                            127
+                        } else {
+                            1
+                        };
                         let prefix = self.diag_prefix();
                         let mut err_out = BuiltinOutcome {
                             stdout: debug_out.stdout,
@@ -4117,19 +4839,33 @@ impl<'a> EvalState<'a> {
         }
 
         let mut temp_saved = Vec::new();
-        let inline_prefix = has_inline_input && !expanded_words.is_empty() && !simple.assignments.is_empty();
+        let inline_prefix =
+            has_inline_input && !expanded_words.is_empty() && !simple.assignments.is_empty();
         let readonly_exit = is_posix.then_some(if is_special_head { 127 } else { 1 });
         if inline_prefix {
-            if !self.bind_command_prefix(simple, stdin, &mut temp_saved, &mut debug_out, readonly_exit)? {
+            if !self.bind_command_prefix(
+                simple,
+                stdin,
+                &mut temp_saved,
+                &mut debug_out,
+                readonly_exit,
+            )? {
                 self.route_outcome(&mut debug_out);
                 return Ok(debug_out);
             }
             // Direct redirect words see the outer bindings. Substitutions inside
             // those words inherit the values actually assigned to the command.
-            self.redirect_assignments = temp_saved.iter().filter_map(|binding|
-                self.env.get(&binding.name).map(|v| (binding.name.clone(), v.clone()))
-            ).collect();
-            for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
+            self.redirect_assignments = temp_saved
+                .iter()
+                .filter_map(|binding| {
+                    self.env
+                        .get(&binding.name)
+                        .map(|v| (binding.name.clone(), v.clone()))
+                })
+                .collect();
+            for binding in temp_saved.iter_mut().rev() {
+                binding.exchange(self.env);
+            }
         }
 
         let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
@@ -4157,18 +4893,28 @@ impl<'a> EvalState<'a> {
         if expanded_words.is_empty() {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                let input = if use_local && !has_inline_input { &mut local_stdin } else { &mut *stdin };
+                let input = if use_local && !has_inline_input {
+                    &mut local_stdin
+                } else {
+                    &mut *stdin
+                };
                 match self.with_expansion_input(input, |s| s.assign_shell_word(k, v, *append)) {
                     Ok(None) => {}
                     Ok(Some(msg)) => {
-                        debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                        debug_out
+                            .stderr
+                            .push_str(&format!("{}{msg}\n", self.diag_prefix()));
                         self.sub_exit = Some(1);
                         break;
                     }
                     Err(EvalError::Syntax(msg)) => {
-                        let code = if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") {
+                        let code = if !msg.starts_with("__arith_expansion__")
+                            && msg.contains("readonly variable")
+                        {
                             let code = if is_posix { 127 } else { 1 };
-                            debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                            debug_out
+                                .stderr
+                                .push_str(&format!("{}{msg}\n", self.diag_prefix()));
                             self.last_exit = code;
                             self.exit_requested = Some(code);
                             code
@@ -4211,10 +4957,22 @@ impl<'a> EvalState<'a> {
         }
 
         if inline_prefix {
-            for binding in &mut temp_saved { binding.exchange(self.env); }
+            for binding in &mut temp_saved {
+                binding.exchange(self.env);
+            }
         } else {
-            let input = if use_local { &mut local_stdin } else { &mut *stdin };
-            if !self.bind_command_prefix(simple, input, &mut temp_saved, &mut debug_out, readonly_exit)? {
+            let input = if use_local {
+                &mut local_stdin
+            } else {
+                &mut *stdin
+            };
+            if !self.bind_command_prefix(
+                simple,
+                input,
+                &mut temp_saved,
+                &mut debug_out,
+                readonly_exit,
+            )? {
                 self.route_outcome(&mut debug_out);
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(debug_out);
@@ -4235,21 +4993,27 @@ impl<'a> EvalState<'a> {
 
         let stashed_outer_stdin = if use_local
             && !self.in_fds.contains_key(&STDIN_STREAM_FD)
-            && self
-                .in_fd_aliases
-                .values()
-                .any(|&v| v == STDIN_STREAM_FD)
+            && self.in_fd_aliases.values().any(|&v| v == STDIN_STREAM_FD)
         {
-            self.in_fds.insert(STDIN_STREAM_FD, Rc::new(std::mem::take(stdin).into()));
+            self.in_fds
+                .insert(STDIN_STREAM_FD, Rc::new(std::mem::take(stdin).into()));
             true
         } else {
             false
         };
-        let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
+        let eff_stdin = if use_local {
+            &mut local_stdin
+        } else {
+            &mut *stdin
+        };
         self.retained_prefix_vars.clear();
         let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, DispatchMode::Shell);
         if stashed_outer_stdin {
-            *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default().take();
+            *stdin = self
+                .in_fds
+                .remove(&STDIN_STREAM_FD)
+                .unwrap_or_default()
+                .take();
         }
         let mut out = dispatch_res?;
         if !debug_out.stdout.is_empty() || !debug_out.stderr.is_empty() {
@@ -4259,12 +5023,16 @@ impl<'a> EvalState<'a> {
 
         if !is_special_head {
             for mut binding in temp_saved.into_iter().rev() {
-                if !self.retained_prefix_vars.contains(&binding.name) { binding.exchange(self.env); }
+                if !self.retained_prefix_vars.contains(&binding.name) {
+                    binding.exchange(self.env);
+                }
             }
         }
 
         if let Some(unread) = self.fd_table.get(&0).and_then(FdTarget::cursor) {
-            unread.borrow_mut().clone_from(if use_local { &local_stdin } else { stdin });
+            unread
+                .borrow_mut()
+                .clone_from(if use_local { &local_stdin } else { stdin });
         }
         if let Some(dfd) = dup_fd {
             self.in_fds.entry(dfd).or_default().replace(local_stdin);
@@ -4298,20 +5066,35 @@ impl<'a> EvalState<'a> {
     }
 
     fn bind_command_prefix(
-        &mut self, simple: &SimpleCommand, input: &mut String,
-        saved: &mut Vec<PrefixBinding>, out: &mut BuiltinOutcome, readonly_exit: Option<i32>,
+        &mut self,
+        simple: &SimpleCommand,
+        input: &mut String,
+        saved: &mut Vec<PrefixBinding>,
+        out: &mut BuiltinOutcome,
+        readonly_exit: Option<i32>,
     ) -> Result<bool, EvalError> {
-        if simple.assignments.is_empty() { return Ok(true); }
+        if simple.assignments.is_empty() {
+            return Ok(true);
+        }
         let prev = std::mem::replace(&mut self.in_prefix_assignment, true);
         let result = self.with_expansion_input(input, |this| {
             for (k, word, append) in &simple.assignments {
-                let name = resolve_nameref_base(k.split('[').next().unwrap_or(k), this.env).to_string();
+                let name =
+                    resolve_nameref_base(k.split('[').next().unwrap_or(k), this.env).to_string();
                 let literal = word.starts_with('(') && word.ends_with(')');
                 let keys = format!("\0keys__{name}");
                 let assoc = format!("\0assoc__{name}");
                 let array = this.env.contains_key(&keys) || this.env.contains_key(&assoc);
-                let value = if literal { format!("\x00__ARRAY_LITERAL__{word}") } else { this.expand_assignment_rhs(word)? };
-                let binding = PrefixBinding::save(this.env, name.clone(), literal || array || k.contains('['));
+                let value = if literal {
+                    format!("\x00__ARRAY_LITERAL__{word}")
+                } else {
+                    this.expand_assignment_rhs(word)?
+                };
+                let binding = PrefixBinding::save(
+                    this.env,
+                    name.clone(),
+                    literal || array || k.contains('['),
+                );
                 if array && !literal && !k.contains('[') {
                     this.env.remove(&keys);
                     this.env.remove(&assoc);
@@ -4320,8 +5103,12 @@ impl<'a> EvalState<'a> {
                 }
                 match this.assign_variable(k, &value, *append) {
                     Ok(()) => saved.push(binding),
-                    Err(EvalError::Syntax(msg)) if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") => {
-                        out.stderr.push_str(&format!("{}{msg}\n", this.diag_prefix()));
+                    Err(EvalError::Syntax(msg))
+                        if !msg.starts_with("__arith_expansion__")
+                            && msg.contains("readonly variable") =>
+                    {
+                        out.stderr
+                            .push_str(&format!("{}{msg}\n", this.diag_prefix()));
                         if let Some(code) = readonly_exit {
                             out.exit_code = code;
                             this.last_exit = code;
@@ -4338,8 +5125,17 @@ impl<'a> EvalState<'a> {
         result
     }
 
-    fn dispatch_host(&mut self, custom:&RustCommand, words:&[String], stdin:&mut String, argv0:Option<&str>, next:Option<DispatchMode>) -> Result<BuiltinOutcome, EvalError> {
-        if next.is_none() { self.refresh_file_input(0, stdin)?; }
+    fn dispatch_host(
+        &mut self,
+        custom: &RustCommand,
+        words: &[String],
+        stdin: &mut String,
+        argv0: Option<&str>,
+        next: Option<DispatchMode>,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        if next.is_none() {
+            self.refresh_file_input(0, stdin)?;
+        }
         let mut cwd = self.cwd.clone();
         let mut env = self.env.clone();
         let mut ctx = CommandContext {
@@ -4347,10 +5143,27 @@ impl<'a> EvalState<'a> {
             forwarded: (0, 0),
             stdin_is_default: self.default_input_fds.contains(&0),
             stream_access: u32::from(self.is_fd_readable(0))
-                | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2
-                | u32::from(next.is_some() && self.fd_table.get(&1).is_some_and(FdTarget::is_redirected_output)) << 3
-                | u32::from(next.is_some() && self.fd_table.get(&2).is_some_and(FdTarget::is_redirected_output)) << 4,
-            shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
+                | u32::from(self.is_fd_writable(1)) << 1
+                | u32::from(self.is_fd_writable(2)) << 2
+                | u32::from(
+                    next.is_some()
+                        && self
+                            .fd_table
+                            .get(&1)
+                            .is_some_and(FdTarget::is_redirected_output),
+                ) << 3
+                | u32::from(
+                    next.is_some()
+                        && self
+                            .fd_table
+                            .get(&2)
+                            .is_some_and(FdTarget::is_redirected_output),
+                ) << 4,
+            shared_output: self
+                .fd_table
+                .get(&1)
+                .zip(self.fd_table.get(&2))
+                .is_some_and(|(a, b)| a.shares_output(b)),
             failure: None,
             unread_stdin: None,
             budget: self.budget,
@@ -4360,19 +5173,33 @@ impl<'a> EvalState<'a> {
             cwd: &mut cwd,
             env: &mut env,
             fs: self.fs,
-            caller: &mut DispatchFrame {state:self,words,next},
+            caller: &mut DispatchFrame {
+                state: self,
+                words,
+                next,
+            },
         };
         let result = custom(&mut ctx);
         let failure = ctx.failure;
         let forwarded = ctx.forwarded;
         let unread = ctx.unread_stdin;
-        let (a,b) = self.forwarded_output.get();
-        self.forwarded_output.set((a+forwarded.0,b+forwarded.1));
-        if let Some(unread) = unread { *stdin = unread; }
+        let (a, b) = self.forwarded_output.get();
+        self.forwarded_output
+            .set((a + forwarded.0, b + forwarded.1));
+        if let Some(unread) = unread {
+            *stdin = unread;
+        }
         match result {
             Ok(res) => {
-                if next.is_none() { *self.cwd = res.cwd; *self.env = res.env; }
-                let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
+                if next.is_none() {
+                    *self.cwd = res.cwd;
+                    *self.env = res.env;
+                }
+                let mut out = BuiltinOutcome {
+                    stdout: res.stdout,
+                    stderr: res.stderr,
+                    exit_code: res.exit_code,
+                };
                 match failure {
                     Some(CommandFailure::Diagnostic(message)) if self.is_fd_writable(2) => {
                         out.stderr.push_str(&self.diag_prefix());
@@ -4391,23 +5218,44 @@ impl<'a> EvalState<'a> {
                 Ok(out)
             }
             Err(msg) => {
-                if next.is_none() { *self.cwd = cwd; *self.env = env; }
-                Ok(BuiltinOutcome { stdout:String::new(), stderr:format!("{msg}\n"), exit_code:1 })
-            },
+                if next.is_none() {
+                    *self.cwd = cwd;
+                    *self.env = env;
+                }
+                Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{msg}\n"),
+                    exit_code: 1,
+                })
+            }
         }
     }
 
-    fn dispatch_words(&mut self, words:&[String], stdin:&mut String, mode:DispatchMode) -> Result<BuiltinOutcome,EvalError> {
-        if let Some(handler) = self.middleware && !words.is_empty() {
+    fn dispatch_words(
+        &mut self,
+        words: &[String],
+        stdin: &mut String,
+        mode: DispatchMode,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        if let Some(handler) = self.middleware
+            && !words.is_empty()
+        {
             let argv0 = self.env.get("\0argv0").cloned();
-            return self.dispatch_host(handler,words,stdin,argv0.as_deref(),Some(mode));
+            return self.dispatch_host(handler, words, stdin, argv0.as_deref(), Some(mode));
         }
-        self.dispatch_terminal(words,stdin,mode,None)
+        self.dispatch_terminal(words, stdin, mode, None)
     }
 
-    fn run_shell_builtin(&mut self, name: &str, args: &[String], stdin: &mut String) -> Option<BuiltinOutcome> {
+    fn run_shell_builtin(
+        &mut self,
+        name: &str,
+        args: &[String],
+        stdin: &mut String,
+    ) -> Option<BuiltinOutcome> {
         let mut out = try_run_builtin(name, args, stdin, self.cwd, self.env, self.fs)?;
-        if (name == "cd" || name == "pwd" && out.exit_code == 2) && !out.stderr.is_empty() { out.stderr.insert_str(0, &self.diag_prefix()); }
+        if (name == "cd" || name == "pwd" && out.exit_code == 2) && !out.stderr.is_empty() {
+            out.stderr.insert_str(0, &self.diag_prefix());
+        }
         Some(out)
     }
 
@@ -4416,7 +5264,7 @@ impl<'a> EvalState<'a> {
         words: &[String],
         stdin: &mut String,
         mode: DispatchMode,
-        host_terminal: Option<(&str,&mut bool)>,
+        host_terminal: Option<(&str, &mut bool)>,
     ) -> Result<BuiltinOutcome, EvalError> {
         let bypass_functions = mode != DispatchMode::Shell;
         let Some(cmd) = words.first() else {
@@ -4428,8 +5276,12 @@ impl<'a> EvalState<'a> {
         };
         let args = &words[1..];
         if mode == DispatchMode::Builtin
-            && !(matches!(cmd.as_str(),"echo"|"printf"|"test"|"[") && self.custom_commands.contains_key(cmd))
-            && let Some(out) = self.run_shell_builtin(cmd, args, stdin) { return Ok(out); }
+            && !(matches!(cmd.as_str(), "echo" | "printf" | "test" | "[")
+                && self.custom_commands.contains_key(cmd))
+            && let Some(out) = self.run_shell_builtin(cmd, args, stdin)
+        {
+            return Ok(out);
+        }
 
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
@@ -4467,7 +5319,9 @@ impl<'a> EvalState<'a> {
                 Ok(fn_dbg_out)
             } else {
                 let mut r = match &func_body {
-                    CommandNode::Group { body, redirects } if redirects.is_empty() => self.eval_script(body, stdin),
+                    CommandNode::Group { body, redirects } if redirects.is_empty() => {
+                        self.eval_script(body, stdin)
+                    }
                     cmd => self.eval_pipeline_stage(cmd, stdin, None),
                 };
                 if let Ok(ref mut o) = r {
@@ -4560,10 +5414,8 @@ impl<'a> EvalState<'a> {
             self.sync_funcname();
             self.budget.leave_recursion();
             let out = out?;
-            self.env.insert(
-                "\0last_arg".to_string(),
-                args.last().unwrap_or(cmd).clone(),
-            );
+            self.env
+                .insert("\0last_arg".to_string(), args.last().unwrap_or(cmd).clone());
             return Ok(out);
         }
 
@@ -4644,7 +5496,10 @@ impl<'a> EvalState<'a> {
                 if self.loop_depth == 0 {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{}{cmd}: only meaningful in a `for', `while', or `until' loop\n", self.diag_prefix()),
+                        stderr: format!(
+                            "{}{cmd}: only meaningful in a `for', `while', or `until' loop\n",
+                            self.diag_prefix()
+                        ),
                         exit_code: 0,
                     });
                 }
@@ -4707,7 +5562,10 @@ impl<'a> EvalState<'a> {
                         Err(_) => {
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{}shift: {s}: numeric argument required\n", self.diag_prefix()),
+                                stderr: format!(
+                                    "{}shift: {s}: numeric argument required\n",
+                                    self.diag_prefix()
+                                ),
                                 exit_code: 2,
                             });
                         }
@@ -4726,7 +5584,11 @@ impl<'a> EvalState<'a> {
                 if n_signed < 0 {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{}shift: {}: shift count out of range\n", self.diag_prefix(), args[offset]),
+                        stderr: format!(
+                            "{}shift: {}: shift count out of range\n",
+                            self.diag_prefix(),
+                            args[offset]
+                        ),
                         exit_code: 1,
                     });
                 }
@@ -4742,8 +5604,14 @@ impl<'a> EvalState<'a> {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: if self.get_shopt_enabled("shift_verbose", false) {
-                            let operand = args.get(offset).map(|s| format!("{s}: ")).unwrap_or_default();
-                            format!("{}shift: {operand}shift count out of range\n", self.diag_prefix())
+                            let operand = args
+                                .get(offset)
+                                .map(|s| format!("{s}: "))
+                                .unwrap_or_default();
+                            format!(
+                                "{}shift: {operand}shift count out of range\n",
+                                self.diag_prefix()
+                            )
                         } else {
                             String::new()
                         },
@@ -4845,8 +5713,8 @@ impl<'a> EvalState<'a> {
                 });
             }
             "eval" => {
-                let is_special = !bypass_functions
-                    && self.env.get("\0set_posix").is_some_and(|v| v == "1");
+                let is_special =
+                    !bypass_functions && self.env.get("\0set_posix").is_some_and(|v| v == "1");
                 let eval_args = if args.first().map(|s| s.as_str()) == Some("--") {
                     &args[1..]
                 } else if let Some(first) = args.first()
@@ -4895,14 +5763,15 @@ impl<'a> EvalState<'a> {
                     };
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{}eval: cannot execute binary script\n", self.diag_prefix()),
+                        stderr: format!(
+                            "{}eval: cannot execute binary script\n",
+                            self.diag_prefix()
+                        ),
                         exit_code: code,
                     });
                 }
-                let eval_syntax_name = format!(
-                    "{}: eval",
-                    self.script_name.as_deref().unwrap_or("shell")
-                );
+                let eval_syntax_name =
+                    format!("{}: eval", self.script_name.as_deref().unwrap_or("shell"));
                 let prev_line = self.current_line;
                 let eval_diag_offset = prev_line.saturating_sub(1);
                 let prev_cb_offset =
@@ -4916,15 +5785,12 @@ impl<'a> EvalState<'a> {
                 self.env
                     .insert("\0lineno".to_string(), prev_line.to_string());
                 self.budget.leave_substitution();
-                self.env.insert(
-                    "\0last_arg".to_string(),
-                    args.last().unwrap_or(cmd).clone(),
-                );
+                self.env
+                    .insert("\0last_arg".to_string(), args.last().unwrap_or(cmd).clone());
                 return match out {
                     Ok(o) => Ok(o),
                     Err(EvalError::Syntax(msg))
-                        if !msg.starts_with("__nounset__")
-                            && !msg.starts_with("__param_err__") =>
+                        if !msg.starts_with("__nounset__") && !msg.starts_with("__param_err__") =>
                     {
                         if is_special {
                             self.exit_requested = Some(2);
@@ -4958,7 +5824,10 @@ impl<'a> EvalState<'a> {
                     }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{}{cmd}: {first}: unsupported option\n", self.diag_prefix()),
+                        stderr: format!(
+                            "{}{cmd}: {first}: unsupported option\n",
+                            self.diag_prefix()
+                        ),
                         exit_code: 2,
                     });
                 } else {
@@ -4994,11 +5863,8 @@ impl<'a> EvalState<'a> {
                     }
                     let mut effective_target = target.clone();
                     if !target.contains('/')
-                        && let Some(path_env) = self
-                            .env
-                            .get("PATH")
-                            .filter(|p| !p.is_empty())
-                            .cloned()
+                        && let Some(path_env) =
+                            self.env.get("PATH").filter(|p| !p.is_empty()).cloned()
                     {
                         let mut found = false;
                         for seg in path_env.split(':') {
@@ -5037,8 +5903,11 @@ impl<'a> EvalState<'a> {
                         "/dev/stdin" => Some(0),
                         "/dev/stdout" => Some(1),
                         "/dev/stderr" => Some(2),
-                        name => name.strip_prefix("/dev/fd/")
-                            .filter(|suffix| !suffix.is_empty() && suffix.bytes().all(|b| b.is_ascii_digit()))
+                        name => name
+                            .strip_prefix("/dev/fd/")
+                            .filter(|suffix| {
+                                !suffix.is_empty() && suffix.bytes().all(|b| b.is_ascii_digit())
+                            })
                             .map(|suffix| suffix.parse::<u32>().unwrap_or(STDIN_STREAM_FD)),
                     };
                     let full = resolve_posix_path(self.cwd, &effective_target);
@@ -5056,7 +5925,8 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         });
                     }
-                    if descriptor.is_none() && let Ok(meta) = self.fs.stat(&full)
+                    if descriptor.is_none()
+                        && let Ok(meta) = self.fs.stat(&full)
                         && (meta.mode & 0o444) == 0
                     {
                         self.budget.leave_substitution();
@@ -5095,7 +5965,9 @@ impl<'a> EvalState<'a> {
                     };
                     match contents {
                         Ok(bytes) => {
-                            if descriptor.is_none() && let Err(e) = self.budget.add_source_bytes(bytes.len()) {
+                            if descriptor.is_none()
+                                && let Err(e) = self.budget.add_source_bytes(bytes.len())
+                            {
                                 self.budget.leave_substitution();
                                 return Err(EvalError::Budget(e));
                             }
@@ -5122,7 +5994,10 @@ impl<'a> EvalState<'a> {
                             let script_str = crate::vfs::shell_text(&text);
                             let saved_pos_ver = self.pos_args_version;
                             let saved_args = if src_args.len() > 1 {
-                                Some(std::mem::replace(&mut self.pos_args, src_args[1..].to_vec()))
+                                Some(std::mem::replace(
+                                    &mut self.pos_args,
+                                    src_args[1..].to_vec(),
+                                ))
                             } else {
                                 None
                             };
@@ -5156,7 +6031,8 @@ impl<'a> EvalState<'a> {
                             self.source_depth = self.source_depth.saturating_sub(1);
                             self.current_line = prev_line;
                             self.callback_line_offset = prev_cb_offset;
-                            self.env.insert("\0lineno".to_string(), prev_line.to_string());
+                            self.env
+                                .insert("\0lineno".to_string(), prev_line.to_string());
                             self.script_name = prev_script_name;
                             if !self.caller_frames.is_empty() {
                                 self.caller_frames.remove(0);
@@ -5231,7 +6107,11 @@ impl<'a> EvalState<'a> {
                             if is_special {
                                 self.exit_requested = Some(1);
                             }
-                            let reason = if descriptor.is_some() { error.as_str() } else { "No such file or directory" };
+                            let reason = if descriptor.is_some() {
+                                error.as_str()
+                            } else {
+                                "No such file or directory"
+                            };
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!(
@@ -5280,7 +6160,8 @@ impl<'a> EvalState<'a> {
                                 let Some(a0) = val else {
                                     return Ok(BuiltinOutcome {
                                         stdout: String::new(),
-                                        stderr: "exec: -a: option requires an argument\n".to_string(),
+                                        stderr: "exec: -a: option requires an argument\n"
+                                            .to_string(),
                                         exit_code: 2,
                                     });
                                 };
@@ -5507,20 +6388,41 @@ impl<'a> EvalState<'a> {
         let effective_cmd = virtual_name.as_deref().unwrap_or(cmd.as_str());
 
         if let Some(custom) = self.custom_commands.get(effective_cmd)
-            && (virtual_name.is_some() || !Self::is_implemented_builtin_name(effective_cmd)
+            && (virtual_name.is_some()
+                || !Self::is_implemented_builtin_name(effective_cmd)
                 || matches!(effective_cmd, "true" | "false" | "pwd"))
         {
             // Let the JS host call its selected handler inside the middleware's own
             // context. Functions and forced builtins have already won lookup above.
-            if let Some((candidate, selected)) = host_terminal && candidate == effective_cmd {
+            if let Some((candidate, selected)) = host_terminal
+                && candidate == effective_cmd
+            {
                 *selected = true;
-                return Ok(BuiltinOutcome {stdout:String::new(),stderr:String::new(),exit_code:0});
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
             }
-            return self.dispatch_host(custom,words,stdin,custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),None);
+            return self.dispatch_host(
+                custom,
+                words,
+                stdin,
+                custom_argv0
+                    .as_deref()
+                    .or(virtual_name.as_ref().map(|_| cmd.as_str())),
+                None,
+            );
         }
 
         if effective_cmd == "pwd" && (virtual_name.is_some() || mode == DispatchMode::External) {
-            return Ok(super::builtins::pwd(args, self.cwd, self.env, self.fs, Some(custom_argv0.as_deref().unwrap_or(cmd))));
+            return Ok(super::builtins::pwd(
+                args,
+                self.cwd,
+                self.env,
+                self.fs,
+                Some(custom_argv0.as_deref().unwrap_or(cmd)),
+            ));
         }
 
         if virtual_name.is_some() {
@@ -5547,12 +6449,16 @@ impl<'a> EvalState<'a> {
         }
 
         if effective_cmd == "which" && !self.custom_commands.is_empty() {
-            return Ok(crate::commands::search::cmd_which(args, self.cwd, self.env, self.fs, |name| self.custom_commands.contains_key(name)));
+            return Ok(crate::commands::search::cmd_which(
+                args,
+                self.cwd,
+                self.env,
+                self.fs,
+                |name| self.custom_commands.contains_key(name),
+            ));
         }
 
-        if let Some(b_out) =
-            self.run_shell_builtin(effective_cmd, args, stdin)
-        {
+        if let Some(b_out) = self.run_shell_builtin(effective_cmd, args, stdin) {
             return Ok(b_out);
         }
 
@@ -5564,53 +6470,134 @@ impl<'a> EvalState<'a> {
                     None
                 }
             });
-            return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
+            return self.run_sub_shell_command(
+                effective_cmd,
+                argv0_override.as_deref(),
+                args,
+                stdin,
+            );
         }
 
         // Preserve the host's long-listing presentation in hybrid mode. Native
         // workers use cmd_ls's metadata rendering without requiring a TS host.
-        let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
-            .any(|arg| arg.starts_with('-') && !arg.starts_with("--")
-                && arg.chars().skip(1).any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n')));
+        let long_listing = effective_cmd == "ls"
+            && args
+                .iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| {
+                    arg.starts_with('-')
+                        && !arg.starts_with("--")
+                        && arg
+                            .chars()
+                            .skip(1)
+                            .any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n'))
+                });
         // Keep the host bridge at the individual command boundary.
-        let bridge_only = (long_listing && self.allow_unported_fallback) || matches!(effective_cmd, "python" | "python3" | "rsvg-convert" | "soffice" | "libreoffice");
-        if bridge_only || self.allow_unported_fallback && matches!(effective_cmd,
-            "pandoc" | "ffmpeg" | "ffprobe" | "wkhtmltopdf"
-            | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
-            | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
-            | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "sox"
-            | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite"
-            | "montage" | "compare" | "sips" | "exiftool" | "identify")
+        let bridge_only = (long_listing && self.allow_unported_fallback) || matches!(effective_cmd, "python" | "python3");
+        if bridge_only
+            || self.allow_unported_fallback
+                && matches!(
+                    effective_cmd,
+                    "pandoc"
+                        | "soffice"
+                        | "libreoffice"
+                        | "ffmpeg"
+                        | "ffprobe"
+                        | "wkhtmltopdf"
+                        | "pdfunite"
+                        | "pdfseparate"
+                        | "qpdf"
+                        | "pdftk"
+                        | "pdfinfo"
+                        | "pdffonts"
+                        | "pdfdetach"
+                        | "pdftotext"
+                        | "pdftohtml"
+                        | "pdftoppm"
+                        | "pdftocairo"
+                        | "pdfimages"
+                        | "diffpdf"
+                        | "pdfdiff"
+                        | "svgo"
+                        | "sox"
+                        | "soxi"
+                        | "qrencode"
+                        | "magick"
+                        | "convert"
+                        | "mogrify"
+                        | "composite"
+                        | "montage"
+                        | "compare"
+                        | "sips"
+                        | "exiftool"
+                        | "identify"
+                )
         {
             if !self.allow_unported_fallback {
-                let unavailable = if matches!(effective_cmd, "python" | "python3") { "native Python is unavailable" } else { "native document/media processing is unavailable" };
-                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; {unavailable}\n"), exit_code: 1 });
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!(
+                        "{effective_cmd}: requires the TypeScript safe-bash bridge; native Python is unavailable\n"
+                    ),
+                    exit_code: 1,
+                });
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
-            let script = std::iter::once(effective_cmd).chain(args.iter().map(String::as_str))
-                .map(|word| format!("'{}'", word.replace('\'', "'\\''"))).collect::<Vec<_>>().join(" ");
+            let script = std::iter::once(effective_cmd)
+                .chain(args.iter().map(String::as_str))
+                .map(|word| format!("'{}'", word.replace('\'', "'\\''")))
+                .collect::<Vec<_>>()
+                .join(" ");
             self.used_typescript_bridge.store(true, Ordering::Relaxed);
-            let result = HybridBackend::new(BackendMode::TypeScriptOnly).execute_typescript_bridge(
-                &script, self.cwd, self.env, stdin, self.budget.remaining_timeout_ms(), self.fs,
-            ).map_err(EvalError::Budget)?;
+            let result = HybridBackend::new(BackendMode::TypeScriptOnly)
+                .execute_typescript_bridge(
+                    &script,
+                    self.cwd,
+                    self.env,
+                    stdin,
+                    self.budget.remaining_timeout_ms(),
+                    self.fs,
+                )
+                .map_err(EvalError::Budget)?;
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
-            return Ok(BuiltinOutcome { stdout: result.stdout, stderr: result.stderr, exit_code: result.exit_code });
+            return Ok(BuiltinOutcome {
+                stdout: result.stdout,
+                stderr: result.stderr,
+                exit_code: result.exit_code,
+            });
         }
 
         if effective_cmd == "yes" && !self.is_fd_writable(1) {
-            let message = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
+            let message = match crate::commands::coreutils::yes_batch(
+                args,
+                self.env.contains_key("POSIXLY_CORRECT"),
+            ) {
                 Err(out) if out.exit_code != 0 => return Ok(out),
                 Err(_) => "write error",
                 Ok(_) => "standard output",
             };
-            return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("yes: {message}: Bad file descriptor\n"), exit_code: 1 });
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("yes: {message}: Bad file descriptor\n"),
+                exit_code: 1,
+            });
         }
         if self.stage_depth == 1
             && let Some(reader) = &mut self.pipeline_reader
-            && matches!(self.fd_table.get(&1), Some(FdTarget::PipeStdout { .. } | FdTarget::SavedStdout { pipe_peer_retired: Some(_), .. }))
+            && matches!(
+                self.fd_table.get(&1),
+                Some(
+                    FdTarget::PipeStdout { .. }
+                        | FdTarget::SavedStdout {
+                            pipe_peer_retired: Some(_),
+                            ..
+                        }
+                )
+            )
         {
             if effective_cmd == "cat"
-                && let Some(source @ FdTarget::InputStream { endless: true, .. }) = self.fd_table.get(&0)
+                && let Some(source @ FdTarget::InputStream { endless: true, .. }) =
+                    self.fd_table.get(&0)
                 && let Ok((files, mut filter)) = crate::commands::coreutils::cat_filter(args)
                 && files.iter().all(|file| file == "-")
             {
@@ -5619,28 +6606,52 @@ impl<'a> EvalState<'a> {
                 *reader = Some(FdTarget::input_stream(true, move |budget| {
                     let mut output = Vec::new();
                     let input = source.file_input(budget).unwrap();
-                    Some(input.read(&mut unread, 8192, |bytes, eof| {
-                        filter(bytes, eof, &mut |part| { output.extend_from_slice(part); true });
-                        Ok((false, bytes.len()))
-                    }).and_then(|()| budget.add_output_bytes(output.len())).map(|()| output))
+                    Some(
+                        input
+                            .read(&mut unread, 8192, |bytes, eof| {
+                                filter(bytes, eof, &mut |part| {
+                                    output.extend_from_slice(part);
+                                    true
+                                });
+                                Ok((false, bytes.len()))
+                            })
+                            .and_then(|()| budget.add_output_bytes(output.len()))
+                            .map(|()| output),
+                    )
                 }));
             } else if effective_cmd == "yes" {
-                let batch = match crate::commands::coreutils::yes_batch(args, self.env.contains_key("POSIXLY_CORRECT")) {
+                let batch = match crate::commands::coreutils::yes_batch(
+                    args,
+                    self.env.contains_key("POSIXLY_CORRECT"),
+                ) {
                     Ok(batch) => stream_string_to_bytes(&batch),
                     Err(out) => return Ok(out),
                 };
                 let mut offset = 0;
                 *reader = Some(FdTarget::input_stream(true, move |budget| {
-                    let size = (batch.len() - offset).min(8192).min(budget.remaining_output_bytes().max(1));
-                    Some(budget.check_cancelled().and_then(|()| budget.add_output_bytes(size)).map(|()| {
-                        let bytes = batch[offset..offset + size].to_vec();
-                        offset = (offset + size) % batch.len();
-                        bytes
-                    }))
+                    let size = (batch.len() - offset)
+                        .min(8192)
+                        .min(budget.remaining_output_bytes().max(1));
+                    Some(
+                        budget
+                            .check_cancelled()
+                            .and_then(|()| budget.add_output_bytes(size))
+                            .map(|()| {
+                                let bytes = batch[offset..offset + size].to_vec();
+                                offset = (offset + size) % batch.len();
+                                bytes
+                            }),
+                    )
                 }));
             }
             // This stream never reaches EOF: a finishing reader closes the pipe.
-            if reader.is_some() { return Ok(BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 141 }); }
+            if reader.is_some() {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 141,
+                });
+            }
         }
 
         let fs_ref = self.fs;
@@ -5660,43 +6671,93 @@ impl<'a> EvalState<'a> {
         let inherited_aliases = &self.in_fd_aliases;
         let writer = self.fd_writer();
         let charged = &self.forwarded_output;
-        let sleep = self.budget.sleep_wait.as_ref().filter(|_| effective_cmd == "sleep")
+        let sleep = self
+            .budget
+            .sleep_wait
+            .as_ref()
+            .filter(|_| effective_cmd == "sleep")
             .map(|wait| (wait, crate::commands::virtual_clock_elapsed_ms()));
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
-            CommandInput { text: stdin, file: self.fd_table.get(&0).and_then(|fd| fd.file_input(self.budget)) },
+            CommandInput {
+                text: stdin,
+                file: self
+                    .fd_table
+                    .get(&0)
+                    .and_then(|fd| fd.file_input(self.budget)),
+            },
             self.cwd,
             self.env,
             fs_ref,
             match inherited_targets.get(&1) {
-                Some(FdTarget::File {file,offset,..}) => offset.is_some() && file.as_ref().is_none_or(|f| !f.is_stream()),
-                Some(FdTarget::InputFile {writable:true,file,..}) => file.as_ref().is_some_and(|f| !f.is_stream()),
-                Some(FdTarget::Exclusive {..}) => true,
+                Some(FdTarget::File { file, offset, .. }) => {
+                    offset.is_some() && file.as_ref().is_none_or(|f| !f.is_stream())
+                }
+                Some(FdTarget::InputFile {
+                    writable: true,
+                    file,
+                    ..
+                }) => file.as_ref().is_some_and(|f| !f.is_stream()),
+                Some(FdTarget::Exclusive { .. }) => true,
                 _ => false,
             },
             &mut |fd, data, out| {
-                if budget_ref.check_exceeded().is_err() { out.exit_code = 1; return false; }
-                if data.is_empty() { return true; }
-                let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 { &FdTarget::Stdout } else { &FdTarget::Stderr });
-                if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. }) {
+                if budget_ref.check_exceeded().is_err() {
+                    out.exit_code = 1;
+                    return false;
+                }
+                if data.is_empty() {
+                    return true;
+                }
+                let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 {
+                    &FdTarget::Stdout
+                } else {
+                    &FdTarget::Stderr
+                });
+                if matches!(
+                    target,
+                    FdTarget::Closed
+                        | FdTarget::InputFile {
+                            writable: false,
+                            ..
+                        }
+                        | FdTarget::InputStream { .. }
+                ) {
                     if fd != 2 {
-                        if let Some(prefix) = &jq_prefix { out.stderr.push_str(prefix); }
-                        else { out.stderr.push_str(effective_cmd); out.stderr.push_str(": "); }
+                        if let Some(prefix) = &jq_prefix {
+                            out.stderr.push_str(prefix);
+                        } else {
+                            out.stderr.push_str(effective_cmd);
+                            out.stderr.push_str(": ");
+                        }
                         out.stderr.push_str("Bad file descriptor\n");
                     }
                     out.exit_code = 1;
                     return false;
                 }
-                if matches!(target, FdTarget::Stdout | FdTarget::PipeStdout { .. } | FdTarget::Stderr) {
+                if matches!(
+                    target,
+                    FdTarget::Stdout | FdTarget::PipeStdout { .. } | FdTarget::Stderr
+                ) {
                     let n = stream_byte_len(data);
-                    if budget_ref.add_output_bytes(n).is_err() { out.exit_code = 1; return false; }
+                    if budget_ref.add_output_bytes(n).is_err() {
+                        out.exit_code = 1;
+                        return false;
+                    }
                     let (a, b) = charged.get();
-                    charged.set(if matches!(target, FdTarget::Stderr) { (a, b + n) } else { (a + n, b) });
+                    charged.set(if matches!(target, FdTarget::Stderr) {
+                        (a, b + n)
+                    } else {
+                        (a + n, b)
+                    });
                 }
                 let prior = std::mem::take(&mut out.exit_code);
                 writer.write(target, data, 0, out);
-                if out.exit_code != 0 || budget_ref.check_exceeded().is_err() { out.exit_code = 1; return false; }
+                if out.exit_code != 0 || budget_ref.check_exceeded().is_err() {
+                    out.exit_code = 1;
+                    return false;
+                }
                 out.exit_code = prior;
                 true
             },
@@ -5723,7 +6784,7 @@ impl<'a> EvalState<'a> {
                     fs: fs_ref,
                     budget: budget_ref,
                     custom_commands: custom_ref,
-                    middleware:self.middleware,
+                    middleware: self.middleware,
                     functions: funcs_clone.clone(),
                     exported_functions: exported_clone.clone(),
                     func_stack: Vec::new(),
@@ -5800,16 +6861,39 @@ impl<'a> EvalState<'a> {
                     sub_eval.in_fd_aliases.remove(&0);
                 } else if let Some(target) = sub_eval.fd_table.get_mut(&0) {
                     // Nested commands receive a byte source for stdin, even when its file is writable.
-                    if let FdTarget::InputFile { writable, .. } = target { *writable = false; }
-                    if let Some(unread) = target.cursor() { unread.borrow_mut().clone_from(sub_stdin); }
+                    if let FdTarget::InputFile { writable, .. } = target {
+                        *writable = false;
+                    }
+                    if let Some(unread) = target.cursor() {
+                        unread.borrow_mut().clone_from(sub_stdin);
+                    }
                 }
-                let mut prefix = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
-                if let ChildIo::Inherit { stderr_before } = io && !stderr_before.is_empty() {
-                    let target = sub_eval.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
-                    if target == FdTarget::Closed { prefix.exit_code = 1; return Err(prefix); }
-                    sub_eval.fd_writer().write(&target, stderr_before, 0, &mut prefix);
-                    if prefix.exit_code != 0 { return Err(prefix); }
-                    if let Err(e) = sub_eval.account_forwarded_output(&prefix.stdout, &prefix.stderr, (0, 0)) {
+                let mut prefix = BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+                if let ChildIo::Inherit { stderr_before } = io
+                    && !stderr_before.is_empty()
+                {
+                    let target = sub_eval
+                        .fd_table
+                        .get(&2)
+                        .cloned()
+                        .unwrap_or(FdTarget::Stderr);
+                    if target == FdTarget::Closed {
+                        prefix.exit_code = 1;
+                        return Err(prefix);
+                    }
+                    sub_eval
+                        .fd_writer()
+                        .write(&target, stderr_before, 0, &mut prefix);
+                    if prefix.exit_code != 0 {
+                        return Err(prefix);
+                    }
+                    if let Err(e) =
+                        sub_eval.account_forwarded_output(&prefix.stdout, &prefix.stderr, (0, 0))
+                    {
                         sub_err = Some(e);
                         return Err(prefix);
                     }
@@ -5831,16 +6915,26 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     });
                 }
-                let outer = matches!(io, ChildIo::Inherit { .. }).then(|| sub_eval.forwarded_output.take());
-                let res = if mode == DispatchMode::EnvShebang && let Some(target) = sub_words.first() && !target.contains('/')
+                let outer =
+                    matches!(io, ChildIo::Inherit { .. }).then(|| sub_eval.forwarded_output.take());
+                let res = if mode == DispatchMode::EnvShebang
+                    && let Some(target) = sub_words.first()
+                    && !target.contains('/')
                     && !custom_ref.contains_key(target)
                     && !crate::commands::search::is_external_command(target)
                 {
-                    Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("env: {target}: command not found\n"), exit_code: 127 })
+                    Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("env: {target}: command not found\n"),
+                        exit_code: 127,
+                    })
                 } else {
-                    if mode == DispatchMode::EnvShebang { sub_eval.functions.clear(); }
-                    else if effective_cmd == "timeout" {
-                        sub_eval.functions.retain(|name, _| sub_eval.exported_functions.contains(name));
+                    if mode == DispatchMode::EnvShebang {
+                        sub_eval.functions.clear();
+                    } else if effective_cmd == "timeout" {
+                        sub_eval
+                            .functions
+                            .retain(|name, _| sub_eval.exported_functions.contains(name));
                     }
                     sub_eval.dispatch_words(sub_words, sub_stdin, DispatchMode::External)
                 };
@@ -5859,19 +6953,25 @@ impl<'a> EvalState<'a> {
                 if let Some((outer_out, outer_err)) = outer {
                     sub_eval.route_outcome(&mut out);
                     let charged = sub_eval.forwarded_output.take();
-                    if let Err(e) = sub_eval.account_forwarded_output(&out.stdout, &out.stderr, charged) {
+                    if let Err(e) =
+                        sub_eval.account_forwarded_output(&out.stdout, &out.stderr, charged)
+                    {
                         sub_err = Some(e);
                         return Err(out);
                     }
                     let (a, b) = sub_eval.forwarded_output.get();
-                    sub_eval.forwarded_output.set((outer_out + a, outer_err + b));
+                    sub_eval
+                        .forwarded_output
+                        .set((outer_out + a, outer_err + b));
                 }
                 sub_eval.close_child_outputs(&mut out);
                 out.stdout.insert_str(0, &prefix.stdout);
                 out.stderr.insert_str(0, &prefix.stderr);
                 Ok(out)
             },
-        ).unwrap_or_else(|error| Some(error.diagnose(&self.diag_prefix()))) {
+        )
+        .unwrap_or_else(|error| Some(error.diagnose(&self.diag_prefix())))
+        {
             if let Some(e) = sub_err {
                 return Err(e);
             }
@@ -5880,7 +6980,10 @@ impl<'a> EvalState<'a> {
                 if elapsed != 0 {
                     let _clock = crate::commands::suspend_execution_clock();
                     if !wait(elapsed) {
-                        return Err(EvalError::Budget(self.budget.record_exceeded("Execution aborted: cancelled".into())));
+                        return Err(EvalError::Budget(
+                            self.budget
+                                .record_exceeded("Execution aborted: cancelled".into()),
+                        ));
                     }
                 }
             }
@@ -5893,57 +6996,46 @@ impl<'a> EvalState<'a> {
                 && self.env.contains_key("\0path_unset__"))
         {
             return self.run_vfs_script(
-                cmd,
-                args,
-                stdin,
-                true,
-                false,
-                None,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                cmd,
-                None,
+                cmd, args, stdin, true, false, None, false, false, false, false, false, false,
+                false, cmd, None,
             );
         }
 
-        let mut cached = if default_path { None } else { cached_command_path(cmd, self.cwd, self.env, self.fs) };
+        let mut cached = if default_path {
+            None
+        } else {
+            cached_command_path(cmd, self.cwd, self.env, self.fs)
+        };
         if let Some(path) = &cached
             && self.get_shopt_enabled("checkhash", false)
             && !self.is_virtual_executable_path(&resolve_posix_path(self.cwd, path))
-            && !self.fs.stat(&resolve_posix_path(self.cwd, path)).is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0)
+            && !self
+                .fs
+                .stat(&resolve_posix_path(self.cwd, path))
+                .is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0)
         {
             hash_order_remove(self.env, cmd);
             cached = None;
         }
-        let target = if let Some(path) = &cached { Ok(Some(path.clone())) } else { self.search_command_path(cmd, default_path) };
+        let target = if let Some(path) = &cached {
+            Ok(Some(path.clone()))
+        } else {
+            self.search_command_path(cmd, default_path)
+        };
         match target {
             Err(denied) => return Ok(denied),
             Ok(Some(target)) => {
-                if cached.is_none() && !default_path && self.get_shopt_enabled("hashall", true) && effective_path_env(self.env).is_some_and(|path| !path.is_empty()) {
+                if cached.is_none()
+                    && !default_path
+                    && self.get_shopt_enabled("hashall", true)
+                    && effective_path_env(self.env).is_some_and(|path| !path.is_empty())
+                {
                     let check_dot = path_search_checks_cwd(cmd, &target, self.cwd, self.env);
                     hash_order_insert(self.env, cmd, target.clone(), check_dot);
                 }
                 return self.run_vfs_script(
-                    &target,
-                    args,
-                    stdin,
-                    true,
-                    false,
-                    None,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    cmd,
-                    None,
+                    &target, args, stdin, true, false, None, false, false, false, false, false,
+                    false, false, cmd, None,
                 );
             }
             Ok(None) => {}
@@ -6045,7 +7137,11 @@ impl<'a> EvalState<'a> {
             }
             let text = op.trim();
             let negative = text.starts_with('-');
-            let offset = if negative || text.starts_with('+') { 1 } else { 0 };
+            let offset = if negative || text.starts_with('+') {
+                1
+            } else {
+                0
+            };
             let maximum: u128 = if negative {
                 9223372036854775808u128
             } else {
@@ -6059,7 +7155,10 @@ impl<'a> EvalState<'a> {
                 if !b.is_ascii_digit() {
                     let reason = if op.starts_with("0x") {
                         "invalid hex number"
-                    } else if op.len() > 1 && op.as_bytes()[0] == b'0' && op.as_bytes()[1].is_ascii_digit() {
+                    } else if op.len() > 1
+                        && op.as_bytes()[0] == b'0'
+                        && op.as_bytes()[1].is_ascii_digit()
+                    {
                         "invalid octal number"
                     } else {
                         "invalid number"
@@ -6196,8 +7295,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn is_implemented_builtin_name(target: &str) -> bool {
-        Self::is_shell_builtin_name(target)
-            && !matches!(target, "echo" | "printf" | "test" | "[")
+        Self::is_shell_builtin_name(target) && !matches!(target, "echo" | "printf" | "test" | "[")
     }
 
     fn is_registered_command_name(&self, target: &str) -> bool {
@@ -6226,7 +7324,10 @@ impl<'a> EvalState<'a> {
             return None;
         }
         if self.is_registered_command_name(name)
-            || matches!(name, "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh")
+            || matches!(
+                name,
+                "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh"
+            )
         {
             Some(name.to_string())
         } else {
@@ -6263,7 +7364,9 @@ impl<'a> EvalState<'a> {
                 }
                 continue;
             }
-            if let Ok(st) = self.fs.stat(&resolved) && st.kind == crate::vfs::VfsEntryKind::File {
+            if let Ok(st) = self.fs.stat(&resolved)
+                && st.kind == crate::vfs::VfsEntryKind::File
+            {
                 if (st.mode & 0o111) != 0 {
                     matches.push(target);
                     if !show_all {
@@ -6274,7 +7377,11 @@ impl<'a> EvalState<'a> {
                 }
             }
         }
-        if matches.is_empty() && !show_all && !name.contains('/') && path_opt.is_some_and(|path| !path.is_empty()) && !self.get_shopt_enabled("posix", true)
+        if matches.is_empty()
+            && !show_all
+            && !name.contains('/')
+            && path_opt.is_some_and(|path| !path.is_empty())
+            && !self.get_shopt_enabled("posix", true)
             && let Some(path) = non_executable
         {
             matches.push(path);
@@ -6332,13 +7439,16 @@ impl<'a> EvalState<'a> {
                     .map(|v| v == "1")
                     .unwrap_or(false);
                 let absolute = is_command && mode == "describe";
-                let cached = (!show_all).then(|| cached_command_path(name, self.cwd, self.env, self.fs)).flatten();
-                let paths = if let Some(path) = cached { vec![path] } else { self.search_discovery_paths(name, show_all, default_path) };
+                let cached = (!show_all)
+                    .then(|| cached_command_path(name, self.cwd, self.env, self.fs))
+                    .flatten();
+                let paths = if let Some(path) = cached {
+                    vec![path]
+                } else {
+                    self.search_discovery_paths(name, show_all, default_path)
+                };
                 for mut path in paths {
-                    if (absolute || is_posix)
-                        && !name.contains('/')
-                        && !path.starts_with('/')
-                    {
+                    if (absolute || is_posix) && !name.contains('/') && !path.starts_with('/') {
                         let rel = if absolute {
                             path.strip_prefix("./").unwrap_or(&path)
                         } else {
@@ -6355,7 +7465,10 @@ impl<'a> EvalState<'a> {
             }
             if matches.is_empty() {
                 if mode == "describe" {
-                    stderr.push_str(&format!("{}{invoked}: {name}: not found\n", self.diag_prefix()));
+                    stderr.push_str(&format!(
+                        "{}{invoked}: {name}: not found\n",
+                        self.diag_prefix()
+                    ));
                 }
                 continue;
             }
@@ -6507,7 +7620,9 @@ impl<'a> EvalState<'a> {
         let mut standard_input = false;
 
         let loaded_source = if let Some(path) = self.env.remove("\0shebang_loaded_path") {
-            self.env.remove("\0shebang_loaded_source").map(|source| (path, source))
+            self.env
+                .remove("\0shebang_loaded_source")
+                .map(|source| (path, source))
         } else {
             None
         };
@@ -6662,8 +7777,9 @@ impl<'a> EvalState<'a> {
             .enter_substitution()
             .map_err(EvalError::Budget)?;
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-        sub.traps
-            .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
+        sub.traps.retain(|k, v| {
+            v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN")
+        });
         sub.inactive_traps.clear();
         sub.func_trap_snapshots.clear();
         sub.source_debug_snapshots.clear();
@@ -6723,7 +7839,11 @@ impl<'a> EvalState<'a> {
                     Ok(out)
                 }
                 Err(EvalError::Syntax(msg)) => {
-                    let code = if msg.starts_with("__exit127__") { 127 } else { 2 };
+                    let code = if msg.starts_with("__exit127__") {
+                        127
+                    } else {
+                        2
+                    };
                     let mut out = BuiltinOutcome {
                         stdout: String::new(),
                         stderr: sub.format_active_syntax_diagnostic(&cs, &msg),
@@ -6739,7 +7859,9 @@ impl<'a> EvalState<'a> {
             }
         } else {
             let mut res = sub.eval_stdin_stream(stdin, &arg0, &self.diag_prefix());
-            if let Ok(out) = &mut res { sub.close_child_outputs(out); }
+            if let Ok(out) = &mut res {
+                sub.close_child_outputs(out);
+            }
             self.budget.leave_substitution();
             res
         }
@@ -6760,7 +7882,9 @@ impl<'a> EvalState<'a> {
 
         loop {
             let budget = self.budget;
-            let line = match self.read_delimited_record(0, stdin, b'\n', |n, _| budget.add_source_bytes(n)) {
+            let line = match self
+                .read_delimited_record(0, stdin, b'\n', |n, _| budget.add_source_bytes(n))
+            {
                 Ok(line) => line,
                 Err(error) => {
                     budget.check_exceeded().map_err(EvalError::Budget)?;
@@ -6910,7 +8034,11 @@ impl<'a> EvalState<'a> {
         loaded_source: Option<(String, String)>,
     ) -> Result<BuiltinOutcome, EvalError> {
         if target.is_empty() {
-            let prefix = if direct { self.diag_prefix() } else { String::new() };
+            let prefix = if direct {
+                self.diag_prefix()
+            } else {
+                String::new()
+            };
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
                 stderr: format!("{prefix}{invoked_cmd}: : No such file or directory\n"),
@@ -6925,7 +8053,11 @@ impl<'a> EvalState<'a> {
         let mut source_bytes: Option<Vec<u8>> = None;
         let first_or_full_source: String;
         let mut interpreter_profile: Option<&'static str> = None;
-        let diag_pfx = if direct { self.diag_prefix() } else { String::new() };
+        let diag_pfx = if direct {
+            self.diag_prefix()
+        } else {
+            String::new()
+        };
 
         if let Some((ref lp, ref ls)) = loaded_source
             && lp == &path
@@ -6992,7 +8124,10 @@ impl<'a> EvalState<'a> {
                 .add_source_bytes(bytes.len())
                 .map_err(EvalError::Budget)?;
             first_or_full_source = if direct && bytes.starts_with(b"#!") {
-                let nl = bytes.iter().position(|&b| b == b'\n').unwrap_or(bytes.len());
+                let nl = bytes
+                    .iter()
+                    .position(|&b| b == b'\n')
+                    .unwrap_or(bytes.len());
                 match Self::decode_script_bytes(&bytes[..nl], target) {
                     Ok(s) => s,
                     Err(mut out) => {
@@ -7099,7 +8234,9 @@ impl<'a> EvalState<'a> {
                 {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{diag_pfx}{target}: unsupported interpreter: {interpreter}\n"),
+                        stderr: format!(
+                            "{diag_pfx}{target}: unsupported interpreter: {interpreter}\n"
+                        ),
                         exit_code: 126,
                     });
                 }
@@ -7164,8 +8301,9 @@ impl<'a> EvalState<'a> {
         }
 
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-        sub.traps
-            .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
+        sub.traps.retain(|k, v| {
+            v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN")
+        });
         sub.inactive_traps.clear();
         sub.func_trap_snapshots.clear();
         sub.source_debug_snapshots.clear();
@@ -7288,11 +8426,13 @@ impl<'a> EvalState<'a> {
         match opt {
             "errexit" => {
                 self.errexit = enable;
-                self.env.insert("\0set_errexit".to_string(), val.to_string());
+                self.env
+                    .insert("\0set_errexit".to_string(), val.to_string());
             }
             "nounset" => {
                 self.nounset = enable;
-                self.env.insert("\0set_nounset".to_string(), val.to_string());
+                self.env
+                    .insert("\0set_nounset".to_string(), val.to_string());
             }
             "pipefail" => {
                 self.pipefail = enable;
@@ -7313,8 +8453,7 @@ impl<'a> EvalState<'a> {
                 self.env.insert("\0set_xtrace".to_string(), val.to_string());
             }
             other => {
-                self.env
-                    .insert(format!("\0set_{other}"), val.to_string());
+                self.env.insert(format!("\0set_{other}"), val.to_string());
             }
         }
     }
@@ -7540,17 +8679,12 @@ impl<'a> EvalState<'a> {
             if let Some(eq) = arg.find('=') {
                 let name = &arg[..eq];
                 let val = &arg[eq + 1..];
-                if name.is_empty()
-                    || name
-                        .chars()
-                        .any(|c| " /$`=;|&()<>'\"\\\t\r\n".contains(c))
-                {
+                if name.is_empty() || name.chars().any(|c| " /$`=;|&()<>'\"\\\t\r\n".contains(c)) {
                     stderr.push_str(&format!("alias: {name}: invalid alias name\n"));
                     exit_code = 1;
                     continue;
                 }
-                self.env
-                    .insert(format!("\0alias__{name}"), val.to_string());
+                self.env.insert(format!("\0alias__{name}"), val.to_string());
             } else if let Some(val) = self.env.get(&format!("\0alias__{arg}")) {
                 stdout.push_str(&format_entry(arg, val));
             } else {
@@ -7946,10 +9080,7 @@ impl<'a> EvalState<'a> {
                 .collect();
             entries.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
             for (_, sig, cmd) in entries {
-                out.push_str(&format!(
-                    "trap -- '{}' {sig}\n",
-                    cmd.replace('\'', "'\\''")
-                ));
+                out.push_str(&format!("trap -- '{}' {sig}\n", cmd.replace('\'', "'\\''")));
             }
             return BuiltinOutcome {
                 stdout: out,
@@ -7996,7 +9127,8 @@ impl<'a> EvalState<'a> {
                     continue;
                 }
                 if action.is_empty() {
-                    self.env.insert(format!("\0trap_ignored__{norm}"), "1".to_string());
+                    self.env
+                        .insert(format!("\0trap_ignored__{norm}"), "1".to_string());
                 } else {
                     self.env.remove(&format!("\0trap_ignored__{norm}"));
                 }
@@ -8014,11 +9146,7 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn builtin_declare(
-        &mut self,
-        cmd: &str,
-        args: &[String],
-    ) -> Result<BuiltinOutcome, EvalError> {
+    fn builtin_declare(&mut self, cmd: &str, args: &[String]) -> Result<BuiltinOutcome, EvalError> {
         let mut enabled: BTreeSet<char> = BTreeSet::new();
         let mut disabled: BTreeSet<char> = BTreeSet::new();
         if cmd == "readonly" {
@@ -8040,7 +9168,8 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             if !end_of_opts
-                && (arg.starts_with('-') || (cmd != "export" && cmd != "readonly" && arg.starts_with('+')))
+                && (arg.starts_with('-')
+                    || (cmd != "export" && cmd != "readonly" && arg.starts_with('+')))
                 && arg.len() > 1
                 && !arg.contains('=')
             {
@@ -8119,7 +9248,9 @@ impl<'a> EvalState<'a> {
         let is_export = enabled.contains(&'x');
         let inherit_prev = enabled.contains(&'I');
         let is_local = cmd == "local"
-            || ((cmd == "declare" || cmd == "typeset") && !is_global && !self.local_scopes.is_empty());
+            || ((cmd == "declare" || cmd == "typeset")
+                && !is_global
+                && !self.local_scopes.is_empty());
 
         if func_names_only {
             let mut out = String::new();
@@ -8251,7 +9382,8 @@ impl<'a> EvalState<'a> {
                 }
             }
             for name in candidate_names {
-                let (has_var, is_arr_assoc, is_arr, entries, flags) = get_var_meta_info(&name, self.env);
+                let (has_var, is_arr_assoc, is_arr, entries, flags) =
+                    get_var_meta_info(&name, self.env);
                 if !has_var {
                     continue;
                 }
@@ -8262,11 +9394,18 @@ impl<'a> EvalState<'a> {
                     if is_arr {
                         let mut pairs = Vec::new();
                         for (k, v) in entries {
-                            let qk = if is_arr_assoc { bash_quote_double(&k) } else { k };
+                            let qk = if is_arr_assoc {
+                                bash_quote_double(&k)
+                            } else {
+                                k
+                            };
                             pairs.push(format!("[{qk}]={}", bash_quote_double(&v)));
                         }
                         let prefix_fl = if is_arr_assoc { "Ar" } else { "ar" };
-                        out.push_str(&format!("declare -{prefix_fl} {name}=({})\n", pairs.join(" ")));
+                        out.push_str(&format!(
+                            "declare -{prefix_fl} {name}=({})\n",
+                            pairs.join(" ")
+                        ));
                     } else if let Some(val) = self.env.get(&name) {
                         out.push_str(&format!("declare -r {name}={}\n", bash_quote_double(val)));
                     } else {
@@ -8316,7 +9455,8 @@ impl<'a> EvalState<'a> {
                 set.into_iter().collect()
             };
             for name in &names {
-                let (has_var, is_arr_assoc, is_arr, entries, flags) = get_var_meta_info(name, self.env);
+                let (has_var, is_arr_assoc, is_arr, entries, flags) =
+                    get_var_meta_info(name, self.env);
                 if !has_var {
                     stderr.push_str(&format!("{cmd}: {name}: not found\n"));
                     status = 1;
@@ -8330,13 +9470,23 @@ impl<'a> EvalState<'a> {
                 if is_arr {
                     let mut pairs = Vec::with_capacity(entries.len());
                     for (k, v) in entries {
-                        let qk = if is_arr_assoc { bash_quote_double(&k) } else { k };
+                        let qk = if is_arr_assoc {
+                            bash_quote_double(&k)
+                        } else {
+                            k
+                        };
                         let qv = bash_quote_double(&v);
                         pairs.push(format!("[{qk}]={qv}"));
                     }
-                    out.push_str(&format!("declare {flag_str} {name}=({})\n", pairs.join(" ")));
+                    out.push_str(&format!(
+                        "declare {flag_str} {name}=({})\n",
+                        pairs.join(" ")
+                    ));
                 } else if let Some(val) = self.env.get(name) {
-                    out.push_str(&format!("declare {flag_str} {name}={}\n", bash_quote_double(val)));
+                    out.push_str(&format!(
+                        "declare {flag_str} {name}={}\n",
+                        bash_quote_double(val)
+                    ));
                 } else {
                     out.push_str(&format!("declare {flag_str} {name}\n"));
                 }
@@ -8356,7 +9506,9 @@ impl<'a> EvalState<'a> {
                 // snapshot there, including options held in dedicated state fields.
                 for option in SET_OPTIONS.iter().copied().chain(["xtrace", "posix"]) {
                     let enabled = self.get_shopt_enabled(option, true);
-                    self.local_scopes.last_mut().unwrap()
+                    self.local_scopes
+                        .last_mut()
+                        .unwrap()
                         .entry(format!("\0set_{option}"))
                         .or_insert_with(|| Some(if enabled { "1" } else { "0" }.to_string()));
                 }
@@ -8368,7 +9520,10 @@ impl<'a> EvalState<'a> {
             };
             if !is_valid_shell_ident(&base_name) {
                 let label = if cmd == "typeset" { "declare" } else { cmd };
-                decl_stderr.push_str(&format!("{}{label}: `{op}': not a valid identifier\n", self.diag_prefix()));
+                decl_stderr.push_str(&format!(
+                    "{}{label}: `{op}': not a valid identifier\n",
+                    self.diag_prefix()
+                ));
                 decl_status = 1;
                 continue;
             }
@@ -8379,10 +9534,21 @@ impl<'a> EvalState<'a> {
                 .is_some_and(|a| a.contains('r'))
                 && (val_opt.is_some() || is_local)
             {
-                if val_opt.as_deref().is_some_and(|value| value.starts_with("\0__ARRAY_LITERAL__(")) {
-                    let context = if self.local_scopes.iter().any(|scope| scope.contains_key(&base_name)) {
+                if val_opt
+                    .as_deref()
+                    .is_some_and(|value| value.starts_with("\0__ARRAY_LITERAL__("))
+                {
+                    let context = if self
+                        .local_scopes
+                        .iter()
+                        .any(|scope| scope.contains_key(&base_name))
+                    {
                         None
-                    } else if self.syntax_contexts.last().is_some_and(|(name, _, _)| name.ends_with(": eval")) {
+                    } else if self
+                        .syntax_contexts
+                        .last()
+                        .is_some_and(|(name, _, _)| name.ends_with(": eval"))
+                    {
                         Some("eval")
                     } else if self.source_depth == 0 {
                         self.func_stack.first().map(String::as_str)
@@ -8400,8 +9566,15 @@ impl<'a> EvalState<'a> {
                     decl_status = 1;
                     break;
                 }
-                let provenance = if cmd == "readonly" && !enabled.contains(&'a') { String::new() } else { format!("{cmd}: ") };
-                decl_stderr.push_str(&format!("{}{provenance}{base_name}: readonly variable\n", self.diag_prefix()));
+                let provenance = if cmd == "readonly" && !enabled.contains(&'a') {
+                    String::new()
+                } else {
+                    format!("{cmd}: ")
+                };
+                decl_stderr.push_str(&format!(
+                    "{}{provenance}{base_name}: readonly variable\n",
+                    self.diag_prefix()
+                ));
                 decl_status = 1;
                 continue;
             }
@@ -8454,12 +9627,17 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&base_name);
                 }
                 if base_name == "OPTIND" {
-                    self.env.insert("\0getopts_int".to_string(), "0".to_string());
+                    self.env
+                        .insert("\0getopts_int".to_string(), "0".to_string());
                 }
             }
 
-            let new_assoc = is_assoc && !self.env.contains_key(&format!("\0assoc__{base_name}"))
-                && !self.env.get(&format!("\0attr__{base_name}")).is_some_and(|a| a.contains('A'));
+            let new_assoc = is_assoc
+                && !self.env.contains_key(&format!("\0assoc__{base_name}"))
+                && !self
+                    .env
+                    .get(&format!("\0attr__{base_name}"))
+                    .is_some_and(|a| a.contains('A'));
             if is_assoc {
                 let arr_prefix = format!("{base_name}[");
                 let was_indexed = !self.env.contains_key(&format!("\0assoc__{base_name}"))
@@ -8508,17 +9686,13 @@ impl<'a> EvalState<'a> {
 
             if is_nameref {
                 if let Some(target) = val_opt {
-                    let target_base = target
-                        .split_once('[')
-                        .map(|(b, _)| b)
-                        .unwrap_or(&target);
+                    let target_base = target.split_once('[').map(|(b, _)| b).unwrap_or(&target);
                     if target == base_name || !is_valid_shell_ident(target_base) {
                         decl_stderr.push_str(&format!("{cmd}: {target}: invalid name reference\n"));
                         decl_status = 1;
                         continue;
                     }
-                    self.env
-                        .insert(format!("\0nameref__{base_name}"), target);
+                    self.env.insert(format!("\0nameref__{base_name}"), target);
                 }
                 continue;
             }
@@ -8540,33 +9714,42 @@ impl<'a> EvalState<'a> {
             if pre_attr.is_empty() {
                 self.env.remove(&format!("\0attr__{base_name}"));
             } else {
-                self.env
-                    .insert(format!("\0attr__{base_name}"), pre_attr);
+                self.env.insert(format!("\0attr__{base_name}"), pre_attr);
             }
 
             if let Some(v) = val_opt {
                 if let Some(msg) = self.assign_value(&base_name, &v, append)? {
-                    if new_assoc || (is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}"))) {
-                        if new_assoc { self.env.remove(&format!("\0assoc__{base_name}")); }
+                    if new_assoc
+                        || (is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}")))
+                    {
+                        if new_assoc {
+                            self.env.remove(&format!("\0assoc__{base_name}"));
+                        }
                         let key = format!("\0attr__{base_name}");
                         if let Some(attr) = self.env.get_mut(&key) {
                             attr.retain(|c| c != if new_assoc { 'A' } else { 'a' });
-                            if attr.is_empty() { self.env.remove(&key); }
+                            if attr.is_empty() {
+                                self.env.remove(&key);
+                            }
                         }
                     }
-                    self.env.insert(format!("\0declared__{base_name}"), "1".into());
+                    self.env
+                        .insert(format!("\0declared__{base_name}"), "1".into());
                     decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
                     decl_status = 1;
                     break;
                 }
             } else if is_indexed || is_assoc {
-                if is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}"))
+                if is_indexed
+                    && !self.env.contains_key(&format!("\0keys__{base_name}"))
                     && let Some(value) = self.env.get(&base_name).cloned()
                 {
                     self.env.insert(format!("{base_name}[0]"), value);
                 }
                 // A bare declaration has no assigned key list until the first write.
-                if self.env.contains_key(&format!("\0keys__{base_name}")) || self.env.contains_key(&base_name) {
+                if self.env.contains_key(&format!("\0keys__{base_name}"))
+                    || self.env.contains_key(&base_name)
+                {
                     sync_array_metadata(&base_name, self.env);
                 }
             } else if is_local
@@ -8664,9 +9847,7 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             let base_ident = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
-            if !is_valid_shell_ident(base_ident)
-                || (arg.contains('[') && !arg.ends_with(']'))
-            {
+            if !is_valid_shell_ident(base_ident) || (arg.contains('[') && !arg.ends_with(']')) {
                 stderr.push_str(&format!("unset: `{arg}': not a valid identifier\n"));
                 status = 1;
                 continue;
@@ -8678,8 +9859,10 @@ impl<'a> EvalState<'a> {
                 || self.env.contains_key(&format!("\0nameref__{arg}"))
                 || self.env.keys().any(|k| k.starts_with(&format!("{arg}[")))
                 || self.local_scopes.iter().any(|f| f.contains_key(arg));
-            let fallback_func =
-                !unset_var && !unset_nameref && !has_var_binding && self.functions.contains_key(arg);
+            let fallback_func = !unset_var
+                && !unset_nameref
+                && !has_var_binding
+                && self.functions.contains_key(arg);
             if fallback_func {
                 if self
                     .env
@@ -8767,7 +9950,8 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&resolved);
                     self.env.remove(&format!("\0keys__{resolved}"));
                     if was_arr {
-                        self.env.insert(format!("\0keys__{resolved}"), String::new());
+                        self.env
+                            .insert(format!("\0keys__{resolved}"), String::new());
                     }
                     continue;
                 }
@@ -8853,22 +10037,27 @@ impl<'a> EvalState<'a> {
             }
             if resolved == "PATH" {
                 clear_command_hashes(self.env);
-                self.env.insert("\0path_unset__".to_string(), "1".to_string());
+                self.env
+                    .insert("\0path_unset__".to_string(), "1".to_string());
             }
             if resolved == "RANDOM" {
-                self.env.insert("\0random_disabled".to_string(), "1".to_string());
+                self.env
+                    .insert("\0random_disabled".to_string(), "1".to_string());
             }
             if resolved == "SECONDS" {
-                self.env.insert("\0seconds_disabled".to_string(), "1".to_string());
+                self.env
+                    .insert("\0seconds_disabled".to_string(), "1".to_string());
             }
             if resolved == "OPTIND" {
                 sync_getopts_env(self.env);
             }
             if resolved == "OPTERR" {
-                self.env.insert("\0opterr_unset__".to_string(), "1".to_string());
+                self.env
+                    .insert("\0opterr_unset__".to_string(), "1".to_string());
             }
             if resolved == "PWD" {
-                self.env.insert("\0pwd_unset__".to_string(), "1".to_string());
+                self.env
+                    .insert("\0pwd_unset__".to_string(), "1".to_string());
             }
             self.env.remove(&format!("\0attr__{resolved}"));
             self.env.remove(&format!("\0declared__{resolved}"));
@@ -8900,17 +10089,28 @@ impl<'a> EvalState<'a> {
     }
 
     fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
-        if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
+        if let Some(source) = self
+            .fd_table
+            .get(&fd)
+            .and_then(|fd| fd.file_input(self.budget))
+        {
             source.materialize(unread).map_err(EvalError::Syntax)?;
         }
         Ok(())
     }
 
-    fn read_fd_chunks(&mut self, fd: u32, stdin: &mut String,
+    fn read_fd_chunks(
+        &mut self,
+        fd: u32,
+        stdin: &mut String,
         consume: &mut dyn FnMut(&[u8], bool) -> Result<(bool, usize), String>,
     ) -> Result<(), String> {
         let canon = self.resolve_in_fd(fd);
-        if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
+        if let Some(source) = self
+            .fd_table
+            .get(&fd)
+            .and_then(|fd| fd.file_input(self.budget))
+        {
             if fd == 0 {
                 let result = source.read(stdin, usize::MAX, consume);
                 source.unread.borrow_mut().clone_from(stdin);
@@ -8922,20 +10122,33 @@ impl<'a> EvalState<'a> {
         }
         let direct = (fd == 0 && !self.in_fd_aliases.contains_key(&0))
             || (canon == STDIN_STREAM_FD && !self.in_fds.contains_key(&STDIN_STREAM_FD));
-        if !direct && fd == 0 { self.sync_shared_stdin(canon, stdin, true); }
-        let bytes = if direct { stream_string_to_bytes(stdin) } else {
-            self.in_fds.get(&canon).map(|buf| stream_string_to_bytes(&buf.borrow())).unwrap_or_default()
+        if !direct && fd == 0 {
+            self.sync_shared_stdin(canon, stdin, true);
+        }
+        let bytes = if direct {
+            stream_string_to_bytes(stdin)
+        } else {
+            self.in_fds
+                .get(&canon)
+                .map(|buf| stream_string_to_bytes(&buf.borrow()))
+                .unwrap_or_default()
         };
         let (_, used) = consume(&bytes, true)?;
         let rest = bytes_to_stream_string(&bytes[used..]);
-        if direct { *stdin = rest; } else {
+        if direct {
+            *stdin = rest;
+        } else {
             self.in_fds.entry(canon).or_default().replace(rest);
             self.sync_shared_stdin(canon, stdin, false);
         }
         Ok(())
     }
 
-    fn read_delimited_record(&mut self, fd: u32, stdin: &mut String, delimiter: u8,
+    fn read_delimited_record(
+        &mut self,
+        fd: u32,
+        stdin: &mut String,
+        delimiter: u8,
         mut charge: impl FnMut(usize, usize) -> Result<(), String>,
     ) -> Result<Option<Vec<u8>>, String> {
         let mut record = Vec::new();
@@ -8949,10 +10162,20 @@ impl<'a> EvalState<'a> {
         Ok((!record.is_empty()).then_some(record))
     }
 
-    fn read_record(&mut self, fd: u32, stdin: &mut String,
-        raw_mode: bool, delimiter: Option<u8>, count: Option<usize>, byte_count: bool,
+    fn read_record(
+        &mut self,
+        fd: u32,
+        stdin: &mut String,
+        raw_mode: bool,
+        delimiter: Option<u8>,
+        count: Option<usize>,
+        byte_count: bool,
     ) -> Result<(Vec<u8>, Vec<usize>, bool), String> {
-        if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
+        if let Some(source) = self
+            .fd_table
+            .get(&fd)
+            .and_then(|fd| fd.file_input(self.budget))
+        {
             source.admit_bounded_read()?;
         }
         let budget = self.budget;
@@ -8971,7 +10194,10 @@ impl<'a> EvalState<'a> {
             while !terminated && pos < bytes.len() {
                 let byte = bytes[pos];
                 if input_bytes == budget.limits.max_input_bytes {
-                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
+                    return Err(budget.record_exceeded(format!(
+                        "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
+                        budget.limits.max_input_bytes
+                    )));
                 }
                 pos += 1;
                 input_bytes += 1;
@@ -8979,7 +10205,9 @@ impl<'a> EvalState<'a> {
                     if delimiter == Some(byte) && !is_valid_utf8_continuation(first, index, byte) {
                         if Some(units + 1) == count {
                             terminated = true;
-                            if !regular_file { pos -= 1; }
+                            if !regular_file {
+                                pos -= 1;
+                            }
                         } else {
                             // Process the delimiter normally on the next iteration.
                             pos -= 1;
@@ -8989,31 +10217,53 @@ impl<'a> EvalState<'a> {
                         units += 1;
                         continue;
                     }
-                    if byte == 0 { visible = false; }
-                    if visible { out.push(byte); }
+                    if byte == 0 {
+                        visible = false;
+                    }
+                    if visible {
+                        out.push(byte);
+                    }
                     continuation = (is_valid_utf8_continuation(first, index, byte)
-                        && index + 1 < utf8_seq_length(first)).then_some((first, index + 1));
+                        && index + 1 < utf8_seq_length(first))
+                    .then_some((first, index + 1));
                 } else {
                     if !raw_mode && !escaped && byte == b'\\' && delimiter != Some(b'\\') {
                         escaped = true;
                         continue;
                     }
                     let quoted = std::mem::take(&mut escaped);
-                    if quoted && byte == b'\n' { continue; }
-                    if !quoted && delimiter == Some(byte) { terminated = true; break; }
-                    if byte == 0 { continue; }
+                    if quoted && byte == b'\n' {
+                        continue;
+                    }
+                    if !quoted && delimiter == Some(byte) {
+                        terminated = true;
+                        break;
+                    }
+                    if byte == 0 {
+                        continue;
+                    }
                     if visible {
-                        if quoted { escaped_offsets.push(out.len()); }
+                        if quoted {
+                            escaped_offsets.push(out.len());
+                        }
                         out.push(byte);
                     }
                     continuation = (!byte_count && utf8_seq_length(byte) > 1).then_some((byte, 1));
                 }
                 if out.len() > budget.limits.max_output_bytes {
-                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
+                    return Err(budget.record_exceeded(format!(
+                        "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                        budget.limits.max_output_bytes
+                    )));
                 }
-                if continuation.is_none() { units += 1; terminated = Some(units) == count; }
+                if continuation.is_none() {
+                    units += 1;
+                    terminated = Some(units) == count;
+                }
             }
-            if eof && continuation.is_some() && Some(units + 1) == count { terminated = true; }
+            if eof && continuation.is_some() && Some(units + 1) == count {
+                terminated = true;
+            }
             Ok((!terminated, pos))
         })?;
         Ok((out, escaped_offsets, terminated))
@@ -9024,7 +10274,11 @@ impl<'a> EvalState<'a> {
             if self.in_fds.get(&canon).is_some_and(|source| Rc::ptr_eq(unread, source)));
         if canon >= 3 && canon != STDIN_STREAM_FD && (same_file || self.resolve_in_fd(0) == canon) {
             if from_stdin {
-                self.in_fds.entry(canon).or_default().borrow_mut().clone_from(stdin);
+                self.in_fds
+                    .entry(canon)
+                    .or_default()
+                    .borrow_mut()
+                    .clone_from(stdin);
             } else if let Some(buf) = self.in_fds.get(&canon) {
                 *stdin = buf.borrow().clone();
             }
@@ -9146,13 +10400,8 @@ impl<'a> EvalState<'a> {
                                         nchars = Some(c);
                                     }
                                     Err(_is_overflow) => {
-                                        let is_hex =
-                                            val.starts_with("0x") || val.starts_with("0X");
-                                        let hex_label = if is_hex {
-                                            "hex "
-                                        } else {
-                                            ""
-                                        };
+                                        let is_hex = val.starts_with("0x") || val.starts_with("0X");
+                                        let hex_label = if is_hex { "hex " } else { "" };
                                         return Ok(BuiltinOutcome {
                                             stdout: String::new(),
                                             stderr: format!(
@@ -9194,14 +10443,22 @@ impl<'a> EvalState<'a> {
             }
             if !self.is_fd_readable(fd_num) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. }) if !self.is_default_null(path) => {
+                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. })
+                        if !self.is_default_null(path) =>
+                    {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
                             exit_code: 0,
                         });
                     }
-                    Some(FdTarget::PipeStdout { peer_retired } | FdTarget::SavedStdout { pipe_peer_retired: Some(peer_retired), .. }) => {
+                    Some(
+                        FdTarget::PipeStdout { peer_retired }
+                        | FdTarget::SavedStdout {
+                            pipe_peer_retired: Some(peer_retired),
+                            ..
+                        },
+                    ) => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -9259,8 +10516,15 @@ impl<'a> EvalState<'a> {
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. }) if !self.is_default_null(path) => {}
-                    Some(FdTarget::PipeStdout { peer_retired } | FdTarget::SavedStdout { pipe_peer_retired: Some(peer_retired), .. }) => {
+                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. })
+                        if !self.is_default_null(path) => {}
+                    Some(
+                        FdTarget::PipeStdout { peer_retired }
+                        | FdTarget::SavedStdout {
+                            pipe_peer_retired: Some(peer_retired),
+                            ..
+                        },
+                    ) => {
                         timed_out = !*peer_retired;
                     }
                     _ => {
@@ -9291,13 +10555,28 @@ impl<'a> EvalState<'a> {
         };
 
         let (record_bytes, escaped_offsets, terminated) = if timed_out || nchars == Some(0) {
-            (Vec::new(), Vec::new(), !timed_out && self.is_fd_readable(fd_num))
+            (
+                Vec::new(),
+                Vec::new(),
+                !timed_out && self.is_fd_readable(fd_num),
+            )
         } else {
-            match self.read_record(fd_num, stdin, raw_mode, effective_delim, nchars, byte_locale) {
+            match self.read_record(
+                fd_num,
+                stdin,
+                raw_mode,
+                effective_delim,
+                nchars,
+                byte_locale,
+            ) {
                 Ok(record) => record,
                 Err(error) => {
                     self.budget.check_exceeded().map_err(EvalError::Budget)?;
-                    return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{prefix}{error}\n"), exit_code: 1 });
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{prefix}{error}\n"),
+                        exit_code: 1,
+                    });
                 }
             }
         };
@@ -9419,7 +10698,11 @@ impl<'a> EvalState<'a> {
                     if let Some((_, sub)) = resolved.split_once('[')
                         && let Some(sub) = sub.strip_suffix(']')
                     {
-                        if self.env.get(&format!("\0assoc__{base}")).is_some_and(|v| v == "1") {
+                        if self
+                            .env
+                            .get(&format!("\0assoc__{base}"))
+                            .is_some_and(|v| v == "1")
+                        {
                             self.associative_write_key(sub)?;
                         } else if let Err(message) = self.indexed_write_subscript(&base, sub)? {
                             return Ok(BuiltinOutcome {
@@ -9705,26 +10988,36 @@ impl<'a> EvalState<'a> {
 
         let mut cb_stdout = String::new();
         let mut cb_stderr = String::new();
-        let stream = matches!(self.fd_table.get(&fd_num), Some(FdTarget::InputStream { .. }));
+        let stream = matches!(
+            self.fd_table.get(&fd_num),
+            Some(FdTarget::InputStream { .. })
+        );
         let mut total_input_bytes = 0usize;
 
-        let mut take_next_record = |this: &mut Self, stdin: &mut String| -> Result<Option<Vec<u8>>, EvalError> {
-            this.budget.tick_loop().map_err(EvalError::Budget)?;
-            let budget = this.budget;
-            let result = this.read_delimited_record(fd_num, stdin, delim_byte, |used, len| {
-                total_input_bytes = total_input_bytes.saturating_add(used);
-                if !stream && total_input_bytes > budget.limits.max_input_bytes {
-                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
-                }
-                if len > budget.limits.max_output_bytes {
-                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
-                }
-                Ok(())
-            });
-            budget.check_exceeded().map_err(EvalError::Budget)?;
-            // mapfile stops at a source error without publishing the incomplete record.
-            Ok(result.unwrap_or(None))
-        };
+        let mut take_next_record =
+            |this: &mut Self, stdin: &mut String| -> Result<Option<Vec<u8>>, EvalError> {
+                this.budget.tick_loop().map_err(EvalError::Budget)?;
+                let budget = this.budget;
+                let result = this.read_delimited_record(fd_num, stdin, delim_byte, |used, len| {
+                    total_input_bytes = total_input_bytes.saturating_add(used);
+                    if !stream && total_input_bytes > budget.limits.max_input_bytes {
+                        return Err(budget.record_exceeded(format!(
+                            "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
+                            budget.limits.max_input_bytes
+                        )));
+                    }
+                    if len > budget.limits.max_output_bytes {
+                        return Err(budget.record_exceeded(format!(
+                            "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                            budget.limits.max_output_bytes
+                        )));
+                    }
+                    Ok(())
+                });
+                budget.check_exceeded().map_err(EvalError::Budget)?;
+                // mapfile stops at a source error without publishing the incomplete record.
+                Ok(result.unwrap_or(None))
+            };
 
         for _ in 0..skip_count {
             match take_next_record(self, stdin)? {
@@ -9785,8 +11078,7 @@ impl<'a> EvalState<'a> {
                 let prev_script = self.script_name.clone();
                 let prev_line = self.current_line;
                 let diag_offset = prev_line.saturating_sub(1);
-                let prev_cb_offset =
-                    std::mem::replace(&mut self.callback_line_offset, diag_offset);
+                let prev_cb_offset = std::mem::replace(&mut self.callback_line_offset, diag_offset);
                 self.mapfile_callback_depth += 1;
                 let cb_res = self.eval_script_units(&cb_source, stdin);
                 self.mapfile_callback_depth -= 1;
@@ -9971,7 +11263,11 @@ impl<'a> EvalState<'a> {
             .get("\0getopts_index")
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(0);
-        let mut index = if state_index == 0 { 1usize } else { state_index };
+        let mut index = if state_index == 0 {
+            1usize
+        } else {
+            state_index
+        };
         let mut active: Option<(usize, usize)> = if state_index == 0 {
             None
         } else {
@@ -10025,12 +11321,9 @@ impl<'a> EvalState<'a> {
                     exit_code: 1,
                 };
             }
-            this.env.insert("OPTIND".to_string(), next_optind.to_string());
-            if this
-                .env
-                .get("\0set_allexport")
-                .is_some_and(|v| v == "1")
-            {
+            this.env
+                .insert("OPTIND".to_string(), next_optind.to_string());
+            if this.env.get("\0set_allexport").is_some_and(|v| v == "1") {
                 this.env.remove("\0unexported__OPTIND");
             }
 
@@ -10052,10 +11345,7 @@ impl<'a> EvalState<'a> {
                 let was_unexported = this
                     .env
                     .contains_key(&format!("\0unexported__{resolved_optarg}"));
-                let allexport = this
-                    .env
-                    .get("\0set_allexport")
-                    .is_some_and(|v| v == "1");
+                let allexport = this.env.get("\0set_allexport").is_some_and(|v| v == "1");
                 let attr_x = this
                     .env
                     .get(&format!("\0attr__{resolved_optarg}"))
@@ -10083,7 +11373,10 @@ impl<'a> EvalState<'a> {
             }
             if let Err(err_msg) = this.assign_variable(&var_name, opt_val, false) {
                 let err_msg = match err_msg {
-                    EvalError::Syntax(m) | EvalError::Budget(m) | EvalError::OutputClose(m) | EvalError::UnportedCommand(m) => m,
+                    EvalError::Syntax(m)
+                    | EvalError::Budget(m)
+                    | EvalError::OutputClose(m)
+                    | EvalError::UnportedCommand(m) => m,
                 };
                 stderr.push_str(&format!("{err_msg}\n"));
                 return BuiltinOutcome {
@@ -10214,68 +11507,137 @@ impl<'a> EvalState<'a> {
     }
 
     fn redirect_create_mode(&self) -> u32 {
-        self.env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok())
+        self.env
+            .get("\0umask")
+            .and_then(|s| u32::from_str_radix(s, 8).ok())
             .map_or(0o644, |mask| 0o666 & !mask)
     }
 
-    fn open_input_target(&self, target: &str, kind: &RedirectKind) -> Result<(InputCursor, Option<FdTarget>), BuiltinOutcome> {
+    fn open_input_target(
+        &self,
+        target: &str,
+        kind: &RedirectKind,
+    ) -> Result<(InputCursor, Option<FdTarget>), BuiltinOutcome> {
         use crate::vfs::{RedirectAccess, VfsEntryKind};
         let writable = matches!(kind, RedirectKind::ReadWrite(_));
         let operand = crate::vfs::path::absolute_operand(self.cwd, target);
         let error = |e: String| self.redirect_error(target, &e);
-        let path = if writable { self.output_redirect_path(target, kind)? } else {
-            let (path, st) = self.fs.inspect_command_entry(&operand, true, "stat").map_err(error)?;
+        let path = if writable {
+            self.output_redirect_path(target, kind)?
+        } else {
+            let (path, st) = self
+                .fs
+                .inspect_command_entry(&operand, true, "stat")
+                .map_err(error)?;
             if st.kind == VfsEntryKind::Directory {
-                if self.in_cmdsub_file_shortcut { return Ok((InputCursor::default(), None)); }
+                if self.in_cmdsub_file_shortcut {
+                    return Ok((InputCursor::default(), None));
+                }
                 return Err(error("EISDIR".into()));
             }
-            if st.mode & 0o400 == 0 { return Err(error("EACCES".into())); }
+            if st.mode & 0o400 == 0 {
+                return Err(error("EACCES".into()));
+            }
             path
         };
-        let access = if writable { RedirectAccess::ReadWrite } else { RedirectAccess::Read };
+        let access = if writable {
+            RedirectAccess::ReadWrite
+        } else {
+            RedirectAccess::Read
+        };
         let null = self.is_default_null(&path);
-        let file = if null { None } else {
-            self.fs.open_redirect_file(&path, access, Some(self.redirect_create_mode())).map_err(|e| {
-                if writable && e.starts_with("ENOTSUP:") {
-                    BuiltinOutcome { stdout: String::new(), stderr: format!("{}ENOTSUP: operation not supported, open '{operand}'\n", self.diag_prefix()), exit_code: 1 }
-                } else { error(e) }
-            })?
+        let file = if null {
+            None
+        } else {
+            self.fs
+                .open_redirect_file(&path, access, Some(self.redirect_create_mode()))
+                .map_err(|e| {
+                    if writable && e.starts_with("ENOTSUP:") {
+                        BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!(
+                                "{}ENOTSUP: operation not supported, open '{operand}'\n",
+                                self.diag_prefix()
+                            ),
+                            exit_code: 1,
+                        }
+                    } else {
+                        error(e)
+                    }
+                })?
         };
         let unread = if file.is_none() && !null {
             let bytes = self.fs.read_file(&path).map_err(error)?;
             if bytes.len() > self.budget.limits.max_input_bytes {
-                return Err(BuiltinOutcome { stdout: String::new(), stderr: format!("{target}: EFBIG: File too large\n"), exit_code: 1 });
+                return Err(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{target}: EFBIG: File too large\n"),
+                    exit_code: 1,
+                });
             }
             Rc::new(bytes_to_stream_string(&bytes).into())
-        } else { InputCursor::default() };
+        } else {
+            InputCursor::default()
+        };
         let description = (writable || file.is_some()).then(|| FdTarget::InputFile {
-            writable, path, unread: unread.clone(), file, position: Rc::default(),
+            writable,
+            path,
+            unread: unread.clone(),
+            file,
+            position: Rc::default(),
         });
         Ok((unread, description))
     }
 
-    fn open_output_target(&self, operand: &str, kind: &RedirectKind, opened: &mut Vec<(usize, Rc<ExclusiveOutput>)>) -> Result<FdTarget, BuiltinOutcome> {
+    fn open_output_target(
+        &self,
+        operand: &str,
+        kind: &RedirectKind,
+        opened: &mut Vec<(usize, Rc<ExclusiveOutput>)>,
+    ) -> Result<FdTarget, BuiltinOutcome> {
         use crate::vfs::RedirectAccess;
         let append = matches!(kind, RedirectKind::Append(_) | RedirectKind::BothAppend);
         let exclusive = self.noclobber && !append && !matches!(kind, RedirectKind::Clobber(_));
-        let access = if exclusive { RedirectAccess::Exclusive } else if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        let access = if exclusive {
+            RedirectAccess::Exclusive
+        } else if append {
+            RedirectAccess::Append
+        } else {
+            RedirectAccess::Truncate
+        };
         let mode = self.redirect_create_mode();
         let error = |e: String| {
-            if exclusive && e.starts_with("EEXIST:") { self.redirect_error(operand, "cannot overwrite existing file") }
-            else if exclusive && (e.starts_with("EBUSY:") || e.starts_with("ENOTSUP:")) {
-                BuiltinOutcome { stdout: String::new(), stderr: format!("{}{e}\n", self.diag_prefix()), exit_code: 1 }
-            } else { self.redirect_error(operand, &e) }
+            if exclusive && e.starts_with("EEXIST:") {
+                self.redirect_error(operand, "cannot overwrite existing file")
+            } else if exclusive && (e.starts_with("EBUSY:") || e.starts_with("ENOTSUP:")) {
+                BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{}{e}\n", self.diag_prefix()),
+                    exit_code: 1,
+                }
+            } else {
+                self.redirect_error(operand, &e)
+            }
         };
         let raw = crate::vfs::path::absolute_operand(self.cwd, operand);
-        if self.fs.has_path_capabilities() && !self.is_default_null(&raw) && !self.fs.supports_command_descriptor(&raw) {
+        if self.fs.has_path_capabilities()
+            && !self.is_default_null(&raw)
+            && !self.fs.supports_command_descriptor(&raw)
+        {
             let opened = (|| {
                 if exclusive {
                     match self.fs.inspect_command_entry(&raw, false, "lstat") {
                         Ok((_, st)) if st.kind == crate::vfs::VfsEntryKind::Symlink => {
                             if let Err(e) = self.fs.inspect_command_entry(&raw, true, "stat")
-                                && !e.starts_with("ENOENT:") && !e.starts_with("ELOOP:") { return Err(e); }
+                                && !e.starts_with("ENOENT:")
+                                && !e.starts_with("ELOOP:")
+                            {
+                                return Err(e);
+                            }
                         }
-                        Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ELOOP:") => return Err(e),
+                        Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ELOOP:") => {
+                            return Err(e);
+                        }
                         _ => {}
                     }
                 }
@@ -10286,7 +11648,10 @@ impl<'a> EvalState<'a> {
                     if let Some(stream) = self.fs.open_exclusive_redirect(&entry, mode)? {
                         let output = Rc::new(ExclusiveOutput(RefCell::new(stream)));
                         opened.push((self.stage_depth, output.clone()));
-                        return Ok(FdTarget::Exclusive { path: entry, output });
+                        return Ok(FdTarget::Exclusive {
+                            path: entry,
+                            output,
+                        });
                     }
                 } else {
                     self.fs.command_descriptor_op()?;
@@ -10295,20 +11660,35 @@ impl<'a> EvalState<'a> {
                     }
                     self.fs.write_command_path(&entry, b"", append, mode)?;
                 }
-                let (offset, image) = if exclusive { (None, None) } else {
+                let (offset, image) = if exclusive {
+                    (None, None)
+                } else {
                     let key = resolve_posix_path(self.cwd, operand);
                     let mut open = self.path_outputs.borrow_mut();
                     open.retain(|file| file.strong_count() != 0);
-                    let file = open.iter().filter_map(std::rc::Weak::upgrade).find(|file| file.key == key)
+                    let file = open
+                        .iter()
+                        .filter_map(std::rc::Weak::upgrade)
+                        .find(|file| file.key == key)
                         .unwrap_or_else(|| {
-                            let file = Rc::new(PathOutput { key, data: RefCell::default() });
+                            let file = Rc::new(PathOutput {
+                                key,
+                                data: RefCell::default(),
+                            });
                             open.push(Rc::downgrade(&file));
                             file
                         });
-                    if !append { *file.data.borrow_mut() = Some(Vec::new()); }
+                    if !append {
+                        *file.data.borrow_mut() = Some(Vec::new());
+                    }
                     ((!append).then(|| Rc::new(Cell::new(0))), Some(file))
                 };
-                Ok(FdTarget::File { path: entry, file: None, offset, image })
+                Ok(FdTarget::File {
+                    path: entry,
+                    file: None,
+                    offset,
+                    image,
+                })
             })();
             return opened.map_err(error);
         }
@@ -10319,32 +11699,54 @@ impl<'a> EvalState<'a> {
             match self.fs.inspect_command_entry(&entry, true, "stat") {
                 Ok((path, st)) if st.mode & 0o170000 == 0o020000 => path,
                 Ok(_) => entry,
-                Err(e) if e.starts_with("ENOENT:") || e.starts_with("ELOOP:") || e.ends_with("(os error 2)") => entry,
+                Err(e)
+                    if e.starts_with("ENOENT:")
+                        || e.starts_with("ELOOP:")
+                        || e.ends_with("(os error 2)") =>
+                {
+                    entry
+                }
                 Err(e) => return Err(error(e)),
             }
-        } else { self.output_redirect_path(operand, kind)? };
+        } else {
+            self.output_redirect_path(operand, kind)?
+        };
         let null = self.is_default_null(&path);
         let descriptor = null || self.fs.supports_command_descriptor(&path);
         if exclusive && !descriptor {
-            if let Some(stream) = self.fs.open_exclusive_redirect(&path, mode).map_err(error)? {
+            if let Some(stream) = self
+                .fs
+                .open_exclusive_redirect(&path, mode)
+                .map_err(error)?
+            {
                 let output = Rc::new(ExclusiveOutput(RefCell::new(stream)));
                 opened.push((self.stage_depth, output.clone()));
                 return Ok(FdTarget::Exclusive { path, output });
             }
-            return Ok(FdTarget::File { path, file: None, offset: None, image: None });
+            return Ok(FdTarget::File {
+                path,
+                file: None,
+                offset: None,
+                image: None,
+            });
         }
         if descriptor {
             // The shell and the output adapter query capabilities; the descriptor
             // queries again for a nonexclusive open. Path lookup above accounts
             // for the first query (or the extra metadata lookup under noclobber).
             self.fs.command_descriptor_op().map_err(error)?;
-            if !exclusive || null { self.fs.command_descriptor_op().map_err(error)?; }
+            if !exclusive || null {
+                self.fs.command_descriptor_op().map_err(error)?;
+            }
         }
         let file = if null {
             self.fs.command_descriptor_op().map_err(error)?;
             None
         } else {
-            let file = self.fs.open_redirect_file(&path, access, Some(mode)).map_err(error)?;
+            let file = self
+                .fs
+                .open_redirect_file(&path, access, Some(mode))
+                .map_err(error)?;
             if file.is_none() && !exclusive {
                 let existed = self.fs.exists(&path);
                 if !existed && self.env.contains_key("\0umask") {
@@ -10356,7 +11758,12 @@ impl<'a> EvalState<'a> {
             file
         };
         let offset = (file.is_some() && !append).then(|| Rc::new(Cell::new(0)));
-        Ok(FdTarget::File { path, file, offset, image: None })
+        Ok(FdTarget::File {
+            path,
+            file,
+            offset,
+            image: None,
+        })
     }
 
     fn is_default_null(&self, path: &str) -> bool {
@@ -10382,29 +11789,53 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn output_redirect_path(&self, target: &str, kind: &RedirectKind) -> Result<String, BuiltinOutcome> {
+    fn output_redirect_path(
+        &self,
+        target: &str,
+        kind: &RedirectKind,
+    ) -> Result<String, BuiltinOutcome> {
         let operand = crate::vfs::path::absolute_operand(self.cwd, target);
         let error = |e: &str| self.redirect_error(target, e);
-        if operand.is_empty() { return Err(error("ENOENT")); }
+        if operand.is_empty() {
+            return Err(error("ENOENT"));
+        }
         let entry = operand.trim_end_matches('/');
-        if entry.is_empty() { return Err(error("EISDIR")); }
+        if entry.is_empty() {
+            return Err(error("EISDIR"));
+        }
         let path = self.fs.access_path(entry, true).map_err(|e| error(&e))?;
-        if target.ends_with('/') { return Err(error("EISDIR")); }
-        if self.is_default_null(&path) { return Ok(path); }
+        if target.ends_with('/') {
+            return Err(error("EISDIR"));
+        }
+        if self.is_default_null(&path) {
+            return Ok(path);
+        }
         let stat = match self.fs.lstat(&path) {
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
             Err(e) => return Err(error(&e)),
         };
         if let Some(st) = stat {
-            if st.kind == crate::vfs::VfsEntryKind::Directory { return Err(error("EISDIR")); }
-            let required = if matches!(kind, RedirectKind::ReadWrite(_)) { 0o600 } else { 0o200 };
-            if st.mode & required != required { return Err(error("EACCES")); }
+            if st.kind == crate::vfs::VfsEntryKind::Directory {
+                return Err(error("EISDIR"));
+            }
+            let required = if matches!(kind, RedirectKind::ReadWrite(_)) {
+                0o600
+            } else {
+                0o200
+            };
+            if st.mode & required != required {
+                return Err(error("EACCES"));
+            }
         } else {
             let parent = crate::vfs::dirname_posix_path(&path);
             let parent = self.fs.stat(&parent).map_err(|e| error(&e))?;
-            if parent.kind != crate::vfs::VfsEntryKind::Directory { return Err(error("ENOTDIR")); }
-            if parent.mode & 0o300 != 0o300 { return Err(error("EACCES")); }
+            if parent.kind != crate::vfs::VfsEntryKind::Directory {
+                return Err(error("ENOTDIR"));
+            }
+            if parent.mode & 0o300 != 0o300 {
+                return Err(error("EACCES"));
+            }
         }
         Ok(path)
     }
@@ -10488,13 +11919,22 @@ impl<'a> EvalState<'a> {
                     let target = fields.into_iter().next().unwrap();
                     let file_operand = match r.kind {
                         RedirectKind::DupIn { .. } => false,
-                        RedirectKind::DupOut { origin, .. } => origin == DupOrigin::Default && target != "-"
-                            && !target.trim_end_matches('-').bytes().all(|b| b.is_ascii_digit()),
+                        RedirectKind::DupOut { origin, .. } => {
+                            origin == DupOrigin::Default
+                                && target != "-"
+                                && !target
+                                    .trim_end_matches('-')
+                                    .bytes()
+                                    .all(|b| b.is_ascii_digit())
+                        }
                         _ => true,
                     };
                     if file_operand {
-                        let full = if target.starts_with('/') { Cow::Borrowed(target.as_str()) }
-                            else { Cow::Owned(format!("{}/{}", this.cwd.trim_end_matches('/'), target)) };
+                        let full = if target.starts_with('/') {
+                            Cow::Borrowed(target.as_str())
+                        } else {
+                            Cow::Owned(format!("{}/{}", this.cwd.trim_end_matches('/'), target))
+                        };
                         if let Err(error) = this.budget.limits.check_path(&full) {
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
@@ -10511,13 +11951,29 @@ impl<'a> EvalState<'a> {
                 RedirectKind::In(fd) | RedirectKind::ReadWrite(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(target) => target,
-                        Err(err_out) => return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let (content, description) = match self.open_input_target(&target, &r.kind) {
                         Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, true, None, Some(err_out)));
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                true,
+                                None,
+                                Some(err_out),
+                            ));
                         }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
@@ -10542,8 +11998,14 @@ impl<'a> EvalState<'a> {
                 RedirectKind::HereString(fd) | RedirectKind::HereDoc { fd, .. } => {
                     let expansion = match &r.kind {
                         RedirectKind::HereDoc { quoted: true, .. } => Ok(r.target.clone()),
-                        RedirectKind::HereDoc { doc_line, .. } => self.expand_heredoc_body(&r.target, (*doc_line + self.callback_line_offset).max(1)),
-                        _ => self.expand_word_to_string(&r.target).map(|mut value| { value.push('\n'); value }),
+                        RedirectKind::HereDoc { doc_line, .. } => self.expand_heredoc_body(
+                            &r.target,
+                            (*doc_line + self.callback_line_offset).max(1),
+                        ),
+                        _ => self.expand_word_to_string(&r.target).map(|mut value| {
+                            value.push('\n');
+                            value
+                        }),
                     };
                     let content = match expansion {
                         Ok(value) => value,
@@ -10607,7 +12069,8 @@ impl<'a> EvalState<'a> {
                         Err(e) => return Err(e),
                     };
                     let size = stream_byte_len(&content);
-                    if self.budget.limits.max_expansion_bytes > 0 && size > self.budget.limits.max_expansion_bytes
+                    if self.budget.limits.max_expansion_bytes > 0
+                        && size > self.budget.limits.max_expansion_bytes
                     {
                         return Err(EvalError::Budget(format!(
                             "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
@@ -10618,11 +12081,21 @@ impl<'a> EvalState<'a> {
                         let (stdout, stderr) = self.take_pending_output()?;
                         let mut error = BuiltinOutcome {
                             stdout,
-                            stderr: format!("{stderr}{}EFBIG: file too large, read\n", self.diag_prefix()),
+                            stderr: format!(
+                                "{stderr}{}EFBIG: file too large, read\n",
+                                self.diag_prefix()
+                            ),
                             exit_code: 1,
                         };
                         self.route_outcome(&mut error);
-                        return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(error)));
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(error),
+                        ));
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(self, &mut saved_fd_table, *fd);
@@ -10640,7 +12113,8 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                 }
-                RedirectKind::DupIn { fd, raw_move } | RedirectKind::DupOut { fd, raw_move, .. } => {
+                RedirectKind::DupIn { fd, raw_move }
+                | RedirectKind::DupOut { fd, raw_move, .. } => {
                     let output = matches!(r.kind, RedirectKind::DupOut { .. });
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
@@ -10676,20 +12150,38 @@ impl<'a> EvalState<'a> {
                             Some(s) if !s.is_empty() => (s, true),
                             _ => (target.as_str(), false),
                         };
-                        let is_digits = !src_str.is_empty()
-                            && src_str.chars().all(|c| c.is_ascii_digit());
-                        if !is_digits && matches!(r.kind, RedirectKind::DupOut { origin: DupOrigin::Default, .. }) {
-                            let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
+                        let is_digits =
+                            !src_str.is_empty() && src_str.chars().all(|c| c.is_ascii_digit());
+                        if !is_digits
+                            && matches!(
+                                r.kind,
+                                RedirectKind::DupOut {
+                                    origin: DupOrigin::Default,
+                                    ..
+                                }
+                            )
+                        {
+                            let opened = match self.open_output_target(
+                                &target,
+                                &r.kind,
+                                &mut exclusive_outputs,
+                            ) {
                                 Ok(opened) => opened,
                                 Err(mut err_out) => {
                                     self.route_outcome(&mut err_out);
-                                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                                    return Ok((
+                                        (saved_fd_table, saved_aliases),
+                                        saved_in,
+                                        local_stdin,
+                                        use_local,
+                                        dup_fd,
+                                        Some(err_out),
+                                    ));
                                 }
                             };
                             record_saved_fd(self, &mut saved_fd_table, 1);
                             record_saved_fd(self, &mut saved_fd_table, 2);
-                            self.fd_table
-                                .insert(1, opened.clone());
+                            self.fd_table.insert(1, opened.clone());
                             self.fd_table.insert(2, opened);
                             continue;
                         }
@@ -10729,7 +12221,12 @@ impl<'a> EvalState<'a> {
                         }
                         if let Ok(src_fd) = src_str.parse::<u32>() {
                             if !self.is_fd_open(src_fd)
-                                || (!move_fd && !(if output { self.is_fd_writable(src_fd) } else { self.is_fd_readable(src_fd) }))
+                                || (!move_fd
+                                    && !(if output {
+                                        self.is_fd_writable(src_fd)
+                                    } else {
+                                        self.is_fd_readable(src_fd)
+                                    }))
                             {
                                 let prefix = self.diag_prefix();
                                 let mut err_out = BuiltinOutcome {
@@ -10751,7 +12248,9 @@ impl<'a> EvalState<'a> {
                                 // Keep the descriptor intact but remember that exec explicitly rebound it.
                                 let was_default = self.default_input_fds.contains(fd);
                                 record_saved_fd(self, &mut saved_fd_table, *fd);
-                                if was_default { self.default_input_fds.insert(*fd); }
+                                if was_default {
+                                    self.default_input_fds.insert(*fd);
+                                }
                                 continue;
                             }
                             if self.is_fd_readable(src_fd) {
@@ -10764,8 +12263,12 @@ impl<'a> EvalState<'a> {
                                 if *fd != 0 && !saved_in.iter().any(|(f, _)| f == fd) {
                                     saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                 }
-                                if self.default_input_fds.contains(&src_fd) { self.default_input_fds.insert(*fd); }
-                                if let Some(file) = self.fd_table.get(&src_fd) && let Some(unread) = file.cursor() {
+                                if self.default_input_fds.contains(&src_fd) {
+                                    self.default_input_fds.insert(*fd);
+                                }
+                                if let Some(file) = self.fd_table.get(&src_fd)
+                                    && let Some(unread) = file.cursor()
+                                {
                                     self.in_fd_aliases.remove(fd);
                                     if *fd == 0 {
                                         local_stdin.clone_from(&unread.borrow());
@@ -10776,8 +12279,11 @@ impl<'a> EvalState<'a> {
                                     }
                                     self.fd_table.insert(*fd, file.clone());
                                 } else {
-                                    let canon = if src_fd == 0 && use_local { dup_fd.unwrap_or(0) }
-                                        else { self.resolve_in_fd(src_fd) };
+                                    let canon = if src_fd == 0 && use_local {
+                                        dup_fd.unwrap_or(0)
+                                    } else {
+                                        self.resolve_in_fd(src_fd)
+                                    };
                                     if *fd == 0 {
                                         self.fd_table.remove(&0);
                                         self.in_fd_aliases.remove(&0);
@@ -10802,7 +12308,8 @@ impl<'a> EvalState<'a> {
                                     } else {
                                         self.fd_table.remove(fd);
                                         if src_fd == 0 && use_local && dup_fd.is_none() {
-                                            self.in_fds.insert(*fd, Rc::new(local_stdin.clone().into()));
+                                            self.in_fds
+                                                .insert(*fd, Rc::new(local_stdin.clone().into()));
                                             self.in_fd_aliases.remove(fd);
                                             self.in_fd_aliases.insert(0, *fd);
                                             dup_fd = Some(*fd);
@@ -10812,8 +12319,10 @@ impl<'a> EvalState<'a> {
                                             && src_fd != 0
                                         {
                                             if !saved_in.iter().any(|(f, _)| *f == src_fd) {
-                                                saved_in
-                                                    .push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                                saved_in.push((
+                                                    src_fd,
+                                                    self.in_fds.get(&src_fd).cloned(),
+                                                ));
                                             }
                                             if let Some(content) = self.in_fds.remove(&src_fd) {
                                                 self.in_fds.insert(*fd, content);
@@ -10845,7 +12354,14 @@ impl<'a> EvalState<'a> {
                                     .get(&src_fd)
                                     .cloned()
                                     .unwrap_or(FdTarget::Closed);
-                                if matches!(inherited, FdTarget::PipeStdout { .. } | FdTarget::SavedStdout { pipe_peer_retired: Some(_), .. }) {
+                                if matches!(
+                                    inherited,
+                                    FdTarget::PipeStdout { .. }
+                                        | FdTarget::SavedStdout {
+                                            pipe_peer_retired: Some(_),
+                                            ..
+                                        }
+                                ) {
                                     self.env.insert(format!("\0pipe_fd__{fd}"), "1".to_string());
                                 } else {
                                     self.env.remove(&format!("\0pipe_fd__{fd}"));
@@ -10903,13 +12419,21 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
-                        Ok(opened) => opened,
-                        Err(mut err_out) => {
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
+                    let opened =
+                        match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
+                            Ok(opened) => opened,
+                            Err(mut err_out) => {
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
+                        };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(self, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
@@ -10941,17 +12465,24 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
-                        Ok(opened) => opened,
-                        Err(mut err_out) => {
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
+                    let opened =
+                        match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
+                            Ok(opened) => opened,
+                            Err(mut err_out) => {
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
+                        };
                     record_saved_fd(self, &mut saved_fd_table, 1);
                     record_saved_fd(self, &mut saved_fd_table, 2);
-                    self.fd_table
-                        .insert(1, opened.clone());
+                    self.fd_table.insert(1, opened.clone());
                     self.fd_table.insert(2, opened);
                 }
             }
@@ -10974,7 +12505,11 @@ impl<'a> EvalState<'a> {
         saved_in: Vec<(u32, Option<InputCursor>)>,
     ) {
         for (fd, prev, was_default) in saved_fds.0.into_iter().rev() {
-            if was_default { self.default_input_fds.insert(fd); } else { self.default_input_fds.remove(&fd); }
+            if was_default {
+                self.default_input_fds.insert(fd);
+            } else {
+                self.default_input_fds.remove(&fd);
+            }
             match prev {
                 Some(target) => {
                     self.fd_table.insert(fd, target);
@@ -11012,7 +12547,11 @@ impl<'a> EvalState<'a> {
         let (out_credit, err_credit) = self.forwarded_output.take();
         let mut forwarded = (0, 0);
         for (fd, data, credit) in [(&fd1, &raw_out, out_credit), (&fd2, &raw_err, err_credit)] {
-            let credit = if credit == 0 { 0 } else { credit.min(stream_byte_len(data)) };
+            let credit = if credit == 0 {
+                0
+            } else {
+                credit.min(stream_byte_len(data))
+            };
             match fd {
                 FdTarget::Stdout | FdTarget::PipeStdout { .. } => forwarded.0 += credit,
                 FdTarget::Stderr => forwarded.1 += credit,
@@ -11024,7 +12563,11 @@ impl<'a> EvalState<'a> {
     }
 
     fn fd_writer(&self) -> FdWriter<'a> {
-        FdWriter { fs: self.fs, budget: self.budget, provided_devices: self.provided_devices }
+        FdWriter {
+            fs: self.fs,
+            budget: self.budget,
+            provided_devices: self.provided_devices,
+        }
     }
 
     fn expand_arith_text(&mut self, text: &str) -> Result<String, EvalError> {
@@ -11052,7 +12595,10 @@ impl<'a> EvalState<'a> {
             }
             if c == '$' {
                 if chars.get(idx + 1) == Some(&'$') {
-                    return Err(EvalError::Syntax(super::lexer::dollar_error(&chars, idx + 1)));
+                    return Err(EvalError::Syntax(super::lexer::dollar_error(
+                        &chars,
+                        idx + 1,
+                    )));
                 }
                 let expanded = self.expand_dollar(&chars, &mut idx)?;
                 out.push_str(&expanded);
@@ -11087,7 +12633,10 @@ impl<'a> EvalState<'a> {
             }
             if chars[idx] == '$' {
                 if chars.get(idx + 1) == Some(&'$') {
-                    return Err(EvalError::Syntax(super::lexer::dollar_error(&chars, idx + 1)));
+                    return Err(EvalError::Syntax(super::lexer::dollar_error(
+                        &chars,
+                        idx + 1,
+                    )));
                 }
                 let expanded = self.expand_dollar(&chars, &mut idx)?;
                 out.push_str(&expanded);
@@ -11239,7 +12788,9 @@ impl<'a> EvalState<'a> {
                 }
                 if chars[idx + 1] == '$' {
                     let message = super::lexer::dollar_error(&chars, idx + 1);
-                    return Err(EvalError::Syntax(format!("__heredoc_diag__{prog}: line {document_line}: {message}\n")));
+                    return Err(EvalError::Syntax(format!(
+                        "__heredoc_diag__{prog}: line {document_line}: {message}\n"
+                    )));
                 }
                 if chars[idx + 1] == '(' && idx + 2 < chars.len() && chars[idx + 2] == '(' {
                     match crate::shell::lexer::find_arithmetic_end(&chars, idx + 3, true) {
@@ -11621,7 +13172,8 @@ impl<'a> EvalState<'a> {
                     if crate::vfs::stream_byte_len(&value) == value.len() {
                         value
                     } else {
-                        String::from_utf8_lossy(&crate::vfs::stream_string_to_bytes(&value)).into_owned()
+                        String::from_utf8_lossy(&crate::vfs::stream_string_to_bytes(&value))
+                            .into_owned()
                     }
                 };
                 let (left, right) = (text(left), text(right));
@@ -11635,10 +13187,22 @@ impl<'a> EvalState<'a> {
                     None
                 };
                 let Some(order) = order else {
-                    *diag_abort = Some((2, format!("{}[[ collation locale: unsupported conditional profile\n", self.diag_prefix())));
+                    *diag_abort = Some((
+                        2,
+                        format!(
+                            "{}[[ collation locale: unsupported conditional profile\n",
+                            self.diag_prefix()
+                        ),
+                    ));
                     return Ok(2);
                 };
-                return Ok(i32::from(!(if op == "<" { order.is_lt() } else { order.is_gt() })));
+                return Ok(i32::from(
+                    !(if op == "<" {
+                        order.is_lt()
+                    } else {
+                        order.is_gt()
+                    }),
+                ));
             }
             if matches!(op, "-eq" | "-ne" | "-lt" | "-le" | "-gt" | "-ge") {
                 let l_src = if left.trim().is_empty() {
@@ -11952,7 +13516,19 @@ impl<'a> EvalState<'a> {
                     if escape_quoted_glob
                         && matches!(
                             chars[idx],
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                            '\\' | '*'
+                                | '?'
+                                | '['
+                                | ']'
+                                | '-'
+                                | '^'
+                                | '('
+                                | ')'
+                                | '|'
+                                | '+'
+                                | '!'
+                                | '@'
+                                | ':'
                         )
                     {
                         lit.push('\\');
@@ -11982,14 +13558,25 @@ impl<'a> EvalState<'a> {
                 if idx < chars.len() {
                     idx += 1;
                 }
-                let decoded =
-                    decode_ansi_c_escapes_with_locale(&raw, self.is_unit_byte_locale());
+                let decoded = decode_ansi_c_escapes_with_locale(&raw, self.is_unit_byte_locale());
                 let seg = if escape_quoted_glob {
                     let mut esc = String::new();
                     for dc in decoded.chars() {
                         if matches!(
                             dc,
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                            '\\' | '*'
+                                | '?'
+                                | '['
+                                | ']'
+                                | '-'
+                                | '^'
+                                | '('
+                                | ')'
+                                | '|'
+                                | '+'
+                                | '!'
+                                | '@'
+                                | ':'
                         ) {
                             esc.push('\\');
                         }
@@ -12013,7 +13600,19 @@ impl<'a> EvalState<'a> {
                             if escape_quoted_glob
                                 && matches!(
                                     nc,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                    '\\' | '*'
+                                        | '?'
+                                        | '['
+                                        | ']'
+                                        | '-'
+                                        | '^'
+                                        | '('
+                                        | ')'
+                                        | '|'
+                                        | '+'
+                                        | '!'
+                                        | '@'
+                                        | ':'
                                 )
                             {
                                 dq.push('\\');
@@ -12038,8 +13637,11 @@ impl<'a> EvalState<'a> {
                                 _ => None,
                             };
                             if let Some(items) = items {
-                                quoted_breaks = quoted_breaks.saturating_add(items.len().saturating_sub(1));
-                                if !items.is_empty() && quoted_breaks >= self.budget.limits.max_expansion_fields {
+                                quoted_breaks =
+                                    quoted_breaks.saturating_add(items.len().saturating_sub(1));
+                                if !items.is_empty()
+                                    && quoted_breaks >= self.budget.limits.max_expansion_fields
+                                {
                                     return Err(EvalError::Budget(format!(
                                         "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
                                         self.budget.limits.max_expansion_fields
@@ -12084,7 +13686,19 @@ impl<'a> EvalState<'a> {
                             for ec in exp.chars() {
                                 if matches!(
                                     ec,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                    '\\' | '*'
+                                        | '?'
+                                        | '['
+                                        | ']'
+                                        | '-'
+                                        | '^'
+                                        | '('
+                                        | ')'
+                                        | '|'
+                                        | '+'
+                                        | '!'
+                                        | '@'
+                                        | ':'
                                 ) {
                                     dq.push('\\');
                                 }
@@ -12112,7 +13726,19 @@ impl<'a> EvalState<'a> {
                             for ec in exp.chars() {
                                 if matches!(
                                     ec,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                    '\\' | '*'
+                                        | '?'
+                                        | '['
+                                        | ']'
+                                        | '-'
+                                        | '^'
+                                        | '('
+                                        | ')'
+                                        | '|'
+                                        | '+'
+                                        | '!'
+                                        | '@'
+                                        | ':'
                                 ) {
                                     dq.push('\\');
                                 }
@@ -12126,7 +13752,19 @@ impl<'a> EvalState<'a> {
                     if escape_quoted_glob
                         && matches!(
                             chars[idx],
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                            '\\' | '*'
+                                | '?'
+                                | '['
+                                | ']'
+                                | '-'
+                                | '^'
+                                | '('
+                                | ')'
+                                | '|'
+                                | '+'
+                                | '!'
+                                | '@'
+                                | ':'
                         )
                     {
                         dq.push('\\');
@@ -12167,7 +13805,23 @@ impl<'a> EvalState<'a> {
                     if escape_quoted_glob
                         && matches!(
                             nc,
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':' | '.' | '$' | '{' | '}'
+                            '\\' | '*'
+                                | '?'
+                                | '['
+                                | ']'
+                                | '-'
+                                | '^'
+                                | '('
+                                | ')'
+                                | '|'
+                                | '+'
+                                | '!'
+                                | '@'
+                                | ':'
+                                | '.'
+                                | '$'
+                                | '{'
+                                | '}'
                         )
                     {
                         segments.push(WordSeg::Quoted(format!("\\{nc}")));
@@ -12256,7 +13910,13 @@ impl<'a> EvalState<'a> {
         }
 
         let mut segments: Vec<WordSeg> = Vec::new();
-        self.collect_word_segments(word, escape_quoted_glob, false, split_and_glob, &mut segments)?;
+        self.collect_word_segments(
+            word,
+            escape_quoted_glob,
+            false,
+            split_and_glob,
+            &mut segments,
+        )?;
 
         let total_exp_bytes: usize = segments
             .iter()
@@ -12306,7 +13966,19 @@ impl<'a> EvalState<'a> {
             for ch in s.chars() {
                 if matches!(
                     ch,
-                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '@' | '+' | '!' | ':'
+                    '\\' | '*'
+                        | '?'
+                        | '['
+                        | ']'
+                        | '-'
+                        | '^'
+                        | '('
+                        | ')'
+                        | '|'
+                        | '@'
+                        | '+'
+                        | '!'
+                        | ':'
                 ) {
                     out.push('\\');
                 }
@@ -12394,13 +14066,7 @@ impl<'a> EvalState<'a> {
                             add_field(&mut fields, &mut split_boundary);
                         }
                         split_boundary = false;
-                        append_piece(
-                            &mut fields,
-                            &mut split_boundary,
-                            &text[start..],
-                            true,
-                            true,
-                        );
+                        append_piece(&mut fields, &mut split_boundary, &text[start..], true, true);
                     }
                 }
             }
@@ -12467,8 +14133,13 @@ impl<'a> EvalState<'a> {
                     let expr: String = chars[*idx + 2..expr_end].iter().collect();
                     *idx = resume_idx;
                     let expanded_expr = self.expand_arith_text(&expr)?;
-                    let val = eval_arith_formatted(&expanded_expr, self.env)
-                        .map_err(|msg| EvalError::Syntax(if msg.starts_with("__nounset__") { msg } else { format!("__arith_expansion__{msg}") }))?;
+                    let val = eval_arith_formatted(&expanded_expr, self.env).map_err(|msg| {
+                        EvalError::Syntax(if msg.starts_with("__nounset__") {
+                            msg
+                        } else {
+                            format!("__arith_expansion__{msg}")
+                        })
+                    })?;
                     return Ok(val.to_string());
                 }
                 Ok(None) => {}
@@ -12522,8 +14193,7 @@ impl<'a> EvalState<'a> {
         }
         if first.is_ascii_alphabetic() || first == '_' {
             let mut name = String::new();
-            while *idx < chars.len()
-                && (chars[*idx].is_ascii_alphanumeric() || chars[*idx] == '_')
+            while *idx < chars.len() && (chars[*idx].is_ascii_alphanumeric() || chars[*idx] == '_')
             {
                 name.push(chars[*idx]);
                 *idx += 1;
@@ -12684,7 +14354,9 @@ impl<'a> EvalState<'a> {
     }
 
     fn run_command_substitution_raw(&mut self, cmd_str: &str) -> Result<String, EvalError> {
-        self.budget.enter_substitution().map_err(EvalError::Budget)?;
+        self.budget
+            .enter_substitution()
+            .map_err(EvalError::Budget)?;
         if let Err(e) = self.budget.enter_recursion() {
             self.budget.leave_substitution();
             return Err(EvalError::Budget(e));
@@ -12698,7 +14370,8 @@ impl<'a> EvalState<'a> {
         let mut sub_in = self.in_fds.remove(&0).unwrap_or_default().take();
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         // Bash reads through the closing substitution before executing its body.
-        sub.callback_line_offset = self.current_line.saturating_sub(1) + cmd_str.matches('\n').count();
+        sub.callback_line_offset =
+            self.current_line.saturating_sub(1) + cmd_str.matches('\n').count();
         sub.forwarded_output = Rc::default();
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self
@@ -12762,7 +14435,8 @@ impl<'a> EvalState<'a> {
                 stderr: String::new(),
                 exit_code: 0,
             };
-            self.fd_writer().write(&fd2, &out.stderr, stream_byte_len(&out.stderr), &mut dummy);
+            self.fd_writer()
+                .write(&fd2, &out.stderr, stream_byte_len(&out.stderr), &mut dummy);
             self.pending_forwarded.0 += stream_byte_len(&dummy.stdout);
             self.pending_forwarded.1 += stream_byte_len(&dummy.stderr);
             self.pending_stdout.push_str(&dummy.stdout);
@@ -12800,7 +14474,10 @@ impl<'a> EvalState<'a> {
         let mut entries: Vec<(u32, u32, String)> = self
             .env
             .keys()
-            .filter_map(|k| k.strip_prefix("\0job_active__").and_then(|p| p.parse::<u32>().ok()))
+            .filter_map(|k| {
+                k.strip_prefix("\0job_active__")
+                    .and_then(|p| p.parse::<u32>().ok())
+            })
             .map(|pid| {
                 let job_id = self
                     .env
@@ -13039,9 +14716,7 @@ impl<'a> EvalState<'a> {
                 {
                     return BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!(
-                            "{prefix}wait: {base}: cannot unset: readonly variable\n"
-                        ),
+                        stderr: format!("{prefix}wait: {base}: cannot unset: readonly variable\n"),
                         exit_code: 1,
                     };
                 }
@@ -13083,8 +14758,7 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     };
                 }
-                if let Err(EvalError::Syntax(msg)) =
-                    this.assign_variable(vn, &p.to_string(), false)
+                if let Err(EvalError::Syntax(msg)) = this.assign_variable(vn, &p.to_string(), false)
                 {
                     stderr.push_str(&format!("{prefix}wait: {msg}\n"));
                     return BuiltinOutcome {
@@ -13419,7 +15093,8 @@ impl<'a> EvalState<'a> {
                         None
                     };
                 }
-                if let Some(jid) = Self::parse_wait_pid(s, false).and_then(|v| u32::try_from(v).ok())
+                if let Some(jid) =
+                    Self::parse_wait_pid(s, false).and_then(|v| u32::try_from(v).ok())
                 {
                     return entries
                         .iter()
@@ -13662,7 +15337,11 @@ impl<'a> EvalState<'a> {
         let mut status = 0;
         for op in &args[offset..] {
             let Some(pid) = self.resolve_job_operand(op) else {
-                let kind = if op.starts_with('%') { "job" } else { "process" };
+                let kind = if op.starts_with('%') {
+                    "job"
+                } else {
+                    "process"
+                };
                 stderr.push_str(&format!("{prefix}kill: {op}: no such {kind}\n"));
                 status = 1;
                 continue;
@@ -13670,7 +15349,11 @@ impl<'a> EvalState<'a> {
             if sig_num == 0 {
                 self.env
                     .insert(format!("\0job_settled__{pid}"), "1".to_string());
-                let kind = if op.starts_with('%') { "job" } else { "process" };
+                let kind = if op.starts_with('%') {
+                    "job"
+                } else {
+                    "process"
+                };
                 stderr.push_str(&format!("{prefix}kill: {op}: no such {kind}\n"));
                 status = 1;
             } else {
@@ -13687,8 +15370,18 @@ impl<'a> EvalState<'a> {
 }
 
 fn literal_compound_index(raw: &str) -> Option<i64> {
-    let s = ['\'', '"'].into_iter().find_map(|q| raw.strip_prefix(q)?.strip_suffix(q)).unwrap_or(raw);
-    if s != "0" && !s.as_bytes().first().is_some_and(|c| (b'1'..=b'9').contains(c)) { return None; }
+    let s = ['\'', '"']
+        .into_iter()
+        .find_map(|q| raw.strip_prefix(q)?.strip_suffix(q))
+        .unwrap_or(raw);
+    if s != "0"
+        && !s
+            .as_bytes()
+            .first()
+            .is_some_and(|c| (b'1'..=b'9').contains(c))
+    {
+        return None;
+    }
     s.parse::<i32>().ok().map(i64::from)
 }
 
@@ -13716,7 +15409,9 @@ fn compound_field_count(word: &str) -> (bool, bool) {
     (required, single)
 }
 
-fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<usize>)>, EvalError> {
+fn scan_array_literal_entries(
+    inner: &str,
+) -> Result<Vec<(usize, usize, Option<usize>)>, EvalError> {
     let mut entries = Vec::new();
     let mut start = 0;
     let mut selector = None;
@@ -13734,7 +15429,9 @@ fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<u
             pos = (pos + 1).min(chars.len());
         } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'(') {
             if chars.get(pos + 1) == Some(&'(')
-                && let Some((_, end)) = crate::shell::lexer::find_arithmetic_end(&chars, pos + 2, true).map_err(EvalError::Syntax)?
+                && let Some((_, end)) =
+                    crate::shell::lexer::find_arithmetic_end(&chars, pos + 2, true)
+                        .map_err(EvalError::Syntax)?
             {
                 pos = end;
             } else {
@@ -13746,8 +15443,12 @@ fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<u
             while pos < chars.len() {
                 let c = chars[pos];
                 pos += 1;
-                if c == '`' { break; }
-                if c == '\\' && pos < chars.len() { pos += 1; }
+                if c == '`' {
+                    break;
+                }
+                if c == '\\' && pos < chars.len() {
+                    pos += 1;
+                }
             }
         } else if let Some(q) = quote {
             if ch == q {
@@ -13776,7 +15477,10 @@ fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<u
                 _ => {}
             }
         }
-        offset += chars[first..pos].iter().map(|c| c.len_utf8()).sum::<usize>();
+        offset += chars[first..pos]
+            .iter()
+            .map(|c| c.len_utf8())
+            .sum::<usize>();
     }
 
     if start < inner.len() {
@@ -13904,7 +15608,10 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
                             out.push(chars[*idx + 1]);
                             *idx += 2;
                         }
-                    } else if matches!(dc, ' ' | '\t' | '\n' | ';' | '&' | '|' | '<' | '>' | '(' | ')') {
+                    } else if matches!(
+                        dc,
+                        ' ' | '\t' | '\n' | ';' | '&' | '|' | '<' | '>' | '(' | ')'
+                    ) {
                         break;
                     } else {
                         raw_delim.push(dc);
@@ -14446,10 +16153,24 @@ fn parse_select_choice(bytes: &[u8]) -> Option<usize> {
 
 #[derive(Debug, Clone)]
 enum BracePart {
-    Quoted { raw: String, byte_len: usize, list: bool },
-    Text { raw: String, byte_len: usize },
-    AnsiQuote { raw: String, decoded: String, byte_len: usize },
-    Atom { raw: String, byte_len: usize },
+    Quoted {
+        raw: String,
+        byte_len: usize,
+        list: bool,
+    },
+    Text {
+        raw: String,
+        byte_len: usize,
+    },
+    AnsiQuote {
+        raw: String,
+        decoded: String,
+        byte_len: usize,
+    },
+    Atom {
+        raw: String,
+        byte_len: usize,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -14650,9 +16371,12 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
                         if expr.contains(&'@') {
                             let expr: String = expr.iter().collect();
                             let name = expr.strip_prefix('!').unwrap_or(&expr);
-                            list |= expr == "@" || expr.starts_with("@:") || name.split_once("[@]").is_some_and(|(base, op)| {
-                                is_valid_shell_ident(base) && (op.is_empty() || op.starts_with(':'))
-                            });
+                            list |= expr == "@"
+                                || expr.starts_with("@:")
+                                || name.split_once("[@]").is_some_and(|(base, op)| {
+                                    is_valid_shell_ident(base)
+                                        && (op.is_empty() || op.starts_with(':'))
+                                });
                         }
                         continue;
                     }
@@ -14684,7 +16408,11 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
             } else {
                 stream_string_to_bytes(&inner).len()
             };
-            parts.push(BracePart::Quoted { raw, byte_len, list });
+            parts.push(BracePart::Quoted {
+                raw,
+                byte_len,
+                list,
+            });
             continue;
         }
         if c == '\\' {
@@ -14727,8 +16455,7 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
                 continue;
             }
             if idx < chars.len() && (chars[idx].is_ascii_alphabetic() || chars[idx] == '_') {
-                while idx < chars.len()
-                    && (chars[idx].is_ascii_alphanumeric() || chars[idx] == '_')
+                while idx < chars.len() && (chars[idx].is_ascii_alphanumeric() || chars[idx] == '_')
                 {
                     idx += 1;
                 }
@@ -14793,7 +16520,8 @@ fn expand_braces_with_limits(
         let bytes = match &part {
             BracePart::Text { byte_len, .. }
             | BracePart::AnsiQuote { byte_len, .. }
-            | BracePart::Atom { byte_len, .. } | BracePart::Quoted { byte_len, .. } => *byte_len,
+            | BracePart::Atom { byte_len, .. }
+            | BracePart::Quoted { byte_len, .. } => *byte_len,
         };
         BraceNode {
             count: 1,
@@ -14881,9 +16609,8 @@ fn expand_braces_with_limits(
         if cardinality > (max_fields as u128) {
             return Err(brace_limit_err("maxExpansionFields", max_fields));
         }
-        let is_padded = |v: &str| {
-            (v.len() > 1 && v.starts_with('0')) || (v.len() > 2 && v.starts_with("-0"))
-        };
+        let is_padded =
+            |v: &str| (v.len() > 1 && v.starts_with('0')) || (v.len() > 2 && v.starts_with("-0"));
         let width = if numeric && (is_padded(first) || is_padded(last)) {
             first.len().max(last.len())
         } else {
@@ -15084,11 +16811,14 @@ fn expand_braces_with_limits(
             }
             let at_word_end = materialized_parts[idx + 1..].iter().all(|(p, _)| match p {
                 BracePart::Text { raw, .. }
-                | BracePart::Atom { raw, .. } | BracePart::Quoted { raw, .. }
+                | BracePart::Atom { raw, .. }
+                | BracePart::Quoted { raw, .. }
                 | BracePart::AnsiQuote { raw, .. } => raw.is_empty(),
             });
             match part {
-                BracePart::Text { raw, .. } | BracePart::Atom { raw, .. } | BracePart::Quoted { raw, .. } => {
+                BracePart::Text { raw, .. }
+                | BracePart::Atom { raw, .. }
+                | BracePart::Quoted { raw, .. } => {
                     if *is_gen && raw == "`" && at_word_end {
                         word_out.push_str("\\`");
                     } else {
@@ -15110,7 +16840,6 @@ fn expand_braces_with_limits(
     }
     Ok((out, true))
 }
-
 
 fn trim_bash_ascii_ws(raw: &str) -> &str {
     raw.trim_matches(|c: char| matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c'))
@@ -15211,7 +16940,11 @@ fn parse_read_timeout(raw: &str) -> Option<f64> {
         digits += 1;
     }
     fraction *= 10u64.pow(6 - digits);
-    if digits == 6 && bytes.get(offset).is_some_and(|&b| (b'5'..=b'9').contains(&b)) {
+    if digits == 6
+        && bytes
+            .get(offset)
+            .is_some_and(|&b| (b'5'..=b'9').contains(&b))
+    {
         fraction += 1;
     }
     if negative && (seconds > 0 || fraction > 0) {
@@ -15396,8 +17129,13 @@ fn format_syntax_diagnostic(
     include_context: bool,
 ) -> String {
     let syn_msg = syn_msg.strip_prefix("__exit127__").unwrap_or(syn_msg);
-    if let Some(offset) = syn_msg.strip_prefix("Unsupported array-key operator at offset ")
-        .or_else(|| syn_msg.strip_prefix(UNSUPPORTED_DOLLAR)?.strip_prefix(" at offset "))
+    if let Some(offset) = syn_msg
+        .strip_prefix("Unsupported array-key operator at offset ")
+        .or_else(|| {
+            syn_msg
+                .strip_prefix(UNSUPPORTED_DOLLAR)?
+                .strip_prefix(" at offset ")
+        })
         .or_else(|| syn_msg.strip_prefix("Unsupported parameter expansion at offset "))
         && let Ok(offset) = offset.parse::<usize>()
     {
@@ -15417,7 +17155,9 @@ fn format_syntax_diagnostic(
             let token = crate::vfs::shell_text(super::lexer::syntax_token(rest));
             let src_line = crate::vfs::shell_text(src_line);
             let rest = crate::vfs::shell_text(rest);
-            return format!("{syntax_name}: line {line}: syntax error near unexpected token `{token}'\n{syntax_name}: line {line}: `{src_line}{rest}'\n");
+            return format!(
+                "{syntax_name}: line {line}: syntax error near unexpected token `{token}'\n{syntax_name}: line {line}: `{src_line}{rest}'\n"
+            );
         }
     }
     if syn_msg.contains("unclosed single quote")
@@ -15695,7 +17435,8 @@ fn split_read_fields(
     if maximum == Some(0) || bytes.is_empty() {
         return Vec::new();
     }
-    let escaped_start = |start: usize| -> bool { escaped_byte_offsets.binary_search(&start).is_ok() };
+    let escaped_start =
+        |start: usize| -> bool { escaped_byte_offsets.binary_search(&start).is_ok() };
     let unit_width = |input: &[u8], start: usize| -> usize {
         if byte_count {
             return 1;
@@ -15727,9 +17468,8 @@ fn split_read_fields(
         sep_pos += w;
     }
 
-    let is_separator = |start: usize| -> bool {
-        !escaped_start(start) && keys.contains(&unit_key(bytes, start))
-    };
+    let is_separator =
+        |start: usize| -> bool { !escaped_start(start) && keys.contains(&unit_key(bytes, start)) };
     let is_whitespace = |start: usize| -> bool {
         matches!(bytes[start], b' ' | b'\t' | b'\n') && is_separator(start)
     };
@@ -15787,31 +17527,70 @@ fn expand_braces(word: &str) -> Vec<String> {
 // Direct printing needs one text value per word. Expansions that run commands,
 // perform arithmetic, split fields, or expand pathnames require normal setup.
 fn direct_print_word(word: &str, value: &str, noglob: bool) -> bool {
-    if word.starts_with('~') || value.contains('\0') || stream_byte_len(value) != value.len() { return false; }
+    if word.starts_with('~') || value.contains('\0') || stream_byte_len(value) != value.len() {
+        return false;
+    }
     let mut quote = None;
     let mut chars = word.chars().peekable();
     while let Some(ch) = chars.next() {
         if quote == Some('\'') {
-            if ch == '\'' { quote = None; }
+            if ch == '\'' {
+                quote = None;
+            }
             continue;
         }
         match ch {
-            '\\' => { chars.next(); }
+            '\\' => {
+                chars.next();
+            }
             '"' => quote = if quote.is_some() { None } else { Some('"') },
             '\'' if quote.is_none() => quote = Some('\''),
             '`' => return false,
             '$' => {
-                if chars.peek() == Some(&'(') { return false; }
-                if quote.is_none() && chars.peek() == Some(&'\'') { continue; }
-                if quote.is_none() && (value.is_empty() || value.contains([' ', '\t', '\n', '*', '?', '['])) { return false; }
-                let braced = chars.peek() == Some(&'{');
-                if braced { chars.next(); }
-                let mut name = String::new();
-                while let Some(&c) = chars.peek() && (c == '_' || c.is_ascii_alphanumeric()) {
-                    name.push(c); chars.next();
+                if chars.peek() == Some(&'(') {
+                    return false;
                 }
-                if matches!(name.as_str(), "BASH_SUBSHELL" | "BASHPID" | "RANDOM" | "SECONDS" | "PIPESTATUS" | "LINENO" | "_" | "FUNCNAME" | "DIRSTACK") { return false; }
-                if braced && chars.by_ref().take_while(|&c| c != '}').any(|c| matches!(c, '=' | '?' | '$' | '`' | '[' | '!')) { return false; }
+                if quote.is_none() && chars.peek() == Some(&'\'') {
+                    continue;
+                }
+                if quote.is_none()
+                    && (value.is_empty() || value.contains([' ', '\t', '\n', '*', '?', '[']))
+                {
+                    return false;
+                }
+                let braced = chars.peek() == Some(&'{');
+                if braced {
+                    chars.next();
+                }
+                let mut name = String::new();
+                while let Some(&c) = chars.peek()
+                    && (c == '_' || c.is_ascii_alphanumeric())
+                {
+                    name.push(c);
+                    chars.next();
+                }
+                if matches!(
+                    name.as_str(),
+                    "BASH_SUBSHELL"
+                        | "BASHPID"
+                        | "RANDOM"
+                        | "SECONDS"
+                        | "PIPESTATUS"
+                        | "LINENO"
+                        | "_"
+                        | "FUNCNAME"
+                        | "DIRSTACK"
+                ) {
+                    return false;
+                }
+                if braced
+                    && chars
+                        .by_ref()
+                        .take_while(|&c| c != '}')
+                        .any(|c| matches!(c, '=' | '?' | '$' | '`' | '[' | '!'))
+                {
+                    return false;
+                }
             }
             '*' | '?' | '[' if quote.is_none() && !noglob => return false,
             '{' if quote.is_none() && (word.contains(',') || word.contains("..")) => return false,
@@ -15864,7 +17643,15 @@ fn format_pipeline_node(pipe: &Pipeline, indent: &str) -> String {
     for (i, cmd) in pipe.commands.iter().enumerate() {
         text.push_str(&format_command_node(cmd, indent));
         if i + 1 < pipe.commands.len() {
-            let both = command_redirects(cmd).iter().any(|r| matches!(r.kind, RedirectKind::DupOut { origin: DupOrigin::Pipeline, .. }));
+            let both = command_redirects(cmd).iter().any(|r| {
+                matches!(
+                    r.kind,
+                    RedirectKind::DupOut {
+                        origin: DupOrigin::Pipeline,
+                        ..
+                    }
+                )
+            });
             text.push_str(if both { " |& " } else { " | " });
         }
     }
@@ -15875,11 +17662,15 @@ fn command_redirects(cmd: &CommandNode) -> &[Redirect] {
     match cmd {
         CommandNode::Simple(s) => &s.redirects,
         CommandNode::FuncDef { .. } => &[],
-        CommandNode::Subshell { redirects, .. } | CommandNode::Group { redirects, .. } |
-        CommandNode::If { redirects, .. } | CommandNode::ForIn { redirects, .. } |
-        CommandNode::ForArith { redirects, .. } | CommandNode::While { redirects, .. } |
-        CommandNode::ArithCommand { redirects, .. } | CommandNode::Select { redirects, .. } |
-        CommandNode::Case { redirects, .. } => redirects,
+        CommandNode::Subshell { redirects, .. }
+        | CommandNode::Group { redirects, .. }
+        | CommandNode::If { redirects, .. }
+        | CommandNode::ForIn { redirects, .. }
+        | CommandNode::ForArith { redirects, .. }
+        | CommandNode::While { redirects, .. }
+        | CommandNode::ArithCommand { redirects, .. }
+        | CommandNode::Select { redirects, .. }
+        | CommandNode::Case { redirects, .. } => redirects,
     }
 }
 
@@ -15899,10 +17690,15 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
             format!("( {} )", format_script_node(body, indent, false))
         }
         CommandNode::Group { body, .. } => {
-            format!("{{ \n{nested}{}\n{indent}}}", format_script_node(body, &nested, false))
+            format!(
+                "{{ \n{nested}{}\n{indent}}}",
+                format_script_node(body, &nested, false)
+            )
         }
         CommandNode::ArithCommand { expr, .. } => format!("(( {expr} ))"),
-        CommandNode::FuncDef { name, body } => format!("{name} () \n{indent}{}", format_command_node(body, indent)),
+        CommandNode::FuncDef { name, body } => {
+            format!("{name} () \n{indent}{}", format_command_node(body, indent))
+        }
         CommandNode::If {
             branches,
             else_branch,
@@ -15998,17 +17794,33 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
             RedirectKind::In(fd) => (*fd, "<", &r.target),
             RedirectKind::ReadWrite(fd) => (*fd, "<>", &r.target),
             RedirectKind::HereString(fd) => (*fd, "<<<", &r.target),
-            RedirectKind::HereDoc { fd, spelling, strip_tabs, .. } => (*fd, if *strip_tabs {"<<-"} else {"<<"}, spelling),
-            RedirectKind::DupOut { origin: DupOrigin::Pipeline, .. } => continue,
+            RedirectKind::HereDoc {
+                fd,
+                spelling,
+                strip_tabs,
+                ..
+            } => (*fd, if *strip_tabs { "<<-" } else { "<<" }, spelling),
+            RedirectKind::DupOut {
+                origin: DupOrigin::Pipeline,
+                ..
+            } => continue,
             RedirectKind::DupOut { fd, .. } => (*fd, ">&", &r.target),
             RedirectKind::DupIn { fd, .. } => (*fd, "<&", &r.target),
             RedirectKind::BothOut => (1, "&>", &r.target),
             RedirectKind::BothAppend => (1, "&>>", &r.target),
         };
         text.push(' ');
-        if fd != u32::from(!operator.starts_with('<')) { write!(text, "{fd}").unwrap(); }
+        if fd != u32::from(!operator.starts_with('<')) {
+            write!(text, "{fd}").unwrap();
+        }
         write!(text, "{operator} {target}").unwrap();
-        if matches!(r.kind, RedirectKind::DupIn { raw_move: true, .. } | RedirectKind::DupOut { raw_move: true, .. }) { text.push('-'); }
+        if matches!(
+            r.kind,
+            RedirectKind::DupIn { raw_move: true, .. }
+                | RedirectKind::DupOut { raw_move: true, .. }
+        ) {
+            text.push('-');
+        }
         if let RedirectKind::HereDoc { delimiter, .. } = &r.kind {
             write!(text, "\n{}{delimiter}\n", r.target).unwrap();
         }
@@ -16026,26 +17838,14 @@ mod tests {
             expand_braces("pre-{a,b,c}-post"),
             vec!["pre-a-post", "pre-b-post", "pre-c-post"]
         );
-        assert_eq!(
-            expand_braces("n{01..03}"),
-            vec!["n01", "n02", "n03"]
-        );
-        assert_eq!(
-            expand_braces("{d..a..2}"),
-            vec!["d", "b"]
-        );
+        assert_eq!(expand_braces("n{01..03}"), vec!["n01", "n02", "n03"]);
+        assert_eq!(expand_braces("{d..a..2}"), vec!["d", "b"]);
     }
 
     #[test]
     fn unit_nested_brace_expansion_and_zero_padded_descending_ranges() {
-        assert_eq!(
-            expand_braces("v{003..001}"),
-            vec!["v003", "v002", "v001"]
-        );
-        assert_eq!(
-            expand_braces("{x,y}{1..2}"),
-            vec!["x1", "x2", "y1", "y2"]
-        );
+        assert_eq!(expand_braces("v{003..001}"), vec!["v003", "v002", "v001"]);
+        assert_eq!(expand_braces("{x,y}{1..2}"), vec!["x1", "x2", "y1", "y2"]);
         assert_eq!(
             expand_braces("literal_without_range"),
             vec!["literal_without_range"]
@@ -16060,9 +17860,14 @@ mod tests {
         let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
         let custom = BTreeMap::new();
         let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
-        let redirect = Redirect { kind: RedirectKind::Out(1), target: "/log".into() };
-        let (_, _, local_input, redirected, _, error) =
-            state.setup_redirects(&[redirect], "still on descriptor zero").unwrap();
+        let redirect = Redirect {
+            variable: None,
+            kind: RedirectKind::Out(1),
+            target: "/log".into(),
+        };
+        let (_, _, local_input, redirected, _, error) = state
+            .setup_redirects(&[redirect], "still on descriptor zero")
+            .unwrap();
         assert!(error.is_none() && !redirected && local_input.is_empty());
     }
 
@@ -16074,7 +17879,11 @@ mod tests {
         fs.chmod("/locked", 0o600).unwrap();
         for (script, operand, reason) in [
             ("cat </locked/f", "/locked/f", "Permission denied"),
-            ("cat 3</locked/../public <&3", "/locked/../public", "Permission denied"),
+            (
+                "cat 3</locked/../public <&3",
+                "/locked/../public",
+                "Permission denied",
+            ),
             ("cat </public/", "/public/", "Not a directory"),
             ("cat <''", "", "No such file or directory"),
         ] {
@@ -16097,7 +17906,10 @@ mod tests {
             for path in ["/private/f", "/private/../alias", "/alias", "/public/new"] {
                 let r = shell.exec(&format!("echo changed {op}{path}")).unwrap();
                 assert_eq!((r.exit_code, r.stdout.as_str()), (1, ""), "{op}{path}");
-                assert_eq!(r.stderr, format!("shell: line 1: {path}: Permission denied\n"));
+                assert_eq!(
+                    r.stderr,
+                    format!("shell: line 1: {path}: Permission denied\n")
+                );
             }
         }
         assert_eq!(fs.read_file("/public/f").unwrap(), b"original");
@@ -16120,9 +17932,14 @@ mod tests {
                 let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
                 let custom = BTreeMap::new();
                 let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
-                let res = state.eval_script_str(&format!("true\nprintf x {redirect} {target}"), "").unwrap();
+                let res = state
+                    .eval_script_str(&format!("true\nprintf x {redirect} {target}"), "")
+                    .unwrap();
                 assert_eq!(res.exit_code, 1, "{redirect} {target}");
-                assert_eq!(res.stderr, format!("shell: line 2: {target}: Permission denied\n"));
+                assert_eq!(
+                    res.stderr,
+                    format!("shell: line 2: {target}: Permission denied\n")
+                );
             }
         }
     }
@@ -16137,7 +17954,11 @@ mod tests {
             ("head -c1", "a", 1),
             ("cat & wait; head -c1", "a", 1),
             ("absent-cmd 2>/dev/null; echo $?", "127\n", 0),
-            ("ssh -GT -F none -o Port=24 example.invalid >/dev/null; head -c1", "a", 1),
+            (
+                "ssh -GT -F none -o Port=24 example.invalid >/dev/null; head -c1",
+                "a",
+                1,
+            ),
             ("which cat >/dev/null; head -c1", "a", 1),
             ("grep z /named; head -c1", "z\na", 1),
             ("grep --help >/dev/null; rg --version >/dev/null", "", 0),
@@ -16150,7 +17971,11 @@ mod tests {
             ("env head -c1; cat", "ab\ncd", 3),
             ("head -c1 | cat; cat", "ab\ncd", 3),
             ("xargs -a /named -n1 sh -c 'head -c1'; cat", "ab\ncd", 3),
-            ("{ read v <&3; echo \"$v\"; head -c1; cat <&3; cat; } 3<&0", "ab\ncd", 3),
+            (
+                "{ read v <&3; echo \"$v\"; head -c1; cat <&3; cat; } 3<&0",
+                "ab\ncd",
+                3,
+            ),
             ("echo pipe | cat; head -c1", "pipe\na", 1),
             ("cat; cat", "ab\ncd", 3),
         ] {
@@ -16166,7 +17991,16 @@ mod tests {
                 chunks.next().map(Ok)
             });
             let r = state.eval_script_with_stream(script, source).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str(), reads.get()), (0, expected, "", pulls), "{script}");
+            assert_eq!(
+                (
+                    r.exit_code,
+                    r.stdout.as_str(),
+                    r.stderr.as_str(),
+                    reads.get()
+                ),
+                (0, expected, "", pulls),
+                "{script}"
+            );
         }
     }
 
@@ -16179,25 +18013,53 @@ mod tests {
         let mut env = BTreeMap::new();
         let budget = ExecutionBudget::default();
         let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
-        assert_eq!(state.eval_script_str("exec 3</named; exec 0<&3; head -c1", "").unwrap().stdout, "x");
-        let result = state.eval_script_with_stream("head -c1; exec 0<&-", std::iter::once(Ok(vec![b'a']))).unwrap();
+        assert_eq!(
+            state
+                .eval_script_str("exec 3</named; exec 0<&3; head -c1", "")
+                .unwrap()
+                .stdout,
+            "x"
+        );
+        let result = state
+            .eval_script_with_stream("head -c1; exec 0<&-", std::iter::once(Ok(vec![b'a'])))
+            .unwrap();
         assert_eq!(result.stdout, "a");
-        assert!(state.eval_script_with_stream("if", std::iter::empty()).is_err());
-        assert_eq!(state.eval_script_str("head -c1; cat <&3", "").unwrap().stdout, "yz");
+        assert!(
+            state
+                .eval_script_with_stream("if", std::iter::empty())
+                .is_err()
+        );
+        assert_eq!(
+            state
+                .eval_script_str("head -c1; cat <&3", "")
+                .unwrap()
+                .stdout,
+            "yz"
+        );
     }
 
     #[test]
-    fn search_distinguishes_empty_stdin_from_directory_search_and_keeps_complete_records_on_error() {
+    fn search_distinguishes_empty_stdin_from_directory_search_and_keeps_complete_records_on_error()
+    {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/named", b"hit\n").unwrap();
         assert_eq!(shell.exec("rg hit").unwrap().stdout, "named:hit\n");
-        let empty = shell.exec_with_stream("rg hit", std::iter::empty()).unwrap();
+        let empty = shell
+            .exec_with_stream("rg hit", std::iter::empty())
+            .unwrap();
         assert_eq!((empty.exit_code, empty.stdout.as_str()), (1, ""));
         for cmd in ["grep", "rg"] {
-            for (script, expected) in [(format!("{cmd} hit -"), "hit\n"), (format!("{cmd} -f - /named"), "")] {
+            for (script, expected) in [
+                (format!("{cmd} hit -"), "hit\n"),
+                (format!("{cmd} -f - /named"), ""),
+            ] {
                 let chunks = [Ok(b"hit\nhit".to_vec()), Err("read failed".into())];
                 let result = shell.exec_with_stream(&script, chunks.into_iter()).unwrap();
-                assert_eq!((result.exit_code, result.stdout.as_str()), (2, expected), "{script}");
+                assert_eq!(
+                    (result.exit_code, result.stdout.as_str()),
+                    (2, expected),
+                    "{script}"
+                );
                 assert_eq!(result.stderr, format!("{cmd}: read failed\n"));
             }
         }
@@ -16208,14 +18070,20 @@ mod tests {
         struct Input(std::rc::Rc<std::cell::Cell<usize>>);
         impl Iterator for Input {
             type Item = Result<Vec<u8>, String>;
-            fn next(&mut self) -> Option<Self::Item> { Some(Err("probe source failed".into())) }
+            fn next(&mut self) -> Option<Self::Item> {
+                Some(Err("probe source failed".into()))
+            }
         }
         impl Drop for Input {
-            fn drop(&mut self) { self.0.set(self.0.get() + 1); }
+            fn drop(&mut self) {
+                self.0.set(self.0.get() + 1);
+            }
         }
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         let closed = std::rc::Rc::new(std::cell::Cell::new(0));
-        let result = shell.exec_with_stream("ffprobe -v error -show_format -", Input(closed.clone())).unwrap();
+        let result = shell
+            .exec_with_stream("ffprobe -v error -show_format -", Input(closed.clone()))
+            .unwrap();
         assert_eq!(result.exit_code, 1);
         assert_eq!(result.stdout, "");
         assert_eq!(result.stderr, "ffprobe: probe source failed\n");
@@ -16231,8 +18099,15 @@ mod tests {
         let mut env = BTreeMap::new();
         let budget = ExecutionBudget::default();
         let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
-        let chunks = [Ok(vec![]), Ok(vec![0xff, 0]), Err("input failed".into()), Ok(vec![1])];
-        let r = state.eval_script_with_stream("cat; cat", chunks.into_iter()).unwrap();
+        let chunks = [
+            Ok(vec![]),
+            Ok(vec![0xff, 0]),
+            Err("input failed".into()),
+            Ok(vec![1]),
+        ];
+        let r = state
+            .eval_script_with_stream("cat; cat", chunks.into_iter())
+            .unwrap();
         assert_eq!(stream_string_to_bytes(&r.stdout), [0xff, 0]);
         assert_eq!((r.exit_code, r.stderr.as_str()), (0, "cat: input failed\n"));
     }
@@ -16241,15 +18116,38 @@ mod tests {
     fn bounded_cursor_reads_charge_whole_producer_chunks_including_prior_pulls() {
         let fs = crate::vfs::MemoryVfs::new();
         let commands = BTreeMap::new();
-        for (script, limited) in [("cat", false), ("head -c0", false), ("head -c1", true), ("tail -c1", false),
-            ("read -n1 v", true), ("cat; head -c1", true), ("head -c-1", false), ("mapfile -t A", false), ("mapfile -t A; head -c1", true)] {
+        for (script, limited) in [
+            ("cat", false),
+            ("head -c0", false),
+            ("head -c1", true),
+            ("tail -c1", false),
+            ("read -n1 v", true),
+            ("cat; head -c1", true),
+            ("head -c-1", false),
+            ("mapfile -t A", false),
+            ("mapfile -t A; head -c1", true),
+        ] {
             let mut cwd = "/".to_string();
             let mut env = BTreeMap::new();
-            let budget = ExecutionBudget::new(crate::budget::ShellLimits { max_input_bytes: 2, ..Default::default() }, None);
+            let budget = ExecutionBudget::new(
+                crate::budget::ShellLimits {
+                    max_input_bytes: 2,
+                    ..Default::default()
+                },
+                None,
+            );
             let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
-            let result = state.eval_script_with_stream(script, std::iter::once(Ok(b"abcd".to_vec())));
-            if limited { assert!(matches!(result, Err(EvalError::Budget(ref e)) if e.contains("maxInputBytes")), "{script}: {result:?}"); }
-            else { assert_eq!(result.unwrap().exit_code, 0, "{script}"); assert!(budget.check_exceeded().is_ok()); }
+            let result =
+                state.eval_script_with_stream(script, std::iter::once(Ok(b"abcd".to_vec())));
+            if limited {
+                assert!(
+                    matches!(result, Err(EvalError::Budget(ref e)) if e.contains("maxInputBytes")),
+                    "{script}: {result:?}"
+                );
+            } else {
+                assert_eq!(result.unwrap().exit_code, 0, "{script}");
+                assert!(budget.check_exceeded().is_ok());
+            }
         }
     }
 
@@ -16340,15 +18238,23 @@ mod tests {
         assert_eq!(b_err.exit_code, 1);
         assert_eq!(b_err.stderr, "builtin: cat: not a shell builtin\n");
 
-        let cv = state.eval_script_str("command -v echo nonexistent_xyz", "").unwrap();
+        let cv = state
+            .eval_script_str("command -v echo nonexistent_xyz", "")
+            .unwrap();
         assert_eq!(cv.exit_code, 0);
         assert_eq!(cv.stdout, "echo\n");
 
         let shopt_err = state.eval_script_str("shopt bogus_opt", "").unwrap();
         assert_eq!(shopt_err.exit_code, 1);
-        assert!(shopt_err.stderr.contains("shopt: bogus_opt: unsupported shell option name"));
+        assert!(
+            shopt_err
+                .stderr
+                .contains("shopt: bogus_opt: unsupported shell option name")
+        );
 
-        let ro_abort = state.eval_script_str("readonly R=1; R=2; echo unreachable", "").unwrap();
+        let ro_abort = state
+            .eval_script_str("readonly R=1; R=2; echo unreachable", "")
+            .unwrap();
         assert_eq!(ro_abort.exit_code, 1);
         assert_eq!(ro_abort.stdout, "");
         assert!(ro_abort.stderr.contains("R: readonly variable"));
@@ -16374,7 +18280,9 @@ mod tests {
         assert!(set_o.stdout.contains("braceexpand\ton\n"));
         assert!(set_o.stdout.contains("errexit\toff\n"));
 
-        let ret_outside = state.eval_script_str("return 1; echo after:$?", "").unwrap();
+        let ret_outside = state
+            .eval_script_str("return 1; echo after:$?", "")
+            .unwrap();
         assert_eq!(ret_outside.exit_code, 0);
         assert_eq!(ret_outside.stdout, "after:2\n");
         assert_eq!(
@@ -16389,7 +18297,10 @@ mod tests {
         assert!(read_ro.stderr.contains("RO_R: readonly variable"));
 
         let type_out = state
-            .eval_script_str("fn_d() { echo d; }; type -t if fn_d echo cat; type fn_d", "")
+            .eval_script_str(
+                "fn_d() { echo d; }; type -t if fn_d echo cat; type fn_d",
+                "",
+            )
             .unwrap();
         assert_eq!(type_out.exit_code, 0);
         assert_eq!(
@@ -16403,14 +18314,27 @@ mod tests {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (definition, expected) in [
             ("f() { cat <input >>log 2>&1; }", "cat < input >> log 2>& 1"),
-            ("f() { { echo nested; } >dest; }", "{ \n        echo nested\n    } > dest"),
+            (
+                "f() { { echo nested; } >dest; }",
+                "{ \n        echo nested\n    } > dest",
+            ),
             ("f() { echo hi |& cat; }", "echo hi |& cat"),
             ("f() { printf hi | cat >out; }", "printf hi | cat > out"),
-            ("f() { cat <<'E';\nliteral $arg\nE\n}", "cat << 'E'\nliteral $arg\nE\n"),
-            ("f() { while false; do :; done 2>err; }", "while false; do\n        :;\n    done 2> err"),
+            (
+                "f() { cat <<'E';\nliteral $arg\nE\n}",
+                "cat << 'E'\nliteral $arg\nE\n",
+            ),
+            (
+                "f() { while false; do :; done 2>err; }",
+                "while false; do\n        :;\n    done 2> err",
+            ),
         ] {
             let res = shell.exec(&format!("{definition}; declare -f f")).unwrap();
-            assert_eq!(res.stdout, format!("f () \n{{ \n    {expected}\n}}\n"), "{definition}");
+            assert_eq!(
+                res.stdout,
+                format!("f () \n{{ \n    {expected}\n}}\n"),
+                "{definition}"
+            );
         }
     }
 
@@ -16435,7 +18359,10 @@ mod tests {
         );
 
         let print_out = state
-            .eval_script_str("print -n hello ' ' world; print !; setopt a; unsetopt b", "")
+            .eval_script_str(
+                "print -n hello ' ' world; print !; setopt a; unsetopt b",
+                "",
+            )
             .unwrap();
         assert_eq!(print_out.exit_code, 0);
         assert_eq!(print_out.stdout, "hello   world!\n");
@@ -16487,7 +18414,10 @@ mod tests {
 
         let disown_err = state.eval_script_str("disown", "").unwrap();
         assert_eq!(disown_err.exit_code, 1);
-        assert_eq!(disown_err.stderr, "shell: line 1: disown: current: no such job\n");
+        assert_eq!(
+            disown_err.stderr,
+            "shell: line 1: disown: current: no such job\n"
+        );
 
         let kill_err = state.eval_script_str("kill -s BOGUS 123", "").unwrap();
         assert_eq!(kill_err.exit_code, 1);
@@ -16520,7 +18450,11 @@ mod tests {
             )
             .unwrap();
         assert_eq!(set_out.exit_code, 0);
-        assert!(set_out.stdout.contains("ARR=([0]=\"one\" [1]=\"two three\")\n"));
+        assert!(
+            set_out
+                .stdout
+                .contains("ARR=([0]=\"one\" [1]=\"two three\")\n")
+        );
         assert!(set_out.stdout.contains("SCALAR=\"a b\"\n"));
         assert!(set_out.stdout.contains("SIMPLE=ok\n"));
         assert!(set_out.stdout.contains("myfn () \n{ \n    echo hi\n}\n"));
@@ -16579,11 +18513,18 @@ mod tests {
             ("zz-ZZ.UTF-8", "a < b", 2),
             ("en_US.ISO8859-1", "a < b", 2),
         ] {
-            let result = shell.exec(&format!("LC_ALL={locale}\n[[ {expression} ]]")).unwrap();
+            let result = shell
+                .exec(&format!("LC_ALL={locale}\n[[ {expression} ]]"))
+                .unwrap();
             assert_eq!(result.exit_code, code, "{locale}: {expression}");
-            assert_eq!(result.stderr, if code == 2 {
-                "shell: line 2: [[ collation locale: unsupported conditional profile\n"
-            } else { "" });
+            assert_eq!(
+                result.stderr,
+                if code == 2 {
+                    "shell: line 2: [[ collation locale: unsupported conditional profile\n"
+                } else {
+                    ""
+                }
+            );
         }
     }
 
@@ -16685,7 +18626,12 @@ mod tests {
             "<a>\n<b>\n<c>\n<a>\n<>\n<c>\n</home/a b:*>\n</home/a b:*/dir>\n</work/sub>\n</var/log/sub>\n</home/a b:*/a:/home/a b:*/b>\n</home/a b:*/a:~/b>\n"
         );
 
-        let alt_split = state.eval_script_str("IFS=' '; unset u; printf '[%s]' ${u:-a b} ${u:-\"a b\"}", "").unwrap();
+        let alt_split = state
+            .eval_script_str(
+                "IFS=' '; unset u; printf '[%s]' ${u:-a b} ${u:-\"a b\"}",
+                "",
+            )
+            .unwrap();
         assert_eq!(alt_split.exit_code, 0);
         assert_eq!(alt_split.stdout, "[a][b][a b]");
     }
@@ -16715,7 +18661,12 @@ mod tests {
         assert_eq!(z_to_a.exit_code, 0);
         assert_eq!(z_to_a.stdout, "<Z><[><><]><^><_><`><a>");
 
-        let pre_z_to_a_post = state.eval_script_str("(printf '<%s>' pre{Z..a}post) 2>/dev/null; printf '%s' \"$?\"", "").unwrap();
+        let pre_z_to_a_post = state
+            .eval_script_str(
+                "(printf '<%s>' pre{Z..a}post) 2>/dev/null; printf '%s' \"$?\"",
+                "",
+            )
+            .unwrap();
         assert_eq!(pre_z_to_a_post.exit_code, 0);
         assert_eq!(pre_z_to_a_post.stdout, "1");
     }
@@ -16735,7 +18686,12 @@ mod tests {
             let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
             let custom = BTreeMap::new();
             let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
-            let result = state.eval_script_str(r#"IFS= read -rn1 value; status=$?; printf '%s\0%s\0' "$status" "$value"; cat"#, &crate::vfs::bytes_to_stream_string(input)).unwrap();
+            let result = state
+                .eval_script_str(
+                    r#"IFS= read -rn1 value; status=$?; printf '%s\0%s\0' "$status" "$value"; cat"#,
+                    &crate::vfs::bytes_to_stream_string(input),
+                )
+                .unwrap();
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             assert_eq!(crate::vfs::stream_string_to_bytes(&result.stdout), expected);
         }
@@ -16849,13 +18805,17 @@ hash -l
         fs.write_file("/letters", b"abcdef").unwrap();
         fs.write_file("/other", b"XYZ").unwrap();
         for (child, read) in [
-            ("(head -c1 <&3)", "a"), (r#"printf '%s' "$(head -c1 <&3)""#, "a"),
-            ("head -c1 <&3 | cat", "a"), ("bash -c 'head -c1 <&3'", "a"),
+            ("(head -c1 <&3)", "a"),
+            (r#"printf '%s' "$(head -c1 <&3)""#, "a"),
+            ("head -c1 <&3 | cat", "a"),
+            ("bash -c 'head -c1 <&3'", "a"),
             ("(head -c1 <&3; exec 3</other; head -c1 <&3)", "aX"),
             ("(exec 4<&3; head -c1 <&4; exec 3<&-)", "a"),
             (r#"(read -u3 -N1 x; printf '%s' "$x")"#, "a"),
         ] {
-            let result = shell.exec(&format!("exec 3</letters; {child}; echo :; cat <&3")).unwrap();
+            let result = shell
+                .exec(&format!("exec 3</letters; {child}; echo :; cat <&3"))
+                .unwrap();
             assert_eq!(result.stdout, format!("{read}:\nbcdef"), "{child}");
             assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""));
         }
@@ -16873,8 +18833,16 @@ hash -l
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abc").unwrap();
-            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat /f; printf :; cat <&3")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{child}");
+            let r = shell
+                .exec(&format!(
+                    "exec 3<>/f; {child}; printf Y >&3; cat /f; printf :; cat <&3"
+                ))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{child}"
+            );
         }
     }
 
@@ -16888,34 +18856,62 @@ hash -l
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abcdef").unwrap();
-            let r = shell.exec(&format!("exec 3</f; {reader} <&3; cat <&3")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdef", ""), "{reader}");
+            let r = shell
+                .exec(&format!("exec 3</f; {reader} <&3; cat <&3"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, "abcdef", ""),
+                "{reader}"
+            );
         }
     }
 
     #[test]
     fn shell_line_readers_keep_completed_work_and_locate_source_errors_at_the_call() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        fs.write_file("/script", b"echo A\necho B\necho C\n").unwrap();
+        fs.write_file("/script", b"echo A\necho B\necho C\n")
+            .unwrap();
         fs.write_file("/choices", b"1\n123456789012345").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 12, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 12,
+            ..Default::default()
+        });
         for (script, output, diagnostic) in [
-            ("echo parent\nsh </script; echo rc:$?", "parent\nA\nrc:1\n", "shell: line 2: EFBIG: file too large, read '/script'\n"),
-            ("PS3='>'; select v in A; do echo $v; done </choices; echo rc:$?", "A\nrc:1\n", "1) A\n>>shell: line 1: EFBIG: file too large, read '/choices'\n"),
+            (
+                "echo parent\nsh </script; echo rc:$?",
+                "parent\nA\nrc:1\n",
+                "shell: line 2: EFBIG: file too large, read '/script'\n",
+            ),
+            (
+                "PS3='>'; select v in A; do echo $v; done </choices; echo rc:$?",
+                "A\nrc:1\n",
+                "1) A\n>>shell: line 1: EFBIG: file too large, read '/choices'\n",
+            ),
         ] {
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, output, diagnostic));
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, output, diagnostic)
+            );
         }
     }
 
     #[test]
     fn shell_script_lines_and_commands_advance_the_same_file_on_stdin() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        shell.set_limits(crate::budget::ShellLimits { max_commands: 30, ..Default::default() });
-        fs.write_file("/script", b"echo once\nhead -c1\nXecho after\n").unwrap();
+        shell.set_limits(crate::budget::ShellLimits {
+            max_commands: 30,
+            ..Default::default()
+        });
+        fs.write_file("/script", b"echo once\nhead -c1\nXecho after\n")
+            .unwrap();
         for script in ["sh </script", "exec 3</script; env sh <&3; cat <&3"] {
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "once\nXafter\n", ""));
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, "once\nXafter\n", "")
+            );
         }
     }
 
@@ -16924,7 +18920,10 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/choices", b"1\n2\n").unwrap();
         let r = shell.exec("exec 3</choices; PS3='>'; select v in A B; do head -c1 <&3; break; done <&3; cat <&3").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "2\n", "1) A\n2) B\n>"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "2\n", "1) A\n2) B\n>")
+        );
     }
 
     #[test]
@@ -16933,26 +18932,58 @@ hash -l
             ("{ head -c1; printf X >&0; cat; } 0<>/f", "ac", "aXc"),
             ("{ read -N1 x; printf X >&0; cat; } 0<>/f", "bc", "abcX"),
             ("exec 0<>/f; head -c1; printf X >&0; cat", "ac", "aXc"),
-            ("exec 3<>/f; xargs -I{} sh -c 'cat; head -c1 <&3' <&3", "", "abc"),
-            ("exec 3<>/f; env sh -c 'printf X 2>/err >&0 || printf Y >&3' <&3; cat /err", "sh: line 1: 0: Bad file descriptor\n", "Ybc"),
-            ("exec 3<>/f; env env cat <&3 3<&-; printf X >&3", "abc", "abcX"),
+            (
+                "exec 3<>/f; xargs -I{} sh -c 'cat; head -c1 <&3' <&3",
+                "",
+                "abc",
+            ),
+            (
+                "exec 3<>/f; env sh -c 'printf X 2>/err >&0 || printf Y >&3' <&3; cat /err",
+                "sh: line 1: 0: Bad file descriptor\n",
+                "Ybc",
+            ),
+            (
+                "exec 3<>/f; env env cat <&3 3<&-; printf X >&3",
+                "abc",
+                "abcX",
+            ),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abc").unwrap();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
             assert_eq!(fs.read_file("/f").unwrap(), file.as_bytes(), "{script}");
         }
     }
 
     #[test]
     fn duplicating_a_readwrite_file_in_either_direction_keeps_the_same_cursor() {
-        for redirect in ["4>&3", "4<&3", "4>&3-", "4<&3-", "4>&3; exec 3>&-", "4>&3; exec 3<>/g",
-            "4<&3; exec 5<&3-; exec 4<&5", "3>&3-; exec 4<&3"] {
+        for redirect in [
+            "4>&3",
+            "4<&3",
+            "4>&3-",
+            "4<&3-",
+            "4>&3; exec 3>&-",
+            "4>&3; exec 3<>/g",
+            "4<&3; exec 5<&3-; exec 4<&5",
+            "3>&3-; exec 4<&3",
+        ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abc").unwrap();
-            let r = shell.exec(&format!("exec 3<>/f; exec {redirect}; head -c1 <&4; printf Y >&4; cat <&4")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "ac", ""), "{redirect}");
+            let r = shell
+                .exec(&format!(
+                    "exec 3<>/f; exec {redirect}; head -c1 <&4; printf Y >&4; cat <&4"
+                ))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, "ac", ""),
+                "{redirect}"
+            );
             assert_eq!(fs.read_file("/f").unwrap(), b"aYc", "{redirect}");
         }
     }
@@ -16964,12 +18995,18 @@ hash -l
             ("(printf X >&3)", "XYcdef", "ghijkl"),
             ("printf X >&3 | cat", "XYcdef", "ghijkl"),
             ("(exec 4>&3; printf X >&4; exec 3>&-)", "XYcdef", "ghijkl"),
-            ("(printf X >&3; exec 3<>/g; printf Z >&3)", "XYcdef", "Zhijkl"),
+            (
+                "(printf X >&3; exec 3<>/g; printf Z >&3)",
+                "XYcdef",
+                "Zhijkl",
+            ),
             ("printf X >&3; { printf Z >&3; } 3<>/g", "XYcdef", "Zhijkl"),
         ] {
             fs.write_file("/f", b"abcdef").unwrap();
             fs.write_file("/g", b"ghijkl").unwrap();
-            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3")).unwrap();
+            let r = shell
+                .exec(&format!("exec 3<>/f; {child}; printf Y >&3"))
+                .unwrap();
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{child}");
             assert_eq!(fs.read_file("/f").unwrap(), letters.as_bytes(), "{child}");
             assert_eq!(fs.read_file("/g").unwrap(), other.as_bytes(), "{child}");
@@ -16981,32 +19018,61 @@ hash -l
         for (command, expected) in [
             ("exec 3>/f; printf ab >/f; printf X >&3", "Xb"),
             ("exec 3>>/f; printf ab >/f; printf X >&3", "abX"),
-            ("exec 3>/f; printf ab >&3; printf Q >/f; printf Y >&3", "Q\0Y"),
+            (
+                "exec 3>/f; printf ab >&3; printf Q >/f; printf Y >&3",
+                "Q\0Y",
+            ),
             ("exec 3>>/f; rm /f; printf other >/f; printf X >&3", "other"),
-            ("{ mv /f /old; printf Q >/f; echo yes; } >|/f; cat /old", "yes\nQ"),
-            ("{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>/f; cat /old", "yes\nno\nQ"),
-            ("{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>>/f; cat /old", "zzzyes\nno\nQ"),
-            ("exec 3>/f; printf X >&3; (printf Z >&3); printf Y >&3", "XZY"),
+            (
+                "{ mv /f /old; printf Q >/f; echo yes; } >|/f; cat /old",
+                "yes\nQ",
+            ),
+            (
+                "{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>/f; cat /old",
+                "yes\nno\nQ",
+            ),
+            (
+                "{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>>/f; cat /old",
+                "zzzyes\nno\nQ",
+            ),
+            (
+                "exec 3>/f; printf X >&3; (printf Z >&3); printf Y >&3",
+                "XZY",
+            ),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"zzz").unwrap();
             let r = shell.exec(&format!("{command}; cat /f")).unwrap();
-            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{command}");
+            assert_eq!(
+                (r.stdout.as_str(), r.stderr.as_str(), r.exit_code),
+                (expected, "", 0),
+                "{command}"
+            );
         }
     }
 
     #[test]
     fn open_readwrite_file_outlives_rename_unlink_and_permission_changes() {
         for (script, expected) in [
-            ("mv /f /saved; printf other >/f; printf Z >&3; cat /saved /f", "Zbcother"),
+            (
+                "mv /f /saved; printf other >/f; printf Z >&3; cat /saved /f",
+                "Zbcother",
+            ),
             ("rm /f; printf other >/f; printf Z >&3; cat /f", "other"),
-            ("ln /f /alias; rm /f; printf Z >&3; cat /alias; test ! -e /f", "Zbc"),
+            (
+                "ln /f /alias; rm /f; printf Z >&3; cat /alias; test ! -e /f",
+                "Zbc",
+            ),
             ("chmod 200 /f; printf Z >&3; chmod 600 /f; cat /f", "Zbc"),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abc").unwrap();
             let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
-            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{script}");
+            assert_eq!(
+                (r.stdout.as_str(), r.stderr.as_str(), r.exit_code),
+                (expected, "", 0),
+                "{script}"
+            );
         }
     }
 
@@ -17015,8 +19081,11 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let prefix = "a".repeat(65535);
         for (suffix, last) in [("🦊Z", "🦊"), ("\\\nXZ", "X")] {
-            fs.write_file("/f", format!("{prefix}{suffix}").as_bytes()).unwrap();
-            let r = shell.exec(r#"{ LC_ALL=C.UTF-8 read -N65536 x; printf '%s|' "$x"; cat; } </f"#).unwrap();
+            fs.write_file("/f", format!("{prefix}{suffix}").as_bytes())
+                .unwrap();
+            let r = shell
+                .exec(r#"{ LC_ALL=C.UTF-8 read -N65536 x; printf '%s|' "$x"; cat; } </f"#)
+                .unwrap();
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
             assert_eq!(r.stdout, format!("{prefix}{last}|Z"));
         }
@@ -17025,14 +19094,24 @@ hash -l
     #[test]
     fn mapfile_keeps_completed_records_when_its_next_file_read_fails() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
         fs.write_file("/f", b"a\nb\n0123456789").unwrap();
         for (script, expected) in [
             ("mapfile -t a </f; echo $?:${a[*]}", "0:a b\n"),
-            ("exec 3</f; readarray -tn1 -s1 -u3 a; head -c2 <&3; echo :${a[*]}", "01:b\n"),
+            (
+                "exec 3</f; readarray -tn1 -s1 -u3 a; head -c2 <&3; echo :${a[*]}",
+                "01:b\n",
+            ),
         ] {
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
@@ -17040,9 +19119,19 @@ hash -l
     fn read_prefetches_a_file_chunk_and_reports_a_later_failure_without_assigning() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/f", b"abcdefghijk").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
         let r = shell.exec("exec 3</f; read -N1 -u3 x; printf %s $x; head -c7 <&3; read -N1 -u3 x; echo :$?:$x").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdefgh:1:a\n", "shell: line 1: EFBIG: file too large, read '/f'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                0,
+                "abcdefgh:1:a\n",
+                "shell: line 1: EFBIG: file too large, read '/f'\n"
+            )
+        );
     }
 
     #[test]
@@ -17050,55 +19139,117 @@ hash -l
         for (script, expected, error, status) in [
             ("head -c1 </f", "a", "", 0),
             ("head -c0 </f; env true </f; cat /small </f", "xyz", "", 0),
-            ("head -c9 </f", "abcdefgh", "head: EFBIG: file too large, read '/f'\n", 1),
+            (
+                "head -c9 </f",
+                "abcdefgh",
+                "head: EFBIG: file too large, read '/f'\n",
+                1,
+            ),
             ("wc -c /small </f", "3 /small\n", "", 0),
             ("wc -c </f", "", "wc: EFBIG: file too large, read '/f'\n", 1),
-            ("cat </f", "abcdefgh", "cat: EFBIG: file too large, read '/f'\n", 1),
+            (
+                "cat </f",
+                "abcdefgh",
+                "cat: EFBIG: file too large, read '/f'\n",
+                1,
+            ),
             ("exec 3</f; head -c4 <&3; head -c4 <&3", "abcdefgh", "", 0),
-            ("exec 3</f; head -c4 <&3; head -c5 <&3; cat <&3", "abcd", "head: EFBIG: file too large, read '/f'\n", 0),
+            (
+                "exec 3</f; head -c4 <&3; head -c5 <&3; cat <&3",
+                "abcd",
+                "head: EFBIG: file too large, read '/f'\n",
+                0,
+            ),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
             fs.write_file("/f", b"abcdefghijklmnop").unwrap();
             fs.write_file("/small", b"xyz").unwrap();
-            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            shell.set_limits(crate::budget::ShellLimits {
+                max_input_bytes: 8,
+                ..Default::default()
+            });
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, expected, error), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (status, expected, error),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn commands_without_input_leave_a_redirected_file_unread() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
         fs.write_file("/f", b"0123456789abcdef").unwrap();
         let r = shell.exec("{ seq 2; basename /f; expr 4 + 3; ssh -GT -F none host >/dev/null; head -c1; } </f").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1\n2\nf\n7\n0", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "1\n2\nf\n7\n0", "")
+        );
     }
 
     #[test]
     fn filesystem_metadata_commands_leave_redirected_input_unread() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/f", b"0123456789abcdef").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
-        let r = shell.exec("{ mkdir /d; touch /d/x; chmod 600 /d/x; ls /d; stat -c %s /f; head -c1; } </f").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "x\n16\n0", ""));
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
+        let r = shell
+            .exec("{ mkdir /d; touch /d/x; chmod 600 /d/x; ls /d; stat -c %s /f; head -c1; } </f")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "x\n16\n0", "")
+        );
     }
 
     #[test]
     fn file_command_reads_stdin_only_for_the_first_dash_operand_or_filename_list() {
         for (script, code, stdout, stderr) in [
-            ("{ file -b /small; head -c1; } </big", 0, "ASCII text\na", ""),
-            ("{ file -b - -; head -c1; } </small", 0, "ASCII text\nempty\n", ""),
+            (
+                "{ file -b /small; head -c1; } </big",
+                0,
+                "ASCII text\na",
+                "",
+            ),
+            (
+                "{ file -b - -; head -c1; } </small",
+                0,
+                "ASCII text\nempty\n",
+                "",
+            ),
             ("{ file -bf -; head -c1; } </names", 0, "ASCII text\n", ""),
-            ("file -b - /small - </big", 1, "ASCII text\nempty\n", "file: -: EFBIG: file too large, read '/big'\n"),
+            (
+                "file -b - /small - </big",
+                1,
+                "ASCII text\nempty\n",
+                "file: -: EFBIG: file too large, read '/big'\n",
+            ),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-            for (name, data) in [("/big", "abcdefghijklmnop"), ("/small", "x"), ("/names", "/small\n")] {
+            for (name, data) in [
+                ("/big", "abcdefghijklmnop"),
+                ("/small", "x"),
+                ("/names", "/small\n"),
+            ] {
                 fs.write_file(name, data.as_bytes()).unwrap();
             }
-            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            shell.set_limits(crate::budget::ShellLimits {
+                max_input_bytes: 8,
+                ..Default::default()
+            });
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (code, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
@@ -17115,23 +19266,53 @@ hash -l
             fs.write_file("/d", b"d").unwrap();
             let answers = format!("n\n{}TAIL", "x".repeat(65534));
             fs.write_file("/answers", answers.as_bytes()).unwrap();
-            let r = shell.exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers")).unwrap();
-            assert_eq!((r.stdout, r.stderr.as_str()), (format!("{declined}\nTAIL"), prompt), "{cmd}");
+            let r = shell
+                .exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers"))
+                .unwrap();
+            assert_eq!(
+                (r.stdout, r.stderr.as_str()),
+                (format!("{declined}\nTAIL"), prompt),
+                "{cmd}"
+            );
             assert_eq!(fs.read_file("/d").unwrap(), b"d");
 
-            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+            shell.set_limits(crate::budget::ShellLimits {
+                max_input_bytes: 4,
+                ..Default::default()
+            });
             fs.write_file("/answers", b"y\nn\nTAIL").unwrap();
-            let r = shell.exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "0\n", format!("{prompt}head: EFBIG: file too large, read '/answers'\n")), "{cmd}");
+            let r = shell
+                .exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr),
+                (
+                    1,
+                    "0\n",
+                    format!("{prompt}head: EFBIG: file too large, read '/answers'\n")
+                ),
+                "{cmd}"
+            );
         }
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/f", b"0123456789").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 4,
+            ..Default::default()
+        });
         fs.write_file("/source", b"copy").unwrap();
         let r = shell.exec("{ cp -i /source /copy; mv -i /copy /moved; ln -si /moved /link; rm -f /link; head -c1; } </f").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "0", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "0", "")
+        );
         assert_eq!(fs.read_file("/moved").unwrap(), b"copy");
-        assert!(shell.exec("cp -b /f /moved").unwrap_err().contains("maxInputBytes"));
+        assert!(
+            shell
+                .exec("cp -b /f /moved")
+                .unwrap_err()
+                .contains("maxInputBytes")
+        );
         assert_eq!(fs.read_file("/moved").unwrap(), b"copy");
         assert!(!fs.exists("/moved~"));
     }
@@ -17140,21 +19321,62 @@ hash -l
     fn sort_checks_records_as_the_input_arrives_and_honors_input_limits() {
         for (script, status, stdout, stderr) in [
             ("{ sort /small; head -c2; } </big", 0, "x\nb\n", ""),
-            ("sort /", 2, "", "sort: EISDIR: illegal operation on a directory, readStream '/'\n"),
-            ("sort </big", 2, "", "sort: EFBIG: file too large, read '/big'\n"),
-            ("{ sort -c; echo $?; head -c2; } </big", 1, "1\n", "sort: disorder at record 2\nhead: EFBIG: file too large, read '/big'\n"),
+            (
+                "sort /",
+                2,
+                "",
+                "sort: EISDIR: illegal operation on a directory, readStream '/'\n",
+            ),
+            (
+                "sort </big",
+                2,
+                "",
+                "sort: EFBIG: file too large, read '/big'\n",
+            ),
+            (
+                "{ sort -c; echo $?; head -c2; } </big",
+                1,
+                "1\n",
+                "sort: disorder at record 2\nhead: EFBIG: file too large, read '/big'\n",
+            ),
             ("sort -Cu </dup", 1, "", ""),
-            ("sort --max-records=1 /small /small", 2, "", "sort: EFBIG: sort input record limit exceeded\n"),
-            ("sort --max-input-bytes=1 /small", 2, "", "sort: EFBIG: sort input byte limit exceeded\n"),
-            ("sort --max-records=no </big", 2, "", "sort: invalid number 'no'\n"),
+            (
+                "sort --max-records=1 /small /small",
+                2,
+                "",
+                "sort: EFBIG: sort input record limit exceeded\n",
+            ),
+            (
+                "sort --max-input-bytes=1 /small",
+                2,
+                "",
+                "sort: EFBIG: sort input byte limit exceeded\n",
+            ),
+            (
+                "sort --max-records=no </big",
+                2,
+                "",
+                "sort: invalid number 'no'\n",
+            ),
         ] {
             let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-            for (name, bytes) in [("/big", "b\na\nc\nd\ne\n"), ("/small", "x\n"), ("/dup", "a\na")] {
+            for (name, bytes) in [
+                ("/big", "b\na\nc\nd\ne\n"),
+                ("/small", "x\n"),
+                ("/dup", "a\na"),
+            ] {
                 fs.write_file(name, bytes.as_bytes()).unwrap();
             }
-            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            shell.set_limits(crate::budget::ShellLimits {
+                max_input_bytes: 8,
+                ..Default::default()
+            });
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (status, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
@@ -17162,9 +19384,18 @@ hash -l
     fn sort_merge_preserves_emitted_records_on_a_late_error() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"y 1\ny 2\nx 3\nz 4\n").unwrap();
-        for (options, stdout) in [("", "y 1\ny 2\nx 3\n"), ("-uk1,1", "y 1\nx 3\n"), ("-o /input", "")] {
-            let r = shell.exec(&format!("sort -m {options} --max-records=3 /input")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, stdout, "sort: EFBIG: sort input record limit exceeded\n"));
+        for (options, stdout) in [
+            ("", "y 1\ny 2\nx 3\n"),
+            ("-uk1,1", "y 1\nx 3\n"),
+            ("-o /input", ""),
+        ] {
+            let r = shell
+                .exec(&format!("sort -m {options} --max-records=3 /input"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (2, stdout, "sort: EFBIG: sort input record limit exceeded\n")
+            );
             assert_eq!(fs.read_file("/input").unwrap(), b"y 1\ny 2\nx 3\nz 4\n");
         }
     }
@@ -17175,11 +19406,19 @@ hash -l
         fs.write_file("/a", b"a\nc\ne\n").unwrap();
         fs.write_file("/b", b"b\nd\n").unwrap();
         for (operands, stdout) in [
-            ("/a /b", "a\nb\n"), ("- /b </a", "a\nb\n"),
-            ("-o /a /a /b", ""), ("--batch-size=2 /a /b /b", ""),
+            ("/a /b", "a\nb\n"),
+            ("- /b </a", "a\nb\n"),
+            ("-o /a /a /b", ""),
+            ("--batch-size=2 /a /b /b", ""),
         ] {
-            let r = shell.exec(&format!("sort -m --max-records=3 {operands}")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, stdout, "sort: EFBIG: sort input record limit exceeded\n"), "{operands}");
+            let r = shell
+                .exec(&format!("sort -m --max-records=3 {operands}"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (2, stdout, "sort: EFBIG: sort input record limit exceeded\n"),
+                "{operands}"
+            );
             assert_eq!(fs.read_file("/a").unwrap(), b"a\nc\ne\n");
         }
     }
@@ -17187,12 +19426,29 @@ hash -l
     #[test]
     fn sort_spills_runs_to_the_selected_filesystem_and_releases_them() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        let rows: Vec<_> = (0..800).map(|i| format!("{i:04}{}\n", "x".repeat(1019))).collect();
-        fs.write_file("/rows", rows.iter().rev().cloned().collect::<String>().as_bytes()).unwrap();
+        let rows: Vec<_> = (0..800)
+            .map(|i| format!("{i:04}{}\n", "x".repeat(1019)))
+            .collect();
+        fs.write_file(
+            "/rows",
+            rows.iter().rev().cloned().collect::<String>().as_bytes(),
+        )
+        .unwrap();
         fs.write_file("/dest", b"original").unwrap();
-        for (tmp, diagnostic) in [("/missing", "ENOENT: no such file or directory, stat '/missing'"), ("/dest", "ENOTDIR: not a directory '/dest'")] {
-            let r = shell.exec(&format!("TMPDIR={tmp} sort -S1M /rows -o /dest")).unwrap();
-            assert_eq!((r.exit_code, r.stderr), (2, format!("sort: {diagnostic}\n")));
+        for (tmp, diagnostic) in [
+            (
+                "/missing",
+                "ENOENT: no such file or directory, stat '/missing'",
+            ),
+            ("/dest", "ENOTDIR: not a directory '/dest'"),
+        ] {
+            let r = shell
+                .exec(&format!("TMPDIR={tmp} sort -S1M /rows -o /dest"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stderr),
+                (2, format!("sort: {diagnostic}\n"))
+            );
             assert_eq!(fs.read_file("/dest").unwrap(), b"original");
         }
         // Leave enough room to start spilling but not to finish. A second attempt
@@ -17206,13 +19462,26 @@ hash -l
         let r = shell.exec("TMPDIR=/ sort -S1M /rows -o /dest").unwrap();
         assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
         assert_eq!(fs.read_file("/dest").unwrap(), rows.concat().as_bytes());
-        assert!(fs.list_dir("/").unwrap().iter().all(|p| !p.starts_with(".storage-")));
-        for name in ["a","b","c","d","e"] {
-            fs.write_file(&format!("/{name}"), format!("x {name}\ny {name}\n").as_bytes()).unwrap();
+        assert!(
+            fs.list_dir("/")
+                .unwrap()
+                .iter()
+                .all(|p| !p.starts_with(".storage-"))
+        );
+        for name in ["a", "b", "c", "d", "e"] {
+            fs.write_file(
+                &format!("/{name}"),
+                format!("x {name}\ny {name}\n").as_bytes(),
+            )
+            .unwrap();
         }
-        let r = shell.exec("sort -msk1,1 --batch-size=2 /a /b /c /d /e").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "x a\nx b\nx c\nx d\nx e\ny a\ny b\ny c\ny d\ny e\n", ""));
-
+        let r = shell
+            .exec("sort -msk1,1 --batch-size=2 /a /b /c /d /e")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "x a\nx b\nx c\nx d\nx e\ny a\ny b\ny c\ny d\ny e\n", "")
+        );
     }
 
     #[test]
@@ -17222,28 +19491,56 @@ hash -l
         let input = format!("{prefix}b\n{prefix}a\n");
         fs.write_file("/rows", input.as_bytes()).unwrap();
         for options in ["-c", "-m", ""] {
-            let r = shell.exec(&format!("TMPDIR=/missing sort {options} /rows")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "sort: ENOENT: no such file or directory, stat '/missing'\n"), "{options}");
+            let r = shell
+                .exec(&format!("TMPDIR=/missing sort {options} /rows"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (
+                    2,
+                    "",
+                    "sort: ENOENT: no such file or directory, stat '/missing'\n"
+                ),
+                "{options}"
+            );
         }
         let r = shell.exec("TMPDIR=/ sort -c /rows").unwrap();
-        assert_eq!((r.exit_code, r.stderr.as_str()), (1, "sort: disorder at record 2\n"));
+        assert_eq!(
+            (r.exit_code, r.stderr.as_str()),
+            (1, "sort: disorder at record 2\n")
+        );
         let r = shell.exec("TMPDIR=/ sort -um /rows").unwrap();
         assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, input, ""));
         let r = shell.exec("TMPDIR=/ sort -S1M /rows").unwrap();
-        assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, format!("{prefix}a\n{prefix}b\n"), ""));
+        assert_eq!(
+            (r.exit_code, r.stdout, r.stderr.as_str()),
+            (0, format!("{prefix}a\n{prefix}b\n"), "")
+        );
     }
 
     #[test]
     fn sort_general_numeric_reads_latin1_decimal_whitespace_and_hex_exponents_at_any_size() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         for padding in [0, 70000] {
-            for (a,b) in [(b"2".as_slice(),b"0x1p   20".as_slice()), (b"1",b"\xa02"), (b"0x1p-999999999999",b"0.01")] {
+            for (a, b) in [
+                (b"2".as_slice(), b"0x1p   20".as_slice()),
+                (b"1", b"\xa02"),
+                (b"0x1p-999999999999", b"0.01"),
+            ] {
                 let mut rows = vec![b'z'; padding];
-                rows.push(b':'); rows.extend_from_slice(a); rows.push(b'\n');
-                rows.extend(std::iter::repeat_n(b'z', padding)); rows.push(b':'); rows.extend_from_slice(b);
+                rows.push(b':');
+                rows.extend_from_slice(a);
+                rows.push(b'\n');
+                rows.extend(std::iter::repeat_n(b'z', padding));
+                rows.push(b':');
+                rows.extend_from_slice(b);
                 fs.write_file("/rows", &rows).unwrap();
                 let r = shell.exec("TMPDIR=/ sort -c -t: -k2,2g /rows").unwrap();
-                assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{a:?} {b:?} {padding}");
+                assert_eq!(
+                    (r.exit_code, r.stderr.as_str()),
+                    (0, ""),
+                    "{a:?} {b:?} {padding}"
+                );
             }
         }
     }
@@ -17255,10 +19552,21 @@ hash -l
         for key in ["4294967300", "2.9007199254740991", "2.1,2.9007199254740991"] {
             let r = shell.exec(&format!("sort -sk{key} /rows")).unwrap();
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{key}");
-            assert_eq!(r.stdout, if key.starts_with("2.1,") { "x b\ny c\n" } else { "y c\nx b\n" }, "{key}");
+            assert_eq!(
+                r.stdout,
+                if key.starts_with("2.1,") {
+                    "x b\ny c\n"
+                } else {
+                    "y c\nx b\n"
+                },
+                "{key}"
+            );
         }
         let r = shell.exec("sort -k9007199254740992 /rows").unwrap();
-        assert_eq!((r.exit_code, r.stderr.as_str()), (2, "sort: invalid number '9007199254740992'\n"));
+        assert_eq!(
+            (r.exit_code, r.stderr.as_str()),
+            (2, "sort: invalid number '9007199254740992'\n")
+        );
     }
 
     #[test]
@@ -17266,16 +19574,30 @@ hash -l
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [
             ("-S1k", "sort memory budget must be at least 1048576 bytes"),
-            ("--buffer-size=8388608G", "sort memory budget must be at least 1048576 bytes"),
+            (
+                "--buffer-size=8388608G",
+                "sort memory budget must be at least 1048576 bytes",
+            ),
             ("-S0G --max-records=x", "invalid number '0'"),
             ("--batch-size 1", "invalid number '1'"),
-            ("--batch-size=33", "sort merge fan-in must be between 2 and 32"),
+            (
+                "--batch-size=33",
+                "sort merge fan-in must be between 2 and 32",
+            ),
             ("-S1k --batch-size=-1", "invalid number '-1'"),
             ("--buffer-size=bad -S+1m --batch-size=x --batch-size=32", ""),
         ] {
             let r = shell.exec(&format!("sort {options}")).unwrap();
-            let expected = if error.is_empty() { String::new() } else { format!("sort: {error}\n") };
-            assert_eq!((r.exit_code, r.stderr), (if error.is_empty() { 0 } else { 2 }, expected), "{options}");
+            let expected = if error.is_empty() {
+                String::new()
+            } else {
+                format!("sort: {error}\n")
+            };
+            assert_eq!(
+                (r.exit_code, r.stderr),
+                (if error.is_empty() { 0 } else { 2 }, expected),
+                "{options}"
+            );
         }
     }
 
@@ -17283,14 +19605,19 @@ hash -l
     fn fmt_flushes_its_text_and_word_windows_before_reflowing_the_tail() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let word = "A".repeat(5001);
-        fs.write_file("/input", format!("> {word} end").as_bytes()).unwrap();
+        fs.write_file("/input", format!("> {word} end").as_bytes())
+            .unwrap();
         let r = shell.exec("fmt -p '> ' -w20 /input").unwrap();
-        assert_eq!(r.exit_code, 0); assert_eq!(r.stdout, format!("{}> A end\n", &word[..5000]));
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(r.stdout, format!("{}> A end\n", &word[..5000]));
         let line = |n: usize| format!("{}a\n", "a ".repeat(n - 1));
         fs.write_file("/input", line(999).as_bytes()).unwrap();
         let r = shell.exec("fmt -w17 /input").unwrap();
         assert_eq!(r.exit_code, 0);
-        assert_eq!(r.stdout, [line(8), line(9).repeat(109), line(8), line(2)].concat());
+        assert_eq!(
+            r.stdout,
+            [line(8), line(9).repeat(109), line(8), line(2)].concat()
+        );
     }
 
     #[test]
@@ -17299,14 +19626,30 @@ hash -l
         let data = "x\n\n".repeat(30000);
         fs.write_file("/input", data.as_bytes()).unwrap();
         fs.write_file("/small", b"y").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 65536, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 65536,
+            ..Default::default()
+        });
         let r = shell.exec("{ fmt /small; head -c1; } </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "y\nx", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "y\nx", "")
+        );
         let r = shell.exec("fmt </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.len(), r.stderr.as_str()), (1, 64512, "fmt: byte command input limit exceeded\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.len(), r.stderr.as_str()),
+            (1, 64512, "fmt: byte command input limit exceeded\n")
+        );
         assert_eq!(r.stdout, &data[..64512]);
         let r = shell.exec("fmt /small/foo /small").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "y\n", "fmt: cannot open '/small/foo' for reading: Not a directory\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "y\n",
+                "fmt: cannot open '/small/foo' for reading: Not a directory\n"
+            )
+        );
     }
 
     #[test]
@@ -17314,26 +19657,52 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"q\nw\nERROR").unwrap();
         fs.write_file("/small", b"a\nb\n").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 4,
+            ..Default::default()
+        });
         let r = shell.exec("tac /small - /missing /small </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "b\na\nb\na\n",
-            "tac: EFBIG: file too large, read '/input'\ntac: ENOENT: no such file or directory, stat '/missing'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "b\na\nb\na\n",
+                "tac: EFBIG: file too large, read '/input'\ntac: ENOENT: no such file or directory, stat '/missing'\n"
+            )
+        );
         let r = shell.exec("{ tac /small; head -c1; } </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "b\na\nq", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "b\na\nq", "")
+        );
     }
 
     #[test]
     fn fold_emits_wrapped_lines_before_errors_and_keeps_split_utf8_units_together() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let prefix = "x".repeat(65535);
-        fs.write_file("/utf8", format!("{prefix}界y").as_bytes()).unwrap();
+        fs.write_file("/utf8", format!("{prefix}界y").as_bytes())
+            .unwrap();
         let r = shell.exec("LC_ALL=C.UTF-8 fold -cw65536 /utf8").unwrap();
-        assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, format!("{prefix}界\ny"), ""));
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        assert_eq!(
+            (r.exit_code, r.stdout, r.stderr.as_str()),
+            (0, format!("{prefix}界\ny"), "")
+        );
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 4,
+            ..Default::default()
+        });
         fs.write_file("/input", b"abcdefghi").unwrap();
         fs.write_file("/end", b"z").unwrap();
         let r = shell.exec("fold -w3 /missing - /end </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "abc\nz", "fold: ENOENT: no such file or directory, stat '/missing'\nfold: EFBIG: file too large, read '/input'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "abc\nz",
+                "fold: ENOENT: no such file or directory, stat '/missing'\nfold: EFBIG: file too large, read '/input'\n"
+            )
+        );
     }
 
     #[test]
@@ -17341,12 +19710,30 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"x   ERROR").unwrap();
         fs.write_file("/end", b"\tZ").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 4,
+            ..Default::default()
+        });
         for (name, expected) in [("expand", "x       Z"), ("unexpand", "x\t\tZ")] {
-            let r = shell.exec(&format!("{name} -t4 /missing - /end </input")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, expected, format!("{name}: ENOENT: no such file or directory, stat '/missing'\n{name}: EFBIG: file too large, read '/input'\n")));
-            let r = shell.exec(&format!("{{ {name} /end; head -c1; }} </input")).unwrap();
-            assert_eq!(r.exit_code, 0); assert!(r.stderr.is_empty()); assert!(r.stdout.ends_with("Zx"));
+            let r = shell
+                .exec(&format!("{name} -t4 /missing - /end </input"))
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr),
+                (
+                    1,
+                    expected,
+                    format!(
+                        "{name}: ENOENT: no such file or directory, stat '/missing'\n{name}: EFBIG: file too large, read '/input'\n"
+                    )
+                )
+            );
+            let r = shell
+                .exec(&format!("{{ {name} /end; head -c1; }} </input"))
+                .unwrap();
+            assert_eq!(r.exit_code, 0);
+            assert!(r.stderr.is_empty());
+            assert!(r.stdout.ends_with("Zx"));
         }
     }
 
@@ -17355,12 +19742,24 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"a\nb\nfragment").unwrap();
         fs.write_file("/last", b"c").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 5, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 5,
+            ..Default::default()
+        });
         let r = shell.exec("nl -w1 /missing - /last </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "1\ta\n2\tb\n3\tc\n",
-            "nl: ENOENT: no such file or directory, stat '/missing'\nnl: EFBIG: file too large, read '/input'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "1\ta\n2\tb\n3\tc\n",
+                "nl: ENOENT: no such file or directory, stat '/missing'\nnl: EFBIG: file too large, read '/input'\n"
+            )
+        );
         let r = shell.exec("{ nl -w1 /last; head -c1; } </input").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1\tc\na", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "1\tc\na", "")
+        );
     }
 
     #[test]
@@ -17369,10 +19768,18 @@ hash -l
         for (args, status, stdout, stderr) in [
             ("-d '[a*999999999999999999999999999]'", 0, "b", ""),
             ("-s '[a*0777777777777777777777777]'", 0, "ab", ""),
-            ("a ''", 2, "", "tr: second character set must not be empty\n"),
+            (
+                "a ''",
+                2,
+                "",
+                "tr: second character set must not be empty\n",
+            ),
         ] {
             let r = shell.exec(&format!("printf aaab | tr {args}")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr));
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (status, stdout, stderr)
+            );
         }
     }
 
@@ -17382,12 +19789,26 @@ hash -l
         let data = format!("{}aabb", "a".repeat(65536));
         fs.write_file("/data", data.as_bytes()).unwrap();
         let r = shell.exec("tr -s ab AB </data").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "AB", ""));
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "AB", "")
+        );
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 4,
+            ..Default::default()
+        });
         let r = shell.exec("tr -s ab AB </data").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "A", "tr: EFBIG: file too large, read '/data'\n"));
-        let r = shell.exec("{ tr --wrong; echo $?; head -c1; } </data").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "2\na", "tr: unrecognized option '--wrong'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (1, "A", "tr: EFBIG: file too large, read '/data'\n")
+        );
+        let r = shell
+            .exec("{ tr --wrong; echo $?; head -c1; } </data")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "2\na", "tr: unrecognized option '--wrong'\n")
+        );
     }
 
     #[test]
@@ -17395,25 +19816,48 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/big", b"ab\ncd\nefghij").unwrap();
         fs.write_file("/small", b"hi").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
         let r = shell.exec("cut -b1 /missing - - /small </big").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "a\nc\nh\n",
-            "cut: ENOENT: no such file or directory, readStream '/missing'\ncut: EFBIG: file too large, read '/big'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                1,
+                "a\nc\nh\n",
+                "cut: ENOENT: no such file or directory, readStream '/missing'\ncut: EFBIG: file too large, read '/big'\n"
+            )
+        );
         let r = shell.exec("{ cut -b1 /small; head -c1; } </big").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "h\na", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "h\na", "")
+        );
     }
 
     #[test]
     fn uniq_preserves_its_input_when_the_output_is_an_alias() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        for (link, output) in [("ln /src /hard", "/hard"), ("ln -s /src /soft", "/soft"), ("ln /src ./-", "-")] {
+        for (link, output) in [
+            ("ln /src /hard", "/hard"),
+            ("ln -s /src /soft", "/soft"),
+            ("ln /src ./-", "-"),
+        ] {
             fs.write_file("/src", b"a\na\nb\n").unwrap();
             let r = shell.exec(&format!("{link}; uniq /src {output}")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "uniq: input and output must be different files\n"), "{link}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (2, "", "uniq: input and output must be different files\n"),
+                "{link}"
+            );
             assert_eq!(fs.read_file("/src").unwrap(), b"a\na\nb\n");
         }
         let r = shell.exec("rm ./-; uniq /src -; cat ./-").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a\nb\n", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "a\nb\n", "")
+        );
     }
 
     #[test]
@@ -17421,16 +19865,39 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/big", b"a\na\nb\nc\nxyz").unwrap();
         fs.write_file("/old", b"old").unwrap();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
-        for (args, stdout) in [("-c", "      2 a\n      1 b\n"), ("--group=both", "\na\na\n\nb\n\nc\n"), ("- /old", "")] {
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
+        for (args, stdout) in [
+            ("-c", "      2 a\n      1 b\n"),
+            ("--group=both", "\na\na\n\nb\n\nc\n"),
+            ("- /old", ""),
+        ] {
             let r = shell.exec(&format!("uniq {args} </big")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, stdout, "uniq: EFBIG: file too large, read '/big'\n"), "{args}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (1, stdout, "uniq: EFBIG: file too large, read '/big'\n"),
+                "{args}"
+            );
         }
         assert_eq!(fs.read_file("/old").unwrap(), b"a\nb\n");
         let r = shell.exec("{ uniq /old; head -c1; } </big").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a\nb\na", ""));
-        let r = shell.exec("{ uniq - /absent/dst; head -c1; } </big").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a", "uniq: ENOENT: no such file or directory, writeStream '/absent/dst'\n"));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "a\nb\na", "")
+        );
+        let r = shell
+            .exec("{ uniq - /absent/dst; head -c1; } </big")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                0,
+                "a",
+                "uniq: ENOENT: no such file or directory, writeStream '/absent/dst'\n"
+            )
+        );
     }
 
     #[test]
@@ -17438,11 +19905,26 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let r = shell.exec("mkdir -p /target/sub; ln -s /target/sub /link; ln -s /missing/file /dangling; printf 'yes\\nyes\\n' >/target/src; echo no >/src").unwrap();
         assert_eq!(r.exit_code, 0);
-        let r = shell.exec("cut -b1 /link/../src; sort /link/../src; uniq /link/../src /target/src").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "y\ny\nyes\nyes\n", "uniq: input and output must be different files\n"));
+        let r = shell
+            .exec("cut -b1 /link/../src; sort /link/../src; uniq /link/../src /target/src")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (
+                2,
+                "y\ny\nyes\nyes\n",
+                "uniq: input and output must be different files\n"
+            )
+        );
         for dst in ["/missing/../target/src", "/dangling"] {
             let r = shell.exec(&format!("uniq /src {dst}")).unwrap();
-            assert_eq!((r.exit_code, r.stderr), (1, format!("uniq: ENOENT: no such file or directory, writeStream '{dst}'\n")));
+            assert_eq!(
+                (r.exit_code, r.stderr),
+                (
+                    1,
+                    format!("uniq: ENOENT: no such file or directory, writeStream '{dst}'\n")
+                )
+            );
         }
         assert!(!fs.exists("/missing"));
         assert_eq!(fs.read_file("/target/src").unwrap(), b"yes\nyes\n");
@@ -17457,7 +19939,13 @@ hash -l
         assert_eq!(fs.read_file("/dir/dst").unwrap(), b"a\nb\n");
         for dst in ["/missing/../dst", "/dangling"] {
             let r = shell.exec(&format!("sort -o {dst} /src")).unwrap();
-            assert_eq!((r.exit_code, r.stderr), (2, format!("sort: ENOENT: no such file or directory, writeStream '{dst}'\n")));
+            assert_eq!(
+                (r.exit_code, r.stderr),
+                (
+                    2,
+                    format!("sort: ENOENT: no such file or directory, writeStream '{dst}'\n")
+                )
+            );
         }
         assert!(!fs.exists("/missing"));
         assert_eq!(fs.read_file("/dst").unwrap(), b"keep\n");
@@ -17468,10 +19956,25 @@ hash -l
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.exec("mkdir /dir; echo keep >/locked; chmod 444 /locked; chmod 555 /dir; ln -s /locked /link; echo a >/src").unwrap();
         for (cmd, status) in [("sort", 2), ("uniq", 1)] {
-            for (dst, op) in [("/dir/new", "writeStream"), ("/dir", "access"), ("/locked", "access"), ("/link", "access")] {
-                let script = if cmd == "sort" { format!("sort -o {dst} /src") } else { format!("uniq /src {dst}") };
+            for (dst, op) in [
+                ("/dir/new", "writeStream"),
+                ("/dir", "access"),
+                ("/locked", "access"),
+                ("/link", "access"),
+            ] {
+                let script = if cmd == "sort" {
+                    format!("sort -o {dst} /src")
+                } else {
+                    format!("uniq /src {dst}")
+                };
                 let r = shell.exec(&script).unwrap();
-                assert_eq!((r.exit_code, r.stderr), (status, format!("{cmd}: EACCES: permission denied, {op} '{dst}'\n")));
+                assert_eq!(
+                    (r.exit_code, r.stderr),
+                    (
+                        status,
+                        format!("{cmd}: EACCES: permission denied, {op} '{dst}'\n")
+                    )
+                );
             }
         }
         assert!(!fs.exists("/dir/new"));
@@ -17481,10 +19984,18 @@ hash -l
     #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        shell.set_limits(crate::budget::ShellLimits {
+            max_input_bytes: 8,
+            ..Default::default()
+        });
         fs.write_file("/big", b"0123456789abcdef").unwrap();
-        let r = shell.exec("exec 3<>/big; printf XY >&3; : </big; true <&3; exec 3<&-; echo ok").unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "ok\n", ""));
+        let r = shell
+            .exec("exec 3<>/big; printf XY >&3; : </big; true <&3; exec 3<&-; echo ok")
+            .unwrap();
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "ok\n", "")
+        );
         assert_eq!(fs.read_file("/big").unwrap(), b"XY23456789abcdef");
     }
 
@@ -17495,15 +20006,25 @@ hash -l
             ("head -c1 <&3; printf XYZ >/f; cat <&3", "aYZ"),
             ("read -N1 -u3 x; printf XYZABCDEF >/f; cat <&3", "bcABCDEF"),
             ("printf XY >/f; read -N1 -u3 x; echo $x; cat <&3", "X\nY"),
-            (r#"printf 'X\nY\n' >/f; mapfile -u3 xs; printf '<%s>' "${xs[@]}""#, "<X\n><Y\n>"),
-            ("mv /f /old; printf WORLD >/f; printf QQQ >>/old; cat <&3", "abcQQQ"),
+            (
+                r#"printf 'X\nY\n' >/f; mapfile -u3 xs; printf '<%s>' "${xs[@]}""#,
+                "<X\n><Y\n>",
+            ),
+            (
+                "mv /f /old; printf WORLD >/f; printf QQQ >>/old; cat <&3",
+                "abcQQQ",
+            ),
             ("cat <&3; printf X >>/f; cat <&3", "abcX"),
         ] {
             for redirect in ["3<", "3<>"] {
                 let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
                 fs.write_file("/f", b"abc").unwrap();
                 let r = shell.exec(&format!("exec {redirect}/f; {script}")).unwrap();
-                assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{redirect}: {script}");
+                assert_eq!(
+                    (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                    (0, expected, ""),
+                    "{redirect}: {script}"
+                );
             }
         }
     }
@@ -17521,8 +20042,14 @@ hash -l
             ("read -N1 -u3 x; head -c1 <&3", "b\ncdef", "ab\ncdefY"),
         ] {
             fs.write_file("/f", b"ab\ncdef").unwrap();
-            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat <&3")).unwrap();
-            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (output, "", 0), "{child}");
+            let r = shell
+                .exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat <&3"))
+                .unwrap();
+            assert_eq!(
+                (r.stdout.as_str(), r.stderr.as_str(), r.exit_code),
+                (output, "", 0),
+                "{child}"
+            );
             assert_eq!(fs.read_file("/f").unwrap(), file.as_bytes(), "{child}");
         }
     }
@@ -17530,11 +20057,23 @@ hash -l
     #[test]
     fn nested_command_substitutions_consume_the_original_stdin_in_order() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
-        let result = shell.exec_with_options(
-            r#"echo "$(printf '[%s]' "$(head -c1)")$(head -c2)"; cat"#,
-            crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
-        ).unwrap();
-        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
+        let result = shell
+            .exec_with_options(
+                r#"echo "$(printf '[%s]' "$(head -c1)")$(head -c2)"; cat"#,
+                crate::shell::ExecOptions {
+                    stdin: Some("abcdef".into()),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            (
+                result.exit_code,
+                result.stdout.as_str(),
+                result.stderr.as_str()
+            ),
+            (0, "[a]bc\ndef", "")
+        );
     }
 
     #[test]
@@ -17543,59 +20082,133 @@ hash -l
             ("i=0; x=$((i++)) cat <<<foo; echo $i", "foo\n0\n"),
             ("i=0; cat <<<$((i++)); echo $i", "0\n0\n"),
             ("i=0; x=$((i++)) : <<<foo; echo $i", "1\n"),
-            ("i=0; f() { cat; }; x=$((i++)) f <<<foo; echo $i", "foo\n1\n"),
-            (r#"unset x; x=inner cat <<<"${x:=changed}:$(echo $x)"; echo $x"#, "changed:inner\n\n"),
+            (
+                "i=0; f() { cat; }; x=$((i++)) f <<<foo; echo $i",
+                "foo\n1\n",
+            ),
+            (
+                r#"unset x; x=inner cat <<<"${x:=changed}:$(echo $x)"; echo $x"#,
+                "changed:inner\n\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(cmd).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{cmd}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{cmd}"
+            );
         }
     }
 
     #[test]
     fn inline_input_uses_prefix_values_without_repeating_the_assignment() {
         for (script, expected) in [
-            ("x=$(echo once >>/log; head -c1) bash -c 'echo $x; cat' <<<xyz; cat /log; cat", "a\nxyz\nonce\nbcdef"),
-            (r#"A=outer; A=one A+=two B=$A bash -c 'echo $A:$B; cat' <<<"$A:$(echo $A):$B:$(echo $B)"; echo $A:$B"#, "onetwo:onetwo\nouter:onetwo::onetwo\nouter:\n"),
-            (r#"declare -i n=2; n+=3 m=$n bash -c 'echo $n:$m; cat' <<<"$n:$(echo $n)"; echo $n"#, "5:5\n2:5\n2\n"),
-            (r#"declare -n ref=x; x=old; ref=new bash -c 'echo $x; cat' <<<"$x:$(echo $x)"; echo $x"#, "new\nold:new\nold\n"),
+            (
+                "x=$(echo once >>/log; head -c1) bash -c 'echo $x; cat' <<<xyz; cat /log; cat",
+                "a\nxyz\nonce\nbcdef",
+            ),
+            (
+                r#"A=outer; A=one A+=two B=$A bash -c 'echo $A:$B; cat' <<<"$A:$(echo $A):$B:$(echo $B)"; echo $A:$B"#,
+                "onetwo:onetwo\nouter:onetwo::onetwo\nouter:\n",
+            ),
+            (
+                r#"declare -i n=2; n+=3 m=$n bash -c 'echo $n:$m; cat' <<<"$n:$(echo $n)"; echo $n"#,
+                "5:5\n2:5\n2\n",
+            ),
+            (
+                r#"declare -n ref=x; x=old; ref=new bash -c 'echo $x; cat' <<<"$x:$(echo $x)"; echo $x"#,
+                "new\nold:new\nold\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
-            let r = shell.exec_with_options(script, crate::shell::ExecOptions {
-                stdin: Some("abcdef".into()), ..Default::default()
-            }).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            let r = shell
+                .exec_with_options(
+                    script,
+                    crate::shell::ExecOptions {
+                        stdin: Some("abcdef".into()),
+                        ..Default::default()
+                    },
+                )
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn prefix_substitutions_consume_the_commands_input_before_dispatch() {
         for (script, expected) in [
-            ("x=$(head -c1) y=$(head -c2) bash -c 'echo $x:$y; cat'; cat", "a:bc\ndef"),
-            ("printf xyz >/f; x=$(head -c1) bash -c 'echo $x; cat' </f; cat", "x\nyzabcdef"),
-            ("printf xyz >/f; exec 3</f; x=$(head -c1) bash -c 'echo $x' <&3; cat <&3; cat", "x\nyzabcdef"),
+            (
+                "x=$(head -c1) y=$(head -c2) bash -c 'echo $x:$y; cat'; cat",
+                "a:bc\ndef",
+            ),
+            (
+                "printf xyz >/f; x=$(head -c1) bash -c 'echo $x; cat' </f; cat",
+                "x\nyzabcdef",
+            ),
+            (
+                "printf xyz >/f; exec 3</f; x=$(head -c1) bash -c 'echo $x' <&3; cat <&3; cat",
+                "x\nyzabcdef",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
-            let r = shell.exec_with_options(script, crate::shell::ExecOptions {
-                stdin: Some("abcdef".into()), ..Default::default()
-            }).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            let r = shell
+                .exec_with_options(
+                    script,
+                    crate::shell::ExecOptions {
+                        stdin: Some("abcdef".into()),
+                        ..Default::default()
+                    },
+                )
+                .unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn standalone_assignment_substitutions_read_inherited_and_redirected_input() {
         for (script, expected) in [
-            (r#"x=$(head -c1) y=$(head -c2); echo "$x:$y"; cat"#, "a:bc\ndef"),
-            (r#"printf FILE >f; x=$(head -c1) <f; echo "$x"; cat"#, "F\nabcdef"),
+            (
+                r#"x=$(head -c1) y=$(head -c2); echo "$x:$y"; cat"#,
+                "a:bc\ndef",
+            ),
+            (
+                r#"printf FILE >f; x=$(head -c1) <f; echo "$x"; cat"#,
+                "F\nabcdef",
+            ),
             (r#"x=$(head -c1) <<<xyz; echo "$x"; cat"#, "a\nbcdef"),
-            (r#"exec 3<&0; x=$(head -c1 <&3); echo "$x"; cat <&3"#, "a\nbcdef"),
+            (
+                r#"exec 3<&0; x=$(head -c1 <&3); echo "$x"; cat <&3"#,
+                "a\nbcdef",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
-            let result = shell.exec_with_options(script, crate::shell::ExecOptions {
-                stdin: Some("abcdef".into()), ..Default::default()
-            }).unwrap();
-            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected, ""), "{script}");
+            let result = shell
+                .exec_with_options(
+                    script,
+                    crate::shell::ExecOptions {
+                        stdin: Some("abcdef".into()),
+                        ..Default::default()
+                    },
+                )
+                .unwrap();
+            assert_eq!(
+                (
+                    result.exit_code,
+                    result.stdout.as_str(),
+                    result.stderr.as_str()
+                ),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
@@ -17603,175 +20216,443 @@ hash -l
     fn assignment_expansion_errors_follow_the_active_redirects() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (script, code, stdout) in [
-            (r#"(a[0]=$((1/0)) 2>err; echo after); echo "$?"; cat err"#,
-             0, "1\nshell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
-            (r#"x=${missing:?bad} 2>&1 || echo after"#,
-             127, "shell: line 1: missing: bad\n"),
-            (r#"(x=${missing:?bad} 2>err) 2>outer; echo "$?"; cat err outer"#,
-             0, "1\nshell: line 1: missing: bad\n"),
+            (
+                r#"(a[0]=$((1/0)) 2>err; echo after); echo "$?"; cat err"#,
+                0,
+                "1\nshell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+            ),
+            (
+                r#"x=${missing:?bad} 2>&1 || echo after"#,
+                127,
+                "shell: line 1: missing: bad\n",
+            ),
+            (
+                r#"(x=${missing:?bad} 2>err) 2>outer; echo "$?"; cat err outer"#,
+                0,
+                "1\nshell: line 1: missing: bad\n",
+            ),
         ] {
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (code, stdout, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn declaration_operands_require_a_variable_name_before_assignment() {
         for (command, label) in [
-            ("declare", "declare"), ("typeset", "declare"), ("declare -a", "declare"),
-            ("local", "local"), ("export", "export"), ("readonly -a", "readonly"),
+            ("declare", "declare"),
+            ("typeset", "declare"),
+            ("declare -a", "declare"),
+            ("local", "local"),
+            ("export", "export"),
+            ("readonly -a", "readonly"),
         ] {
-            let script = format!(r#"i=0; a=(keep); f() {{ {command} 'a[i++]=bad' ok=yes; echo "$?:$i:${{a[@]}}:$ok"; }}; f"#);
+            let script = format!(
+                r#"i=0; a=(keep); f() {{ {command} 'a[i++]=bad' ok=yes; echo "$?:$i:${{a[@]}}:$ok"; }}; f"#
+            );
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(&script).unwrap();
             assert_eq!(r.stdout, "1:0:keep:yes\n", "{command}");
-            assert_eq!(r.stderr, format!("shell: line 1: {label}: `a[i++]=bad': not a valid identifier\n"), "{command}");
+            assert_eq!(
+                r.stderr,
+                format!("shell: line 1: {label}: `a[i++]=bad': not a valid identifier\n"),
+                "{command}"
+            );
         }
     }
 
     #[test]
     fn invalid_indexed_writes_fail_the_assignment_and_respect_shell_control_flow() {
         for (script, code, stdout, stderr) in [
-            (r#"a=(); a[2147483648]=5"#, 1, "", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(); a[-1]=5 b=ok; echo "$?:$b""#, 0, "1:\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(); b=ok a[-1]=5; echo "$?:$b""#, 0, "1:ok\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(); a[-1]=$((b=5)); echo "$?:$b""#, 0, "1:\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(); a[2147483647]=yes; a[-1]+=ok; echo "${a[-1]}""#, 0, "yesok\n", ""),
-            (r#"a=(foo); a[-2]=x || echo fail:$?; echo "${a[@]}""#, 0, "fail:1\nfoo\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(10); a[-2]=5 2>err; cat err; echo ok"#, 0, "shell: line 1: indexed array: index outside 0..2147483647\nok\n", ""),
-            (r#"a=(10); a[1/0]=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
-            (r#"a=(); a[0]="$((b[-2]))"; echo after"#, 1, "", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(); a[$((1/0))]=5; echo rc:$?"#, 1, "", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
-            (r#"set -u; a=(); a[missing]=5; echo rc:$?"#, 1, "", "shell: line 1: missing: unbound variable\n"),
+            (
+                r#"a=(); a[2147483648]=5"#,
+                1,
+                "",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(); a[-1]=5 b=ok; echo "$?:$b""#,
+                0,
+                "1:\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(); b=ok a[-1]=5; echo "$?:$b""#,
+                0,
+                "1:ok\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(); a[-1]=$((b=5)); echo "$?:$b""#,
+                0,
+                "1:\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(); a[2147483647]=yes; a[-1]+=ok; echo "${a[-1]}""#,
+                0,
+                "yesok\n",
+                "",
+            ),
+            (
+                r#"a=(foo); a[-2]=x || echo fail:$?; echo "${a[@]}""#,
+                0,
+                "fail:1\nfoo\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(10); a[-2]=5 2>err; cat err; echo ok"#,
+                0,
+                "shell: line 1: indexed array: index outside 0..2147483647\nok\n",
+                "",
+            ),
+            (
+                r#"a=(10); a[1/0]=5; echo rc:$?"#,
+                0,
+                "rc:1\n",
+                "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+            ),
+            (
+                r#"a=(); a[0]="$((b[-2]))"; echo after"#,
+                1,
+                "",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(); a[$((1/0))]=5; echo rc:$?"#,
+                1,
+                "",
+                "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+            ),
+            (
+                r#"set -u; a=(); a[missing]=5; echo rc:$?"#,
+                1,
+                "",
+                "shell: line 1: missing: unbound variable\n",
+            ),
             (r#"a=(); a[$empty]=5; echo "$?:${a[@]}""#, 0, "0:5\n", ""),
-            (r#"a=(); a[]=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: indexed array: bad array subscript\n"),
-            (r#"readonly x; a=(); a[-2]=2 x=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (
+                r#"a=(); a[]=5; echo rc:$?"#,
+                0,
+                "rc:1\n",
+                "shell: line 1: indexed array: bad array subscript\n",
+            ),
+            (
+                r#"readonly x; a=(); a[-2]=2 x=5; echo rc:$?"#,
+                0,
+                "rc:1\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (code, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn indexed_assignment_selects_the_element_before_expanding_its_value() {
         for (script, expected) in [
-            (r#"a=(1 20); a[a[0]++]="$((a[0]+5))"; echo "${a[@]}""#, "2 7\n"),
-            (r#"a=(10 20); i=0; a[i++]=$i; echo "$i:${a[@]}""#, "1:1 20\n"),
-            (r#"a=(10 20); i=0; a[i++]+=$i; echo "$i:${a[@]}""#, "1:101 20\n"),
-            (r#"a=(10 20); i=0; ((a[i++]=i+5)); echo "$i:${a[@]}""#, "1:5 20\n"),
-            (r#"a=(10 20); i=0; a[-1]=$((a[5]=4)); echo "${!a[@]}:${a[@]}""#, "0 1 5:10 4 4\n"),
-            (r#"declare -A a; i=0; a[$((i++))]=$i; echo "$i:${!a[@]}:${a[@]}""#, "1:0:0\n"),
+            (
+                r#"a=(1 20); a[a[0]++]="$((a[0]+5))"; echo "${a[@]}""#,
+                "2 7\n",
+            ),
+            (
+                r#"a=(10 20); i=0; a[i++]=$i; echo "$i:${a[@]}""#,
+                "1:1 20\n",
+            ),
+            (
+                r#"a=(10 20); i=0; a[i++]+=$i; echo "$i:${a[@]}""#,
+                "1:101 20\n",
+            ),
+            (
+                r#"a=(10 20); i=0; ((a[i++]=i+5)); echo "$i:${a[@]}""#,
+                "1:5 20\n",
+            ),
+            (
+                r#"a=(10 20); i=0; a[-1]=$((a[5]=4)); echo "${!a[@]}:${a[@]}""#,
+                "0 1 5:10 4 4\n",
+            ),
+            (
+                r#"declare -A a; i=0; a[$((i++))]=$i; echo "$i:${!a[@]}:${a[@]}""#,
+                "1:0:0\n",
+            ),
             (r#"a=10; a[2]="$((a=25))"; echo "${a[@]}""#, "25 25\n"),
-            (r#"a=(10 20); i=0; a[$((i++))]=$i; echo "$i:${a[@]}""#, "1:1 20\n"),
+            (
+                r#"a=(10 20); i=0; a[$((i++))]=$i; echo "$i:${a[@]}""#,
+                "1:1 20\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn associative_writes_keep_literal_quotes_and_reject_empty_keys() {
         for (script, code, stdout, stderr) in [
-            (r#"declare -A a; k='"hi"'; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#, 0, "\"hi\":ok\n", ""),
-            (r#"declare -A a; k="'hi'"; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#, 0, "'hi':ok\n", ""),
-            (r#"declare -A a; a[""]=v; echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
-            (r#"declare -A a; a[$missing]=v; echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
-            (r#"declare -A a; a=([x]=one [""]=two); echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
-            (r#"declare -A a; (a[]=v 2>err; echo after); echo rc:$?; cat err"#, 0, "rc:1\nshell: line 1: associative array: bad array subscript\n", ""),
-            (r#"declare -A a; (a[""]=$((1/0)); echo after); echo rc:$?"#, 0, "rc:1\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
-            (r#"declare -A a; a=([' ']=yes); echo "<${!a[@]}>:${a[@]}""#, 0, "< >:yes\n", ""),
+            (
+                r#"declare -A a; k='"hi"'; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#,
+                0,
+                "\"hi\":ok\n",
+                "",
+            ),
+            (
+                r#"declare -A a; k="'hi'"; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#,
+                0,
+                "'hi':ok\n",
+                "",
+            ),
+            (
+                r#"declare -A a; a[""]=v; echo after"#,
+                1,
+                "",
+                "shell: line 1: associative array: bad array subscript\n",
+            ),
+            (
+                r#"declare -A a; a[$missing]=v; echo after"#,
+                1,
+                "",
+                "shell: line 1: associative array: bad array subscript\n",
+            ),
+            (
+                r#"declare -A a; a=([x]=one [""]=two); echo after"#,
+                1,
+                "",
+                "shell: line 1: associative array: bad array subscript\n",
+            ),
+            (
+                r#"declare -A a; (a[]=v 2>err; echo after); echo rc:$?; cat err"#,
+                0,
+                "rc:1\nshell: line 1: associative array: bad array subscript\n",
+                "",
+            ),
+            (
+                r#"declare -A a; (a[""]=$((1/0)); echo after); echo rc:$?"#,
+                0,
+                "rc:1\n",
+                "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+            ),
+            (
+                r#"declare -A a; a=([' ']=yes); echo "<${!a[@]}>:${a[@]}""#,
+                0,
+                "< >:yes\n",
+                "",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (code, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn compound_implicit_indices_check_bounds_at_the_correct_expansion_stage() {
         for (script, stdout) in [
-            (r#"a=(old); a=([2147483647]=$((i++)) tail); echo "$?:$i:${a[@]}""#, "1::old\n"),
-            (r#"a=(old); a=([2147483647]=$((i++)) $((i++))); echo "$?:$i:${a[@]}""#, "1:2:old\n"),
-            (r#"a=(old); a=([2147483646]=$((i++)) "\$@" tail); echo "$?:$i:${a[@]}""#, "1::old\n"),
-            (r#"a=(old); a=([2147483647+0]=max tail); echo "$?:${a[@]}""#, "1:max\n"),
-            (r#"declare -ai a=([2147483647]=1 tail); declare -p a"#, "declare -i a\n"),
+            (
+                r#"a=(old); a=([2147483647]=$((i++)) tail); echo "$?:$i:${a[@]}""#,
+                "1::old\n",
+            ),
+            (
+                r#"a=(old); a=([2147483647]=$((i++)) $((i++))); echo "$?:$i:${a[@]}""#,
+                "1:2:old\n",
+            ),
+            (
+                r#"a=(old); a=([2147483646]=$((i++)) "\$@" tail); echo "$?:$i:${a[@]}""#,
+                "1::old\n",
+            ),
+            (
+                r#"a=(old); a=([2147483647+0]=max tail); echo "$?:${a[@]}""#,
+                "1:max\n",
+            ),
+            (
+                r#"declare -ai a=([2147483647]=1 tail); declare -p a"#,
+                "declare -i a\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, "shell: line 1: indexed array: index outside 0..2147483647\n"), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (
+                    0,
+                    stdout,
+                    "shell: line 1: indexed array: index outside 0..2147483647\n"
+                ),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn compound_indexed_subscripts_observe_preceding_writes_and_fail_the_command() {
         for (script, stdout, stderr) in [
-            (r#"a=(old); a=([2]=new [-1]+=yes); declare -p a"#, "declare -a a=([2]=\"newyes\")\n", ""),
-            (r#"a=(old); a=([1]=new [9223372036854775807]=$((i++))); echo "$?:$i:${!a[@]}:${a[@]}""#, "1:1:1:new\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"declare -ai a=([1]=9 [-3]=4); declare -p a"#, "declare -ai a=([1]=\"9\")\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
-            (r#"a=(old); a=([1/0]=x); echo "$?:${a[@]}""#, "1:\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+            (
+                r#"a=(old); a=([2]=new [-1]+=yes); declare -p a"#,
+                "declare -a a=([2]=\"newyes\")\n",
+                "",
+            ),
+            (
+                r#"a=(old); a=([1]=new [9223372036854775807]=$((i++))); echo "$?:$i:${!a[@]}:${a[@]}""#,
+                "1:1:1:new\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"declare -ai a=([1]=9 [-3]=4); declare -p a"#,
+                "declare -ai a=([1]=\"9\")\n",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(old); a=([1/0]=x); echo "$?:${a[@]}""#,
+                "1:\n",
+                "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn associative_compound_assignments_require_selectors_before_expanding_values() {
-        let diagnostic = "shell: line 1: indexed array: associative compound entry requires a subscript\n";
+        let diagnostic =
+            "shell: line 1: indexed array: associative compound entry requires a subscript\n";
         for (script, stdout, stderr) in [
-            (r#"declare -A a=([k]=old); a+=([z]=$((i++)) plain); echo "$?:$i:${!a[@]}:${a[@]}""#, "1::k:old\n", diagnostic),
-            (r#"declare -Ai a=(plain) b=$((i++)); echo "$?:$i:$b"; declare -p a"#, "1:1:\ndeclare -i a\n", diagnostic),
-            (r#"declare -A a; a=("[x]=bad") 2>err || echo rc:$?; cat err"#, "rc:1\nshell: line 1: indexed array: associative compound entry requires a subscript\n", ""),
+            (
+                r#"declare -A a=([k]=old); a+=([z]=$((i++)) plain); echo "$?:$i:${!a[@]}:${a[@]}""#,
+                "1::k:old\n",
+                diagnostic,
+            ),
+            (
+                r#"declare -Ai a=(plain) b=$((i++)); echo "$?:$i:$b"; declare -p a"#,
+                "1:1:\ndeclare -i a\n",
+                diagnostic,
+            ),
+            (
+                r#"declare -A a; a=("[x]=bad") 2>err || echo rc:$?; cat err"#,
+                "rc:1\nshell: line 1: indexed array: associative compound entry requires a subscript\n",
+                "",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, stdout, stderr),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn compound_array_values_expand_before_keys_are_resolved() {
         for (script, expected) in [
-            (r#"declare -A a; i=0; a=([$((i++))]=$((i++)) [$((i++))]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#, "4:2 3:0 1\n"),
-            (r#"a=(1); i=0; a=([$i]=$((i++)) [$i]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#, "2:2:1\n"),
-            (r#"a=(1); i=0; a=([$((i++))]=$i [$((i++))]=$i); echo "$i:${!a[@]}:${a[@]}""#, "2:0 1:0 0\n"),
-            (r#"declare -A a; k=key; a=([$k]=foo [${a[key]}x]=bar); echo "${!a[@]}:${a[@]}""#, "key x:foo bar\n"),
-            (r#"a=(); a=([0]=10 [$((a[0]+1))]=yes); echo "${!a[@]}:${a[@]}""#, "0 11:10 yes\n"),
-            (r#"declare -Ai a; a=([x]=5 [${a[x]}y]=8); echo "${!a[@]}:${a[@]}""#, "x 5y:5 8\n"),
-            (r#"declare -A a=([x]=old); a=([x]=new [${a[x]}y]=yes); echo "${!a[@]}:${a[@]}""#, "x oldy:new yes\n"),
+            (
+                r#"declare -A a; i=0; a=([$((i++))]=$((i++)) [$((i++))]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#,
+                "4:2 3:0 1\n",
+            ),
+            (
+                r#"a=(1); i=0; a=([$i]=$((i++)) [$i]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#,
+                "2:2:1\n",
+            ),
+            (
+                r#"a=(1); i=0; a=([$((i++))]=$i [$((i++))]=$i); echo "$i:${!a[@]}:${a[@]}""#,
+                "2:0 1:0 0\n",
+            ),
+            (
+                r#"declare -A a; k=key; a=([$k]=foo [${a[key]}x]=bar); echo "${!a[@]}:${a[@]}""#,
+                "key x:foo bar\n",
+            ),
+            (
+                r#"a=(); a=([0]=10 [$((a[0]+1))]=yes); echo "${!a[@]}:${a[@]}""#,
+                "0 11:10 yes\n",
+            ),
+            (
+                r#"declare -Ai a; a=([x]=5 [${a[x]}y]=8); echo "${!a[@]}:${a[@]}""#,
+                "x 5y:5 8\n",
+            ),
+            (
+                r#"declare -A a=([x]=old); a=([x]=new [${a[x]}y]=yes); echo "${!a[@]}:${a[@]}""#,
+                "x oldy:new yes\n",
+            ),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn compound_array_entries_preserve_subscripts_and_word_boundaries() {
         for (script, expected) in [
-            (r#"declare -A a=([9223372036854775807]=first); a+=([key]=second); echo "${!a[@]}:${a[@]}""#, "9223372036854775807 key:first second\n"),
-            (r#"declare -A a; a=([x]=$(echo one two) [y]=$((4 << 2))); printf "<%s>\n" "${a[@]}""#, "<one two>\n<16>\n"),
-            (r#"a=(${v:-one two} "$(echo "three four")" `echo five six`); printf "<%s>\n" "${a[@]}""#, "<one>\n<two>\n<three four>\n<five>\n<six>\n"),
-            (r#"a=([0]=10 [a[0] + 1]=20); echo "${!a[@]}:${a[@]}""#, "0 11:10 20\n"),
+            (
+                r#"declare -A a=([9223372036854775807]=first); a+=([key]=second); echo "${!a[@]}:${a[@]}""#,
+                "9223372036854775807 key:first second\n",
+            ),
+            (
+                r#"declare -A a; a=([x]=$(echo one two) [y]=$((4 << 2))); printf "<%s>\n" "${a[@]}""#,
+                "<one two>\n<16>\n",
+            ),
+            (
+                r#"a=(${v:-one two} "$(echo "three four")" `echo five six`); printf "<%s>\n" "${a[@]}""#,
+                "<one>\n<two>\n<three four>\n<five>\n<six>\n",
+            ),
+            (
+                r#"a=([0]=10 [a[0] + 1]=20); echo "${!a[@]}:${a[@]}""#,
+                "0 11:10 20\n",
+            ),
             (r#"a=([0]=foo]+=bar); echo "${a[0]}""#, "foo]+=bar\n"),
             (r#"a=([1]=abc [1]+=def); echo "${a[1]}""#, "abcdef\n"),
-            (r#"declare -A a; a=(['left] side']=ok); echo "${!a[@]}:${a[@]}""#, "left] side:ok\n"),
-            (r#"declare -A a; a=(['left]=side']=ok); echo "${!a[@]}:${a[@]}""#, "left]=side:ok\n"),
+            (
+                r#"declare -A a; a=(['left] side']=ok); echo "${!a[@]}:${a[@]}""#,
+                "left] side:ok\n",
+            ),
+            (
+                r#"declare -A a; a=(['left]=side']=ok); echo "${!a[@]}:${a[@]}""#,
+                "left]=side:ok\n",
+            ),
             (r#"a=(x[y z); printf "<%s>\n" "${a[@]}""#, "<x[y>\n<z>\n"),
             (r#"a=(x\ y z); printf "<%s>\n" "${a[@]}""#, "<x y>\n<z>\n"),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{script}"
+            );
         }
     }
 
     #[test]
     fn quoted_arrays_expand_in_order_and_keep_each_argument() {
-        for (word,expected) in [
+        for (word, expected) in [
             (r#""$((a[0]++)):${a[@]}""#, "<10:11>\n<two words>\n"),
             (r#""p$@s""#, "<px>\n<y zs>\n"),
             (r#""${a[@]}-${b[@]}""#, "<10>\n<two words->\n<last>\n"),
@@ -17782,14 +20663,23 @@ hash -l
             (r#""${b[@]}""${a[@]}""#, "<>\n<last10>\n<two words>\n"),
             (r#""${a[@]:1:1}""#, "<two words>\n"),
             (r#""\${a[@]}""#, "<${a[@]}>\n"),
-            (r#""x${a[@]}$((a[0]+=5))${a[@]}""#, "<x10>\n<two words1515>\n<two words>\n"),
+            (
+                r#""x${a[@]}$((a[0]+=5))${a[@]}""#,
+                "<x10>\n<two words1515>\n<two words>\n",
+            ),
             (r#""x$@"y"#, "<xx>\n<y zy>\n"),
             (r#""${a[@]}"*"#, "<10>\n<two words*>\n"),
         ] {
-            let script=format!(r#"a=(10 "two words"); b=("" last); empty=(); set -- x "y z"; for v in {word}; do printf "<%s>\n" "$v"; done"#);
-            let (mut shell,_) = crate::shell::Shell::with_memory_fs();
-            let r=shell.exec(&script).unwrap();
-            assert_eq!((r.exit_code,r.stdout.as_str(),r.stderr.as_str()),(0,expected,""),"{word}");
+            let script = format!(
+                r#"a=(10 "two words"); b=("" last); empty=(); set -- x "y z"; for v in {word}; do printf "<%s>\n" "$v"; done"#
+            );
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(&script).unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, expected, ""),
+                "{word}"
+            );
         }
     }
 
@@ -18111,11 +21001,21 @@ fi"#,
         let path = "/proc/self/fd/3";
         let script = format!("source {path} 3<<<'echo descriptor'");
         let r = shell.exec(&script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "", format!("shell: line 1: {path}: No such file or directory\n")));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr),
+            (
+                1,
+                "",
+                format!("shell: line 1: {path}: No such file or directory\n")
+            )
+        );
         fs.mkdir_all(&crate::vfs::dirname_posix_path(path)).unwrap();
         fs.write_file(path, b"echo file").unwrap();
         let r = shell.exec(&script).unwrap();
-        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "file\n", ""));
+        assert_eq!(
+            (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "file\n", "")
+        );
     }
 
     #[test]
@@ -18126,7 +21026,8 @@ fi"#,
         let vfs = crate::vfs::MemoryVfs::new();
         vfs.mkdir_all("/workspace").unwrap();
         vfs.mkdir_all("/dev/fd").unwrap();
-        vfs.write_file("/dev/fd/3", b"cb_src() {\n  missing_cb_cmd\n}\n").unwrap();
+        vfs.write_file("/dev/fd/3", b"cb_src() {\n  missing_cb_cmd\n}\n")
+            .unwrap();
         let budget = ExecutionBudget::default();
         let custom = BTreeMap::new();
         let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
@@ -18164,7 +21065,10 @@ printf 'badcmd=%d:%s\n' "$?" "$(cat e_badcmd)"
                 "",
             )
             .unwrap();
-        assert_eq!(r.stderr, "shell: line 11: read: descriptor readiness unavailable through this extension API\n");
+        assert_eq!(
+            r.stderr,
+            "shell: line 11: read: descriptor readiness unavailable through this extension API\n"
+        );
         assert_eq!(r.exit_code, 0);
         assert_eq!(
             r.stdout,
@@ -18406,8 +21310,13 @@ printf 'locale=%s|%s\n' "$c_val" "$u_val"
         lim.max_source_bytes = 20;
         let budget_lim = ExecutionBudget::new(lim, None);
         let mut state_lim = EvalState::new(&mut cwd, &mut env, &vfs, &budget_lim, &custom, false);
-        let err = state_lim.eval_script_str("eval 'VALUE=12345678901234567890'", "").unwrap_err();
-        assert!(matches!(err, EvalError::Budget(ref msg) if msg.contains("Shell limit exceeded: maxSourceBytes")), "unexpected err: {err:?}");
+        let err = state_lim
+            .eval_script_str("eval 'VALUE=12345678901234567890'", "")
+            .unwrap_err();
+        assert!(
+            matches!(err, EvalError::Budget(ref msg) if msg.contains("Shell limit exceeded: maxSourceBytes")),
+            "unexpected err: {err:?}"
+        );
     }
 
     #[test]

@@ -1,0 +1,637 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-None-mkv",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-subrip-mkv",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-None-webm",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mov_text-mp4",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-copy-mkv",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "basic-copy-mp4",
+      "input": "00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "metadata-None-mkv",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "metadata-subrip-mkv",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "metadata-None-webm",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "metadata-mov_text-mp4",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "metadata-copy-mkv",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "metadata-copy-mp4",
+      "input": "[INFORMATION]\n[TITLE]Example\n[AUTHOR]Someone\n[END INFORMATION]\n[SUBTITLE]\n[COLF]&HFFFFFF,[STYLE]bd,[SIZE]24,[FONT]Arial\n00:00:01.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "markup-None-mkv",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\n<i>italic</i> &amp; <b>bold[BR]upper\r\nlower|pipe\r\nescape</b>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "markup-subrip-mkv",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\n<i>italic</i> &amp; <b>bold[BR]upper\r\nlower|pipe\r\nescape</b>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "markup-None-webm",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\n<i>italic</i> & <b>bold[BR]upper\r\nlower|pipe\r\nescape</b>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "markup-mov_text-mp4",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,240 --> 00:00:03,500\n<i>italic</i> &amp; <b>bold[BR]upper\r\nlower|pipe\r\nescape</b>\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "markup-copy-mkv",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "markup-copy-mp4",
+      "input": "00:00:01.24,00:00:03.50\n<i>italic</i> &amp; {\\b1}bold[BR]upper[br]lower|pipe\\Nescape\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "negative-None-mkv",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,260\nFirst\r\nline\n\n2\n00:00:04,760 --> 00:00:06,760\nSecond\n\n"
+    },
+    {
+      "name": "negative-subrip-mkv",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,260\nFirst\r\nline\n\n2\n00:00:04,760 --> 00:00:06,760\nSecond\n\n"
+    },
+    {
+      "name": "negative-None-webm",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "out.webm"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,260\nFirst\r\nline\n\n2\n00:00:04,760 --> 00:00:06,760\nSecond\n\n"
+    },
+    {
+      "name": "negative-mov_text-mp4",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:04,760\nFirst\r\nline\n\n2\n00:00:04,760 --> 00:00:11,520\nSecond\n\n"
+    },
+    {
+      "name": "negative-copy-mkv",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "negative-copy-mp4",
+      "input": "00:00:-1.24,00:00:03.50\nFirst[br]line\n\n00:00:04.00,00:00:06.00\nSecond\n\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer",
+        "-i",
+        "input.sub",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    }
+  ]
+}

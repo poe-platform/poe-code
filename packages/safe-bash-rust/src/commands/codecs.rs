@@ -3,26 +3,27 @@ mod bzip2_encode;
 #[path = "xz_filters.rs"]
 mod xz_filters;
 
-fn crc32_byte(state:u32, byte:u8)->u32 {
-    const TABLE:[u32;256]={
-        let mut table=[0;256];
-        let mut i=0;
-        while i<256 {
-            let mut n=i as u32;
-            let mut bit=0;
-            while bit<8 {
-                n=(n>>1) ^ (0xedb8_8320 & (n&1).wrapping_neg());
-                bit+=1;
+fn crc32_byte(state: u32, byte: u8) -> u32 {
+    const TABLE: [u32; 256] = {
+        let mut table = [0; 256];
+        let mut i = 0;
+        while i < 256 {
+            let mut n = i as u32;
+            let mut bit = 0;
+            while bit < 8 {
+                n = (n >> 1) ^ (0xedb8_8320 & (n & 1).wrapping_neg());
+                bit += 1;
             }
-            table[i]=n;i+=1;
+            table[i] = n;
+            i += 1;
         }
         table
     };
-    (state>>8)^TABLE[((state as u8)^byte) as usize]
+    (state >> 8) ^ TABLE[((state as u8) ^ byte) as usize]
 }
 
 pub fn crc32_ieee(data: &[u8]) -> u32 {
-    !data.iter().copied().fold(u32::MAX,crc32_byte)
+    !data.iter().copied().fold(u32::MAX, crc32_byte)
 }
 
 pub fn crc64_xz(data: &[u8]) -> u64 {
@@ -81,10 +82,22 @@ pub fn xxh64(data: &[u8], seed: u64) -> u64 {
         let mut v3 = seed;
         let mut v4 = seed.wrapping_sub(P1);
         while pos + 32 <= data.len() {
-            v1 = round(v1, u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap()));
-            v2 = round(v2, u64::from_le_bytes(data[pos + 8..pos + 16].try_into().unwrap()));
-            v3 = round(v3, u64::from_le_bytes(data[pos + 16..pos + 24].try_into().unwrap()));
-            v4 = round(v4, u64::from_le_bytes(data[pos + 24..pos + 32].try_into().unwrap()));
+            v1 = round(
+                v1,
+                u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap()),
+            );
+            v2 = round(
+                v2,
+                u64::from_le_bytes(data[pos + 8..pos + 16].try_into().unwrap()),
+            );
+            v3 = round(
+                v3,
+                u64::from_le_bytes(data[pos + 16..pos + 24].try_into().unwrap()),
+            );
+            v4 = round(
+                v4,
+                u64::from_le_bytes(data[pos + 24..pos + 32].try_into().unwrap()),
+            );
             pos += 32;
         }
         let mut h = v1
@@ -104,13 +117,17 @@ pub fn xxh64(data: &[u8], seed: u64) -> u64 {
     h64 = h64.wrapping_add(data.len() as u64);
 
     while pos + 8 <= data.len() {
-        let k1 = round(0, u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap()));
+        let k1 = round(
+            0,
+            u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap()),
+        );
         h64 ^= k1;
         h64 = h64.rotate_left(27).wrapping_mul(P1).wrapping_add(P4);
         pos += 8;
     }
     if pos + 4 <= data.len() {
-        let k1 = (u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as u64).wrapping_mul(P1);
+        let k1 =
+            (u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as u64).wrapping_mul(P1);
         h64 ^= k1;
         h64 = h64.rotate_left(23).wrapping_mul(P2).wrapping_add(P3);
         pos += 4;
@@ -134,8 +151,8 @@ pub fn xxh64(data: &[u8], seed: u64) -> u64 {
 // RFC 1951 DEFLATE / INFLATE & RFC 1952 GZIP
 // ============================================================================
 
-pub use terminal_png_rust::inflate::{inflate_raw, inflate_raw_bounded, deflate_member};
-use terminal_png_rust::inflate::{LEN_BASE, LEN_EXTRA, DIST_BASE, DIST_EXTRA};
+use terminal_png_rust::inflate::{DIST_BASE, DIST_EXTRA, LEN_BASE, LEN_EXTRA};
+pub use terminal_png_rust::inflate::{deflate_member, inflate_raw, inflate_raw_bounded};
 
 // RFC 1951: pack fields least-significant bit first, Huffman codes most-significant bit first.
 struct DeflateWriter {
@@ -176,7 +193,12 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
         9 => 2,
         _ => 0,
     };
-    let mut out = deflate(data, level, vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255], |_| {});
+    let mut out = deflate(
+        data,
+        level,
+        vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255],
+        |_| {},
+    );
     let crc = crc32_ieee(data);
     out.extend_from_slice(&crc.to_le_bytes());
     out.extend_from_slice(&(data.len() as u32).to_le_bytes());
@@ -197,44 +219,71 @@ pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
 // input. The final push also includes the zlib checksum.
 pub(super) fn png_zlib_chunks(data: &[u8], mut emit: impl FnMut(&[u8])) {
     emit(&[0x78, 0x9c]);
-    let mut sent=0;
-    let mut out=deflate(data, 6, Vec::new(), |block| {
-        sent+=block.len();
-        for chunk in block.chunks(4084) {emit(chunk);}
+    let mut sent = 0;
+    let mut out = deflate(data, 6, Vec::new(), |block| {
+        sent += block.len();
+        for chunk in block.chunks(4084) {
+            emit(chunk);
+        }
     });
     out.extend_from_slice(&adler32(data).to_be_bytes());
-    for chunk in out[sent..].chunks(4084) {emit(chunk);}
+    for chunk in out[sent..].chunks(4084) {
+        emit(chunk);
+    }
 }
 
 // Mermaid writes one fixed Huffman block, matching runs at distances 1 and 4.
-pub(super) fn zlib_pixel_runs(data:&[u8])->Vec<u8>{
-    let mut w=DeflateWriter{bytes:vec![0x78,1],bits:0,pending:0};
-    w.bits(3,3);
-    let mut i=0;
-    while i<data.len(){
-        let mut matched=0;
-        for distance in [1usize,4]{
-            if i<distance{continue;}
-            let mut n=0;
-            while n<(data.len()-i).min(258) && data[i+n]==data[i+n-distance]{n+=1;}
-            if n>=distance.max(3){
-                let l=LEN_BASE.partition_point(|&b|usize::from(b)<=n)-1;
-                w.symbol(257+l as u16);w.bits(n as u16-LEN_BASE[l],LEN_EXTRA[l]);
-                w.bits(((distance-1) as u16).reverse_bits()>>11,5);
-                matched=n;break;
+pub(super) fn zlib_pixel_runs(data: &[u8]) -> Vec<u8> {
+    let mut w = DeflateWriter {
+        bytes: vec![0x78, 1],
+        bits: 0,
+        pending: 0,
+    };
+    w.bits(3, 3);
+    let mut i = 0;
+    while i < data.len() {
+        let mut matched = 0;
+        for distance in [1usize, 4] {
+            if i < distance {
+                continue;
+            }
+            let mut n = 0;
+            while n < (data.len() - i).min(258) && data[i + n] == data[i + n - distance] {
+                n += 1;
+            }
+            if n >= distance.max(3) {
+                let l = LEN_BASE.partition_point(|&b| usize::from(b) <= n) - 1;
+                w.symbol(257 + l as u16);
+                w.bits(n as u16 - LEN_BASE[l], LEN_EXTRA[l]);
+                w.bits(((distance - 1) as u16).reverse_bits() >> 11, 5);
+                matched = n;
+                break;
             }
         }
-        if matched==0{w.symbol(data[i].into());i+=1;}else{i+=matched;}
+        if matched == 0 {
+            w.symbol(data[i].into());
+            i += 1;
+        } else {
+            i += matched;
+        }
     }
-    w.symbol(256);if w.bits!=0{w.bytes.push(w.pending as u8);}
-    w.bytes.extend_from_slice(&adler32(data).to_be_bytes());w.bytes
+    w.symbol(256);
+    if w.bits != 0 {
+        w.bytes.push(w.pending as u8);
+    }
+    w.bytes.extend_from_slice(&adler32(data).to_be_bytes());
+    w.bytes
 }
 
 pub(super) fn adler32(data: &[u8]) -> u32 {
     let (mut a, mut b) = (1u32, 0u32);
     for chunk in data.chunks(5552) {
-        for &x in chunk { a += u32::from(x); b += a; }
-        a %= 65521; b %= 65521;
+        for &x in chunk {
+            a += u32::from(x);
+            b += a;
+        }
+        a %= 65521;
+        b %= 65521;
     }
     (b << 16) | a
 }
@@ -250,7 +299,9 @@ pub(super) fn gzip_decompress_bounded(data: &[u8], limit: usize) -> Result<Vec<u
         let (member, consumed) = gzip_member(remaining, limit - out.len())?;
         out.extend_from_slice(&member);
         remaining = &remaining[consumed..];
-        if remaining.is_empty() { return Ok(out); }
+        if remaining.is_empty() {
+            return Ok(out);
+        }
     }
 }
 
@@ -308,7 +359,7 @@ fn gzip_member(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
 // BZIP2 (.bz2) COMPRESS & DECOMPRESS
 // ============================================================================
 
-pub(super) use terminal_png_rust::lzw::{MsbBitWriter, MsbBitReader};
+pub(super) use terminal_png_rust::lzw::{MsbBitReader, MsbBitWriter};
 
 // TIFF and PDF pack LZW codes most significant bit first. Dictionary phrases
 // are spans of the decoded output, with at most 4096 codes in use.
@@ -327,7 +378,9 @@ pub(super) fn tiff_lzw(input: &[u8]) -> Vec<u8> {
             writer.write_bits(prefix.into(), width);
             let next = 258 + table.len() as u16;
             table.insert((prefix, byte), next);
-            if next + 1 == 1 << width && width < 12 { width += 1; }
+            if next + 1 == 1 << width && width < 12 {
+                width += 1;
+            }
             if next == 4093 {
                 writer.write_bits(256, width);
                 table.clear();
@@ -336,7 +389,9 @@ pub(super) fn tiff_lzw(input: &[u8]) -> Vec<u8> {
             prefix = byte.into();
         }
         writer.write_bits(prefix.into(), width);
-        if 259 + table.len() == 1 << width && width < 12 { width += 1; }
+        if 259 + table.len() == 1 << width && width < 12 {
+            width += 1;
+        }
     }
     writer.write_bits(257, width);
     writer.finish()
@@ -487,7 +542,9 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
 
 pub(super) fn bzip2_header_prefix(data: &[u8]) -> bool {
     b"BZh".iter().zip(data).all(|(a, b)| a == b)
-        && data.get(3).is_none_or(|level| (b'1'..=b'9').contains(level))
+        && data
+            .get(3)
+            .is_none_or(|level| (b'1'..=b'9').contains(level))
 }
 
 pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
@@ -514,7 +571,9 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 }
                 br.align_byte();
                 pos = br.consumed_bytes();
-                if pos == data.len() { return Ok(out); }
+                if pos == data.len() {
+                    return Ok(out);
+                }
                 break;
             }
             if magic != 0x3141_5926_5359 {
@@ -639,7 +698,10 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                     zvec = (zvec << 1) | (br.read_bits(1)? as i32);
                 }
                 let idx = (zvec - tbl.base[zn]) as usize;
-                tbl.perm.get(idx).copied().ok_or_else(|| "Compressed data error".into())
+                tbl.perm
+                    .get(idx)
+                    .copied()
+                    .ok_or_else(|| "Compressed data error".into())
             };
 
             let mut yy = seq_to_unseq.clone();
@@ -786,33 +848,75 @@ mod tests {
 
     #[test]
     fn zlib_streams_match_production_fixed_dynamic_and_stored_blocks() {
-        let mixed = (0usize..120000).map(|i| ((if i%5000 < 4300 { (i>>5) ^ (i%5) } else { i*7919 }) ^ (i>>9)) as u8).collect();
+        let mixed = (0usize..120000)
+            .map(|i| {
+                ((if i % 5000 < 4300 {
+                    (i >> 5) ^ (i % 5)
+                } else {
+                    i * 7919
+                }) ^ (i >> 9)) as u8
+            })
+            .collect();
         let mut seed = 1u32;
-        let noise = (0..70000).map(|_| { seed = seed.wrapping_mul(1664525).wrapping_add(1013904223); (seed>>24) as u8 }).collect();
+        let noise = (0..70000)
+            .map(|_| {
+                seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+                (seed >> 24) as u8
+            })
+            .collect();
         for (data, expected) in [
-            (b"hello hello hello".to_vec(), "98437c7b782ac27a3898e0b4b4bc2f5db19e2f88bfa993e9da97a50a27d332e4"),
-            (b"alpha,bravo,charlie\n".repeat(600), "f9115b4273133fd97a36e3e8e823f1316f72d3c0f7a832fc0d21b2d280352568"),
-            (mixed, "7ec635ecd5325f6726482fe28b5b1c6dfb898bf4f9780a9b24c0778852834179"),
-            (noise, "a188c3fcf293ab3cd8927db33e076930b964d295413275278ee0f83bc5819334"),
+            (
+                b"hello hello hello".to_vec(),
+                "98437c7b782ac27a3898e0b4b4bc2f5db19e2f88bfa993e9da97a50a27d332e4",
+            ),
+            (
+                b"alpha,bravo,charlie\n".repeat(600),
+                "f9115b4273133fd97a36e3e8e823f1316f72d3c0f7a832fc0d21b2d280352568",
+            ),
+            (
+                mixed,
+                "7ec635ecd5325f6726482fe28b5b1c6dfb898bf4f9780a9b24c0778852834179",
+            ),
+            (
+                noise,
+                "a188c3fcf293ab3cd8927db33e076930b964d295413275278ee0f83bc5819334",
+            ),
         ] {
             let encoded = zlib_compress(&data);
             assert_eq!(inflate_raw(&encoded[2..]).unwrap().0, data);
-            let digest: String = crate::commands::archive::sha256_bytes(&encoded).iter().map(|b|format!("{b:02x}")).collect();
+            let digest: String = crate::commands::archive::sha256_bytes(&encoded)
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect();
             assert_eq!(digest, expected, "{} input bytes", data.len());
         }
     }
 
     #[test]
     fn gzip_levels_match_production_match_selection() {
-        let data: Vec<u8> = (0usize..12000).map(|i| ((if i%5000 < 4300 { (i>>5) ^ (i%5) } else { i*7919 }) ^ (i>>9)) as u8).collect();
+        let data: Vec<u8> = (0usize..12000)
+            .map(|i| {
+                ((if i % 5000 < 4300 {
+                    (i >> 5) ^ (i % 5)
+                } else {
+                    i * 7919
+                }) ^ (i >> 9)) as u8
+            })
+            .collect();
         let mut streams = Vec::new();
         for level in 1..=9 {
-            let compressed = gzip_compress_level(&data,level);
-            assert_eq!(gzip_decompress(&compressed).unwrap(),data);
+            let compressed = gzip_compress_level(&data, level);
+            assert_eq!(gzip_decompress(&compressed).unwrap(), data);
             streams.extend(compressed);
         }
-        let digest: String = crate::commands::archive::sha256_bytes(&streams).iter().map(|b|format!("{b:02x}")).collect();
-        assert_eq!(digest, "ad8e50f82127d77a8568a7fdc2e96c9c8895895fde6f1ba12475da7cd779762e");
+        let digest: String = crate::commands::archive::sha256_bytes(&streams)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(
+            digest,
+            "ad8e50f82127d77a8568a7fdc2e96c9c8895895fde6f1ba12475da7cd779762e"
+        );
     }
 
     #[test]
@@ -845,8 +949,12 @@ mod tests {
 
     #[test]
     fn bzip2_orders_equal_rotations_like_the_reference_encoder() {
-        for (word, repeats, primary) in [("abab", 1, 1), ("abracadabra", 731, 1953),
-            ("abcd", 16384, 16383), ("alpha beta gamma delta\n", 4096, 36863)] {
+        for (word, repeats, primary) in [
+            ("abab", 1, 1),
+            ("abracadabra", 731, 1953),
+            ("abcd", 16384, 16383),
+            ("alpha beta gamma delta\n", 4096, 36863),
+        ] {
             let packed = bzip2_compress(word.repeat(repeats).as_bytes(), 9);
             // The 24-bit primary index follows the randomization bit.
             let field = u32::from_be_bytes(packed[14..18].try_into().unwrap());
@@ -858,21 +966,44 @@ mod tests {
     fn bzip2_writes_native_huffman_tables_and_selectors() {
         // bzip2 1.0.8 -9c: inputs span each table-count threshold.
         for (size, expected) in [
-            (1, "f975d5e4b99c5dd8cea43d5b1c1cf03ba72dc4fc41a3eabb9bb05e9d242ab125"),
-            (100, "a71b45fc449850163fad43d907de394303effa1ec6f8595bc6b61502c67fe605"),
-            (360, "67757b2ad9811ccd752199e7362a9c913965087e19a0b1b7fe5f35ebe732c03b"),
-            (720, "c07c7f7b4b66dd9c4959e6d8c35e76e7c3a98c97bef78b2c8e1a6d1e38d1c9c1"),
-            (1800, "d8179aa3237a8347d7d1dd8cfcee1eb42c1cedb322337c1a502e0fac4b63faa3"),
-            (4096, "6587f90db5bc0094a5b0452e62ca410a89e44c1bc7cb1122943aa467b2dcbbcc"),
+            (
+                1,
+                "f975d5e4b99c5dd8cea43d5b1c1cf03ba72dc4fc41a3eabb9bb05e9d242ab125",
+            ),
+            (
+                100,
+                "a71b45fc449850163fad43d907de394303effa1ec6f8595bc6b61502c67fe605",
+            ),
+            (
+                360,
+                "67757b2ad9811ccd752199e7362a9c913965087e19a0b1b7fe5f35ebe732c03b",
+            ),
+            (
+                720,
+                "c07c7f7b4b66dd9c4959e6d8c35e76e7c3a98c97bef78b2c8e1a6d1e38d1c9c1",
+            ),
+            (
+                1800,
+                "d8179aa3237a8347d7d1dd8cfcee1eb42c1cedb322337c1a502e0fac4b63faa3",
+            ),
+            (
+                4096,
+                "6587f90db5bc0094a5b0452e62ca410a89e44c1bc7cb1122943aa467b2dcbbcc",
+            ),
         ] {
-            let mut seed=1u32;
-            let input: Vec<u8>=(0..size).map(|_| {
-                seed=seed.wrapping_mul(1664525).wrapping_add(1013904223);
-                (seed>>24) as u8
-            }).collect();
-            let data=bzip2_compress(&input,9);
-            let digest:String=crate::commands::archive::sha256_bytes(&data).iter().map(|b|format!("{b:02x}")).collect();
-            assert_eq!(digest,expected,"{size} bytes");
+            let mut seed = 1u32;
+            let input: Vec<u8> = (0..size)
+                .map(|_| {
+                    seed = seed.wrapping_mul(1664525).wrapping_add(1013904223);
+                    (seed >> 24) as u8
+                })
+                .collect();
+            let data = bzip2_compress(&input, 9);
+            let digest: String = crate::commands::archive::sha256_bytes(&data)
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect();
+            assert_eq!(digest, expected, "{size} bytes");
         }
     }
 
@@ -979,10 +1110,16 @@ mod tests {
         let mut ambiguous = empty.clone();
         ambiguous[20] = 22;
         ambiguous.extend(&empty);
-        assert_eq!(parse_zip_archive(&ambiguous).err().as_deref(), Some("ZIP ambiguous end records"));
+        assert_eq!(
+            parse_zip_archive(&ambiguous).err().as_deref(),
+            Some("ZIP ambiguous end records")
+        );
         let mut split = empty;
         split[4] = 1;
-        assert_eq!(parse_zip_archive(&split).err().as_deref(), Some("ZIP multi-disk archive requires an explicit VFS volume resolver"));
+        assert_eq!(
+            parse_zip_archive(&split).err().as_deref(),
+            Some("ZIP multi-disk archive requires an explicit VFS volume resolver")
+        );
     }
 
     #[test]
@@ -1058,14 +1195,27 @@ pub(super) fn xz_compress_level(data: &[u8], check_id: u8, level: u8) -> Vec<u8>
     if !data.is_empty() {
         let block_start = out.len();
         let dict_log = LZMA_DICT_LOG[level as usize];
-        let bh_body = [0x02, 0x00, 0x21, 0x01, 2 * (dict_log - 12), 0x00, 0x00, 0x00];
+        let bh_body = [
+            0x02,
+            0x00,
+            0x21,
+            0x01,
+            2 * (dict_log - 12),
+            0x00,
+            0x00,
+            0x00,
+        ];
         out.extend_from_slice(&bh_body);
         out.extend_from_slice(&crc32_ieee(&bh_body).to_le_bytes());
 
         let mut pos = 0;
         while pos < data.len() {
             let remaining = &data[pos..];
-            let (packed, used) = encode_lzma_chunk(&remaining[..remaining.len().min(1 << 21)], 1 << dict_log, false);
+            let (packed, used) = encode_lzma_chunk(
+                &remaining[..remaining.len().min(1 << 21)],
+                1 << dict_log,
+                false,
+            );
             if packed.len() + 3 < used && packed.len() <= 65536 {
                 let size = used - 1;
                 out.push(0xe0 | (size >> 16) as u8); // Reset dictionary, state and properties.
@@ -1192,22 +1342,36 @@ impl LzmaRangeEncoder {
     }
 
     fn distance(&mut self, model: &mut LzmaState, len: usize, dist: u32) {
-        let slot = if dist < 4 { dist } else {
+        let slot = if dist < 4 {
+            dist
+        } else {
             let high = dist.ilog2();
             2 * high + ((dist >> (high - 1)) & 1)
         };
         self.tree(&mut model.pos_slot[(len - 2).min(3)], 6, slot, false);
-        if slot < 4 { return; }
+        if slot < 4 {
+            return;
+        }
         let bits = (slot >> 1) - 1;
         let base = (2 | (slot & 1)) << bits;
         let extra = dist - base;
         if slot < 14 {
-            self.tree(&mut model.pos_special[(base - slot) as usize..], bits, extra, true);
+            self.tree(
+                &mut model.pos_special[(base - slot) as usize..],
+                bits,
+                extra,
+                true,
+            );
         } else {
             for i in (4..bits).rev() {
                 self.range >>= 1;
-                if extra >> i & 1 != 0 { self.low += u64::from(self.range); }
-                if self.range < 1 << 24 { self.range <<= 8; self.shift_low(); }
+                if extra >> i & 1 != 0 {
+                    self.low += u64::from(self.range);
+                }
+                if self.range < 1 << 24 {
+                    self.range <<= 8;
+                    self.shift_low();
+                }
             }
             self.tree(&mut model.pos_align, 4, extra, true);
         }
@@ -1245,7 +1409,9 @@ fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u
         let pos_state = pos & 3;
         let remaining = data.len() - pos;
         // LZMA2 stores the packed length in 16 bits. Leave room for the last symbol and range flush.
-        if !standalone && (remaining == 0 || rc.out.len() + rc.cache_size as usize >= 65536 - 32) { break; }
+        if !standalone && (remaining == 0 || rc.out.len() + rc.cache_size as usize >= 65536 - 32) {
+            break;
+        }
         if remaining == 0 {
             rc.encode_bit(&mut m.is_match[m.state][pos_state], 1);
             rc.encode_bit(&mut m.is_rep[m.state], 0);
@@ -1254,11 +1420,16 @@ fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u
             break;
         }
         let match_len = |dist: usize| {
-            if dist >= pos { return 0; }
+            if dist >= pos {
+                return 0;
+            }
             let at = pos - dist - 1;
             let max = remaining.min(273);
-            data[pos..pos + max].iter().zip(&data[at..at + max])
-                .position(|(a, b)| a != b).unwrap_or(max)
+            data[pos..pos + max]
+                .iter()
+                .zip(&data[at..at + max])
+                .position(|(a, b)| a != b)
+                .unwrap_or(max)
         };
         let mut rep = None;
         let mut len = 0;
@@ -1268,12 +1439,16 @@ fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u
             if n > len && (i == 0 || n >= 2) {
                 len = n;
                 rep = Some(i);
-                if n == remaining.min(273) { break; }
+                if n == remaining.min(273) {
+                    break;
+                }
             }
         }
-        if remaining >= 2 && len < remaining.min(273)
+        if remaining >= 2
+            && len < remaining.min(273)
             && let Some(&prev) = recent.get(&[data[pos], data[pos + 1]])
-            && pos - prev <= dictionary {
+            && pos - prev <= dictionary
+        {
             let dist = pos - prev - 1;
             let n = match_len(dist);
             if n > len {
@@ -1288,16 +1463,28 @@ fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u
             let probs = &mut m.lit_probs[(prev >> 5) as usize];
             let mut node = 1usize;
             let mut matched = m.state >= 7;
-            let prediction = if matched { data[pos - m.reps[0] - 1] } else { 0 };
+            let prediction = if matched {
+                data[pos - m.reps[0] - 1]
+            } else {
+                0
+            };
             for shift in (0..8).rev() {
                 let bit = (data[pos] >> shift) & 1;
                 let expect = (prediction >> shift) & 1;
-                let index = if matched { ((1 + usize::from(expect)) << 8) + node } else { node };
+                let index = if matched {
+                    ((1 + usize::from(expect)) << 8) + node
+                } else {
+                    node
+                };
                 rc.encode_bit(&mut probs[index], u32::from(bit));
                 matched &= expect == bit;
                 node = (node << 1) | usize::from(bit);
             }
-            m.state = match m.state { 0..=3 => 0, 4..=9 => m.state - 3, _ => m.state - 6 };
+            m.state = match m.state {
+                0..=3 => 0,
+                4..=9 => m.state - 3,
+                _ => m.state - 6,
+            };
             len = 1;
         } else {
             rc.encode_bit(&mut m.is_rep[m.state], u32::from(rep.is_some()));
@@ -1307,11 +1494,21 @@ fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u
                     rc.encode_bit(&mut m.is_rep0_long[m.state][pos_state], u32::from(len != 1));
                 } else {
                     rc.encode_bit(&mut m.is_rep_g1[m.state], u32::from(i != 1));
-                    if i >= 2 { rc.encode_bit(&mut m.is_rep_g2[m.state], u32::from(i == 3)); }
+                    if i >= 2 {
+                        rc.encode_bit(&mut m.is_rep_g2[m.state], u32::from(i == 3));
+                    }
                     m.reps[..=i].rotate_right(1);
                 }
-                if len > 1 { m.rep_len_dec.encode(&mut rc, pos_state, len); }
-                m.state = if m.state >= 7 { 11 } else if len == 1 { 9 } else { 8 };
+                if len > 1 {
+                    m.rep_len_dec.encode(&mut rc, pos_state, len);
+                }
+                m.state = if m.state >= 7 {
+                    11
+                } else if len == 1 {
+                    9
+                } else {
+                    8
+                };
             } else {
                 m.len_dec.encode(&mut rc, pos_state, len);
                 rc.distance(&mut m, len, distance as u32);
@@ -1340,7 +1537,9 @@ impl<'a> LzmaRangeDecoder<'a> {
         if data.first().is_some_and(|&b| b != 0) {
             return Err("Compressed data is corrupt".into());
         }
-        if data.len() < 5 { return Err("unexpected end of file".into()); }
+        if data.len() < 5 {
+            return Err("unexpected end of file".into());
+        }
         let code = u32::from_be_bytes([data[1], data[2], data[3], data[4]]);
         Ok(Self {
             data,
@@ -1400,7 +1599,11 @@ impl<'a> LzmaRangeDecoder<'a> {
         Ok((m - (1 << num_bits)) as u32)
     }
 
-    fn decode_bittree_reverse(&mut self, probs: &mut [u16], num_bits: usize) -> Result<u32, String> {
+    fn decode_bittree_reverse(
+        &mut self,
+        probs: &mut [u16],
+        num_bits: usize,
+    ) -> Result<u32, String> {
         let mut m = 1usize;
         let mut symbol = 0u32;
         for i in 0..num_bits {
@@ -1446,8 +1649,11 @@ impl LzmaLenDecoder {
             rc.tree(&mut self.low[pos_state], 3, value, false);
         } else {
             rc.encode_bit(&mut self.choice2, u32::from(value >= 16));
-            if value < 16 { rc.tree(&mut self.mid[pos_state], 3, value - 8, false); }
-            else { rc.tree(&mut self.high, 8, value - 16, false); }
+            if value < 16 {
+                rc.tree(&mut self.mid[pos_state], 3, value - 8, false);
+            } else {
+                rc.tree(&mut self.high, 8, value - 16, false);
+            }
         }
     }
 
@@ -1462,10 +1668,10 @@ impl LzmaLenDecoder {
     }
 }
 
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 enum LzmaEnd {
     Size(usize),
-    Marker { maximum:usize },
+    Marker { maximum: usize },
 }
 
 struct LzmaState {
@@ -1554,21 +1760,25 @@ impl LzmaState {
         dictionary_start: usize,
         dictionary_size: usize,
         end: LzmaEnd,
-    ) -> Result<(usize,bool), String> {
+    ) -> Result<(usize, bool), String> {
         let mut rc = LzmaRangeDecoder::new(payload)?;
         let start_out_len = out.len();
         let pb_mask = (1usize << self.pb) - 1;
         let lp_mask = (1usize << self.lp) - 1;
         loop {
-            let written=out.len()-start_out_len;
+            let written = out.len() - start_out_len;
             match end {
-                LzmaEnd::Size(size) if written==size=>break,
-                LzmaEnd::Size(size) if written>size=>return Err("Compressed data is corrupt".into()),
-                LzmaEnd::Marker{maximum} if written>maximum=>return Err("ZIP decoded byte limit exceeded or invalid value".into()),
-                _=>{}
+                LzmaEnd::Size(size) if written == size => break,
+                LzmaEnd::Size(size) if written > size => {
+                    return Err("Compressed data is corrupt".into());
+                }
+                LzmaEnd::Marker { maximum } if written > maximum => {
+                    return Err("ZIP decoded byte limit exceeded or invalid value".into());
+                }
+                _ => {}
             }
             let history = &out[dictionary_start..];
-            let available=history.len().min(dictionary_size);
+            let available = history.len().min(dictionary_size);
             let pos_state = history.len() & pb_mask;
             if rc.decode_bit(&mut self.is_match[self.state][pos_state])? == 0 {
                 let prev_byte = history.last().copied().unwrap_or(0) as usize;
@@ -1585,7 +1795,8 @@ impl LzmaState {
                     while symbol < 0x100 {
                         let match_bit = (match_byte >> 7) & 1;
                         match_byte <<= 1;
-                        let bit = rc.decode_bit(&mut probs[((1 + match_bit) << 8) + symbol])? as usize;
+                        let bit =
+                            rc.decode_bit(&mut probs[((1 + match_bit) << 8) + symbol])? as usize;
                         symbol = (symbol << 1) | bit;
                         if match_bit != bit {
                             break;
@@ -1655,7 +1866,7 @@ impl LzmaState {
                             dist += rc.decode_direct_bits(num_direct_bits - 4)? << 4;
                             dist += rc.decode_bittree_reverse(&mut self.pos_align, 4)?;
                             if dist == 0xffff_ffff {
-                                if matches!(end,LzmaEnd::Marker{..}) {
+                                if matches!(end, LzmaEnd::Marker { .. }) {
                                     break;
                                 }
                                 return Err("Compressed data is corrupt".into());
@@ -1677,7 +1888,7 @@ impl LzmaState {
             }
         }
         rc.normalize()?;
-        Ok((rc.pos,rc.code==0))
+        Ok((rc.pos, rc.code == 0))
     }
 }
 
@@ -1688,13 +1899,18 @@ fn valid_lzma_properties(prop: u8) -> bool {
 }
 
 pub(super) fn lzma_auto_header_prefix(data: &[u8]) -> bool {
-    if data.first().is_some_and(|&prop| !valid_lzma_properties(prop)) {
+    if data
+        .first()
+        .is_some_and(|&prop| !valid_lzma_properties(prop))
+    {
         return false;
     }
     if let Some(dict) = data.get(1..5) {
         let dict = u32::from_le_bytes(dict.try_into().unwrap());
         let base = if dict % 3 == 0 { dict / 3 } else { dict };
-        if dict != u32::MAX && !base.is_power_of_two() { return false; }
+        if dict != u32::MAX && !base.is_power_of_two() {
+            return false;
+        }
     }
     data.get(5..13).is_none_or(|size| {
         let size = u64::from_le_bytes(size.try_into().unwrap());
@@ -1703,7 +1919,10 @@ pub(super) fn lzma_auto_header_prefix(data: &[u8]) -> bool {
 }
 
 pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
-    if data.first().is_some_and(|&prop| !valid_lzma_properties(prop)) {
+    if data
+        .first()
+        .is_some_and(|&prop| !valid_lzma_properties(prop))
+    {
         return Err("Compressed data is corrupt".into());
     }
     if data.len() < 13 {
@@ -1712,11 +1931,28 @@ pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
     let prop = data[0];
     let uncomp_size = u64::from_le_bytes(data[5..13].try_into().unwrap());
     let has_eopm = uncomp_size == u64::MAX;
-    let expected = if has_eopm { None } else { Some(uncomp_size as usize) };
+    let expected = if has_eopm {
+        None
+    } else {
+        Some(uncomp_size as usize)
+    };
     let mut state = LzmaState::new(prop)?;
     let mut out = Vec::with_capacity(expected.unwrap_or(1024).min(1024 * 1024));
-    state.decode_chunk(&data[13..], &mut out, 0, usize::MAX, expected.map_or(LzmaEnd::Marker{maximum:usize::MAX},LzmaEnd::Size))?;
-    if let Some(exp) = expected && out.len() != exp {
+    state.decode_chunk(
+        &data[13..],
+        &mut out,
+        0,
+        usize::MAX,
+        expected.map_or(
+            LzmaEnd::Marker {
+                maximum: usize::MAX,
+            },
+            LzmaEnd::Size,
+        ),
+    )?;
+    if let Some(exp) = expected
+        && out.len() != exp
+    {
         return Err("Compressed data is corrupt".into());
     }
     Ok(out)
@@ -1748,7 +1984,9 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 break;
             }
         }
-        if data.len() - pos < 12 { return Err("unexpected end of file".into()); }
+        if data.len() - pos < 12 {
+            return Err("unexpected end of file".into());
+        }
         if !data[pos..].starts_with(XZ_MAGIC) {
             return Err(if streams == 0 {
                 "File format not recognized".into()
@@ -1783,7 +2021,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             if pos + bh_size > data.len() {
                 return Err("unexpected end of file".into());
             }
-            let bh_crc = u32::from_le_bytes(data[pos + bh_size - 4..pos + bh_size].try_into().unwrap());
+            let bh_crc =
+                u32::from_le_bytes(data[pos + bh_size - 4..pos + bh_size].try_into().unwrap());
             if bh_crc != crc32_ieee(&data[pos..pos + bh_size - 4]) {
                 return Err("Compressed data is corrupt".into());
             }
@@ -1793,21 +2032,33 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 return Err("Compressed data is corrupt".into());
             }
             let mut bh_pos = pos + 2;
-            let field = |offset: &mut usize| read_xz_vli(&data[..pos + bh_size - 4], offset)
-                .map_err(|_| "Compressed data is corrupt");
-            let packed_size = (bh_flags & 0x40 != 0).then(|| field(&mut bh_pos)).transpose()?;
-            let unpacked_size = (bh_flags & 0x80 != 0).then(|| field(&mut bh_pos)).transpose()?;
+            let field = |offset: &mut usize| {
+                read_xz_vli(&data[..pos + bh_size - 4], offset)
+                    .map_err(|_| "Compressed data is corrupt")
+            };
+            let packed_size = (bh_flags & 0x40 != 0)
+                .then(|| field(&mut bh_pos))
+                .transpose()?;
+            let unpacked_size = (bh_flags & 0x80 != 0)
+                .then(|| field(&mut bh_pos))
+                .transpose()?;
             let mut filters = Vec::new();
             for i in 0..num_filters {
                 let id = field(&mut bh_pos)?;
-                let len = usize::try_from(field(&mut bh_pos)?).map_err(|_| "Compressed data is corrupt")?;
-                let props = data[bh_pos..pos + bh_size - 4].get(..len).ok_or("Compressed data is corrupt")?;
+                let len = usize::try_from(field(&mut bh_pos)?)
+                    .map_err(|_| "Compressed data is corrupt")?;
+                let props = data[bh_pos..pos + bh_size - 4]
+                    .get(..len)
+                    .ok_or("Compressed data is corrupt")?;
                 if i + 1 == num_filters {
                     if id != 0x21 || !matches!(props, [0..=40]) {
                         return Err("Unsupported options in headers".into());
                     }
                 } else {
-                    filters.push(xz_filters::Filter::from_header(id, props).ok_or("Unsupported options in headers")?);
+                    filters.push(
+                        xz_filters::Filter::from_header(id, props)
+                            .ok_or("Unsupported options in headers")?,
+                    );
                 }
                 bh_pos += len;
             }
@@ -1831,7 +2082,9 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 if ctrl == 0x00 {
                     break;
                 }
-                if ctrl == 1 || ctrl >= 0xe0 { dictionary_start = out.len(); }
+                if ctrl == 1 || ctrl >= 0xe0 {
+                    dictionary_start = out.len();
+                }
                 if ctrl == 0x01 || ctrl == 0x02 {
                     if pos + 2 > data.len() {
                         return Err("unexpected end of file".into());
@@ -1849,7 +2102,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                         return Err("unexpected end of file".into());
                     }
                     let uncomp_lo = u16::from_be_bytes([data[pos], data[pos + 1]]) as usize;
-                    let comp_len = (u16::from_be_bytes([data[pos + 2], data[pos + 3]]) as usize) + 1;
+                    let comp_len =
+                        (u16::from_be_bytes([data[pos + 2], data[pos + 3]]) as usize) + 1;
                     pos += 4;
                     let uncomp_len = uncomp_hi + uncomp_lo + 1;
                     let need_props = ctrl >= 0xc0;
@@ -1879,7 +2133,13 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                     let Some(ref mut st) = lzma_state else {
                         return Err("Compressed data is corrupt".into());
                     };
-                    st.decode_chunk(&data[pos..pos + comp_len], &mut out, dictionary_start, usize::MAX, LzmaEnd::Size(uncomp_len))?;
+                    st.decode_chunk(
+                        &data[pos..pos + comp_len],
+                        &mut out,
+                        dictionary_start,
+                        usize::MAX,
+                        LzmaEnd::Size(uncomp_len),
+                    )?;
                     pos += comp_len;
                 } else {
                     return Err("Compressed data is corrupt".into());
@@ -1926,11 +2186,16 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 }
                 _ => {}
             }
-            expected_records.push(((unpadded_no_check + check_size) as u64, block_slice.len() as u64));
+            expected_records.push((
+                (unpadded_no_check + check_size) as u64,
+                block_slice.len() as u64,
+            ));
         }
 
         // Index
-        if pos >= data.len() { return Err("unexpected end of file".into()); }
+        if pos >= data.len() {
+            return Err("unexpected end of file".into());
+        }
         if data[pos] != 0x00 {
             return Err("Compressed data is corrupt".into());
         }
@@ -1976,7 +2241,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
         if footer_crc != crc32_ieee(&footer[4..10]) {
             return Err("Compressed data is corrupt".into());
         }
-        let backward_size = ((u32::from_le_bytes(footer[4..8].try_into().unwrap()) as usize) + 1) * 4;
+        let backward_size =
+            ((u32::from_le_bytes(footer[4..8].try_into().unwrap()) as usize) + 1) * 4;
         if backward_size != index_size || footer[8..10] != stream_flags {
             return Err("Compressed data is corrupt".into());
         }
@@ -2092,7 +2358,8 @@ pub fn inspect_xz_bytes(data: &[u8]) -> Result<XzInspectInfo, String> {
         }
         let index_start = end - 12 - index_size;
         let index_end_no_crc = end - 16;
-        let stored_idx_crc = u32::from_le_bytes(data[index_end_no_crc..end - 12].try_into().unwrap());
+        let stored_idx_crc =
+            u32::from_le_bytes(data[index_end_no_crc..end - 12].try_into().unwrap());
         if stored_idx_crc != crc32_ieee(&data[index_start..index_end_no_crc]) {
             return Err("Compressed data is corrupt".into());
         }
@@ -2248,7 +2515,11 @@ fn build_fse_table(norm: &[i16], accuracy_log: u8) -> Result<Vec<FseEntry>, Stri
     Ok(table)
 }
 
-fn read_fse_table_desc(data: &[u8], max_symbol: usize, max_log: u8) -> Result<(Vec<FseEntry>, u8, usize), String> {
+fn read_fse_table_desc(
+    data: &[u8],
+    max_symbol: usize,
+    max_log: u8,
+) -> Result<(Vec<FseEntry>, u8, usize), String> {
     if data.is_empty() {
         return Err("Corrupted block detected".into());
     }
@@ -2394,7 +2665,9 @@ impl ZstdHufTable {
         }
         let max_bits = (u32::BITS - sum.leading_zeros()) as u8;
         let total_space = 1u32 << max_bits;
-        let rem = total_space.checked_sub(sum).ok_or_else(|| "Corrupted block detected".to_string())?;
+        let rem = total_space
+            .checked_sub(sum)
+            .ok_or_else(|| "Corrupted block detected".to_string())?;
         if rem == 0 || (rem & (rem - 1)) != 0 {
             return Err("Corrupted block detected".into());
         }
@@ -2439,7 +2712,12 @@ impl ZstdHufTable {
         })
     }
 
-    fn decode_stream(&self, stream: &[u8], out: &mut Vec<u8>, expected: usize) -> Result<(), String> {
+    fn decode_stream(
+        &self,
+        stream: &[u8],
+        out: &mut Vec<u8>,
+        expected: usize,
+    ) -> Result<(), String> {
         let mut br = BackwardBitReader::new(stream)?;
         let start_len = out.len();
         let max_b = self.max_bits as usize;
@@ -2567,7 +2845,12 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
         if rem.len() < 4 {
             let incomplete = 0xfd2fb528u32.to_le_bytes().starts_with(rem)
                 || (0x184d2a50u32..=0x184d2a5f).any(|magic| magic.to_le_bytes().starts_with(rem));
-            return Err(if incomplete { "unexpected end of file" } else { "Unknown frame descriptor" }.into());
+            return Err(if incomplete {
+                "unexpected end of file"
+            } else {
+                "Unknown frame descriptor"
+            }
+            .into());
         }
         let magic = u32::from_le_bytes([rem[0], rem[1], rem[2], rem[3]]);
         if (0x184d_2a50..=0x184d_2a5f).contains(&magic) {
@@ -2670,9 +2953,8 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
             if pos + 3 > data.len() {
                 return Err("Src size is incorrect".into());
             }
-            let bh = (data[pos] as u32)
-                | ((data[pos + 1] as u32) << 8)
-                | ((data[pos + 2] as u32) << 16);
+            let bh =
+                (data[pos] as u32) | ((data[pos + 1] as u32) << 8) | ((data[pos + 2] as u32) << 16);
             pos += 3;
             let last_block = (bh & 1) != 0;
             let block_type = (bh >> 1) & 3;
@@ -2713,7 +2995,9 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
         }
 
         let frame_slice = &out[frame_out_start..];
-        if let Some(fcs) = expected_fcs && (frame_slice.len() as u64) != fcs {
+        if let Some(fcs) = expected_fcs
+            && (frame_slice.len() as u64) != fcs
+        {
             return Err("Restored data doesn't match checksum".into());
         }
         if has_checksum {
@@ -2752,7 +3036,11 @@ fn zstd_decode_compressed_block(
             let (regen_size, comp_size, hdr_size) = match size_fmt {
                 0 | 2 => (
                     (lit_hdr >> 3) as usize,
-                    if lit_type == 1 { 1 } else { (lit_hdr >> 3) as usize },
+                    if lit_type == 1 {
+                        1
+                    } else {
+                        (lit_hdr >> 3) as usize
+                    },
                     1usize,
                 ),
                 1 => {
@@ -2948,7 +3236,9 @@ fn zstd_decode_compressed_block(
                 *spos += read_b;
                 (tbl, log)
             }
-            _ => prev.clone().ok_or_else(|| "Corrupted block detected".to_string())?,
+            _ => prev
+                .clone()
+                .ok_or_else(|| "Corrupted block detected".to_string())?,
         };
         *prev = Some(res.clone());
         Ok(res)
@@ -3045,7 +3335,9 @@ fn zstd_decode_compressed_block(
                 fstate.rep[0]
             } else {
                 let chosen = if idx == 3 {
-                    fstate.rep[0].checked_sub(1).ok_or_else(|| "Corrupted block detected".to_string())?
+                    fstate.rep[0]
+                        .checked_sub(1)
+                        .ok_or_else(|| "Corrupted block detected".to_string())?
                 } else {
                     fstate.rep[idx]
                 };
@@ -3148,16 +3440,32 @@ pub(super) struct ZipRecord<'a> {
     central: &'a [u8],
     descriptor: &'a [u8],
     offset64: Option<usize>,
-    sizes: (usize,usize),
+    sizes: (usize, usize),
 }
-pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
-pub(super) type ZipOwners = std::collections::BTreeMap<String,(u32,u32)>;
+pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String, ZipRecord<'a>>;
+pub(super) type ZipOwners = std::collections::BTreeMap<String, (u32, u32)>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, (false,None,false), (&ZipRecords::new(),&ZipOwners::new()), |_,_,_,_| true)
+    encode_zip_members(
+        entries,
+        (0, 0),
+        &[],
+        false,
+        (false, None, false),
+        (&ZipRecords::new(), &ZipOwners::new()),
+        |_, _, _, _| true,
+    )
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64,strip_extra): (bool,Option<bool>,bool), (retained,owners): (&ZipRecords<'_>,&ZipOwners), mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
+pub(super) fn encode_zip_members(
+    entries: &[crate::commands::archive::TarEntry],
+    (compression, level): (u16, u8),
+    store_suffixes: &[&str],
+    document: bool,
+    (descriptors, zip64, strip_extra): (bool, Option<bool>, bool),
+    (retained, owners): (&ZipRecords<'_>, &ZipOwners),
+    mut report: impl FnMut(&crate::commands::archive::TarEntry, u16, usize, usize) -> bool,
+) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3174,14 +3482,20 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             out.extend_from_slice(record.local);
             let start = central.len();
             central.extend_from_slice(record.central);
-            if let Some(field)=record.offset64 {
-                central[start+field..start+field+8].copy_from_slice(&(local as u64).to_le_bytes());
+            if let Some(field) = record.offset64 {
+                central[start + field..start + field + 8]
+                    .copy_from_slice(&(local as u64).to_le_bytes());
             } else {
-                central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
+                central[start + 42..start + 46].copy_from_slice(&(local as u32).to_le_bytes());
             }
             // Named output already knows the sizes. Like the JS writer, put them
             // in the local header and drop any streaming descriptor on plain members.
-            if record.offset64.is_some() || record.local[18..26].chunks_exact(4).chain(record.central[20..28].chunks_exact(4)).any(|v|v==[255;4]) {
+            if record.offset64.is_some()
+                || record.local[18..26]
+                    .chunks_exact(4)
+                    .chain(record.central[20..28].chunks_exact(4))
+                    .any(|v| v == [255; 4])
+            {
                 out.extend_from_slice(record.descriptor);
                 wide_archive = true;
             } else if record.central[8] & 9 == 9 {
@@ -3189,12 +3503,14 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
                 out.extend_from_slice(&0x08074b50u32.to_le_bytes());
                 out.extend_from_slice(&record.central[16..28]);
             } else if record.central[8] & 8 != 0 {
-                out[local+6] &= !8;
-                central[start+8] &= !8;
-                out[local+14..local+26].copy_from_slice(&record.central[16..28]);
+                out[local + 6] &= !8;
+                central[start + 8] &= !8;
+                out[local + 14..local + 26].copy_from_slice(&record.central[16..28]);
             }
             let method = u16::from_le_bytes(record.central[10..12].try_into().unwrap());
-            if !report(e,method,record.sizes.0,record.sizes.1) {return out;}
+            if !report(e, method, record.sizes.0, record.sizes.1) {
+                return out;
+            }
             count = count.saturating_add(1);
             continue;
         }
@@ -3224,27 +3540,53 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let pipe_member = stdin_member && e.mode & 0o170000 == 0o010000;
         let wide = zip64.unwrap_or(stdin_member);
         wide_archive |= wide && !descriptors;
-        let compress = compression!=0 && level != 0 && !is_dir && !is_symlink && (!payload.is_empty() || stdin_member && descriptors)
-            && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
+        let compress = compression != 0
+            && level != 0
+            && !is_dir
+            && !is_symlink
+            && (!payload.is_empty() || stdin_member && descriptors)
+            && (level == 9
+                || !store_suffixes
+                    .iter()
+                    .any(|suffix| clean_name.ends_with(suffix)));
         let compressed = if compress {
             match compression {
-                12=>bzip2_compress(payload,level),
-                14=>{
-                    let mut wire=vec![9,4,5,0,0x5d,0,0,16,0];
-                    wire.extend_from_slice(&encode_lzma_chunk(payload,1<<20,true).0);
+                12 => bzip2_compress(payload, level),
+                14 => {
+                    let mut wire = vec![9, 4, 5, 0, 0x5d, 0, 0, 16, 0];
+                    wire.extend_from_slice(&encode_lzma_chunk(payload, 1 << 20, true).0);
                     wire
                 }
-                _=>deflate(payload,level,Vec::new(),|_|{}),
+                _ => deflate(payload, level, Vec::new(), |_| {}),
             }
-        }else{Vec::new()};
+        } else {
+            Vec::new()
+        };
         let descriptor = descriptors && !is_dir;
-        let (method, version, stored): (u16, u16, &[u8]) = if compress && (descriptor || compressed.len() < payload.len()) {
-            (compression,match compression {12=>46,14=>63,_=>20}, &compressed)
-        } else { (0, 10, payload) };
-        let version = if wide {version.max(45)} else {version};
-        let flags:u16=0x800 | if descriptor {8} else {0} | if method==14 {2} else {0};
-        let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
-            && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
+        let (method, version, stored): (u16, u16, &[u8]) =
+            if compress && (descriptor || compressed.len() < payload.len()) {
+                (
+                    compression,
+                    match compression {
+                        12 => 46,
+                        14 => 63,
+                        _ => 20,
+                    },
+                    &compressed,
+                )
+            } else {
+                (0, 10, payload)
+            };
+        let version = if wide { version.max(45) } else { version };
+        let flags: u16 = 0x800 | if descriptor { 8 } else { 0 } | if method == 14 { 2 } else { 0 };
+        let text_attr = u16::from(
+            !document
+                && compress
+                && payload
+                    .iter()
+                    .all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
+                && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)),
+        );
         let crc = crc32_ieee(payload);
         let sz = payload.len() as u32;
         let (dos_date, dos_time) = unix_to_dos_datetime(e.mtime as u64);
@@ -3259,16 +3601,24 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             local_extra[4] = 3;
             local_extra.extend_from_slice(&(atime.floor() as i64 as i32).to_le_bytes());
         }
-        if let Some((uid,gid)) = owners.get(&e.name) {
-            extra.extend_from_slice(&[0x75,0x78,11,0,1,4]);
+        if let Some((uid, gid)) = owners.get(&e.name) {
+            extra.extend_from_slice(&[0x75, 0x78, 11, 0, 1, 4]);
             extra.extend_from_slice(&uid.to_le_bytes());
             extra.push(4);
             extra.extend_from_slice(&gid.to_le_bytes());
             local_extra.extend_from_slice(&extra[9..]);
         }
 
-        let extra=if stdin_member || strip_extra {&[][..]} else {&extra[..]};
-        let local_extra=if stdin_member || strip_extra {&[][..]} else {&local_extra[..]};
+        let extra = if stdin_member || strip_extra {
+            &[][..]
+        } else {
+            &extra[..]
+        };
+        let local_extra = if stdin_member || strip_extra {
+            &[][..]
+        } else {
+            &local_extra[..]
+        };
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
         out.extend_from_slice(&version.to_le_bytes());
@@ -3277,25 +3627,44 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         out.extend_from_slice(&dos_time.to_le_bytes());
         out.extend_from_slice(&dos_date.to_le_bytes());
         if wide {
-            out.extend_from_slice(&(if descriptor {0} else {crc}).to_le_bytes());
-            out.extend_from_slice(&[255;8]);
-        } else if descriptor && (method == 8 || pipe_member && method == 0) { out.extend_from_slice(&[0;12]); }
-        else {
-            out.extend_from_slice(&(if descriptor && method == 0 {0} else {crc}).to_le_bytes());
+            out.extend_from_slice(&(if descriptor { 0 } else { crc }).to_le_bytes());
+            out.extend_from_slice(&[255; 8]);
+        } else if descriptor && (method == 8 || pipe_member && method == 0) {
+            out.extend_from_slice(&[0; 12]);
+        } else {
+            out.extend_from_slice(&(if descriptor && method == 0 { 0 } else { crc }).to_le_bytes());
             out.extend_from_slice(&(stored.len() as u32).to_le_bytes());
             out.extend_from_slice(&sz.to_le_bytes());
         }
         out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        out.extend_from_slice(&((local_extra.len() + if wide {20} else {0}) as u16).to_le_bytes());
+        out.extend_from_slice(
+            &((local_extra.len() + if wide { 20 } else { 0 }) as u16).to_le_bytes(),
+        );
         out.extend_from_slice(name_bytes);
         out.extend_from_slice(local_extra);
         if wide {
-            out.extend_from_slice(&[1,0,16,0]);
-            out.extend_from_slice(&(if descriptor && pipe_member {0} else {u64::from(sz)}).to_le_bytes());
-            out.extend_from_slice(&(if descriptor && (method!=0 || pipe_member) {0} else {stored.len() as u64}).to_le_bytes());
+            out.extend_from_slice(&[1, 0, 16, 0]);
+            out.extend_from_slice(
+                &(if descriptor && pipe_member {
+                    0
+                } else {
+                    u64::from(sz)
+                })
+                .to_le_bytes(),
+            );
+            out.extend_from_slice(
+                &(if descriptor && (method != 0 || pipe_member) {
+                    0
+                } else {
+                    stored.len() as u64
+                })
+                .to_le_bytes(),
+            );
         }
         out.extend_from_slice(stored);
-        if !report(e,method,payload.len(),stored.len()) {return out;}
+        if !report(e, method, payload.len(), stored.len()) {
+            return out;
+        }
 
         if descriptor {
             out.extend_from_slice(b"PK\x07\x08");
@@ -3313,7 +3682,9 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             0o040000u32
         } else if is_symlink {
             0o120000u32
-        } else if pipe_member { 0o010000 } else {
+        } else if pipe_member {
+            0o010000
+        } else {
             0o100000u32
         };
         let unix_mode = unix_type | (e.mode & 0o7777);
@@ -3328,9 +3699,11 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&dos_date.to_le_bytes());
         central.extend_from_slice(&crc.to_le_bytes());
         central.extend_from_slice(&(stored.len() as u32).to_le_bytes());
-        central.extend_from_slice(&(if zip64==Some(true) {u32::MAX} else {sz}).to_le_bytes());
+        central.extend_from_slice(&(if zip64 == Some(true) { u32::MAX } else { sz }).to_le_bytes());
         central.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        central.extend_from_slice(&((extra.len() + if zip64==Some(true) {12} else {0}) as u16).to_le_bytes());
+        central.extend_from_slice(
+            &((extra.len() + if zip64 == Some(true) { 12 } else { 0 }) as u16).to_le_bytes(),
+        );
         central.extend_from_slice(&0u16.to_le_bytes());
         central.extend_from_slice(&0u16.to_le_bytes());
         central.extend_from_slice(&text_attr.to_le_bytes());
@@ -3338,8 +3711,8 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         central.extend_from_slice(&local_offset.to_le_bytes());
         central.extend_from_slice(name_bytes);
         central.extend_from_slice(extra);
-        if zip64==Some(true) {
-            central.extend_from_slice(&[1,0,8,0]);
+        if zip64 == Some(true) {
+            central.extend_from_slice(&[1, 0, 8, 0]);
             central.extend_from_slice(&u64::from(sz).to_le_bytes());
         }
         count = count.saturating_add(1);
@@ -3350,11 +3723,18 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
     out.extend_from_slice(&central);
 
     if wide_archive {
-        let offset=out.len() as u64;
+        let offset = out.len() as u64;
         out.extend_from_slice(b"PK\x06\x06");
         out.extend_from_slice(&44u64.to_le_bytes());
-        out.extend_from_slice(&[30,3,45,0,0,0,0,0,0,0,0,0]);
-        for n in [u64::from(count),u64::from(count),central_size.into(),central_offset.into()] {out.extend_from_slice(&n.to_le_bytes());}
+        out.extend_from_slice(&[30, 3, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        for n in [
+            u64::from(count),
+            u64::from(count),
+            central_size.into(),
+            central_offset.into(),
+        ] {
+            out.extend_from_slice(&n.to_le_bytes());
+        }
         out.extend_from_slice(b"PK\x06\x07");
         out.extend_from_slice(&0u32.to_le_bytes());
         out.extend_from_slice(&offset.to_le_bytes());
@@ -3376,84 +3756,131 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
     read_zip_members(data, None)
 }
 
-#[derive(Clone,Copy,PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 struct ZipAes {
-    version:u16,
-    key_bytes:usize,
-    method:u16,
+    version: u16,
+    key_bytes: usize,
+    method: u16,
 }
 
 // ZIP64 stores only the fields whose classic values are sentinels, in field order.
-fn zip64_values<const N:usize>(classic:[u32;N],field:Option<&[u8]>,version:u16)->Result<[usize;N],String> {
-    let mut wide=field.unwrap_or_default();
-    let mut values=[0;N];
-    for (value,raw) in values.iter_mut().zip(classic) {
-        *value=if raw!=u32::MAX {raw as usize} else {
-            if version<45 || wide.len()<8 {return Err("ZIP invalid ZIP64 metadata".into());}
-            let n=u64::from_le_bytes(wide[..8].try_into().unwrap());
-            wide=&wide[8..];
-            usize::try_from(n).map_err(|_|"ZIP64 value exceeds address space")?
+fn zip64_values<const N: usize>(
+    classic: [u32; N],
+    field: Option<&[u8]>,
+    version: u16,
+) -> Result<[usize; N], String> {
+    let mut wide = field.unwrap_or_default();
+    let mut values = [0; N];
+    for (value, raw) in values.iter_mut().zip(classic) {
+        *value = if raw != u32::MAX {
+            raw as usize
+        } else {
+            if version < 45 || wide.len() < 8 {
+                return Err("ZIP invalid ZIP64 metadata".into());
+            }
+            let n = u64::from_le_bytes(wide[..8].try_into().unwrap());
+            wide = &wide[8..];
+            usize::try_from(n).map_err(|_| "ZIP64 value exceeds address space")?
         };
     }
-    if !wide.is_empty(){return Err("ZIP invalid ZIP64 metadata".into());}
+    if !wide.is_empty() {
+        return Err("ZIP invalid ZIP64 metadata".into());
+    }
     Ok(values)
 }
 
-fn zip_extra(mut extra:&[u8])->Result<(Option<u64>,Option<ZipAes>,Option<&[u8]>),String> {
-    let mut wide=None;
-    let mut modified=None;
-    let mut aes=None;
-    while !extra.is_empty(){
-        let header=extra.get(..4).ok_or("ZIP truncated extra field")?;
-        let id=u16::from_le_bytes([header[0],header[1]]);
-        let len=u16::from_le_bytes([header[2],header[3]]) as usize;
-        let field=extra.get(4..4+len).ok_or("ZIP truncated extra field payload")?;
+fn zip_extra(mut extra: &[u8]) -> Result<(Option<u64>, Option<ZipAes>, Option<&[u8]>), String> {
+    let mut wide = None;
+    let mut modified = None;
+    let mut aes = None;
+    while !extra.is_empty() {
+        let header = extra.get(..4).ok_or("ZIP truncated extra field")?;
+        let id = u16::from_le_bytes([header[0], header[1]]);
+        let len = u16::from_le_bytes([header[2], header[3]]) as usize;
+        let field = extra
+            .get(4..4 + len)
+            .ok_or("ZIP truncated extra field payload")?;
         match id {
-            1=>{if wide.replace(field).is_some(){return Err("ZIP duplicate extra field".into());}}
-            0x9901=>{
-                if aes.is_some(){return Err("ZIP duplicate extra field".into());}
-                if len!=7 || &field[2..4]!=b"AE"{return Err("ZIP invalid AES extra field".into());}
-                let version=u16::from_le_bytes([field[0],field[1]]);
-                if !matches!(version,1|2){return Err("ZIP unsupported AES version".into());}
-                let key_bytes=match field[4] {1=>16,2=>24,3=>32,_=>return Err("ZIP unsupported AES strength".into())};
-                let method=u16::from_le_bytes([field[5],field[6]]);
-                if !matches!(method,0|8|12){return Err("ZIP unsupported AES compression method".into());}
-                aes=Some(ZipAes {version,key_bytes,method});
+            1 => {
+                if wide.replace(field).is_some() {
+                    return Err("ZIP duplicate extra field".into());
+                }
             }
-            0x0017..=0x0019=>return Err("ZIP encryption is unsupported".into()),
-            0x5455 if len>=5 && field[0]&1!=0=>{
-                modified=u64::try_from(i32::from_le_bytes(field[1..5].try_into().unwrap())).ok();
+            0x9901 => {
+                if aes.is_some() {
+                    return Err("ZIP duplicate extra field".into());
+                }
+                if len != 7 || &field[2..4] != b"AE" {
+                    return Err("ZIP invalid AES extra field".into());
+                }
+                let version = u16::from_le_bytes([field[0], field[1]]);
+                if !matches!(version, 1 | 2) {
+                    return Err("ZIP unsupported AES version".into());
+                }
+                let key_bytes = match field[4] {
+                    1 => 16,
+                    2 => 24,
+                    3 => 32,
+                    _ => return Err("ZIP unsupported AES strength".into()),
+                };
+                let method = u16::from_le_bytes([field[5], field[6]]);
+                if !matches!(method, 0 | 8 | 12) {
+                    return Err("ZIP unsupported AES compression method".into());
+                }
+                aes = Some(ZipAes {
+                    version,
+                    key_bytes,
+                    method,
+                });
             }
-            _=>{}
+            0x0017..=0x0019 => return Err("ZIP encryption is unsupported".into()),
+            0x5455 if len >= 5 && field[0] & 1 != 0 => {
+                modified = u64::try_from(i32::from_le_bytes(field[1..5].try_into().unwrap())).ok();
+            }
+            _ => {}
         }
-        extra=&extra[4+len..];
+        extra = &extra[4 + len..];
     }
-    Ok((modified,aes,wide))
+    Ok((modified, aes, wide))
 }
 
 impl ZipAes {
-    fn decrypt(self,mut wire:Vec<u8>,password:&[u8])->Result<Vec<u8>,String> {
-        use super::archive::{aes_encrypt_block,aes_expand_key,openssl_hmac,pbkdf2_hmac};
-        let n=self.key_bytes;
-        let salt_len=n/2;
-        let header=salt_len+2;
-        let end=wire.len().checked_sub(10).filter(|&end|end>=header).ok_or("ZIP truncated AES payload")?;
-        let mut keys=pbkdf2_hmac("sha1",password,&wire[..salt_len],1000,2*n+2);
-        if keys[2*n..]!=wire[salt_len..header]{keys.fill(0);return Err("ZIP incorrect password".into());}
-        let tag=openssl_hmac("sha1",&keys[n..2*n],&wire[header..end]);
-        if tag[..10].iter().zip(&wire[end..]).fold(0,|diff,(a,b)|diff|(a^b))!=0 {
+    fn decrypt(self, mut wire: Vec<u8>, password: &[u8]) -> Result<Vec<u8>, String> {
+        use super::archive::{aes_encrypt_block, aes_expand_key, openssl_hmac, pbkdf2_hmac};
+        let n = self.key_bytes;
+        let salt_len = n / 2;
+        let header = salt_len + 2;
+        let end = wire
+            .len()
+            .checked_sub(10)
+            .filter(|&end| end >= header)
+            .ok_or("ZIP truncated AES payload")?;
+        let mut keys = pbkdf2_hmac("sha1", password, &wire[..salt_len], 1000, 2 * n + 2);
+        if keys[2 * n..] != wire[salt_len..header] {
+            keys.fill(0);
+            return Err("ZIP incorrect password".into());
+        }
+        let tag = openssl_hmac("sha1", &keys[n..2 * n], &wire[header..end]);
+        if tag[..10]
+            .iter()
+            .zip(&wire[end..])
+            .fold(0, |diff, (a, b)| diff | (a ^ b))
+            != 0
+        {
             keys.fill(0);
             return Err("ZIP AES authentication failed".into());
         }
-        let (mut schedule,rounds)=aes_expand_key(&keys[..n]);
+        let (mut schedule, rounds) = aes_expand_key(&keys[..n]);
         keys.fill(0);
-        for (i,chunk) in wire[header..end].chunks_mut(16).enumerate(){
-            let block=aes_encrypt_block(&(i as u128+1).to_le_bytes(),&schedule,rounds);
-            for (byte,key) in chunk.iter_mut().zip(block){*byte^=key;}
+        for (i, chunk) in wire[header..end].chunks_mut(16).enumerate() {
+            let block = aes_encrypt_block(&(i as u128 + 1).to_le_bytes(), &schedule, rounds);
+            for (byte, key) in chunk.iter_mut().zip(block) {
+                *byte ^= key;
+            }
         }
-        schedule.fill([0;16]);
-        wire.copy_within(header..end,0);
-        wire.truncate(end-header);
+        schedule.fill([0; 16]);
+        wire.copy_within(header..end, 0);
+        wire.truncate(end - header);
         Ok(wire)
     }
 }
@@ -3464,7 +3891,7 @@ pub(super) struct ZipMember {
     central: std::ops::Range<usize>,
     local_start: usize,
     verifier: Option<u8>,
-    lzma_eos:bool,
+    lzma_eos: bool,
     aes: Option<ZipAes>,
     pub name: String,
     pub method: u16,
@@ -3479,84 +3906,174 @@ pub(super) struct ZipMember {
 }
 
 impl ZipMember {
-    pub fn decode<'a>(&self, payload: std::borrow::Cow<'a,[u8]>, password:Option<&[u8]>) -> Result<std::borrow::Cow<'a,[u8]>,String> {
+    pub fn decode<'a>(
+        &self,
+        payload: std::borrow::Cow<'a, [u8]>,
+        password: Option<&[u8]>,
+    ) -> Result<std::borrow::Cow<'a, [u8]>, String> {
         use std::borrow::Cow;
-        let payload=if let Some(aes)=self.aes {
-            Cow::Owned(aes.decrypt(payload.into_owned(),password.ok_or("ZIP no-echo password capability is unavailable")?)?)
-        }else if let Some(verifier)=self.verifier {
-            let password=password.ok_or("ZIP no-echo password capability is unavailable")?;
-            let update=|(a,b,c):(u32,u32,u32),byte:u8|{
-                let a=crc32_byte(a,byte);
-                let b=b.wrapping_add(a&255).wrapping_mul(134775813).wrapping_add(1);
-                (a,b,crc32_byte(c,(b>>24) as u8))
+        let payload = if let Some(aes) = self.aes {
+            Cow::Owned(aes.decrypt(
+                payload.into_owned(),
+                password.ok_or("ZIP no-echo password capability is unavailable")?,
+            )?)
+        } else if let Some(verifier) = self.verifier {
+            let password = password.ok_or("ZIP no-echo password capability is unavailable")?;
+            let update = |(a, b, c): (u32, u32, u32), byte: u8| {
+                let a = crc32_byte(a, byte);
+                let b = b
+                    .wrapping_add(a & 255)
+                    .wrapping_mul(134775813)
+                    .wrapping_add(1);
+                (a, b, crc32_byte(c, (b >> 24) as u8))
             };
-            let mut keys=password.iter().copied().fold((0x12345678,0x23456789,0x34567890),update);
-            let mut data=payload.into_owned();
-            for (i,byte) in data.iter_mut().enumerate(){
-                let t=(keys.2 & 0xffff)|2;
-                *byte^=(t.wrapping_mul(t^1)>>8) as u8;
-                if i==11 && *byte!=verifier{return Err("ZIP incorrect password".into());}
-                keys=update(keys,*byte);
+            let mut keys = password
+                .iter()
+                .copied()
+                .fold((0x12345678, 0x23456789, 0x34567890), update);
+            let mut data = payload.into_owned();
+            for (i, byte) in data.iter_mut().enumerate() {
+                let t = (keys.2 & 0xffff) | 2;
+                *byte ^= (t.wrapping_mul(t ^ 1) >> 8) as u8;
+                if i == 11 && *byte != verifier {
+                    return Err("ZIP incorrect password".into());
+                }
+                keys = update(keys, *byte);
             }
             data.drain(..12);
             Cow::Owned(data)
-        }else{payload};
-        let decoded = match self.aes.map_or(self.method,|a|a.method) {
+        } else {
+            payload
+        };
+        let decoded = match self.aes.map_or(self.method, |a| a.method) {
             0 => payload,
             8 => {
-                let (data,used) = inflate_raw_bounded(&payload,self.size).map_err(|e| if e == "inflated data exceeds input limit" { "ZIP uncompressed size mismatch".into() } else { e })?;
-                if used != payload.len() { return Err("ZIP trailing compressed data".into()); }
+                let (data, used) = inflate_raw_bounded(&payload, self.size).map_err(|e| {
+                    if e == "inflated data exceeds input limit" {
+                        "ZIP uncompressed size mismatch".into()
+                    } else {
+                        e
+                    }
+                })?;
+                if used != payload.len() {
+                    return Err("ZIP trailing compressed data".into());
+                }
                 Cow::Owned(data)
             }
             12 => Cow::Owned(bzip2_decompress(&payload)?),
             14 => {
-                let header=payload.get(..9).ok_or("ZIP truncated LZMA properties")?;
-                if header[..4]!=[9,4,5,0]{return Err("ZIP unsupported LZMA version or property length".into());}
-                if !valid_lzma_properties(header[4]){return Err("invalid LZMA properties or dictionary limit exceeded".into());}
-                let dictionary=u32::from_le_bytes(header[5..9].try_into().unwrap()).max(4096) as usize;
-                let end=if self.lzma_eos{LzmaEnd::Marker{maximum:self.size}}else{LzmaEnd::Size(self.size)};
-                let mut data=Vec::new();
-                let (used,finished)=LzmaState::new(header[4])?.decode_chunk(&payload[9..],&mut data,0,dictionary,end)
-                    .map_err(|e| if e=="Compressed data is corrupt" {"invalid compressed data or codec memory limit exceeded".to_owned()}else{e})?;
-                if !finished{return Err("invalid compressed data or codec memory limit exceeded".into());}
-                if used!=payload.len()-9{return Err("ZIP trailing compressed data".into());}
+                let header = payload.get(..9).ok_or("ZIP truncated LZMA properties")?;
+                if header[..4] != [9, 4, 5, 0] {
+                    return Err("ZIP unsupported LZMA version or property length".into());
+                }
+                if !valid_lzma_properties(header[4]) {
+                    return Err("invalid LZMA properties or dictionary limit exceeded".into());
+                }
+                let dictionary =
+                    u32::from_le_bytes(header[5..9].try_into().unwrap()).max(4096) as usize;
+                let end = if self.lzma_eos {
+                    LzmaEnd::Marker { maximum: self.size }
+                } else {
+                    LzmaEnd::Size(self.size)
+                };
+                let mut data = Vec::new();
+                let (used, finished) = LzmaState::new(header[4])?
+                    .decode_chunk(&payload[9..], &mut data, 0, dictionary, end)
+                    .map_err(|e| {
+                        if e == "Compressed data is corrupt" {
+                            "invalid compressed data or codec memory limit exceeded".to_owned()
+                        } else {
+                            e
+                        }
+                    })?;
+                if !finished {
+                    return Err("invalid compressed data or codec memory limit exceeded".into());
+                }
+                if used != payload.len() - 9 {
+                    return Err("ZIP trailing compressed data".into());
+                }
                 Cow::Owned(data)
             }
             _ => return Err("ZIP unsupported compression method".into()),
         };
-        if decoded.len() != self.size { return Err("ZIP uncompressed size mismatch".into()); }
-        if !self.aes.is_some_and(|a|a.version==2) && crc32_ieee(&decoded) != self.crc { return Err("ZIP CRC32 mismatch".into()); }
+        if decoded.len() != self.size {
+            return Err("ZIP uncompressed size mismatch".into());
+        }
+        if !self.aes.is_some_and(|a| a.version == 2) && crc32_ieee(&decoded) != self.crc {
+            return Err("ZIP CRC32 mismatch".into());
+        }
         Ok(decoded)
     }
 }
 
-pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut ZipRecords<'a>>) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
-    let (members,comment) = zip_directory(data.len(), |r| Ok(std::borrow::Cow::Borrowed(&data[r])))?;
+pub(super) fn read_zip_members<'a>(
+    data: &'a [u8],
+    mut retained: Option<&mut ZipRecords<'a>>,
+) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
+    let (members, comment) =
+        zip_directory(data.len(), |r| Ok(std::borrow::Cow::Borrowed(&data[r])))?;
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
-        let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
-            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central],descriptor:&data[member.payload.end..member.end],offset64:member.offset64,sizes:(member.size,member.payload.len())}).is_some() { return Err("ZIP duplicate member name".into()); }
-            (String::new(),Vec::new())
+        let (linkname, content) = if let Some(records) = retained.as_deref_mut() {
+            if records
+                .insert(
+                    member.name.clone(),
+                    ZipRecord {
+                        local: &data[member.local_start..member.payload.end],
+                        central: &data[member.central],
+                        descriptor: &data[member.payload.end..member.end],
+                        offset64: member.offset64,
+                        sizes: (member.size, member.payload.len()),
+                    },
+                )
+                .is_some()
+            {
+                return Err("ZIP duplicate member name".into());
+            }
+            (String::new(), Vec::new())
         } else {
-            let decoded=member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
-            if member.typeflag==b'2' { (String::from_utf8_lossy(&decoded).into_owned(),Vec::new()) }
-            else { (String::new(),decoded.into_owned()) }
+            let decoded = member.decode(
+                std::borrow::Cow::Borrowed(&data[member.payload.clone()]),
+                None,
+            )?;
+            if member.typeflag == b'2' {
+                (String::from_utf8_lossy(&decoded).into_owned(), Vec::new())
+            } else {
+                (String::new(), decoded.into_owned())
+            }
         };
         out.push(crate::commands::archive::TarEntry {
-            name: member.name,typeflag: member.typeflag,mode: member.mode,mtime: member.mtime,
-            atime: None,uid: 0,gid: 0,linkname,content,
+            name: member.name,
+            typeflag: member.typeflag,
+            mode: member.mode,
+            mtime: member.mtime,
+            atime: None,
+            uid: 0,
+            gid: 0,
+            linkname,
+            content,
         });
     }
     if !comment.is_empty() {
         out.push(crate::commands::archive::TarEntry {
-            name: "__ZIP_COMMENT__".to_owned(),typeflag: ZIP_COMMENT_TYPE,mode: 0o644,mtime: 1700000000.,
-            atime: None,uid: 0,gid: 0,linkname: String::new(),content: comment,
+            name: "__ZIP_COMMENT__".to_owned(),
+            typeflag: ZIP_COMMENT_TYPE,
+            mode: 0o644,
+            mtime: 1700000000.,
+            atime: None,
+            uid: 0,
+            gid: 0,
+            linkname: String::new(),
+            content: comment,
         });
     }
     Ok(out)
 }
 
-pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize>) -> Result<std::borrow::Cow<'a,[u8]>,String>) -> Result<(Vec<ZipMember>,Vec<u8>),String> {
+pub(super) fn zip_directory<'a>(
+    size: usize,
+    read: impl Fn(std::ops::Range<usize>) -> Result<std::borrow::Cow<'a, [u8]>, String>,
+) -> Result<(Vec<ZipMember>, Vec<u8>), String> {
     if size < 22 {
         return Err("ZIP missing end record".into());
     }
@@ -3580,39 +4097,65 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
     }
     let mut total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
     let split = read(0..4)?.as_ref() == b"PK\x07\x08";
-    let mut disk_members = u16::from_le_bytes([data[eocd + 8],data[eocd + 9]]) as usize;
-    let mut central_size = u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
-    let mut central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
+    let mut disk_members = u16::from_le_bytes([data[eocd + 8], data[eocd + 9]]) as usize;
+    let mut central_size =
+        u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
+    let mut central_offset =
+        u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
 
-    let end=tail_start+eocd;
-    let mut central_end=end;
-    if central_offset.checked_add(central_size)!=Some(end) {
-        central_end=end.checked_sub(76).ok_or("corrupt central directory")?;
-        let wide=read(central_end..end)?;
-        if &wide[..4]!=b"PK\x06\x06" || &wide[56..60]!=b"PK\x06\x07" {return Err("corrupt central directory".into());}
-        if wide[4..12]!=44u64.to_le_bytes() || !(45..=46).contains(&u16::from_le_bytes(wide[14..16].try_into().unwrap()))
-            || wide[16..24]!=[0;8] || wide[60..64]!=[0;4] || wide[64..72]!=(central_end as u64).to_le_bytes() || wide[72..76]!=1u32.to_le_bytes() {
+    let end = tail_start + eocd;
+    let mut central_end = end;
+    if central_offset.checked_add(central_size) != Some(end) {
+        central_end = end.checked_sub(76).ok_or("corrupt central directory")?;
+        let wide = read(central_end..end)?;
+        if &wide[..4] != b"PK\x06\x06" || &wide[56..60] != b"PK\x06\x07" {
+            return Err("corrupt central directory".into());
+        }
+        if wide[4..12] != 44u64.to_le_bytes()
+            || !(45..=46).contains(&u16::from_le_bytes(wide[14..16].try_into().unwrap()))
+            || wide[16..24] != [0; 8]
+            || wide[60..64] != [0; 4]
+            || wide[64..72] != (central_end as u64).to_le_bytes()
+            || wide[72..76] != 1u32.to_le_bytes()
+        {
             return Err("ZIP inconsistent ZIP64 end record".into());
         }
-        for ((classic,sentinel),bytes) in [(&mut disk_members,u16::MAX as usize),(&mut total_entries,u16::MAX as usize),
-            (&mut central_size,u32::MAX as usize),(&mut central_offset,u32::MAX as usize)].into_iter().zip(wide[24..56].chunks_exact(8)) {
-            let value=usize::try_from(u64::from_le_bytes(bytes.try_into().unwrap())).map_err(|_|"ZIP64 value exceeds address space")?;
-            if *classic!=sentinel && *classic!=value {return Err("ZIP inconsistent ZIP64 end record".into());}
-            *classic=value;
+        for ((classic, sentinel), bytes) in [
+            (&mut disk_members, u16::MAX as usize),
+            (&mut total_entries, u16::MAX as usize),
+            (&mut central_size, u32::MAX as usize),
+            (&mut central_offset, u32::MAX as usize),
+        ]
+        .into_iter()
+        .zip(wide[24..56].chunks_exact(8))
+        {
+            let value = usize::try_from(u64::from_le_bytes(bytes.try_into().unwrap()))
+                .map_err(|_| "ZIP64 value exceeds address space")?;
+            if *classic != sentinel && *classic != value {
+                return Err("ZIP inconsistent ZIP64 end record".into());
+            }
+            *classic = value;
         }
     }
     if disk_members != total_entries && !(split && disk_members == 65535) {
-        return Err(if split { "ZIP inconsistent per-disk member count" } else { "ZIP inconsistent member count" }.into());
+        return Err(if split {
+            "ZIP inconsistent per-disk member count"
+        } else {
+            "ZIP inconsistent member count"
+        }
+        .into());
     }
-    if central_offset.checked_add(central_size)!=Some(central_end) || total_entries>central_size/46 {
+    if central_offset.checked_add(central_size) != Some(central_end)
+        || total_entries > central_size / 46
+    {
         return Err("corrupt central directory".into());
     }
 
     let mut out = Vec::with_capacity(total_entries + 1);
-    let mut spans = std::collections::BTreeMap::<usize,usize>::new();
+    let mut spans = std::collections::BTreeMap::<usize, usize>::new();
     let overlap = "ZIP overlapping spans, gaps or self-extracting prefix are unsupported";
-    let comment = data[eocd+22..eocd+22+cmt_len].to_vec();
+    let comment = data[eocd + 22..eocd + 22 + cmt_len].to_vec();
     let data = read(central_offset..central_end)?;
     let mut pos = 0;
     for _ in 0..total_entries {
@@ -3636,91 +4179,176 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         let ext_attr = u32::from_le_bytes(data[pos + 38..pos + 42].try_into().unwrap());
         let local_off = u32::from_le_bytes(data[pos + 42..pos + 46].try_into().unwrap()) as usize;
 
-        if data[pos+34..pos+36] != [0,0] {
-            return Err(if split { "ZIP disk offset outside volume" } else { "ZIP multi-disk archive requires a volume resolver" }.into());
+        if data[pos + 34..pos + 36] != [0, 0] {
+            return Err(if split {
+                "ZIP disk offset outside volume"
+            } else {
+                "ZIP multi-disk archive requires a volume resolver"
+            }
+            .into());
         }
         if name_len + extra_len + entry_cmt_len > central_size - pos - 46 {
             return Err("truncated central directory entry".into());
         }
         let name = String::from_utf8_lossy(&data[pos + 46..pos + 46 + name_len]).to_string();
-        if name.is_empty() || name.contains('\0') { return Err("ZIP invalid or unsafe path".into()); }
-        if name.strip_suffix('/').unwrap_or(&name).split('/').any(|part| matches!(part, "" | "." | "..")) {
+        if name.is_empty() || name.contains('\0') {
+            return Err("ZIP invalid or unsafe path".into());
+        }
+        if name
+            .strip_suffix('/')
+            .unwrap_or(&name)
+            .split('/')
+            .any(|part| matches!(part, "" | "." | ".."))
+        {
             return Err("ZIP unsafe traversal or absolute path".into());
         }
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 
-        let (modified,aes,zip64)=zip_extra(central_extra)?;
-        let version=u16::from_le_bytes(data[central_start+6..central_start+8].try_into().unwrap());
-        let wide_central=comp_size==u32::MAX as usize || uncomp_size==u32::MAX as usize;
-        let offset64=if local_off==u32::MAX as usize {
-            zip64.and_then(|field| (field.as_ptr() as usize - data[central_start..].as_ptr() as usize + field.len()).checked_sub(8))
-        } else {None};
-        let [uncomp_size,comp_size,local_off]=zip64_values([uncomp_size as u32,comp_size as u32,local_off as u32],zip64,version)?;
-        let flags=u16::from_le_bytes([data[central_start+8],data[central_start+9]]);
-        if flags & (64|0x2000)!=0{return Err("ZIP encryption is unsupported".into());}
-        if method==99 && (flags&1==0 || flags & !0x80f!=0 || data[central_start+6..central_start+8]!=[51,0]){
+        let (modified, aes, zip64) = zip_extra(central_extra)?;
+        let version = u16::from_le_bytes(
+            data[central_start + 6..central_start + 8]
+                .try_into()
+                .unwrap(),
+        );
+        let wide_central = comp_size == u32::MAX as usize || uncomp_size == u32::MAX as usize;
+        let offset64 = if local_off == u32::MAX as usize {
+            zip64.and_then(|field| {
+                (field.as_ptr() as usize - data[central_start..].as_ptr() as usize + field.len())
+                    .checked_sub(8)
+            })
+        } else {
+            None
+        };
+        let [uncomp_size, comp_size, local_off] = zip64_values(
+            [uncomp_size as u32, comp_size as u32, local_off as u32],
+            zip64,
+            version,
+        )?;
+        let flags = u16::from_le_bytes([data[central_start + 8], data[central_start + 9]]);
+        if flags & (64 | 0x2000) != 0 {
+            return Err("ZIP encryption is unsupported".into());
+        }
+        if method == 99
+            && (flags & 1 == 0
+                || flags & !0x80f != 0
+                || data[central_start + 6..central_start + 8] != [51, 0])
+        {
             return Err("ZIP invalid AES flags or extraction version".into());
         }
-        if method==14 {
-            if flags & !0x80b!=0{return Err("ZIP unsupported general purpose flags".into());}
-            if data[central_start+6..central_start+8]!=[63,0]{return Err("ZIP unsupported LZMA extraction version".into());}
+        if method == 14 {
+            if flags & !0x80b != 0 {
+                return Err("ZIP unsupported general purpose flags".into());
+            }
+            if data[central_start + 6..central_start + 8] != [63, 0] {
+                return Err("ZIP unsupported LZMA extraction version".into());
+            }
         }
-        if aes.is_some()!=(method==99){return Err("ZIP inconsistent AES method and extra field".into());}
-        if let Some(a)=aes {
-            if a.method!=8 && flags&6!=0{return Err("ZIP unsupported AES compression flags".into());}
-            if a.version==2 && crc!=0{return Err("ZIP AE-2 CRC must be zero".into());}
+        if aes.is_some() != (method == 99) {
+            return Err("ZIP inconsistent AES method and extra field".into());
         }
-        if local_off.checked_add(30).is_none_or(|end| end > central_offset) { return Err("invalid local header".into()); }
-        let local = read(local_off..local_off+30)?;
-        if !local.starts_with(b"PK\x03\x04") { return Err("invalid local header".into()); }
+        if let Some(a) = aes {
+            if a.method != 8 && flags & 6 != 0 {
+                return Err("ZIP unsupported AES compression flags".into());
+            }
+            if a.version == 2 && crc != 0 {
+                return Err("ZIP AE-2 CRC must be zero".into());
+            }
+        }
+        if local_off
+            .checked_add(30)
+            .is_none_or(|end| end > central_offset)
+        {
+            return Err("invalid local header".into());
+        }
+        let local = read(local_off..local_off + 30)?;
+        if !local.starts_with(b"PK\x03\x04") {
+            return Err("invalid local header".into());
+        }
         let l_name_len = u16::from_le_bytes([local[26], local[27]]) as usize;
         let l_extra_len = u16::from_le_bytes([local[28], local[29]]) as usize;
-        let payload_start = (local_off + 30).checked_add(l_name_len + l_extra_len).ok_or("invalid local header")?;
-        if payload_start.checked_add(comp_size).is_none_or(|end| end > central_offset) {
+        let payload_start = (local_off + 30)
+            .checked_add(l_name_len + l_extra_len)
+            .ok_or("invalid local header")?;
+        if payload_start
+            .checked_add(comp_size)
+            .is_none_or(|end| end > central_offset)
+        {
             return Err("truncated entry data".into());
         }
         let central = &data[central_start..pos];
-        if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
-        let local_fields=read(local_off+30..payload_start)?;
-        if local_fields[..l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
-        let (local_modified,local_aes,wide_sizes)=zip_extra(&local_fields[l_name_len..])?;
-        if local_aes!=aes{return Err("ZIP central/local AES metadata mismatch".into());}
-        let mtime=modified.or(local_modified).unwrap_or_else(||dos_to_unix_secs(dos_date,dos_time));
-        if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
-        let encrypted=central[8]&1!=0;
-        let overhead=aes.map_or(12,|a|a.key_bytes/2+12);
-        if encrypted && comp_size<overhead {return Err("ZIP truncated encryption header".into());}
-        if aes.is_some_and(|a|a.method==0) && comp_size-overhead!=uncomp_size{return Err("ZIP AES stored size mismatch".into());}
-        if method == 0 && comp_size-usize::from(encrypted)*12 != uncomp_size { return Err("ZIP stored size mismatch".into()); }
+        if local[4..14] != central[6..16] {
+            return Err("ZIP central/local metadata mismatch".into());
+        }
+        let local_fields = read(local_off + 30..payload_start)?;
+        if local_fields[..l_name_len] != central[46..46 + name_len] {
+            return Err("ZIP central/local filename mismatch".into());
+        }
+        let (local_modified, local_aes, wide_sizes) = zip_extra(&local_fields[l_name_len..])?;
+        if local_aes != aes {
+            return Err("ZIP central/local AES metadata mismatch".into());
+        }
+        let mtime = modified
+            .or(local_modified)
+            .unwrap_or_else(|| dos_to_unix_secs(dos_date, dos_time));
+        if !matches!(method, 0 | 8 | 12 | 14 | 99) {
+            return Err("ZIP unsupported compression method".into());
+        }
+        let encrypted = central[8] & 1 != 0;
+        let overhead = aes.map_or(12, |a| a.key_bytes / 2 + 12);
+        if encrypted && comp_size < overhead {
+            return Err("ZIP truncated encryption header".into());
+        }
+        if aes.is_some_and(|a| a.method == 0) && comp_size - overhead != uncomp_size {
+            return Err("ZIP AES stored size mismatch".into());
+        }
+        if method == 0 && comp_size - usize::from(encrypted) * 12 != uncomp_size {
+            return Err("ZIP stored size mismatch".into());
+        }
         let descriptor = central[8] & 8 != 0;
-        let raw_size=u32::from_le_bytes(local[22..26].try_into().unwrap());
-        let raw_compressed=u32::from_le_bytes(local[18..22].try_into().unwrap());
-        let wide=wide_central || raw_size==u32::MAX || raw_compressed==u32::MAX;
-        let local_sizes=zip64_values([raw_size,raw_compressed],wide_sizes,version)?;
-        if local_sizes.into_iter().zip([uncomp_size,comp_size]).any(|(a,b)|a!=b && !(descriptor && a==0))
-            || local[14..18]!=central[16..20] && !(descriptor && local[14..18]==[0;4]) {
+        let raw_size = u32::from_le_bytes(local[22..26].try_into().unwrap());
+        let raw_compressed = u32::from_le_bytes(local[18..22].try_into().unwrap());
+        let wide = wide_central || raw_size == u32::MAX || raw_compressed == u32::MAX;
+        let local_sizes = zip64_values([raw_size, raw_compressed], wide_sizes, version)?;
+        if local_sizes
+            .into_iter()
+            .zip([uncomp_size, comp_size])
+            .any(|(a, b)| a != b && !(descriptor && a == 0))
+            || local[14..18] != central[16..20] && !(descriptor && local[14..18] == [0; 4])
+        {
             return Err("ZIP central/local size or CRC mismatch".into());
         }
         let mut stop = payload_start + comp_size;
         if descriptor {
-            let mut fields=[0u8;20];
+            let mut fields = [0u8; 20];
             fields[..4].copy_from_slice(&central[16..20]);
-            let fields=if wide {
+            let fields = if wide {
                 fields[4..12].copy_from_slice(&(comp_size as u64).to_le_bytes());
                 fields[12..20].copy_from_slice(&(uncomp_size as u64).to_le_bytes());
                 &fields[..]
-            } else { &central[16..28] };
-            let tail = read(stop..stop.saturating_add(fields.len()+4).min(central_offset))?;
+            } else {
+                &central[16..28]
+            };
+            let tail = read(stop..stop.saturating_add(fields.len() + 4).min(central_offset))?;
             let unsigned = tail.starts_with(fields);
-            let signed = tail.strip_prefix(b"PK\x07\x08").is_some_and(|t|t.starts_with(fields));
-            if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
-            stop += fields.len() + if signed {4} else {0};
+            let signed = tail
+                .strip_prefix(b"PK\x07\x08")
+                .is_some_and(|t| t.starts_with(fields));
+            if unsigned == signed {
+                return Err("ZIP truncated, ambiguous or mismatched data descriptor".into());
+            }
+            stop += fields.len() + if signed { 4 } else { 0 };
         }
         // Reject aliases before decoding their payload a second time.
-        if spans.range(..=local_off).next_back().is_some_and(|(_,end)| *end > local_off)
-            || spans.range(local_off..stop).next().is_some() { return Err(overlap.into()); }
-        spans.insert(local_off,stop);
+        if spans
+            .range(..=local_off)
+            .next_back()
+            .is_some_and(|(_, end)| *end > local_off)
+            || spans.range(local_off..stop).next().is_some()
+        {
+            return Err(overlap.into());
+        }
+        spans.insert(local_off, stop);
         let host = version_made_by >> 8;
         let unix_mode = if host == 3 || host == 19 {
             ext_attr >> 16
@@ -3737,21 +4365,55 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { offset64,end:stop,name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
-            payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
-            typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
+        out.push(ZipMember {
+            offset64,
+            end: stop,
+            name,
+            method,
+            size: uncomp_size,
+            crc,
+            local_start: local_off,
+            central: central_offset + central_start..central_offset + pos,
+            aes,
+            lzma_eos: flags & 2 != 0,
+            verifier: encrypted.then_some(if descriptor {
+                (dos_time >> 8) as u8
+            } else {
+                (crc >> 24) as u8
+            }),
+            payload: payload_start..payload_start + comp_size,
+            comment: central[central.len() - entry_cmt_len..].to_vec(),
+            typeflag: if is_dir {
+                b'5'
+            } else if is_symlink {
+                b'2'
+            } else {
+                b'0'
+            },
+            mode,
+            mtime: mtime as f64,
             extended_timestamp: modified.is_some() || local_modified.is_some(),
         });
     }
 
-    let mut covered = if split { 4 } else { spans.first_key_value().map_or(central_offset,|(start,_)| *start) };
-    for (start,end) in spans {
-        if start != covered { return Err(overlap.into()); }
+    let mut covered = if split {
+        4
+    } else {
+        spans
+            .first_key_value()
+            .map_or(central_offset, |(start, _)| *start)
+    };
+    for (start, end) in spans {
+        if start != covered {
+            return Err(overlap.into());
+        }
         covered = end;
     }
-    if covered != central_offset { return Err("ZIP unreferenced local data is unsupported".into()); }
+    if covered != central_offset {
+        return Err("ZIP unreferenced local data is unsupported".into());
+    }
     if pos != central_size {
         return Err("ZIP central directory size or member count mismatch".into());
     }
-    Ok((out,comment))
+    Ok((out, comment))
 }

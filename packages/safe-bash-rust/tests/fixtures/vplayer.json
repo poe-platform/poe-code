@@ -1,0 +1,2459 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "probeReference": "ffprobe version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2007-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nFirst\nline\n\n00:03.000 --> 00:06.000\nSecond\n"
+    },
+    {
+      "name": "basic-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]First\n[00:01.00]line\n[00:03.00]Second\n"
+    },
+    {
+      "name": "basic-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"10\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"6\", \"pos\": \"19\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 600, \"pts_time\": \"6.000000\", \"dts\": 600, \"dts_time\": \"6.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"34\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "basic-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "basic-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "basic-format",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"43\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "fraction-srt",
+      "command": "ffmpeg",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n01:02:03,040 --> 01:02:06,230\nFraction\n\n2\n01:02:06,230 --> 1194:04:53,516\nWide\n\n"
+    },
+    {
+      "name": "fraction-webvtt",
+      "command": "ffmpeg",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n01:02:03.040 --> 01:02:06.230\nFraction\n\n01:02:06.230 --> 1194:04:53.516\nWide\n"
+    },
+    {
+      "name": "fraction-lrc",
+      "command": "ffmpeg",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[62:03.04]Fraction\n[62:06.23]Wide\n"
+    },
+    {
+      "name": "fraction-packet",
+      "command": "ffprobe",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 372304, \"pts_time\": \"3723.040000\", \"dts\": 372304, \"dts_time\": \"3723.040000\", \"duration\": 319, \"duration_time\": \"3.190000\", \"size\": \"8\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 372623, \"pts_time\": \"3726.230000\", \"dts\": 372623, \"dts_time\": \"3726.230000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"4\", \"pos\": \"19\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "fraction-frame",
+      "command": "ffprobe",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 3723040000, \"pts_time\": \"3723.040000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3190, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 3726230000, \"pts_time\": \"3726.230000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "fraction-stream",
+      "command": "ffprobe",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "fraction-format",
+      "command": "ffprobe",
+      "input": "1:02:03.4:Fraction\n1:02:05.123:Wide\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"36\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "signed-srt",
+      "command": "ffmpeg",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 01:00:01,000\nnegative\n\n2\n01:00:01,000 --> 1194:02:48,286\nend\n\n"
+    },
+    {
+      "name": "signed-webvtt",
+      "command": "ffmpeg",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:00.000 --> 01:00:01.000\nnegative\n\n01:00:01.000 --> 1194:02:48.286\nend\n"
+    },
+    {
+      "name": "signed-lrc",
+      "command": "ffmpeg",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[-60:00.00]negative\n[00:01.00]end\n"
+    },
+    {
+      "name": "signed-packet",
+      "command": "ffprobe",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": -360000, \"pts_time\": \"-3600.000000\", \"dts\": -360000, \"dts_time\": \"-3600.000000\", \"duration\": 360100, \"duration_time\": \"3601.000000\", \"size\": \"8\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"3\", \"pos\": \"18\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "signed-frame",
+      "command": "ffprobe",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": -3600000000, \"pts_time\": \"-3600.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3601000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "signed-stream",
+      "command": "ffprobe",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "signed-format",
+      "command": "ffprobe",
+      "input": "-1:00:00:negative\n0:00:01:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"30\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "separators-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nfirst\n\n2\n00:00:03,000 --> 00:00:05,000\nsecond\n\n3\n00:00:05,000 --> 1193:02:52,286\nlast\n\n"
+    },
+    {
+      "name": "separators-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nfirst\n\n00:03.000 --> 00:05.000\nsecond\n\n00:05.000 --> 1193:02:52.286\nlast\n"
+    },
+    {
+      "name": "separators-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]first\n[00:03.00]second\n[00:05.00]last\n"
+    },
+    {
+      "name": "separators-packet",
+      "command": "ffprobe",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"5\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"6\", \"pos\": \"14\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 500, \"pts_time\": \"5.000000\", \"dts\": 500, \"dts_time\": \"5.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"4\", \"pos\": \"29\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "separators-frame",
+      "command": "ffprobe",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 5000000, \"pts_time\": \"5.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "separators-stream",
+      "command": "ffprobe",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "separators-format",
+      "command": "ffprobe",
+      "input": "0:00:01 first\n0:00:03=second\n0:00:05:last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"42\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "noise-srt",
+      "command": "ffmpeg",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nleading\n\n2\n00:00:03,000 --> 1193:02:50,286\nbody  \n\n"
+    },
+    {
+      "name": "noise-webvtt",
+      "command": "ffmpeg",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nleading\n\n00:03.000 --> 1193:02:50.286\nbody  \n"
+    },
+    {
+      "name": "noise-lrc",
+      "command": "ffmpeg",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]leading\n[00:03.00]body  \n"
+    },
+    {
+      "name": "noise-packet",
+      "command": "ffprobe",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"8\", \"pos\": \"5\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"6\", \"pos\": \"23\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "noise-frame",
+      "command": "ffprobe",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "noise-stream",
+      "command": "ffprobe",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "noise-format",
+      "command": "ffprobe",
+      "input": "junk\n 0:00:01: leading\n0:00:03:body  \n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"38\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "order-srt",
+      "command": "ffmpeg",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:04,000\none\n\n2\n00:00:04,000 --> 00:00:04,000\nfour\n\n3\n00:00:04,000 --> 00:00:06,000\nother\n\n"
+    },
+    {
+      "name": "order-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:04.000\none\n\n00:04.000 --> 00:04.000\nfour\n\n00:04.000 --> 00:06.000\nother\n"
+    },
+    {
+      "name": "order-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n[00:04.00]four\n[00:04.00]other\n"
+    },
+    {
+      "name": "order-packet",
+      "command": "ffprobe",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"3\", \"pos\": \"13\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"size\": \"4\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"5\", \"pos\": \"38\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 600, \"pts_time\": \"6.000000\", \"dts\": 600, \"dts_time\": \"6.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"52\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "order-frame",
+      "command": "ffprobe",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 4000000, \"pts_time\": \"4.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 0, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 4000000, \"pts_time\": \"4.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "order-stream",
+      "command": "ffprobe",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "order-format",
+      "command": "ffprobe",
+      "input": "0:00:04:four\n0:00:01:one\n0:00:04:four\n0:00:04:other\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"61\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "empty-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "empty-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "empty-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n"
+    },
+    {
+      "name": "empty-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"0\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"9\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "empty-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n\n    ]\n}\n"
+    },
+    {
+      "name": "empty-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "empty-format",
+      "command": "ffprobe",
+      "input": "0:00:01:\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"18\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "no-eol-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 1193:02:48,286\nfinal\n\n"
+    },
+    {
+      "name": "no-eol-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 1193:02:48.286\nfinal\n"
+    },
+    {
+      "name": "no-eol-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]final\n"
+    },
+    {
+      "name": "no-eol-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"5\", \"pos\": \"0\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "no-eol-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "no-eol-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "no-eol-format",
+      "command": "ffprobe",
+      "input": "0:00:01:final",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"13\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "markup-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:04,000\n<b>bold</b>\r\n\\<i>italic\r\n\\\r\n\r\na &amp; b</i>\n\n"
+    },
+    {
+      "name": "markup-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:04.000\n<b>bold</b>\n\\<i>italic\n\\\n\na &amp; b</i>\n"
+    },
+    {
+      "name": "markup-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]<b>bold</b>\n[00:01.00]\\<i>italic\n[00:01.00]\\\n[00:01.00]\n[00:01.00]a &amp; b</i>\n"
+    },
+    {
+      "name": "markup-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"36\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"45\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "markup-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "markup-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "markup-format",
+      "command": "ffprobe",
+      "input": "0:00:01:<b>bold</b>|{\\i1}italic|\\N|a &amp; b\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"54\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "crlf-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nfirst\n\n2\n00:00:03,000 --> 00:00:04,000\nsecond\n\n"
+    },
+    {
+      "name": "crlf-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nfirst\n\n00:03.000 --> 00:04.000\nsecond\n"
+    },
+    {
+      "name": "crlf-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]first\n[00:03.00]second\n"
+    },
+    {
+      "name": "crlf-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"5\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 100, \"duration_time\": \"1.000000\", \"size\": \"6\", \"pos\": \"15\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"31\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "crlf-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 1000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "crlf-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "crlf-format",
+      "command": "ffprobe",
+      "input": "0:00:01:first\r\n0:00:03:second\r\n0:00:04:\r\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"41\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "width-srt",
+      "command": "ffmpeg",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n1234:57:30,340 --> 2428:00:17,626\nlarge\n\n"
+    },
+    {
+      "name": "width-webvtt",
+      "command": "ffmpeg",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n1234:57:30.340 --> 2428:00:17.626\nlarge\n"
+    },
+    {
+      "name": "width-lrc",
+      "command": "ffmpeg",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[74097:30.34]large\n"
+    },
+    {
+      "name": "width-packet",
+      "command": "ffprobe",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 444585034, \"pts_time\": \"4445850.340000\", \"dts\": 444585034, \"dts_time\": \"4445850.340000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"5\", \"pos\": \"0\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "width-frame",
+      "command": "ffprobe",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 4445850340000, \"pts_time\": \"4445850.340000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 4294967286, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "width-stream",
+      "command": "ffprobe",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "width-format",
+      "command": "ffprobe",
+      "input": "1234:56:78.1234:large\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"22\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "digits-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n1234\n\n"
+    },
+    {
+      "name": "digits-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\n1234\n"
+    },
+    {
+      "name": "digits-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]1234\n"
+    },
+    {
+      "name": "digits-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"4\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"13\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "digits-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "digits-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "digits-format",
+      "command": "ffprobe",
+      "input": "0:00:01:1234\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"22\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "nul-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:04,000\none\n\n"
+    },
+    {
+      "name": "nul-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:04.000\none\n"
+    },
+    {
+      "name": "nul-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]one\n"
+    },
+    {
+      "name": "nul-packet",
+      "command": "ffprobe",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"3\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"17\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "nul-frame",
+      "command": "ffprobe",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "nul-stream",
+      "command": "ffprobe",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "nul-format",
+      "command": "ffprobe",
+      "input": "0:00:01:one\u0000tail\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"26\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "bom-srt",
+      "command": "ffmpeg",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:03,000 --> 00:00:04,000\nsecond\n\n"
+    },
+    {
+      "name": "bom-webvtt",
+      "command": "ffmpeg",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:03.000 --> 00:04.000\nsecond\n"
+    },
+    {
+      "name": "bom-lrc",
+      "command": "ffmpeg",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:03.00]second\n"
+    },
+    {
+      "name": "bom-packet",
+      "command": "ffprobe",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 100, \"duration_time\": \"1.000000\", \"size\": \"6\", \"pos\": \"17\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"32\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "bom-frame",
+      "command": "ffprobe",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n        { \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 1000, \"num_rects\": 1 }\n    ]\n}\n"
+    },
+    {
+      "name": "bom-stream",
+      "command": "ffprobe",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "bom-format",
+      "command": "ffprobe",
+      "input": "\ufeff0:00:01:first\n0:00:03:second\n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"41\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "empty-file-srt",
+      "command": "ffmpeg",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "name": "empty-file-webvtt",
+      "command": "ffmpeg",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n"
+    },
+    {
+      "name": "empty-file-lrc",
+      "command": "ffmpeg",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n"
+    },
+    {
+      "name": "empty-file-packet",
+      "command": "ffprobe",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n\n    ]\n}\n"
+    },
+    {
+      "name": "empty-file-frame",
+      "command": "ffprobe",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"frames\": [\n\n    ]\n}\n"
+    },
+    {
+      "name": "empty-file-stream",
+      "command": "ffprobe",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_streams",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ]\n}\n"
+    },
+    {
+      "name": "empty-file-format",
+      "command": "ffprobe",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_format",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"0\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "detect",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "input-seek",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-ss",
+        "2",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:00,000 --> 00:00:02,000\nFirst\r\nline\n\n2\n00:00:02,000 --> 00:00:05,000\nSecond\n\n"
+    },
+    {
+      "name": "output-seek",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-ss",
+        "2",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "duration",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-t",
+        "2",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n"
+    },
+    {
+      "name": "copy",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "unsupported-output",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "vplayer",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "breaks-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:| leading ||middle|\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\n\r\n leading \r\n\r\nmiddle\r\n\n\n"
+    },
+    {
+      "name": "breaks-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:| leading ||middle|\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\n\n leading \n\nmiddle\n\n"
+    },
+    {
+      "name": "breaks-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:| leading ||middle|\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00] leading \n[00:01.00]\n[00:01.00]middle\n"
+    },
+    {
+      "name": "breaks-packets",
+      "command": "ffprobe",
+      "input": "0:00:01:| leading ||middle|\n0:00:03:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"19\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"28\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "spaces-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:   spaces   \n0:00:03: \n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nspaces   \n\n2\n00:00:03,000 --> 00:00:04,000\n\n\n"
+    },
+    {
+      "name": "spaces-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:   spaces   \n0:00:03: \n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nspaces   \n\n00:03.000 --> 00:04.000\n\n"
+    },
+    {
+      "name": "spaces-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:   spaces   \n0:00:03: \n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]spaces   \n[00:03.00]\n"
+    },
+    {
+      "name": "spaces-packets",
+      "command": "ffprobe",
+      "input": "0:00:01:   spaces   \n0:00:03: \n0:00:04:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"12\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 100, \"duration_time\": \"1.000000\", \"size\": \"1\", \"pos\": \"21\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 400, \"pts_time\": \"4.000000\", \"dts\": 400, \"dts_time\": \"4.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"31\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "fraction-tail-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01.5:one\n0:00:01.50:two\n0:00:01.500:three\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,050 --> 00:00:01,500\none\n\n2\n00:00:01,500 --> 00:00:06,000\ntwo\n\n3\n00:00:06,000 --> 1193:02:53,286\nthree\n\n"
+    },
+    {
+      "name": "fraction-tail-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01.5:one\n0:00:01.50:two\n0:00:01.500:three\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.050 --> 00:01.500\none\n\n00:01.500 --> 00:06.000\ntwo\n\n00:06.000 --> 1193:02:53.286\nthree\n"
+    },
+    {
+      "name": "fraction-tail-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01.5:one\n0:00:01.50:two\n0:00:01.500:three\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.05]one\n[00:01.50]two\n[00:06.00]three\n"
+    },
+    {
+      "name": "fraction-tail-packets",
+      "command": "ffprobe",
+      "input": "0:00:01.5:one\n0:00:01.50:two\n0:00:01.500:three\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 105, \"pts_time\": \"1.050000\", \"dts\": 105, \"dts_time\": \"1.050000\", \"duration\": 45, \"duration_time\": \"0.450000\", \"size\": \"3\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 150, \"pts_time\": \"1.500000\", \"dts\": 150, \"dts_time\": \"1.500000\", \"duration\": 450, \"duration_time\": \"4.500000\", \"size\": \"3\", \"pos\": \"14\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 600, \"pts_time\": \"6.000000\", \"dts\": 600, \"dts_time\": \"6.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"5\", \"pos\": \"29\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "long-line-srt",
+      "command": "ffmpeg",
+      "input": "0:00:01:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n0:00:03:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n2\n00:00:03,000 --> 1193:02:50,286\nend\n\n"
+    },
+    {
+      "name": "long-line-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n0:00:03:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "WEBVTT\n\n00:01.000 --> 00:03.000\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n00:03.000 --> 1193:02:50.286\nend\n"
+    },
+    {
+      "name": "long-line-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n0:00:03:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "\n[00:01.00]xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n[00:03.00]end\n"
+    },
+    {
+      "name": "long-line-packets",
+      "command": "ffprobe",
+      "input": "0:00:01:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n0:00:03:end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets\": [\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"4087\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"3\", \"pos\": \"4209\", \"flags\": \"K__\" }\n    ]\n}\n"
+    },
+    {
+      "name": "copy-lrc",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "-bitexact",
+        "-f",
+        "lrc",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "copy-webvtt",
+      "command": "ffmpeg",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "-bitexact",
+        "-f",
+        "webvtt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "detected-probe",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-show_format",
+        "-show_streams",
+        "-show_packets",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets_and_frames\": [\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"10\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"type\": \"subtitle\", \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"6\", \"pos\": \"19\", \"flags\": \"K__\" },\n        { \"type\": \"subtitle\", \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 },\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 600, \"pts_time\": \"6.000000\", \"dts\": 600, \"dts_time\": \"6.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"34\", \"flags\": \"K__\" }\n    ],\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\", \"start_pts\": 100, \"start_time\": \"1.000000\", \"nb_read_frames\": \"2\", \"nb_read_packets\": \"3\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ],\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"43\", \"probe_score\": 100 }\n}\n"
+    },
+    {
+      "name": "counted-probe",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-count_frames",
+        "-count_packets",
+        "-show_format",
+        "-show_streams",
+        "-show_packets",
+        "-show_frames",
+        "-of",
+        "json=c=1",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "{\n    \"packets_and_frames\": [\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 100, \"pts_time\": \"1.000000\", \"dts\": 100, \"dts_time\": \"1.000000\", \"duration\": 200, \"duration_time\": \"2.000000\", \"size\": \"10\", \"pos\": \"0\", \"flags\": \"K__\" },\n        { \"type\": \"subtitle\", \"media_type\": \"subtitle\", \"pts\": 1000000, \"pts_time\": \"1.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 2000, \"num_rects\": 1 },\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 300, \"pts_time\": \"3.000000\", \"dts\": 300, \"dts_time\": \"3.000000\", \"duration\": 300, \"duration_time\": \"3.000000\", \"size\": \"6\", \"pos\": \"19\", \"flags\": \"K__\" },\n        { \"type\": \"subtitle\", \"media_type\": \"subtitle\", \"pts\": 3000000, \"pts_time\": \"3.000000\", \"format\": 1, \"start_display_time\": 0, \"end_display_time\": 3000, \"num_rects\": 1 },\n        { \"type\": \"packet\", \"codec_type\": \"subtitle\", \"stream_index\": 0, \"pts\": 600, \"pts_time\": \"6.000000\", \"dts\": 600, \"dts_time\": \"6.000000\", \"duration\": -1, \"duration_time\": \"-0.010000\", \"size\": \"0\", \"pos\": \"34\", \"flags\": \"K__\" }\n    ],\n    \"streams\": [\n        { \"index\": 0, \"codec_name\": \"vplayer\", \"codec_long_name\": \"VPlayer subtitle\", \"codec_type\": \"subtitle\", \"codec_tag_string\": \"[0][0][0][0]\", \"codec_tag\": \"0x0000\", \"r_frame_rate\": \"0/0\", \"avg_frame_rate\": \"0/0\", \"time_base\": \"1/100\", \"start_pts\": 100, \"start_time\": \"1.000000\", \"nb_read_frames\": \"2\", \"nb_read_packets\": \"3\",\n            \"disposition\": { \"default\": 0, \"dub\": 0, \"original\": 0, \"comment\": 0, \"lyrics\": 0, \"karaoke\": 0, \"forced\": 0, \"hearing_impaired\": 0, \"visual_impaired\": 0, \"clean_effects\": 0, \"attached_pic\": 0, \"timed_thumbnails\": 0, \"non_diegetic\": 0, \"captions\": 0, \"descriptions\": 0, \"metadata\": 0, \"dependent\": 0, \"still_image\": 0 } }\n    ],\n    \"format\": { \"filename\": \"input.txt\", \"nb_streams\": 1, \"nb_programs\": 0, \"nb_stream_groups\": 0, \"format_name\": \"vplayer\", \"format_long_name\": \"VPlayer subtitles\", \"size\": \"43\", \"probe_score\": 0 }\n}\n"
+    },
+    {
+      "name": "interleaved-default",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-show_frames",
+        "-show_entries",
+        "packet=pts,size:frame=pts,end_display_time",
+        "-of",
+        "default",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "[PACKET]\npts=100\nsize=10\n[/PACKET]\n[SUBTITLE]\nmedia_type=subtitle\npts=1000000\npts_time=1.000000\nformat=1\nstart_display_time=0\nend_display_time=2000\nnum_rects=1\n[/SUBTITLE]\n[PACKET]\npts=300\nsize=6\n[/PACKET]\n[SUBTITLE]\nmedia_type=subtitle\npts=3000000\npts_time=3.000000\nformat=1\nstart_display_time=0\nend_display_time=3000\nnum_rects=1\n[/SUBTITLE]\n[PACKET]\npts=600\nsize=0\n[/PACKET]\n"
+    },
+    {
+      "name": "interleaved-csv=p=0",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-show_frames",
+        "-show_entries",
+        "packet=pts,size:frame=pts,end_display_time",
+        "-of",
+        "csv=p=0",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "100,10\nsubtitle,1000000,1.000000,1,0,2000,1\n300,6\nsubtitle,3000000,3.000000,1,0,3000,1\n600,0\n"
+    },
+    {
+      "name": "interleaved-flat",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-show_frames",
+        "-show_entries",
+        "packet=pts,size:frame=pts,end_display_time",
+        "-of",
+        "flat",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "packets_and_frames.packet.0.pts=100\npackets_and_frames.packet.0.size=\"10\"\npackets_and_frames.subtitle.0.media_type=\"subtitle\"\npackets_and_frames.subtitle.0.pts=1000000\npackets_and_frames.subtitle.0.pts_time=\"1.000000\"\npackets_and_frames.subtitle.0.format=1\npackets_and_frames.subtitle.0.start_display_time=0\npackets_and_frames.subtitle.0.end_display_time=2000\npackets_and_frames.subtitle.0.num_rects=1\npackets_and_frames.packet.1.pts=300\npackets_and_frames.packet.1.size=\"6\"\npackets_and_frames.subtitle.1.media_type=\"subtitle\"\npackets_and_frames.subtitle.1.pts=3000000\npackets_and_frames.subtitle.1.pts_time=\"3.000000\"\npackets_and_frames.subtitle.1.format=1\npackets_and_frames.subtitle.1.start_display_time=0\npackets_and_frames.subtitle.1.end_display_time=3000\npackets_and_frames.subtitle.1.num_rects=1\npackets_and_frames.packet.2.pts=600\npackets_and_frames.packet.2.size=\"0\"\n"
+    },
+    {
+      "name": "interleaved-compact=p=0",
+      "command": "ffprobe",
+      "input": "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "vplayer",
+        "-show_packets",
+        "-show_frames",
+        "-show_entries",
+        "packet=pts,size:frame=pts,end_display_time",
+        "-of",
+        "compact=p=0",
+        "input.txt"
+      ],
+      "exitCode": 0,
+      "output": "pts=100|size=10\nmedia_type=subtitle|pts=1000000|pts_time=1.000000|format=1|start_display_time=0|end_display_time=2000|num_rects=1\npts=300|size=6\nmedia_type=subtitle|pts=3000000|pts_time=3.000000|format=1|start_display_time=0|end_display_time=3000|num_rects=1\npts=600|size=0\n"
+    }
+  ]
+}

@@ -7,6 +7,21 @@ const base=wavAst().probe(encodeWav({sampleRate:8000,channels:[new Float64Array(
 const options={printFormat:'json',showStreams:true,showFormat:true,showPackets:false,showFrames:false,showChapters:true,showPrograms:false};
 const value='é😀,"\n\r\\\t||end';
 const text={kind:'text' as const,async *chunks(){for(let i=0;i<value.length;i++)yield value[i]!;}};
+for (const writer of ['json', 'default', 'flat', 'compact', 'csv', 'ini', 'xml']) {
+  for (const showEntries of [undefined, 'format_tags=title', 'format_tags=__proto__']) {
+    it(`preserves prototype-named format tags with ${writer} and ${showEntries ?? 'all fields'}`, async () => {
+      const tags = Object.fromEntries(['__proto__', 'constructor', 'toString', 'title'].map(key => [key, value]));
+      const probe = { ...base, format: { ...base.format, tags } };
+      const opts = { ...options, printFormat: writer, ...(showEntries ? { showEntries } : {}) };
+      let output = '';
+      for await (const part of formatFfprobeSourceChunks(probe, opts)) output += part;
+      expect(output).toBe(formatFfprobeResult(probe, opts));
+      if (writer === 'json') expect(JSON.parse(output).format.tags).toEqual(showEntries
+        ? Object.fromEntries([[showEntries.slice('format_tags='.length), value]]) : tags);
+      expect(Object.getPrototypeOf(tags)).toBe(Object.prototype);
+    });
+  }
+}
 for(const writer of ['json','json:compact=1','default','default=nw=1:nk=1','flat','compact','csv','csv=s=|'])it(`streams tag fields with exact ${writer} escaping`,async()=>{
   const probe={...base,streams:base.streams.map(stream=>({...stream,tags:{title:value,empty:''}})),format:{...base.format,tags:{title:value}},chapters:[{id:0,time_base:'1/1000',start:0,start_time:'0',end:1,end_time:'0.001',tags:{title:value}}]};
   const source={...probe,streams:probe.streams.map(stream=>({...stream,tags:{title:text,empty:{kind:'text' as const,async *chunks(){}}}})),format:{...probe.format,tags:{title:text}},chapters:probe.chapters.map(chapter=>({...chapter,tags:{title:text}}))};
@@ -27,10 +42,10 @@ it('applies backpressure and retires text when formatting ends early',async()=>{
   let part=await iterator.next();while(!part.done&&!part.value.includes('x'.repeat(32)))part=await iterator.next();
   expect(read).toBe(1);await iterator.return(undefined);expect(closed).toBe(1);
 });
-for(const mode of ['read','cancel'])it(`retires rejecting text iterators and preserves ${mode} failure`,async()=>{
+for(const [writer, mode] of [['json', 'read'], ['json', 'cancel'], ['json=sv=fail', 'read']] as const)it(`retires rejecting text iterators and preserves ${mode} failure with ${writer}`,async()=>{
   const controller=new AbortController();let closed=0;
   const failing={kind:'text' as const,chunks(){return{[Symbol.asyncIterator](){return{async next(){if(mode==='cancel'){controller.abort(new Error('cancelled text'));return{done:false as const,value:'x'};}throw new Error('text failed');},async return(){closed++;throw new Error('cleanup failed');}};}};}};
-  await expect((async()=>{for await(const part of formatFfprobeSourceChunks({...base,format:{...base.format,tags:{title:failing}}},{...options,showStreams:false},undefined,controller.signal))void part;})()).rejects.toThrow(mode==='cancel'?'cancelled text':'text failed');
+  await expect((async()=>{for await(const part of formatFfprobeSourceChunks({...base,format:{...base.format,tags:{title:failing}}},{...options,printFormat:writer,showStreams:false},undefined,controller.signal))void part;})()).rejects.toThrow(mode==='cancel'?'cancelled text':'text failed');
   expect(closed).toBe(1);
 });
 

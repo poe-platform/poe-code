@@ -85,7 +85,7 @@ pub(super) fn read(bytes: &[u8], mut remaining: usize, recalc: bool) -> Result<V
     for worksheet in elements(root).filter(|el| named(el, &[root], "Worksheet")) {
         let name = attr(worksheet, &[root], "Name").ok_or(INVALID)?;
         spend(&mut remaining, std::mem::size_of::<WorkbookSheet>().saturating_add(name.len()))?;
-        let mut sheet = WorkbookSheet { name: name.into(), active: sheets.is_empty(), delimited: false, rows: Vec::new(), empty_text_cells: Vec::new() };
+        let mut sheet = WorkbookSheet { typed: None, name: name.into(), delimited: false, rows: Vec::new(), empty_text_cells: Vec::new() };
         let mut formulas = Vec::new();
         let mut next_row = 0;
         for table in elements(worksheet).filter(|el| named(el, &[root, worksheet], "Table")) {
@@ -175,8 +175,8 @@ mod tests {
     #[test]
     fn rejects_expanded_sparse_storage_and_foreign_roots() {
         let xml = format!(r#"<Workbook xmlns="{NAMESPACE}" xmlns:s="{NAMESPACE}"><Worksheet s:Name="S"><Table><Row s:Index="1000"><Cell><Data s:Type="Number">4</Data></Cell></Row></Table></Worksheet></Workbook>"#);
-        assert_eq!(read(xml.as_bytes(), 1024, false).unwrap_err(), LIMIT);
-        assert_eq!(read(xml.replace(NAMESPACE, "foreign").as_bytes(), 4096, false).unwrap_err(), INVALID);
+        assert_eq!(read(xml.as_bytes(), 1024, false).err().unwrap(), LIMIT);
+        assert_eq!(read(xml.replace(NAMESPACE, "foreign").as_bytes(), 4096, false).err().unwrap(), INVALID);
         assert!(read(&xml.as_bytes()[..xml.len()-3], 4096, false).is_err());
     }
 }

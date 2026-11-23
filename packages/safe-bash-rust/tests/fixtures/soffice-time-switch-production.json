@@ -1,0 +1,3790 @@
+[
+  {
+    "formula": "OPT_TIME_SWITCH()",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\")",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170311368221706
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,.2,1)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2915545144563647
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"CALL\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170311368221706
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"Put\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2915545144563647
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"x\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"\",100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(0,100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(TRUE(),100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(NA(),100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",0,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",-1,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",1,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4129608257332894e-119
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",1e-8,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",-1e-8,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",1e6,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",-1e6,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",80,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.29414342634750507
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",120,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.3061694985016
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",.001,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",.2,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.788757918881514e-215
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",2,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.5792275925403986e-87
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",\"2\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.5792275925403986e-87
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",\"\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",\"text\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",TRUE(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4129608257332894e-119
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",FALSE(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",1/0,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",NA(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",{0,1},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1.4129608257332894e-119
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",{.01,.2},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 4.788757918881514e-215
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",{\"2\",\"bad\"},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3.5792275925403986e-87
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",{TRUE,FALSE},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.4129608257332894e-119
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",{#N/A,1},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.4129608257332894e-119
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",IF({TRUE,FALSE},NA(),1),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.4129608257332894e-119
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,0,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,-1,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,1,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,1e-8,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,-1e-8,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,1e6,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,-1e6,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,80,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.455572953202368
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,120,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.4593756762422105
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,.001,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,.2,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,2,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,\"2\",5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,\"\",5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,\"text\",5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,TRUE(),5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,FALSE(),5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,1/0,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,NA(),5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,{0,1},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,{.01,.2},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,{\"2\",\"bad\"},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,{TRUE,FALSE},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,{#N/A,1},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,IF({TRUE,FALSE},NA(),1),5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,0,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,-1,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -0.48340622736443406
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.48340622736443406
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,1e-8,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.834062273644341e-9
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,-1e-8,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -4.834062273644341e-9
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,1e6,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 483406.2273644341
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,-1e6,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -483406.2273644341
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,80,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 38.67249818915473
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,120,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 58.00874728373209
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,.001,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.00048340622736443406
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,.2,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.09668124547288683
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,2,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.9668124547288681
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,\"2\",1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.9668124547288681
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,\"\",1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,\"text\",1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,TRUE(),1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.48340622736443406
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,FALSE(),1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,1/0,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,NA(),1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,{0,1},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.48340622736443406
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,{.01,.2},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.004834062273644341
+      },
+      {
+        "kind": "number",
+        "value": 0.09668124547288683
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,{\"2\",\"bad\"},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.9668124547288681
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,{TRUE,FALSE},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.48340622736443406
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,{#N/A,1},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.48340622736443406
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,IF({TRUE,FALSE},NA(),1),1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.48340622736443406
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-2,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.01,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.005,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.01,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.019,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.02,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.02507464796506784
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.021,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.02507339426401237
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.5,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2173157743227783
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,2,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.670991643545923
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,10,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 16.419256196828897
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,\"2\",0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.670991643545923
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,\"\",0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,\"text\",0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,TRUE(),0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170311368221706
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,FALSE(),0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1/0,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,NA(),0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,{0,1},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,{.01,.2},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.4759208969143946
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,{\"2\",\"bad\"},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.670991643545923
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,{TRUE,FALSE},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,{#N/A,1},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,IF({TRUE,FALSE},NA(),1),0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,-1,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.369469665597135
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,1,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4645926080472065
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,1e-8,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170311372977853
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,-1e-8,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.417031136346556
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,1e6,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 47563.888256172526
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,-1e6,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -47559.05419389888
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,80,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 6.221948834825027
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,120,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 8.124407683826455
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,.001,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170786982933956
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,.2,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4265434310671776
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,2,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.512154079272242
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,\"2\",.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.512154079272242
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,\"\",.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,\"text\",.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,TRUE(),.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4645926080472065
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,FALSE(),.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.4170311368221706
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,1/0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,NA(),.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,{0,1},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      },
+      {
+        "kind": "number",
+        "value": 2.4645926080472065
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,{.01,.2},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.417506751534421
+      },
+      {
+        "kind": "number",
+        "value": 2.4265434310671776
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,{\"2\",\"bad\"},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.512154079272242
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,{TRUE,FALSE},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4645926080472065
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,{#N/A,1},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.4645926080472065
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,IF({TRUE,FALSE},NA(),1),.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.4645926080472065
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,-1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,-.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.438879250311416
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4644717644954064
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.5,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2225719023009205
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,10,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,FALSE(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      },
+      {
+        "kind": "number",
+        "value": 1.9546012885949429
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,{#N/A,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,0,.03,.2)",
+    "kind": "number",
+    "value": 2.5409549731820307
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,-1,.03,.2)",
+    "kind": "number",
+    "value": 6.907031730533355
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,1,.03,.2)",
+    "kind": "number",
+    "value": 0.9347650955760027
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 2.540954947772481
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 2.5409549985915802
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,80,.03,.2)",
+    "kind": "number",
+    "value": 4.5860461098002973e-35
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,120,.03,.2)",
+    "kind": "number",
+    "value": 1.948314850553353e-52
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.001,.03,.2)",
+    "kind": "number",
+    "value": 2.5384152882629487
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.2,.03,.2)",
+    "kind": "number",
+    "value": 2.0803579787305675
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,2,.03,.2)",
+    "kind": "number",
+    "value": 0.34388086098706977
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 0.34388086098706977
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 0.9347650955760027
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 2.5409549731820307
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.5409549731820307
+      },
+      {
+        "kind": "number",
+        "value": 0.9347650955760027
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.5156720487629918
+      },
+      {
+        "kind": "number",
+        "value": 2.0803579787305675
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.34388086098706977
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.9347650955760027
+      },
+      {
+        "kind": "number",
+        "value": 2.5409549731820307
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,{#N/A,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.9347650955760027
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.9347650955760027
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,0,.2)",
+    "kind": "number",
+    "value": 2.2289097669691174
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,-1,.2)",
+    "kind": "number",
+    "value": 0.08153963350441136
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,1,.2)",
+    "kind": "number",
+    "value": 4.619507877546388
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 2.228909829535994
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 2.2289097044022403
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,1e6,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,-1e6,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,80,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,120,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.001,.2)",
+    "kind": "number",
+    "value": 2.235167372818693
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.2,.2)",
+    "kind": "number",
+    "value": 3.400110573162576
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,2,.2)",
+    "kind": "number",
+    "value": 4.692389185448201
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 4.692389185448201
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 4.619507877546388
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,FALSE(),.2)",
+    "kind": "number",
+    "value": 2.2289097669691174
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.2289097669691174
+      },
+      {
+        "kind": "number",
+        "value": 4.619507877546388
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      },
+      {
+        "kind": "number",
+        "value": 3.400110573162576
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.692389185448201
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.619507877546388
+      },
+      {
+        "kind": "number",
+        "value": 2.2289097669691174
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,{#N/A,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.619507877546388
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.619507877546388
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,0)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,-1)",
+    "kind": "number",
+    "value": 2.931509646940352
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,1)",
+    "kind": "number",
+    "value": 1.7770760043381837
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,1e-8)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,-1e-8)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,1e6)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,-1e6)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,80)",
+    "kind": "number",
+    "value": 0.000001506936417026329
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,120)",
+    "kind": "number",
+    "value": 4.693078539239019e-11
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,.001)",
+    "kind": "number",
+    "value": 4.708520907220227
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,2)",
+    "kind": "number",
+    "value": 1.2260977087169977
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 1.2260977087169977
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 1.7770760043381837
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,FALSE())",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 1.7770760043381837
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.455561616586057
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.2260977087169977
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.7770760043381837
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,{#N/A,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.7770760043381837
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.01,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.7770760043381837
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",0,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",-1,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",1,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",1e-8,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",-1e-8,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",1e6,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",-1e6,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",80,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.4144422249310304
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",120,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.40241615277693643
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",.001,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",.2,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",2,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",\"2\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",\"\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",\"text\",100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",TRUE(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",FALSE(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",1/0,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",NA(),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",{0,1},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",{.01,.2},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",{\"2\",\"bad\"},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",{TRUE,FALSE},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",{#N/A,1},100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",IF({TRUE,FALSE},NA(),1),100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 4.708585651278538
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,0,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,-1,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,1,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4069253579840838e-120
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,1e-8,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,-1e-8,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,1e6,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,-1e6,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,80,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.25301269807616705
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,120,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.249209975036324
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,.001,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,.2,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.1347996292665452e-216
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,2,5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 5.036408154964833e-88
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,\"2\",5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 5.036408154964833e-88
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,\"\",5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,\"text\",5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,TRUE(),5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4069253579840838e-120
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,FALSE(),5,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,1/0,5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,NA(),5,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,{0,1},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 1.4069253579840838e-120
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,{.01,.2},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2.1347996292665452e-216
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,{\"2\",\"bad\"},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5.036408154964833e-88
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,{TRUE,FALSE},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 1.4069253579840838e-120
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,{#N/A,1},5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.4069253579840838e-120
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,IF({TRUE,FALSE},NA(),1),5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 1.4069253579840838e-120
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,0,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,-1,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -0.4583109028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,1,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.4583109028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,1e-8,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.58310902891273e-9
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,-1e-8,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -4.58310902891273e-9
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,1e6,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 458310.9028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,-1e6,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -458310.9028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,80,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 36.664872231301835
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,120,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 54.99730834695275
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,.001,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.0004583109028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,.2,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.09166218057825459
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,2,1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.9166218057825458
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,\"2\",1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.9166218057825458
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,\"\",1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,\"text\",1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,TRUE(),1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.4583109028912729
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,FALSE(),1,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,1/0,1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,NA(),1,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,{0,1},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.4583109028912729
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,{.01,.2},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.004583109028912729
+      },
+      {
+        "kind": "number",
+        "value": 0.09166218057825459
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,{\"2\",\"bad\"},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.9166218057825458
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,{TRUE,FALSE},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.4583109028912729
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,{#N/A,1},1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.4583109028912729
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,IF({TRUE,FALSE},NA(),1),1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.4583109028912729
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-2,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.01,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.005,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.01,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.019,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.02,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.024875377026600913
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.021,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.024874133288843282
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.5,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.172193510146637
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,2,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.332140665911873
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,10,0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 13.876950255817162
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,\"2\",0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.332140665911873
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,\"\",0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,\"text\",0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,TRUE(),0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2915545144563647
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,FALSE(),0,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1/0,0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,NA(),0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,{0,1},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,{.01,.2},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0.4646264451473151
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,{\"2\",\"bad\"},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 4.332140665911873
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,{TRUE,FALSE},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,{#N/A,1},0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,IF({TRUE,FALSE},NA(),1),0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,-1,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.243993043231329
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,1,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.3391159856814006
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,1e-8,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2915545149319794
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,-1e-8,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.29155451398075
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,1e6,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 47563.76277955016
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,-1e6,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": -47559.17967052125
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,80,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 6.096472212459221
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,120,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 7.998931061460649
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,.001,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2916020759275897
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,.2,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.3010668087013717
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,2,.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.386677456906436
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,\"2\",.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.386677456906436
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,\"\",.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,\"text\",.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,TRUE(),.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.3391159856814006
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,FALSE(),.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.2915545144563647
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,1/0,.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,NA(),.01,.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,{0,1},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      },
+      {
+        "kind": "number",
+        "value": 2.3391159856814006
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,{.01,.2},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.292030129168615
+      },
+      {
+        "kind": "number",
+        "value": 2.3010668087013717
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,{\"2\",\"bad\"},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.386677456906436
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,{TRUE,FALSE},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.3391159856814006
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,{#N/A,1},.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.3391159856814006
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,IF({TRUE,FALSE},NA(),1),.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.3391159856814006
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,-1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,-.01,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.001,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.3125117250696525
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.3892165090067357
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.5,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.1555016589508647
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,2,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,10,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,\"2\",.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,\"\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,\"text\",.05,.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,TRUE(),.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,FALSE(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,1/0,.05,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,NA(),.05,.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,{0,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,{.01,.2},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      },
+      {
+        "kind": "number",
+        "value": 1.8503164094079134
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,{\"2\",\"bad\"},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,{TRUE,FALSE},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,{#N/A,1},.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,IF({TRUE,FALSE},NA(),1),.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,0,.03,.2)",
+    "kind": "number",
+    "value": 2.40904502681797
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,-1,.03,.2)",
+    "kind": "number",
+    "value": 6.54846332033892
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,1,.03,.2)",
+    "kind": "number",
+    "value": 0.886238138222637
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,1e-8,.03,.2)",
+    "kind": "number",
+    "value": 2.4090450027275194
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,-1e-8,.03,.2)",
+    "kind": "number",
+    "value": 2.40904505090842
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,1e6,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,-1e6,.03,.2)",
+    "kind": "error",
+    "value": "#NUM!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,80,.03,.2)",
+    "kind": "number",
+    "value": 4.347968260034508e-35
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,120,.03,.2)",
+    "kind": "number",
+    "value": 1.8471709459390368e-52
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.001,.03,.2)",
+    "kind": "number",
+    "value": 2.4066371859122584
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.2,.03,.2)",
+    "kind": "number",
+    "value": 1.9723592490054433
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,2,.03,.2)",
+    "kind": "number",
+    "value": 0.32602879103416316
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,\"2\",.03,.2)",
+    "kind": "number",
+    "value": 0.32602879103416316
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,\"\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,\"text\",.03,.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,TRUE(),.03,.2)",
+    "kind": "number",
+    "value": 0.886238138222637
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,FALSE(),.03,.2)",
+    "kind": "number",
+    "value": 2.40904502681797
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,1/0,.03,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,NA(),.03,.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,{0,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.40904502681797
+      },
+      {
+        "kind": "number",
+        "value": 0.886238138222637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,{.01,.2},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.385074628295391
+      },
+      {
+        "kind": "number",
+        "value": 1.9723592490054433
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,{\"2\",\"bad\"},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.32602879103416316
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,{TRUE,FALSE},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.886238138222637
+      },
+      {
+        "kind": "number",
+        "value": 2.40904502681797
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,{#N/A,1},.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.886238138222637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,IF({TRUE,FALSE},NA(),1),.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.886238138222637
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,0,.2)",
+    "kind": "number",
+    "value": 2.4796758843094175
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,-1,.2)",
+    "kind": "number",
+    "value": 4.627046017774123
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,1,.2)",
+    "kind": "number",
+    "value": 0.08907777373214666
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,1e-8,.2)",
+    "kind": "number",
+    "value": 2.47967582174254
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,-1e-8,.2)",
+    "kind": "number",
+    "value": 2.4796759468762946
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,1e6,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,-1e6,.2)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,80,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,120,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.001,.2)",
+    "kind": "number",
+    "value": 2.473418278459839
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.2,.2)",
+    "kind": "number",
+    "value": 1.3084750781159604
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,2,.2)",
+    "kind": "number",
+    "value": 0.01619646583033415
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,\"2\",.2)",
+    "kind": "number",
+    "value": 0.01619646583033415
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,\"\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,\"text\",.2)",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,TRUE(),.2)",
+    "kind": "number",
+    "value": 0.08907777373214666
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,FALSE(),.2)",
+    "kind": "number",
+    "value": 2.4796758843094175
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,1/0,.2)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,NA(),.2)",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,{0,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4796758843094175
+      },
+      {
+        "kind": "number",
+        "value": 0.08907777373214666
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,{.01,.2},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      },
+      {
+        "kind": "number",
+        "value": 1.3084750781159604
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,{\"2\",\"bad\"},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.01619646583033415
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,{TRUE,FALSE},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.08907777373214666
+      },
+      {
+        "kind": "number",
+        "value": 2.4796758843094175
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,{#N/A,1},.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.08907777373214666
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,IF({TRUE,FALSE},NA(),1),.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 0.08907777373214666
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,0)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,-1)",
+    "kind": "number",
+    "value": 1.7770760043381837
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,1)",
+    "kind": "number",
+    "value": 2.931509646940352
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,1e-8)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,-1e-8)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,1e6)",
+    "kind": "number",
+    "value": 4.708585651278538
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,-1e6)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,80)",
+    "kind": "number",
+    "value": 4.7085841443421215
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,120)",
+    "kind": "number",
+    "value": 4.7085856512316075
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,.001)",
+    "kind": "number",
+    "value": 0.00006474405831067797
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,2)",
+    "kind": "number",
+    "value": 3.482487942561537
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,\"2\")",
+    "kind": "number",
+    "value": 3.482487942561537
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,\"\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,\"text\")",
+    "kind": "error",
+    "value": "#VALUE!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,TRUE())",
+    "kind": "number",
+    "value": 2.931509646940352
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,FALSE())",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,1/0)",
+    "kind": "error",
+    "value": "#DIV/0!"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,NA())",
+    "kind": "error",
+    "value": "#N/A"
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,{0,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 2.931509646940352
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,{.01,.2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0.253024034692477
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,{\"2\",\"bad\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 3.482487942561537
+      },
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,{TRUE,FALSE})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.931509646940352
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,{#N/A,1})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.931509646940352
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.01,.05,.03,IF({TRUE,FALSE},NA(),1))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.931509646940352
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2562656510742511
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2562656510742511
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,-.1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.768796953222754
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.25
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.25
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,0,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.75
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.244387637286963
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.244387637286963
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.09,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7331629118608896
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.243765598990853
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.243765598990853
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7312967969725586
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2381812280536255
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2381812280536255
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.19,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.714543684160877
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2375622921864602
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.2506348620040429
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.488197154190503
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.2,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7126868765593803
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.236943665709874
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.25050957589717765
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4874532416070516
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,.21,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.710830997129622
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.1890367806258926
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.198172208432739
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.3872089890586317
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"c\",100,100,5,1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 5.031582106373084
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2562656510742511
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2562656510742511
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,-.1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.768796953222754
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.25
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.25
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,0,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.75
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.244387637286963
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.244387637286963
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.09,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7331629118608896
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.243765598990853
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.243765598990853
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7312967969725586
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2381812280536255
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.2381812280536255
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.19,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.714543684160877
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.2375622921864602
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.24439005487054125
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.4819523470570015
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.2,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.7126868765593803
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.236943665709874
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0.24426789038677196
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 1.481211556096646
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,0,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,.21,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.710830997129622
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 0
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,2.5,-.1,.05,.03,.2)",
+    "kind": "number",
+    "value": -1.1890367806258926
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,0,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 2.082360201820474
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,2.5,.1,.05,.03,.2)",
+    "kind": "number",
+    "value": 3.2713969824463667
+  },
+  {
+    "formula": "OPT_TIME_SWITCH(\"p\",100,100,5,1,2.5,.3,.05,.03,.2)",
+    "kind": "number",
+    "value": 4.9563268508844125
+  },
+  {
+    "formula": "OPT_TIME_SWITCH({\"c\",\"p\"},100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH({\"bad\",\"c\"},100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      {
+        "kind": "number",
+        "value": 2.4170311368221706
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH({TRUE,\"p\"},100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  },
+  {
+    "formula": "OPT_TIME_SWITCH({#N/A,\"p\"},100,100,5,1,0,.01,.05,.03,.2)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "number",
+        "value": 2.2915545144563647
+      }
+    ]
+  }
+]

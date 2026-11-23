@@ -14,37 +14,102 @@ pub fn try_run_archive_command(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    if let Some(info) =
-        crate::commands::coreutils::gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT"))
-    {
+    if let Some(info) = crate::commands::coreutils::gnu_information_sync(
+        cmd,
+        args,
+        env.contains_key("POSIXLY_CORRECT"),
+    ) {
         return Some(info);
     }
     if let Some(algorithm) = checksum_algorithm(cmd) {
-        return Some(run_checksum(algorithm, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write));
+        return Some(run_checksum(
+            algorithm,
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            fs,
+            &mut super::capture_write,
+        ));
     }
     if is_compression_command(cmd) {
-        return Some(cmd_gzip(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs));
+        return Some(cmd_gzip(
+            cmd,
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            fs,
+        ));
     }
     match cmd {
-        "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
-        "xxd" => Some(cmd_xxd(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
+        "base64" | "base32" => Some(run_base_cmd(
+            cmd,
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            fs,
+            &mut super::capture_write,
+        )),
+        "xxd" => Some(cmd_xxd(
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            env,
+            fs,
+            &mut super::capture_write,
+        )),
         "strings" => Some(cmd_strings(args, stdin, cwd, fs)),
-        "od" => Some(cmd_od(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
+        "od" => Some(cmd_od(
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            fs,
+            &mut super::capture_write,
+        )),
         "hexdump" => Some(cmd_hexdump(args, stdin, cwd, fs, false)),
         "hd" => Some(cmd_hexdump(args, stdin, cwd, fs, true)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
 
-        "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf" | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts" | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo" | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox" | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite" | "montage" | "compare" | "sips" | "exiftool" | "identify" => {
+        "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf" | "pdfunite"
+        | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts" | "pdfdetach" | "pdftotext"
+        | "pdftohtml" | "pdftoppm" | "pdftocairo" | "pdfimages" | "diffpdf" | "pdfdiff"
+        | "svgo" | "rsvg-convert" | "sox" | "soxi" | "qrencode" | "magick" | "convert"
+        | "mogrify" | "composite" | "montage" | "compare" | "sips" | "exiftool" | "identify" => {
             let mut result = cmd_media_doc(cmd, args, stdin, cwd, fs);
-            if result.exit_code == 1 && result.stderr == "shell: line 1: internal error\n"
-                && let Some(line) = env.get("\0lineno") {
+            if result.exit_code == 1
+                && result.stderr == "shell: line 1: internal error\n"
+                && let Some(line) = env.get("\0lineno")
+            {
                 result.stderr = format!("shell: line {line}: internal error\n");
             }
             Some(result)
         }
-        "zip" => Some(cmd_zip(args,super::CommandInput {text:&mut stdin.to_owned(),file:None},cwd,fs,false,&mut super::capture_write,&mut |words| {
-            words[0]=="unzip" && cmd_unzip(&words[1..],"",cwd,fs).exit_code==0
-        })),
+        "zip" => Some(cmd_zip(
+            args,
+            super::CommandInput {
+                text: &mut stdin.to_owned(),
+                file: None,
+            },
+            cwd,
+            fs,
+            false,
+            &mut super::capture_write,
+            &mut |words| words[0] == "unzip" && cmd_unzip(&words[1..], "", cwd, fs).exit_code == 0,
+        )),
         "unzip" => Some(cmd_unzip(args, stdin, cwd, fs)),
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),
         "gpg" => Some(cmd_gpg(args, stdin, cwd, env, fs)),
@@ -85,7 +150,9 @@ fn hex_encode(bytes: &[u8]) -> String {
 
 pub(super) fn checksum_algorithm(cmd: &str) -> Option<&str> {
     match cmd {
-        "md5sum" | "sha1sum" | "sha224sum" | "sha256sum" | "sha384sum" | "sha512sum" => cmd.strip_suffix("sum"),
+        "md5sum" | "sha1sum" | "sha224sum" | "sha256sum" | "sha384sum" | "sha512sum" => {
+            cmd.strip_suffix("sum")
+        }
         "b2sum" => Some("blake2b"),
         "cksum" => Some("crc"),
         _ => None,
@@ -107,7 +174,13 @@ enum SumSource<'a> {
 }
 
 #[derive(Default, PartialEq, Eq)]
-enum SumReportMode { #[default] Normal, Warn, Quiet, Status }
+enum SumReportMode {
+    #[default]
+    Normal,
+    Warn,
+    Quiet,
+    Status,
+}
 
 #[derive(Default)]
 struct SumReport {
@@ -120,7 +193,9 @@ fn validate_sum_name(file: &str) -> Result<(), String> {
     if file.is_empty() || file.contains('\0') || crate::vfs::stream_utf8(file).is_err() {
         return Err("EINVAL: filename must be nonempty, NUL-free, valid Unicode".into());
     }
-    if crate::vfs::stream_byte_len(file) > 16384 { return Err("ENAMETOOLONG: filename exceeds 16384 UTF-8 bytes".into()); }
+    if crate::vfs::stream_byte_len(file) > 16384 {
+        return Err("ENAMETOOLONG: filename exceeds 16384 UTF-8 bytes".into());
+    }
     Ok(())
 }
 
@@ -158,16 +233,32 @@ impl<'fs> ChecksumInputs<'_, 'fs> {
     fn open(&mut self, name: &str) -> Result<SumSource<'fs>, String> {
         validate_sum_name(name)?;
         if name == "-" {
-            return Ok(if std::mem::replace(&mut self.stdin_used, true) { SumSource::Empty } else { SumSource::Stdin });
+            return Ok(if std::mem::replace(&mut self.stdin_used, true) {
+                SumSource::Empty
+            } else {
+                SumSource::Stdin
+            });
         }
         let path = crate::vfs::path::absolute_operand(self.cwd, name);
         let message = |e| super::coreutils::stream_file_error(e, "readStream", &path);
-        let (entry, st) = self.fs.inspect_command_entry(&path, true, "capabilitiesFor").map_err(message)?;
-        if st.kind == crate::vfs::VfsEntryKind::Directory { return Err(format!("{}: Is a directory", escape_sum_name(name).1)); }
+        let (entry, st) = self
+            .fs
+            .inspect_command_entry(&path, true, "capabilitiesFor")
+            .map_err(message)?;
+        if st.kind == crate::vfs::VfsEntryKind::Directory {
+            return Err(format!("{}: Is a directory", escape_sum_name(name).1));
+        }
         let mut next = self.fs.open_chunks(&entry).map_err(message)?;
-        let mut remaining = if st.mode & 0o170000 == 0o100000 { st.size } else { usize::MAX };
+        let mut remaining = if st.mode & 0o170000 == 0o100000 {
+            st.size
+        } else {
+            usize::MAX
+        };
         Ok(SumSource::File(Box::new(move |chunk| {
-            if remaining == 0 { chunk.clear(); return Ok(()); }
+            if remaining == 0 {
+                chunk.clear();
+                return Ok(());
+            }
             next(chunk).map_err(|e| super::coreutils::stream_file_error(e, "readStream", &path))?;
             chunk.truncate(remaining);
             remaining -= chunk.len();
@@ -179,10 +270,16 @@ impl<'fs> ChecksumInputs<'_, 'fs> {
         chunk.clear();
         match source {
             SumSource::File(next) => next(chunk)?,
-            SumSource::Stdin => self.stdin.read_stdin(|b| { chunk.extend_from_slice(b); false })?,
+            SumSource::Stdin => self.stdin.read_stdin(|b| {
+                chunk.extend_from_slice(b);
+                false
+            })?,
             SumSource::Empty => {}
         }
-        self.left = self.left.checked_sub(chunk.len()).ok_or_else(|| self.fs.limit_error("maxInputBytes", self.fs.max_input_bytes()))?;
+        self.left = self.left.checked_sub(chunk.len()).ok_or_else(|| {
+            self.fs
+                .limit_error("maxInputBytes", self.fs.max_input_bytes())
+        })?;
         Ok(())
     }
 
@@ -194,23 +291,44 @@ impl<'fs> ChecksumInputs<'_, 'fs> {
         let mut chunk = Vec::new();
         loop {
             self.next(&mut source, &mut chunk)?;
-            if chunk.is_empty() { break; }
+            if chunk.is_empty() {
+                break;
+            }
             len += chunk.len() as u64;
             match algo {
-                "crc" => for &b in &chunk { crc = posix_crc_byte(crc, b); },
-                "crc32b" => for &b in &chunk {
-                    crc ^= u32::from(b);
-                    for _ in 0..8 { crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1)); }
-                },
-                "bsd" => for &b in &chunk { crc = u32::from((crc as u16).rotate_right(1).wrapping_add(u16::from(b))); },
-                "sysv" => for &b in &chunk { crc = crc.wrapping_add(u32::from(b)); },
+                "crc" => {
+                    for &b in &chunk {
+                        crc = posix_crc_byte(crc, b);
+                    }
+                }
+                "crc32b" => {
+                    for &b in &chunk {
+                        crc ^= u32::from(b);
+                        for _ in 0..8 {
+                            crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1));
+                        }
+                    }
+                }
+                "bsd" => {
+                    for &b in &chunk {
+                        crc = u32::from((crc as u16).rotate_right(1).wrapping_add(u16::from(b)));
+                    }
+                }
+                "sysv" => {
+                    for &b in &chunk {
+                        crc = crc.wrapping_add(u32::from(b));
+                    }
+                }
                 _ => hash.as_mut().expect("checksum algorithm").update(&chunk),
             }
         }
         let value = match algo {
             "crc" => {
                 let mut size = len;
-                while size != 0 { crc = posix_crc_byte(crc, size as u8); size >>= 8; }
+                while size != 0 {
+                    crc = posix_crc_byte(crc, size as u8);
+                    size >>= 8;
+                }
                 (!crc).to_string()
             }
             "crc32b" => (!crc).to_string(),
@@ -231,64 +349,114 @@ impl<'fs> ChecksumInputs<'_, 'fs> {
     }
 }
 
-fn sum_entry<'a>(line: &str, selected: &'a str, allow_base64: bool) -> Option<(&'a str, usize, String, String)> {
+fn sum_entry<'a>(
+    line: &str,
+    selected: &'a str,
+    allow_base64: bool,
+) -> Option<(&'a str, usize, String, String)> {
     let text = line.trim_start_matches([' ', '\t']);
     let escaped = text.starts_with('\\');
     let text = text.strip_prefix('\\').unwrap_or(text);
     let raw_label = text.split_once('(').map(|(label, _)| label).unwrap_or("");
     let label = raw_label.strip_suffix(' ').unwrap_or(raw_label);
     let tagged = match label {
-        "MD5" => Some(("md5",128)), "SHA1" => Some(("sha1",160)), "SHA224" => Some(("sha224",224)),
-        "SHA256" => Some(("sha256",256)), "SM3" => Some(("sm3",256)), "SHA384" => Some(("sha384",384)),
-        "SHA512" => Some(("sha512",512)), "BLAKE2b" => Some(("blake2b",512)),
+        "MD5" => Some(("md5", 128)),
+        "SHA1" => Some(("sha1", 160)),
+        "SHA224" => Some(("sha224", 224)),
+        "SHA256" => Some(("sha256", 256)),
+        "SM3" => Some(("sm3", 256)),
+        "SHA384" => Some(("sha384", 384)),
+        "SHA512" => Some(("sha512", 512)),
+        "BLAKE2b" => Some(("blake2b", 512)),
         _ if label.starts_with("BLAKE2b-") => {
             let n = &label[8..];
-            if !n.bytes().all(|b| b.is_ascii_digit()) { return None; }
+            if !n.bytes().all(|b| b.is_ascii_digit()) {
+                return None;
+            }
             let bits = n.parse::<usize>().ok()?;
-            if !(8..=512).contains(&bits) || bits % 8 != 0 { return None; }
+            if !(8..=512).contains(&bits) || bits % 8 != 0 {
+                return None;
+            }
             Some(("blake2b", bits))
         }
         _ if label.starts_with("SHA3-") => match &label[5..] {
-            "224" => Some(("sha3",224)), "256" => Some(("sha3",256)),
-            "384" => Some(("sha3",384)), "512" => Some(("sha3",512)), _ => return None,
+            "224" => Some(("sha3", 224)),
+            "256" => Some(("sha3", 256)),
+            "384" => Some(("sha3", 384)),
+            "512" => Some(("sha3", 512)),
+            _ => return None,
         },
         _ => None,
     };
     let (algo, bits, fname, encoded) = if let Some((algo, bits)) = tagged {
-        if selected != "crc" && selected != algo { return None; }
+        if selected != "crc" && selected != algo {
+            return None;
+        }
         let (_, body) = text.split_once('(')?;
         let (fname, suffix) = body.rsplit_once(')')?;
-        let encoded = suffix.trim_start_matches([' ', '\t']).strip_prefix('=')?.trim_start_matches([' ', '\t']);
+        let encoded = suffix
+            .trim_start_matches([' ', '\t'])
+            .strip_prefix('=')?
+            .trim_start_matches([' ', '\t']);
         (algo, Some(bits), fname, encoded)
     } else {
         let bits = match selected {
-            "md5" => Some(128), "sha1" => Some(160), "sha224" => Some(224), "sha256" | "sm3" => Some(256),
-            "sha384" => Some(384), "sha512" => Some(512), "blake2b" | "sha3" => None, _ => return None,
+            "md5" => Some(128),
+            "sha1" => Some(160),
+            "sha224" => Some(224),
+            "sha256" | "sm3" => Some(256),
+            "sha384" => Some(384),
+            "sha512" => Some(512),
+            "blake2b" | "sha3" => None,
+            _ => return None,
         };
         let (encoded, tail) = text.split_once([' ', '\t'])?;
         (selected, bits, tail.strip_prefix([' ', '*'])?, encoded)
     };
-    if encoded.is_empty() || encoded.len() > 128 { return None; }
-    let hex = if encoded.len() % 2 == 0 && bits.is_none_or(|n| encoded.len() * 4 == n)
-        && encoded.bytes().all(|b| b.is_ascii_hexdigit()) {
+    if encoded.is_empty() || encoded.len() > 128 {
+        return None;
+    }
+    let hex = if encoded.len() % 2 == 0
+        && bits.is_none_or(|n| encoded.len() * 4 == n)
+        && encoded.bytes().all(|b| b.is_ascii_hexdigit())
+    {
         encoded.to_ascii_lowercase()
     } else {
-        if !allow_base64 { return None; }
+        if !allow_base64 {
+            return None;
+        }
         let bytes = base64_decode_strict(encoded).ok()?;
-        if base64_encode(&bytes) != encoded { return None; }
+        if base64_encode(&bytes) != encoded {
+            return None;
+        }
         hex_encode(&bytes)
     };
     let size = hex.len() * 4;
-    if bits.is_some_and(|n| size != n) || (algo == "blake2b" && !(8..=512).contains(&size))
-        || (algo == "sha3" && !matches!(size, 224 | 256 | 384 | 512)) { return None; }
-    let name = if escaped { unescape_sum_name(fname)? } else { fname.to_string() };
+    if bits.is_some_and(|n| size != n)
+        || (algo == "blake2b" && !(8..=512).contains(&size))
+        || (algo == "sha3" && !matches!(size, 224 | 256 | 384 | 512))
+    {
+        return None;
+    }
+    let name = if escaped {
+        unescape_sum_name(fname)?
+    } else {
+        fname.to_string()
+    };
     let name = crate::vfs::shell_text(&name).into_owned();
     validate_sum_name(&name).ok()?;
     Some((algo, size, name, hex))
 }
 
 impl ChecksumInputs<'_, '_> {
-    fn verify(&mut self, cmd: &str, algo: &str, manifests: &[String], report: SumReport, write: &mut super::CommandWriter) -> BuiltinOutcome {
+    fn verify(
+        &mut self,
+        cmd: &str,
+        algo: &str,
+        manifests: &[String],
+        report: SumReport,
+        write: &mut super::CommandWriter,
+    ) -> BuiltinOutcome {
         let mut result = ok_out("");
         'manifest: for manifest in manifests {
             let disp = escape_sum_name(manifest).1;
@@ -296,65 +464,140 @@ impl ChecksumInputs<'_, '_> {
                 Ok(reader) => reader,
                 Err(e) => {
                     result.exit_code = 1;
-                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) { break; }
+                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) {
+                        break;
+                    }
                     continue;
                 }
             };
             let (mut chunk, mut pending) = (Vec::new(), Vec::new());
-            let (mut line_num, mut malformed, mut mismatched, mut failures) = (0u64,0u64,0u64,0u64);
+            let (mut line_num, mut malformed, mut mismatched, mut failures) =
+                (0u64, 0u64, 0u64, 0u64);
             let (mut valid, mut matched) = (false, false);
             loop {
                 if let Err(e) = self.next(&mut source, &mut chunk) {
                     result.exit_code = 1;
-                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) { return result; }
+                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) {
+                        return result;
+                    }
                     continue 'manifest;
                 }
                 let eof = chunk.is_empty();
                 if eof {
-                    if pending.is_empty() { break; }
+                    if pending.is_empty() {
+                        break;
+                    }
                     chunk.push(b'\n');
                 }
                 for part in chunk.split_inclusive(|&b| b == b'\n') {
-                    let Some(tail) = part.strip_suffix(b"\n") else { pending.extend_from_slice(part); continue };
+                    let Some(tail) = part.strip_suffix(b"\n") else {
+                        pending.extend_from_slice(part);
+                        continue;
+                    };
                     pending.extend_from_slice(tail);
                     line_num += 1;
-                    let line = std::str::from_utf8(&pending).ok().map(|s| s.strip_suffix('\r').unwrap_or(s));
+                    let line = std::str::from_utf8(&pending)
+                        .ok()
+                        .map(|s| s.strip_suffix('\r').unwrap_or(s));
                     let skip = line.is_some_and(|s| s.is_empty() || s.starts_with('#'));
-                    let entry = if skip { None } else { line.and_then(|s| sum_entry(s, algo, cmd == "cksum")) };
+                    let entry = if skip {
+                        None
+                    } else {
+                        line.and_then(|s| sum_entry(s, algo, cmd == "cksum"))
+                    };
                     pending.clear();
-                    if skip { continue; }
-                    let Some((algorithm,bits,name,expected)) = entry.filter(|(_,_,n,_)| !(manifest == "-" && n == "-")) else {
+                    if skip {
+                        continue;
+                    }
+                    let Some((algorithm, bits, name, expected)) =
+                        entry.filter(|(_, _, n, _)| !(manifest == "-" && n == "-"))
+                    else {
                         malformed += 1;
-                        if report.mode == SumReportMode::Warn && !write(2, &format!("{cmd}: {disp}: {line_num}: improperly formatted {algo} checksum line\n"), &mut result) { return result; }
+                        if report.mode == SumReportMode::Warn
+                            && !write(
+                                2,
+                                &format!(
+                                    "{cmd}: {disp}: {line_num}: improperly formatted {algo} checksum line\n"
+                                ),
+                                &mut result,
+                            )
+                        {
+                            return result;
+                        }
                         continue;
                     };
                     valid = true;
                     let status = match self.digest(&name, algorithm, bits) {
-                        Ok((hex, _)) if hex == expected => { matched = true; "OK" }
-                        Ok(_) => { mismatched += 1; "FAILED" }
+                        Ok((hex, _)) if hex == expected => {
+                            matched = true;
+                            "OK"
+                        }
+                        Ok(_) => {
+                            mismatched += 1;
+                            "FAILED"
+                        }
                         Err(e) => {
-                            if report.ignore_missing && name != "-" && e.starts_with("ENOENT:") { continue; }
+                            if report.ignore_missing && name != "-" && e.starts_with("ENOENT:") {
+                                continue;
+                            }
                             failures += 1;
-                            if !write(2, &format!("{cmd}: {e}\n"), &mut result) { return result; }
+                            if !write(2, &format!("{cmd}: {e}\n"), &mut result) {
+                                return result;
+                            }
                             "FAILED open or read"
                         }
                     };
-                    if report.mode != SumReportMode::Status && !(report.mode == SumReportMode::Quiet && status == "OK") {
+                    if report.mode != SumReportMode::Status
+                        && !(report.mode == SumReportMode::Quiet && status == "OK")
+                    {
                         let (escaped, fname) = escape_sum_name(&name);
                         let prefix = if escaped { "\\" } else { "" };
-                        if !write(1, &format!("{prefix}{fname}: {status}\n"), &mut result) { return result; }
+                        if !write(1, &format!("{prefix}{fname}: {status}\n"), &mut result) {
+                            return result;
+                        }
                     }
                 }
-                if eof { break; }
-            }
-            if !valid || !matched || failures > 0 || mismatched > 0 || (report.strict && malformed > 0) { result.exit_code = 1; }
-            if !valid {
-                if !write(2, &format!("{cmd}: {disp}: no properly formatted checksum lines found\n"), &mut result) { return result; }
-            } else if report.mode != SumReportMode::Status {
-                for (n, reason) in [(malformed,"improperly formatted checksum line(s)"), (failures,"listed file(s) could not be read"), (mismatched,"computed checksum(s) did NOT match")] {
-                    if n != 0 && !write(2, &format!("{cmd}: WARNING: {n} {reason}\n"), &mut result) { return result; }
+                if eof {
+                    break;
                 }
-                if report.ignore_missing && !matched && !write(2, &format!("{cmd}: {disp}: no file was verified\n"), &mut result) { return result; }
+            }
+            if !valid
+                || !matched
+                || failures > 0
+                || mismatched > 0
+                || (report.strict && malformed > 0)
+            {
+                result.exit_code = 1;
+            }
+            if !valid {
+                if !write(
+                    2,
+                    &format!("{cmd}: {disp}: no properly formatted checksum lines found\n"),
+                    &mut result,
+                ) {
+                    return result;
+                }
+            } else if report.mode != SumReportMode::Status {
+                for (n, reason) in [
+                    (malformed, "improperly formatted checksum line(s)"),
+                    (failures, "listed file(s) could not be read"),
+                    (mismatched, "computed checksum(s) did NOT match"),
+                ] {
+                    if n != 0 && !write(2, &format!("{cmd}: WARNING: {n} {reason}\n"), &mut result)
+                    {
+                        return result;
+                    }
+                }
+                if report.ignore_missing
+                    && !matched
+                    && !write(
+                        2,
+                        &format!("{cmd}: {disp}: no file was verified\n"),
+                        &mut result,
+                    )
+                {
+                    return result;
+                }
             }
         }
         result
@@ -368,7 +611,10 @@ fn posix_crc_byte(crc: u32, byte: u8) -> u32 {
         while i < 256 {
             let mut r = (i as u32) << 24;
             let mut bit = 0;
-            while bit < 8 { r = (r << 1) ^ (0x04c1_1db7 & 0u32.wrapping_sub(r >> 31)); bit += 1; }
+            while bit < 8 {
+                r = (r << 1) ^ (0x04c1_1db7 & 0u32.wrapping_sub(r >> 31));
+                bit += 1;
+            }
             table[i] = r;
             i += 1;
         }
@@ -377,12 +623,34 @@ fn posix_crc_byte(crc: u32, byte: u8) -> u32 {
     (crc << 8) ^ TABLE[((crc >> 24) as u8 ^ byte) as usize]
 }
 
-pub(super) fn run_checksum(algo: &str, args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
-    let mut inputs = ChecksumInputs { stdin, cwd, fs, left: fs.max_input_bytes(), stdin_used: false };
-    if algo == "crc" { cmd_cksum(args, &mut inputs, write) } else { cmd_hash(algo, args, &mut inputs, write) }
+pub(super) fn run_checksum(
+    algo: &str,
+    args: &[String],
+    stdin: super::CommandInput,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
+) -> BuiltinOutcome {
+    let mut inputs = ChecksumInputs {
+        stdin,
+        cwd,
+        fs,
+        left: fs.max_input_bytes(),
+        stdin_used: false,
+    };
+    if algo == "crc" {
+        cmd_cksum(args, &mut inputs, write)
+    } else {
+        cmd_hash(algo, args, &mut inputs, write)
+    }
 }
 
-fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+fn cmd_hash(
+    algo: &str,
+    args: &[String],
+    inputs: &mut ChecksumInputs,
+    write: &mut super::CommandWriter,
+) -> BuiltinOutcome {
     let cmd_name = if algo == "blake2b" {
         "b2sum".to_string()
     } else {
@@ -463,7 +731,10 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
                     }
                     "--length" if algo == "blake2b" => {
                         if i + 1 >= args.len() {
-                            return err_out(&format!("{cmd_name}: option '--length' requires an argument\n"), 2);
+                            return err_out(
+                                &format!("{cmd_name}: option '--length' requires an argument\n"),
+                                2,
+                            );
                         }
                         i += 1;
                         requested_len = Some(args[i].clone());
@@ -503,7 +774,10 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("{cmd_name}: option requires an argument -- 'l'\n"), 2);
+                        return err_out(
+                            &format!("{cmd_name}: option requires an argument -- 'l'\n"),
+                            2,
+                        );
                     };
                     requested_len = Some(val);
                     break;
@@ -527,7 +801,10 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
             return err_out(&format!("{cmd_name}: invalid length '{rl}'\n"), 2);
         };
         if parsed_l > 0 && (algo != "blake2b" || parsed_l > 512 || parsed_l % 8 != 0) {
-            return err_out(&format!("{cmd_name}: invalid length '{rl}' for {algo}\n"), 2);
+            return err_out(
+                &format!("{cmd_name}: invalid length '{rl}' for {algo}\n"),
+                2,
+            );
         }
         if parsed_l > 0 {
             bits = parsed_l;
@@ -535,7 +812,10 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
     }
 
     if !check_mode && check_only {
-        return err_out(&format!("{cmd_name}: verification options require --check\n"), 1);
+        return err_out(
+            &format!("{cmd_name}: verification options require --check\n"),
+            1,
+        );
     }
     if tag_mode && check_mode {
         return err_out(
@@ -544,7 +824,10 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
         );
     }
     if tag_mode && !binary_mode {
-        return err_out(&format!("{cmd_name}: --tag does not support --text mode\n"), 2);
+        return err_out(
+            &format!("{cmd_name}: --tag does not support --text mode\n"),
+            2,
+        );
     }
     if check_mode && (zero_delim || explicit_mode) {
         return err_out(
@@ -554,7 +837,9 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
     }
 
     if check_mode {
-        if files.is_empty() { files.push("-".into()); }
+        if files.is_empty() {
+            files.push("-".into());
+        }
         return inputs.verify(&cmd_name, algo, &files, report, write);
     }
 
@@ -583,19 +868,30 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
         }
     };
 
-    if files.is_empty() { files.push("-".into()); }
+    if files.is_empty() {
+        files.push("-".into());
+    }
     let mut result = ok_out("");
     for file in &files {
         let (fd, message) = match inputs.digest(file, algo, bits) {
             Ok((hex, _)) => (1, format_entry(&hex, file)),
-            Err(e) => { result.exit_code = 1; (2, format!("{cmd_name}: {e}\n")) }
+            Err(e) => {
+                result.exit_code = 1;
+                (2, format!("{cmd_name}: {e}\n"))
+            }
         };
-        if !write(fd, &message, &mut result) { break; }
+        if !write(fd, &message, &mut result) {
+            break;
+        }
     }
     result
 }
 
-fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+fn cmd_cksum(
+    args: &[String],
+    inputs: &mut ChecksumInputs,
+    write: &mut super::CommandWriter,
+) -> BuiltinOutcome {
     let mut algo = "crc".to_string();
     let mut requested_len: Option<String> = None;
     let mut last_tag: Option<bool> = None;
@@ -723,9 +1019,25 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
 
     if !matches!(
         algo.as_str(),
-        "crc" | "bsd" | "sysv" | "crc32b" | "sm3" | "blake2b" | "sha2" | "sha3" | "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5"
+        "crc"
+            | "bsd"
+            | "sysv"
+            | "crc32b"
+            | "sm3"
+            | "blake2b"
+            | "sha2"
+            | "sha3"
+            | "sha512"
+            | "sha384"
+            | "sha256"
+            | "sha224"
+            | "sha1"
+            | "md5"
     ) {
-        return err_out(&format!("cksum: unsupported checksum algorithm '{algo}'\n"), 2);
+        return err_out(
+            &format!("cksum: unsupported checksum algorithm '{algo}'\n"),
+            2,
+        );
     }
 
     let mut length = 0usize;
@@ -787,9 +1099,14 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
         );
     }
     if check_mode && is_numeric && algo != "crc" {
-        return err_out(&format!("cksum: verification is not supported for '{algo}'\n"), 2);
+        return err_out(
+            &format!("cksum: verification is not supported for '{algo}'\n"),
+            2,
+        );
     }
-    if !check_mode && (report.mode != SumReportMode::Normal || report.strict || report.ignore_missing) {
+    if !check_mode
+        && (report.mode != SumReportMode::Normal || report.strict || report.ignore_missing)
+    {
         return err_out("cksum: verification options require --check\n", 2);
     }
     if check_mode && (binary_mode || zero_delim || has_tag_flag || raw_mode || base64_mode) {
@@ -797,7 +1114,9 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
     }
 
     if check_mode {
-        if files.is_empty() { files.push("-".into()); }
+        if files.is_empty() {
+            files.push("-".into());
+        }
         return inputs.verify("cksum", &algo, &files, report, write);
     }
 
@@ -861,14 +1180,21 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
     };
 
     let explicit = !files.is_empty();
-    if !explicit { files.push("-".into()); }
+    if !explicit {
+        files.push("-".into());
+    }
     let mut result = ok_out("");
     for file in &files {
         let (fd, message) = match inputs.digest(file, &algo, resolved_bits) {
             Ok((hex, len)) => (1, format_entry(hex, len, explicit.then_some(file))),
-            Err(e) => { result.exit_code = 1; (2, format!("cksum: {e}\n")) }
+            Err(e) => {
+                result.exit_code = 1;
+                (2, format!("cksum: {e}\n"))
+            }
         };
-        if !write(fd, &message, &mut result) { break; }
+        if !write(fd, &message, &mut result) {
+            break;
+        }
     }
     result
 }
@@ -923,8 +1249,7 @@ fn decode_base_quantum(
         }
         carry &= (1 << bits) - 1;
     }
-    let mut valid_tail =
-        q_len == a_quantum && carry == 0 && valid_lengths.contains(&length);
+    let mut valid_tail = q_len == a_quantum && carry == 0 && valid_lengths.contains(&length);
     if valid_tail {
         for &sym in &quantum[length..q_len] {
             if sym != -1 {
@@ -937,22 +1262,33 @@ fn decode_base_quantum(
 }
 
 fn base_decoder(
-    alphabet: &[u8], a_bits: u32, a_quantum: usize, valid_lengths: &'static [usize], ignore_garbage: bool,
+    alphabet: &[u8],
+    a_bits: u32,
+    a_quantum: usize,
+    valid_lengths: &'static [usize],
+    ignore_garbage: bool,
 ) -> impl FnMut(&[u8], bool, &mut Vec<u8>) -> bool {
     let mut lookup = [-2i16; 256];
-    for (idx, &b) in alphabet.iter().enumerate() { lookup[b as usize] = idx as i16; }
+    for (idx, &b) in alphabet.iter().enumerate() {
+        lookup[b as usize] = idx as i16;
+    }
     lookup[b'=' as usize] = -1;
     let mut quantum = [0i16; 8];
     let mut q_len = 0;
     move |data, eof, out| {
         for &byte in data {
             let symbol = lookup[byte as usize];
-            if (ignore_garbage && symbol == -2) || matches!(byte, 10 | 13) { continue; }
+            if (ignore_garbage && symbol == -2) || matches!(byte, 10 | 13) {
+                continue;
+            }
             quantum[q_len] = symbol;
             q_len += 1;
             if q_len == a_quantum {
                 q_len = 0;
-                if !decode_base_quantum(&quantum, a_quantum, a_bits, a_quantum, valid_lengths, out) { return false; }
+                if !decode_base_quantum(&quantum, a_quantum, a_bits, a_quantum, valid_lengths, out)
+                {
+                    return false;
+                }
             }
         }
         if eof && q_len != 0 {
@@ -968,16 +1304,23 @@ fn base_decoder(
 
 fn base64_decode_strict(input: &str) -> Result<Vec<u8>, ()> {
     let mut out = Vec::new();
-    base_decoder(B64_CHARS, 6, 4, &[2, 3, 4], false)(input.as_bytes(), true, &mut out).then_some(out).ok_or(())
+    base_decoder(B64_CHARS, 6, 4, &[2, 3, 4], false)(input.as_bytes(), true, &mut out)
+        .then_some(out)
+        .ok_or(())
 }
 
 pub use mcp_protocol_rust::formats::base64_decode;
 
 pub(super) fn run_base_cmd(
-    name: &str, args: &[String], mut stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs,
+    name: &str,
+    args: &[String],
+    mut stdin: super::CommandInput,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
     write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
-    let (alphabet, a_bits, a_quantum, lengths): (&[u8], u32, usize, &[usize]) = if name == "base32" {
+    let (alphabet, a_bits, a_quantum, lengths): (&[u8], u32, usize, &[usize]) = if name == "base32"
+    {
         (B32_CHARS, 5, 8, &[2, 4, 5, 7, 8])
     } else {
         (B64_CHARS, 6, 4, &[2, 3, 4])
@@ -1064,7 +1407,10 @@ pub(super) fn run_base_cmd(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("{name}: option requires an argument -- 'w'\n"), 2);
+                        return err_out(
+                            &format!("{name}: option requires an argument -- 'w'\n"),
+                            2,
+                        );
                     };
                     match parse_wrap(&val_str) {
                         Ok(w) => wrap_cols = w,
@@ -1105,53 +1451,96 @@ pub(super) fn run_base_cmd(
                 bytes.push(byte);
                 *symbols = (*symbols + 1) % a_quantum;
                 *column += 1;
-                if *column == wrap_cols { bytes.push(10); *column = 0; }
+                if *column == wrap_cols {
+                    bytes.push(10);
+                    *column = 0;
+                }
             };
             for &byte in data {
                 carry = (carry << 8) | u32::from(byte);
                 bits += 8;
                 while bits >= a_bits {
                     bits -= a_bits;
-                    emit(alphabet[((carry >> bits) & mask) as usize], &mut bytes, &mut symbols, &mut column);
+                    emit(
+                        alphabet[((carry >> bits) & mask) as usize],
+                        &mut bytes,
+                        &mut symbols,
+                        &mut column,
+                    );
                 }
                 carry &= (1 << bits) - 1;
-                if bytes.len() >= 16000 && !flush(&mut bytes) { return false; }
+                if bytes.len() >= 16000 && !flush(&mut bytes) {
+                    return false;
+                }
             }
             if eof {
-                if bits != 0 { emit(alphabet[(carry << (a_bits - bits)) as usize], &mut bytes, &mut symbols, &mut column); }
-                while symbols != 0 { emit(b'=', &mut bytes, &mut symbols, &mut column); }
-                if wrap_cols != 0 && column != 0 { bytes.push(10); }
+                if bits != 0 {
+                    emit(
+                        alphabet[(carry << (a_bits - bits)) as usize],
+                        &mut bytes,
+                        &mut symbols,
+                        &mut column,
+                    );
+                }
+                while symbols != 0 {
+                    emit(b'=', &mut bytes, &mut symbols, &mut column);
+                }
+                if wrap_cols != 0 && column != 0 {
+                    bytes.push(10);
+                }
             }
         }
         flush(&mut bytes) && valid
     };
     let mut stopped = false;
     let mut feed = |chunk: &[u8]| -> Result<bool, String> {
-        left = left.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+        left = left
+            .checked_sub(chunk.len())
+            .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
         stopped = !chunk.chunks(8192).all(|part| convert(part, false));
         Ok(!stopped)
     };
     let read = if files.first().is_none_or(|f| f == "-") {
         let mut admission = Ok(true);
-        stdin.read_stdin(|chunk| {
-            admission = feed(chunk);
-            matches!(admission, Ok(true))
-        }).and(admission.map(|_| ()))
+        stdin
+            .read_stdin(|chunk| {
+                admission = feed(chunk);
+                matches!(admission, Ok(true))
+            })
+            .and(admission.map(|_| ()))
     } else {
         let path = crate::vfs::path::absolute_operand(cwd, &files[0]);
-        fs.inspect_command_entry(&path, true, "capabilitiesFor").and_then(|(entry, stat)| {
-            if stat.kind == crate::vfs::VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
-            let mut remaining = if stat.mode & 0o170000 == 0o100000 { stat.size } else { usize::MAX };
-            fs.read_chunks(&entry, &mut |chunk| {
-                let n = remaining.min(chunk.len());
-                remaining -= n;
-                for part in chunk[..n].chunks(8192) { if !feed(part)? { return Ok(false); } }
-                Ok(remaining != 0)
+        fs.inspect_command_entry(&path, true, "capabilitiesFor")
+            .and_then(|(entry, stat)| {
+                if stat.kind == crate::vfs::VfsEntryKind::Directory {
+                    return Err("EISDIR: illegal operation on a directory".into());
+                }
+                let mut remaining = if stat.mode & 0o170000 == 0o100000 {
+                    stat.size
+                } else {
+                    usize::MAX
+                };
+                fs.read_chunks(&entry, &mut |chunk| {
+                    let n = remaining.min(chunk.len());
+                    remaining -= n;
+                    for part in chunk[..n].chunks(8192) {
+                        if !feed(part)? {
+                            return Ok(false);
+                        }
+                    }
+                    Ok(remaining != 0)
+                })
             })
-        }).map_err(|e| super::coreutils::stream_file_error(e, "readStream", &path))
+            .map_err(|e| super::coreutils::stream_file_error(e, "readStream", &path))
     };
-    if read.is_ok() && !stopped { convert(&[], true); }
-    if writable && let Some(message) = read.err().or_else(|| (!valid).then(|| "invalid input".into())) {
+    if read.is_ok() && !stopped {
+        convert(&[], true);
+    }
+    if writable
+        && let Some(message) = read
+            .err()
+            .or_else(|| (!valid).then(|| "invalid input".into()))
+    {
         result.exit_code = 1;
         write(2, &format!("{name}: {message}\n"), &mut result);
     }
@@ -1341,7 +1730,9 @@ fn parse_hexdump_custom(text: &str) -> Result<HexdumpCustomFormat, String> {
     }
     let total_size: usize = units.iter().map(|u| u.bytes * u.repeat).sum();
     let final_unit_idx = units.iter().rposition(|u| {
-        u.parts.iter().any(|p| matches!(p, HexdumpPart::Conv(c) if c.code.starts_with("_A")))
+        u.parts
+            .iter()
+            .any(|p| matches!(p, HexdumpPart::Conv(c) if c.code.starts_with("_A")))
     });
     Ok(HexdumpCustomFormat {
         units,
@@ -1369,12 +1760,18 @@ fn format_hexdump_conv(
     let mut val = 0u128;
     if conv.code != "s" && !matches!(conv.code.as_str(), "e" | "E" | "f" | "g" | "G") {
         for k in (0..conv.bytes).rev() {
-            let b = if offset + k < used { block[offset + k] } else { 0 };
+            let b = if offset + k < used {
+                block[offset + k]
+            } else {
+                0
+            };
             val = (val << 8) | (b as u128);
         }
     }
     let text = if conv.code == "s" {
-        let mut end = used.min(offset + conv.bytes).min(offset + conv.precision.unwrap_or(conv.bytes));
+        let mut end = used
+            .min(offset + conv.bytes)
+            .min(offset + conv.precision.unwrap_or(conv.bytes));
         for k in offset..end {
             if block[k] == 0 {
                 end = k;
@@ -1430,7 +1827,11 @@ fn format_hexdump_conv(
         format!("{num:.prec$}")
     } else {
         let is_addr = conv.code.starts_with('_');
-        let raw_u = if is_addr { (address + offset) as u128 } else { val };
+        let raw_u = if is_addr {
+            (address + offset) as u128
+        } else {
+            val
+        };
         let bits = conv.bytes * 8;
         let is_signed = !is_addr && (conv.code == "d" || conv.code == "i");
         let (neg, mag) = if is_signed && bits > 0 && raw_u >= (1u128 << (bits - 1)) {
@@ -1446,9 +1847,13 @@ fn format_hexdump_conv(
         };
         let sign = if neg {
             "-"
-        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d')) && conv.flags.contains('+') {
+        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d'))
+            && conv.flags.contains('+')
+        {
             "+"
-        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d')) && conv.flags.contains(' ') {
+        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d'))
+            && conv.flags.contains(' ')
+        {
             " "
         } else {
             ""
@@ -1479,17 +1884,18 @@ fn format_hexdump_conv(
         } else {
             ""
         };
-        let mut combined = if conv.flags.contains('0') && !conv.flags.contains('-') && conv.precision.is_none() {
-            let pad_target = conv.width.saturating_sub(sign.len() + prefix.len());
-            let padded_digits = if digits.len() < pad_target {
-                format!("{}{digits}", "0".repeat(pad_target - digits.len()))
+        let mut combined =
+            if conv.flags.contains('0') && !conv.flags.contains('-') && conv.precision.is_none() {
+                let pad_target = conv.width.saturating_sub(sign.len() + prefix.len());
+                let padded_digits = if digits.len() < pad_target {
+                    format!("{}{digits}", "0".repeat(pad_target - digits.len()))
+                } else {
+                    digits
+                };
+                format!("{sign}{prefix}{padded_digits}")
             } else {
-                digits
+                format!("{sign}{prefix}{digits}")
             };
-            format!("{sign}{prefix}{padded_digits}")
-        } else {
-            format!("{sign}{prefix}{digits}")
-        };
         if kind == 'X' {
             combined = combined.to_ascii_uppercase();
         }
@@ -1585,7 +1991,11 @@ fn format_hexdump_block(block: &[u8], used: usize, address: usize, format: &str)
         }
         result.push_str("  |");
         for &b in &block[..used] {
-            result.push(if (0x20..=0x7e).contains(&b) { b as char } else { '.' });
+            result.push(if (0x20..=0x7e).contains(&b) {
+                b as char
+            } else {
+                '.'
+            });
         }
         result.push_str("|\n");
         return result;
@@ -1614,7 +2024,11 @@ fn format_hexdump_block(block: &[u8], used: usize, address: usize, format: &str)
                 } else if format == "b" {
                     format!("{byte:03o}")
                 } else {
-                    let hi = if idx + 1 < used { block[idx + 1] as u16 } else { 0 };
+                    let hi = if idx + 1 < used {
+                        block[idx + 1] as u16
+                    } else {
+                        0
+                    };
                     let word = (byte as u16) | (hi << 8);
                     match format {
                         "d" => format!("{word:05}"),
@@ -1637,7 +2051,11 @@ fn format_hexdump_block(block: &[u8], used: usize, address: usize, format: &str)
     let mut idx = 0usize;
     while idx < 16 {
         if idx < used {
-            let hi = if idx + 1 < used { block[idx + 1] as u16 } else { 0 };
+            let hi = if idx + 1 < used {
+                block[idx + 1] as u16
+            } else {
+                0
+            };
             let word = (block[idx] as u16) | (hi << 8);
             result.push_str(&format!("{word:04x}"));
         } else {
@@ -2026,17 +2444,29 @@ struct OdFormat {
 }
 
 fn parse_od_numeric(text: &str, allow_suffixes: bool) -> Result<u64, String> {
-    let hex_digits = |s: &str| s.strip_prefix("0x").or_else(|| s.strip_prefix("0X"))
-        .is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_hexdigit()));
+    let hex_digits = |s: &str| {
+        s.strip_prefix("0x")
+            .or_else(|| s.strip_prefix("0X"))
+            .is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_hexdigit()))
+    };
     let mut number = text;
     let mut multiplier = 1u64;
     // A trailing b in a hexadecimal literal is a digit. Other suffixes can
     // multiply hexadecimal values just as they multiply octal or decimal ones.
     if allow_suffixes && !hex_digits(text) {
         for (suffix, scale) in [
-            ("KiB", 1024), ("MiB", 1_048_576), ("GiB", 1_073_741_824),
-            ("KB", 1000), ("MB", 1_000_000), ("GB", 1_000_000_000),
-            ("b", 512), ("k", 1024), ("K", 1024), ("m", 1_048_576), ("M", 1_048_576), ("G", 1_073_741_824),
+            ("KiB", 1024),
+            ("MiB", 1_048_576),
+            ("GiB", 1_073_741_824),
+            ("KB", 1000),
+            ("MB", 1_000_000),
+            ("GB", 1_000_000_000),
+            ("b", 512),
+            ("k", 1024),
+            ("K", 1024),
+            ("m", 1_048_576),
+            ("M", 1_048_576),
+            ("G", 1_073_741_824),
         ] {
             if let Some(prefix) = text.strip_suffix(suffix) {
                 number = if prefix.is_empty() { "1" } else { prefix };
@@ -2049,13 +2479,19 @@ fn parse_od_numeric(text: &str, allow_suffixes: bool) -> Result<u64, String> {
         (&number[2..], 16)
     } else if number.starts_with('0') && number.bytes().all(|b| (b'0'..=b'7').contains(&b)) {
         (number, 8)
-    } else if !number.is_empty() && !number.starts_with('0') && number.bytes().all(|b| b.is_ascii_digit()) {
+    } else if !number.is_empty()
+        && !number.starts_with('0')
+        && number.bytes().all(|b| b.is_ascii_digit())
+    {
         (number, 10)
     } else {
         return Err(format!("invalid number '{text}'"));
     };
-    u64::from_str_radix(digits, radix).ok().and_then(|n| n.checked_mul(multiplier))
-        .filter(|&n| n < (1u64 << 53)).ok_or_else(|| format!("number out of range '{text}'"))
+    u64::from_str_radix(digits, radix)
+        .ok()
+        .and_then(|n| n.checked_mul(multiplier))
+        .filter(|&n| n < (1u64 << 53))
+        .ok_or_else(|| format!("number out of range '{text}'"))
 }
 
 fn parse_od_formats(text: &str) -> Result<Vec<OdFormat>, String> {
@@ -2122,7 +2558,13 @@ fn od_field_width(fmt: &OdFormat) -> usize {
     let bits = fmt.size * 8;
     match fmt.kind {
         'a' | 'c' => 3,
-        'f' => if fmt.size == 4 { 15 } else { 24 },
+        'f' => {
+            if fmt.size == 4 {
+                15
+            } else {
+                24
+            }
+        }
         'o' => (bits + 2) / 3,
         'x' => bits / 4,
         'd' => (1u128 << (bits - 1)).to_string().len() + 1,
@@ -2147,19 +2589,35 @@ fn format_od_float(value: f64, size: usize) -> String {
         return "nan".to_string();
     }
     if !value.is_finite() {
-        return if value.is_sign_negative() { "-inf".to_string() } else { "inf".to_string() };
+        return if value.is_sign_negative() {
+            "-inf".to_string()
+        } else {
+            "inf".to_string()
+        };
     }
     if value == 0.0 && value.is_sign_negative() {
         return "-0".to_string();
     }
-    if value == 0.0 { return "0".into(); }
+    if value == 0.0 {
+        return "0".into();
+    }
     let magnitude = value.abs();
-    let (min_normal, min_precision, max_precision) = if size == 4 { (f32::MIN_POSITIVE as f64, 6, 9) } else { (f64::MIN_POSITIVE, 15, 17) };
-    let mut precision = if magnitude < min_normal { 1 } else { min_precision };
+    let (min_normal, min_precision, max_precision) = if size == 4 {
+        (f32::MIN_POSITIVE as f64, 6, 9)
+    } else {
+        (f64::MIN_POSITIVE, 15, 17)
+    };
+    let mut precision = if magnitude < min_normal {
+        1
+    } else {
+        min_precision
+    };
     let power = magnitude.log10().floor() as i32;
     // In binary64 the rounded number is the input itself. Only these two
     // exponents can straddle the fixed/scientific boundary at 15–17 digits.
-    let rounded = if size == 8 && !(15..17).contains(&power) { value } else {
+    let rounded = if size == 8 && !(15..17).contains(&power) {
+        value
+    } else {
         // At each precision the first discarded digit decides rounding. If
         // rounding our extra digits could have created a decimal midpoint,
         // inspect the exact expansion instead (JS rounds ties away from zero).
@@ -2167,16 +2625,29 @@ fn format_od_float(value: f64, size: usize) -> String {
         let (mantissa, _) = short.split_once('e').unwrap();
         let digits = if mantissa.ends_with('0') && mantissa.trim_end_matches('0').ends_with('5') {
             format!("{:.*e}", if size == 4 { 149 } else { 1074 }, magnitude)
-        } else { short };
+        } else {
+            short
+        };
         let (significand, exponent) = digits.split_once('e').unwrap();
         let exponent: i32 = exponent.parse().unwrap();
         let mut digits = significand.bytes().filter(|&b| b != b'.');
-        let mut coefficient = digits.by_ref().take(precision).fold(0u64, |n, b| n * 10 + u64::from(b - b'0'));
+        let mut coefficient = digits
+            .by_ref()
+            .take(precision)
+            .fold(0u64, |n, b| n * 10 + u64::from(b - b'0'));
         loop {
             let next = digits.next().unwrap();
             let nearest = coefficient + u64::from(next >= b'5');
-            let decimal = format!("{nearest}e{}", exponent - precision as i32 + 1).parse::<f64>().unwrap();
-            if precision == max_precision || (if size == 4 { (decimal as f32) as f64 } else { decimal }) == magnitude {
+            let decimal = format!("{nearest}e{}", exponent - precision as i32 + 1)
+                .parse::<f64>()
+                .unwrap();
+            if precision == max_precision
+                || (if size == 4 {
+                    (decimal as f32) as f64
+                } else {
+                    decimal
+                }) == magnitude
+            {
                 break decimal.copysign(value);
             }
             coefficient = coefficient * 10 + u64::from(next - b'0');
@@ -2185,7 +2656,9 @@ fn format_od_float(value: f64, size: usize) -> String {
     };
     let js = mcp_protocol_rust::numbers::format(rounded);
     let power = rounded.abs().log10().floor() as i32;
-    if (-4..precision as i32).contains(&power) { return js; }
+    if (-4..precision as i32).contains(&power) {
+        return js;
+    }
     if let Some((mantissa, exp)) = js.split_once('e') {
         return format!("{mantissa}e{:+03}", exp.parse::<i32>().unwrap());
     }
@@ -2196,8 +2669,12 @@ fn format_od_float(value: f64, size: usize) -> String {
     let exp = integer_len as i32 - (digits.len() - significant.len()) as i32 - 1;
     let significant = significant.trim_end_matches('0');
     let mut mantissa = significant.to_string();
-    if mantissa.len() > 1 { mantissa.insert(1, '.'); }
-    if rounded.is_sign_negative() { mantissa.insert(0, '-'); }
+    if mantissa.len() > 1 {
+        mantissa.insert(1, '.');
+    }
+    if rounded.is_sign_negative() {
+        mantissa.insert(0, '-');
+    }
     format!("{mantissa}e{exp:+03}")
 }
 
@@ -2251,9 +2728,17 @@ fn format_od_row(
             bytes[..take].copy_from_slice(&row[offset..offset + take]);
             let val = if fmt.size == 4 {
                 let arr = [bytes[0], bytes[1], bytes[2], bytes[3]];
-                (if big_endian { f32::from_be_bytes(arr) } else { f32::from_le_bytes(arr) }) as f64
+                (if big_endian {
+                    f32::from_be_bytes(arr)
+                } else {
+                    f32::from_le_bytes(arr)
+                }) as f64
             } else {
-                if big_endian { f64::from_be_bytes(bytes) } else { f64::from_le_bytes(bytes) }
+                if big_endian {
+                    f64::from_be_bytes(bytes)
+                } else {
+                    f64::from_le_bytes(bytes)
+                }
             };
             let s = format_od_float(val, fmt.size);
             text.push_str(&format!(" {s:>width$}"));
@@ -2305,7 +2790,11 @@ fn format_od_row(
     if fmt.printable {
         let mut ascii = String::with_capacity(row.len());
         for &b in row {
-            ascii.push(if (0x20..=0x7e).contains(&b) { b as char } else { '.' });
+            ascii.push(if (0x20..=0x7e).contains(&b) {
+                b as char
+            } else {
+                '.'
+            });
         }
         let target_len = ((row_width as f64) * chars_per_byte).ceil() as usize;
         if text.len() < target_len {
@@ -2316,7 +2805,13 @@ fn format_od_row(
     text
 }
 
-pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+pub(super) fn cmd_od(
+    args: &[String],
+    mut input: super::CommandInput,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
+) -> BuiltinOutcome {
     let mut addr_radix = 'o';
     let mut big_endian = false;
     let mut verbose = false;
@@ -2367,7 +2862,7 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
                 "--help" => {
                     return ok_out(
                         "Usage: od [OPTION]... [FILE]...\nPrint input bytes in selected numeric formats.\n\nCommon supported options (additional behavior is documented in the package):\n  -A, --address-radix=RADIX\n  -j, --skip-bytes=NUM\n  -N, --read-bytes=NUM\n  -t, --format=TYPE, --type=TYPE\n  -w, --width=NUM\n  --endian=ORDER\n  -v, --output-duplicates\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n",
-                    )
+                    );
                 }
                 "--output-duplicates" => verbose = true,
                 _ if a.starts_with("--output-duplicates=") => {
@@ -2474,7 +2969,10 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
                     || next_arg == Some("big")
                     || next_arg == Some("little")
                 {
-                    return err_out("od: use --endian=little or --endian=big; -e is unsupported\n", 2);
+                    return err_out(
+                        "od: use --endian=little or --endian=big; -e is unsupported\n",
+                        2,
+                    );
                 }
             }
             if flag == 'v' {
@@ -2572,11 +3070,20 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
         .fold(0.0f64, f64::max);
 
     let mut out = ok_out("");
-    if width != requested_width && !write(2, &format!("od: warning: invalid width {requested_width}; using {width} instead\n"), &mut out) {
+    if width != requested_width
+        && !write(
+            2,
+            &format!("od: warning: invalid width {requested_width}; using {width} instead\n"),
+            &mut out,
+        )
+    {
         return out;
     }
     let mut left = max_len.unwrap_or(u64::MAX);
-    if skip_bytes == 0 && left == 0 && let Some(file) = files.first().filter(|f| !f.is_empty() && *f != "-") {
+    if skip_bytes == 0
+        && left == 0
+        && let Some(file) = files.first().filter(|f| !f.is_empty() && *f != "-")
+    {
         let path = crate::vfs::path::absolute_operand(cwd, file);
         if let Err(e) = fs.inspect_command_entry(&path, true, "stat") {
             let msg = super::coreutils::stream_file_error(e, "stat", &path);
@@ -2599,15 +3106,24 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
     let mut previous = Vec::new();
     let mut suppressed = false;
     let mut formatted = String::new();
-    let mut emit_rows = |batch: &[u8], offset: &mut u64, out: &mut BuiltinOutcome, write: &mut super::CommandWriter| {
+    let mut emit_rows = |batch: &[u8],
+                         offset: &mut u64,
+                         out: &mut BuiltinOutcome,
+                         write: &mut super::CommandWriter| {
         for row in batch.chunks(width) {
             if !verbose && previous == row {
-                if !suppressed { formatted.push_str("*\n"); }
+                if !suppressed {
+                    formatted.push_str("*\n");
+                }
                 suppressed = true;
             } else {
                 let addr = fmt_addr(*offset);
                 for (idx, fmt) in selected.iter().enumerate() {
-                    if idx == 0 { formatted.push_str(&addr); } else { formatted.push_str(&" ".repeat(addr.len())); }
+                    if idx == 0 {
+                        formatted.push_str(&addr);
+                    } else {
+                        formatted.push_str(&" ".repeat(addr.len()));
+                    }
                     formatted.push_str(&format_od_row(row, fmt, big_endian, width, chars_per_byte));
                     formatted.push('\n');
                 }
@@ -2618,7 +3134,9 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
             *offset += row.len() as u64;
             if first || formatted.len() >= 16384 {
                 first = false;
-                if !write(1, &formatted, out) { return false; }
+                if !write(1, &formatted, out) {
+                    return false;
+                }
                 formatted.clear();
             }
         }
@@ -2634,10 +3152,16 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
     let mut used_stdin = false;
     let mut partial = Vec::new();
     let mut text = String::new();
-    if files.is_empty() { files.push("-".into()); }
+    if files.is_empty() {
+        files.push("-".into());
+    }
     for file in files {
-        if skip == 0 && left == 0 { break; }
-        if file == "-" && std::mem::replace(&mut used_stdin, true) { continue; }
+        if skip == 0 && left == 0 {
+            break;
+        }
+        if file == "-" && std::mem::replace(&mut used_stdin, true) {
+            continue;
+        }
         let mut writable = true;
         let read = input.read_operand(&file, cwd, fs, false, |chunk| {
             let Some(remaining) = available.checked_sub(chunk.len()) else {
@@ -2654,13 +3178,20 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
                 let mut bytes = &block[discard..discard + take];
                 if let Some(minimum) = strings_min {
                     for &b in bytes {
-                        if (32..=126).contains(&b) { text.push(b as char); }
-                        else {
+                        if (32..=126).contains(&b) {
+                            text.push(b as char);
+                        } else {
                             if b == 0 && text.len() as u64 >= minimum {
                                 let addr = fmt_addr(offset - text.len() as u64);
-                                if !addr.is_empty() { text.insert(0, ' '); text.insert_str(0, &addr); }
+                                if !addr.is_empty() {
+                                    text.insert(0, ' ');
+                                    text.insert_str(0, &addr);
+                                }
                                 text.push('\n');
-                                if !write(1, &text, &mut out) { writable = false; return false; }
+                                if !write(1, &text, &mut out) {
+                                    writable = false;
+                                    return false;
+                                }
                             }
                             text.clear();
                         }
@@ -2672,23 +3203,37 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
                         partial.extend_from_slice(&bytes[..end]);
                         bytes = &bytes[end..];
                         if partial.len() == width {
-                            if !emit_rows(&partial, &mut offset, &mut out, write) { writable = false; return false; }
+                            if !emit_rows(&partial, &mut offset, &mut out, write) {
+                                writable = false;
+                                return false;
+                            }
                             partial.clear();
                         }
                     }
                     let full = bytes.len() / width * width;
-                    if full > 0 && !emit_rows(&bytes[..full], &mut offset, &mut out, write) { writable = false; return false; }
+                    if full > 0 && !emit_rows(&bytes[..full], &mut offset, &mut out, write) {
+                        writable = false;
+                        return false;
+                    }
                     partial.extend_from_slice(&bytes[full..]);
                 }
-                if left == 0 && skip == 0 { return false; }
+                if left == 0 && skip == 0 {
+                    return false;
+                }
             }
             true
         });
-        if !writable { return out; }
+        if !writable {
+            return out;
+        }
         if let Err(e) = read {
             out.exit_code = 1;
-            if !write(2, &format!("od: {e}\n"), &mut out) || file == "-" ||
-                !["ENOENT:", "EACCES:", "EISDIR:", "ENOTDIR:", "EIO:"].iter().any(|code| e.starts_with(code)) {
+            if !write(2, &format!("od: {e}\n"), &mut out)
+                || file == "-"
+                || !["ENOENT:", "EACCES:", "EISDIR:", "ENOTDIR:", "EIO:"]
+                    .iter()
+                    .any(|code| e.starts_with(code))
+            {
                 return out;
             }
         }
@@ -2696,7 +3241,10 @@ pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str,
     if skip != 0 {
         out.exit_code = 1;
         write(2, "od: cannot skip past end of input\n", &mut out);
-    } else if strings_min.is_none() && emit_rows(&partial, &mut offset, &mut out, write) && addr_radix != 'n' {
+    } else if strings_min.is_none()
+        && emit_rows(&partial, &mut offset, &mut out, write)
+        && addr_radix != 'n'
+    {
         write(1, &format!("{}\n", fmt_addr(offset)), &mut out);
     }
     out
@@ -2829,10 +3377,27 @@ fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String
     }
 }
 
-fn check_archive_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str, zip: bool) -> Result<(), String> {
+fn check_archive_symlink(
+    fs: &dyn SafeBashFs,
+    root: &str,
+    path: &str,
+    target: &str,
+    zip: bool,
+) -> Result<(), String> {
     use std::collections::VecDeque;
-    let escape = || if zip { "symlink target escapes extraction root".to_owned() } else { format!("symlink target escapes extraction root: {}", tar_format::display(path)) };
-    if target.starts_with('/') { return Err(escape()); }
+    let escape = || {
+        if zip {
+            "symlink target escapes extraction root".to_owned()
+        } else {
+            format!(
+                "symlink target escapes extraction root: {}",
+                tar_format::display(path)
+            )
+        }
+    };
+    if target.starts_with('/') {
+        return Err(escape());
+    }
 
     let mut pending = VecDeque::<String>::new();
     let prepend = |pending: &mut VecDeque<String>, value: &str| -> Result<(), String> {
@@ -2854,7 +3419,9 @@ fn check_archive_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &s
     let mut hops = 0;
     while let Some(part) = pending.pop_front() {
         if part == ".." {
-            if current == root { return Err(escape()); }
+            if current == root {
+                return Err(escape());
+            }
             current = crate::vfs::dirname_posix_path(&current);
             continue;
         }
@@ -2862,15 +3429,28 @@ fn check_archive_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &s
         match fs.lstat(&next) {
             Ok(st) if st.kind == crate::vfs::VfsEntryKind::Symlink => {
                 hops += 1;
-                if hops > 40 { return Err("symlink target chain cannot be safely resolved".into()); }
+                if hops > 40 {
+                    return Err("symlink target chain cannot be safely resolved".into());
+                }
                 let link = fs.readlink(&next)?;
                 if let Some(absolute) = link.strip_prefix('/') {
-                    if zip { return Err("absolute symlink target chain is unsafe".into()); }
-                    let relative = if root == "/" { absolute } else if link == root { "" }
-                        else { link.strip_prefix(root).and_then(|s| s.strip_prefix('/')).ok_or("symlink target chain escapes extraction root")? };
+                    if zip {
+                        return Err("absolute symlink target chain is unsafe".into());
+                    }
+                    let relative = if root == "/" {
+                        absolute
+                    } else if link == root {
+                        ""
+                    } else {
+                        link.strip_prefix(root)
+                            .and_then(|s| s.strip_prefix('/'))
+                            .ok_or("symlink target chain escapes extraction root")?
+                    };
                     current = root.to_owned();
                     prepend(&mut pending, relative)?;
-                } else { prepend(&mut pending, &link)?; }
+                } else {
+                    prepend(&mut pending, &link)?;
+                }
             }
             Ok(_) => current = next,
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => current = next,
@@ -2880,22 +3460,32 @@ fn check_archive_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &s
     Ok(())
 }
 
-fn check_extraction_root(fs:&dyn SafeBashFs,root:&str) -> Result<(), String> {
+fn check_extraction_root(fs: &dyn SafeBashFs, root: &str) -> Result<(), String> {
     let mut path = String::from("/");
     for part in root.split('/').filter(|s| !s.is_empty()) {
         path = resolve_posix_path(&path, part);
         if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
-            return Err(format!("extraction root has a non-directory or symlink ancestor: {}", tar_format::display(&path)));
+            return Err(format!(
+                "extraction root has a non-directory or symlink ancestor: {}",
+                tar_format::display(&path)
+            ));
         }
     }
     Ok(())
 }
 
-fn create_extraction_parent(fs:&dyn SafeBashFs,path:&str,mode:u32,allow_trusted_ancestry:bool)->Result<(),String> {
-    let (existing,stamp)=fs.inspect_extraction(path,allow_trusted_ancestry)?;
-    if existing.is_some(){return Err(format!("EAGAIN: extraction directory changed: {path}"));}
-    let parent=fs.lstat(&crate::vfs::dirname_posix_path(path))?;
-    fs.prepare_extraction_directory(path,&parent,None,mode,(None,None),stamp.version)?;
+fn create_extraction_parent(
+    fs: &dyn SafeBashFs,
+    path: &str,
+    mode: u32,
+    allow_trusted_ancestry: bool,
+) -> Result<(), String> {
+    let (existing, stamp) = fs.inspect_extraction(path, allow_trusted_ancestry)?;
+    if existing.is_some() {
+        return Err(format!("EAGAIN: extraction directory changed: {path}"));
+    }
+    let parent = fs.lstat(&crate::vfs::dirname_posix_path(path))?;
+    fs.prepare_extraction_directory(path, &parent, None, mode, (None, None), stamp.version)?;
     Ok(())
 }
 
@@ -2904,13 +3494,20 @@ struct DirectoryMetadata {
     identity: crate::vfs::FileStat,
     stamp: crate::vfs::PublicationStamp,
     mode: u32,
-    times: (Option<f64>,Option<f64>),
+    times: (Option<f64>, Option<f64>),
 }
 
 impl DirectoryMetadata {
-    fn restore(self,fs:&dyn SafeBashFs,path:&str)->Result<(),String> {
-        check_extraction_root(fs,&crate::vfs::dirname_posix_path(path))?;
-        fs.prepare_extraction_directory(path,&self.parent,Some(&self.identity),self.mode,self.times,self.stamp.version)?;
+    fn restore(self, fs: &dyn SafeBashFs, path: &str) -> Result<(), String> {
+        check_extraction_root(fs, &crate::vfs::dirname_posix_path(path))?;
+        fs.prepare_extraction_directory(
+            path,
+            &self.parent,
+            Some(&self.identity),
+            self.mode,
+            self.times,
+            self.stamp.version,
+        )?;
         Ok(())
     }
 }
@@ -2932,7 +3529,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut null_delim = false;
     let mut verbatim_files_from = false;
     #[derive(PartialEq)]
-    enum Overwrite { Replace, Skip, Keep }
+    enum Overwrite {
+        Replace,
+        Skip,
+        Keep,
+    }
     let mut overwrite = Overwrite::Replace;
     let mut touch = false;
     let mut permission_mask = 0o777;
@@ -2982,79 +3583,77 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     };
 
-    let process_files_from =
-        |ff: &str,
-         list_null: bool,
-         list_verbatim: bool,
-         cur_dir: &mut String,
-         excludes_len: usize,
-         rec: bool,
-         ops: &mut Vec<TarOperand>| {
-            let raw = if ff == "-" {
-                stdin.to_string()
-            } else {
-                let full = resolve_posix_path(cwd, ff);
-                fs.read_file(&full)
-                    .map(|b| String::from_utf8_lossy(&b).into_owned())
-                    .unwrap_or_default()
-            };
-            if list_null {
-                for item in raw.split('\0') {
-                    let t = item.trim_matches(|c: char| c == '\n' || c == '\r');
-                    if !t.is_empty() {
-                        ops.push(TarOperand {
-                            name: t.to_string(),
-                            cwd: cur_dir.clone(),
-                            exclude_count: excludes_len,
-                            recursion: rec,
-                        });
-                    }
-                }
-            } else {
-                let lines: Vec<&str> = raw.split('\n').collect();
-                let mut li = 0usize;
-                while li < lines.len() {
-                    let line = lines[li].trim_end_matches('\r');
-                    if line.is_empty() {
-                        li += 1;
-                        continue;
-                    }
-                    if !list_verbatim && line.starts_with('-') {
-                        if line == "-C" {
-                            if li + 1 < lines.len() {
-                                li += 1;
-                                *cur_dir = resolve_posix_path(cur_dir, lines[li].trim_end_matches('\r'));
-                            }
-                        } else if let Some(rest) = line.strip_prefix("-C") {
-                            *cur_dir = resolve_posix_path(cur_dir, rest);
-                        } else if let Some(rest) = line.strip_prefix("--directory=") {
-                            *cur_dir = resolve_posix_path(cur_dir, rest);
-                        }
-                    } else {
-                        let name = if !list_verbatim {
-                            tar_unquote_filename(line)
-                        } else {
-                            line.to_string()
-                        };
-                        ops.push(TarOperand {
-                            name,
-                            cwd: cur_dir.clone(),
-                            exclude_count: excludes_len,
-                            recursion: rec,
-                        });
-                    }
-                    li += 1;
+    let process_files_from = |ff: &str,
+                              list_null: bool,
+                              list_verbatim: bool,
+                              cur_dir: &mut String,
+                              excludes_len: usize,
+                              rec: bool,
+                              ops: &mut Vec<TarOperand>| {
+        let raw = if ff == "-" {
+            stdin.to_string()
+        } else {
+            let full = resolve_posix_path(cwd, ff);
+            fs.read_file(&full)
+                .map(|b| String::from_utf8_lossy(&b).into_owned())
+                .unwrap_or_default()
+        };
+        if list_null {
+            for item in raw.split('\0') {
+                let t = item.trim_matches(|c: char| c == '\n' || c == '\r');
+                if !t.is_empty() {
+                    ops.push(TarOperand {
+                        name: t.to_string(),
+                        cwd: cur_dir.clone(),
+                        exclude_count: excludes_len,
+                        recursion: rec,
+                    });
                 }
             }
-        };
+        } else {
+            let lines: Vec<&str> = raw.split('\n').collect();
+            let mut li = 0usize;
+            while li < lines.len() {
+                let line = lines[li].trim_end_matches('\r');
+                if line.is_empty() {
+                    li += 1;
+                    continue;
+                }
+                if !list_verbatim && line.starts_with('-') {
+                    if line == "-C" {
+                        if li + 1 < lines.len() {
+                            li += 1;
+                            *cur_dir =
+                                resolve_posix_path(cur_dir, lines[li].trim_end_matches('\r'));
+                        }
+                    } else if let Some(rest) = line.strip_prefix("-C") {
+                        *cur_dir = resolve_posix_path(cur_dir, rest);
+                    } else if let Some(rest) = line.strip_prefix("--directory=") {
+                        *cur_dir = resolve_posix_path(cur_dir, rest);
+                    }
+                } else {
+                    let name = if !list_verbatim {
+                        tar_unquote_filename(line)
+                    } else {
+                        line.to_string()
+                    };
+                    ops.push(TarOperand {
+                        name,
+                        cwd: cur_dir.clone(),
+                        exclude_count: excludes_len,
+                        recursion: rec,
+                    });
+                }
+                li += 1;
+            }
+        }
+    };
 
     let mut record_size = 512u64;
     let mut set_record_size = |val: &str, is_record_size: bool| -> Result<(), &'static str> {
         let mut digits = val;
         let mut mult: u64 = if is_record_size { 1 } else { 512 };
-        if is_record_size
-            && let Some(last) = digits.chars().last()
-        {
+        if is_record_size && let Some(last) = digits.chars().last() {
             let s_mult = match last {
                 'c' => Some(1u64),
                 'w' => Some(2),
@@ -3140,11 +3739,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 i += 1;
                 continue;
             }
-            let transform = if matches!(a.as_str(), "--transform" | "--xform") && i + 1 < args.len() {
+            let transform = if matches!(a.as_str(), "--transform" | "--xform") && i + 1 < args.len()
+            {
                 i += 1;
                 Some(args[i].as_str())
             } else {
-                a.strip_prefix("--transform=").or_else(|| a.strip_prefix("--xform="))
+                a.strip_prefix("--transform=")
+                    .or_else(|| a.strip_prefix("--xform="))
             };
             if let Some(source) = transform {
                 if let Err(e) = parse_tar_transforms(source, &mut transforms) {
@@ -3190,7 +3791,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if let Some(qs) = a.strip_prefix("--quoting-style=") {
                 if !matches!(qs, "literal" | "escape" | "c") {
                     return err_out(
-                        &format!("tar: unsupported quoting style: {qs}; use literal, escape or c\n"),
+                        &format!(
+                            "tar: unsupported quoting style: {qs}; use literal, escape or c\n"
+                        ),
                         2,
                     );
                 }
@@ -3260,7 +3863,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if a == "--owner" && i + 1 < args.len() {
                 i += 1;
                 let ow = &args[i];
-                if ow.is_empty() || !ow.chars().all(|c| c.is_ascii_digit()) || ow.parse::<u32>().is_err() {
+                if ow.is_empty()
+                    || !ow.chars().all(|c| c.is_ascii_digit())
+                    || ow.parse::<u32>().is_err()
+                {
                     return err_out(&format!("tar: invalid numeric owner: {ow}\n"), 2);
                 }
                 override_uid = ow.parse::<u32>().ok();
@@ -3268,7 +3874,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if let Some(ow) = a.strip_prefix("--owner=") {
-                if ow.is_empty() || !ow.chars().all(|c| c.is_ascii_digit()) || ow.parse::<u32>().is_err() {
+                if ow.is_empty()
+                    || !ow.chars().all(|c| c.is_ascii_digit())
+                    || ow.parse::<u32>().is_err()
+                {
                     return err_out(&format!("tar: invalid numeric owner: {ow}\n"), 2);
                 }
                 override_uid = ow.parse::<u32>().ok();
@@ -3278,7 +3887,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if a == "--group" && i + 1 < args.len() {
                 i += 1;
                 let gr = &args[i];
-                if gr.is_empty() || !gr.chars().all(|c| c.is_ascii_digit()) || gr.parse::<u32>().is_err() {
+                if gr.is_empty()
+                    || !gr.chars().all(|c| c.is_ascii_digit())
+                    || gr.parse::<u32>().is_err()
+                {
                     return err_out(&format!("tar: invalid numeric group: {gr}\n"), 2);
                 }
                 override_gid = gr.parse::<u32>().ok();
@@ -3286,7 +3898,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if let Some(gr) = a.strip_prefix("--group=") {
-                if gr.is_empty() || !gr.chars().all(|c| c.is_ascii_digit()) || gr.parse::<u32>().is_err() {
+                if gr.is_empty()
+                    || !gr.chars().all(|c| c.is_ascii_digit())
+                    || gr.parse::<u32>().is_err()
+                {
                     return err_out(&format!("tar: invalid numeric group: {gr}\n"), 2);
                 }
                 override_gid = gr.parse::<u32>().ok();
@@ -3296,7 +3911,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if a == "--format" && i + 1 < args.len() {
                 pax = args[i + 1] != "ustar";
                 if !matches!(args[i + 1].as_str(), "ustar" | "pax" | "posix") {
-                    return err_out(&format!("tar: unsupported archive format: {}\n", args[i + 1]), 2);
+                    return err_out(
+                        &format!("tar: unsupported archive format: {}\n", args[i + 1]),
+                        2,
+                    );
                 }
                 i += 2;
                 continue;
@@ -3333,7 +3951,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     2,
                 );
             }
-            if (a == "-b" || a == "--blocking-factor" || a == "--record-size") && i + 1 < args.len() {
+            if (a == "-b" || a == "--blocking-factor" || a == "--record-size") && i + 1 < args.len()
+            {
                 if let Err(e) = set_record_size(&args[i + 1], a == "--record-size") {
                     return err_out(&format!("tar: {e}\n"), 2);
                 }
@@ -3350,7 +3969,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if let Some(ff) = a.strip_prefix("--files-from=") {
                 has_files_from = true;
-                pending_files_from.push((ff.to_string(), null_delim, verbatim_files_from, excludes.len()));
+                pending_files_from.push((
+                    ff.to_string(),
+                    null_delim,
+                    verbatim_files_from,
+                    excludes.len(),
+                ));
                 i += 1;
                 continue;
             }
@@ -3431,61 +4055,88 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if a.starts_with("--") {
                 if let Some((opt_name, _)) = a[2..].split_once('=') {
-                    return err_out(&format!("tar: option --{opt_name} does not take an argument\n"), 2);
+                    return err_out(
+                        &format!("tar: option --{opt_name} does not take an argument\n"),
+                        2,
+                    );
                 }
                 match a.as_str() {
                     "--create" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("c");
                         create = true;
                     }
                     "--extract" | "--get" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("x");
                         extract = true;
                     }
                     "--list" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("t");
                         list = true;
                     }
                     "--delete" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("delete");
                         delete_mode = true;
                     }
                     "--append" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("r");
                         append_mode = true;
                     }
                     "--update" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("u");
                         update_mode = true;
                     }
                     "--diff" | "--compare" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("d");
                         diff_mode = true;
                     }
                     "--catenate" | "--concatenate" => {
                         if selected_mode.is_some() {
-                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            return err_out(
+                                "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                2,
+                            );
                         }
                         selected_mode = Some("A");
                         catenate_mode = true;
@@ -3519,8 +4170,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--touch" => touch = true,
                     "--same-permissions" | "--preserve-permissions" => permission_mask = 0o777,
                     "--no-same-permissions" => permission_mask = 0o755,
-                    "--read-full-records" | "--seek" | "--no-seek"
-                    | "--force-local" | "--numeric-owner" | "--no-same-owner" => {}
+                    "--read-full-records"
+                    | "--seek"
+                    | "--no-seek"
+                    | "--force-local"
+                    | "--numeric-owner"
+                    | "--no-same-owner" => {}
                     "--delay-directory-restore" => delay_directories = true,
                     "--no-delay-directory-restore" => delay_directories = false,
                     "--same-owner" => {
@@ -3577,7 +4232,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if (a.starts_with('-') && a != "-")
-                || (i == 0 && !a.is_empty() && a.chars().all(|ch| "ctxrudAzjJavfCTXmpkhbBinO".contains(ch)))
+                || (i == 0
+                    && !a.is_empty()
+                    && a.chars().all(|ch| "ctxrudAzjJavfCTXmpkhbBinO".contains(ch)))
             {
                 let old_style = !a.starts_with('-');
                 let flags = a.trim_start_matches('-');
@@ -3588,7 +4245,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     match chars[ci] {
                         'c' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("c");
                             create = true;
@@ -3596,7 +4256,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         'x' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("x");
                             extract = true;
@@ -3604,7 +4267,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         't' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("t");
                             list = true;
@@ -3612,7 +4278,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         'r' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("r");
                             append_mode = true;
@@ -3620,7 +4289,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         'u' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("u");
                             update_mode = true;
@@ -3628,7 +4300,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         'd' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("d");
                             diff_mode = true;
@@ -3636,7 +4311,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         'A' => {
                             if selected_mode.is_some() {
-                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                                return err_out(
+                                    "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+                                    2,
+                                );
                             }
                             selected_mode = Some("A");
                             catenate_mode = true;
@@ -3690,9 +4368,18 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             compress_format = Some("auto");
                             matched_flag = true;
                         }
-                        'i' => { ignore_zeros = true; matched_flag = true; }
-                        'p' => { permission_mask = 0o777; matched_flag = true; }
-                        'm' => { touch = true; matched_flag = true; }
+                        'i' => {
+                            ignore_zeros = true;
+                            matched_flag = true;
+                        }
+                        'p' => {
+                            permission_mask = 0o777;
+                            matched_flag = true;
+                        }
+                        'm' => {
+                            touch = true;
+                            matched_flag = true;
+                        }
                         'B' | 'n' => {
                             matched_flag = true;
                         }
@@ -3727,11 +4414,21 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             has_files_from = true;
                             let rest: String = chars[ci + 1..].iter().collect();
                             if !old_style && !rest.is_empty() {
-                                pending_files_from.push((rest, null_delim, verbatim_files_from, excludes.len()));
+                                pending_files_from.push((
+                                    rest,
+                                    null_delim,
+                                    verbatim_files_from,
+                                    excludes.len(),
+                                ));
                                 break;
                             } else if i + 1 < args.len() {
                                 i += 1;
-                                pending_files_from.push((args[i].clone(), null_delim, verbatim_files_from, excludes.len()));
+                                pending_files_from.push((
+                                    args[i].clone(),
+                                    null_delim,
+                                    verbatim_files_from,
+                                    excludes.len(),
+                                ));
                             } else {
                                 return err_out("tar: missing argument for -T\n", 2);
                             }
@@ -3835,7 +4532,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
     let writing = create || modifying;
-    let dest = archive_file.as_deref().filter(|p| writing && *p != "-").map(|p| resolve_posix_path(cwd, p));
+    let dest = archive_file
+        .as_deref()
+        .filter(|p| writing && *p != "-")
+        .map(|p| resolve_posix_path(cwd, p));
     let version = fs.generation();
     let existing = if let Some(path) = &dest {
         let stat = match fs.lstat(path) {
@@ -3843,35 +4543,74 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
             Err(e) => return err_out(&format!("tar: {e}\n"), 2),
         };
-        if stat.as_ref().is_some_and(|s| s.kind != crate::vfs::VfsEntryKind::File || s.mode & 0o170000 != 0o100000) || (!create && stat.is_none()) {
-            return err_out(if create { "tar: output archive must be a regular file, not a symlink or directory\n" } else { "tar: archive mutation requires an existing regular file\n" }, 2);
+        if stat.as_ref().is_some_and(|s| {
+            s.kind != crate::vfs::VfsEntryKind::File || s.mode & 0o170000 != 0o100000
+        }) || (!create && stat.is_none())
+        {
+            return err_out(
+                if create {
+                    "tar: output archive must be a regular file, not a symlink or directory\n"
+                } else {
+                    "tar: archive mutation requires an existing regular file\n"
+                },
+                2,
+            );
         }
         if stat.as_ref().is_some_and(|s| s.identity.is_none()) {
-            return err_out("tar: cannot safely replace an archive with unknown backing identity\n", 2);
+            return err_out(
+                "tar: cannot safely replace an archive with unknown backing identity\n",
+                2,
+            );
         }
         let parent = crate::vfs::dirname_posix_path(path);
         if let Err(e) = fs.stat(&parent) {
-            if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { return err_out(&format!("tar: ENOENT: no such file or directory, realpath '{parent}'\n"), 2); }
+            if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") {
+                return err_out(
+                    &format!("tar: ENOENT: no such file or directory, realpath '{parent}'\n"),
+                    2,
+                );
+            }
             return err_out(&format!("tar: {e}\n"), 2);
         }
         stat
-    } else { None };
+    } else {
+        None
+    };
     let mut manifest = Vec::new();
     let mut bindings = BTreeMap::new();
     let mut aliases = BTreeMap::<crate::vfs::EntryIdentity, BTreeMap<usize, String>>::new();
     let mut visit_operand = |op: &TarOperand, warnings: &mut String| {
         let relative = op.name.trim_start_matches('/');
-        if relative != op.name { warnings.push_str("tar: removing leading '/' from member names\n"); }
+        if relative != op.name {
+            warnings.push_str("tar: removing leading '/' from member names\n");
+        }
         let components: Vec<_> = relative.split('/').collect();
         let stored = if let Some(i) = components.iter().rposition(|&c| c == "..") {
             warnings.push_str("tar: removing member-name prefix through '..'\n");
             components[i + 1..].join("/")
-        } else { relative.to_owned() };
-        let path = if op.name.starts_with('/') { op.name.clone() } else { format!("{}/{}", op.cwd.trim_end_matches('/'), op.name) };
+        } else {
+            relative.to_owned()
+        };
+        let path = if op.name.starts_with('/') {
+            op.name.clone()
+        } else {
+            format!("{}/{}", op.cwd.trim_end_matches('/'), op.name)
+        };
         visit_archive_sources(
-            if stored.is_empty() { "." } else { &stored }, &path, &excludes[..op.exclude_count.min(excludes.len())],
-            exclude_caches, dereference, sort_by_name, op.recursion, fs, &mut Vec::new(),
-            &mut |stat: &crate::vfs::FileStat, _: &crate::vfs::FileStat, full: String, mut entry: TarEntry, explicit: bool| {
+            if stored.is_empty() { "." } else { &stored },
+            &path,
+            &excludes[..op.exclude_count.min(excludes.len())],
+            exclude_caches,
+            dereference,
+            sort_by_name,
+            op.recursion,
+            fs,
+            &mut Vec::new(),
+            &mut |stat: &crate::vfs::FileStat,
+                  _: &crate::vfs::FileStat,
+                  full: String,
+                  mut entry: TarEntry,
+                  explicit: bool| {
                 let index = manifest.len();
                 let name = entry.name.trim_end_matches('/');
                 if let Some(prior) = &existing {
@@ -3880,34 +4619,56 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     }
                     if stat.identity == prior.identity {
                         let name = tar_format::display(name);
-                        if explicit { return Err(format!("input is the output archive: {}", tar_format::display(&name))); }
-                        warnings.push_str(&format!("tar: {name}: file is the archive; not included\n"));
+                        if explicit {
+                            return Err(format!(
+                                "input is the output archive: {}",
+                                tar_format::display(&name)
+                            ));
+                        }
+                        warnings
+                            .push_str(&format!("tar: {name}: file is the archive; not included\n"));
                         return Ok(false);
                     }
                 }
                 if entry.typeflag == b'2' && stat.nlink.unwrap_or(1) > 1 {
                     return Err("hardlinked symbolic-link sources are unsupported".into());
                 }
-                if entry.typeflag == b'0' && stat.nlink.unwrap_or(1) > 1 && stat.identity.is_none() {
-                    return Err(format!("cannot preserve hardlinks without complete backing identity: {}", tar_format::display(name)));
+                if entry.typeflag == b'0' && stat.nlink.unwrap_or(1) > 1 && stat.identity.is_none()
+                {
+                    return Err(format!(
+                        "cannot preserve hardlinks without complete backing identity: {}",
+                        tar_format::display(name)
+                    ));
                 }
                 if !transforms.is_empty() {
                     entry.name = apply_tar_transforms(&entry.name, &transforms)?;
                     if entry.name.split('/').any(|part| part == "..") {
-                        return Err(format!("unsafe transformed member name: {}", tar_format::display(&entry.name)));
+                        return Err(format!(
+                            "unsafe transformed member name: {}",
+                            tar_format::display(&entry.name)
+                        ));
                     }
-                    if entry.typeflag == b'5' && !entry.name.ends_with('/') { entry.name.push('/'); }
-                    if entry.typeflag == b'2' { entry.linkname = apply_tar_transforms(&entry.linkname, &transforms)?; }
+                    if entry.typeflag == b'5' && !entry.name.ends_with('/') {
+                        entry.name.push('/');
+                    }
+                    if entry.typeflag == b'2' {
+                        entry.linkname = apply_tar_transforms(&entry.linkname, &transforms)?;
+                    }
                 }
                 // A repeated archive path supersedes its previous binding. A hard link
                 // can reference only a name that would still refer to that file on extraction.
                 let path = resolve_posix_path("/", &entry.name);
                 if let Some((id, old)) = bindings.remove(&path)
-                    && let Some(names) = aliases.get_mut(&id) {
+                    && let Some(names) = aliases.get_mut(&id)
+                {
                     names.remove(&old);
-                    if names.is_empty() { aliases.remove(&id); }
+                    if names.is_empty() {
+                        aliases.remove(&id);
+                    }
                 }
-                if entry.typeflag == b'0' && let Some(id) = &stat.identity {
+                if entry.typeflag == b'0'
+                    && let Some(id) = &stat.identity
+                {
                     let names = aliases.entry(id.clone()).or_default();
                     if let Some((_, first)) = names.first_key_value() {
                         entry.typeflag = b'1';
@@ -3923,21 +4684,34 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
 
     let write_entry = |out: &mut Vec<u8>, path: &str, entry: &mut TarEntry| -> Result<(), String> {
-        if entry.typeflag == b'0' { entry.content = fs.read_file(path)?; }
-        if let Some(mode) = override_mode { entry.mode = mode; }
-        if let Some(mtime) = override_mtime { entry.mtime = mtime as f64; }
-        if let Some(uid) = override_uid { entry.uid = uid; }
-        if let Some(gid) = override_gid { entry.gid = gid; }
+        if entry.typeflag == b'0' {
+            entry.content = fs.read_file(path)?;
+        }
+        if let Some(mode) = override_mode {
+            entry.mode = mode;
+        }
+        if let Some(mtime) = override_mtime {
+            entry.mtime = mtime as f64;
+        }
+        if let Some(uid) = override_uid {
+            entry.uid = uid;
+        }
+        if let Some(gid) = override_gid {
+            entry.gid = gid;
+        }
         tar_format::write_member(out, entry, pax)
     };
 
     let finish_archive = |bytes: &mut Vec<u8>| -> Result<(), String> {
         let maximum = fs.shell_limits().max_memory_bytes;
-        let size = (bytes.len() as u64).checked_add(1024)
+        let size = (bytes.len() as u64)
+            .checked_add(1024)
             .and_then(|size| size.checked_next_multiple_of(record_size))
             .filter(|&size| size <= maximum as u64)
             .ok_or_else(|| fs.limit_error("maxMemoryBytes", maximum))? as usize;
-        bytes.try_reserve_exact(size - bytes.len()).map_err(|_| fs.limit_error("maxMemoryBytes", maximum))?;
+        bytes
+            .try_reserve_exact(size - bytes.len())
+            .map_err(|_| fs.limit_error("maxMemoryBytes", maximum))?;
         bytes.resize(size, 0);
         Ok(())
     };
@@ -3952,12 +4726,19 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let mut verbose_out = String::new();
         let mut raw_tar = Vec::new();
         for (path, mut entry) in manifest {
-            if let Err(e) = write_entry(&mut raw_tar, &path, &mut entry) { return err_out(&format!("tar: {e}\n"), 2); }
+            if let Err(e) = write_entry(&mut raw_tar, &path, &mut entry) {
+                return err_out(&format!("tar: {e}\n"), 2);
+            }
             if verbose {
-                verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
+                verbose_out.push_str(&format!(
+                    "{}\n",
+                    tar_quote_name(&entry.name, &quoting_style)
+                ));
             }
         }
-        if let Err(e) = finish_archive(&mut raw_tar) { return err_out(&format!("{create_stderr}tar: {e}\n"), 2); }
+        if let Err(e) = finish_archive(&mut raw_tar) {
+            return err_out(&format!("{create_stderr}tar: {e}\n"), 2);
+        }
         if totals {
             create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
         }
@@ -3967,7 +4748,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     let af = archive_file.as_deref().unwrap_or("");
                     if af.ends_with(".tar.gz") || af.ends_with(".tgz") || af.ends_with(".taz") {
                         "gzip"
-                    } else if af.ends_with(".tar.bz2") || af.ends_with(".tbz") || af.ends_with(".tbz2") || af.ends_with(".tz2") {
+                    } else if af.ends_with(".tar.bz2")
+                        || af.ends_with(".tbz")
+                        || af.ends_with(".tbz2")
+                        || af.ends_with(".tz2")
+                    {
                         "bzip2"
                     } else if af.ends_with(".tar.xz") || af.ends_with(".txz") {
                         "xz"
@@ -3998,7 +4783,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if let Err(e) = fs.replace_file_entry_with_mode(path, &out_bytes, 0o600, version) {
                 return err_out(&format!("tar: {e}\n"), 2);
             }
-            return BuiltinOutcome { stdout: verbose_out, stderr: create_stderr, exit_code: 0 };
+            return BuiltinOutcome {
+                stdout: verbose_out,
+                stderr: create_stderr,
+                exit_code: 0,
+            };
         }
         return BuiltinOutcome {
             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
@@ -4035,7 +4824,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 plain_name == wanted
                     || name.starts_with(&format!("{wanted}/"))
                     || (!norm_wanted.is_empty()
-                        && (plain_norm == norm_wanted || norm_name.starts_with(&format!("{norm_wanted}/"))))
+                        && (plain_norm == norm_wanted
+                            || norm_name.starts_with(&format!("{norm_wanted}/"))))
                     || crate::shell::expand::glob_match(wanted, plain_name)
                     || crate::shell::expand::glob_match(norm_wanted, plain_norm)
             };
@@ -4069,28 +4859,56 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let mut times = BTreeMap::<String, Option<f64>>::new();
         let mut matched_ops = vec![false; operands.len()];
         let mut occ_counts = vec![0usize; operands.len()];
-        let scan = tar_format::copy_members(&existing_bytes, ignore_zeros, &mut out_bytes, |name, mtime| {
-            if update_mode {
-                times.entry(name.trim_end_matches('/').to_owned()).and_modify(|prior| {
-                    if mtime.is_none() || (prior.is_some() && mtime > *prior) { *prior = mtime; }
-                }).or_insert(mtime);
-            }
-            if delete_mode {
-                let (selected, _) = match_tar_operands(name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
-                if selected && !tar_matches_exclude(name, &excludes) {
-                    changed = true;
-                    return false;
+        let scan = tar_format::copy_members(
+            &existing_bytes,
+            ignore_zeros,
+            &mut out_bytes,
+            |name, mtime| {
+                if update_mode {
+                    times
+                        .entry(name.trim_end_matches('/').to_owned())
+                        .and_modify(|prior| {
+                            if mtime.is_none() || (prior.is_some() && mtime > *prior) {
+                                *prior = mtime;
+                            }
+                        })
+                        .or_insert(mtime);
                 }
-            }
-            true
-        });
-        if let Err(e) = scan { return err_out(&format!("tar: {e}\n"), 2); }
+                if delete_mode {
+                    let (selected, _) = match_tar_operands(
+                        name,
+                        &operands,
+                        wildcards,
+                        occurrence,
+                        &mut occ_counts,
+                        &mut matched_ops,
+                        &current_dir,
+                    );
+                    if selected && !tar_matches_exclude(name, &excludes) {
+                        changed = true;
+                        return false;
+                    }
+                }
+                true
+            },
+        );
+        if let Err(e) = scan {
+            return err_out(&format!("tar: {e}\n"), 2);
+        }
         let mut stdout = String::new();
         let mut stderr = String::new();
         if delete_mode && let Some(idx) = matched_ops.iter().position(|&matched| !matched) {
-            return err_out(&format!("tar: member not found: {}\n", tar_format::display(&operands[idx].name)), 2);
+            return err_out(
+                &format!(
+                    "tar: member not found: {}\n",
+                    tar_format::display(&operands[idx].name)
+                ),
+                2,
+            );
         }
-        if totals { stderr.push_str(&format!("Total bytes read: {}\n", existing_bytes.len())); }
+        if totals {
+            stderr.push_str(&format!("Total bytes read: {}\n", existing_bytes.len()));
+        }
         if append_mode || update_mode {
             for op in &operands {
                 if let Err(e) = visit_operand(op, &mut stderr) {
@@ -4099,10 +4917,19 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             for (path, mut ne) in manifest {
                 if let Some(archived) = times.get(ne.name.trim_end_matches('/')) {
-                    let Some(t) = archived else { return err_out(&format!("{stderr}tar: archive lacks mtime required for update\n"), 2); };
-                    if ne.mtime <= *t { continue; }
+                    let Some(t) = archived else {
+                        return err_out(
+                            &format!("{stderr}tar: archive lacks mtime required for update\n"),
+                            2,
+                        );
+                    };
+                    if ne.mtime <= *t {
+                        continue;
+                    }
                 }
-                if let Err(e) = write_entry(&mut out_bytes, &path, &mut ne) { return err_out(&format!("{stderr}tar: {e}\n"), 2); }
+                if let Err(e) = write_entry(&mut out_bytes, &path, &mut ne) {
+                    return err_out(&format!("{stderr}tar: {e}\n"), 2);
+                }
                 if verbose {
                     stdout.push_str(&format!("{}\n", tar_quote_name(&ne.name, &quoting_style)));
                 }
@@ -4112,29 +4939,55 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             for op in &operands {
                 let t_full = resolve_posix_path(&op.cwd, &op.name);
                 match fs.stat(&t_full) {
-                    Ok(st) if st.identity == prior.identity => return err_out(&format!("{stderr}tar: cannot concatenate an archive to itself\n"), 2),
-                    Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.identity.is_none() => return err_out(&format!("{stderr}tar: concatenation source must be a regular archive with retained identity\n"), 2),
+                    Ok(st) if st.identity == prior.identity => {
+                        return err_out(
+                            &format!("{stderr}tar: cannot concatenate an archive to itself\n"),
+                            2,
+                        );
+                    }
+                    Ok(st)
+                        if st.kind != crate::vfs::VfsEntryKind::File || st.identity.is_none() =>
+                    {
+                        return err_out(
+                            &format!(
+                                "{stderr}tar: concatenation source must be a regular archive with retained identity\n"
+                            ),
+                            2,
+                        );
+                    }
                     Err(e) => return err_out(&format!("{stderr}tar: {e}\n"), 2),
                     _ => {}
                 }
                 match fs.read_file(&t_full) {
-                    Ok(tb) => match tar_format::copy_members(&tb, ignore_zeros, &mut out_bytes, |_, _| true) {
-                        Ok(()) => {
-                            changed = true;
-                            if totals { stderr.push_str(&format!("Total bytes read: {}\n", tb.len())); }
+                    Ok(tb) => {
+                        match tar_format::copy_members(&tb, ignore_zeros, &mut out_bytes, |_, _| {
+                            true
+                        }) {
+                            Ok(()) => {
+                                changed = true;
+                                if totals {
+                                    stderr.push_str(&format!("Total bytes read: {}\n", tb.len()));
+                                }
+                            }
+                            Err(error) => return err_out(&format!("{stderr}tar: {error}\n"), 2),
                         }
-                        Err(error) => return err_out(&format!("{stderr}tar: {error}\n"), 2),
-                    },
+                    }
                     Err(e) => return err_out(&format!("{stderr}tar: {e}\n"), 2),
                 }
             }
         }
         if changed {
-            if let Err(e) = finish_archive(&mut out_bytes) { return err_out(&format!("{stderr}tar: {e}\n"), 2); }
-            if let Err(e) = fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version) {
+            if let Err(e) = finish_archive(&mut out_bytes) {
                 return err_out(&format!("{stderr}tar: {e}\n"), 2);
             }
-            if totals { stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len())); }
+            if let Err(e) =
+                fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version)
+            {
+                return err_out(&format!("{stderr}tar: {e}\n"), 2);
+            }
+            if totals {
+                stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len()));
+            }
         }
         return BuiltinOutcome {
             stdout,
@@ -4159,11 +5012,17 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     let data = &archive_bytes[..];
     let codec = explicit_compress.or_else(|| {
-        if data.starts_with(b"\x1f\x8b") { Some("gzip") }
-        else if data.starts_with(b"BZh") { Some("bzip2") }
-        else if data.starts_with(b"\xfd7zXZ\0") { Some("xz") }
-        else if data.starts_with(b"\x28\xb5\x2f\xfd") { Some("zstd") }
-        else { None }
+        if data.starts_with(b"\x1f\x8b") {
+            Some("gzip")
+        } else if data.starts_with(b"BZh") {
+            Some("bzip2")
+        } else if data.starts_with(b"\xfd7zXZ\0") {
+            Some("xz")
+        } else if data.starts_with(b"\x28\xb5\x2f\xfd") {
+            Some("zstd")
+        } else {
+            None
+        }
     });
     let decoded;
     let data = if let Some(codec) = codec {
@@ -4172,7 +5031,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Err(e) => return err_out(&format!("tar: {e}\n"), 2),
         };
         &decoded[..]
-    } else { data };
+    } else {
+        data
+    };
     let mut out = String::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
@@ -4181,41 +5042,75 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut warned_absolute = false;
     let mut published = BTreeMap::<String, Option<crate::vfs::EntryIdentity>>::new();
     let mut directories = BTreeMap::new();
-    let restore_directories = |pending: &mut BTreeMap<String, DirectoryMetadata>, next: Option<&str>| -> Result<(), String> {
-        let mut paths: Vec<_> = pending.keys()
+    let restore_directories = |pending: &mut BTreeMap<String, DirectoryMetadata>,
+                               next: Option<&str>|
+     -> Result<(), String> {
+        let mut paths: Vec<_> = pending
+            .keys()
             .filter(|dir| !next.is_some_and(|path| crate::vfs::is_path_within(dir, path)))
-            .cloned().collect();
+            .cloned()
+            .collect();
         paths.sort_by_key(|path| std::cmp::Reverse(path.len()));
         for path in paths {
-            pending.remove(&path).unwrap().restore(fs,&path)?;
+            pending.remove(&path).unwrap().restore(fs, &path)?;
         }
         Ok(())
     };
     let extracting_files = extract && !to_stdout;
     if extracting_files {
-        for root in std::iter::once(&mut current_dir).chain(operands.iter_mut().map(|op| &mut op.cwd)) {
+        for root in
+            std::iter::once(&mut current_dir).chain(operands.iter_mut().map(|op| &mut op.cwd))
+        {
             match fs.access_path(root, true) {
                 Ok(path) => *root = path,
                 Err(e) => return err_out(&format!("tar: {e}\n"), 2),
             }
         }
-        if let Err(e) = check_extraction_root(fs,&current_dir) { return err_out(&format!("tar: {e}\n"), 2); }
+        if let Err(e) = check_extraction_root(fs, &current_dir) {
+            return err_out(&format!("tar: {e}\n"), 2);
+        }
     }
-    let input_path = archive_file.as_deref().filter(|p| extracting_files && *p != "-").map(|p| resolve_posix_path(cwd, p));
-    let input_identity = input_path.as_deref().and_then(|p| fs.stat(p).ok()).and_then(|s| s.identity);
+    let input_path = archive_file
+        .as_deref()
+        .filter(|p| extracting_files && *p != "-")
+        .map(|p| resolve_posix_path(cwd, p));
+    let input_identity = input_path
+        .as_deref()
+        .and_then(|p| fs.stat(p).ok())
+        .and_then(|s| s.identity);
     let read = tar_format::read_members(data, ignore_zeros, false, |entry, raw| {
-        let (sel, entry_root) = match_tar_operands(entry.name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
-        let transformed = (extract && !transforms.is_empty()).then(|| apply_tar_transforms(entry.name, &transforms)).transpose()?;
-        let link = (extract && !transforms.is_empty() && !entry.linkname.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms)).transpose()?;
+        let (sel, entry_root) = match_tar_operands(
+            entry.name,
+            &operands,
+            wildcards,
+            occurrence,
+            &mut occ_counts,
+            &mut matched_ops,
+            &current_dir,
+        );
+        let transformed = (extract && !transforms.is_empty())
+            .then(|| apply_tar_transforms(entry.name, &transforms))
+            .transpose()?;
+        let link = (extract && !transforms.is_empty() && !entry.linkname.is_empty())
+            .then(|| apply_tar_transforms(entry.linkname, &transforms))
+            .transpose()?;
         let name = transformed.as_deref().unwrap_or(entry.name);
         if extract && name.split('/').any(|s| s == "..") {
-            return Err(format!("unsafe parent component in member: {}", tar_format::display(name)));
+            return Err(format!(
+                "unsafe parent component in member: {}",
+                tar_format::display(name)
+            ));
         }
-        if !sel || tar_matches_exclude(entry.name, &excludes) { return Ok(()); }
+        if !sel || tar_matches_exclude(entry.name, &excludes) {
+            return Ok(());
+        }
         if diff_mode {
             use crate::vfs::VfsEntryKind::{Directory, File, Symlink};
             if entry.name.split('/').any(|part| part == "..") {
-                return Err(format!("unsafe parent component in member: {}", tar_format::display(entry.name)));
+                return Err(format!(
+                    "unsafe parent component in member: {}",
+                    tar_format::display(entry.name)
+                ));
             }
             let mut difference = |reason: &str| {
                 out.push_str(&format!("{}: {reason}\n", tar_format::display(entry.name)));
@@ -4227,32 +5122,68 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 Err(e) => Err(e),
             };
             let dest = resolve_posix_path(&entry_root, entry.name);
-            let Some(st) = lookup(&dest)? else { difference("File is missing"); return Ok(()); };
-            let wanted = match entry.typeflag { b'5' => Directory, b'2' => Symlink, _ => File };
-            if st.kind != wanted { difference("File type differs"); return Ok(()); }
-            if st.mode & 0o7777 != entry.mode { difference("Mode differs"); }
-            for (archived, actual, message) in [(entry.uid, st.uid, "Uid differs"), (entry.gid, st.gid, "Gid differs")] {
+            let Some(st) = lookup(&dest)? else {
+                difference("File is missing");
+                return Ok(());
+            };
+            let wanted = match entry.typeflag {
+                b'5' => Directory,
+                b'2' => Symlink,
+                _ => File,
+            };
+            if st.kind != wanted {
+                difference("File type differs");
+                return Ok(());
+            }
+            if st.mode & 0o7777 != entry.mode {
+                difference("Mode differs");
+            }
+            for (archived, actual, message) in [
+                (entry.uid, st.uid, "Uid differs"),
+                (entry.gid, st.gid, "Gid differs"),
+            ] {
                 if let Some(id) = archived {
-                    let actual = actual.ok_or("filesystem lacks ownership required for archive comparison")?;
-                    if u64::from(actual) != id { difference(message); }
+                    let actual = actual
+                        .ok_or("filesystem lacks ownership required for archive comparison")?;
+                    if u64::from(actual) != id {
+                        difference(message);
+                    }
                 }
             }
-            if wanted != Symlink && entry.mtime.is_some_and(|t| (st.mtime_ms / 1000.).floor() != t.floor()) {
+            if wanted != Symlink
+                && entry
+                    .mtime
+                    .is_some_and(|t| (st.mtime_ms / 1000.).floor() != t.floor())
+            {
                 difference("Mod time differs");
             }
             match entry.typeflag {
-                b'2' => { if fs.readlink(&dest)? != entry.linkname { difference("Symlink differs"); } }
-                b'1' => {
-                    if entry.linkname.split('/').any(|part| part == "..") { return Err("unsafe hardlink target in archive comparison".into()); }
-                    let target = lookup(&resolve_posix_path(&entry_root, entry.linkname))?;
-                    if st.identity.is_none() || target.as_ref().is_some_and(|t| t.identity.is_none()) {
-                        return Err("filesystem lacks identity required for hardlink comparison".into());
+                b'2' => {
+                    if fs.readlink(&dest)? != entry.linkname {
+                        difference("Symlink differs");
                     }
-                    if target.and_then(|t| t.identity) != st.identity { difference("Not linked to archive target"); }
+                }
+                b'1' => {
+                    if entry.linkname.split('/').any(|part| part == "..") {
+                        return Err("unsafe hardlink target in archive comparison".into());
+                    }
+                    let target = lookup(&resolve_posix_path(&entry_root, entry.linkname))?;
+                    if st.identity.is_none()
+                        || target.as_ref().is_some_and(|t| t.identity.is_none())
+                    {
+                        return Err(
+                            "filesystem lacks identity required for hardlink comparison".into()
+                        );
+                    }
+                    if target.and_then(|t| t.identity) != st.identity {
+                        difference("Not linked to archive target");
+                    }
                 }
                 b'0' if st.size as u64 != entry.size => difference("Size differs"),
                 b'0' => {
-                    if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
+                    if (entry.content.len() as u64) < entry.size {
+                        return Err("truncated archive body".into());
+                    }
                     let mut offset = 0;
                     let mut equal = true;
                     fs.read_chunks(&dest, &mut |chunk| {
@@ -4261,16 +5192,30 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         offset = end;
                         Ok(equal)
                     })?;
-                    if !equal || offset != entry.content.len() { difference("Contents differ"); }
-                    if verbose { out.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style))); }
+                    if !equal || offset != entry.content.len() {
+                        difference("Contents differ");
+                    }
+                    if verbose {
+                        out.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style)));
+                    }
                 }
                 _ => {}
             }
         } else if list {
             let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');
-            let base_name = if strip_components == 0 { entry.name.to_owned() } else {
-                if entry.name.split('/').any(|s| s == "..") { return Err(format!("unsafe parent component in member: {}", tar_format::display(entry.name))); }
-                let Some(name) = tar_strip_components(entry.name, strip_components, is_dir_entry) else { return Ok(()); };
+            let base_name = if strip_components == 0 {
+                entry.name.to_owned()
+            } else {
+                if entry.name.split('/').any(|s| s == "..") {
+                    return Err(format!(
+                        "unsafe parent component in member: {}",
+                        tar_format::display(entry.name)
+                    ));
+                }
+                let Some(name) = tar_strip_components(entry.name, strip_components, is_dir_entry)
+                else {
+                    return Ok(());
+                };
                 name
             };
             let disp = if show_transformed && !transforms.is_empty() {
@@ -4278,19 +5223,26 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else {
                 base_name
             };
-            let link_disp = if show_transformed && !transforms.is_empty() && !entry.linkname.is_empty() {
-                apply_tar_transforms(entry.linkname, &transforms)?
-            } else {
-                entry.linkname.to_owned()
-            };
+            let link_disp =
+                if show_transformed && !transforms.is_empty() && !entry.linkname.is_empty() {
+                    apply_tar_transforms(entry.linkname, &transforms)?
+                } else {
+                    entry.linkname.to_owned()
+                };
             let quoted_disp = tar_quote_name(&disp, &quoting_style);
             if verbose {
                 let perm = format_tar_mode(entry.typeflag, entry.mode);
-                let dt = entry.mtime.map_or_else(|| "-".to_owned(), |t| format_tar_mtime(t, full_time, utc));
+                let dt = entry
+                    .mtime
+                    .map_or_else(|| "-".to_owned(), |t| format_tar_mtime(t, full_time, utc));
                 let id = |n: Option<u64>| n.map_or_else(|| "-".to_owned(), |v| v.to_string());
                 let owner = format!("{}/{}", id(entry.uid), id(entry.gid));
                 let sz = if utc {
-                    format!("{:>width$}", entry.size, width = 18usize.saturating_sub(owner.len()).max(1))
+                    format!(
+                        "{:>width$}",
+                        entry.size,
+                        width = 18usize.saturating_sub(owner.len()).max(1)
+                    )
                 } else {
                     entry.size.to_string()
                 };
@@ -4330,88 +5282,173 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             };
             use crate::vfs::VfsEntryKind::{Directory, File};
             let dest = resolve_posix_path(&entry_root, &rel_name);
-            if dest == entry_root && !is_dir_entry { return Err("non-directory entry would replace extraction root".into()); }
-            check_extraction_root(fs,&entry_root)?;
-            let mut parents = dest.match_indices('/').map(|(i, _)| &dest[..i])
-                .filter(|p| p.len() > entry_root.len()).peekable();
+            if dest == entry_root && !is_dir_entry {
+                return Err("non-directory entry would replace extraction root".into());
+            }
+            check_extraction_root(fs, &entry_root)?;
+            let mut parents = dest
+                .match_indices('/')
+                .map(|(i, _)| &dest[..i])
+                .filter(|p| p.len() > entry_root.len())
+                .peekable();
             while let Some(&parent) = parents.peek() {
                 match fs.lstat(parent) {
-                    Ok(st) if st.kind == Directory => { parents.next(); }
-                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}", tar_format::display(parent))),
+                    Ok(st) if st.kind == Directory => {
+                        parents.next();
+                    }
+                    Ok(_) => {
+                        return Err(format!(
+                            "unsafe non-directory or symlink ancestor: {}",
+                            tar_format::display(parent)
+                        ));
+                    }
                     Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => break,
                     Err(e) => return Err(e),
                 }
             }
             let link = link.as_deref().unwrap_or(entry.linkname);
             if entry.typeflag == b'2' {
-                if link.is_empty() || link.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
+                if link.is_empty() || link.contains('\0') {
+                    return Err("invalid empty, NUL, or non-Unicode path".into());
+                }
                 check_archive_symlink(fs, &entry_root, &dest, link, false)?;
             }
             let hard_target = if entry.typeflag == b'1' {
-                if link.split('/').any(|s| s == "..") { return Err(format!("unsafe parent component in member: {}", tar_format::display(link))); }
-                let rel = tar_strip_components(link, strip_components, false).ok_or("hardlink target removed by strip-components")?;
+                if link.split('/').any(|s| s == "..") {
+                    return Err(format!(
+                        "unsafe parent component in member: {}",
+                        tar_format::display(link)
+                    ));
+                }
+                let rel = tar_strip_components(link, strip_components, false)
+                    .ok_or("hardlink target removed by strip-components")?;
                 let target = resolve_posix_path(&entry_root, &rel);
-                if target == dest { return Err("self-referential hardlink entry is unsupported".into()); }
+                if target == dest {
+                    return Err("self-referential hardlink entry is unsupported".into());
+                }
                 let expected = published.get(&target).ok_or_else(|| format!("hardlink target was not previously extracted (forward or unselected target): {}", tar_format::display(link)))?;
-                check_extraction_root(fs,&crate::vfs::dirname_posix_path(&target))?;
+                check_extraction_root(fs, &crate::vfs::dirname_posix_path(&target))?;
                 let stat = fs.lstat(&target)?;
-                if stat.kind != File || (expected.is_some() && expected != &stat.identity) { return Err("hardlink target changed or is not a regular file".into()); }
-                if !fs.supports_hard_links(&target) { return Err("filesystem does not support hardlinks".into()); }
+                if stat.kind != File || (expected.is_some() && expected != &stat.identity) {
+                    return Err("hardlink target changed or is not a regular file".into());
+                }
+                if !fs.supports_hard_links(&target) {
+                    return Err("filesystem does not support hardlinks".into());
+                }
                 Some(target)
-            } else { None };
-            if !delay_directories { restore_directories(&mut directories, Some(&dest))?; }
-            for parent in parents { create_extraction_parent(fs,parent,0o700,true)?; }
-            let (existing,mut stamp) = fs.inspect_extraction(&dest,true)?;
-            if input_path.as_deref() == Some(&dest) || input_identity.is_some() && existing.as_ref().is_some_and(|s| s.identity == input_identity) {
+            } else {
+                None
+            };
+            if !delay_directories {
+                restore_directories(&mut directories, Some(&dest))?;
+            }
+            for parent in parents {
+                create_extraction_parent(fs, parent, 0o700, true)?;
+            }
+            let (existing, mut stamp) = fs.inspect_extraction(&dest, true)?;
+            if input_path.as_deref() == Some(&dest)
+                || input_identity.is_some()
+                    && existing
+                        .as_ref()
+                        .is_some_and(|s| s.identity == input_identity)
+            {
                 return Err("entry would overwrite the input archive".into());
             }
-            if let Some(st) = &existing && !(is_dir_entry && st.kind == Directory) {
+            if let Some(st) = &existing
+                && !(is_dir_entry && st.kind == Directory)
+            {
                 if overwrite != Overwrite::Replace {
                     if overwrite == Overwrite::Keep {
-                        stderr.push_str(&format!("tar: {}: Cannot open: File exists\n", tar_format::display(entry.name)));
+                        stderr.push_str(&format!(
+                            "tar: {}: Cannot open: File exists\n",
+                            tar_format::display(entry.name)
+                        ));
                         exit_code = 2;
                     }
                     return Ok(());
                 }
-                if st.kind == File && input_path.is_some() && (st.identity.is_none() || input_identity.is_none()) {
+                if st.kind == File
+                    && input_path.is_some()
+                    && (st.identity.is_none() || input_identity.is_none())
+                {
                     return Err("cannot replace an existing file with unknown input-archive/destination backing identity".into());
                 }
                 if st.kind != File || entry.typeflag != b'0' {
-                    fs.remove_extraction_entry(&dest,st,stamp.version)?;
-                    let (after,next) = fs.inspect_extraction(&dest,true)?;
-                    if after.is_some() { return Err(format!("EAGAIN: extraction destination changed: {dest}")); }
+                    fs.remove_extraction_entry(&dest, st, stamp.version)?;
+                    let (after, next) = fs.inspect_extraction(&dest, true)?;
+                    if after.is_some() {
+                        return Err(format!("EAGAIN: extraction destination changed: {dest}"));
+                    }
                     stamp = next;
                 }
             }
-            let times = if touch { (None, None) } else { (entry.atime.map(|t| t * 1000.), entry.mtime.map(|t| t * 1000.)) };
+            let times = if touch {
+                (None, None)
+            } else {
+                (
+                    entry.atime.map(|t| t * 1000.),
+                    entry.mtime.map(|t| t * 1000.),
+                )
+            };
             published.remove(&dest);
-            if !is_dir_entry { directories.remove(&dest); }
+            if !is_dir_entry {
+                directories.remove(&dest);
+            }
             if is_dir_entry {
-                let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
-                let identity=match existing {
-                    Some(st) if st.kind==Directory => st,
-                    _ => fs.prepare_extraction_directory(&dest,&parent,None,0o700,(None,None),stamp.version)?,
+                let parent = fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
+                let identity = match existing {
+                    Some(st) if st.kind == Directory => st,
+                    _ => fs.prepare_extraction_directory(
+                        &dest,
+                        &parent,
+                        None,
+                        0o700,
+                        (None, None),
+                        stamp.version,
+                    )?,
                 };
-                directories.insert(dest.clone(),DirectoryMetadata {parent,identity,stamp,mode:entry.mode & permission_mask,times});
+                directories.insert(
+                    dest.clone(),
+                    DirectoryMetadata {
+                        parent,
+                        identity,
+                        stamp,
+                        mode: entry.mode & permission_mask,
+                        times,
+                    },
+                );
             } else if entry.typeflag == b'2' {
                 fs.symlink(link, &dest)?;
             } else if let Some(target) = hard_target {
                 fs.hard_link(&target, &dest)?;
             } else {
-                if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
-                fs.replace_file_entry_with_metadata(&dest, entry.content, entry.mode & permission_mask, times, stamp.version)?;
+                if (entry.content.len() as u64) < entry.size {
+                    return Err("truncated archive body".into());
+                }
+                fs.replace_file_entry_with_metadata(
+                    &dest,
+                    entry.content,
+                    entry.mode & permission_mask,
+                    times,
+                    stamp.version,
+                )?;
             }
             if matches!(entry.typeflag, b'0' | b'1') {
                 let identity = fs.lstat(&dest)?.identity;
                 published.insert(dest, identity);
             }
-            if verbose && raw.is_some() { out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style))); }
+            if verbose && raw.is_some() {
+                out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style)));
+            }
         }
         Ok(())
     });
     let result = read.and_then(|()| {
         if let Some(idx) = matched_ops.iter().position(|m| !m) {
-            return Err(format!("member not found: {}", tar_format::display(&operands[idx].name)));
+            return Err(format!(
+                "member not found: {}",
+                tar_format::display(&operands[idx].name)
+            ));
         }
         restore_directories(&mut directories, None)
     });
@@ -4423,9 +5460,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     } else if totals {
         stderr.push_str(&format!("Total bytes read: {}\n", data.len()));
     }
-    BuiltinOutcome { stdout: out, stderr, exit_code }
+    BuiltinOutcome {
+        stdout: out,
+        stderr,
+        exit_code,
+    }
 }
-
 
 fn tar_matches_exclude(path: &str, excludes: &[String]) -> bool {
     let clean = path.trim_start_matches("./").trim_end_matches('/');
@@ -4450,23 +5490,34 @@ struct TarTransform {
 }
 
 fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Result<(), String> {
-    if source.is_empty() { return Err("empty transform expression".into()); }
+    if source.is_empty() {
+        return Err("empty transform expression".into());
+    }
     let mut chars = source.chars();
     while let Some(op) = chars.next() {
-        if op != 's' { return Err("only substitution transforms are supported".into()); }
-        let delimiter = chars.next().filter(|c| !matches!(c, '\\' | '\n')).ok_or("invalid transform delimiter")?;
+        if op != 's' {
+            return Err("only substitution transforms are supported".into());
+        }
+        let delimiter = chars
+            .next()
+            .filter(|c| !matches!(c, '\\' | '\n'))
+            .ok_or("invalid transform delimiter")?;
         let mut field = || {
             let start = chars.as_str();
             while let Some(c) = chars.next() {
                 if c == delimiter {
                     return Ok(&start[..start.len() - chars.as_str().len() - c.len_utf8()]);
                 }
-                if c == '\\' { chars.next(); }
+                if c == '\\' {
+                    chars.next();
+                }
             }
             Err("unterminated transform expression")
         };
         let pattern = field()?;
-        if pattern.is_empty() { return Err("empty transform pattern is unsupported".into()); }
+        if pattern.is_empty() {
+            return Err("empty transform pattern is unsupported".into());
+        }
         let replacement = field()?;
         let (mut global, mut ignore_case, mut extended) = (false, false, false);
         for flag in chars.by_ref() {
@@ -4483,13 +5534,22 @@ fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Res
         while let Some(c) = repl.next() {
             if c == '\\' {
                 match repl.next() {
-                    Some('u' | 'U' | 'l' | 'L' | 'E') => return Err("transform replacement case conversion is unsupported".into()),
-                    Some(n @ '1'..='9') if (n as usize - '0' as usize) > groups => return Err("transform references an undefined capture group".into()),
+                    Some('u' | 'U' | 'l' | 'L' | 'E') => {
+                        return Err("transform replacement case conversion is unsupported".into());
+                    }
+                    Some(n @ '1'..='9') if (n as usize - '0' as usize) > groups => {
+                        return Err("transform references an undefined capture group".into());
+                    }
                     _ => {}
                 }
             }
         }
-        transforms.push(TarTransform { pattern, replacement: replacement.into(), global, ignore_case });
+        transforms.push(TarTransform {
+            pattern,
+            replacement: replacement.into(),
+            global,
+            ignore_case,
+        });
     }
     Ok(())
 }
@@ -4497,7 +5557,15 @@ fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Res
 fn apply_tar_transforms(name: &str, transforms: &[TarTransform]) -> Result<String, String> {
     let mut name = name.to_owned();
     for t in transforms {
-        name = super::search::replace_regex_in_text(&name, &t.pattern, &t.replacement, t.ignore_case, t.global, None).0;
+        name = super::search::replace_regex_in_text(
+            &name,
+            &t.pattern,
+            &t.replacement,
+            t.ignore_case,
+            t.global,
+            None,
+        )
+        .0;
         if name.is_empty() || name.contains('\0') {
             return Err("invalid empty, NUL, or non-Unicode path".into());
         }
@@ -4513,11 +5581,15 @@ fn tar_cache_directory(fs: &dyn SafeBashFs, directory: &str) -> Result<bool, Str
         Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => return Ok(false),
         Err(e) => return Err(e),
     };
-    if stat.kind != crate::vfs::VfsEntryKind::File { return Ok(false); }
+    if stat.kind != crate::vfs::VfsEntryKind::File {
+        return Ok(false);
+    }
     let mut signature = b"Signature: 8a477f597d28d172789f06886806bc55".as_slice();
     fs.read_chunks(&path, &mut |bytes| {
         let count = bytes.len().min(signature.len());
-        if bytes[..count] != signature[..count] { return Ok(false); }
+        if bytes[..count] != signature[..count] {
+            return Ok(false);
+        }
         signature = &signature[count..];
         Ok(!signature.is_empty())
     })?;
@@ -4534,14 +5606,26 @@ fn visit_archive_sources(
     recursion: bool,
     fs: &dyn SafeBashFs,
     ancestors: &mut Vec<Option<crate::vfs::EntryIdentity>>,
-    prepare: &mut impl FnMut(&crate::vfs::FileStat, &crate::vfs::FileStat, String, TarEntry, bool) -> Result<bool, String>,
+    prepare: &mut impl FnMut(
+        &crate::vfs::FileStat,
+        &crate::vfs::FileStat,
+        String,
+        TarEntry,
+        bool,
+    ) -> Result<bool, String>,
 ) -> Result<(), String> {
-    if tar_matches_exclude(stored_rel, excludes) { return Ok(()); }
-    let (full, named) = fs.inspect_command_entry(path, false, "lstat").map_err(|e| {
-        if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") {
-            format!("ENOENT: no such file or directory, lstat '{path}'")
-        } else { e }
-    })?;
+    if tar_matches_exclude(stored_rel, excludes) {
+        return Ok(());
+    }
+    let (full, named) = fs
+        .inspect_command_entry(path, false, "lstat")
+        .map_err(|e| {
+            if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") {
+                format!("ENOENT: no such file or directory, lstat '{path}'")
+            } else {
+                e
+            }
+        })?;
     let target;
     let st = if dereference && named.kind == crate::vfs::VfsEntryKind::Symlink {
         target = fs.stat(&full).map_err(|e| {
@@ -4552,20 +5636,36 @@ fn visit_archive_sources(
             }
         })?;
         &target
-    } else { &named };
+    } else {
+        &named
+    };
     use crate::vfs::VfsEntryKind::{Directory, File, Symlink};
     let entry = TarEntry {
-        name: if st.kind == Directory && !stored_rel.ends_with('/') { format!("{stored_rel}/") } else { stored_rel.to_owned() },
-        typeflag: match st.kind { Directory => b'5', Symlink => b'2', File => b'0' },
+        name: if st.kind == Directory && !stored_rel.ends_with('/') {
+            format!("{stored_rel}/")
+        } else {
+            stored_rel.to_owned()
+        },
+        typeflag: match st.kind {
+            Directory => b'5',
+            Symlink => b'2',
+            File => b'0',
+        },
         mode: st.mode & 0o7777,
         mtime: st.mtime_ms / 1000.,
         atime: Some(st.atime_ms / 1000.),
         uid: st.uid.unwrap_or(0),
         gid: st.gid.unwrap_or(0),
-        linkname: if st.kind == Symlink { fs.readlink(&full)? } else { String::new() },
+        linkname: if st.kind == Symlink {
+            fs.readlink(&full)?
+        } else {
+            String::new()
+        },
         content: Vec::new(),
     };
-    if !prepare(st, &named, full.clone(), entry, ancestors.is_empty())? { return Ok(()); }
+    if !prepare(st, &named, full.clone(), entry, ancestors.is_empty())? {
+        return Ok(());
+    }
     if st.kind == Directory {
         if st.identity.is_some() && ancestors.contains(&st.identity) {
             return Err(format!(
@@ -4590,7 +5690,11 @@ fn visit_archive_sources(
             if has_cache_tag && c != "CACHEDIR.TAG" {
                 continue;
             }
-            let child_rel = if stored_rel.ends_with('/') { format!("{stored_rel}{c}") } else { format!("{stored_rel}/{c}") };
+            let child_rel = if stored_rel.ends_with('/') {
+                format!("{stored_rel}{c}")
+            } else {
+                format!("{stored_rel}/{c}")
+            };
             if let Err(error) = visit_archive_sources(
                 &child_rel,
                 &resolve_posix_path(&full, &c),
@@ -4644,25 +5748,36 @@ fn format_tar_mode(typeflag: u8, mode: u32) -> String {
 
 fn format_tar_mtime(epoch: f64, full_time: bool, utc: bool) -> String {
     let millis = (epoch * 1000.) as i64;
-    let seconds = if utc { epoch.floor() as i64 } else { millis.div_euclid(1000) };
+    let seconds = if utc {
+        epoch.floor() as i64
+    } else {
+        millis.div_euclid(1000)
+    };
     let (year, month, day) = crate::commands::coreutils::civil_from_days(seconds.div_euclid(86400));
     let time = seconds.rem_euclid(86400);
-    let mut result = format!("{year:04}-{month:02}-{day:02} {:02}:{:02}", time / 3600, time % 3600 / 60);
+    let mut result = format!(
+        "{year:04}-{month:02}-{day:02} {:02}:{:02}",
+        time / 3600,
+        time % 3600 / 60
+    );
     if full_time {
         result.push_str(&format!(":{:02}", time % 60));
         if !utc {
             result.push_str(&format!(".{:03}", millis.rem_euclid(1000)));
         } else if let Some((_, digits)) = epoch.abs().to_string().split_once('.') {
             // The reference displays at most nine places of the decimal timestamp.
-            let nanos = format!("{:0<9}", &digits[..digits.len().min(9)]).parse::<i64>().unwrap_or(0)
+            let nanos = format!("{:0<9}", &digits[..digits.len().min(9)])
+                .parse::<i64>()
+                .unwrap_or(0)
                 + i64::from(digits.as_bytes().get(9).is_some_and(|&c| c >= b'5'));
             let nanos = (if epoch < 0. { -nanos } else { nanos }).rem_euclid(1_000_000_000);
-            if nanos != 0 { result.push_str(format!(".{nanos:09}").trim_end_matches('0')); }
+            if nanos != 0 {
+                result.push_str(format!(".{nanos:09}").trim_end_matches('0'));
+            }
         }
     }
     result
 }
-
 
 fn crc32_ieee(data: &[u8]) -> u32 {
     crate::commands::codecs::crc32_ieee(data)
@@ -4679,7 +5794,9 @@ fn compress_for_invoked(
     match invoked {
         "bzip2" | "bunzip2" | "bzcat" => crate::commands::codecs::bzip2_compress(data, level),
         "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => {
-            if xz_format == "lzma" || (xz_format == "auto" && matches!(invoked, "lzma" | "unlzma" | "lzcat")) {
+            if xz_format == "lzma"
+                || (xz_format == "auto" && matches!(invoked, "lzma" | "unlzma" | "lzcat"))
+            {
                 crate::commands::codecs::lzma_compress_level(data, level)
             } else {
                 crate::commands::codecs::xz_compress_level(data, xz_check, level)
@@ -4690,18 +5807,18 @@ fn compress_for_invoked(
     }
 }
 
-fn decompress_for_invoked(
-    invoked: &str,
-    data: &[u8],
-    xz_format: &str,
-) -> Result<Vec<u8>, String> {
+fn decompress_for_invoked(invoked: &str, data: &[u8], xz_format: &str) -> Result<Vec<u8>, String> {
     match invoked {
         "bzip2" | "bunzip2" | "bzcat" => crate::commands::codecs::bzip2_decompress(data),
         "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => {
             if xz_format == "lzma" {
                 crate::commands::codecs::lzma_decompress(data)
             } else if xz_format == "xz" {
-                if !data.iter().zip(super::codecs::XZ_MAGIC).all(|(a, b)| a == b) {
+                if !data
+                    .iter()
+                    .zip(super::codecs::XZ_MAGIC)
+                    .all(|(a, b)| a == b)
+                {
                     Err("File format not recognized".into())
                 } else {
                     crate::commands::codecs::xz_decompress(data)
@@ -4716,8 +5833,24 @@ fn decompress_for_invoked(
 }
 
 pub(super) fn is_compression_command(cmd: &str) -> bool {
-    matches!(cmd, "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat"
-        | "lzma" | "unlzma" | "lzcat" | "bzip2" | "bunzip2" | "bzcat")
+    matches!(
+        cmd,
+        "gzip"
+            | "gunzip"
+            | "zcat"
+            | "zstd"
+            | "unzstd"
+            | "zstdcat"
+            | "xz"
+            | "unxz"
+            | "xzcat"
+            | "lzma"
+            | "unlzma"
+            | "lzcat"
+            | "bzip2"
+            | "bunzip2"
+            | "bzcat"
+    )
 }
 
 pub(super) fn cmd_gzip(
@@ -4730,11 +5863,23 @@ pub(super) fn cmd_gzip(
     let is_zstd = matches!(invoked, "zstd" | "unzstd" | "zstdcat");
     let is_gzip = matches!(invoked, "gzip" | "gunzip" | "zcat");
     let is_bzip2 = matches!(invoked, "bzip2" | "bunzip2" | "bzcat");
-    let is_xz = matches!(invoked, "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat");
+    let is_xz = matches!(
+        invoked,
+        "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat"
+    );
     let is_lzma_cmd = matches!(invoked, "lzma" | "unlzma" | "lzcat");
     let mut decompress = matches!(
         invoked,
-        "gunzip" | "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bunzip2" | "bzcat" | "unxz" | "unlzma" | "unzstd"
+        "gunzip"
+            | "zcat"
+            | "zstdcat"
+            | "xzcat"
+            | "lzcat"
+            | "bunzip2"
+            | "bzcat"
+            | "unxz"
+            | "unlzma"
+            | "unzstd"
     );
     let mut to_stdout = matches!(invoked, "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bzcat");
     let mut keep = is_zstd;
@@ -4761,7 +5906,11 @@ pub(super) fn cmd_gzip(
         "zstd" | "unzstd" | "zstdcat" => 3,
         _ => 6,
     };
-    let mut xz_format = if is_lzma_cmd { "lzma".to_string() } else { "auto".to_string() };
+    let mut xz_format = if is_lzma_cmd {
+        "lzma".to_string()
+    } else {
+        "auto".to_string()
+    };
     let mut xz_check: u8 = 4; // CRC64 default
     let mut zstd_check = true;
     let mut custom_suffix: Option<String> = None;
@@ -4833,10 +5982,22 @@ pub(super) fn cmd_gzip(
                         return err_out(&format!("{invoked}: invalid option -- 'e'\n"), 2);
                     }
                 }
-                "-v" | "--verbose" | "--no-progress" | "--single-thread" | "--no-dictID"
-                | "--no-sparse" | "--no-warn" | "--ultra" | "--asyncio" | "--no-asyncio"
-                | "--compress-literals" | "--no-compress-literals" | "--row-match-finder"
-                | "--no-row-match-finder" | "--single-stream" | "--no-adjust"
+                "-v"
+                | "--verbose"
+                | "--no-progress"
+                | "--single-thread"
+                | "--no-dictID"
+                | "--no-sparse"
+                | "--no-warn"
+                | "--ultra"
+                | "--asyncio"
+                | "--no-asyncio"
+                | "--compress-literals"
+                | "--no-compress-literals"
+                | "--row-match-finder"
+                | "--no-row-match-finder"
+                | "--single-stream"
+                | "--no-adjust"
                 | "--ignore-check" => {}
                 "--adapt" | "--rsyncable" | "--progress" if is_zstd => {
                     return err_out(
@@ -4853,7 +6014,10 @@ pub(super) fn cmd_gzip(
                     if !is_gzip && !is_xz {
                         return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
                     }
-                    if is_xz { list_mode = true; test_mode = false; }
+                    if is_xz {
+                        list_mode = true;
+                        test_mode = false;
+                    }
                 }
                 "--robot" => {
                     if !is_xz {
@@ -4879,10 +6043,16 @@ pub(super) fn cmd_gzip(
                 s if is_zstd && s.starts_with("--fast=") => {
                     let acc = &s["--fast=".len()..];
                     let Ok(n) = acc.parse::<i32>() else {
-                        return err_out(&format!("{invoked}: invalid fast acceleration '{acc}'\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: invalid fast acceleration '{acc}'\n"),
+                            2,
+                        );
                     };
                     if acc.is_empty() || !acc.chars().all(|c| c.is_ascii_digit()) || n < 1 {
-                        return err_out(&format!("{invoked}: invalid fast acceleration '{acc}'\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: invalid fast acceleration '{acc}'\n"),
+                            2,
+                        );
                     }
                     signed_level = -n;
                 }
@@ -4900,7 +6070,10 @@ pub(super) fn cmd_gzip(
                         ""
                     };
                     let Some(cid) = parse_xz_check_name(val) else {
-                        return err_out(&format!("{invoked}: unsupported XZ integrity check '{val}'\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: unsupported XZ integrity check '{val}'\n"),
+                            2,
+                        );
                     };
                     xz_check = cid;
                     explicit_xz_check = Some(cid);
@@ -4924,7 +6097,10 @@ pub(super) fn cmd_gzip(
                     if !is_xz {
                         return err_out(&format!("{invoked}: invalid option -- 'C'\n"), 2);
                     }
-                    return err_out(&format!("{invoked}: unsupported XZ integrity check ''\n"), 2);
+                    return err_out(
+                        &format!("{invoked}: unsupported XZ integrity check ''\n"),
+                        2,
+                    );
                 }
                 s if s.starts_with("--check=") => {
                     if !is_xz {
@@ -4935,7 +6111,10 @@ pub(super) fn cmd_gzip(
                         xz_check = cid;
                         explicit_xz_check = Some(cid);
                     } else {
-                        return err_out(&format!("{invoked}: unsupported XZ integrity check '{val}'\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: unsupported XZ integrity check '{val}'\n"),
+                            2,
+                        );
                     }
                 }
                 "-F" | "--format" if i + 1 < args.len() => {
@@ -4945,7 +6124,10 @@ pub(super) fn cmd_gzip(
                             return err_out(&format!("{invoked}: invalid option -- 'F'\n"), 2);
                         }
                         if args[i] != "zstd" {
-                            return err_out(&format!("{invoked}: only --format=zstd is supported\n"), 2);
+                            return err_out(
+                                &format!("{invoked}: only --format=zstd is supported\n"),
+                                2,
+                            );
                         }
                     } else if is_xz {
                         if !matches!(args[i].as_str(), "auto" | "xz" | "lzma" | "raw") {
@@ -4963,7 +6145,10 @@ pub(super) fn cmd_gzip(
                     let fmt = &s["--format=".len()..];
                     if is_zstd {
                         if fmt != "zstd" {
-                            return err_out(&format!("{invoked}: only --format=zstd is supported\n"), 2);
+                            return err_out(
+                                &format!("{invoked}: only --format=zstd is supported\n"),
+                                2,
+                            );
                         }
                     } else if is_xz {
                         if !matches!(fmt, "auto" | "xz" | "lzma" | "raw") {
@@ -4983,7 +6168,10 @@ pub(super) fn cmd_gzip(
                     }
                     if i + 1 >= args.len() {
                         let opt_label = if a == "-S" { "'-S'" } else { "'--suffix'" };
-                        return err_out(&format!("{invoked}: option {opt_label} requires an argument\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: option {opt_label} requires an argument\n"),
+                            2,
+                        );
                     }
                     i += 1;
                     if args[i].is_empty() || args[i].contains('/') {
@@ -5020,7 +6208,10 @@ pub(super) fn cmd_gzip(
                     }
                     i += 1;
                     let thr = &args[i];
-                    if is_zstd && a == "--threads" && (thr.is_empty() || !thr.chars().all(|c| c.is_ascii_digit())) {
+                    if is_zstd
+                        && a == "--threads"
+                        && (thr.is_empty() || !thr.chars().all(|c| c.is_ascii_digit()))
+                    {
                         return err_out(&format!("{invoked}: invalid --threads value\n"), 2);
                     }
                     if thr != "0" && thr != "1" {
@@ -5080,7 +6271,9 @@ pub(super) fn cmd_gzip(
                     let n = val.parse::<u32>().unwrap_or(0);
                     if !(10..=30).contains(&n) {
                         return err_out(
-                            &format!("{invoked}: long-distance matching requires a window log from 10 through 30\n"),
+                            &format!(
+                                "{invoked}: long-distance matching requires a window log from 10 through 30\n"
+                            ),
                             2,
                         );
                     }
@@ -5092,21 +6285,32 @@ pub(super) fn cmd_gzip(
                     }
                     let n = val.parse::<u64>().unwrap_or(u64::MAX);
                     if n > 0x7fffffff {
-                        return err_out(&format!("{invoked}: size hint exceeds the codec parameter limit\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: size hint exceeds the codec parameter limit\n"),
+                            2,
+                        );
                     }
                 }
                 s if is_zstd && s.starts_with("--auto-threads=") => {
                     let val = &s["--auto-threads=".len()..];
                     if val != "physical" && val != "logical" {
-                        return err_out(&format!("{invoked}: invalid automatic thread selection\n"), 2);
+                        return err_out(
+                            &format!("{invoked}: invalid automatic thread selection\n"),
+                            2,
+                        );
                     }
                 }
                 s if s.starts_with("--long")
-                    || s.starts_with("--stream-size") || s.starts_with("--size-hint")
-                    || s.starts_with("--auto-threads") || s.starts_with("--memlimit")
-                    || s.starts_with("--block-size") || s.starts_with("--block-list")
-                    || s.starts_with("--flush-timeout") || s.starts_with("--lzma")
-                    || s.starts_with("--delta") || s.starts_with("--x86")
+                    || s.starts_with("--stream-size")
+                    || s.starts_with("--size-hint")
+                    || s.starts_with("--auto-threads")
+                    || s.starts_with("--memlimit")
+                    || s.starts_with("--block-size")
+                    || s.starts_with("--block-list")
+                    || s.starts_with("--flush-timeout")
+                    || s.starts_with("--lzma")
+                    || s.starts_with("--delta")
+                    || s.starts_with("--x86")
                     || s.starts_with("--arm64") => {}
                 s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
                     let chars: Vec<char> = s[1..].chars().collect();
@@ -5132,7 +6336,10 @@ pub(super) fn cmd_gzip(
                             'd' => decompress = true,
                             'z' => {
                                 if is_gzip {
-                                    return err_out(&format!("{invoked}: invalid option -- 'z'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'z'\n"),
+                                        2,
+                                    );
                                 }
                                 decompress = false;
                                 test_mode = false;
@@ -5143,37 +6350,58 @@ pub(super) fn cmd_gzip(
                             'f' => force = true,
                             'l' => {
                                 if !is_gzip && !is_xz {
-                                    return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'l'\n"),
+                                        2,
+                                    );
                                 }
-                                if is_xz { list_mode = true; test_mode = false; }
+                                if is_xz {
+                                    list_mode = true;
+                                    test_mode = false;
+                                }
                             }
                             't' => test_mode = true,
                             'r' => {
                                 if !is_gzip {
-                                    return err_out(&format!("{invoked}: invalid option -- 'r'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'r'\n"),
+                                        2,
+                                    );
                                 }
                                 recursive = true;
                             }
                             'q' => {
                                 if is_bzip2 {
-                                    return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'q'\n"),
+                                        2,
+                                    );
                                 }
                                 quiet = true;
                             }
                             'n' => {
                                 if !is_gzip {
-                                    return err_out(&format!("{invoked}: invalid option -- 'n'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'n'\n"),
+                                        2,
+                                    );
                                 }
                             }
                             's' => {
                                 if !is_bzip2 {
-                                    return err_out(&format!("{invoked}: invalid option -- 's'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 's'\n"),
+                                        2,
+                                    );
                                 }
                                 small_mode = true;
                             }
                             'e' => {
                                 if !is_xz {
-                                    return err_out(&format!("{invoked}: invalid option -- 'e'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'e'\n"),
+                                        2,
+                                    );
                                 }
                             }
                             'v' => {}
@@ -5187,7 +6415,10 @@ pub(super) fn cmd_gzip(
                             }
                             'C' => {
                                 if !is_xz {
-                                    return err_out(&format!("{invoked}: invalid option -- 'C'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'C'\n"),
+                                        2,
+                                    );
                                 } else {
                                     let rest: String = chars[ci + 1..].iter().collect();
                                     let val = if !rest.is_empty() {
@@ -5203,7 +6434,9 @@ pub(super) fn cmd_gzip(
                                         explicit_xz_check = Some(cid);
                                     } else {
                                         return err_out(
-                                            &format!("{invoked}: unsupported XZ integrity check '{val}'\n"),
+                                            &format!(
+                                                "{invoked}: unsupported XZ integrity check '{val}'\n"
+                                            ),
                                             2,
                                         );
                                     }
@@ -5212,7 +6445,10 @@ pub(super) fn cmd_gzip(
                             }
                             'F' => {
                                 if !is_xz {
-                                    return err_out(&format!("{invoked}: invalid option -- 'F'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'F'\n"),
+                                        2,
+                                    );
                                 }
                                 let rest: String = chars[ci + 1..].iter().collect();
                                 if !rest.is_empty() {
@@ -5224,13 +6460,19 @@ pub(super) fn cmd_gzip(
                                     xz_format = String::new();
                                 }
                                 if !matches!(xz_format.as_str(), "auto" | "xz" | "lzma" | "raw") {
-                                    return err_out(&format!("{invoked}: unsupported XZ format\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: unsupported XZ format\n"),
+                                        2,
+                                    );
                                 }
                                 break;
                             }
                             'S' => {
                                 if !is_gzip && !is_xz {
-                                    return err_out(&format!("{invoked}: invalid option -- 'S'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: invalid option -- 'S'\n"),
+                                        2,
+                                    );
                                 }
                                 let rest: String = chars[ci + 1..].iter().collect();
                                 let suf = if !rest.is_empty() {
@@ -5239,10 +6481,16 @@ pub(super) fn cmd_gzip(
                                     i += 1;
                                     args[i].clone()
                                 } else {
-                                    return err_out(&format!("{invoked}: option '-S' requires an argument\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: option '-S' requires an argument\n"),
+                                        2,
+                                    );
                                 };
                                 if suf.is_empty() || suf.contains('/') {
-                                    return err_out(&format!("{invoked}: incorrect suffix '{suf}'\n"), 2);
+                                    return err_out(
+                                        &format!("{invoked}: incorrect suffix '{suf}'\n"),
+                                        2,
+                                    );
                                 }
                                 custom_suffix = Some(suf);
                                 break;
@@ -5286,7 +6534,10 @@ pub(super) fn cmd_gzip(
         && !list_mode
         && explicit_xz_check.is_some_and(|c| c != 0)
     {
-        return err_out(&format!("{invoked}: the LZMA format supports only --check=none\n"), 2);
+        return err_out(
+            &format!("{invoked}: the LZMA format supports only --check=none\n"),
+            2,
+        );
     }
     if is_xz && list_mode && xz_format != "auto" && xz_format != "xz" {
         return err_out(
@@ -5295,7 +6546,10 @@ pub(super) fn cmd_gzip(
         );
     }
     if is_xz && robot_mode && !list_mode {
-        return err_out(&format!("{invoked}: robot mode is only supported for --list\n"), 2);
+        return err_out(
+            &format!("{invoked}: robot mode is only supported for --list\n"),
+            2,
+        );
     }
     if help_mode {
         let text = if is_gzip {
@@ -5324,7 +6578,10 @@ pub(super) fn cmd_gzip(
         let mut data = Vec::new();
         let mut exceeded = false;
         let mut accept = |chunk: &[u8]| {
-            let Some(left) = remaining.checked_sub(chunk.len()) else { exceeded = true; return false; };
+            let Some(left) = remaining.checked_sub(chunk.len()) else {
+                exceeded = true;
+                return false;
+            };
             remaining = left;
             data.extend_from_slice(chunk);
             true
@@ -5334,12 +6591,22 @@ pub(super) fn cmd_gzip(
                 let mut chunk = Vec::new();
                 loop {
                     next(&mut chunk)?;
-                    if chunk.is_empty() || !accept(&chunk) { return Ok(()); }
+                    if chunk.is_empty() || !accept(&chunk) {
+                        return Ok(());
+                    }
                 }
             })
-        } else { stdin.read_stdin(accept) };
-        if exceeded { return Err(err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1)); }
-        read.map(|_| data).map_err(|e| err_out(&format!("{invoked}: {e}\n"), 1))
+        } else {
+            stdin.read_stdin(accept)
+        };
+        if exceeded {
+            return Err(err_out(
+                &fs.limit_error("maxInputBytes", fs.max_input_bytes()),
+                1,
+            ));
+        }
+        read.map(|_| data)
+            .map_err(|e| err_out(&format!("{invoked}: {e}\n"), 1))
     };
     if list_mode {
         let mut out = String::new();
@@ -5350,7 +6617,10 @@ pub(super) fn cmd_gzip(
         }
         for f in &files {
             let full = resolve_posix_path(cwd, f);
-            let data = match read(Some(&full)) { Ok(data) => data, Err(e) => return e };
+            let data = match read(Some(&full)) {
+                Ok(data) => data,
+                Err(e) => return e,
+            };
             let info = match crate::commands::codecs::inspect_xz_bytes(&data) {
                 Ok(inf) => inf,
                 Err(_) => {
@@ -5405,7 +6675,9 @@ pub(super) fn cmd_gzip(
                 totals.padding
             ));
         } else if !robot_mode && count > 1 {
-            out.push_str("-------------------------------------------------------------------------------\n");
+            out.push_str(
+                "-------------------------------------------------------------------------------\n",
+            );
             out.push_str(&totals.human_line(&format!("{count} files")));
         }
         return ok_out(&out);
@@ -5419,7 +6691,9 @@ pub(super) fn cmd_gzip(
             force && to_stdout && !test_mode && !super::codecs::bzip2_header_prefix(data)
         } else if is_xz && force && to_stdout && !test_mode && xz_format != "raw" {
             let xz = xz_format != "lzma" && data.starts_with(super::codecs::XZ_MAGIC);
-            let lzma = xz_format != "xz" && data.len() >= 13 && super::codecs::lzma_auto_header_prefix(data);
+            let lzma = xz_format != "xz"
+                && data.len() >= 13
+                && super::codecs::lzma_auto_header_prefix(data);
             !xz && !lzma
         } else if is_zstd && !test_mode && passthrough.unwrap_or(force && to_stdout) {
             !data.is_empty() && !data.get(..4).is_some_and(|bytes| {
@@ -5430,7 +6704,9 @@ pub(super) fn cmd_gzip(
         } else {
             false
         };
-        if pass { return Ok(data.to_vec()); }
+        if pass {
+            return Ok(data.to_vec());
+        }
         if is_bzip2 && !super::codecs::bzip2_header_prefix(data) {
             return Err("bad magic number (file not created by bzip2)".into());
         }
@@ -5464,17 +6740,25 @@ pub(super) fn cmd_gzip(
         } else if is_zstd {
             let msg = match error {
                 "Src size is incorrect" => "unexpected end of file",
-                "Unknown frame descriptor" | "Reserved bit set" | "Dictionary mismatch"
-                | "Corrupted block detected" | "Restored data doesn't match checksum" =>
-                    "invalid compressed data or codec memory limit exceeded",
+                "Unknown frame descriptor"
+                | "Reserved bit set"
+                | "Dictionary mismatch"
+                | "Corrupted block detected"
+                | "Restored data doesn't match checksum" => {
+                    "invalid compressed data or codec memory limit exceeded"
+                }
                 _ => error,
             };
             err_out(&format!("{invoked}: {display}: {msg}\n"), 1)
         } else {
-            let msg = if is_xz && error != "unexpected end of file"
-                && !(xz_format == "xz" && error == "File format not recognized") {
+            let msg = if is_xz
+                && error != "unexpected end of file"
+                && !(xz_format == "xz" && error == "File format not recognized")
+            {
                 "invalid compressed data or codec memory limit exceeded"
-            } else { error };
+            } else {
+                error
+            };
             err_out(&format!("{invoked}: {msg}\n"), 1)
         }
     };
@@ -5510,30 +6794,61 @@ pub(super) fn cmd_gzip(
         parent: Option<FileStat>,
         destination: Option<(String, Option<FileStat>)>,
     }
-    let format = if is_gzip { "gzip" } else if is_bzip2 { "bzip2" } else if is_zstd { "zstd" } else { "xz" };
+    let format = if is_gzip {
+        "gzip"
+    } else if is_bzip2 {
+        "bzip2"
+    } else if is_zstd {
+        "zstd"
+    } else {
+        "xz"
+    };
     let destination = |source: &str| -> Result<String, String> {
         let name = source.to_ascii_lowercase();
         let standard = [".gz", ".z", "-gz", "-z", "_z"];
         if !is_gzip && xz_format == "raw" && custom_suffix.is_none() {
-            return Err(format!("EINVAL: raw format requires a suffix (use -S or -c) '{source}'"));
+            return Err(format!(
+                "EINVAL: raw format requires a suffix (use -S or -c) '{source}'"
+            ));
         }
         if !decompress {
-            if !force && (if is_gzip {
-                name.ends_with(&ext.to_ascii_lowercase()) || standard.iter().chain([".tgz", ".taz"].iter()).any(|s| name.ends_with(s))
-            } else { source.ends_with(ext) }) {
-                return Err(format!("EINVAL: already has a {format} suffix (use -f to compress again) '{source}'"));
+            if !force
+                && (if is_gzip {
+                    name.ends_with(&ext.to_ascii_lowercase())
+                        || standard
+                            .iter()
+                            .chain([".tgz", ".taz"].iter())
+                            .any(|s| name.ends_with(s))
+                } else {
+                    source.ends_with(ext)
+                })
+            {
+                return Err(format!(
+                    "EINVAL: already has a {format} suffix (use -f to compress again) '{source}'"
+                ));
             }
             return Ok(format!("{source}{ext}"));
         }
         let suffix = if is_gzip {
-            if !ext.is_empty() && name.ends_with(&ext.to_ascii_lowercase()) { Some(ext) }
-            else if name.ends_with(".tgz") || name.ends_with(".taz") { return Ok(format!("{}.tar", &source[..source.len()-4])); }
-            else { standard.into_iter().find(|s| name.ends_with(s)) }
-        } else if is_xz && custom_suffix.is_none() && source.ends_with(".lzma") { Some(".lzma") }
-        else { source.ends_with(ext).then_some(ext) };
-        let suffix = suffix.ok_or_else(|| format!("EINVAL: unknown {format} suffix (use -c for stdout) '{source}'"))?;
-        let target = &source[..source.len()-suffix.len()];
-        if target.ends_with('/') { return Err(format!("EINVAL: empty output filename '{source}'")); }
+            if !ext.is_empty() && name.ends_with(&ext.to_ascii_lowercase()) {
+                Some(ext)
+            } else if name.ends_with(".tgz") || name.ends_with(".taz") {
+                return Ok(format!("{}.tar", &source[..source.len() - 4]));
+            } else {
+                standard.into_iter().find(|s| name.ends_with(s))
+            }
+        } else if is_xz && custom_suffix.is_none() && source.ends_with(".lzma") {
+            Some(".lzma")
+        } else {
+            source.ends_with(ext).then_some(ext)
+        };
+        let suffix = suffix.ok_or_else(|| {
+            format!("EINVAL: unknown {format} suffix (use -c for stdout) '{source}'")
+        })?;
+        let target = &source[..source.len() - suffix.len()];
+        if target.ends_with('/') {
+            return Err(format!("EINVAL: empty output filename '{source}'"));
+        }
         Ok(target.to_owned())
     };
     let existing = |path: &str| match fs.lstat(path) {
@@ -5541,60 +6856,113 @@ pub(super) fn cmd_gzip(
         Err(e) if e.starts_with("ENOENT:") => Ok(None),
         Err(e) => Err(e),
     };
-    let compressed_exts = [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2",
-        ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"];
+    let compressed_exts = [
+        ".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4",
+        ".zip", ".7z", ".rar", ".lz", ".br", ".cab",
+    ];
     let mut plans = Vec::new();
     let mut result = ok_out("");
     let multiple_files = files.len() > 1;
-    let test_source = files.first().filter(|s| s.as_str() != "-").cloned().unwrap_or_else(|| "/*stdin*\\".into());
+    let test_source = files
+        .first()
+        .filter(|s| s.as_str() != "-")
+        .cloned()
+        .unwrap_or_else(|| "/*stdin*\\".into());
     files.reverse();
     while let Some(f) = files.pop() {
-        if f == "-" { plans.push(None); continue; }
-        if exclude_compressed && !decompress && compressed_exts.iter().any(|suf| f.ends_with(suf)) { continue; }
+        if f == "-" {
+            plans.push(None);
+            continue;
+        }
+        if exclude_compressed && !decompress && compressed_exts.iter().any(|suf| f.ends_with(suf)) {
+            continue;
+        }
         let plan = (|| -> Result<(), String> {
             let mut operand = absolute_operand(cwd, &f);
-            if f.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+            if f.is_empty() {
+                return Err("ENOENT: no such file or directory ''".into());
+            }
             let inspect = |path: &str| fs.inspect_command_entry(path, false, "lstat");
             let (real, stat) = match inspect(&operand) {
                 Err(e) if e.starts_with("ENOENT:") => {
                     let missing = if e.starts_with("ENOENT: no such file or directory, stat ") {
                         format!("ENOENT: no such file or directory, lstat '{operand}'")
-                    } else { e };
-                    if !decompress || !is_gzip || operand.to_ascii_lowercase().ends_with(&ext.to_ascii_lowercase()) { return Err(missing); }
+                    } else {
+                        e
+                    };
+                    if !decompress
+                        || !is_gzip
+                        || operand
+                            .to_ascii_lowercase()
+                            .ends_with(&ext.to_ascii_lowercase())
+                    {
+                        return Err(missing);
+                    }
                     operand.push_str(ext);
-                    inspect(&operand).map_err(|e| if e.starts_with("ENOENT:") { missing } else { e })?
+                    inspect(&operand)
+                        .map_err(|e| if e.starts_with("ENOENT:") { missing } else { e })?
                 }
                 other => other?,
             };
             if recursive && stat.kind == VfsEntryKind::Directory {
                 let entries = fs.read_dir(&real)?;
-                files.extend(entries.into_iter().rev().map(|name| format!("{}/{name}", real.trim_end_matches('/'))));
+                files.extend(
+                    entries
+                        .into_iter()
+                        .rev()
+                        .map(|name| format!("{}/{name}", real.trim_end_matches('/'))),
+                );
                 return Ok(());
             }
-            if recursive && stat.kind == VfsEntryKind::Symlink { return Ok(()); }
+            if recursive && stat.kind == VfsEntryKind::Symlink {
+                return Ok(());
+            }
             if stat.kind != VfsEntryKind::File || stat.mode & 0o170000 != 0o100000 {
-                return Err(format!("EINVAL: input must be a regular, non-symlink file '{operand}'"));
+                return Err(format!(
+                    "EINVAL: input must be a regular, non-symlink file '{operand}'"
+                ));
             }
             let mut parent = None;
-            let dest = if to_stdout || test_mode { None } else {
+            let dest = if to_stdout || test_mode {
+                None
+            } else {
                 let target = destination(&real)?;
                 if !keep {
                     if !force && stat.nlink.unwrap_or(1) > 1 {
-                        return Err(format!("EINVAL: input has multiple links (use -k or -f) '{operand}'"));
+                        return Err(format!(
+                            "EINVAL: input has multiple links (use -k or -f) '{operand}'"
+                        ));
                     }
-                    if stat.revision.is_none() { return Err(format!("ENOTSUP: atomic source removal unavailable (use -k or -c) '{operand}'")); }
+                    if stat.revision.is_none() {
+                        return Err(format!(
+                            "ENOTSUP: atomic source removal unavailable (use -k or -c) '{operand}'"
+                        ));
+                    }
                     parent = Some(fs.lstat(&dirname_posix_path(&real))?);
                 }
                 let dest = existing(&target)?;
                 if let Some(st) = &dest {
-                    if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 || st.identity == stat.identity {
-                        return Err(format!("EINVAL: destination is not a distinct regular file '{target}'"));
+                    if st.kind != VfsEntryKind::File
+                        || st.mode & 0o170000 != 0o100000
+                        || st.identity == stat.identity
+                    {
+                        return Err(format!(
+                            "EINVAL: destination is not a distinct regular file '{target}'"
+                        ));
                     }
-                    if !force { return Err(format!("EEXIST: file already exists '{target}'")); }
+                    if !force {
+                        return Err(format!("EEXIST: file already exists '{target}'"));
+                    }
                 }
                 Some((target, dest))
             };
-            plans.push(Some(Source { operand, real, stat, parent, destination: dest }));
+            plans.push(Some(Source {
+                operand,
+                real,
+                stat,
+                parent,
+                destination: dest,
+            }));
             Ok(())
         })();
         if let Err(e) = plan {
@@ -5603,13 +6971,28 @@ pub(super) fn cmd_gzip(
         }
     }
     let sources: BTreeSet<_> = plans.iter().flatten().map(|p| &p.real).collect();
-    let identities: BTreeSet<_> = plans.iter().flatten().filter_map(|p| p.stat.identity.as_ref()).collect();
+    let identities: BTreeSet<_> = plans
+        .iter()
+        .flatten()
+        .filter_map(|p| p.stat.identity.as_ref())
+        .collect();
     let mut destinations = BTreeSet::new();
-    for (path, stat) in plans.iter().flatten().filter_map(|p| p.destination.as_ref()) {
-        if !destinations.insert(path) || sources.contains(path)
-            || stat.as_ref().and_then(|s| s.identity.as_ref()).is_some_and(|id| identities.contains(id)) {
+    for (path, stat) in plans
+        .iter()
+        .flatten()
+        .filter_map(|p| p.destination.as_ref())
+    {
+        if !destinations.insert(path)
+            || sources.contains(path)
+            || stat
+                .as_ref()
+                .and_then(|s| s.identity.as_ref())
+                .is_some_and(|id| identities.contains(id))
+        {
             result.exit_code = 1;
-            result.stderr.push_str(&format!("{invoked}: EINVAL: multiple operands share a source or destination path '{path}'\n"));
+            result.stderr.push_str(&format!(
+                "{invoked}: EINVAL: multiple operands share a source or destination path '{path}'\n"
+            ));
             return result;
         }
     }
@@ -5622,47 +7005,86 @@ pub(super) fn cmd_gzip(
                 if let Some(p) = &plan {
                     let (entry, stat) = fs.inspect_command_entry(&p.operand, false, "lstat")?;
                     if entry != p.real || !p.stat.same_snapshot(&stat) {
-                        return Err(format!("EBUSY: input identity or metadata changed; input retained '{}'", p.operand));
+                        return Err(format!(
+                            "EBUSY: input identity or metadata changed; input retained '{}'",
+                            p.operand
+                        ));
                     }
                 }
                 Ok(())
             };
             check_source().map_err(failure)?;
             let data = read(plan.as_ref().map(|p| p.real.as_str()))?;
-            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e, plan.as_ref().map_or(if is_bzip2 {"(stdin)"} else {"stdin"}, |p| p.operand.as_str())))? }
-                else { compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check) };
+            let output = if decompress || test_mode {
+                decode(
+                    &data,
+                    plan.as_ref().is_some_and(|p| p.destination.is_some()),
+                )
+                .map_err(|e| {
+                    decode_error(
+                        &e,
+                        plan.as_ref()
+                            .map_or(if is_bzip2 { "(stdin)" } else { "stdin" }, |p| {
+                                p.operand.as_str()
+                            }),
+                    )
+                })?
+            } else {
+                compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check)
+            };
             let version = fs.generation();
             check_source().map_err(failure)?;
             if is_zstd && test_mode {
                 tested_files += 1;
                 tested_bytes += output.len();
                 if !quiet && !multiple_files {
-                    let padding = " ".repeat(20usize.saturating_sub(test_source.encode_utf16().count()));
-                    result.stderr.push_str(&format!("{test_source}{padding}: {tested_bytes} bytes \n"));
+                    let padding =
+                        " ".repeat(20usize.saturating_sub(test_source.encode_utf16().count()));
+                    result
+                        .stderr
+                        .push_str(&format!("{test_source}{padding}: {tested_bytes} bytes \n"));
                 }
             }
-            if let Some(p) = &plan && let Some((target, expected)) = &p.destination {
+            if let Some(p) = &plan
+                && let Some((target, expected)) = &p.destination
+            {
                 let current = existing(target).map_err(failure)?;
                 if !match (expected, &current) {
-                    (Some(a), Some(b)) => a.same_snapshot(b), (None, None) => true, _ => false,
-                } { return Err(failure(format!("EBUSY: destination changed during compression '{target}'"))); }
-                fs.replace_staged_file(target, &output, version).map_err(failure)?;
+                    (Some(a), Some(b)) => a.same_snapshot(b),
+                    (None, None) => true,
+                    _ => false,
+                } {
+                    return Err(failure(format!(
+                        "EBUSY: destination changed during compression '{target}'"
+                    )));
+                }
+                fs.replace_staged_file(target, &output, version)
+                    .map_err(failure)?;
                 if let Some(parent) = &p.parent {
-                    fs.remove_unchanged_file(&p.real, parent, &p.stat).map_err(failure)?;
+                    fs.remove_unchanged_file(&p.real, parent, &p.stat)
+                        .map_err(failure)?;
                 }
             } else if !test_mode {
-                result.stdout.push_str(&crate::vfs::bytes_to_stream_string(&output));
+                result
+                    .stdout
+                    .push_str(&crate::vfs::bytes_to_stream_string(&output));
             }
             Ok(())
         })();
         if let Err(e) = run {
             result.stderr.push_str(&e.stderr);
             result.exit_code = e.exit_code;
-            if e.stderr.starts_with("Execution aborted: Shell limit exceeded:") { break; }
+            if e.stderr
+                .starts_with("Execution aborted: Shell limit exceeded:")
+            {
+                break;
+            }
         }
     }
     if is_zstd && test_mode && !quiet && multiple_files && tested_files != 0 {
-        result.stderr.push_str(&format!("{tested_files} files decompressed :   {tested_bytes} bytes total \n"));
+        result.stderr.push_str(&format!(
+            "{tested_files} files decompressed :   {tested_bytes} bytes total \n"
+        ));
     }
     result
 }
@@ -5694,10 +7116,24 @@ fn zip_public_text(value: &str) -> &str {
     let password_arg = if let Some(long) = value.strip_prefix("--") {
         let name = long.split('=').next().unwrap_or("");
         name.len() >= 3 && "password".starts_with(name)
-    } else { value.starts_with('-') && value.contains('P') };
-    if password_arg || ["password","token=","secret="].iter().any(|key| lower.contains(key)) { "[redacted]" }
-    else if value.contains("://") || ["http:","https:","ftp:","ws:","wss:"].iter().any(|scheme| lower.contains(scheme)) { "[redacted URL]" }
-    else { value }
+    } else {
+        value.starts_with('-') && value.contains('P')
+    };
+    if password_arg
+        || ["password", "token=", "secret="]
+            .iter()
+            .any(|key| lower.contains(key))
+    {
+        "[redacted]"
+    } else if value.contains("://")
+        || ["http:", "https:", "ftp:", "ws:", "wss:"]
+            .iter()
+            .any(|scheme| lower.contains(scheme))
+    {
+        "[redacted URL]"
+    } else {
+        value
+    }
 }
 
 fn zip_archive_comment(mut input: &[u8]) -> Option<Vec<u8>> {
@@ -5705,14 +7141,23 @@ fn zip_archive_comment(mut input: &[u8]) -> Option<Vec<u8>> {
     while !input.is_empty() {
         // Info-ZIP reads at most 65535 bytes, including the newline, per fgets call.
         let window = &input[..input.len().min(65535)];
-        let n = window.iter().position(|&b| b == b'\n').map_or(window.len(),|i| i+1);
+        let n = window
+            .iter()
+            .position(|&b| b == b'\n')
+            .map_or(window.len(), |i| i + 1);
         let line = window[..n].split(|&b| b == 0).next().unwrap();
         input = &input[n..];
-        if line == b".\n" { break; }
+        if line == b".\n" {
+            break;
+        }
         let text = line.strip_suffix(b"\n").unwrap_or(line);
         let separator = !comment.is_empty() || text.is_empty();
-        if comment.len()+text.len()+usize::from(separator)*2 > 65535 { return None; }
-        if separator { comment.extend_from_slice(b"\r\n"); }
+        if comment.len() + text.len() + usize::from(separator) * 2 > 65535 {
+            return None;
+        }
+        if separator {
+            comment.extend_from_slice(b"\r\n");
+        }
         comment.extend_from_slice(text);
     }
     Some(comment)
@@ -5725,12 +7170,28 @@ struct ZipMove<'a> {
     receipt: crate::vfs::RemovalReceipt<'a>,
 }
 
-fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool, output: &mut String) -> Result<(),String> {
-    moves.sort_by_cached_key(|m| (m.directory,std::cmp::Reverse(m.path.bytes().filter(|&b| b == b'/').count())));
+fn remove_zip_sources(
+    fs: &dyn SafeBashFs,
+    mut moves: Vec<ZipMove>,
+    quiet: bool,
+    output: &mut String,
+) -> Result<(), String> {
+    moves.sort_by_cached_key(|m| {
+        (
+            m.directory,
+            std::cmp::Reverse(m.path.bytes().filter(|&b| b == b'/').count()),
+        )
+    });
     // Only successful unlinks advance the source's parent and its remaining hard links.
-    let mut advances = BTreeMap::<_,u64>::new();
-    for ZipMove {source,directory,receipt,..} in moves {
-        let advance=advances.get(&receipt.entry).copied().unwrap_or(0);
+    let mut advances = BTreeMap::<_, u64>::new();
+    for ZipMove {
+        source,
+        directory,
+        receipt,
+        ..
+    } in moves
+    {
+        let advance = advances.get(&receipt.entry).copied().unwrap_or(0);
         match (receipt.remove)(advance) {
             Ok(()) => {
                 *advances.entry(receipt.parent).or_default() += 1;
@@ -5738,9 +7199,14 @@ fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool,
             }
             Err(e) if e.starts_with("Execution aborted:") => return Err(e),
             Err(_) if !quiet && !directory => {
-                output.push_str(&format!("\tzip warning: error deleting {}\n",zip_public_text(&source)));
+                output.push_str(&format!(
+                    "\tzip warning: error deleting {}\n",
+                    zip_public_text(&source)
+                ));
                 if output.len() > fs.remaining_output_bytes() {
-                    return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                    return Err(
+                        fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes)
+                    );
                 }
             }
             Err(_) => {}
@@ -5751,17 +7217,35 @@ fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool,
 
 enum ZipInput<'a> {
     Bytes(Vec<u8>),
-    Retained { fs: &'a dyn SafeBashFs, path: &'a str, expected: &'a crate::vfs::FileStat, handle: Box<dyn crate::vfs::FileReadHandle> },
+    Retained {
+        fs: &'a dyn SafeBashFs,
+        path: &'a str,
+        expected: &'a crate::vfs::FileStat,
+        handle: Box<dyn crate::vfs::FileReadHandle>,
+    },
 }
 
 impl<'a> ZipInput<'a> {
-    fn open(fs: &'a dyn SafeBashFs, path: &'a str, expected: &'a crate::vfs::FileStat) -> Result<Self,String> {
-        if expected.mode & 0o170000 != 0o100000 { return fs.read_file(path).map(Self::Bytes); }
+    fn open(
+        fs: &'a dyn SafeBashFs,
+        path: &'a str,
+        expected: &'a crate::vfs::FileStat,
+    ) -> Result<Self, String> {
+        if expected.mode & 0o170000 != 0o100000 {
+            return fs.read_file(path).map(Self::Bytes);
+        }
         let limit = fs.max_input_bytes();
-        if expected.size > limit { return Err(fs.limit_error("maxInputBytes",limit)); }
-        match fs.open_read_file(path,false) {
+        if expected.size > limit {
+            return Err(fs.limit_error("maxInputBytes", limit));
+        }
+        match fs.open_read_file(path, false) {
             Ok(handle) => {
-                let input = Self::Retained { fs,path,expected,handle };
+                let input = Self::Retained {
+                    fs,
+                    path,
+                    expected,
+                    handle,
+                };
                 input.validate()?;
                 Ok(input)
             }
@@ -5769,7 +7253,9 @@ impl<'a> ZipInput<'a> {
                 let data = fs.read_file(path)?;
                 let mut stat = fs.stat(path)?;
                 stat.atime_ms = expected.atime_ms;
-                if data.len()!=expected.size || stat!=*expected { return Err(format!("source changed while reading: {path}")); }
+                if data.len() != expected.size || stat != *expected {
+                    return Err(format!("source changed while reading: {path}"));
+                }
                 Ok(Self::Bytes(data))
             }
             Err(e) => Err(e),
@@ -5777,32 +7263,50 @@ impl<'a> ZipInput<'a> {
     }
 
     fn len(&self) -> usize {
-        match self { Self::Bytes(b) => b.len(), Self::Retained { expected,.. } => expected.size }
+        match self {
+            Self::Bytes(b) => b.len(),
+            Self::Retained { expected, .. } => expected.size,
+        }
     }
 
-    fn validate(&self) -> Result<(),String> {
-        if let Self::Retained {fs,handle,expected,path} = self {
+    fn validate(&self) -> Result<(), String> {
+        if let Self::Retained {
+            fs,
+            handle,
+            expected,
+            path,
+        } = self
+        {
             fs.command_descriptor_op()?;
             let mut stat = handle.stat()?;
             stat.atime_ms = expected.atime_ms;
-            if stat != **expected { return Err(format!("source changed while reading: {path}")); }
+            if stat != **expected {
+                return Err(format!("source changed while reading: {path}"));
+            }
         }
         Ok(())
     }
 
-    fn read(&self, range: std::ops::Range<usize>) -> Result<std::borrow::Cow<'_,[u8]>,String> {
+    fn read(&self, range: std::ops::Range<usize>) -> Result<std::borrow::Cow<'_, [u8]>, String> {
         use std::borrow::Cow;
         match self {
             Self::Bytes(data) => Ok(Cow::Borrowed(&data[range])),
-            Self::Retained { fs,handle,path,.. } => {
-                let mut data=Vec::new();
-                while data.len()<range.len() {
-                    let n=(range.len()-data.len()).min(65536);
+            Self::Retained {
+                fs, handle, path, ..
+            } => {
+                let mut data = Vec::new();
+                while data.len() < range.len() {
+                    let n = (range.len() - data.len()).min(65536);
                     fs.command_descriptor_op()?;
-                    let chunk=handle.read((range.start+data.len()) as u64,n)?;
-                    if chunk.is_empty() || chunk.len()>n {return Err(format!("source changed while reading: {path}"));}
-                    if data.is_empty() && chunk.len()==range.len() { return Ok(Cow::Owned(chunk)); }
-                    data.try_reserve(chunk.len()).map_err(|_|"ENOMEM: insufficient memory for ZIP input")?;
+                    let chunk = handle.read((range.start + data.len()) as u64, n)?;
+                    if chunk.is_empty() || chunk.len() > n {
+                        return Err(format!("source changed while reading: {path}"));
+                    }
+                    if data.is_empty() && chunk.len() == range.len() {
+                        return Ok(Cow::Owned(chunk));
+                    }
+                    data.try_reserve(chunk.len())
+                        .map_err(|_| "ENOMEM: insufficient memory for ZIP input")?;
                     data.extend_from_slice(&chunk);
                 }
                 Ok(Cow::Owned(data))
@@ -5811,9 +7315,15 @@ impl<'a> ZipInput<'a> {
     }
 }
 
-fn zip_read_file(fs: &dyn SafeBashFs, path: &str, expected: &crate::vfs::FileStat) -> Result<Vec<u8>,String> {
-    let input = ZipInput::open(fs,path,expected)?;
-    if let ZipInput::Bytes(bytes) = input { return Ok(bytes); }
+fn zip_read_file(
+    fs: &dyn SafeBashFs,
+    path: &str,
+    expected: &crate::vfs::FileStat,
+) -> Result<Vec<u8>, String> {
+    let input = ZipInput::open(fs, path, expected)?;
+    if let ZipInput::Bytes(bytes) = input {
+        return Ok(bytes);
+    }
     let bytes = input.read(0..input.len())?;
     input.validate()?;
     Ok(bytes.into_owned())
@@ -5822,19 +7332,29 @@ fn zip_read_file(fs: &dyn SafeBashFs, path: &str, expected: &crate::vfs::FileSta
 // A checker may write a log or edit a move source. Pin every directory on
 // the paths used for publication, plus the archive files themselves. An
 // unobservable or symlinked path keeps the stricter whole-filesystem guard.
-fn zip_checker_paths<'a>(fs: &dyn SafeBashFs, files: [&'a str;3]) -> Option<BTreeMap<&'a str,Option<crate::vfs::FileStat>>> {
-    use crate::vfs::VfsEntryKind::{Directory,File};
+fn zip_checker_paths<'a>(
+    fs: &dyn SafeBashFs,
+    files: [&'a str; 3],
+) -> Option<BTreeMap<&'a str, Option<crate::vfs::FileStat>>> {
+    use crate::vfs::VfsEntryKind::{Directory, File};
     let mut observed = BTreeMap::new();
     for path in files {
-        for end in path.match_indices('/').map(|(i,_)| i).chain([path.len()]) {
-            let name = if end==0 { "/" } else { &path[..end] };
-            if observed.contains_key(name) { continue; }
+        for end in path.match_indices('/').map(|(i, _)| i).chain([path.len()]) {
+            let name = if end == 0 { "/" } else { &path[..end] };
+            if observed.contains_key(name) {
+                continue;
+            }
             let stat = match fs.lstat(name) {
-                Ok(s) if s.identity.is_some() && (s.kind==Directory || s.kind==File && s.revision.is_some()) => Some(s),
-                Err(e) if end==path.len() && e.starts_with("ENOENT:") => None,
+                Ok(s)
+                    if s.identity.is_some()
+                        && (s.kind == Directory || s.kind == File && s.revision.is_some()) =>
+                {
+                    Some(s)
+                }
+                Err(e) if end == path.len() && e.starts_with("ENOENT:") => None,
                 _ => return None,
             };
-            observed.insert(name,stat);
+            observed.insert(name, stat);
         }
     }
     Some(observed)
@@ -5844,12 +7364,16 @@ fn zip_option_value<'a>(args: &'a [String], attached: &'a str, i: &mut usize) ->
     let value = if attached.is_empty() {
         *i += 1;
         args.get(*i).map_or("", String::as_str)
-    } else { attached };
+    } else {
+        attached
+    };
     value.strip_prefix('=').unwrap_or(value)
 }
 
 fn zip_test_words(value: &str) -> Result<Vec<String>, &'static str> {
-    if value.is_empty() { return Err("option TT requires a value"); }
+    if value.is_empty() {
+        return Err("option TT requires a value");
+    }
     let forbidden = |c| "\n\r\0;|&<>$`".contains(c);
     let mut chars = value.chars();
     let mut words = Vec::new();
@@ -5857,15 +7381,28 @@ fn zip_test_words(value: &str) -> Result<Vec<String>, &'static str> {
     let mut quote = None;
     let mut active = false;
     while let Some(c) = chars.next() {
-        if forbidden(c) { return Err("unsupported virtual test-command syntax"); }
+        if forbidden(c) {
+            return Err("unsupported virtual test-command syntax");
+        }
         if c == '\\' && quote != Some('\'') {
-            word.push(chars.next().filter(|&v| !forbidden(v)).ok_or("invalid test-command escape")?);
+            word.push(
+                chars
+                    .next()
+                    .filter(|&v| !forbidden(v))
+                    .ok_or("invalid test-command escape")?,
+            );
         } else if let Some(q) = quote {
-            if c == q { quote = None; } else { word.push(c); }
+            if c == q {
+                quote = None;
+            } else {
+                word.push(c);
+            }
         } else if matches!(c, '\'' | '"') {
             quote = Some(c);
         } else if matches!(c, ' ' | '\t') {
-            if active { words.push(std::mem::take(&mut word)); }
+            if active {
+                words.push(std::mem::take(&mut word));
+            }
             active = false;
             continue;
         } else {
@@ -5873,15 +7410,30 @@ fn zip_test_words(value: &str) -> Result<Vec<String>, &'static str> {
         }
         active = true;
     }
-    if quote.is_some() { return Err("unterminated test-command quote"); }
-    if active { words.push(word); }
-    if words.first().is_none_or(|w| w.is_empty() || w.contains("{}")) {
+    if quote.is_some() {
+        return Err("unterminated test-command quote");
+    }
+    if active {
+        words.push(word);
+    }
+    if words
+        .first()
+        .is_none_or(|w| w.is_empty() || w.contains("{}"))
+    {
         return Err("invalid virtual test command");
     }
     Ok(words)
 }
 
-pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs, seekable_stdout: bool, write: &mut super::CommandWriter, invoke: &mut dyn FnMut(&[String]) -> bool) -> BuiltinOutcome {
+pub(super) fn cmd_zip(
+    args: &[String],
+    stdin: super::CommandInput,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    seekable_stdout: bool,
+    write: &mut super::CommandWriter,
+    invoke: &mut dyn FnMut(&[String]) -> bool,
+) -> BuiltinOutcome {
     const ZIP_HELP_TEXT: &str = "safe-bash zip\nUsage: zip [options] archive [file ...]\n       zip [options] - [file ...]       write an archive to stdout\n       zip [options] archive -          read a member from stdin\n\n  -r          recurse into directories\n  -j          store basenames, discarding directory paths\n  -q          suppress progress messages\n  -0          store without compression\n  -1 .. -9    select compression effort\n  -Z METHOD   select store, deflate, bzip2, or lzma compression\n  --encryption PROFILE  select zipcrypto or aes-{128,192,256}-ae{1,2}\n  -n SUFFIXES store matching suffixes (colon-separated)\n  -u / -f     update / freshen existing members\n  -d / -U     delete / copy selected archive members\n  -FS         synchronize selected members with filesystem sources\n  -O FILE     write to a separate output archive\n  -A          adjust validated SFX offsets, retaining the inert prefix\n  -F / -FF    repair from central / local records (requires -O FILE)\n  -s SIZE     split into .z01/.z02/.../.zip volumes (minimum 64k; 0 recombines)\n  -sp         approve volume transitions using an explicit host prompt\n  -sv / -sb   report split volumes / ring before a split-pause prompt\n  -m          remove archived sources after successful publication\n  -D / -y     omit directory entries / store symlinks\n  -i / -x     include / exclude matching names\n  -RE         enable bracket-list glob matching (already enabled on Unix)\n  -k          convert new source names to portable ASCII DOS 8.3 names\n  -FI / -FI-  enable / disable explicit VFS FIFO byte sources\n  -@          read filenames from stdin\n  -t / -tt    select files from / before a date\n  -T          test archive integrity before replacement\n  -P PASSWORD encrypt new members with a supplied password\n  -e          request and confirm a password through a no-echo host capability\n  -z / -c     read archive / entry comments from stdin\n  -o          set archive time to the latest member time\n  -l          convert text LF line endings to CRLF\n  -ll         convert text CRLF line endings to LF (--from-crlf)\n  -X / -X-    strip / restore optional metadata for changed members\n  -fz / -fz-  force / disable ZIP64 output\n  -fd         force data descriptors\n  -v          verbose operation (a lone -v shows implementation information)\n  --version   show implementation information and exit\n  -L          show this implementation's license\n  -sf / -sf-  list selected files / totals only, without creating an archive\n  -sc         show processed arguments and exit with status 9\n  -so         show implemented options and exit\n  -sd         show virtual archive processing steps\n  -db / -dc   display byte / entry counters\n  -du / -dv   display entry size / single-volume numbers\n  -dd / -dg   display dots per entry / globally for output bytes\n  -ds SIZE    dot interval (kmgt units; default MB; 0 disables dots)\n  -h          show this help\n\nUse -- after the archive name to pass filenames beginning with '-'.\nLong option equivalents are accepted, for example --junk-paths and\n--compression-method=bzip2. All filesystem operations use the virtual filesystem.\n";
     const ZIP_EXTENDED_HELP_SUFFIX: &str = "\nSelection\n  -RE / --regex means bracket lists, not general regular expressions.\n  -k / --DOS-names converts components after selection and -j; collisions fail.\n  DOS conversion is restricted to printable ASCII. Filters parsed after -k\n  are DOS-converted before matching original case-sensitive source names.\n  -FI / --fifo requires a VFS-reported FIFO and explicit streamingRead capability.\n  FIFO payloads are bounded and cancellation-aware; producer failure aborts output.\n  -r traverses listed directories; -R recursively searches matching names.\n  Do not combine -r and -R. -D omits directory records without stopping traversal.\n  -i patterns and -x patterns accept lists ending at another option or at @.\n  Quote patterns to prevent the shell expanding them before zip receives them.\n  Exclusions take precedence over inclusions. -j flattens selected source names;\n  duplicate basenames fail before the archive is replaced.\n  -nw disables wildcard interpretation; -ws prevents wildcards crossing '/'.\n  -MM makes missing input matches fatal. -t includes files from a date; -tt\n  selects files before a date. Dates accept mmddyyyy or yyyy-mm-dd.\n\nOperations and publication\n  Default add mode updates existing members and appends new selected members.\n  -u updates only older members and appends new ones; -f updates existing\n  members without adding new names. -FS also deletes unselected archive entries.\n  -d deletes selected archive entries without reading filesystem sources.\n  -U copies selected entries; without -O it requires -sf.\n  -DF writes only new or changed filesystem entries to -O.\n  -g grows an existing single-volume archive in place without -u, -f, -d or -U.\n  -b DIR stages temporary archives in DIR before replacing the destination.\n  -J strips a leading self-extracting stub; -A adjusts SFX entry offsets.\n  -F and -FF recover readable entries into a separate -O archive.\n  -s splits output into .z01, .z02, ... and final .zip volumes.\n  -s 0 recombines an existing split archive into a single -O archive.\n  -sp pauses before each split volume through the host volumePrompt capability;\n  -sv reports volume numbers and -sb rings the terminal bell before prompts.\n\nEncryption\n  -P supplies a password on the command line (redacted from diagnostics/logs).\n  -e prompts and confirms through the host password capability without echo.\n  --encryption selects zipcrypto (default) or WinZip AE-1/AE-2 AES profiles:\n  aes-128-ae1, aes-128-ae2, aes-192-ae1, aes-192-ae2, aes-256-ae1, aes-256-ae2.\n  Encryption requires the host entropy capability and never uses fallback RNGs.\n\nIntegrity, comments and metadata\n  -T validates the staged archive before replacing the destination.\n  -TT CMD runs CMD in the virtual shell with {} replaced by the staged archive\n  (or appends the staged archive path when {} is absent). No host process is spawned.\n  With stdout output -T is ignored.\n  -z reads an archive comment; -c reads selected member comments in archive order.\n  -X strips optional metadata; -X- preserves available metadata.\n  -o sets the archive timestamp to the newest resulting member timestamp.\n\nLogging\n  -lf path writes a VFS log (a missing extension becomes .log).\n  -la appends; -li includes progress in addition to warnings/errors.\n  Logs require atomic conditional byte writes and cannot alias selected inputs.\n  Logs are bounded by maxTextBytes; supplied password bytes are redacted.\n  Completed log/publication effects remain if a later write fails.\n\nCompression and format\n  -Z selects store, deflate, bzip2, or lzma; method names accept unique prefixes.\n  -1 through -9 select effort. Store selection remains through later levels.\n  -n .jpg:.png stores matching suffixes; -9 overrides suffix-based storage.\n  Compression may fall back to STORE for regular files when it expands data.\n  -l converts text LF to CRLF, leaving detected binary input unchanged.\n  -fz forces ZIP64; -fz- disables it. -fd forces signed data descriptors.\n  BZIP2 members use extraction version 4.6, including with ZIP64 records.\n  LZMA is a ZIP format extension (not native Info-ZIP Zip 3.0).\n  LZMA uses version 6.3, a bounded 1 MiB encoder dictionary, and EOS.\n  Readers admit dictionaries up to 8 MiB and SDK 9.4 properties only.\n\nStreaming\n  A '-' input filename reads one member from stdin, named '-'.\n  A '-' archive name writes binary archive bytes to stdout and progress to stderr.\n  With no archive or file operands, zip acts as a stdin-to-stdout filter.\n  Streamed members retain compression even if it expands their data.\n  -@ instead reads newline-separated input filenames; it cannot also read a '-'\n  payload from the same stdin. Empty filename lines are ignored.\n  Complete the output stream before using the resulting archive.\n\nArguments and ZIPOPT\n  Long options accept unique abbreviations and --option=value where appropriate.\n  Use -- after the archive name for literal filenames beginning with '-'.\n  ZIPOPT supplies default arguments before the command arguments. Double quotes\n  group words inside ZIPOPT; shell expansion is not performed on these defaults.\n  -h and -h2 print basic and extended help as soon as they are encountered.\n  --version and -L also exit immediately. Only a lone short -v shows information;\n  --verbose and grouped -v perform an archive operation. Later -q or -v wins.\n  -sc and -so validate all arguments before exiting; -sc returns status 9.\n\nDisplays\n  -sf lists selected names and totals without reading source payloads or writing\n  archives. -sf- and -q suppress names; totals remain visible. With no file\n  operands, -sf lists the input archive. -sd reports only virtual processing steps.\n  Command and diagnostic displays redact credential-shaped arguments and URLs.\n  Display counters accept a trailing '-' to negate them. -ds accepts up to eight\n  characters: digits with an optional k, m, g or t suffix (case-insensitive).\n  Values below 1024 imply MB; nonzero intervals from 1 KB to below 32 KB fail.\n  Empty -ds values restore 10 MB; 0 disables dots. Sizes must be safe integers.\n  Dots use byte intervals, so counts can differ from native codec buffer dots.\n  Per-entry progress appears after bounded preparation; global output dots stay\n  visible with -q. Timed scanning dots and split-volume displays are unavailable.\n";
     const ZIP_VERSION_TEXT: &str = "safe-bash zip (virtual-bash)\nBounded virtual ZIP implementation; not an Info-ZIP native build.\nCompression: store, deflate, bzip2, lzma (format extension). Single-volume ZIP and ZIP64 output.\nFilesystem, signals and byte limits are supplied by the host.\nNative compiler identity and ambient environment are not reported.\n";
@@ -5908,7 +7460,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     let mut quiet = false;
     let mut verbose = false;
     let mut level = 6;
-    let mut compression=8;
+    let mut compression = 8;
     let mut suffixes = ".Z:.zip:.zoo:.arc:.lzh:.arj";
     let mut junk_paths = false;
     let mut omit_dirs = false;
@@ -5921,7 +7473,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     let mut stdin_names = false;
     let mut has_password_opt = false;
     let mut has_encrypt_opt = false;
-    let mut test_archive=false;
+    let mut test_archive = false;
     let mut checker = vec!["unzip".to_owned(), "-tqq".to_owned()];
     let mut selected_action: &str = "add";
     let mut literal = false;
@@ -5968,15 +7520,22 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
         if a == "-L" || a == "--license" {
             return ok_out(ZIP_LICENSE_TEXT);
         }
-        if a=="--test" {test_archive=true;}
-        else if a == "-x" {
-            if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") || args[i + 1] == "@" {
+        if a == "--test" {
+            test_archive = true;
+        } else if a == "-x" {
+            if i + 1 >= args.len()
+                || (args[i + 1].starts_with('-') && args[i + 1] != "-")
+                || args[i + 1] == "@"
+            {
                 return zip_err("option 'x' requires a value");
             }
             in_exclude = true;
             in_include = false;
         } else if a == "-i" {
-            if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") || args[i + 1] == "@" {
+            if i + 1 >= args.len()
+                || (args[i + 1].starts_with('-') && args[i + 1] != "-")
+                || args[i + 1] == "@"
+            {
                 return zip_err("option 'i' requires a value");
             }
             in_include = true;
@@ -6008,18 +7567,34 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             verbose |= !quiet;
         } else if a == "--store" {
             level = 0;
-            compression=0;
-        } else if a == "-n" || a == "--suffixes" || a.starts_with("-n") || a.starts_with("--suffixes=") {
+            compression = 0;
+        } else if a == "-n"
+            || a == "--suffixes"
+            || a.starts_with("-n")
+            || a.starts_with("--suffixes=")
+        {
             let value = if a == "-n" || a == "--suffixes" {
                 i += 1;
                 match args.get(i) {
                     Some(s) if !s.starts_with('-') || s == "-" => s.as_str(),
                     _ => return zip_err("option 'n' requires a value"),
                 }
-            } else { a.strip_prefix("--suffixes=").or_else(|| a.strip_prefix("-n")).unwrap() };
+            } else {
+                a.strip_prefix("--suffixes=")
+                    .or_else(|| a.strip_prefix("-n"))
+                    .unwrap()
+            };
             let value = value.trim_start_matches('=');
-            suffixes = if value.is_empty() { ".Z:.zip:.zoo:.arc:.lzh:.arj" } else { value };
-        } else if a == "-Z" || a == "--compression-method" || a.starts_with("-Z") || a.starts_with("--compression-method=") {
+            suffixes = if value.is_empty() {
+                ".Z:.zip:.zoo:.arc:.lzh:.arj"
+            } else {
+                value
+            };
+        } else if a == "-Z"
+            || a == "--compression-method"
+            || a.starts_with("-Z")
+            || a.starts_with("--compression-method=")
+        {
             let val = if a == "-Z" || a == "--compression-method" {
                 if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") {
                     return zip_err("option 'Z' requires a value");
@@ -6039,18 +7614,43 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             if lower.is_empty() || matches_cnt != 1 {
                 return zip_err("Option -Z (--compression-method):  unknown method");
             }
-            compression=if "deflate".starts_with(&lower){8}else if "bzip2".starts_with(&lower){12}else if "lzma".starts_with(&lower){14}else{0};
+            compression = if "deflate".starts_with(&lower) {
+                8
+            } else if "bzip2".starts_with(&lower) {
+                12
+            } else if "lzma".starts_with(&lower) {
+                14
+            } else {
+                0
+            };
         } else if a == "--split-size" || a.starts_with("--split-size=") {
-            let value = if let Some(v) = a.strip_prefix("--split-size=") { v }
-                else { i += 1; args.get(i).map_or("",String::as_str) };
-            split_size = match zip_volumes::size(value) { Ok(s) => s, Err(e) => return zip_err(e) };
-        } else if a == "--force-zip64" || a == "--force-zip64-" { zip64=Some(a=="--force-zip64");
-        } else if a == "--force-descriptors" { descriptors = true;
-        } else if a == "--force-descriptors-" { return zip_err("option fd is not negatable");
-        } else if a == "--split-pause" { split_pause = true; descriptors = true;
-        } else if a == "--split-verbose" { split_verbose = true;
+            let value = if let Some(v) = a.strip_prefix("--split-size=") {
+                v
+            } else {
+                i += 1;
+                args.get(i).map_or("", String::as_str)
+            };
+            split_size = match zip_volumes::size(value) {
+                Ok(s) => s,
+                Err(e) => return zip_err(e),
+            };
+        } else if a == "--force-zip64" || a == "--force-zip64-" {
+            zip64 = Some(a == "--force-zip64");
+        } else if a == "--force-descriptors" {
+            descriptors = true;
+        } else if a == "--force-descriptors-" {
+            return zip_err("option fd is not negatable");
+        } else if a == "--split-pause" {
+            split_pause = true;
+            descriptors = true;
+        } else if a == "--split-verbose" {
+            split_verbose = true;
         } else if a == "--split-bell" {
-        } else if a == "-P" || a == "--password" || a.starts_with("-P") || a.starts_with("--password=") {
+        } else if a == "-P"
+            || a == "--password"
+            || a.starts_with("-P")
+            || a.starts_with("--password=")
+        {
             let val = if a == "-P" || a == "--password" {
                 if i + 1 >= args.len() {
                     return zip_err("password option requires a value");
@@ -6127,22 +7727,35 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             }
             i += 1;
         } else if a.starts_with("--") {
-            let (name, attached) = a[2..].split_at(a[2..].find('=').unwrap_or(a.len()-2));
+            let (name, attached) = a[2..].split_at(a[2..].find('=').unwrap_or(a.len() - 2));
             let key = name.strip_suffix('-').unwrap_or(name);
             if key.starts_with("un") && "unzip-command".starts_with(key) {
-                if name != key { return zip_err("option unzip-command is not negatable"); }
-                checker = match zip_test_words(zip_option_value(args,attached,&mut i)) { Ok(words) => words, Err(e) => return zip_err(e) };
+                if name != key {
+                    return zip_err("option unzip-command is not negatable");
+                }
+                checker = match zip_test_words(zip_option_value(args, attached, &mut i)) {
+                    Ok(words) => words,
+                    Err(e) => return zip_err(e),
+                };
                 in_exclude = false;
                 in_include = false;
             } else if key.starts_with("te") && "temp-path".starts_with(key) {
-                if key=="te" { return zip_err("long option 'te' ambiguous"); }
-                if name!=key { return zip_err("option temp-path is not negatable"); }
-                let value=zip_option_value(args,attached,&mut i);
-                if value.is_empty() { return zip_err("option b requires a value"); }
-                temp_path=Some(value);
-                in_exclude=false;
-                in_include=false;
-            } else { return zip_err(&format!("unsupported option: --{name}")); }
+                if key == "te" {
+                    return zip_err("long option 'te' ambiguous");
+                }
+                if name != key {
+                    return zip_err("option temp-path is not negatable");
+                }
+                let value = zip_option_value(args, attached, &mut i);
+                if value.is_empty() {
+                    return zip_err("option b requires a value");
+                }
+                temp_path = Some(value);
+                in_exclude = false;
+                in_include = false;
+            } else {
+                return zip_err(&format!("unsupported option: --{name}"));
+            }
         } else if a.starts_with('-') && !a.starts_with("--") && a != "-" {
             in_exclude = false;
             in_include = false;
@@ -6151,12 +7764,25 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                 match ch {
                     's' => {
                         match flags.as_str().as_bytes().first() {
-                            Some(b'p') => { split_pause = true; descriptors = true; }
+                            Some(b'p') => {
+                                split_pause = true;
+                                descriptors = true;
+                            }
                             Some(b'v') => split_verbose = true,
-                            Some(b'b') => {},
+                            Some(b'b') => {}
                             _ => {
-                                let value = if flags.as_str().is_empty() { i += 1; args.get(i).map_or("",String::as_str) } else { flags.as_str() };
-                                split_size = match zip_volumes::size(value.strip_prefix('=').unwrap_or(value)) { Ok(s) => s, Err(e) => return zip_err(e) };
+                                let value = if flags.as_str().is_empty() {
+                                    i += 1;
+                                    args.get(i).map_or("", String::as_str)
+                                } else {
+                                    flags.as_str()
+                                };
+                                split_size = match zip_volumes::size(
+                                    value.strip_prefix('=').unwrap_or(value),
+                                ) {
+                                    Ok(s) => s,
+                                    Err(e) => return zip_err(e),
+                                };
                                 break;
                             }
                         }
@@ -6180,13 +7806,17 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                     }
                     'f' if flags.as_str().starts_with('z') => {
                         flags.next();
-                        let enabled=!flags.as_str().starts_with('-');
-                        if !enabled {flags.next();}
-                        zip64=Some(enabled);
+                        let enabled = !flags.as_str().starts_with('-');
+                        if !enabled {
+                            flags.next();
+                        }
+                        zip64 = Some(enabled);
                     }
                     'f' if flags.as_str().starts_with('d') => {
                         flags.next();
-                        if flags.as_str().starts_with('-') { return zip_err("option fd is not negatable"); }
+                        if flags.as_str().starts_with('-') {
+                            return zip_err("option fd is not negatable");
+                        }
                         descriptors = true;
                     }
                     'f' => {
@@ -6203,7 +7833,9 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                         selected_action = "update";
                         update_mode = true;
                     }
-                    'm' if flags.as_str().starts_with('m') => return zip_err("unsupported option: -mm"),
+                    'm' if flags.as_str().starts_with('m') => {
+                        return zip_err("unsupported option: -mm");
+                    }
                     'm' => move_mode = true,
                     'j' => junk_paths = true,
                     'D' => omit_dirs = true,
@@ -6222,36 +7854,50 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                     'y' => store_symlinks = true,
                     'l' => {
                         let from = flags.as_str().starts_with('l');
-                        if from { flags.next(); }
+                        if from {
+                            flags.next();
+                        }
                         from_crlf = Some(from);
-                    },
+                    }
                     'z' => read_comment = true,
                     '@' => stdin_names = true,
                     'e' => has_encrypt_opt = true,
                     '0'..='9' => {
                         level = ch as u8 - b'0';
-                        if level == 0 { compression=0; }
+                        if level == 0 {
+                            compression = 0;
+                        }
                     }
                     'q' => quiet = true,
-                    'v' => { quiet = false; verbose = true; }
+                    'v' => {
+                        quiet = false;
+                        verbose = true;
+                    }
                     'b' => {
-                        let value=zip_option_value(args,flags.as_str(),&mut i);
-                        if value.is_empty() { return zip_err("option b requires a value"); }
-                        temp_path=Some(value);
+                        let value = zip_option_value(args, flags.as_str(), &mut i);
+                        if value.is_empty() {
+                            return zip_err("option b requires a value");
+                        }
+                        temp_path = Some(value);
                         break;
                     }
                     'T' if flags.as_str().starts_with('T') => {
                         flags.next();
-                        checker = match zip_test_words(zip_option_value(args,flags.as_str(),&mut i)) { Ok(words) => words, Err(e) => return zip_err(e) };
+                        checker =
+                            match zip_test_words(zip_option_value(args, flags.as_str(), &mut i)) {
+                                Ok(words) => words,
+                                Err(e) => return zip_err(e),
+                            };
                         break;
                     }
-                    'T' => test_archive=true,
+                    'T' => test_archive = true,
                     'X' => {
                         strip_extra = !flags.as_str().starts_with('-');
-                        if !strip_extra { flags.next(); }
+                        if !strip_extra {
+                            flags.next();
+                        }
                     }
-                    'c' | 'o' | 'k' | 'g' | 'J' | 'A'
-                    | 'F' | 'p' => {}
+                    'c' | 'o' | 'k' | 'g' | 'J' | 'A' | 'F' | 'p' => {}
                     other => return zip_err(&format!("unsupported option: -{other}")),
                 }
             }
@@ -6288,13 +7934,19 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             return zip_err("expected archive name");
         }
         positional.push("-".into());
-        if !stdin_names { positional.push("-".into()); }
+        if !stdin_names {
+            positional.push("-".into());
+        }
     }
     let arch_name = ensure_zip_suffix(&positional[0]);
     let stdout_archive = arch_name == "-";
     if stdout_archive && (selected_action != "add" || split_size != 0) {
-        let mut error=zip_err(if split_size != 0 {"archive name must end in .zip for splits"}else{"can't use -d, -f, -u, -U, or -g on stdout\n"});
-        std::mem::swap(&mut error.stdout,&mut error.stderr);
+        let mut error = zip_err(if split_size != 0 {
+            "archive name must end in .zip for splits"
+        } else {
+            "can't use -d, -f, -u, -U, or -g on stdout\n"
+        });
+        std::mem::swap(&mut error.stdout, &mut error.stderr);
         return error;
     }
     let arch_full = resolve_posix_path(cwd, &arch_name);
@@ -6302,36 +7954,70 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
         .as_deref()
         .map(|o| resolve_posix_path(cwd, &ensure_zip_suffix(o)))
         .unwrap_or_else(|| arch_full.clone());
-    let temporary=if let Some(temp)=temp_path.filter(|_| !show_files && !stdout_archive) {
-        let name=resolve_posix_path(cwd,temp);
-        let (dir,stat)=match fs.inspect_command_entry(&name,true,"realpath") {
-            Ok((dir,st)) if st.kind==crate::vfs::VfsEntryKind::Directory && st.identity.is_some() => (dir,st),
-            Ok(_) => return err_out("zip: ZIP temporary path requires a directory with known backing identity\n",2),
-            Err(e) if e.starts_with("ENOENT:") => return err_out(&format!("zip: ENOENT: no such file or directory, realpath '{name}'\n"),2),
-            Err(e) => return err_out(&format!("zip: {e}\n"),2),
+    let temporary = if let Some(temp) = temp_path.filter(|_| !show_files && !stdout_archive) {
+        let name = resolve_posix_path(cwd, temp);
+        let (dir, stat) = match fs.inspect_command_entry(&name, true, "realpath") {
+            Ok((dir, st))
+                if st.kind == crate::vfs::VfsEntryKind::Directory && st.identity.is_some() =>
+            {
+                (dir, st)
+            }
+            Ok(_) => {
+                return err_out(
+                    "zip: ZIP temporary path requires a directory with known backing identity\n",
+                    2,
+                );
+            }
+            Err(e) if e.starts_with("ENOENT:") => {
+                return err_out(
+                    &format!("zip: ENOENT: no such file or directory, realpath '{name}'\n"),
+                    2,
+                );
+            }
+            Err(e) => return err_out(&format!("zip: {e}\n"), 2),
         };
-        let receipt=match fs.observe_publication(&name,fs.generation(),crate::vfs::PublicationMode::StagingDirectory) {
-            Ok(receipt)=>receipt,Err(e)=>return err_out(&format!("zip: {e}\n"),2),
+        let receipt = match fs.observe_publication(
+            &name,
+            fs.generation(),
+            crate::vfs::PublicationMode::StagingDirectory,
+        ) {
+            Ok(receipt) => receipt,
+            Err(e) => return err_out(&format!("zip: {e}\n"), 2),
         };
-        Some((name,dir,stat.identity,receipt))
-    } else {None};
-    let mut take_stdin = || -> Result<Vec<u8>,BuiltinOutcome> {
+        Some((name, dir, stat.identity, receipt))
+    } else {
+        None
+    };
+    let mut take_stdin = || -> Result<Vec<u8>, BuiltinOutcome> {
         let limit = fs.max_input_bytes();
-        if let Some(file)=stdin.file {
-            let mut bytes=Vec::new();
-            file.admit_bounded_read().and_then(|()|file.read(stdin.text,usize::MAX,|chunk,_|{
-                if chunk.len()>limit.saturating_sub(bytes.len()) {return Err(fs.limit_error("maxInputBytes",limit));}
-                bytes.extend_from_slice(chunk);
-                Ok((true,chunk.len()))
-            })).map_err(|e|err_out(&format!("zip: {e}\n"),2))?;
+        if let Some(file) = stdin.file {
+            let mut bytes = Vec::new();
+            file.admit_bounded_read()
+                .and_then(|()| {
+                    file.read(stdin.text, usize::MAX, |chunk, _| {
+                        if chunk.len() > limit.saturating_sub(bytes.len()) {
+                            return Err(fs.limit_error("maxInputBytes", limit));
+                        }
+                        bytes.extend_from_slice(chunk);
+                        Ok((true, chunk.len()))
+                    })
+                })
+                .map_err(|e| err_out(&format!("zip: {e}\n"), 2))?;
             Ok(bytes)
-        } else if crate::vfs::stream_byte_len(stdin.text)>limit {
-            Err(err_out(&fs.limit_error("maxInputBytes",limit),2))
-        } else {Ok(crate::vfs::stream_string_to_bytes(&std::mem::take(stdin.text)))}
+        } else if crate::vfs::stream_byte_len(stdin.text) > limit {
+            Err(err_out(&fs.limit_error("maxInputBytes", limit), 2))
+        } else {
+            Ok(crate::vfs::stream_string_to_bytes(&std::mem::take(
+                stdin.text,
+            )))
+        }
     };
     let mut operands: Vec<String> = positional[1..].to_vec();
     if stdin_names && !read_comment {
-        let bytes=match take_stdin(){Ok(b)=>b,Err(e)=>return e};
+        let bytes = match take_stdin() {
+            Ok(b) => b,
+            Err(e) => return e,
+        };
         for line in crate::vfs::bytes_to_stream_string(&bytes).lines() {
             let trimmed = line.trim_end_matches('\r');
             if !trimmed.is_empty() {
@@ -6339,130 +8025,263 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             }
         }
     }
-    if split_pause && split_size != 0 { return zip_err("split pause requires an explicit volume prompt capability"); }
+    if split_pause && split_size != 0 {
+        return zip_err("split pause requires an explicit volume prompt capability");
+    }
     let version = fs.generation();
     let mut replacement = if !show_files && !stdout_archive {
-        match fs.observe_publication(&dest_full,version,crate::vfs::PublicationMode::Replace) {
-            Ok(stamp)=>Some(stamp),Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+        match fs.observe_publication(&dest_full, version, crate::vfs::PublicationMode::Replace) {
+            Ok(stamp) => Some(stamp),
+            Err(e) => return err_out(&format!("zip: {e}\n"), 2),
         }
-    } else {None};
+    } else {
+        None
+    };
     let inspect = |path: &str| match fs.lstat(path) {
         Ok(st) => Ok(Some(st)),
         Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
-        Err(e) => Err(err_out(&format!("zip: {e}\n"),2)),
+        Err(e) => Err(err_out(&format!("zip: {e}\n"), 2)),
     };
-    let input = if stdout_archive {None} else {match inspect(&arch_full) { Ok(st) => st, Err(error) => return error }};
-    let dest = if stdout_archive || dest_full == arch_full { input.clone() } else {
-        match inspect(&dest_full) { Ok(st) => st, Err(error) => return error }
+    let input = if stdout_archive {
+        None
+    } else {
+        match inspect(&arch_full) {
+            Ok(st) => st,
+            Err(error) => return error,
+        }
     };
-    if !stdout_archive && output_archive.is_some() && (arch_full == dest_full || input.as_ref().zip(dest.as_ref())
-        .is_some_and(|(a,b)| a.identity.is_some() && a.identity == b.identity)) {
-        return zip_err(&format!("--out path must be different than in path: {}",zip_public_text(&arch_name)));
+    let dest = if stdout_archive || dest_full == arch_full {
+        input.clone()
+    } else {
+        match inspect(&dest_full) {
+            Ok(st) => st,
+            Err(error) => return error,
+        }
+    };
+    if !stdout_archive
+        && output_archive.is_some()
+        && (arch_full == dest_full
+            || input
+                .as_ref()
+                .zip(dest.as_ref())
+                .is_some_and(|(a, b)| a.identity.is_some() && a.identity == b.identity))
+    {
+        return zip_err(&format!(
+            "--out path must be different than in path: {}",
+            zip_public_text(&arch_name)
+        ));
     }
     let allow_linked = split_size == 0 && output_archive.is_none();
-    let safe = |st: &crate::vfs::FileStat| st.kind == crate::vfs::VfsEntryKind::File && st.identity.is_some()
-        && st.mode & 0o170000 == 0o100000 && st.nlink.is_some_and(|n| n == 1 || n > 1 && allow_linked);
+    let safe = |st: &crate::vfs::FileStat| {
+        st.kind == crate::vfs::VfsEntryKind::File
+            && st.identity.is_some()
+            && st.mode & 0o170000 == 0o100000
+            && st.nlink.is_some_and(|n| n == 1 || n > 1 && allow_linked)
+    };
     if !show_files && dest.as_ref().is_some_and(|st| !safe(st)) {
-        return err_out("zip: output archive requires a regular, single-link file with known backing identity\n",2);
+        return err_out(
+            "zip: output archive requires a regular, single-link file with known backing identity\n",
+            2,
+        );
     }
     if input.as_ref().is_some_and(|st| !safe(st)) {
-        return err_out("zip: updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported\n",2);
+        return err_out(
+            "zip: updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported\n",
+            2,
+        );
     }
     let mut sources = Vec::new();
-    if arch_full != dest_full && let Some(st) = &input { sources.push((arch_full.clone(),st.identity.clone())); }
+    if arch_full != dest_full
+        && let Some(st) = &input
+    {
+        sources.push((arch_full.clone(), st.identity.clone()));
+    }
     let original;
     let mut retained = crate::commands::codecs::ZipRecords::new();
     let mut entries = if let Some(st) = &input {
-        original = match zip_read_file(fs,&arch_full,st) { Ok(b) => b, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
-        let entries = match crate::commands::codecs::read_zip_members(&original,Some(&mut retained)) {
-            Ok(entries) => entries,
+        original = match zip_read_file(fs, &arch_full, st) {
+            Ok(b) => b,
             Err(e) => return err_out(&format!("zip: {e}\n"), 2),
         };
+        let entries =
+            match crate::commands::codecs::read_zip_members(&original, Some(&mut retained)) {
+                Ok(entries) => entries,
+                Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+            };
         if split_size != 0 && output_archive.is_none() && !show_files {
             return zip_err("split archives require a separate --out destination");
         }
         entries
     } else {
-        if copy_mode || delete_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
+        if copy_mode || delete_mode {
+            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
+        }
         Vec::new()
     };
     let mut publish = |mut bytes: Vec<u8>, sources: &[_]| {
-        let mut stamp = replacement.as_ref().map_or(version,|r|r.version);
-        let mut report=String::new();
-        let temp=temporary.as_ref().map(|(_,dir,_,r)|(dir.as_str(),r.version));
-        let split=if split_size!=0 {
-            let data=if test_archive {bytes.clone()}else{std::mem::take(&mut bytes)};
-            match zip_volumes::prepare(fs,&dest_full,data,(split_size,split_verbose),sources,version,replacement.take().unwrap()) {
-                Ok(parts)=>Some(parts),Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+        let mut stamp = replacement.as_ref().map_or(version, |r| r.version);
+        let mut report = String::new();
+        let temp = temporary
+            .as_ref()
+            .map(|(_, dir, _, r)| (dir.as_str(), r.version));
+        let split = if split_size != 0 {
+            let data = if test_archive {
+                bytes.clone()
+            } else {
+                std::mem::take(&mut bytes)
+            };
+            match zip_volumes::prepare(
+                fs,
+                &dest_full,
+                data,
+                (split_size, split_verbose),
+                sources,
+                version,
+                replacement.take().unwrap(),
+            ) {
+                Ok(parts) => Some(parts),
+                Err(e) => return err_out(&format!("zip: {e}\n"), 2),
             }
-        } else {None};
-        if (test_archive || temporary.is_some() && split.is_none()) && arch_name!="-" {
+        } else {
+            None
+        };
+        if (test_archive || temporary.is_some() && split.is_none()) && arch_name != "-" {
             let mut checker_changes = 0;
             let candidate;
             if split.is_some() {
-                candidate=match fs.observe_publication(&dest_full,version,crate::vfs::PublicationMode::Replace) {
-                    Ok(guard)=>guard,Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+                candidate = match fs.observe_publication(
+                    &dest_full,
+                    version,
+                    crate::vfs::PublicationMode::Replace,
+                ) {
+                    Ok(guard) => guard,
+                    Err(e) => return err_out(&format!("zip: {e}\n"), 2),
                 };
-                stamp=candidate.version;
+                stamp = candidate.version;
             }
-            let result = fs.validate_staged_file(&dest_full, if split.is_some(){None}else{temp}, &bytes, stamp, split.is_some(), &mut |path| {
-                if !test_archive { return true; }
-                let mut remaining = fs.shell_limits().max_expansion_bytes;
-                let mut words = vec![checker[0].clone()];
-                let mut placeholder = false;
-                for arg in &checker[1..] {
-                    let count = arg.matches("{}").count();
-                    placeholder |= count != 0;
-                    let len = (arg.len()-2*count).saturating_add(count.saturating_mul(path.len())).saturating_add(1);
-                    let Some(left) = remaining.checked_sub(len) else { return false };
-                    remaining = left;
-                    words.push(arg.replace("{}",path));
-                }
-                if !placeholder {
-                    if path.len() >= remaining { return false; }
-                    words.push(path.to_owned());
-                }
-                let files=[dest_full.as_str(),arch_full.as_str(),path];
-                let observed=(split_size==0 && fs.generation()!=0).then(|| zip_checker_paths(fs,files)).flatten();
-                let before=fs.generation();
-                let valid=invoke(&words);
-                let after=fs.generation();
-                if valid && after!=before && let Some(old)=observed && let Some(current)=zip_checker_paths(fs,files)
-                    && old.iter().all(|(p,st)| match (st,&current[p]) {
-                        (None,None)=>true,
-                        (Some(a),Some(b)) if a.kind==crate::vfs::VfsEntryKind::Directory =>
-                            a.kind==b.kind && a.identity==b.identity && a.mode==b.mode,
-                        (Some(a),Some(b))=>a.same_snapshot(b),
-                        _=>false,
-                    }) {
-                    checker_changes=after.wrapping_sub(before);
-                }
-                valid
-            });
+            let result = fs.validate_staged_file(
+                &dest_full,
+                if split.is_some() { None } else { temp },
+                &bytes,
+                stamp,
+                split.is_some(),
+                &mut |path| {
+                    if !test_archive {
+                        return true;
+                    }
+                    let mut remaining = fs.shell_limits().max_expansion_bytes;
+                    let mut words = vec![checker[0].clone()];
+                    let mut placeholder = false;
+                    for arg in &checker[1..] {
+                        let count = arg.matches("{}").count();
+                        placeholder |= count != 0;
+                        let len = (arg.len() - 2 * count)
+                            .saturating_add(count.saturating_mul(path.len()))
+                            .saturating_add(1);
+                        let Some(left) = remaining.checked_sub(len) else {
+                            return false;
+                        };
+                        remaining = left;
+                        words.push(arg.replace("{}", path));
+                    }
+                    if !placeholder {
+                        if path.len() >= remaining {
+                            return false;
+                        }
+                        words.push(path.to_owned());
+                    }
+                    let files = [dest_full.as_str(), arch_full.as_str(), path];
+                    let observed = (split_size == 0 && fs.generation() != 0)
+                        .then(|| zip_checker_paths(fs, files))
+                        .flatten();
+                    let before = fs.generation();
+                    let valid = invoke(&words);
+                    let after = fs.generation();
+                    if valid
+                        && after != before
+                        && let Some(old) = observed
+                        && let Some(current) = zip_checker_paths(fs, files)
+                        && old.iter().all(|(p, st)| match (st, &current[p]) {
+                            (None, None) => true,
+                            (Some(a), Some(b)) if a.kind == crate::vfs::VfsEntryKind::Directory => {
+                                a.kind == b.kind && a.identity == b.identity && a.mode == b.mode
+                            }
+                            (Some(a), Some(b)) => a.same_snapshot(b),
+                            _ => false,
+                        })
+                    {
+                        checker_changes = after.wrapping_sub(before);
+                    }
+                    valid
+                },
+            );
             let valid = match result {
-                Ok((valid,next)) => { stamp=next.wrapping_add(checker_changes); valid }
-                Err(e) => return err_out(&format!("zip: {e}\n"),2),
+                Ok((valid, next)) => {
+                    stamp = next.wrapping_add(checker_changes);
+                    valid
+                }
+                Err(e) => return err_out(&format!("zip: {e}\n"), 2),
             };
-            if test_archive && !quiet {report=format!("test of {} {}\n",zip_public_text(&arch_name),if valid {"OK"} else {"FAILED"});}
+            if test_archive && !quiet {
+                report = format!(
+                    "test of {} {}\n",
+                    zip_public_text(&arch_name),
+                    if valid { "OK" } else { "FAILED" }
+                );
+            }
             if !valid {
                 report.push_str("\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n");
-                return BuiltinOutcome {stdout:report,stderr:String::new(),exit_code:8};
+                return BuiltinOutcome {
+                    stdout: report,
+                    stderr: String::new(),
+                    exit_code: 8,
+                };
             }
         }
-        if let Some((name,dir,id,_))=&temporary
-            && !fs.inspect_command_entry(name,true,"realpath").is_ok_and(|(p,st)|p==*dir && st.identity==*id) {
-            return err_out(if split.is_some() {"zip: ZIP split staging parent changed before publication\n"} else {"zip: ZIP temporary path changed before publication\n"},2);
+        if let Some((name, dir, id, _)) = &temporary
+            && !fs
+                .inspect_command_entry(name, true, "realpath")
+                .is_ok_and(|(p, st)| p == *dir && st.identity == *id)
+        {
+            return err_out(
+                if split.is_some() {
+                    "zip: ZIP split staging parent changed before publication\n"
+                } else {
+                    "zip: ZIP temporary path changed before publication\n"
+                },
+                2,
+            );
         }
-        let result = if let Some(parts)=split {
-            fs.publish_zip_volumes(parts.files,&parts.guards,temp,stamp).map(|()|parts.report)
-        } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
-            if st.mode & 0o200 == 0 { return err_out(&format!("zip: EACCES: permission denied, access '{dest_full}'\n"),2); }
-            fs.publish_file(&dest_full,&bytes,&[],stamp).map(|_| String::new())
+        let result = if let Some(parts) = split {
+            fs.publish_zip_volumes(parts.files, &parts.guards, temp, stamp)
+                .map(|()| parts.report)
+        } else if let Some(st) = &dest
+            && st.nlink.is_some_and(|n| n > 1)
+        {
+            if st.mode & 0o200 == 0 {
+                return err_out(
+                    &format!("zip: EACCES: permission denied, access '{dest_full}'\n"),
+                    2,
+                );
+            }
+            fs.publish_file(&dest_full, &bytes, &[], stamp)
+                .map(|_| String::new())
         } else {
-            fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),stamp)
-                .map(|()| String::new())
+            fs.replace_file_entry_with_mode(
+                &dest_full,
+                &bytes,
+                dest.as_ref().map_or(0o644, |st| st.mode & 0o7777),
+                stamp,
+            )
+            .map(|()| String::new())
         };
-        match result { Ok(split_report) => {report.push_str(&split_report);ok_out(&report)}, Err(e) => err_out(&format!("zip: {e}\n"),2) }
+        match result {
+            Ok(split_report) => {
+                report.push_str(&split_report);
+                ok_out(&report)
+            }
+            Err(e) => err_out(&format!("zip: {e}\n"), 2),
+        }
     };
     if show_files {
         let mut out = format!("Archive contains:\n");
@@ -6479,37 +8298,83 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             if e.typeflag == ZIP_COMMENT_TYPE {
                 return true;
             }
-            let op_ok = operands.is_empty() || operands.iter().any(|p| zip_matches_pattern(p, &e.name));
-            let inc_ok = includes.is_empty() || includes.iter().any(|p| zip_matches_pattern(p, &e.name));
+            let op_ok =
+                operands.is_empty() || operands.iter().any(|p| zip_matches_pattern(p, &e.name));
+            let inc_ok =
+                includes.is_empty() || includes.iter().any(|p| zip_matches_pattern(p, &e.name));
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),(&retained,&Default::default()),|_,_,_,_| true), &sources);
+        return publish(
+            crate::commands::codecs::encode_zip_members(
+                &entries,
+                (0, 0),
+                &[],
+                false,
+                (false, zip64, strip_extra),
+                (&retained, &Default::default()),
+                |_, _, _, _| true,
+            ),
+            &sources,
+        );
     }
     if delete_mode {
         entries.retain(|e| {
-            e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
+            e.typeflag == ZIP_COMMENT_TYPE
+                || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),(&retained,&Default::default()),|_,_,_,_| true), &sources);
+        return publish(
+            crate::commands::codecs::encode_zip_members(
+                &entries,
+                (0, 0),
+                &[],
+                false,
+                (false, zip64, strip_extra),
+                (&retained, &Default::default()),
+                |_, _, _, _| true,
+            ),
+            &sources,
+        );
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
-    if stdout_archive && test_archive && !quiet { notices.push_str("\tzip warning: can't use -T on stdout, -T ignored\n"); }
-    if timed && !quiet && entries.iter().all(|e| e.typeflag == ZIP_COMMENT_TYPE) {
-        notices.push_str(&format!("\tzip warning: {} not found or empty\n",zip_public_text(&arch_name)));
+    if stdout_archive && test_archive && !quiet {
+        notices.push_str("\tzip warning: can't use -T on stdout, -T ignored\n");
     }
-    if filesync_mode { entries.clear(); retained.clear(); }
-    let targets = if recursive_patterns { vec![".".to_string()] }
-        else if timed && operands.is_empty() { entries.iter().filter(|e| e.typeflag != ZIP_COMMENT_TYPE).map(|e|e.name.clone()).collect() }
-        else { operands.clone() };
-    let mut targets: std::collections::VecDeque<_> = targets.into_iter().map(|p| (p,false)).collect();
+    if timed && !quiet && entries.iter().all(|e| e.typeflag == ZIP_COMMENT_TYPE) {
+        notices.push_str(&format!(
+            "\tzip warning: {} not found or empty\n",
+            zip_public_text(&arch_name)
+        ));
+    }
+    if filesync_mode {
+        entries.clear();
+        retained.clear();
+    }
+    let targets = if recursive_patterns {
+        vec![".".to_string()]
+    } else if timed && operands.is_empty() {
+        entries
+            .iter()
+            .filter(|e| e.typeflag != ZIP_COMMENT_TYPE)
+            .map(|e| e.name.clone())
+            .collect()
+    } else {
+        operands.clone()
+    };
+    let mut targets: std::collections::VecDeque<_> =
+        targets.into_iter().map(|p| (p, false)).collect();
     let mut moving_paths = std::collections::BTreeSet::new();
     let mut moves = Vec::new();
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
-    let mut members: BTreeMap<_,_> = entries.iter().enumerate().filter(|(_,e)| e.typeflag != ZIP_COMMENT_TYPE)
-        .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
+    let mut members: BTreeMap<_, _> = entries
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| e.typeflag != ZIP_COMMENT_TYPE)
+        .map(|(index, e)| (e.name.clone(), (index, None::<String>, Some(e.mtime))))
+        .collect();
     let mut owners = BTreeMap::new();
     if junk_paths {
         // Info-ZIP strips filter paths, then matches original source names.
@@ -6517,63 +8382,112 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             *pattern = pattern.rsplit('/').next().unwrap_or_default().to_owned();
         }
     }
-    while let Some((t,stored_name)) = targets.pop_front() {
+    while let Some((t, stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
         let visit = if t == "-" && !stored_name {
             if !tar_matches_exclude("-", &excludes) {
-                let stat=match stdin.file.map(|f|f.source) {
-                    Some(super::InputSource::File(handle,_)) if !handle.is_stream()=>handle.stat().ok().filter(|st|st.mode & 0o170000==0o100000),
-                    _=>None,
+                let stat = match stdin.file.map(|f| f.source) {
+                    Some(super::InputSource::File(handle, _)) if !handle.is_stream() => handle
+                        .stat()
+                        .ok()
+                        .filter(|st| st.mode & 0o170000 == 0o100000),
+                    _ => None,
                 };
-                let entry=TarEntry {name:t.clone(),typeflag:b'0',mode:stat.as_ref().map_or(0o010600,|st|st.mode),
-                    mtime:stat.map_or_else(crate::vfs::now_ms,|st|st.mtime_ms)/1000.,
-                    atime:None,uid:0,gid:0,linkname:String::new(),content:Vec::new()};
-                raw_entries.push((None,t.clone(),None,entry));
+                let entry = TarEntry {
+                    name: t.clone(),
+                    typeflag: b'0',
+                    mode: stat.as_ref().map_or(0o010600, |st| st.mode),
+                    mtime: stat.map_or_else(crate::vfs::now_ms, |st| st.mtime_ms) / 1000.,
+                    atime: None,
+                    uid: 0,
+                    gid: 0,
+                    linkname: String::new(),
+                    content: Vec::new(),
+                };
+                raw_entries.push((None, t.clone(), None, entry));
             }
             Ok(())
-        } else { visit_archive_sources(
-            t.trim_start_matches('/'),
-            &resolve_posix_path(cwd, &t),
-            if junk_paths { &[] } else { &excludes },
-            false,
-            !store_symlinks,
-            false,
-            recursive || recursive_patterns,
-            fs,
-            &mut Vec::new(),
-            &mut |stat, named, path, entry, root| {
-                if !stdout_archive && (path == arch_full || path == dest_full) || [input.as_ref(),dest.as_ref()].into_iter().flatten()
-                    .any(|archive| archive.identity.is_some() && archive.identity == stat.identity) {
-                    skipped_archive = true;
-                    return Ok(false);
-                }
-                let receipt = if move_mode {
-                    Some((fs.lstat(&crate::vfs::dirname_posix_path(&path))?, named.clone()))
-                } else { None };
-                let source = if root { t.clone() } else {
-                    let name = entry.name.trim_end_matches('/');
-                    if t == "." { name.strip_prefix("./").unwrap_or(name).into() }
-                    else { format!("{}{name}", &t[..t.len()-t.trim_start_matches('/').len()]) }
-                };
-                raw_entries.push((Some((path,stat.clone())),source,receipt,entry));
-                Ok(true)
-            },
-        ) };
+        } else {
+            visit_archive_sources(
+                t.trim_start_matches('/'),
+                &resolve_posix_path(cwd, &t),
+                if junk_paths { &[] } else { &excludes },
+                false,
+                !store_symlinks,
+                false,
+                recursive || recursive_patterns,
+                fs,
+                &mut Vec::new(),
+                &mut |stat, named, path, entry, root| {
+                    if !stdout_archive && (path == arch_full || path == dest_full)
+                        || [input.as_ref(), dest.as_ref()]
+                            .into_iter()
+                            .flatten()
+                            .any(|archive| {
+                                archive.identity.is_some() && archive.identity == stat.identity
+                            })
+                    {
+                        skipped_archive = true;
+                        return Ok(false);
+                    }
+                    let receipt = if move_mode {
+                        Some((
+                            fs.lstat(&crate::vfs::dirname_posix_path(&path))?,
+                            named.clone(),
+                        ))
+                    } else {
+                        None
+                    };
+                    let source = if root {
+                        t.clone()
+                    } else {
+                        let name = entry.name.trim_end_matches('/');
+                        if t == "." {
+                            name.strip_prefix("./").unwrap_or(name).into()
+                        } else {
+                            format!("{}{name}", &t[..t.len() - t.trim_start_matches('/').len()])
+                        }
+                    };
+                    raw_entries.push((Some((path, stat.clone())), source, receipt, entry));
+                    Ok(true)
+                },
+            )
+        };
         if let Err(e) = visit {
-            if !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
-            if stdout_archive && !quiet { notices.push_str(&format!("\tzip warning: name not matched: {}\n",zip_public_text(&t))); }
+            if !e.starts_with("ENOENT:") {
+                return err_out(&format!("zip: {e}\n"), 2);
+            }
+            if stdout_archive && !quiet {
+                notices.push_str(&format!(
+                    "\tzip warning: name not matched: {}\n",
+                    zip_public_text(&t)
+                ));
+            }
             if timed && raw_entries.is_empty() && !stored_name {
                 let mut matched = false;
-                for entry in entries.iter().rev().filter(|e| e.typeflag != ZIP_COMMENT_TYPE && members.get(&e.name).is_some_and(|m| m.2.is_some())) {
-                    if zip_matches_pattern(t.trim_start_matches('/'),&entry.name) {
-                        targets.push_front((entry.name.clone(),true)); matched = true;
+                for entry in entries.iter().rev().filter(|e| {
+                    e.typeflag != ZIP_COMMENT_TYPE
+                        && members.get(&e.name).is_some_and(|m| m.2.is_some())
+                }) {
+                    if zip_matches_pattern(t.trim_start_matches('/'), &entry.name) {
+                        targets.push_front((entry.name.clone(), true));
+                        matched = true;
                     }
                 }
-                if !matched && !quiet { notices.push_str(&format!("\tzip warning: name not matched: {}\n",zip_public_text(&t))); }
+                if !matched && !quiet {
+                    notices.push_str(&format!(
+                        "\tzip warning: name not matched: {}\n",
+                        zip_public_text(&t)
+                    ));
+                }
             }
         }
-        for (file,source,receipt,mut e) in raw_entries {
-            e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
+        for (file, source, receipt, mut e) in raw_entries {
+            e.name = e
+                .name
+                .trim_start_matches('/')
+                .trim_start_matches("./")
+                .to_string();
             if e.name.is_empty() || e.name == "." || e.name == "./" {
                 continue;
             }
@@ -6584,12 +8498,17 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                 if e.typeflag == b'5' || e.name.ends_with('/') {
                     continue;
                 }
-                if !operands.is_empty() && !operands.iter().any(|p| zip_matches_pattern(p, &e.name)) {
+                if !operands.is_empty() && !operands.iter().any(|p| zip_matches_pattern(p, &e.name))
+                {
                     continue;
                 }
             }
             let base = crate::vfs::basename_posix_path(&e.name);
-            if junk_paths && excludes.iter().any(|pattern| crate::shell::expand::glob_match(pattern, &e.name)) {
+            if junk_paths
+                && excludes
+                    .iter()
+                    .any(|pattern| crate::shell::expand::glob_match(pattern, &e.name))
+            {
                 continue;
             }
             if !includes.is_empty() {
@@ -6610,19 +8529,37 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                 }
                 e.name = base;
             }
-            let prior = members.get(&e.name).and_then(|m|m.2);
-            if freshen_mode && prior.is_none() { continue; }
-            if let Some((path,_)) = &file && let Some((parent,expected)) = receipt && moving_paths.insert(path.clone()) {
-                let directory=expected.kind==crate::vfs::VfsEntryKind::Directory;
-                let receipt=match fs.retain_removal(path,parent,expected) {
-                    Ok(r)=>r, Err(e)=>return err_out(&format!("zip: {e}\n"),2),
-                };
-                moves.push(ZipMove {path:path.clone(),source:source.clone(),directory,receipt});
+            let prior = members.get(&e.name).and_then(|m| m.2);
+            if freshen_mode && prior.is_none() {
+                continue;
             }
-            if timed && prior.is_some_and(|mtime| e.mtime.floor() <= mtime.floor()) { continue; }
-            let (index, selected, _) = members.entry(e.name.clone()).or_insert((entries.len(), None, None));
+            if let Some((path, _)) = &file
+                && let Some((parent, expected)) = receipt
+                && moving_paths.insert(path.clone())
+            {
+                let directory = expected.kind == crate::vfs::VfsEntryKind::Directory;
+                let receipt = match fs.retain_removal(path, parent, expected) {
+                    Ok(r) => r,
+                    Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+                };
+                moves.push(ZipMove {
+                    path: path.clone(),
+                    source: source.clone(),
+                    directory,
+                    receipt,
+                });
+            }
+            if timed && prior.is_some_and(|mtime| e.mtime.floor() <= mtime.floor()) {
+                continue;
+            }
+            let (index, selected, _) =
+                members
+                    .entry(e.name.clone())
+                    .or_insert((entries.len(), None, None));
             if let Some(first) = selected {
-                if first == &source { continue; }
+                if first == &source {
+                    continue;
+                }
                 let mut result = zip_err("cannot repeat names in zip file");
                 if !quiet {
                     result.stdout.insert_str(0,&format!("\tzip warning:   first full name: {}\n                      second full name: {}\n                     name in zip file repeated: {}\n",
@@ -6632,28 +8569,50 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             }
             *selected = Some(source);
             retained.remove(&e.name);
-            if let Some((_,stat)) = &file && let Some(owner) = stat.uid.zip(stat.gid) {
+            if let Some((_, stat)) = &file
+                && let Some(owner) = stat.uid.zip(stat.gid)
+            {
                 owners.insert(e.name.clone(), owner);
             }
             if e.typeflag == b'0' {
-                e.content = if let Some((path,stat))=&file {
-                    match zip_read_file(fs,path,stat) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) }
-                } else if stdin_names { Vec::new() } else {
-                    match take_stdin(){Ok(b)=>b,Err(e)=>return e}
+                e.content = if let Some((path, stat)) = &file {
+                    match zip_read_file(fs, path, stat) {
+                        Ok(bytes) => bytes,
+                        Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+                    }
+                } else if stdin_names {
+                    Vec::new()
+                } else {
+                    match take_stdin() {
+                        Ok(b) => b,
+                        Err(e) => return e,
+                    }
                 };
             }
-            if e.typeflag == b'0' && let Some(from) = from_crlf {
-                let store = compression==0 || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
-                if from && compression==12 && !store {return err_out("zip: from-crlf BZIP2 native read profile unsupported\n",2);}
+            if e.typeflag == b'0'
+                && let Some(from) = from_crlf
+            {
+                let store = compression == 0
+                    || level == 0
+                    || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
+                if from && compression == 12 && !store {
+                    return err_out("zip: from-crlf BZIP2 native read profile unsupported\n", 2);
+                }
                 let window = match (from, store) {
-                    (false,true) => 8192, (false,false) => 32768,
-                    (true,true) => 16383, (true,false) => 65535,
+                    (false, true) => 8192,
+                    (false, false) => 32768,
+                    (true, true) => 16383,
+                    (true, false) => 65535,
                 };
                 let prefix = &e.content[..e.content.len().min(window)];
                 let text = prefix.iter().any(|&b| b >= 32)
-                    && !prefix.iter().any(|&b| matches!(b, 0..=6 | 14..=25 | 28..=31));
+                    && !prefix
+                        .iter()
+                        .any(|&b| matches!(b, 0..=6 | 14..=25 | 28..=31));
                 if text && !from {
-                    let mut converted = Vec::with_capacity(e.content.len() + e.content.iter().filter(|&&b| b == b'\n').count());
+                    let mut converted = Vec::with_capacity(
+                        e.content.len() + e.content.iter().filter(|&&b| b == b'\n').count(),
+                    );
                     for &b in &e.content {
                         if b == b'\n' {
                             converted.push(b'\r');
@@ -6672,8 +8631,14 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                     e.content = converted;
                 }
             }
-            if file.is_none() { e.typeflag=crate::commands::codecs::ZIP_STDIN_TYPE; }
-            if split_size != 0 && let Some((path,stat))=file { sources.push((path,stat.identity)); }
+            if file.is_none() {
+                e.typeflag = crate::commands::codecs::ZIP_STDIN_TYPE;
+            }
+            if split_size != 0
+                && let Some((path, stat)) = file
+            {
+                sources.push((path, stat.identity));
+            }
             if let Some(ex) = entries.get_mut(*index) {
                 *ex = e;
             } else {
@@ -6681,114 +8646,227 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             }
         }
     }
-    let unchanged = members.values().all(|(_,source,_)| source.is_none());
-    if stdout_archive && unchanged { notices.push_str("\nzip error: Nothing to do! (-)\n");return err_out(&notices,12); }
+    let unchanged = members.values().all(|(_, source, _)| source.is_none());
+    if stdout_archive && unchanged {
+        notices.push_str("\nzip error: Nothing to do! (-)\n");
+        return err_out(&notices, 12);
+    }
     if timed && unchanged && !read_comment {
-        if let Err(e) = remove_zip_sources(fs,moves,quiet,&mut notices) { return err_out(&e,2); }
-        return BuiltinOutcome { stdout:notices,stderr:String::new(),exit_code:12 };
+        if let Err(e) = remove_zip_sources(fs, moves, quiet, &mut notices) {
+            return err_out(&e, 2);
+        }
+        return BuiltinOutcome {
+            stdout: notices,
+            stderr: String::new(),
+            exit_code: 12,
+        };
     }
     if skipped_archive && unchanged && !read_comment {
-        return BuiltinOutcome { stdout:format!("\nzip error: Nothing to do! ({})\n",zip_public_text(&arch_name)),stderr:String::new(),exit_code:12 };
+        return BuiltinOutcome {
+            stdout: format!(
+                "\nzip error: Nothing to do! ({})\n",
+                zip_public_text(&arch_name)
+            ),
+            stderr: String::new(),
+            exit_code: 12,
+        };
     }
     let mut prompt = String::new();
     let mut comment_error = false;
     if read_comment {
-        let old = entries.iter().position(|e| e.typeflag == ZIP_COMMENT_TYPE).map(|i|entries.remove(i).content);
+        let old = entries
+            .iter()
+            .position(|e| e.typeflag == ZIP_COMMENT_TYPE)
+            .map(|i| entries.remove(i).content);
         if !quiet {
-            if let Some(old) = old.filter(|c|!c.is_empty()) {
+            if let Some(old) = old.filter(|c| !c.is_empty()) {
                 prompt.push_str("current zip file comment is:\n");
                 prompt.push_str(&crate::vfs::bytes_to_stream_string(&old));
                 prompt.push('\n');
             }
             prompt.push_str("enter new zip file comment (end with .):\n");
         }
-        let bytes=match take_stdin(){Ok(b)=>b,Err(e)=>return e};
+        let bytes = match take_stdin() {
+            Ok(b) => b,
+            Err(e) => return e,
+        };
         match zip_archive_comment(&bytes) {
             Some(bytes) => entries.push(TarEntry {
-                name: "__ZIP_COMMENT__".into(), typeflag: ZIP_COMMENT_TYPE, mode: 0, mtime: 0.,
-                atime: None, uid: 0, gid: 0, linkname: String::new(), content: bytes,
+                name: "__ZIP_COMMENT__".into(),
+                typeflag: ZIP_COMMENT_TYPE,
+                mode: 0,
+                mtime: 0.,
+                atime: None,
+                uid: 0,
+                gid: 0,
+                linkname: String::new(),
+                content: bytes,
             }),
             None => comment_error = true,
         }
     }
     use std::fmt::Write;
     let mut progress = String::new();
-    let (mut total,mut compressed) = (0u64,0u64);
-    let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
-        (200 * (i128::from(size) - i128::from(stored)) / i128::from(size) + 1) / 2
+    let (mut total, mut compressed) = (0u64, 0u64);
+    let savings = |size: u64, stored: u64| {
+        if size == 0 {
+            0
+        } else {
+            (200 * (i128::from(size) - i128::from(stored)) / i128::from(size) + 1) / 2
+        }
     };
-    let descriptor=descriptors || stdout_archive && !seekable_stdout;
-    let mut store_failed=false;
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptor,zip64,strip_extra), (&retained,&owners),
-        |entry,method,size,stored| {
-            store_failed=descriptor && method==0 && entry.typeflag==crate::commands::codecs::ZIP_STDIN_TYPE && entry.mode & 0o170000==0o010000;
-            if quiet { return !store_failed; }
-            let name=entry.name.as_str();
-            let (size,stored) = (size as u64,stored as u64);
+    let descriptor = descriptors || stdout_archive && !seekable_stdout;
+    let mut store_failed = false;
+    let out_bytes = crate::commands::codecs::encode_zip_members(
+        &entries,
+        (compression, level),
+        &suffixes,
+        false,
+        (descriptor, zip64, strip_extra),
+        (&retained, &owners),
+        |entry, method, size, stored| {
+            store_failed = descriptor
+                && method == 0
+                && entry.typeflag == crate::commands::codecs::ZIP_STDIN_TYPE
+                && entry.mode & 0o170000 == 0o010000;
+            if quiet {
+                return !store_failed;
+            }
+            let name = entry.name.as_str();
+            let (size, stored) = (size as u64, stored as u64);
             total += size;
             compressed += stored;
-            if let Some((_,Some(_),prior)) = members.get(name) {
-                progress.push_str(if prior.is_none() { "  adding: " } else if freshen_mode { "freshening: " } else { "updating: " });
-                super::fs::write_display_name(&mut progress,zip_public_text(name),false);
-                if store_failed {progress.push_str(if verbose && size != 0 {" \n"} else {"\n"});return false;}
-                if verbose {
-                    if method != 0 { progress.push(' '); }
-                    write!(progress,"\t(in={size}) (out={stored})").unwrap();
+            if let Some((_, Some(_), prior)) = members.get(name) {
+                progress.push_str(if prior.is_none() {
+                    "  adding: "
+                } else if freshen_mode {
+                    "freshening: "
+                } else {
+                    "updating: "
+                });
+                super::fs::write_display_name(&mut progress, zip_public_text(name), false);
+                if store_failed {
+                    progress.push_str(if verbose && size != 0 { " \n" } else { "\n" });
+                    return false;
                 }
-                if method != 0 { writeln!(progress," ({} {}%)",match method {12=>"bzipped",14=>"lzma",_=>"deflated"},savings(size,stored)).unwrap(); }
-                else { progress.push_str(" (stored 0%)\n"); }
+                if verbose {
+                    if method != 0 {
+                        progress.push(' ');
+                    }
+                    write!(progress, "\t(in={size}) (out={stored})").unwrap();
+                }
+                if method != 0 {
+                    writeln!(
+                        progress,
+                        " ({} {}%)",
+                        match method {
+                            12 => "bzipped",
+                            14 => "lzma",
+                            _ => "deflated",
+                        },
+                        savings(size, stored)
+                    )
+                    .unwrap();
+                } else {
+                    progress.push_str(" (stored 0%)\n");
+                }
             }
             !store_failed
-        });
-    if verbose && !quiet && !store_failed { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
+        },
+    );
+    if verbose && !quiet && !store_failed {
+        writeln!(
+            progress,
+            "total bytes={total}, compressed={compressed} -> {}% savings",
+            savings(total, compressed)
+        )
+        .unwrap();
+    }
     if read_comment {
         notices.push_str(&progress);
         progress.clear();
         notices.push_str(&prompt);
         let written = crate::vfs::stream_byte_len(&notices);
-        if written > fs.remaining_output_bytes() || !comment_error && split_size == 0 && out_bytes.len() > fs.remaining_output_bytes()-written {
-            return err_out(&fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes),2);
+        if written > fs.remaining_output_bytes()
+            || !comment_error
+                && split_size == 0
+                && out_bytes.len() > fs.remaining_output_bytes() - written
+        {
+            return err_out(
+                &fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes),
+                2,
+            );
         }
         if comment_error {
-            return BuiltinOutcome {stdout:notices,stderr:"zip: ZIP archive comment byte limit exceeded\n".into(),exit_code:2};
+            return BuiltinOutcome {
+                stdout: notices,
+                stderr: "zip: ZIP archive comment byte limit exceeded\n".into(),
+                exit_code: 2,
+            };
         }
     }
-    let store_error="\nzip error: Invalid command arguments (zip -0 not supported for I/O on pipes or devices)\n";
+    let store_error = "\nzip error: Invalid command arguments (zip -0 not supported for I/O on pipes or devices)\n";
     if store_failed && !stdout_archive {
-        return BuiltinOutcome {stdout:format!("{notices}{progress}{store_error}"),stderr:String::new(),exit_code:16};
+        return BuiltinOutcome {
+            stdout: format!("{notices}{progress}{store_error}"),
+            stderr: String::new(),
+            exit_code: 16,
+        };
     }
     if stdout_archive {
         let mut result = ok_out("");
         notices.push_str(&progress);
-        if !notices.is_empty() && !write(2,&notices,&mut result) { return result; }
-        for chunk in out_bytes.chunks(32768) {
-            if !write(1,&crate::vfs::bytes_to_stream_string(chunk),&mut result) { return result; }
-        }
-        if store_failed {
-            if write(2,store_error,&mut result) {result.exit_code=16;}
+        if !notices.is_empty() && !write(2, &notices, &mut result) {
             return result;
         }
-        if let Err(e) = remove_zip_sources(fs,moves,quiet,&mut result.stderr) {return err_out(&e,2);}
+        for chunk in out_bytes.chunks(32768) {
+            if !write(1, &crate::vfs::bytes_to_stream_string(chunk), &mut result) {
+                return result;
+            }
+        }
+        if store_failed {
+            if write(2, store_error, &mut result) {
+                result.exit_code = 16;
+            }
+            return result;
+        }
+        if let Err(e) = remove_zip_sources(fs, moves, quiet, &mut result.stderr) {
+            return err_out(&e, 2);
+        }
         return result;
     }
     let mut result = publish(out_bytes, &sources);
-    if test_archive && matches!(result.exit_code,0|8) {result.stdout.insert_str(0,&progress);progress.clear();}
-    result.stdout.insert_str(0,&notices);
+    if test_archive && matches!(result.exit_code, 0 | 8) {
+        result.stdout.insert_str(0, &progress);
+        progress.clear();
+    }
+    result.stdout.insert_str(0, &notices);
     if result.exit_code == 0 {
         result.stdout.push_str(&progress);
         if crate::vfs::stream_byte_len(&result.stdout) > fs.remaining_output_bytes() {
-            return err_out(&fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes),2);
+            return err_out(
+                &fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes),
+                2,
+            );
         }
     }
-    if result.exit_code == 0 && let Err(e) = remove_zip_sources(fs,moves,quiet,&mut result.stdout) { return err_out(&e,2); }
+    if result.exit_code == 0
+        && let Err(e) = remove_zip_sources(fs, moves, quiet, &mut result.stdout)
+    {
+        return err_out(&e, 2);
+    }
     result
 }
 
 fn unzip_filtered(name: &str) -> String {
     let mut out = String::new();
     for c in name.chars() {
-        if (c as u32) < 32 { out.push('^'); out.push((c as u8 + 64) as char); }
-        else { out.push(c); }
+        if (c as u32) < 32 {
+            out.push('^');
+            out.push((c as u8 + 64) as char);
+        } else {
+            out.push(c);
+        }
     }
     out
 }
@@ -6815,50 +8893,77 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut excludes: Vec<String> = Vec::new();
     let mut in_exclude = false;
     let mut ended = false;
-    let mut arguments=args.iter().enumerate();
-    while let Some((index,arg))=arguments.next() {
-        if !ended && arg=="--" {ended=true;continue;}
-        if !ended && arg.starts_with('-') && arg.len()>1 {
-            let mut flags=arg[1..].chars();
-            while let Some(flag)=flags.next() {
+    let mut arguments = args.iter().enumerate();
+    while let Some((index, arg)) = arguments.next() {
+        if !ended && arg == "--" {
+            ended = true;
+            continue;
+        }
+        if !ended && arg.starts_with('-') && arg.len() > 1 {
+            let mut flags = arg[1..].chars();
+            while let Some(flag) = flags.next() {
                 match flag {
-                    'Z' if index==0 && arg.starts_with("-Z") && !zipinfo_mode => zipinfo_mode=true,
-                    '1' if zipinfo_mode => names_only=true,
-                    'l'=>list_table=true,
-                    'v'=>{list_table=true;verbose_list=true;}
-                    't'=>test_only=true,
-                    'j'=>junk_paths=true,
-                    'p'=>pipe_to_stdout=true,
-                    'c'=>pipe_headers=true,
-                    'q'=>quiet_level+=1,
-                    'n'=>never_overwrite=true,
-                    'o'=>explicit_overwrite=true,
-                    'C'=>case_insensitive=true,
-                    'z'=>show_comment=true,
-                    mode @ ('u'|'f')=>update_mode=Some(mode),
-                    'x'=>{
-                        in_exclude=true;
-                        if !flags.as_str().is_empty(){excludes.push(flags.as_str().to_owned());}
-                        break;
+                    'Z' if index == 0 && arg.starts_with("-Z") && !zipinfo_mode => {
+                        zipinfo_mode = true
                     }
-                    'd'|'P'=>{
-                        if flag=='d' && dest_dir.is_some(){return err_out("unzip: -d may only be specified once\n",2);}
-                        let value=if flags.as_str().is_empty(){arguments.next().map(|(_,v)|v.as_str())}else{Some(flags.as_str())};
-                        if flag=='P' {
-                            if value.is_none(){return err_out("unzip: password option requires a value\n",2);}
-                            password=value.map(crate::vfs::stream_string_to_bytes);
-                        } else {
-                            let Some(dir)=value.filter(|v|!v.is_empty()) else {return err_out("unzip: must specify directory to which to extract with -d option\n",2);};
-                            dest_dir=Some(dir.to_owned());
+                    '1' if zipinfo_mode => names_only = true,
+                    'l' => list_table = true,
+                    'v' => {
+                        list_table = true;
+                        verbose_list = true;
+                    }
+                    't' => test_only = true,
+                    'j' => junk_paths = true,
+                    'p' => pipe_to_stdout = true,
+                    'c' => pipe_headers = true,
+                    'q' => quiet_level += 1,
+                    'n' => never_overwrite = true,
+                    'o' => explicit_overwrite = true,
+                    'C' => case_insensitive = true,
+                    'z' => show_comment = true,
+                    mode @ ('u' | 'f') => update_mode = Some(mode),
+                    'x' => {
+                        in_exclude = true;
+                        if !flags.as_str().is_empty() {
+                            excludes.push(flags.as_str().to_owned());
                         }
                         break;
                     }
-                    other=>return err_out(&format!("unzip: unsupported option: -{other}\n"),2),
+                    'd' | 'P' => {
+                        if flag == 'd' && dest_dir.is_some() {
+                            return err_out("unzip: -d may only be specified once\n", 2);
+                        }
+                        let value = if flags.as_str().is_empty() {
+                            arguments.next().map(|(_, v)| v.as_str())
+                        } else {
+                            Some(flags.as_str())
+                        };
+                        if flag == 'P' {
+                            if value.is_none() {
+                                return err_out("unzip: password option requires a value\n", 2);
+                            }
+                            password = value.map(crate::vfs::stream_string_to_bytes);
+                        } else {
+                            let Some(dir) = value.filter(|v| !v.is_empty()) else {
+                                return err_out(
+                                    "unzip: must specify directory to which to extract with -d option\n",
+                                    2,
+                                );
+                            };
+                            dest_dir = Some(dir.to_owned());
+                        }
+                        break;
+                    }
+                    other => return err_out(&format!("unzip: unsupported option: -{other}\n"), 2),
                 }
             }
-        } else if archive.is_none() {archive=Some(arg.clone());}
-        else if in_exclude {excludes.push(arg.clone());}
-        else {members.push(arg.clone());}
+        } else if archive.is_none() {
+            archive = Some(arg.clone());
+        } else if in_exclude {
+            excludes.push(arg.clone());
+        } else {
+            members.push(arg.clone());
+        }
     }
     let Some(raw_arch) = archive else {
         return err_out(
@@ -6897,7 +9002,9 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         );
     }
     let mut arch = raw_arch;
-    let file = if arch == "-" { None } else {
+    let file = if arch == "-" {
+        None
+    } else {
         let mut full = resolve_posix_path(cwd, &arch);
         if !fs.exists(&full) {
             for cand in [format!("{arch}.zip"), format!("{arch}.ZIP")] {
@@ -6910,42 +9017,61 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
         }
         let Ok(stat) = fs.stat(&full) else {
-            return err_out(&format!("unzip:  cannot find or open {arch}, {arch}.zip or {arch}.ZIP.\n"),9);
+            return err_out(
+                &format!("unzip:  cannot find or open {arch}, {arch}.zip or {arch}.ZIP.\n"),
+                9,
+            );
         };
-        Some((full,stat))
+        Some((full, stat))
     };
-    let archive_input = if let Some((path,stat)) = &file {
-        match ZipInput::open(fs,path,stat) {
+    let archive_input = if let Some((path, stat)) = &file {
+        match ZipInput::open(fs, path, stat) {
             Ok(input) => input,
-            Err(e) => return err_out(&format!("unzip: {}\n",tar_format::display(&e)),2),
+            Err(e) => return err_out(&format!("unzip: {}\n", tar_format::display(&e)), 2),
         }
     } else {
         if crate::vfs::stream_byte_len(stdin) > fs.max_input_bytes() {
-            return err_out(&fs.limit_error("maxInputBytes",fs.max_input_bytes()),2);
+            return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 2);
         }
         ZipInput::Bytes(crate::vfs::stream_string_to_bytes(stdin))
     };
     let quiet = quiet_level != 0;
     let heading = !quiet && !names_only && !pipe_to_stdout;
-    let mut out = if heading { format!("Archive:  {}\n",unzip_filtered(&arch)) } else { String::new() };
-    let failure = |stdout: String,message: &str| BuiltinOutcome { stdout, stderr: format!("unzip: {}\n",tar_format::display(message)), exit_code: 2 };
-    let (entries,comment) = match crate::commands::codecs::zip_directory(archive_input.len(), |r| archive_input.read(r)) {
-        Ok(index) => index,
-        Err(e) => return failure(out,&e),
+    let mut out = if heading {
+        format!("Archive:  {}\n", unzip_filtered(&arch))
+    } else {
+        String::new()
     };
-    if let Err(e) = archive_input.validate() { return failure(out,&e); }
-    let mut bad_passwords=0;
-    let mut decode = |entry: &crate::commands::codecs::ZipMember,stderr:&mut String| {
+    let failure = |stdout: String, message: &str| BuiltinOutcome {
+        stdout,
+        stderr: format!("unzip: {}\n", tar_format::display(message)),
+        exit_code: 2,
+    };
+    let (entries, comment) = match crate::commands::codecs::zip_directory(
+        archive_input.len(),
+        |r| archive_input.read(r),
+    ) {
+        Ok(index) => index,
+        Err(e) => return failure(out, &e),
+    };
+    if let Err(e) = archive_input.validate() {
+        return failure(out, &e);
+    }
+    let mut bad_passwords = 0;
+    let mut decode = |entry: &crate::commands::codecs::ZipMember, stderr: &mut String| {
         let payload = archive_input.read(entry.payload.clone())?;
         archive_input.validate()?;
-        match entry.decode(payload,password.as_deref()) {
-            Ok(bytes)=>Ok(Some(bytes)),
-            Err(e) if e=="ZIP incorrect password"=>{
-                bad_passwords+=1;
-                stderr.push_str(&format!("skipping: {}  incorrect password\n",unzip_filtered(&entry.name)));
+        match entry.decode(payload, password.as_deref()) {
+            Ok(bytes) => Ok(Some(bytes)),
+            Err(e) if e == "ZIP incorrect password" => {
+                bad_passwords += 1;
+                stderr.push_str(&format!(
+                    "skipping: {}  incorrect password\n",
+                    unzip_filtered(&entry.name)
+                ));
                 Ok(None)
             }
-            Err(e)=>Err(e),
+            Err(e) => Err(e),
         }
     };
     let render_comment = |comment: &[u8]| {
@@ -6958,47 +9084,113 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 _ => bytes.push(b),
             }
         }
-        if !bytes.is_empty() && !bytes.ends_with(b"\n") { bytes.push(b'\n'); }
+        if !bytes.is_empty() && !bytes.ends_with(b"\n") {
+            bytes.push(b'\n');
+        }
         crate::vfs::bytes_to_stream_string(&bytes)
     };
-    if heading || show_comment { out.push_str(&render_comment(&comment)); }
-    if show_comment { return ok_out(&out); }
+    if heading || show_comment {
+        out.push_str(&render_comment(&comment));
+    }
+    if show_comment {
+        return ok_out(&out);
+    }
     if entries.is_empty() {
-        return BuiltinOutcome {stdout:out,stderr:format!("warning [{}]:  zipfile is empty\n",unzip_filtered(&arch)),exit_code:1};
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: format!("warning [{}]:  zipfile is empty\n", unzip_filtered(&arch)),
+            exit_code: 1,
+        };
     }
     let mut matched_patterns = vec![false; members.len()];
     let mut matched_exclusions = vec![false; excludes.len()];
-    let fold = |name:&String| if case_insensitive { name.to_lowercase() } else { name.clone() };
-    let includes:Vec<_>=members.iter().map(fold).collect();
-    let folded_excludes:Vec<_>=excludes.iter().map(fold).collect();
-    let selected:Vec<_>=entries.iter().filter(|entry| {
-        if includes.is_empty() && excludes.is_empty() {return true;}
-        let folded;
-        let name=if case_insensitive {folded=entry.name.to_lowercase();&folded} else {&entry.name};
-        let matches=|pattern:&String| crate::shell::expand::glob_match_full(pattern,name,false,false);
-        if !includes.is_empty() {
-            let Some(first)=includes.iter().position(matches) else {return false;};
-            matched_patterns[first]=true;
+    let fold = |name: &String| {
+        if case_insensitive {
+            name.to_lowercase()
+        } else {
+            name.clone()
         }
-        if let Some(first) = folded_excludes.iter().position(matches) {
-            matched_exclusions[first] = true;
-            false
-        } else { true }
-    }).collect();
+    };
+    let includes: Vec<_> = members.iter().map(fold).collect();
+    let folded_excludes: Vec<_> = excludes.iter().map(fold).collect();
+    let selected: Vec<_> = entries
+        .iter()
+        .filter(|entry| {
+            if includes.is_empty() && excludes.is_empty() {
+                return true;
+            }
+            let folded;
+            let name = if case_insensitive {
+                folded = entry.name.to_lowercase();
+                &folded
+            } else {
+                &entry.name
+            };
+            let matches = |pattern: &String| {
+                crate::shell::expand::glob_match_full(pattern, name, false, false)
+            };
+            if !includes.is_empty() {
+                let Some(first) = includes.iter().position(matches) else {
+                    return false;
+                };
+                matched_patterns[first] = true;
+            }
+            if let Some(first) = folded_excludes.iter().position(matches) {
+                matched_exclusions[first] = true;
+                false
+            } else {
+                true
+            }
+        })
+        .collect();
     let mut unmatched = String::new();
-    for (pat,matched) in members.iter().zip(matched_patterns) {
-        if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }
+    for (pat, matched) in members.iter().zip(matched_patterns) {
+        if !matched {
+            unmatched.push_str(&format!(
+                "caution: filename not matched:  {}\n",
+                unzip_filtered(pat)
+            ));
+        }
     }
     let mut unmatched_exclusions = String::new();
     for (pat, matched) in excludes.iter().zip(matched_exclusions) {
-        if !matched { unmatched_exclusions.push_str(&format!("caution: excluded filename not matched:  {}\n",unzip_filtered(pat))); }
+        if !matched {
+            unmatched_exclusions.push_str(&format!(
+                "caution: excluded filename not matched:  {}\n",
+                unzip_filtered(pat)
+            ));
+        }
     }
-    let selection_status = if selected.is_empty() || !unmatched.is_empty() && !(names_only || list_table && !effective_pipe) { 11 } else { 0 };
-    let count=selected.len();
-    let password_status=|bad,status| if bad==0 {status} else if bad==count {82} else {1};
-    let mut stderr=String::new();
-    let padded = |s: &str| { let s = unzip_filtered(s); let n = 22usize.saturating_sub(s.len()); format!("{s}{}"," ".repeat(n)) };
-    let action = |method: u16| if method == 0 { " extracting" } else { "  inflating" };
+    let selection_status = if selected.is_empty()
+        || !unmatched.is_empty() && !(names_only || list_table && !effective_pipe)
+    {
+        11
+    } else {
+        0
+    };
+    let count = selected.len();
+    let password_status = |bad, status| {
+        if bad == 0 {
+            status
+        } else if bad == count {
+            82
+        } else {
+            1
+        }
+    };
+    let mut stderr = String::new();
+    let padded = |s: &str| {
+        let s = unzip_filtered(s);
+        let n = 22usize.saturating_sub(s.len());
+        format!("{s}{}", " ".repeat(n))
+    };
+    let action = |method: u16| {
+        if method == 0 {
+            " extracting"
+        } else {
+            "  inflating"
+        }
+    };
     if test_only || effective_pipe || names_only || list_table {
         use std::fmt::Write;
         let list = list_table && !effective_pipe && !test_only;
@@ -7006,69 +9198,151 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             out.push_str(if verbose_list { " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n" }
                 else { "  Length      Date    Time    Name\n---------  ---------- -----   ----\n" });
         }
-        let ratio = |size:u64,compressed:u64| if size == 0 { 0 } else { (100.0*(size as f64-compressed as f64)/size as f64+0.5).floor() as i64 };
-        let (mut total,mut stored) = (0u64,0u64);
+        let ratio = |size: u64, compressed: u64| {
+            if size == 0 {
+                0
+            } else {
+                (100.0 * (size as f64 - compressed as f64) / size as f64 + 0.5).floor() as i64
+            }
+        };
+        let (mut total, mut stored) = (0u64, 0u64);
         for entry in &selected {
-            if names_only { writeln!(out,"{}",unzip_filtered(&entry.name)).unwrap(); }
-            else if list {
+            if names_only {
+                writeln!(out, "{}", unzip_filtered(&entry.name)).unwrap();
+            } else if list {
                 let size = entry.size as u64;
                 let compressed = entry.payload.len() as u64;
-                total += size; stored += compressed;
+                total += size;
+                stored += compressed;
                 let seconds = entry.mtime.floor() as i64;
-                let (year, month, day) = crate::commands::coreutils::civil_from_days(seconds.div_euclid(86400));
+                let (year, month, day) =
+                    crate::commands::coreutils::civil_from_days(seconds.div_euclid(86400));
                 let time = seconds.rem_euclid(86400);
-                let date = format!("{month:02}-{day:02}-{year:04} {:02}:{:02}", time / 3600, time % 3600 / 60);
+                let date = format!(
+                    "{month:02}-{day:02}-{year:04} {:02}:{:02}",
+                    time / 3600,
+                    time % 3600 / 60
+                );
                 let name = unzip_filtered(&entry.name);
                 if verbose_list {
-                    let method = match entry.method { 0=>"Stored".into(),8=>"Defl:N".into(),12=>"BZip2".into(),14=>"LZMA".into(),n=>format!("m{n}") };
-                    writeln!(out,"{size:>8}  {method:<6} {compressed:>8} {:>3}% {date} {:08x}  {name}",ratio(size,compressed),entry.crc).unwrap();
-                } else { writeln!(out,"{size:>9}  {date}   {name}").unwrap(); }
+                    let method = match entry.method {
+                        0 => "Stored".into(),
+                        8 => "Defl:N".into(),
+                        12 => "BZip2".into(),
+                        14 => "LZMA".into(),
+                        n => format!("m{n}"),
+                    };
+                    writeln!(
+                        out,
+                        "{size:>8}  {method:<6} {compressed:>8} {:>3}% {date} {:08x}  {name}",
+                        ratio(size, compressed),
+                        entry.crc
+                    )
+                    .unwrap();
+                } else {
+                    writeln!(out, "{size:>9}  {date}   {name}").unwrap();
+                }
                 out.push_str(&render_comment(&entry.comment));
             } else {
                 if !test_only && pipe_headers && !pipe_to_stdout && !quiet {
-                    writeln!(out,"{}: {}  ",action(entry.method),padded(&entry.name)).unwrap();
+                    writeln!(out, "{}: {}  ", action(entry.method), padded(&entry.name)).unwrap();
                 }
-                let data = match decode(entry,&mut stderr) {
-                    Ok(Some(bytes))=>bytes,Ok(None)=>continue,
-                    Err(e)=>{stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));return BuiltinOutcome {stdout:out,stderr,exit_code:2};}
+                let data = match decode(entry, &mut stderr) {
+                    Ok(Some(bytes)) => bytes,
+                    Ok(None) => continue,
+                    Err(e) => {
+                        stderr.push_str(&format!("unzip: {}\n", tar_format::display(&e)));
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr,
+                            exit_code: 2,
+                        };
+                    }
                 };
                 if test_only {
-                    if !quiet { writeln!(out,"    testing: {}   OK",padded(&entry.name)).unwrap(); }
+                    if !quiet {
+                        writeln!(out, "    testing: {}   OK", padded(&entry.name)).unwrap();
+                    }
                 } else {
                     out.push_str(&crate::vfs::bytes_to_stream_string(&data));
-                    if pipe_headers && !pipe_to_stdout && !quiet {out.push('\n');}
+                    if pipe_headers && !pipe_to_stdout && !quiet {
+                        out.push('\n');
+                    }
                 }
             }
         }
         if list {
-            let count = selected.len(); let label = if count == 1 {"file"} else {"files"};
+            let count = selected.len();
+            let label = if count == 1 { "file" } else { "files" };
             if verbose_list {
                 writeln!(out,"--------          -------  ---                            -------\n{total:>8}         {stored:>8} {:>3}%                            {count} {label}",ratio(total,stored)).unwrap();
-            } else { writeln!(out,"---------                     -------\n{total:>9}                     {count} {label}").unwrap(); }
+            } else {
+                writeln!(out,"---------                     -------\n{total:>9}                     {count} {label}").unwrap();
+            }
         }
-        let status=password_status(bad_passwords,selection_status);
+        let status = password_status(bad_passwords, selection_status);
         if test_only {
             out.push_str(&unmatched);
             out.push_str(&unmatched_exclusions);
             if quiet_level < 2 {
-                if count == 0 && unmatched.is_empty() { writeln!(out,"Caution:  zero files tested in {}.",unzip_filtered(&arch)).unwrap(); }
-                else if status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
-                else if !members.is_empty() || !excludes.is_empty() { writeln!(out,"No errors detected in {} for the {count} file{} tested.",unzip_filtered(&arch),if count == 1 { "" } else { "s" }).unwrap(); }
-                else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
+                if count == 0 && unmatched.is_empty() {
+                    writeln!(
+                        out,
+                        "Caution:  zero files tested in {}.",
+                        unzip_filtered(&arch)
+                    )
+                    .unwrap();
+                } else if status != 0 {
+                    writeln!(
+                        out,
+                        "At least one error was detected in {}.",
+                        unzip_filtered(&arch)
+                    )
+                    .unwrap();
+                } else if !members.is_empty() || !excludes.is_empty() {
+                    writeln!(
+                        out,
+                        "No errors detected in {} for the {count} file{} tested.",
+                        unzip_filtered(&arch),
+                        if count == 1 { "" } else { "s" }
+                    )
+                    .unwrap();
+                } else {
+                    writeln!(
+                        out,
+                        "No errors detected in compressed data of {}.",
+                        unzip_filtered(&arch)
+                    )
+                    .unwrap();
+                }
             }
-        } else if !list { stderr.push_str(&unmatched); stderr.push_str(&unmatched_exclusions); }
-        return BuiltinOutcome {stdout:out,stderr,exit_code:status};
+        } else if !list {
+            stderr.push_str(&unmatched);
+            stderr.push_str(&unmatched_exclusions);
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code: status,
+        };
     }
     {
         use crate::vfs::VfsEntryKind::{Directory, File};
-        let directory = |raw: &str| -> Result<String,String> {
+        let directory = |raw: &str| -> Result<String, String> {
             let mut path = String::from("/");
             for component in raw.split('/').filter(|c| !c.is_empty() && *c != ".") {
-                path = resolve_posix_path(&path,component);
+                path = resolve_posix_path(&path, component);
                 match fs.lstat(&path) {
                     Ok(stat) if stat.kind == Directory => (),
-                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}",tar_format::display(&path))),
-                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => create_extraction_parent(fs,&path,0o755,false)?,
+                    Ok(_) => {
+                        return Err(format!(
+                            "unsafe non-directory or symlink ancestor: {}",
+                            tar_format::display(&path)
+                        ));
+                    }
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+                        create_extraction_parent(fs, &path, 0o755, false)?
+                    }
                     Err(e) => return Err(e),
                 }
             }
@@ -7079,92 +9353,170 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             other => other.unwrap_or(cwd).to_owned(),
         };
         let mut exit_code = 0;
-        let answers = if file.is_some() { crate::vfs::stream_string_to_bytes(stdin) } else { Vec::new() };
+        let answers = if file.is_some() {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            Vec::new()
+        };
         let mut remaining = answers.as_slice();
         let mut read_answer = |max: usize| {
-            if remaining.is_empty() { return None; }
+            if remaining.is_empty() {
+                return None;
+            }
             let window = &remaining[..max.min(remaining.len())];
-            let n = window.iter().position(|&b| b == b'\n').map_or(window.len(),|i| i+1);
-            let (line,rest) = remaining.split_at(n);
+            let n = window
+                .iter()
+                .position(|&b| b == b'\n')
+                .map_or(window.len(), |i| i + 1);
+            let (line, rest) = remaining.split_at(n);
             remaining = rest;
             Some(String::from_utf8_lossy(line))
         };
         let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
-        let progress = |out:&mut String, used:&mut usize, line:&str| -> Result<(),String> {
-            *used+=crate::vfs::stream_byte_len(line);
-            if *used>fs.remaining_output_bytes(){return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));}
-            out.push_str(line);Ok(())
+        let progress = |out: &mut String, used: &mut usize, line: &str| -> Result<(), String> {
+            *used += crate::vfs::stream_byte_len(line);
+            if *used > fs.remaining_output_bytes() {
+                return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
+            }
+            out.push_str(line);
+            Ok(())
         };
-        let extract = || -> Result<(),String> {
+        let extract = || -> Result<(), String> {
             let out_dir = directory(&raw)?;
-            let mut directories=Vec::new();
-            let mut links=Vec::new();
+            let mut directories = Vec::new();
+            let mut links = Vec::new();
             'member: for entry in selected {
                 let is_dir = entry.typeflag == b'5';
-                if junk_paths && is_dir { continue; }
-                let mut name = if junk_paths { crate::vfs::basename_posix_path(&entry.name) } else { entry.name.clone() };
+                if junk_paths && is_dir {
+                    continue;
+                }
+                let mut name = if junk_paths {
+                    crate::vfs::basename_posix_path(&entry.name)
+                } else {
+                    entry.name.clone()
+                };
                 let mut renamed = false;
                 'destination: loop {
-                    let dest = resolve_posix_path(&out_dir,&name);
-                    if !is_dir && dest == out_dir { return Err("entry would replace extraction root".into()); }
+                    let dest = resolve_posix_path(&out_dir, &name);
+                    if !is_dir && dest == out_dir {
+                        return Err("entry would replace extraction root".into());
+                    }
                     let freshen = !renamed && update_mode == Some('f');
                     if freshen && let Err(e) = fs.lstat(&dest) {
-                        if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { continue 'member; }
+                        if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") {
+                            continue 'member;
+                        }
                         return Err(e);
                     }
                     directory(&crate::vfs::dirname_posix_path(&dest))?;
-                    let (existing,stamp) = fs.inspect_extraction(&dest,false)?;
-                    if freshen && existing.is_none() { continue 'member; }
+                    let (existing, stamp) = fs.inspect_extraction(&dest, false)?;
+                    if freshen && existing.is_none() {
+                        continue 'member;
+                    }
                     if is_dir {
-                        if entry.size != 0 { return Err("directory has nonempty payload".into()); }
-                        if decode(entry,&mut stderr)?.is_none(){continue 'member;}
-                        let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
-                        let identity=match existing {
+                        if entry.size != 0 {
+                            return Err("directory has nonempty payload".into());
+                        }
+                        if decode(entry, &mut stderr)?.is_none() {
+                            continue 'member;
+                        }
+                        let parent = fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
+                        let identity = match existing {
                             Some(st) if st.kind == Directory => st,
-                            Some(_) => return Err("directory destination is not a directory".into()),
+                            Some(_) => {
+                                return Err("directory destination is not a directory".into());
+                            }
                             None => {
-                                let st=fs.prepare_extraction_directory(&dest,&parent,None,0o755,(None,None),stamp.version)?;
+                                let st = fs.prepare_extraction_directory(
+                                    &dest,
+                                    &parent,
+                                    None,
+                                    0o755,
+                                    (None, None),
+                                    stamp.version,
+                                )?;
                                 if !quiet {
-                                    let shown=match &dest_dir {
-                                        Some(d)=>format!("{d}{}{name}",if d.ends_with('/') {""} else {"/"}),
-                                        None=>name.clone(),
+                                    let shown = match &dest_dir {
+                                        Some(d) => format!(
+                                            "{d}{}{name}",
+                                            if d.ends_with('/') { "" } else { "/" }
+                                        ),
+                                        None => name.clone(),
                                     };
-                                    let line=format!("   creating: {}\n",unzip_filtered(&shown));
-                                    progress(&mut out,&mut prompt_bytes,&line)?;
+                                    let line = format!("   creating: {}\n", unzip_filtered(&shown));
+                                    progress(&mut out, &mut prompt_bytes, &line)?;
                                 }
                                 st
                             }
                         };
-                        let time=Some(entry.mtime*1000.);
-                        directories.push((dest,DirectoryMetadata {parent,identity,stamp,mode:entry.mode & 0o777,times:(time,time)}));
+                        let time = Some(entry.mtime * 1000.);
+                        directories.push((
+                            dest,
+                            DirectoryMetadata {
+                                parent,
+                                identity,
+                                stamp,
+                                mode: entry.mode & 0o777,
+                                times: (time, time),
+                            },
+                        ));
                         continue 'member;
                     }
-                    if file.as_ref().is_some_and(|(path,input)| dest == *path || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity)) {
+                    if file.as_ref().is_some_and(|(path, input)| {
+                        dest == *path
+                            || existing.as_ref().is_some_and(|s| {
+                                s.identity.is_some() && s.identity == input.identity
+                            })
+                    }) {
                         return Err("entry would overwrite input archive".into());
                     }
                     let shown = match &dest_dir {
-                        Some(d) => format!("{d}{}{name}",if d.ends_with('/') { "" } else { "/" }),
+                        Some(d) => format!("{d}{}{name}", if d.ends_with('/') { "" } else { "/" }),
                         None => name.clone(),
                     };
                     if let Some(st) = &existing {
-                        if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
-                        if file.as_ref().is_some_and(|(_,input)| st.identity.is_none() || input.identity.is_none()) { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
+                        if st.kind != File {
+                            return Err(format!(
+                                "unsafe non-regular destination: {}",
+                                tar_format::display(&dest)
+                            ));
+                        }
+                        if file.as_ref().is_some_and(|(_, input)| {
+                            st.identity.is_none() || input.identity.is_none()
+                        }) {
+                            return Err(
+                                "cannot overwrite file with unknown input-archive backing identity"
+                                    .into(),
+                            );
+                        }
                         // Only DOS timestamps require rounding up to the next two-second tick.
                         let seconds = (st.mtime_ms / 1000.).floor();
-                        let modified = if entry.extended_timestamp { seconds } else { (seconds / 2.).ceil() * 2. };
-                        if never_overwrite || !renamed && update_mode.is_some() && modified >= entry.mtime {
+                        let modified = if entry.extended_timestamp {
+                            seconds
+                        } else {
+                            (seconds / 2.).ceil() * 2.
+                        };
+                        if never_overwrite
+                            || !renamed && update_mode.is_some() && modified >= entry.mtime
+                        {
                             continue 'member;
                         }
-                        let mut prompt = |text: &str| -> Result<(),String> {
+                        let mut prompt = |text: &str| -> Result<(), String> {
                             prompt_bytes += crate::vfs::stream_byte_len(text);
                             if prompt_bytes > fs.remaining_output_bytes() {
-                                return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                                return Err(fs.limit_error(
+                                    "maxOutputBytes",
+                                    fs.shell_limits().max_output_bytes,
+                                ));
                             }
                             stderr.push_str(text);
                             Ok(())
                         };
                         while !explicit_overwrite {
-                            prompt(&format!("replace {}? [y]es, [n]o, [A]ll, [N]one, [r]ename: ",unzip_filtered(&shown)))?;
+                            prompt(&format!(
+                                "replace {}? [y]es, [n]o, [A]ll, [N]one, [r]ename: ",
+                                unzip_filtered(&shown)
+                            ))?;
                             let Some(answer) = read_answer(9) else {
                                 prompt(" NULL\n(EOF or read error, treating as \"[N]one\" ...)\n")?;
                                 never_overwrite = true;
@@ -7172,72 +9524,147 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                                 continue 'member;
                             };
                             match answer.as_bytes()[0] {
-                                b'A' => { explicit_overwrite = true; break; }
+                                b'A' => {
+                                    explicit_overwrite = true;
+                                    break;
+                                }
                                 b'y' | b'Y' => break,
                                 b'n' => continue 'member,
-                                b'N' => { never_overwrite = true; continue 'member; }
+                                b'N' => {
+                                    never_overwrite = true;
+                                    continue 'member;
+                                }
                                 b'r' | b'R' => {
                                     name = loop {
                                         prompt("new name: ")?;
-                                        let value = read_answer(usize::MAX).ok_or("EOF while reading replacement name")?;
+                                        let value = read_answer(usize::MAX)
+                                            .ok_or("EOF while reading replacement name")?;
                                         let new_name = value.strip_suffix('\n').unwrap_or(&value);
-                                        if !new_name.is_empty() { break new_name.to_owned(); }
+                                        if !new_name.is_empty() {
+                                            break new_name.to_owned();
+                                        }
                                     };
-                                    if name.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
+                                    if name.contains('\0') {
+                                        return Err(
+                                            "invalid empty, NUL, or non-Unicode path".into()
+                                        );
+                                    }
                                     if name.starts_with('/') || name.split('/').any(|s| s == "..") {
-                                        return Err(format!("unsafe archive member: {}",tar_format::display(&name)));
+                                        return Err(format!(
+                                            "unsafe archive member: {}",
+                                            tar_format::display(&name)
+                                        ));
                                     }
                                     renamed = true;
                                     continue 'destination;
                                 }
                                 first => {
-                                    let response = if matches!(first,b'\n'|b'\r') { "{ENTER}" } else { answer.strip_suffix('\n').unwrap_or(&answer) };
+                                    let response = if matches!(first, b'\n' | b'\r') {
+                                        "{ENTER}"
+                                    } else {
+                                        answer.strip_suffix('\n').unwrap_or(&answer)
+                                    };
                                     prompt(&format!("error:  invalid response [{response}]\n"))?;
                                 }
                             }
                         }
                     }
                     if entry.size > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
-                        return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
+                        return Err(
+                            fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes)
+                        );
                     }
-                    let Some(data)=decode(entry,&mut stderr)? else {continue 'member;};
+                    let Some(data) = decode(entry, &mut stderr)? else {
+                        continue 'member;
+                    };
                     if entry.typeflag == b'2' {
-                        let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
+                        let target = std::str::from_utf8(&data)
+                            .map_err(|_| "invalid UTF-8 archive name or metadata")?;
                         fs.charge_extraction_bytes(data.len())?;
-                        if target.is_empty() || target.contains('\0'){return Err("invalid empty, NUL, or non-Unicode path".into());}
-                        let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
-                        check_archive_symlink(fs,&out_dir,&dest,target,true)?;
-                        if !fs.supports_symbolic_links(&dest){return Err("filesystem does not support symlinks".into());}
-                        if !quiet { progress(&mut out,&mut prompt_bytes,&format!("    linking: {}  -> {} \n",padded(&shown),unzip_filtered(target)))?; }
-                        links.push((dest,shown,target.to_owned(),parent,existing,stamp));
-                    } else {
-                        let time = Some(entry.mtime*1000.);
-                        fs.replace_file_entry_with_metadata(&dest,&data,entry.mode & 0o777,(time,time),stamp.version)?;
+                        if target.is_empty() || target.contains('\0') {
+                            return Err("invalid empty, NUL, or non-Unicode path".into());
+                        }
+                        let parent = fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
+                        check_archive_symlink(fs, &out_dir, &dest, target, true)?;
+                        if !fs.supports_symbolic_links(&dest) {
+                            return Err("filesystem does not support symlinks".into());
+                        }
                         if !quiet {
-                            progress(&mut out,&mut prompt_bytes,&format!("{}: {}  \n",action(entry.method),padded(&shown)))?;
+                            progress(
+                                &mut out,
+                                &mut prompt_bytes,
+                                &format!(
+                                    "    linking: {}  -> {} \n",
+                                    padded(&shown),
+                                    unzip_filtered(target)
+                                ),
+                            )?;
+                        }
+                        links.push((dest, shown, target.to_owned(), parent, existing, stamp));
+                    } else {
+                        let time = Some(entry.mtime * 1000.);
+                        fs.replace_file_entry_with_metadata(
+                            &dest,
+                            &data,
+                            entry.mode & 0o777,
+                            (time, time),
+                            stamp.version,
+                        )?;
+                        if !quiet {
+                            progress(
+                                &mut out,
+                                &mut prompt_bytes,
+                                &format!("{}: {}  \n", action(entry.method), padded(&shown)),
+                            )?;
                         }
                     }
                     break;
                 }
             }
-            if !links.is_empty() && !quiet {progress(&mut out,&mut prompt_bytes,"finishing deferred symbolic links:\n")?;}
-            for (dest,shown,target,parent,existing,stamp) in links {
-                check_extraction_root(fs,&crate::vfs::dirname_posix_path(&dest))?;
-                check_archive_symlink(fs,&out_dir,&dest,&target,true)?;
-                fs.publish_extraction_symlink(&dest,&target,&parent,existing.as_ref(),stamp.version)?;
-                if !quiet {progress(&mut out,&mut prompt_bytes,&format!("  {} -> {}\n",padded(&shown),unzip_filtered(&target)))?;}
+            if !links.is_empty() && !quiet {
+                progress(
+                    &mut out,
+                    &mut prompt_bytes,
+                    "finishing deferred symbolic links:\n",
+                )?;
             }
-            for (path,meta) in directories.into_iter().rev() {meta.restore(fs,&path)?;}
+            for (dest, shown, target, parent, existing, stamp) in links {
+                check_extraction_root(fs, &crate::vfs::dirname_posix_path(&dest))?;
+                check_archive_symlink(fs, &out_dir, &dest, &target, true)?;
+                fs.publish_extraction_symlink(
+                    &dest,
+                    &target,
+                    &parent,
+                    existing.as_ref(),
+                    stamp.version,
+                )?;
+                if !quiet {
+                    progress(
+                        &mut out,
+                        &mut prompt_bytes,
+                        &format!("  {} -> {}\n", padded(&shown), unzip_filtered(&target)),
+                    )?;
+                }
+            }
+            for (path, meta) in directories.into_iter().rev() {
+                meta.restore(fs, &path)?;
+            }
             Ok(())
         };
         if let Err(e) = extract() {
-            stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));
-            return BuiltinOutcome { stdout: out,stderr,exit_code:2 };
+            stderr.push_str(&format!("unzip: {}\n", tar_format::display(&e)));
+            return BuiltinOutcome {
+                stdout: out,
+                stderr,
+                exit_code: 2,
+            };
         }
         stderr.push_str(&unmatched);
         stderr.push_str(&unmatched_exclusions);
-        if selection_status != 0 { exit_code = selection_status; }
-        exit_code=password_status(bad_passwords,exit_code);
+        if selection_status != 0 {
+            exit_code = selection_status;
+        }
+        exit_code = password_status(bad_passwords, exit_code);
         BuiltinOutcome {
             stdout: out,
             stderr,
@@ -7316,7 +9743,9 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         } else if (a == "-e" || a == "--encoding") && i + 1 < args.len() {
             encoding_str = args[i + 1].clone();
             i += 2;
-        } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--encoding="))
+        } else if let Some(rest) = a
+            .strip_prefix("-e")
+            .or_else(|| a.strip_prefix("--encoding="))
             && !rest.is_empty()
         {
             encoding_str = rest.to_string();
@@ -7324,7 +9753,9 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         } else if (a == "-U" || a == "--unicode") && i + 1 < args.len() {
             unicode_mode = args[i + 1].clone();
             i += 2;
-        } else if let Some(rest) = a.strip_prefix("-U").or_else(|| a.strip_prefix("--unicode="))
+        } else if let Some(rest) = a
+            .strip_prefix("-U")
+            .or_else(|| a.strip_prefix("--unicode="))
             && !rest.is_empty()
         {
             unicode_mode = rest.to_string();
@@ -7339,13 +9770,14 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             i += 1;
         } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
             let num_str = &a[1..];
-            let parsed = if num_str.starts_with('0') && num_str.chars().all(|c| ('0'..='7').contains(&c)) {
-                usize::from_str_radix(num_str, 8).ok()
-            } else if !num_str.starts_with('0') {
-                num_str.parse::<usize>().ok()
-            } else {
-                None
-            };
+            let parsed =
+                if num_str.starts_with('0') && num_str.chars().all(|c| ('0'..='7').contains(&c)) {
+                    usize::from_str_radix(num_str, 8).ok()
+                } else if !num_str.starts_with('0') {
+                    num_str.parse::<usize>().ok()
+                } else {
+                    None
+                };
             match parsed {
                 Some(v) if v >= 1 && v < 4_294_967_295 => min_len = v,
                 _ => return err_out(&format!("strings: invalid number '{num_str}'\n"), 1),
@@ -7380,7 +9812,12 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         match ch {
                             'n' => match val.parse::<usize>() {
                                 Ok(v) if v >= 1 => min_len = v,
-                                _ => return err_out(&format!("strings: invalid number '{val}'\n"), 1),
+                                _ => {
+                                    return err_out(
+                                        &format!("strings: invalid number '{val}'\n"),
+                                        1,
+                                    );
+                                }
                             },
                             's' => separator = val,
                             't' => radix_str = Some(val),
@@ -7438,9 +9875,16 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         encoding = 'S';
     }
 
-    let non_dash: Vec<String> = files.iter().filter(|s| s.as_str() != "-").cloned().collect();
+    let non_dash: Vec<String> = files
+        .iter()
+        .filter(|s| s.as_str() != "-")
+        .cloned()
+        .collect();
     if !files.is_empty() && non_dash.is_empty() {
-        return err_out("strings: missing file operand after '-' (use no operands for stdin)\n", 1);
+        return err_out(
+            "strings: missing file operand after '-' (use no operands for stdin)\n",
+            1,
+        );
     }
     let targets: Vec<String> = if files.is_empty() {
         vec!["-".to_string()]
@@ -7492,141 +9936,149 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let mut char_count = 0usize;
             let mut start_off = 0usize;
 
-            let flush = |out: &mut Vec<u8>,
-                     cur: &mut Vec<u8>,
-                     chars: &mut usize,
-                     off: usize| {
-            if *chars >= min_len {
-                if print_file {
-                    let label = if f == "-" { "{standard input}" } else { f.as_str() };
-                    out.extend_from_slice(format!("{label}: ").as_bytes());
+            let flush = |out: &mut Vec<u8>, cur: &mut Vec<u8>, chars: &mut usize, off: usize| {
+                if *chars >= min_len {
+                    if print_file {
+                        let label = if f == "-" {
+                            "{standard input}"
+                        } else {
+                            f.as_str()
+                        };
+                        out.extend_from_slice(format!("{label}: ").as_bytes());
+                    }
+                    match radix {
+                        Some('x') => out.extend_from_slice(format!("{off:7x} ").as_bytes()),
+                        Some('d') => out.extend_from_slice(format!("{off:7} ").as_bytes()),
+                        Some('o') => out.extend_from_slice(format!("{off:7o} ").as_bytes()),
+                        _ => {}
+                    }
+                    out.extend_from_slice(cur);
+                    out.extend_from_slice(&sep_bytes);
                 }
-                match radix {
-                    Some('x') => out.extend_from_slice(format!("{off:7x} ").as_bytes()),
-                    Some('d') => out.extend_from_slice(format!("{off:7} ").as_bytes()),
-                    Some('o') => out.extend_from_slice(format!("{off:7o} ").as_bytes()),
-                    _ => {}
-                }
-                out.extend_from_slice(cur);
-                out.extend_from_slice(&sep_bytes);
-            }
-            cur.clear();
-            *chars = 0;
-        };
+                cur.clear();
+                *chars = 0;
+            };
 
             if width == 1 {
                 let mut utf8: Vec<u8> = Vec::new();
                 let mut utf8_width = 0usize;
                 for (idx, &b) in region_data.iter().enumerate() {
-                let cur_b = b;
-                let mut reprocess = true;
-                while reprocess {
-                    reprocess = false;
-                    if unicode != "default" && cur_b >= 128 {
-                        if utf8.is_empty() {
-                            utf8_width = if (0xc0..0xe0).contains(&cur_b) {
-                                2
-                            } else if (0xe0..0xf0).contains(&cur_b) {
-                                3
-                            } else if (0xf0..0xf8).contains(&cur_b) {
-                                4
-                            } else {
-                                0
-                            };
-                            if utf8_width == 0 {
+                    let cur_b = b;
+                    let mut reprocess = true;
+                    while reprocess {
+                        reprocess = false;
+                        if unicode != "default" && cur_b >= 128 {
+                            if utf8.is_empty() {
+                                utf8_width = if (0xc0..0xe0).contains(&cur_b) {
+                                    2
+                                } else if (0xe0..0xf0).contains(&cur_b) {
+                                    3
+                                } else if (0xf0..0xf8).contains(&cur_b) {
+                                    4
+                                } else {
+                                    0
+                                };
+                                if utf8_width == 0 {
+                                    flush(
+                                        &mut out_bytes,
+                                        &mut cur_bytes,
+                                        &mut char_count,
+                                        start_off,
+                                    );
+                                    break;
+                                }
+                            } else if !(0x80..0xc0).contains(&cur_b) {
+                                utf8.clear();
                                 flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                                reprocess = true;
+                                continue;
+                            }
+                            utf8.push(cur_b);
+                            if utf8.len() < utf8_width {
                                 break;
                             }
-                        } else if !(0x80..0xc0).contains(&cur_b) {
+                            if unicode == "invalid" {
+                                flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                            } else if unicode == "locale" {
+                                if char_count == 0 {
+                                    start_off = region_off + idx + 1 - utf8.len();
+                                }
+                                cur_bytes.extend_from_slice(&utf8);
+                                char_count += 1;
+                            } else {
+                                let text = if unicode == "hex" {
+                                    let hex_s: String =
+                                        utf8.iter().map(|v| format!("{v:02x}")).collect();
+                                    format!("<0x{hex_s}>")
+                                } else {
+                                    let mut code =
+                                        (utf8[0] & if utf8_width == 2 { 31 } else { 15 }) as u32;
+                                    for &cont in &utf8[1..] {
+                                        code = code * 64 + ((cont & 63) as u32);
+                                    }
+                                    if utf8_width == 4 {
+                                        code = (((utf8[0] & 7) as u32) << 18)
+                                            | (((utf8[1] & 63) as u32) << 14)
+                                            | (((utf8[2] & 63) as u32) << 6)
+                                            | ((utf8[3] & 63) as u32);
+                                    }
+                                    if utf8_width == 4 {
+                                        format!("\\u{code:06x}")
+                                    } else {
+                                        format!("\\u{code:04x}")
+                                    }
+                                };
+                                if char_count == 0 {
+                                    start_off = region_off + idx + 1 - utf8.len();
+                                }
+                                cur_bytes.extend_from_slice(text.as_bytes());
+                                char_count += 1;
+                            }
                             utf8.clear();
-                            flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
-                            reprocess = true;
-                            continue;
-                        }
-                        utf8.push(cur_b);
-                        if utf8.len() < utf8_width {
                             break;
                         }
-                        if unicode == "invalid" {
+                        if !utf8.is_empty() {
+                            utf8.clear();
                             flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
-                        } else if unicode == "locale" {
+                        }
+                        let ok = cur_b == 9
+                            || (32..=126).contains(&cur_b)
+                            || (encoding == 'S' && cur_b >= 128)
+                            || (include_ws && (10..=13).contains(&cur_b));
+                        if ok {
                             if char_count == 0 {
-                                start_off = region_off + idx + 1 - utf8.len();
+                                start_off = region_off + idx;
                             }
-                            cur_bytes.extend_from_slice(&utf8);
+                            cur_bytes.push(cur_b);
                             char_count += 1;
                         } else {
-                            let text = if unicode == "hex" {
-                                let hex_s: String = utf8.iter().map(|v| format!("{v:02x}")).collect();
-                                format!("<0x{hex_s}>")
-                            } else {
-                                let mut code = (utf8[0] & if utf8_width == 2 { 31 } else { 15 }) as u32;
-                                for &cont in &utf8[1..] {
-                                    code = code * 64 + ((cont & 63) as u32);
-                                }
-                                if utf8_width == 4 {
-                                    code = (((utf8[0] & 7) as u32) << 18)
-                                        | (((utf8[1] & 63) as u32) << 14)
-                                        | (((utf8[2] & 63) as u32) << 6)
-                                        | ((utf8[3] & 63) as u32);
-                                }
-                                if utf8_width == 4 {
-                                    format!("\\u{code:06x}")
-                                } else {
-                                    format!("\\u{code:04x}")
-                                }
-                            };
-                            if char_count == 0 {
-                                start_off = region_off + idx + 1 - utf8.len();
-                            }
-                            cur_bytes.extend_from_slice(text.as_bytes());
-                            char_count += 1;
+                            flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
                         }
-                        utf8.clear();
-                        break;
-                    }
-                    if !utf8.is_empty() {
-                        utf8.clear();
-                        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
-                    }
-                    let ok = cur_b == 9
-                        || (32..=126).contains(&cur_b)
-                        || (encoding == 'S' && cur_b >= 128)
-                        || (include_ws && (10..=13).contains(&cur_b));
-                    if ok {
-                        if char_count == 0 {
-                            start_off = region_off + idx;
-                        }
-                        cur_bytes.push(cur_b);
-                        char_count += 1;
-                    } else {
-                        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
                     }
                 }
-            }
             } else {
                 let little = encoding == 'l' || encoding == 'L';
                 let mut idx = 0usize;
                 while idx + width <= region_data.len() {
-                let mut code = 0u32;
-                for k in 0..width {
-                    let byte = region_data[idx + if little { width - 1 - k } else { k }] as u32;
-                    code = (code << 8) | byte;
-                }
-                let ok = code == 9
-                    || (32..=126).contains(&code)
-                    || (include_ws && (10..=13).contains(&code));
-                if ok {
-                    if char_count == 0 {
-                        start_off = region_off + idx;
+                    let mut code = 0u32;
+                    for k in 0..width {
+                        let byte = region_data[idx + if little { width - 1 - k } else { k }] as u32;
+                        code = (code << 8) | byte;
                     }
-                    cur_bytes.push(code as u8);
-                    char_count += 1;
-                } else {
-                    flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                    let ok = code == 9
+                        || (32..=126).contains(&code)
+                        || (include_ws && (10..=13).contains(&code));
+                    if ok {
+                        if char_count == 0 {
+                            start_off = region_off + idx;
+                        }
+                        cur_bytes.push(code as u8);
+                        char_count += 1;
+                    } else {
+                        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                    }
+                    idx += width;
                 }
-                idx += width;
-            }
             }
             flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
         }
@@ -7650,7 +10102,11 @@ fn openssl_hash(name: &str, data: &[u8]) -> Vec<u8> {
 }
 
 pub(super) fn openssl_hmac(name: &str, key: &[u8], data: &[u8]) -> Vec<u8> {
-    let block_size = if name == "sha384" || name == "sha512" { 128usize } else { 64usize };
+    let block_size = if name == "sha384" || name == "sha512" {
+        128usize
+    } else {
+        64usize
+    };
     let mut k = if key.len() > block_size {
         openssl_hash(name, key)
     } else {
@@ -7669,7 +10125,13 @@ pub(super) fn openssl_hmac(name: &str, key: &[u8], data: &[u8]) -> Vec<u8> {
     openssl_hash(name, &opad)
 }
 
-pub(super) fn pbkdf2_hmac(digest:&str, password: &[u8], salt: &[u8], iterations: u32, dk_len: usize) -> Vec<u8> {
+pub(super) fn pbkdf2_hmac(
+    digest: &str,
+    password: &[u8],
+    salt: &[u8],
+    iterations: u32,
+    dk_len: usize,
+) -> Vec<u8> {
     let mut out = Vec::with_capacity(dk_len);
     let mut block_num = 1u32;
     while out.len() < dk_len {
@@ -7692,41 +10154,41 @@ pub(super) fn pbkdf2_hmac(digest:&str, password: &[u8], salt: &[u8], iterations:
 }
 
 const AES_SBOX: [u8; 256] = [
-    0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
-    0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
-    0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,
-    0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,
-    0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,
-    0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,
-    0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,
-    0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,
-    0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,
-    0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,
-    0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,
-    0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,
-    0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,
-    0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
-    0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
-    0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16,
+    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 ];
 
 const AES_INV_SBOX: [u8; 256] = [
-    0x52,0x09,0x6a,0xd5,0x30,0x36,0xa5,0x38,0xbf,0x40,0xa3,0x9e,0x81,0xf3,0xd7,0xfb,
-    0x7c,0xe3,0x39,0x82,0x9b,0x2f,0xff,0x87,0x34,0x8e,0x43,0x44,0xc4,0xde,0xe9,0xcb,
-    0x54,0x7b,0x94,0x32,0xa6,0xc2,0x23,0x3d,0xee,0x4c,0x95,0x0b,0x42,0xfa,0xc3,0x4e,
-    0x08,0x2e,0xa1,0x66,0x28,0xd9,0x24,0xb2,0x76,0x5b,0xa2,0x49,0x6d,0x8b,0xd1,0x25,
-    0x72,0xf8,0xf6,0x64,0x86,0x68,0x98,0x16,0xd4,0xa4,0x5c,0xcc,0x5d,0x65,0xb6,0x92,
-    0x6c,0x70,0x48,0x50,0xfd,0xed,0xb9,0xda,0x5e,0x15,0x46,0x57,0xa7,0x8d,0x9d,0x84,
-    0x90,0xd8,0xab,0x00,0x8c,0xbc,0xd3,0x0a,0xf7,0xe4,0x58,0x05,0xb8,0xb3,0x45,0x06,
-    0xd0,0x2c,0x1e,0x8f,0xca,0x3f,0x0f,0x02,0xc1,0xaf,0xbd,0x03,0x01,0x13,0x8a,0x6b,
-    0x3a,0x91,0x11,0x41,0x4f,0x67,0xdc,0xea,0x97,0xf2,0xcf,0xce,0xf0,0xb4,0xe6,0x73,
-    0x96,0xac,0x74,0x22,0xe7,0xad,0x35,0x85,0xe2,0xf9,0x37,0xe8,0x1c,0x75,0xdf,0x6e,
-    0x47,0xf1,0x1a,0x71,0x1d,0x29,0xc5,0x89,0x6f,0xb7,0x62,0x0e,0xaa,0x18,0xbe,0x1b,
-    0xfc,0x56,0x3e,0x4b,0xc6,0xd2,0x79,0x20,0x9a,0xdb,0xc0,0xfe,0x78,0xcd,0x5a,0xf4,
-    0x1f,0xdd,0xa8,0x33,0x88,0x07,0xc7,0x31,0xb1,0x12,0x10,0x59,0x27,0x80,0xec,0x5f,
-    0x60,0x51,0x7f,0xa9,0x19,0xb5,0x4a,0x0d,0x2d,0xe5,0x7a,0x9f,0x93,0xc9,0x9c,0xef,
-    0xa0,0xe0,0x3b,0x4d,0xae,0x2a,0xf5,0xb0,0xc8,0xeb,0xbb,0x3c,0x83,0x53,0x99,0x61,
-    0x17,0x2b,0x04,0x7e,0xba,0x77,0xd6,0x26,0xe1,0x69,0x14,0x63,0x55,0x21,0x0c,0x7d,
+    0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
+    0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
+    0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
+    0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2, 0x76, 0x5b, 0xa2, 0x49, 0x6d, 0x8b, 0xd1, 0x25,
+    0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92,
+    0x6c, 0x70, 0x48, 0x50, 0xfd, 0xed, 0xb9, 0xda, 0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84,
+    0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a, 0xf7, 0xe4, 0x58, 0x05, 0xb8, 0xb3, 0x45, 0x06,
+    0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02, 0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b,
+    0x3a, 0x91, 0x11, 0x41, 0x4f, 0x67, 0xdc, 0xea, 0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73,
+    0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85, 0xe2, 0xf9, 0x37, 0xe8, 0x1c, 0x75, 0xdf, 0x6e,
+    0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89, 0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b,
+    0xfc, 0x56, 0x3e, 0x4b, 0xc6, 0xd2, 0x79, 0x20, 0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4,
+    0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31, 0xb1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xec, 0x5f,
+    0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
+    0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
+    0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d,
 ];
 
 fn aes_xtime(x: u8) -> u8 {
@@ -7753,7 +10215,9 @@ pub(super) fn aes_expand_key(key: &[u8]) -> (Vec<[u8; 16]>, usize) {
     for i in 0..nk {
         w[i] = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
     }
-    let rcon: [u8; 11] = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
+    let rcon: [u8; 11] = [
+        0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36,
+    ];
     for i in nk..nb_words {
         let mut temp = w[i - 1];
         if i % nk == 0 {
@@ -7800,9 +10264,18 @@ pub(super) fn aes_encrypt_block(block: &[u8; 16], round_keys: &[[u8; 16]], nr: u
             s[i] = AES_SBOX[s[i] as usize];
         }
         let t = s;
-        s[1] = t[5]; s[5] = t[9]; s[9] = t[13]; s[13] = t[1];
-        s[2] = t[10]; s[6] = t[14]; s[10] = t[2]; s[14] = t[6];
-        s[3] = t[15]; s[7] = t[3]; s[11] = t[7]; s[15] = t[11];
+        s[1] = t[5];
+        s[5] = t[9];
+        s[9] = t[13];
+        s[13] = t[1];
+        s[2] = t[10];
+        s[6] = t[14];
+        s[10] = t[2];
+        s[14] = t[6];
+        s[3] = t[15];
+        s[7] = t[3];
+        s[11] = t[7];
+        s[15] = t[11];
         if round < nr {
             for c in 0..4 {
                 let idx = 4 * c;
@@ -7827,9 +10300,18 @@ fn aes_decrypt_block(block: &[u8; 16], round_keys: &[[u8; 16]], nr: usize) -> [u
     }
     for round in (1..=nr).rev() {
         let t = s;
-        s[1] = t[13]; s[5] = t[1]; s[9] = t[5]; s[13] = t[9];
-        s[2] = t[10]; s[6] = t[14]; s[10] = t[2]; s[14] = t[6];
-        s[3] = t[7]; s[7] = t[11]; s[11] = t[15]; s[15] = t[3];
+        s[1] = t[13];
+        s[5] = t[1];
+        s[9] = t[5];
+        s[13] = t[9];
+        s[2] = t[10];
+        s[6] = t[14];
+        s[10] = t[2];
+        s[14] = t[6];
+        s[3] = t[7];
+        s[7] = t[11];
+        s[11] = t[15];
+        s[15] = t[3];
         for i in 0..16 {
             s[i] = AES_INV_SBOX[s[i] as usize];
         }
@@ -7841,9 +10323,12 @@ fn aes_decrypt_block(block: &[u8; 16], round_keys: &[[u8; 16]], nr: usize) -> [u
                 let idx = 4 * c;
                 let (a0, a1, a2, a3) = (s[idx], s[idx + 1], s[idx + 2], s[idx + 3]);
                 s[idx] = aes_gmul(a0, 14) ^ aes_gmul(a1, 11) ^ aes_gmul(a2, 13) ^ aes_gmul(a3, 9);
-                s[idx + 1] = aes_gmul(a0, 9) ^ aes_gmul(a1, 14) ^ aes_gmul(a2, 11) ^ aes_gmul(a3, 13);
-                s[idx + 2] = aes_gmul(a0, 13) ^ aes_gmul(a1, 9) ^ aes_gmul(a2, 14) ^ aes_gmul(a3, 11);
-                s[idx + 3] = aes_gmul(a0, 11) ^ aes_gmul(a1, 13) ^ aes_gmul(a2, 9) ^ aes_gmul(a3, 14);
+                s[idx + 1] =
+                    aes_gmul(a0, 9) ^ aes_gmul(a1, 14) ^ aes_gmul(a2, 11) ^ aes_gmul(a3, 13);
+                s[idx + 2] =
+                    aes_gmul(a0, 13) ^ aes_gmul(a1, 9) ^ aes_gmul(a2, 14) ^ aes_gmul(a3, 11);
+                s[idx + 3] =
+                    aes_gmul(a0, 11) ^ aes_gmul(a1, 13) ^ aes_gmul(a2, 9) ^ aes_gmul(a3, 14);
             }
         }
     }
@@ -7864,7 +10349,8 @@ fn openssl_hex_decode(raw: &str) -> Result<Vec<u8>, String> {
     }
     let mut out = Vec::with_capacity(raw.len() / 2);
     for i in (0..raw.len()).step_by(2) {
-        let b = u8::from_str_radix(&raw[i..i + 2], 16).map_err(|_| "invalid hex value".to_string())?;
+        let b =
+            u8::from_str_radix(&raw[i..i + 2], 16).map_err(|_| "invalid hex value".to_string())?;
         out.push(b);
     }
     Ok(out)
@@ -7890,7 +10376,9 @@ fn openssl_read_bytes(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> Result<Vec<u8>, String> {
-    if let Some(f) = file && !f.is_empty() {
+    if let Some(f) = file
+        && !f.is_empty()
+    {
         let full = resolve_posix_path(cwd, f);
         if fs.is_dir(&full) {
             return Err(format!(
@@ -7910,7 +10398,9 @@ fn openssl_write_bytes(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> Result<BuiltinOutcome, String> {
-    if let Some(f) = out_file && !f.is_empty() {
+    if let Some(f) = out_file
+        && !f.is_empty()
+    {
         let full = resolve_posix_path(cwd, f);
         fs.write_file(&full, data).map_err(|e| format!("{e}"))?;
         Ok(ok_out(""))
@@ -7924,9 +10414,21 @@ fn openssl_crypt_password(password: &str, salt_input: &str, mode: &str) -> Resul
     let encode_groups = |bytes: &[u8], groups: &[(isize, isize, isize, usize)]| -> String {
         let mut out = String::new();
         for &(a, b, c, count) in groups {
-            let ba = if a >= 0 { *bytes.get(a as usize).unwrap_or(&0) as u32 } else { 0 };
-            let bb = if b >= 0 { *bytes.get(b as usize).unwrap_or(&0) as u32 } else { 0 };
-            let bc = if c >= 0 { *bytes.get(c as usize).unwrap_or(&0) as u32 } else { 0 };
+            let ba = if a >= 0 {
+                *bytes.get(a as usize).unwrap_or(&0) as u32
+            } else {
+                0
+            };
+            let bb = if b >= 0 {
+                *bytes.get(b as usize).unwrap_or(&0) as u32
+            } else {
+                0
+            };
+            let bc = if c >= 0 {
+                *bytes.get(c as usize).unwrap_or(&0) as u32
+            } else {
+                0
+            };
             let mut word = (ba << 16) | (bb << 8) | bc;
             for _ in 0..count {
                 out.push(ALPHABET[(word & 63) as usize] as char);
@@ -7941,17 +10443,25 @@ fn openssl_crypt_password(password: &str, salt_input: &str, mode: &str) -> Resul
         }
         (0..len).map(|i| src[i % src.len()]).collect()
     };
-    let mut rounds = if mode == "1" || mode == "apr1" { 1000usize } else { 5000usize };
+    let mut rounds = if mode == "1" || mode == "apr1" {
+        1000usize
+    } else {
+        5000usize
+    };
     let mut round_prefix = String::new();
     let mut salt_rem = salt_input;
-    if (mode == "5" || mode == "6") && let Some(rest) = salt_rem.strip_prefix("rounds=") {
+    if (mode == "5" || mode == "6")
+        && let Some(rest) = salt_rem.strip_prefix("rounds=")
+    {
         let Some((val, after)) = rest.split_once('$') else {
             return Err("invalid crypt rounds".to_string());
         };
         if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
             return Err("invalid crypt rounds".to_string());
         }
-        let parsed = val.parse::<usize>().map_err(|_| "invalid crypt rounds".to_string())?;
+        let parsed = val
+            .parse::<usize>()
+            .map_err(|_| "invalid crypt rounds".to_string())?;
         rounds = parsed.max(1000);
         round_prefix = format!("rounds={rounds}$");
         salt_rem = after;
@@ -7985,20 +10495,41 @@ fn openssl_crypt_password(password: &str, salt_input: &str, mode: &str) -> Resul
         let mut digest = md5_bytes(&init).to_vec();
         for i in 0..1000usize {
             let mut buf = Vec::new();
-            if (i & 1) != 0 { buf.extend_from_slice(p); } else { buf.extend_from_slice(&digest); }
-            if i % 3 != 0 { buf.extend_from_slice(s); }
-            if i % 7 != 0 { buf.extend_from_slice(p); }
-            if (i & 1) != 0 { buf.extend_from_slice(&digest); } else { buf.extend_from_slice(p); }
+            if (i & 1) != 0 {
+                buf.extend_from_slice(p);
+            } else {
+                buf.extend_from_slice(&digest);
+            }
+            if i % 3 != 0 {
+                buf.extend_from_slice(s);
+            }
+            if i % 7 != 0 {
+                buf.extend_from_slice(p);
+            }
+            if (i & 1) != 0 {
+                buf.extend_from_slice(&digest);
+            } else {
+                buf.extend_from_slice(p);
+            }
             digest = md5_bytes(&buf).to_vec();
         }
         let groups = [
-            (0,6,12,4), (1,7,13,4), (2,8,14,4), (3,9,15,4), (4,10,5,4), (-1,-1,11,2)
+            (0, 6, 12, 4),
+            (1, 7, 13, 4),
+            (2, 8, 14, 4),
+            (3, 9, 15, 4),
+            (4, 10, 5, 4),
+            (-1, -1, 11, 2),
         ];
         let enc_str = encode_groups(&digest, &groups);
         return Ok(format!("{magic}{salt}${enc_str}"));
     }
     let hash_fn = |d: &[u8]| -> Vec<u8> {
-        if mode == "5" { sha256_bytes(d).to_vec() } else { sha512_bytes(d).to_vec() }
+        if mode == "5" {
+            sha256_bytes(d).to_vec()
+        } else {
+            sha512_bytes(d).to_vec()
+        }
     };
     let mut alt_in = Vec::new();
     alt_in.extend_from_slice(p);
@@ -8011,36 +10542,83 @@ fn openssl_crypt_password(password: &str, salt_input: &str, mode: &str) -> Resul
     init.extend_from_slice(&repeat_bytes(&alt, p.len()));
     let mut n = p.len();
     while n > 0 {
-        if (n & 1) != 0 { init.extend_from_slice(&alt); } else { init.extend_from_slice(p); }
+        if (n & 1) != 0 {
+            init.extend_from_slice(&alt);
+        } else {
+            init.extend_from_slice(p);
+        }
         n >>= 1;
     }
     let mut digest = hash_fn(&init);
     let mut ph_in = Vec::new();
-    for _ in 0..p.len() { ph_in.extend_from_slice(p); }
+    for _ in 0..p.len() {
+        ph_in.extend_from_slice(p);
+    }
     let seq_p = repeat_bytes(&hash_fn(&ph_in), p.len());
     let mut sh_in = Vec::new();
-    for _ in 0..(16 + digest[0] as usize) { sh_in.extend_from_slice(s); }
+    for _ in 0..(16 + digest[0] as usize) {
+        sh_in.extend_from_slice(s);
+    }
     let seq_s = repeat_bytes(&hash_fn(&sh_in), s.len());
     for i in 0..rounds {
         let mut buf = Vec::new();
-        if (i & 1) != 0 { buf.extend_from_slice(&seq_p); } else { buf.extend_from_slice(&digest); }
-        if i % 3 != 0 { buf.extend_from_slice(&seq_s); }
-        if i % 7 != 0 { buf.extend_from_slice(&seq_p); }
-        if (i & 1) != 0 { buf.extend_from_slice(&digest); } else { buf.extend_from_slice(&seq_p); }
+        if (i & 1) != 0 {
+            buf.extend_from_slice(&seq_p);
+        } else {
+            buf.extend_from_slice(&digest);
+        }
+        if i % 3 != 0 {
+            buf.extend_from_slice(&seq_s);
+        }
+        if i % 7 != 0 {
+            buf.extend_from_slice(&seq_p);
+        }
+        if (i & 1) != 0 {
+            buf.extend_from_slice(&digest);
+        } else {
+            buf.extend_from_slice(&seq_p);
+        }
         digest = hash_fn(&buf);
     }
     let encoded = if mode == "5" {
         let groups = [
-            (0,10,20,4),(21,1,11,4),(12,22,2,4),(3,13,23,4),(24,4,14,4),
-            (15,25,5,4),(6,16,26,4),(27,7,17,4),(18,28,8,4),(9,19,29,4),(-1,31,30,3)
+            (0, 10, 20, 4),
+            (21, 1, 11, 4),
+            (12, 22, 2, 4),
+            (3, 13, 23, 4),
+            (24, 4, 14, 4),
+            (15, 25, 5, 4),
+            (6, 16, 26, 4),
+            (27, 7, 17, 4),
+            (18, 28, 8, 4),
+            (9, 19, 29, 4),
+            (-1, 31, 30, 3),
         ];
         encode_groups(&digest, &groups)
     } else {
         let groups = [
-            (0,21,42,4),(22,43,1,4),(44,2,23,4),(3,24,45,4),(25,46,4,4),(47,5,26,4),
-            (6,27,48,4),(28,49,7,4),(50,8,29,4),(9,30,51,4),(31,52,10,4),(53,11,32,4),
-            (12,33,54,4),(34,55,13,4),(56,14,35,4),(15,36,57,4),(37,58,16,4),(59,17,38,4),
-            (18,39,60,4),(40,61,19,4),(62,20,41,4),(-1,-1,63,2)
+            (0, 21, 42, 4),
+            (22, 43, 1, 4),
+            (44, 2, 23, 4),
+            (3, 24, 45, 4),
+            (25, 46, 4, 4),
+            (47, 5, 26, 4),
+            (6, 27, 48, 4),
+            (28, 49, 7, 4),
+            (50, 8, 29, 4),
+            (9, 30, 51, 4),
+            (31, 52, 10, 4),
+            (53, 11, 32, 4),
+            (12, 33, 54, 4),
+            (34, 55, 13, 4),
+            (56, 14, 35, 4),
+            (15, 36, 57, 4),
+            (37, 58, 16, 4),
+            (59, 17, 38, 4),
+            (18, 39, 60, 4),
+            (40, 61, 19, 4),
+            (62, 20, 41, 4),
+            (-1, -1, 63, 2),
         ];
         encode_groups(&digest, &groups)
     };
@@ -8055,7 +10633,10 @@ fn openssl_extract_key_seed(raw: &[u8]) -> Result<(String, Vec<u8>), String> {
         if lines.len() < 2 || !lines.last().unwrap_or(&"").starts_with("-----END ") {
             return Err("invalid PEM input".to_string());
         }
-        let label = lines[0].trim_start_matches("-----BEGIN ").trim_end_matches("-----").to_string();
+        let label = lines[0]
+            .trim_start_matches("-----BEGIN ")
+            .trim_end_matches("-----")
+            .to_string();
         let body: String = lines[1..lines.len() - 1].join("");
         let decoded = base64_decode(&body)?;
         let decoded_str = String::from_utf8_lossy(&decoded);
@@ -8063,7 +10644,8 @@ fn openssl_extract_key_seed(raw: &[u8]) -> Result<(String, Vec<u8>), String> {
             let parts: Vec<&str> = rest.splitn(4, ':').collect();
             if parts.len() == 4 {
                 let seed_hex = parts[3].split(':').next().unwrap_or(parts[3]);
-                let seed = openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
+                let seed =
+                    openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
                 return Ok((format!("{}:{}:{}", parts[0], parts[1], parts[2]), seed));
             }
         }
@@ -8075,7 +10657,8 @@ fn openssl_extract_key_seed(raw: &[u8]) -> Result<(String, Vec<u8>), String> {
         let parts: Vec<&str> = rest.splitn(4, ':').collect();
         if parts.len() == 4 {
             let seed_hex = parts[3].split(':').next().unwrap_or(parts[3]);
-            let seed = openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
+            let seed =
+                openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
             return Ok((format!("{}:{}:{}", parts[0], parts[1], parts[2]), seed));
         }
     }
@@ -8108,7 +10691,10 @@ fn openssl_key_payload(alg: &str, role_tag: &str, bits_or_curve: &str, seed: &[u
 fn openssl_compute_signature(meta: &str, hash_name: &str, seed: &[u8], input: &[u8]) -> Vec<u8> {
     let parts: Vec<&str> = meta.split(':').collect();
     if parts.first().copied() == Some("RSA") {
-        let bits = parts.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(2048);
+        let bits = parts
+            .get(2)
+            .and_then(|s| s.parse::<usize>().ok())
+            .unwrap_or(2048);
         let sig_len = (bits / 8).max(64);
         let mut out = Vec::with_capacity(sig_len + 32);
         let mut counter = 0u32;
@@ -8276,7 +10862,9 @@ fn cmd_openssl(
         let mut stdin_buf = Some(crate::vfs::stream_string_to_bytes(stdin));
 
         if matches!(sub, "help" | "--help" | "-h") {
-            return Ok(ok_out("Usage: openssl <subcommand> [options]\nSubcommands: version, dgst, md5, sha1, sha256, sha384, sha512, rand, base64, enc, genpkey, genrsa, rsa, ecparam, ec, pkey, pkeyutl, req, x509, passwd\n"));
+            return Ok(ok_out(
+                "Usage: openssl <subcommand> [options]\nSubcommands: version, dgst, md5, sha1, sha256, sha384, sha512, rand, base64, enc, genpkey, genrsa, rsa, ecparam, ec, pkey, pkeyutl, req, x509, passwd\n",
+            ));
         }
         if matches!(sub, "version" | "--version" | "-v") {
             let mut has_a = false;
@@ -8284,7 +10872,9 @@ fn cmd_openssl(
             for a in rest {
                 match a.as_str() {
                     "-a" => has_a = true,
-                    "-v" | "-b" | "-o" | "-f" | "-p" | "-d" => { flags.insert(a.as_str()); }
+                    "-v" | "-b" | "-o" | "-f" | "-p" | "-d" => {
+                        flags.insert(a.as_str());
+                    }
                     _ if a.starts_with('-') => return Err(format!("unknown option: {a}")),
                     _ => return Err("unexpected version argument".to_string()),
                 }
@@ -8306,8 +10896,15 @@ fn cmd_openssl(
             let joined = lines.join("\n");
             return Ok(ok_out(&format!("{joined}\n")));
         }
-        if matches!(sub, "dgst" | "md5" | "sha1" | "sha256" | "sha384" | "sha512") {
-            let mut hash_name = if sub == "dgst" { "sha256".to_string() } else { sub.to_string() };
+        if matches!(
+            sub,
+            "dgst" | "md5" | "sha1" | "sha256" | "sha384" | "sha512"
+        ) {
+            let mut hash_name = if sub == "dgst" {
+                "sha256".to_string()
+            } else {
+                sub.to_string()
+            };
             let mut binary = false;
             let mut hex_flag = false;
             let mut r_flag = false;
@@ -8322,13 +10919,18 @@ fn cmd_openssl(
             while i < rest.len() {
                 let a = rest[i].as_str();
                 match a {
-                    "-md5" | "-sha1" | "-sha256" | "-sha384" | "-sha512" => hash_name = a[1..].to_string(),
+                    "-md5" | "-sha1" | "-sha256" | "-sha384" | "-sha512" => {
+                        hash_name = a[1..].to_string()
+                    }
                     "-binary" => binary = true,
                     "-hex" => hex_flag = true,
                     "-r" => r_flag = true,
                     "-hmac" | "-sign" | "-verify" | "-prverify" | "-signature" | "-out" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
                         match a {
                             "-hmac" => hmac_key = Some(val),
                             "-sign" => sign_key = Some(val),
@@ -8349,16 +10951,30 @@ fn cmd_openssl(
                 i += 1;
             }
             if sign_key.is_some() || verify_key.is_some() || prverify_key.is_some() {
-                if positional.len() > 1 || (sign_key.is_some() && (verify_key.is_some() || prverify_key.is_some())) {
+                if positional.len() > 1
+                    || (sign_key.is_some() && (verify_key.is_some() || prverify_key.is_some()))
+                {
                     return Err("sign/verify requires one input and one operation".to_string());
                 }
                 if sign_key.is_none() && sig_file.is_none() {
-                    return Err("sign/verify requires a key and verification requires a signature".to_string());
+                    return Err(
+                        "sign/verify requires a key and verification requires a signature"
+                            .to_string(),
+                    );
                 }
-                let key_path = sign_key.as_deref().or(verify_key.as_deref()).or(prverify_key.as_deref()).unwrap();
+                let key_path = sign_key
+                    .as_deref()
+                    .or(verify_key.as_deref())
+                    .or(prverify_key.as_deref())
+                    .unwrap();
                 let key_bytes = openssl_read_bytes(Some(key_path), &mut stdin_buf, cwd, fs)?;
                 let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
-                let input = openssl_read_bytes(positional.first().map(|s| s.as_str()), &mut stdin_buf, cwd, fs)?;
+                let input = openssl_read_bytes(
+                    positional.first().map(|s| s.as_str()),
+                    &mut stdin_buf,
+                    cwd,
+                    fs,
+                )?;
                 let expected_sig = openssl_compute_signature(&meta, &hash_name, &seed, &input);
                 if sign_key.is_some() {
                     if hex_flag {
@@ -8368,11 +10984,19 @@ fn cmd_openssl(
                     }
                     return openssl_write_bytes(&expected_sig, out_file.as_deref(), cwd, fs);
                 } else {
-                    let sf = sig_file.as_deref().ok_or_else(|| "sign/verify requires a key and verification requires a signature".to_string())?;
+                    let sf = sig_file.as_deref().ok_or_else(|| {
+                        "sign/verify requires a key and verification requires a signature"
+                            .to_string()
+                    })?;
                     let actual_sig = openssl_read_bytes(Some(sf), &mut stdin_buf, cwd, fs)?;
                     let valid = actual_sig == expected_sig;
-                    let msg = if valid { "Verified OK\n" } else { "Verification Failure\n" };
-                    let mut res = openssl_write_bytes(msg.as_bytes(), out_file.as_deref(), cwd, fs)?;
+                    let msg = if valid {
+                        "Verified OK\n"
+                    } else {
+                        "Verification Failure\n"
+                    };
+                    let mut res =
+                        openssl_write_bytes(msg.as_bytes(), out_file.as_deref(), cwd, fs)?;
                     res.exit_code = if valid { 0 } else { 1 };
                     return Ok(res);
                 }
@@ -8406,7 +11030,11 @@ fn cmd_openssl(
                     let line = if r_flag {
                         format!("{hex_str} *{fname}\n")
                     } else {
-                        let hmac_prefix = if file.is_some() && hmac_key.is_some() { "HMAC-" } else { "" };
+                        let hmac_prefix = if file.is_some() && hmac_key.is_some() {
+                            "HMAC-"
+                        } else {
+                            ""
+                        };
                         format!("{hmac_prefix}{label}({fname})= {hex_str}\n")
                     };
                     output.extend_from_slice(line.as_bytes());
@@ -8427,7 +11055,11 @@ fn cmd_openssl(
                     "-base64" => b64_flag = true,
                     "-out" => {
                         i += 1;
-                        out_file = Some(rest.get(i).ok_or_else(|| "missing value for -out".to_string())?.clone());
+                        out_file = Some(
+                            rest.get(i)
+                                .ok_or_else(|| "missing value for -out".to_string())?
+                                .clone(),
+                        );
                     }
                     _ if a.starts_with('-') => return Err(format!("unknown option: {a}")),
                     _ => positional.push(a.to_string()),
@@ -8441,7 +11073,9 @@ fn cmd_openssl(
             if raw_cnt.is_empty() || !raw_cnt.chars().all(|c| c.is_ascii_digit()) {
                 return Err("invalid random byte count".to_string());
             }
-            let count = raw_cnt.parse::<usize>().map_err(|_| "invalid random byte count".to_string())?;
+            let count = raw_cnt
+                .parse::<usize>()
+                .map_err(|_| "invalid random byte count".to_string())?;
             let mut bytes = vec![0u8; count];
             for (idx, b) in bytes.iter_mut().enumerate() {
                 let h = sha256_bytes(format!("safe-bash-rand-{count}-{idx}").as_bytes());
@@ -8473,8 +11107,15 @@ fn cmd_openssl(
                     "-A" => no_nl = true,
                     "-in" | "-out" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
-                        if a == "-in" { in_file = Some(val); } else { out_file = Some(val); }
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
+                        if a == "-in" {
+                            in_file = Some(val);
+                        } else {
+                            out_file = Some(val);
+                        }
                     }
                     _ if a.starts_with('-') => return Err(format!("unknown option: {a}")),
                     _ => return Err("unexpected base64 argument".to_string()),
@@ -8484,7 +11125,15 @@ fn cmd_openssl(
             let input = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
             if decode {
                 let s = String::from_utf8_lossy(&input);
-                let clean: String = s.chars().filter(|c| !matches!(c, ' ' | '\t' | '\n' | '\r')).map(|c| match c { '-' => '+', '_' => '/', _ => c }).collect();
+                let clean: String = s
+                    .chars()
+                    .filter(|c| !matches!(c, ' ' | '\t' | '\n' | '\r'))
+                    .map(|c| match c {
+                        '-' => '+',
+                        '_' => '/',
+                        _ => c,
+                    })
+                    .collect();
                 let decoded = base64_decode(&clean)?;
                 return openssl_write_bytes(&decoded, out_file.as_deref(), cwd, fs);
             } else {
@@ -8512,7 +11161,11 @@ fn cmd_openssl(
                     "-stdin" => from_stdin = true,
                     "-salt" => {
                         i += 1;
-                        salt_opt = Some(rest.get(i).ok_or_else(|| "missing value for -salt".to_string())?.clone());
+                        salt_opt = Some(
+                            rest.get(i)
+                                .ok_or_else(|| "missing value for -salt".to_string())?
+                                .clone(),
+                        );
                     }
                     _ if a.starts_with('-') => return Err(format!("unknown option: {a}")),
                     _ => positional.push(a.to_string()),
@@ -8569,7 +11222,9 @@ fn cmd_openssl(
                 let a = rest[i].as_str();
                 match a {
                     "-aes-128-cbc" | "-aes-256-cbc" | "-aes-256-ctr" => {
-                        if !ciphers.contains(&a) { ciphers.push(a); }
+                        if !ciphers.contains(&a) {
+                            ciphers.push(a);
+                        }
                     }
                     "-d" => decrypt = true,
                     "-e" | "-salt" => {}
@@ -8579,7 +11234,10 @@ fn cmd_openssl(
                     "-pbkdf2" => pbkdf2 = true,
                     "-k" | "-pass" | "-K" | "-iv" | "-S" | "-iter" | "-in" | "-out" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
                         match a {
                             "-k" => k_opt = Some(val),
                             "-pass" => pass_opt = Some(val),
@@ -8590,7 +11248,9 @@ fn cmd_openssl(
                                 if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
                                     return Err(format!("invalid or excessive -iter: {val}"));
                                 }
-                                let n = val.parse::<u32>().map_err(|_| format!("invalid or excessive -iter: {val}"))?;
+                                let n = val
+                                    .parse::<u32>()
+                                    .map_err(|_| format!("invalid or excessive -iter: {val}"))?;
                                 if !(1..=1_000_000).contains(&n) {
                                     return Err(format!("invalid or excessive -iter: {val}"));
                                 }
@@ -8610,27 +11270,45 @@ fn cmd_openssl(
                 return Err("select one supported AES cipher".to_string());
             }
             let cipher = ciphers[0];
-            let key_len = if cipher == "-aes-128-cbc" { 16usize } else { 32usize };
+            let key_len = if cipher == "-aes-128-cbc" {
+                16usize
+            } else {
+                32usize
+            };
             let is_ctr = cipher == "-aes-256-ctr";
             let iterations = iter_opt.unwrap_or(10000);
             let password: Option<String> = if let Some(spec) = pass_opt {
                 if let Some(p) = spec.strip_prefix("pass:") {
                     Some(p.to_string())
                 } else if let Some(var) = spec.strip_prefix("env:") {
-                    let v = env.get(var).ok_or_else(|| "password environment variable is not set".to_string())?;
+                    let v = env
+                        .get(var)
+                        .ok_or_else(|| "password environment variable is not set".to_string())?;
                     Some(v.clone())
                 } else if let Some(fp) = spec.strip_prefix("file:") {
                     let b = openssl_read_bytes(Some(fp), &mut stdin_buf, cwd, fs)?;
                     let s = String::from_utf8_lossy(&b);
-                    Some(s.lines().next().unwrap_or("").trim_end_matches('\r').to_string())
+                    Some(
+                        s.lines()
+                            .next()
+                            .unwrap_or("")
+                            .trim_end_matches('\r')
+                            .to_string(),
+                    )
                 } else if spec == "stdin" {
                     let b = stdin_buf.take().unwrap_or_default();
                     if let Some(pos) = b.iter().position(|&c| c == b'\n') {
                         stdin_buf = Some(b[pos + 1..].to_vec());
-                        let line = String::from_utf8_lossy(&b[..pos]).trim_end_matches('\r').to_string();
+                        let line = String::from_utf8_lossy(&b[..pos])
+                            .trim_end_matches('\r')
+                            .to_string();
                         Some(line)
                     } else {
-                        Some(String::from_utf8_lossy(&b).trim_end_matches('\r').to_string())
+                        Some(
+                            String::from_utf8_lossy(&b)
+                                .trim_end_matches('\r')
+                                .to_string(),
+                        )
                     }
                 } else {
                     return Err("password source must be pass:, env:, file: or stdin".to_string());
@@ -8642,7 +11320,15 @@ fn cmd_openssl(
             let mut input = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
             if decrypt && encoded {
                 let s = String::from_utf8_lossy(&input);
-                let clean: String = s.chars().filter(|c| !matches!(c, ' ' | '\t' | '\n' | '\r')).map(|c| match c { '-' => '+', '_' => '/', _ => c }).collect();
+                let clean: String = s
+                    .chars()
+                    .filter(|c| !matches!(c, ' ' | '\t' | '\n' | '\r'))
+                    .map(|c| match c {
+                        '-' => '+',
+                        '_' => '/',
+                        _ => c,
+                    })
+                    .collect();
                 input = base64_decode(&clean)?;
             }
             let salted = !nosalt && hex_key.is_none();
@@ -8668,7 +11354,8 @@ fn cmd_openssl(
                 let v = openssl_hex_decode(hex_iv.as_deref().unwrap_or(""))?;
                 (k, v)
             } else {
-                let pw = password.ok_or_else(|| "password required: use -k or -pass".to_string())?;
+                let pw =
+                    password.ok_or_else(|| "password required: use -k or -pass".to_string())?;
                 let derived = if pbkdf2 || iter_opt.is_some() {
                     pbkdf2_hmac("sha256", pw.as_bytes(), &salt, iterations, key_len + 16)
                 } else {
@@ -8747,7 +11434,11 @@ fn cmd_openssl(
                     prev = blk;
                 }
                 let pad = *out.last().unwrap_or(&0) as usize;
-                if pad == 0 || pad > 16 || out.len() < pad || !out[out.len() - pad..].iter().all(|&b| b as usize == pad) {
+                if pad == 0
+                    || pad > 16
+                    || out.len() < pad
+                    || !out[out.len() - pad..].iter().all(|&b| b as usize == pad)
+                {
                     return Err("bad decrypt".to_string());
                 }
                 out.truncate(out.len() - pad);
@@ -8769,7 +11460,10 @@ fn cmd_openssl(
             }
             return openssl_write_bytes(&result, out_file.as_deref(), cwd, fs);
         }
-        if matches!(sub, "genpkey" | "genrsa" | "rsa" | "ecparam" | "ec" | "pkey") {
+        if matches!(
+            sub,
+            "genpkey" | "genrsa" | "rsa" | "ecparam" | "ec" | "pkey"
+        ) {
             let mut pubout = false;
             let mut pubin = false;
             let mut noout = false;
@@ -8797,9 +11491,13 @@ fn cmd_openssl(
                     "-check" => check_flag = true,
                     "-genkey" => genkey_flag = true,
                     "-noenc" | "-nodes" => {}
-                    "-in" | "-out" | "-inform" | "-outform" | "-algorithm" | "-pkeyopt" | "-name" => {
+                    "-in" | "-out" | "-inform" | "-outform" | "-algorithm" | "-pkeyopt"
+                    | "-name" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
                         match a {
                             "-in" => in_file = Some(val),
                             "-out" => out_file = Some(val),
@@ -8854,27 +11552,48 @@ fn cmd_openssl(
                             return openssl_write_bytes(&combined, out_file.as_deref(), cwd, fs);
                         }
                         let b64 = openssl_b64_encode(&oid_bytes, true);
-                        out.push_str(&format!("-----BEGIN EC PARAMETERS-----\n{b64}\n-----END EC PARAMETERS-----\n"));
+                        out.push_str(&format!(
+                            "-----BEGIN EC PARAMETERS-----\n{b64}\n-----END EC PARAMETERS-----\n"
+                        ));
                     }
                     return openssl_write_bytes(out.as_bytes(), out_file.as_deref(), cwd, fs);
                 }
-                let alg_str = algorithm.unwrap_or_else(|| if sub == "ecparam" { "EC".to_string() } else { "RSA".to_string() }).to_uppercase();
+                let alg_str = algorithm
+                    .unwrap_or_else(|| {
+                        if sub == "ecparam" {
+                            "EC".to_string()
+                        } else {
+                            "RSA".to_string()
+                        }
+                    })
+                    .to_uppercase();
                 match alg_str.as_str() {
                     "RSA" => {
                         if bits < 512 || bits > 4096 || bits % 8 != 0 {
-                            return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
+                            return Err(
+                                "RSA size must be a multiple of 8 from 512 to 4096".to_string()
+                            );
                         }
                     }
                     "EC" => {
-                        if !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                        if !matches!(
+                            curve_name.as_str(),
+                            "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521"
+                        ) {
                             return Err(format!("unsupported curve: {curve_name}"));
                         }
                     }
                     "ED25519" => {}
                     _ => return Err(format!("unsupported key algorithm: {alg_str}")),
                 }
-                let seed_bytes = sha256_bytes(format!("sb-key-{alg_str}-{bits}-{curve_name}").as_bytes()).to_vec();
-                let boc = if alg_str == "RSA" { bits.to_string() } else { curve_name.clone() };
+                let seed_bytes =
+                    sha256_bytes(format!("sb-key-{alg_str}-{bits}-{curve_name}").as_bytes())
+                        .to_vec();
+                let boc = if alg_str == "RSA" {
+                    bits.to_string()
+                } else {
+                    curve_name.clone()
+                };
                 (alg_str, boc, pubout, seed_bytes)
             } else {
                 if !positional.is_empty() {
@@ -8887,8 +11606,14 @@ fn cmd_openssl(
                 if inform == "PEM" {
                     let txt = String::from_utf8_lossy(&raw);
                     let lines: Vec<&str> = txt.trim().lines().collect();
-                    if !lines.first().map(|l| l.starts_with("-----BEGIN ")).unwrap_or(false)
-                        || !lines.last().map(|l| l.starts_with("-----END ")).unwrap_or(false)
+                    if !lines
+                        .first()
+                        .map(|l| l.starts_with("-----BEGIN "))
+                        .unwrap_or(false)
+                        || !lines
+                            .last()
+                            .map(|l| l.starts_with("-----END "))
+                            .unwrap_or(false)
                     {
                         return Err("invalid PEM input".to_string());
                     }
@@ -8954,7 +11679,9 @@ fn cmd_openssl(
                 }
                 let label = if is_pub { "PUBLIC KEY" } else { "PRIVATE KEY" };
                 let b64 = openssl_b64_encode(payload.as_bytes(), true);
-                output.push_str(&format!("-----BEGIN {label}-----\n{b64}\n-----END {label}-----\n"));
+                output.push_str(&format!(
+                    "-----BEGIN {label}-----\n{b64}\n-----END {label}-----\n"
+                ));
             }
             return openssl_write_bytes(output.as_bytes(), out_file.as_deref(), cwd, fs);
         }
@@ -8975,7 +11702,10 @@ fn cmd_openssl(
                     "-rawin" | "-pubin" => {}
                     "-inkey" | "-in" | "-out" | "-sigfile" | "-digest" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
                         match a {
                             "-inkey" => inkey = Some(val),
                             "-in" => in_file = Some(val),
@@ -8989,26 +11719,35 @@ fn cmd_openssl(
                 }
                 i += 1;
             }
-                if inkey.is_none() || (sign == verify) {
-                    return Err("pkeyutl requires -inkey and one of -sign/-verify".to_string());
-                }
-                if !matches!(digest.as_str(), "sha1" | "sha256" | "sha384" | "sha512") {
-                    return Err("unsupported signing digest".to_string());
-                }
-                if !sign && sig_file.is_none() {
-                    return Err("sign/verify requires a key and verification requires a signature".to_string());
-                }
-                let key_bytes = openssl_read_bytes(inkey.as_deref(), &mut stdin_buf, cwd, fs)?;
+            if inkey.is_none() || (sign == verify) {
+                return Err("pkeyutl requires -inkey and one of -sign/-verify".to_string());
+            }
+            if !matches!(digest.as_str(), "sha1" | "sha256" | "sha384" | "sha512") {
+                return Err("unsupported signing digest".to_string());
+            }
+            if !sign && sig_file.is_none() {
+                return Err(
+                    "sign/verify requires a key and verification requires a signature".to_string(),
+                );
+            }
+            let key_bytes = openssl_read_bytes(inkey.as_deref(), &mut stdin_buf, cwd, fs)?;
             let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
             let input = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
             let expected = openssl_compute_signature(&meta, &digest, &seed, &input);
             if sign {
                 return openssl_write_bytes(&expected, out_file.as_deref(), cwd, fs);
             } else {
-                let sf = sig_file.as_deref().ok_or_else(|| "sign/verify requires a key and verification requires a signature".to_string())?;
+                let sf = sig_file.as_deref().ok_or_else(|| {
+                    "sign/verify requires a key and verification requires a signature".to_string()
+                })?;
                 let actual = openssl_read_bytes(Some(sf), &mut stdin_buf, cwd, fs)?;
                 if actual == expected {
-                    return openssl_write_bytes(b"Signature Verified Successfully\n", out_file.as_deref(), cwd, fs);
+                    return openssl_write_bytes(
+                        b"Signature Verified Successfully\n",
+                        out_file.as_deref(),
+                        cwd,
+                        fs,
+                    );
                 } else {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
@@ -9066,9 +11805,13 @@ fn cmd_openssl(
                         fp_hash = &a[1..];
                         explicit_hash = true;
                     }
-                    "-key" | "-keyout" | "-newkey" | "-days" | "-subj" | "-addext" | "-in" | "-out" | "-inform" | "-outform" | "-ext" | "-checkend" => {
+                    "-key" | "-keyout" | "-newkey" | "-days" | "-subj" | "-addext" | "-in"
+                    | "-out" | "-inform" | "-outform" | "-ext" | "-checkend" => {
                         i += 1;
-                        let val = rest.get(i).ok_or_else(|| format!("missing value for {a}"))?.clone();
+                        let val = rest
+                            .get(i)
+                            .ok_or_else(|| format!("missing value for {a}"))?
+                            .clone();
                         match a {
                             "-key" => key_file = Some(val),
                             "-keyout" => keyout_file = Some(val),
@@ -9113,12 +11856,26 @@ fn cmd_openssl(
                         "RSA" => {
                             let bits = nk_param.parse::<isize>().unwrap_or(-1);
                             if bits < 512 || bits > 4096 || bits % 8 != 0 {
-                                return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
+                                return Err(
+                                    "RSA size must be a multiple of 8 from 512 to 4096".to_string()
+                                );
                             }
                         }
                         "EC" => {
-                            let curve = if nk.contains(':') { nk_param } else { "prime256v1" };
-                            if !matches!(curve, "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                            let curve = if nk.contains(':') {
+                                nk_param
+                            } else {
+                                "prime256v1"
+                            };
+                            if !matches!(
+                                curve,
+                                "prime256v1"
+                                    | "P-256"
+                                    | "secp384r1"
+                                    | "P-384"
+                                    | "secp521r1"
+                                    | "P-521"
+                            ) {
                                 return Err(format!("unsupported curve: {curve}"));
                             }
                         }
@@ -9126,7 +11883,9 @@ fn cmd_openssl(
                         _ => return Err(format!("unsupported key algorithm: {alg_upper}")),
                     }
                 }
-                let raw_subj = subj_opt.as_deref().ok_or_else(|| "-subj is required for noninteractive requests".to_string())?;
+                let raw_subj = subj_opt
+                    .as_deref()
+                    .ok_or_else(|| "-subj is required for noninteractive requests".to_string())?;
                 let formatted_subj = openssl_format_subject(raw_subj)?;
                 let _ = openssl_validate_and_format_addexts(&addexts)?;
                 if let Some(ref ko) = keyout_file {
@@ -9136,7 +11895,8 @@ fn cmd_openssl(
                     let seed = sha256_bytes(format!("sb-key-{nk}-{formatted_subj}").as_bytes());
                     let payload = openssl_key_payload(&alg_upper, "PRIVATE", nk_param, &seed);
                     let b64 = openssl_b64_encode(payload.as_bytes(), true);
-                    let pem_key = format!("-----BEGIN PRIVATE KEY-----\n{b64}\n-----END PRIVATE KEY-----\n");
+                    let pem_key =
+                        format!("-----BEGIN PRIVATE KEY-----\n{b64}\n-----END PRIVATE KEY-----\n");
                     let _ = openssl_write_bytes(pem_key.as_bytes(), Some(ko), cwd, fs)?;
                 } else if let Some(ref kf) = key_file {
                     let _ = openssl_read_bytes(Some(kf), &mut stdin_buf, cwd, fs)?;
@@ -9153,39 +11913,59 @@ fn cmd_openssl(
                 let trimmed = txt.trim();
                 if inform == "PEM" {
                     let lines: Vec<&str> = trimmed.lines().collect();
-                    if !lines.first().map(|l| l.starts_with("-----BEGIN ")).unwrap_or(false)
-                        || !lines.last().map(|l| l.starts_with("-----END ")).unwrap_or(false)
+                    if !lines
+                        .first()
+                        .map(|l| l.starts_with("-----BEGIN "))
+                        .unwrap_or(false)
+                        || !lines
+                            .last()
+                            .map(|l| l.starts_with("-----END "))
+                            .unwrap_or(false)
                     {
                         return Err("invalid PEM input".to_string());
                     }
                 }
                 let decoded = if trimmed.starts_with("-----BEGIN ") {
                     let lines: Vec<&str> = trimmed.lines().collect();
-                    let body = if lines.len() >= 2 { lines[1..lines.len() - 1].join("") } else { String::new() };
+                    let body = if lines.len() >= 2 {
+                        lines[1..lines.len() - 1].join("")
+                    } else {
+                        String::new()
+                    };
                     base64_decode(&body).unwrap_or_default()
                 } else {
                     raw
                 };
                 let dec_str = String::from_utf8_lossy(&decoded);
-                let (subj, parsed_days, parsed_exts) = if let Some(rest_c) = dec_str.strip_prefix("SBCERT:") {
-                    let parts: Vec<&str> = if rest_c.contains('\t') {
-                        rest_c.splitn(3, '\t').collect()
+                let (subj, parsed_days, parsed_exts) =
+                    if let Some(rest_c) = dec_str.strip_prefix("SBCERT:") {
+                        let parts: Vec<&str> = if rest_c.contains('\t') {
+                            rest_c.splitn(3, '\t').collect()
+                        } else {
+                            rest_c.splitn(3, ':').collect()
+                        };
+                        let s = parts.first().copied().unwrap_or("").to_string();
+                        let d = parts
+                            .get(1)
+                            .and_then(|v| v.parse::<usize>().ok())
+                            .unwrap_or(365);
+                        let exts: Vec<String> = parts
+                            .get(2)
+                            .map(|e| {
+                                e.split(';')
+                                    .filter(|x| !x.is_empty())
+                                    .map(|x| x.to_string())
+                                    .collect()
+                            })
+                            .unwrap_or_default();
+                        (s, d, exts)
                     } else {
-                        rest_c.splitn(3, ':').collect()
+                        ("CN=localhost".to_string(), 365usize, Vec::new())
                     };
-                    let s = parts.first().copied().unwrap_or("").to_string();
-                    let d = parts.get(1).and_then(|v| v.parse::<usize>().ok()).unwrap_or(365);
-                    let exts: Vec<String> = parts
-                        .get(2)
-                        .map(|e| e.split(';').filter(|x| !x.is_empty()).map(|x| x.to_string()).collect())
-                        .unwrap_or_default();
-                    (s, d, exts)
-                } else {
-                    ("CN=localhost".to_string(), 365usize, Vec::new())
-                };
                 (subj, parsed_days, parsed_exts, decoded)
             };
-            let formatted_exts = openssl_validate_and_format_addexts(&cert_exts_raw).unwrap_or_default();
+            let formatted_exts =
+                openssl_validate_and_format_addexts(&cert_exts_raw).unwrap_or_default();
             let mut stderr_msg = String::new();
             if verify_flag && sub == "req" && !is_x509 {
                 stderr_msg = "Certificate request self-signature verify OK\n".to_string();
@@ -9223,12 +12003,20 @@ fn cmd_openssl(
                 if fingerprint_flag {
                     let d = openssl_hash(fp_hash, &raw_cert_bytes);
                     let colons: Vec<String> = d.iter().map(|b| format!("{b:02X}")).collect();
-                    let label = if explicit_hash { fp_hash.to_lowercase() } else { "SHA1".to_string() };
+                    let label = if explicit_hash {
+                        fp_hash.to_lowercase()
+                    } else {
+                        "SHA1".to_string()
+                    };
                     let joined = colons.join(":");
                     lines.push(format!("{label} Fingerprint={joined}"));
                 }
                 if let Some(ref ext_names) = ext_opt {
-                    for req_name in ext_names.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                    for req_name in ext_names
+                        .split(',')
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                    {
                         let canonical = match req_name {
                             "2.5.29.17" => "subjectAltName",
                             "2.5.29.19" => "basicConstraints",
@@ -9237,7 +12025,8 @@ fn cmd_openssl(
                             "2.5.29.14" => "subjectKeyIdentifier",
                             other => other,
                         };
-                        if let Some((_, txt)) = formatted_exts.iter().find(|(n, _)| n == canonical) {
+                        if let Some((_, txt)) = formatted_exts.iter().find(|(n, _)| n == canonical)
+                        {
                             lines.push(txt.clone());
                         }
                     }
@@ -9264,16 +12053,24 @@ fn cmd_openssl(
                 if outform == "DER" {
                     return openssl_write_bytes(&raw_cert_bytes, out_file.as_deref(), cwd, fs);
                 }
-                let label = if is_x509 { "CERTIFICATE" } else { "CERTIFICATE REQUEST" };
+                let label = if is_x509 {
+                    "CERTIFICATE"
+                } else {
+                    "CERTIFICATE REQUEST"
+                };
                 let b64 = openssl_b64_encode(&raw_cert_bytes, true);
-                output.push_str(&format!("-----BEGIN {label}-----\n{b64}\n-----END {label}-----\n\n"));
+                output.push_str(&format!(
+                    "-----BEGIN {label}-----\n{b64}\n-----END {label}-----\n\n"
+                ));
             }
             let mut out_res = openssl_write_bytes(output.as_bytes(), out_file.as_deref(), cwd, fs)?;
             out_res.stderr = stderr_msg;
             out_res.exit_code = exit_code;
             return Ok(out_res);
         }
-        Err(format!("Invalid command '{sub}'; type \"openssl help\" for a list."))
+        Err(format!(
+            "Invalid command '{sub}'; type \"openssl help\" for a list."
+        ))
     };
     match run() {
         Ok(res) => res,
@@ -9292,7 +12089,11 @@ fn pgp_crc24(data: &[u8]) -> String {
             }
         }
     }
-    let bytes = [((crc >> 16) & 0xff) as u8, ((crc >> 8) & 0xff) as u8, (crc & 0xff) as u8];
+    let bytes = [
+        ((crc >> 16) & 0xff) as u8,
+        ((crc >> 8) & 0xff) as u8,
+        (crc & 0xff) as u8,
+    ];
     format!("={}", base64_encode(&bytes))
 }
 
@@ -9308,12 +12109,20 @@ struct GpgKey {
 impl GpgKey {
     fn matches_selector(&self, value: &str) -> bool {
         let id = value.strip_suffix('!').unwrap_or(value);
-        let id = id.strip_prefix("0x").or_else(|| id.strip_prefix("0X")).unwrap_or(id);
+        let id = id
+            .strip_prefix("0x")
+            .or_else(|| id.strip_prefix("0X"))
+            .unwrap_or(id);
         if matches!(id.len(), 8 | 16 | 40) && id.bytes().all(|b| b.is_ascii_hexdigit()) {
             if id.len() == 40 {
-                return self.certificate().is_ok_and(|c| openssl_hex_encode(&c.fingerprint).eq_ignore_ascii_case(id));
+                return self
+                    .certificate()
+                    .is_ok_and(|c| openssl_hex_encode(&c.fingerprint).eq_ignore_ascii_case(id));
             }
-            return self.id.to_ascii_uppercase().ends_with(&id.to_ascii_uppercase());
+            return self
+                .id
+                .to_ascii_uppercase()
+                .ends_with(&id.to_ascii_uppercase());
         }
         !value.is_empty() && self.uid.to_lowercase().contains(&value.to_lowercase())
     }
@@ -9323,20 +12132,31 @@ impl GpgKey {
             openssl_hex_decode(&self.certificate)?
         } else {
             // Older private records have neither a creation time nor a certification.
-            let seed: [u8; 32] = openssl_hex_decode(&self.seed)?.try_into().map_err(|_| "no certified public key")?;
+            let seed: [u8; 32] = openssl_hex_decode(&self.seed)?
+                .try_into()
+                .map_err(|_| "no certified public key")?;
             let public = ed25519_pubkey_from_seed(&seed);
             openpgp::certify(&self.uid, &public, &seed, 0x60000000).1
         };
         let mut rest = &bytes[..];
         let cert = openpgp::read_certificate(&mut rest).ok_or("invalid public certificate")?;
-        if !rest.is_empty() || cert.uid != self.uid || openssl_hex_encode(&cert.public) != self.public {
+        if !rest.is_empty()
+            || cert.uid != self.uid
+            || openssl_hex_encode(&cert.public) != self.public
+        {
             return Err("certificate does not match keyring".into());
         }
         Ok(cert)
     }
 }
 
-fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_gpg(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut version = false;
     let mut detach_sign = false;
     let mut verify = false;
@@ -9382,7 +12202,10 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         } else if matches!(a, "--list-keys" | "-k" | "--list-secret-keys" | "-K") {
             list_keys = true;
             list_secret = matches!(a, "--list-secret-keys" | "-K");
-        } else if matches!(a, "--quick-generate-key" | "--quick-gen-key" | "--gen-key" | "--full-generate-key") {
+        } else if matches!(
+            a,
+            "--quick-generate-key" | "--quick-gen-key" | "--gen-key" | "--full-generate-key"
+        ) {
             quick_gen_key = true;
         } else if a == "--export" {
             export_keys = true;
@@ -9395,7 +12218,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             detach_sign |= a == "-bsau";
             armor |= a == "-bsau";
             signer_uid = Some(args[i].clone());
-        } else if let Some(rest) = a.strip_prefix("-bsau") && !rest.is_empty() {
+        } else if let Some(rest) = a.strip_prefix("-bsau")
+            && !rest.is_empty()
+        {
             detach_sign = true;
             armor = true;
             signer_uid = Some(rest.to_string());
@@ -9419,7 +12244,16 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             passphrase_fd = Some(args[i].clone());
         } else if let Some(rest) = a.strip_prefix("--passphrase-fd=") {
             passphrase_fd = Some(rest.to_string());
-        } else if matches!(a, "--pinentry-mode" | "--cipher-algo" | "--s2k-digest-algo" | "--s2k-cipher-algo" | "--s2k-mode" | "--s2k-count") && i + 1 < args.len() {
+        } else if matches!(
+            a,
+            "--pinentry-mode"
+                | "--cipher-algo"
+                | "--s2k-digest-algo"
+                | "--s2k-cipher-algo"
+                | "--s2k-mode"
+                | "--s2k-count"
+        ) && i + 1 < args.len()
+        {
             i += 1;
         } else if a.starts_with("--pinentry-mode=")
             || a.starts_with("--cipher-algo=")
@@ -9454,30 +12288,69 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     use mcp_protocol_rust::json::{self, Value};
     let parse_keyring_bytes = |raw: &[u8]| -> Result<Vec<GpgKey>, String> {
         let invalid = || "invalid keyring".to_string();
-        let Ok(Value::Array(entries)) = json::parse(raw, json::Limits { max_depth: 3, ..Default::default() }) else { return Err(invalid()); };
-        entries.into_iter().map(|entry| {
-            let field = |key| match entry.get(key) {
-                Some(Value::String(text)) => String::from_utf16(text).ok(), _ => None,
-            };
-            Ok(GpgKey { uid: field("uid").ok_or_else(invalid)?, id: field("keyIdHex").ok_or_else(invalid)?,
-                seed: field("seedHex").unwrap_or_default(), public: field("pubHex").ok_or_else(invalid)?,
-                certificate: field("certHex").unwrap_or_default() })
-        }).collect()
+        let Ok(Value::Array(entries)) = json::parse(
+            raw,
+            json::Limits {
+                max_depth: 3,
+                ..Default::default()
+            },
+        ) else {
+            return Err(invalid());
+        };
+        entries
+            .into_iter()
+            .map(|entry| {
+                let field = |key| match entry.get(key) {
+                    Some(Value::String(text)) => String::from_utf16(text).ok(),
+                    _ => None,
+                };
+                Ok(GpgKey {
+                    uid: field("uid").ok_or_else(invalid)?,
+                    id: field("keyIdHex").ok_or_else(invalid)?,
+                    seed: field("seedHex").unwrap_or_default(),
+                    public: field("pubHex").ok_or_else(invalid)?,
+                    certificate: field("certHex").unwrap_or_default(),
+                })
+            })
+            .collect()
     };
     let serialize_keys = |keys: &[GpgKey]| {
-        let field = |name: &str, value: &str| (name.encode_utf16().collect(), Value::String(value.encode_utf16().collect()));
-        json::stringify(&Value::Array(keys.iter().map(|k| {
-            let mut fields = vec![field("uid", &k.uid), field("keyIdHex", &k.id), field("pubHex", &k.public)];
-            if !k.seed.is_empty() { fields.push(field("seedHex", &k.seed)); }
-            if !k.certificate.is_empty() { fields.push(field("certHex", &k.certificate)); }
-            Value::Object(fields)
-        }).collect()))
+        let field = |name: &str, value: &str| {
+            (
+                name.encode_utf16().collect(),
+                Value::String(value.encode_utf16().collect()),
+            )
+        };
+        json::stringify(&Value::Array(
+            keys.iter()
+                .map(|k| {
+                    let mut fields = vec![
+                        field("uid", &k.uid),
+                        field("keyIdHex", &k.id),
+                        field("pubHex", &k.public),
+                    ];
+                    if !k.seed.is_empty() {
+                        fields.push(field("seedHex", &k.seed));
+                    }
+                    if !k.certificate.is_empty() {
+                        fields.push(field("certHex", &k.certificate));
+                    }
+                    Value::Object(fields)
+                })
+                .collect(),
+        ))
     };
     let load_keyring = || {
         match fs.lstat(keyring_path) {
-            Err(e) if e.starts_with("ENOENT") || e.contains("No such file or directory") => return Ok(Vec::new()),
+            Err(e) if e.starts_with("ENOENT") || e.contains("No such file or directory") => {
+                return Ok(Vec::new());
+            }
             Err(e) => return Err(e),
-            Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 != 0o100000 => return Err("keyring is not a regular file".into()),
+            Ok(st)
+                if st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 != 0o100000 =>
+            {
+                return Err("keyring is not a regular file".into());
+            }
             Ok(_) => {}
         }
         parse_keyring_bytes(&fs.read_file(keyring_path)?)
@@ -9489,23 +12362,44 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             Err(e) if e.starts_with("EEXIST") || e.ends_with("(os error 17)") => {}
             other => other?,
         }
-        let receipt = fs.observe_publication(keyring_path, fs.generation(), crate::vfs::PublicationMode::Replace)?;
-        if fs.lstat(dir)?.kind != crate::vfs::VfsEntryKind::Directory { return Err("invalid keyring directory".into()); }
-        if load_keyring()? != keys[..previous] { return Err("keyring changed during update".into()); }
-        fs.replace_file_entry_with_mode(keyring_path, serialize_keys(keys).as_bytes(), 0o600, receipt.version)
+        let receipt = fs.observe_publication(
+            keyring_path,
+            fs.generation(),
+            crate::vfs::PublicationMode::Replace,
+        )?;
+        if fs.lstat(dir)?.kind != crate::vfs::VfsEntryKind::Directory {
+            return Err("invalid keyring directory".into());
+        }
+        if load_keyring()? != keys[..previous] {
+            return Err("keyring changed during update".into());
+        }
+        fs.replace_file_entry_with_mode(
+            keyring_path,
+            serialize_keys(keys).as_bytes(),
+            0o600,
+            receipt.version,
+        )
     };
     let generate_key = |uid: &str| -> Result<GpgKey, String> {
         let mut keys = load_keyring()?;
         if let Some(found) = keys.iter().find(|k| k.uid == uid) {
-            if found.seed.len() != 64 { return Err("No secret key".into()); }
+            if found.seed.len() != 64 {
+                return Err("No secret key".into());
+            }
             return Ok(found.clone());
         }
         let mut seed = [0; 32];
         crate::vfs::memory::fill_random(&mut seed)?;
         let pub_b = ed25519_pubkey_from_seed(&seed);
-        let (fp, cert) = openpgp::certify(uid, &pub_b, &seed, (crate::vfs::now_ms() / 1000.) as u32);
-        let entry = GpgKey { uid: uid.into(), id: openssl_hex_encode(&fp[12..]).to_uppercase(),
-            seed: openssl_hex_encode(&seed), public: openssl_hex_encode(&pub_b), certificate: openssl_hex_encode(&cert) };
+        let (fp, cert) =
+            openpgp::certify(uid, &pub_b, &seed, (crate::vfs::now_ms() / 1000.) as u32);
+        let entry = GpgKey {
+            uid: uid.into(),
+            id: openssl_hex_encode(&fp[12..]).to_uppercase(),
+            seed: openssl_hex_encode(&seed),
+            public: openssl_hex_encode(&pub_b),
+            certificate: openssl_hex_encode(&cert),
+        };
         keys.push(entry.clone());
         save_keyring(&keys, keys.len() - 1)?;
         Ok(entry)
@@ -9518,17 +12412,28 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 "EISDIR: illegal operation on a directory, readFile '{full}'"
             ));
         }
-        fs.read_file(&full)
-            .map_err(|e| if e.starts_with("ENOENT:") { format!("ENOENT: no such file or directory, readFile '{full}'") } else { e })
+        fs.read_file(&full).map_err(|e| {
+            if e.starts_with("ENOENT:") {
+                format!("ENOENT: no such file or directory, readFile '{full}'")
+            } else {
+                e
+            }
+        })
     };
 
     let mut source = Some(stdin);
     let mut signed_data = |paths: &[String]| -> Result<Vec<u8>, String> {
-        if paths.is_empty() { return Ok(crate::vfs::stream_string_to_bytes(source.take().unwrap_or_default())); }
+        if paths.is_empty() {
+            return Ok(crate::vfs::stream_string_to_bytes(
+                source.take().unwrap_or_default(),
+            ));
+        }
         let mut out = Vec::new();
         for path in paths {
             if path == "-" {
-                if let Some(data) = source.take() { out.extend(crate::vfs::stream_string_to_bytes(data)); }
+                if let Some(data) = source.take() {
+                    out.extend(crate::vfs::stream_string_to_bytes(data));
+                }
             } else {
                 out.extend(read_gpg_file(path)?);
             }
@@ -9539,13 +12444,23 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         if let Some(ref pf) = passphrase_file {
             let raw = read_gpg_file(pf)?;
             let s = String::from_utf8_lossy(&raw);
-            return Ok(s.lines().next().unwrap_or("").trim_end_matches('\r').to_string());
+            return Ok(s
+                .lines()
+                .next()
+                .unwrap_or("")
+                .trim_end_matches('\r')
+                .to_string());
         }
         if let Some(ref p) = passphrase {
             return Ok(p.clone());
         }
         if passphrase_fd.as_deref() == Some("0") && !positionals.is_empty() {
-            return Ok(stdin.lines().next().unwrap_or("").trim_end_matches('\r').to_string());
+            return Ok(stdin
+                .lines()
+                .next()
+                .unwrap_or("")
+                .trim_end_matches('\r')
+                .to_string());
         }
         Ok(String::new())
     };
@@ -9555,7 +12470,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             Ok(s) => s,
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        let payload = if let Some(p0) = positionals.first() && p0 != "-" {
+        let payload = if let Some(p0) = positionals.first()
+            && p0 != "-"
+        {
             match read_gpg_file(p0) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
@@ -9577,7 +12494,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             }
             for idx in (0..16).rev() {
                 ctr[idx] = ctr[idx].wrapping_add(1);
-                if ctr[idx] != 0 { break; }
+                if ctr[idx] != 0 {
+                    break;
+                }
             }
         }
         let tag = openssl_hmac("sha256", &key, &cipher);
@@ -9589,18 +12508,23 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         env_bytes.extend_from_slice(&tag[..16]);
         let out_bytes = if armor {
             let b64 = openssl_b64_encode(&env_bytes, true);
-            format!("-----BEGIN PGP MESSAGE-----\n\n{b64}\n-----END PGP MESSAGE-----\n").into_bytes()
+            format!("-----BEGIN PGP MESSAGE-----\n\n{b64}\n-----END PGP MESSAGE-----\n")
+                .into_bytes()
         } else {
             env_bytes
         };
         let target_out = out_file.or_else(|| {
-            if let Some(p0) = positionals.first() && p0 != "-" {
+            if let Some(p0) = positionals.first()
+                && p0 != "-"
+            {
                 Some(format!("{p0}{}", if armor { ".asc" } else { ".gpg" }))
             } else {
                 None
             }
         });
-        if let Some(to) = target_out && to != "-" {
+        if let Some(to) = target_out
+            && to != "-"
+        {
             let _ = fs.write_file(&resolve_posix_path(cwd, &to), &out_bytes);
             return ok_out("");
         }
@@ -9612,7 +12536,9 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             Ok(s) => s,
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        let raw_in = if let Some(p0) = positionals.first() && p0 != "-" {
+        let raw_in = if let Some(p0) = positionals.first()
+            && p0 != "-"
+        {
             match read_gpg_file(p0) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
@@ -9655,10 +12581,14 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             }
             for idx in (0..16).rev() {
                 ctr[idx] = ctr[idx].wrapping_add(1);
-                if ctr[idx] != 0 { break; }
+                if ctr[idx] != 0 {
+                    break;
+                }
             }
         }
-        if let Some(ref to) = out_file && to != "-" {
+        if let Some(ref to) = out_file
+            && to != "-"
+        {
             let _ = fs.write_file(&resolve_posix_path(cwd, to), &plain);
             return ok_out("");
         }
@@ -9666,54 +12596,132 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     }
 
     if quick_gen_key {
-        let uid = positionals.first().map(|s| s.as_str()).unwrap_or(signer_uid.as_deref().unwrap_or("Git User <user@example.com>"));
-        let GpgKey { uid: u, id: kid, .. } = match generate_key(uid) { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        return ok_out(&format!("pub   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
+        let uid = positionals.first().map(|s| s.as_str()).unwrap_or(
+            signer_uid
+                .as_deref()
+                .unwrap_or("Git User <user@example.com>"),
+        );
+        let GpgKey {
+            uid: u, id: kid, ..
+        } = match generate_key(uid) {
+            Ok(k) => k,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
+        return ok_out(&format!(
+            "pub   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"
+        ));
     }
 
     if list_keys {
-        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let keys = match load_keyring() {
+            Ok(k) => k,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
         let mut out = String::new();
         for key in keys {
             let secret = !key.seed.is_empty();
-            if list_secret && !secret { continue; }
+            if list_secret && !secret {
+                continue;
+            }
             let uid = &key.uid;
             let kid = &key.id;
-            let cert = if key.certificate.is_empty() && !secret { None } else {
-                match key.certificate() { Ok(c) => Some(c), Err(e) => return err_out(&format!("gpg: {e}\n"), 2) }
+            let cert = if key.certificate.is_empty() && !secret {
+                None
+            } else {
+                match key.certificate() {
+                    Ok(c) => Some(c),
+                    Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+                }
             };
-            let fp = cert.as_ref().map(|c| openssl_hex_encode(&c.fingerprint).to_uppercase()).unwrap_or_default();
-            if !positionals.is_empty() && !positionals.iter().any(|q| key.matches_selector(q)) { continue; }
+            let fp = cert
+                .as_ref()
+                .map(|c| openssl_hex_encode(&c.fingerprint).to_uppercase())
+                .unwrap_or_default();
+            if !positionals.is_empty() && !positionals.iter().any(|q| key.matches_selector(q)) {
+                continue;
+            }
             let kind = if list_secret { "sec" } else { "pub" };
             let expires = cert.as_ref().and_then(|c| c.expires);
             let expired = expires.is_some_and(|t| t <= (crate::vfs::now_ms() / 1000.) as u64);
-            let (validity, label) = if expired { ("e", "expired") } else if secret { ("u", "ultimate") } else { ("-", "unknown") };
+            let (validity, label) = if expired {
+                ("e", "expired")
+            } else if secret {
+                ("u", "ultimate")
+            } else {
+                ("-", "unknown")
+            };
             if with_colons {
-                let created = cert.as_ref().map(|c| c.created.to_string()).unwrap_or_default();
-                let certified = cert.as_ref().map(|c| c.certified.to_string()).unwrap_or_default();
+                let created = cert
+                    .as_ref()
+                    .map(|c| c.created.to_string())
+                    .unwrap_or_default();
+                let certified = cert
+                    .as_ref()
+                    .map(|c| c.certified.to_string())
+                    .unwrap_or_default();
                 let owner = if secret { "u" } else { "-" };
                 let caps = if expired { "sc" } else { "scSC" };
                 let end = expires.map(|t| t.to_string()).unwrap_or_default();
-                let escaped: String = uid.chars().map(|c| if c == ':' || c == '\\' || c.is_ascii_control() { format!("\\x{:02x}", c as u32) } else { c.to_string() }).collect();
+                let escaped: String = uid
+                    .chars()
+                    .map(|c| {
+                        if c == ':' || c == '\\' || c.is_ascii_control() {
+                            format!("\\x{:02x}", c as u32)
+                        } else {
+                            c.to_string()
+                        }
+                    })
+                    .collect();
                 out.push_str(&format!("{kind}:{validity}:255:22:{kid}:{created}:{end}::{owner}:::{caps}:::::ed25519:::0:\n"));
-                if !fp.is_empty() { out.push_str(&format!("fpr:::::::::{fp}:\n")); }
-                out.push_str(&format!("uid:{validity}::::{certified}::::{escaped}::::::::::0:\n"));
+                if !fp.is_empty() {
+                    out.push_str(&format!("fpr:::::::::{fp}:\n"));
+                }
+                out.push_str(&format!(
+                    "uid:{validity}::::{certified}::::{escaped}::::::::::0:\n"
+                ));
             } else {
-                let date = |t: u64| { let (y,m,d) = super::coreutils::civil_from_days((t / 86400) as i64); format!("{y:04}-{m:02}-{d:02}") };
-                let created = cert.as_ref().map(|c| date(u64::from(c.created))).unwrap_or_default();
-                let end = expires.map(|t| format!(" [{}: {}]", if expired { "expired" } else { "expires" }, date(t))).unwrap_or_default();
+                let date = |t: u64| {
+                    let (y, m, d) = super::coreutils::civil_from_days((t / 86400) as i64);
+                    format!("{y:04}-{m:02}-{d:02}")
+                };
+                let created = cert
+                    .as_ref()
+                    .map(|c| date(u64::from(c.created)))
+                    .unwrap_or_default();
+                let end = expires
+                    .map(|t| {
+                        format!(
+                            " [{}: {}]",
+                            if expired { "expired" } else { "expires" },
+                            date(t)
+                        )
+                    })
+                    .unwrap_or_default();
                 out.push_str(&format!("{kind}   ed25519 {created} [SC]{end}\n"));
-                out.push_str(&format!("      {}\nuid           [{label:>8}] {uid}\n\n", if fp.is_empty() { kid } else { &fp }));
+                out.push_str(&format!(
+                    "      {}\nuid           [{label:>8}] {uid}\n\n",
+                    if fp.is_empty() { kid } else { &fp }
+                ));
             }
         }
         return ok_out(&out);
     }
 
     if export_keys {
-        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let keys: Vec<_> = keys.into_iter().filter(|k| positionals.is_empty() || positionals.iter().any(|p| k.matches_selector(p))).collect();
+        let keys = match load_keyring() {
+            Ok(k) => k,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
+        let keys: Vec<_> = keys
+            .into_iter()
+            .filter(|k| positionals.is_empty() || positionals.iter().any(|p| k.matches_selector(p)))
+            .collect();
         if keys.is_empty() {
-            return if quiet { ok_out("") } else { err_out("gpg: WARNING: nothing exported\n", 0) };
+            return if quiet {
+                ok_out("")
+            } else {
+                err_out("gpg: WARNING: nothing exported\n", 0)
+            };
         }
         let mut bytes = Vec::new();
         for key in keys {
@@ -9741,94 +12749,181 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         };
         let bytes = if input.starts_with(b"-----BEGIN PGP PUBLIC KEY BLOCK-----") {
             let txt = String::from_utf8_lossy(&input);
-            let b64: String = txt.lines().map(str::trim).filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':')).collect();
-            let Ok(bytes) = base64_decode(&b64) else { return err_out("gpg: invalid public key\n", 2); };
+            let b64: String = txt
+                .lines()
+                .map(str::trim)
+                .filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':'))
+                .collect();
+            let Ok(bytes) = base64_decode(&b64) else {
+                return err_out("gpg: invalid public key\n", 2);
+            };
             bytes
-        } else { input };
+        } else {
+            input
+        };
         let imported = if bytes.first() == Some(&b'[') {
             match parse_keyring_bytes(&bytes) {
-                Ok(mut keys) => { for k in &mut keys { k.seed.clear(); k.certificate.clear(); } keys },
+                Ok(mut keys) => {
+                    for k in &mut keys {
+                        k.seed.clear();
+                        k.certificate.clear();
+                    }
+                    keys
+                }
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
             }
         } else {
             let mut rest = &bytes[..];
             let mut keys = Vec::new();
             while !rest.is_empty() {
-                let Some(cert) = openpgp::read_certificate(&mut rest) else { return err_out("gpg: invalid or unsupported public certificate\n", 2); };
-                keys.push(GpgKey { uid: cert.uid, id: openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase(),
-                    public: openssl_hex_encode(&cert.public), certificate: openssl_hex_encode(&cert.bytes), seed: String::new() });
+                let Some(cert) = openpgp::read_certificate(&mut rest) else {
+                    return err_out("gpg: invalid or unsupported public certificate\n", 2);
+                };
+                keys.push(GpgKey {
+                    uid: cert.uid,
+                    id: openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase(),
+                    public: openssl_hex_encode(&cert.public),
+                    certificate: openssl_hex_encode(&cert.bytes),
+                    seed: String::new(),
+                });
             }
-            if keys.is_empty() { return err_out("gpg: invalid or unsupported public certificate\n", 2); }
+            if keys.is_empty() {
+                return err_out("gpg: invalid or unsupported public certificate\n", 2);
+            }
             keys
         };
         let cnt = imported.len();
-        let mut existing = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let mut existing = match load_keyring() {
+            Ok(k) => k,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
         let previous = existing.len();
         for entry in imported {
-            if !existing.iter().any(|k| k.id == entry.id) { existing.push(entry); }
+            if !existing.iter().any(|k| k.id == entry.id) {
+                existing.push(entry);
+            }
         }
-        if let Err(e) = save_keyring(&existing, previous) { return err_out(&format!("gpg: {e}\n"), 2); }
+        if let Err(e) = save_keyring(&existing, previous) {
+            return err_out(&format!("gpg: {e}\n"), 2);
+        }
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: format!("gpg: Total number processed: {cnt}\ngpg:               imported: {cnt}\n"),
+            stderr: format!(
+                "gpg: Total number processed: {cnt}\ngpg:               imported: {cnt}\n"
+            ),
             exit_code: 0,
         };
     }
 
     if detach_sign {
-        let payload = match signed_data(&positionals) { Ok(data) => data, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let keys = match load_keyring() { Ok(keys) => keys, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
-        let Some(key) = keys.iter().find(|k| !k.seed.is_empty() && signer_uid.as_ref().is_none_or(|q| k.matches_selector(q))) else {
-            let who = signer_uid.map(|q| format!("skipped \"{q}\"")).unwrap_or_else(|| "no default secret key".into());
-            return err_out(&format!("gpg: {who}: No secret key\ngpg: signing failed: No secret key\n"), 2);
+        let payload = match signed_data(&positionals) {
+            Ok(data) => data,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        let Some(seed): Option<[u8; 32]> = openssl_hex_decode(&key.seed).ok().and_then(|s| s.try_into().ok()) else { return err_out("gpg: No secret key\n", 2); };
-        let cert = match key.certificate() { Ok(c) => c, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let keys = match load_keyring() {
+            Ok(keys) => keys,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
+        let Some(key) = keys.iter().find(|k| {
+            !k.seed.is_empty() && signer_uid.as_ref().is_none_or(|q| k.matches_selector(q))
+        }) else {
+            let who = signer_uid
+                .map(|q| format!("skipped \"{q}\""))
+                .unwrap_or_else(|| "no default secret key".into());
+            return err_out(
+                &format!("gpg: {who}: No secret key\ngpg: signing failed: No secret key\n"),
+                2,
+            );
+        };
+        let Some(seed): Option<[u8; 32]> = openssl_hex_decode(&key.seed)
+            .ok()
+            .and_then(|s| s.try_into().ok())
+        else {
+            return err_out("gpg: No secret key\n", 2);
+        };
+        let cert = match key.certificate() {
+            Ok(c) => c,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
         let time = (crate::vfs::now_ms() / 1000.) as u32;
         let fingerprint = openssl_hex_encode(&cert.fingerprint).to_uppercase();
         let pkt_bytes = openpgp::sign(0, &cert.fingerprint, time, &seed, &payload);
         let bytes = if armor {
             let b64 = openssl_b64_encode(&pkt_bytes, true);
             let crc = pgp_crc24(&pkt_bytes);
-            format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n").into_bytes()
-        } else { pkt_bytes };
-        let dest = out_file.or_else(|| positionals.last().filter(|p| *p != "-").map(|p| format!("{p}.{}", if armor { "asc" } else { "sig" })));
+            format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n")
+                .into_bytes()
+        } else {
+            pkt_bytes
+        };
+        let dest = out_file.or_else(|| {
+            positionals
+                .last()
+                .filter(|p| *p != "-")
+                .map(|p| format!("{p}.{}", if armor { "asc" } else { "sig" }))
+        });
         let mut result = ok_out("");
         if let Some(to) = dest.filter(|p| p != "-") {
             let path = resolve_ssh_path(cwd, &to);
-            let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
-            let write = fs.access_path(&path, false).and_then(|entry| fs.create_file(&entry, &bytes, mode));
+            let mode = 0o666
+                & !env
+                    .get("\0umask")
+                    .and_then(|s| u32::from_str_radix(s, 8).ok())
+                    .unwrap_or(0o022);
+            let write = fs
+                .access_path(&path, false)
+                .and_then(|entry| fs.create_file(&entry, &bytes, mode));
             if let Err(e) = write {
                 if e.starts_with("EEXIST") || e.ends_with("(os error 17)") {
-                    if !overwrite { return err_out("gpg: signing failed: File exists\n", 2); }
-                    if let Err(e) = fs.write_file(&path, &bytes) { return err_out(&format!("gpg: signing failed: {e}\n"), 2); }
-                } else { return err_out(&format!("gpg: signing failed: {e}\n"), 2); }
+                    if !overwrite {
+                        return err_out("gpg: signing failed: File exists\n", 2);
+                    }
+                    if let Err(e) = fs.write_file(&path, &bytes) {
+                        return err_out(&format!("gpg: signing failed: {e}\n"), 2);
+                    }
+                } else {
+                    return err_out(&format!("gpg: signing failed: {e}\n"), 2);
+                }
             }
         } else {
             result.stdout = crate::vfs::bytes_to_stream_string(&bytes);
         }
         if let Some(fd) = status_fd {
             let status = format!("[GNUPG:] SIG_CREATED D 22 8 00 {time} {fingerprint}\n");
-            if fd == "1" { result.stdout.insert_str(0, &status); } else if fd == "2" { result.stderr = status; }
+            if fd == "1" {
+                result.stdout.insert_str(0, &status);
+            } else if fd == "2" {
+                result.stderr = status;
+            }
         }
         return result;
     }
 
     if verify {
         let sig_path = positionals.first().map_or("-", String::as_str);
-        let signature = if sig_path == "-" { signed_data(&[]) } else { read_gpg_file(sig_path) };
+        let signature = if sig_path == "-" {
+            signed_data(&[])
+        } else {
+            read_gpg_file(sig_path)
+        };
         let sig_raw = match signature {
             Ok(b) => b,
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
-        if sig_raw.is_empty() { return err_out("gpg: verify signatures failed: Unknown system error\n", 2); }
+        if sig_raw.is_empty() {
+            return err_out("gpg: verify signatures failed: Unknown system error\n", 2);
+        }
         let mut notice = String::new();
         let data_bytes = if positionals.len() > 1 {
             signed_data(&positionals[1..])
         } else {
-            let sibling = [".sig", ".asc", ".sign"].iter().find_map(|suffix| sig_path.strip_suffix(suffix));
+            let sibling = [".sig", ".asc", ".sign"]
+                .iter()
+                .find_map(|suffix| sig_path.strip_suffix(suffix));
             let missing = "gpg: no signed data\ngpg: can't hash datafile: No data\n";
-            let Some(name) = sibling.filter(|name| !batch && !name.is_empty()) else { return err_out(missing, 2) };
+            let Some(name) = sibling.filter(|name| !batch && !name.is_empty()) else {
+                return err_out(missing, 2);
+            };
             match read_gpg_file(name) {
                 Ok(data) => {
                     notice = format!("gpg: assuming signed data in '{name}'\n");
@@ -9838,16 +12933,25 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 Err(e) => Err(e),
             }
         };
-        let data_bytes = match data_bytes { Ok(b) => b, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let data_bytes = match data_bytes {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
         let pkt = if sig_raw.first().is_some_and(|b| b & 128 != 0) {
             sig_raw
         } else {
             let text = String::from_utf8_lossy(&sig_raw);
-            let b64: String = text.lines().map(str::trim)
-                .filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':')).collect();
+            let b64: String = text
+                .lines()
+                .map(str::trim)
+                .filter(|l| !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':'))
+                .collect();
             base64_decode(&b64).unwrap_or_default()
         };
-        let keys = match load_keyring() { Ok(k) => k, Err(e) => return err_out(&format!("gpg: {e}\n"), 2) };
+        let keys = match load_keyring() {
+            Ok(k) => k,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+        };
         let mut result = verify_gpg_signature(&pkt, &keys, &data_bytes, status_fd.is_some());
         result.stderr.insert_str(0, &notice);
         return result;
@@ -9856,29 +12960,66 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     ok_out("gpg (GnuPG) 2.4.5 (safe-bash)\n")
 }
 
-fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_status: bool) -> BuiltinOutcome {
+fn verify_gpg_signature(
+    pkt: &[u8],
+    keys: &[GpgKey],
+    data_bytes: &[u8],
+    emit_status: bool,
+) -> BuiltinOutcome {
     for key in keys {
-        if key.certificate.is_empty() && key.seed.is_empty() { continue; }
+        if key.certificate.is_empty() && key.seed.is_empty() {
+            continue;
+        }
         if let Ok(cert) = key.certificate()
-            && let Some(verified) = openpgp::verify_message(pkt, &cert, data_bytes) {
+            && let Some(verified) = openpgp::verify_message(pkt, &cert, data_bytes)
+        {
             let time = verified.time;
             let hash = verified.hash;
-            let expired = cert.expires.filter(|&t| t <= (crate::vfs::now_ms() / 1000.) as u64);
-            let (status, trust) = if expired.is_some() { ("EXPKEYSIG", "expired") } else { ("GOODSIG", if key.seed.is_empty() { "unknown" } else { "ultimate" }) };
-            let expiry = expired.map(|t| format!("[GNUPG:] KEYEXPIRED {t}\n")).unwrap_or_default();
+            let expired = cert
+                .expires
+                .filter(|&t| t <= (crate::vfs::now_ms() / 1000.) as u64);
+            let (status, trust) = if expired.is_some() {
+                ("EXPKEYSIG", "expired")
+            } else {
+                (
+                    "GOODSIG",
+                    if key.seed.is_empty() {
+                        "unknown"
+                    } else {
+                        "ultimate"
+                    },
+                )
+            };
+            let expiry = expired
+                .map(|t| format!("[GNUPG:] KEYEXPIRED {t}\n"))
+                .unwrap_or_default();
             let (y, m, d) = super::coreutils::civil_from_days(i64::from(time) / 86400);
             let kid = openssl_hex_encode(&cert.fingerprint[12..]).to_uppercase();
             let fp = openssl_hex_encode(&cert.fingerprint).to_uppercase();
             let uid = cert.uid;
             return BuiltinOutcome {
-                stdout: if emit_status { format!("{expiry}[GNUPG:] {status} {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 {hash} 00 {fp}\n") } else { String::new() },
-                stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [{trust}]\n"),
+                stdout: if emit_status {
+                    format!(
+                        "{expiry}[GNUPG:] {status} {kid} {uid}\n[GNUPG:] VALIDSIG {fp} {y:04}-{m:02}-{d:02} {time} 0 4 0 22 {hash} 00 {fp}\n"
+                    )
+                } else {
+                    String::new()
+                },
+                stderr: format!(
+                    "gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{uid}\" [{trust}]\n"
+                ),
                 exit_code: 0,
             };
         }
     }
     if pkt.len() >= 10 && pkt[0] == 0xc2 {
-        let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
+        let idx = if pkt[1] < 192 {
+            2
+        } else if pkt[1] == 0xff && pkt.len() >= 6 {
+            6
+        } else {
+            0
+        };
         if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
             let body = &pkt[idx..];
             let hashed_len = ((body[4] as usize) << 8) | (body[5] as usize);
@@ -9902,7 +13043,8 @@ fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_sta
                     }
                     sp += 1 + slen;
                 }
-                let unhashed_len = ((body[sig_header_end] as usize) << 8) | (body[sig_header_end + 1] as usize);
+                let unhashed_len =
+                    ((body[sig_header_end] as usize) << 8) | (body[sig_header_end + 1] as usize);
                 let unhashed_end = sig_header_end + 2 + unhashed_len;
                 let mut pub_opt: Option<[u8; 32]> = None;
                 let mut usp = sig_header_end + 2;
@@ -9920,21 +13062,28 @@ fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_sta
                     }
                     usp += 1 + slen;
                 }
-                if let Some(pub_key) = pub_opt && unhashed_end + 2 + 68 <= body.len() {
+                if let Some(pub_key) = pub_opt
+                    && unhashed_end + 2 + 68 <= body.len()
+                {
                     let fp = sha256_bytes(&pub_key);
                     let derived_kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
                     let pub_hex_lower = openssl_hex_encode(&pub_key).to_lowercase();
                     if key_id_hex == derived_kid
-                        && let Some(GpgKey { uid: trusted_uid, .. }) = keys
-                            .iter()
-                            .find(|k| k.certificate.is_empty() && k.id == derived_kid && k.public.to_lowercase() == pub_hex_lower)
+                        && let Some(GpgKey {
+                            uid: trusted_uid, ..
+                        }) = keys.iter().find(|k| {
+                            k.certificate.is_empty()
+                                && k.id == derived_kid
+                                && k.public.to_lowercase() == pub_hex_lower
+                        })
                     {
                         let mpi_start = unhashed_end + 2;
                         let mut sig_arr = [0u8; 64];
                         sig_arr[0..32].copy_from_slice(&body[mpi_start + 2..mpi_start + 34]);
                         sig_arr[32..64].copy_from_slice(&body[mpi_start + 36..mpi_start + 68]);
                         let h_len = sig_header.len() as u32;
-                        let mut hash_target = Vec::with_capacity(data_bytes.len() + sig_header.len() + 6);
+                        let mut hash_target =
+                            Vec::with_capacity(data_bytes.len() + sig_header.len() + 6);
                         hash_target.extend_from_slice(data_bytes);
                         hash_target.extend_from_slice(sig_header);
                         hash_target.extend_from_slice(&[4, 0xff]);
@@ -9945,13 +13094,17 @@ fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_sta
                             && ed25519_verify(&sig_arr, &digest, &pub_key)
                         {
                             let stdout_msg = if emit_status {
-                                format!("[GNUPG:] GOODSIG {derived_kid} {trusted_uid}\n[GNUPG:] VALIDSIG {derived_kid} 2026-09-28 1609459200\n")
+                                format!(
+                                    "[GNUPG:] GOODSIG {derived_kid} {trusted_uid}\n[GNUPG:] VALIDSIG {derived_kid} 2026-09-28 1609459200\n"
+                                )
                             } else {
                                 String::new()
                             };
                             return BuiltinOutcome {
                                 stdout: stdout_msg,
-                                stderr: format!("gpg: Signature made using EDDSA key {derived_kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
+                                stderr: format!(
+                                    "gpg: Signature made using EDDSA key {derived_kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"
+                                ),
                                 exit_code: 0,
                             };
                         }
@@ -9970,17 +13123,27 @@ fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_sta
         let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
         if parts.len() == 4 {
             let (kid, uid, _pub_h, sig_h) = (parts[0], parts[1], parts[2], parts[3]);
-            if let Some(GpgKey { uid: trusted_uid, seed: seed_h, .. }) = keys.iter().find(|k| k.id == kid && !k.seed.is_empty()) {
-                let expected = openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), data_bytes));
+            if let Some(GpgKey {
+                uid: trusted_uid,
+                seed: seed_h,
+                ..
+            }) = keys.iter().find(|k| k.id == kid && !k.seed.is_empty())
+            {
+                let expected =
+                    openssl_hex_encode(&openssl_hmac("sha256", seed_h.as_bytes(), data_bytes));
                 if expected == sig_h {
                     let stdout_msg = if emit_status {
-                        format!("[GNUPG:] GOODSIG {kid} {trusted_uid}\n[GNUPG:] VALIDSIG {kid} 2026-09-28 1609459200\n")
+                        format!(
+                            "[GNUPG:] GOODSIG {kid} {trusted_uid}\n[GNUPG:] VALIDSIG {kid} 2026-09-28 1609459200\n"
+                        )
                     } else {
                         String::new()
                     };
                     return BuiltinOutcome {
                         stdout: stdout_msg,
-                        stderr: format!("gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
+                        stderr: format!(
+                            "gpg: Signature made using EDDSA key {kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"
+                        ),
                         exit_code: 0,
                     };
                 }
@@ -9999,15 +13162,60 @@ fn verify_gpg_signature(pkt: &[u8], keys: &[GpgKey], data_bytes: &[u8], emit_sta
     }
 }
 
-const ED25519_P: [u64; 4] = [0xffffffffffffffedu64, 0xffffffffffffffffu64, 0xffffffffffffffffu64, 0x7fffffffffffffffu64];
-const ED25519_P_MINUS_2: [u64; 4] = [0xffffffffffffffebu64, 0xffffffffffffffffu64, 0xffffffffffffffffu64, 0x7fffffffffffffffu64];
-const ED25519_P_MINUS_5_DIV_8: [u64; 4] = [0xfffffffffffffffdu64, 0xffffffffffffffffu64, 0xffffffffffffffffu64, 0x0fffffffffffffffu64];
-const ED25519_L: [u64; 4] = [0x5812631a5cf5d3edu64, 0x14def9dea2f79cd6u64, 0x0000000000000000u64, 0x1000000000000000u64];
-const ED25519_D: [u64; 4] = [0x75eb4dca135978a3u64, 0x00700a4d4141d8abu64, 0x8cc740797779e898u64, 0x52036cee2b6ffe73u64];
-const ED25519_I: [u64; 4] = [0xc4ee1b274a0ea0b0u64, 0x2f431806ad2fe478u64, 0x2b4d00993dfbd7a7u64, 0x2b8324804fc1df0bu64];
-const ED25519_BX: [u64; 4] = [0xc9562d608f25d51au64, 0x692cc7609525a7b2u64, 0xc0a4e231fdd6dc5cu64, 0x216936d3cd6e53feu64];
-const ED25519_BY: [u64; 4] = [0x6666666666666658u64, 0x6666666666666666u64, 0x6666666666666666u64, 0x6666666666666666u64];
-const ED25519_BT: [u64; 4] = [0x6dde8ab3a5b7dda3u64, 0x20f09f80775152f5u64, 0x66ea4e8e64abe37du64, 0x67875f0fd78b7665u64];
+const ED25519_P: [u64; 4] = [
+    0xffffffffffffffedu64,
+    0xffffffffffffffffu64,
+    0xffffffffffffffffu64,
+    0x7fffffffffffffffu64,
+];
+const ED25519_P_MINUS_2: [u64; 4] = [
+    0xffffffffffffffebu64,
+    0xffffffffffffffffu64,
+    0xffffffffffffffffu64,
+    0x7fffffffffffffffu64,
+];
+const ED25519_P_MINUS_5_DIV_8: [u64; 4] = [
+    0xfffffffffffffffdu64,
+    0xffffffffffffffffu64,
+    0xffffffffffffffffu64,
+    0x0fffffffffffffffu64,
+];
+const ED25519_L: [u64; 4] = [
+    0x5812631a5cf5d3edu64,
+    0x14def9dea2f79cd6u64,
+    0x0000000000000000u64,
+    0x1000000000000000u64,
+];
+const ED25519_D: [u64; 4] = [
+    0x75eb4dca135978a3u64,
+    0x00700a4d4141d8abu64,
+    0x8cc740797779e898u64,
+    0x52036cee2b6ffe73u64,
+];
+const ED25519_I: [u64; 4] = [
+    0xc4ee1b274a0ea0b0u64,
+    0x2f431806ad2fe478u64,
+    0x2b4d00993dfbd7a7u64,
+    0x2b8324804fc1df0bu64,
+];
+const ED25519_BX: [u64; 4] = [
+    0xc9562d608f25d51au64,
+    0x692cc7609525a7b2u64,
+    0xc0a4e231fdd6dc5cu64,
+    0x216936d3cd6e53feu64,
+];
+const ED25519_BY: [u64; 4] = [
+    0x6666666666666658u64,
+    0x6666666666666666u64,
+    0x6666666666666666u64,
+    0x6666666666666666u64,
+];
+const ED25519_BT: [u64; 4] = [
+    0x6dde8ab3a5b7dda3u64,
+    0x20f09f80775152f5u64,
+    0x66ea4e8e64abe37du64,
+    0x67875f0fd78b7665u64,
+];
 
 fn u256_ge(a: [u64; 4], b: [u64; 4]) -> bool {
     for i in (0..4).rev() {
@@ -10155,8 +13363,16 @@ type EdPt = ([u64; 4], [u64; 4], [u64; 4], [u64; 4]);
 fn ed_pt_add(p: EdPt, q: EdPt) -> EdPt {
     let (x1, y1, z1, t1) = p;
     let (x2, y2, z2, t2) = q;
-    let a = u256_mul_mod(u256_sub_mod(y1, x1, ED25519_P), u256_sub_mod(y2, x2, ED25519_P), ED25519_P);
-    let b = u256_mul_mod(u256_add_mod(y1, x1, ED25519_P), u256_add_mod(y2, x2, ED25519_P), ED25519_P);
+    let a = u256_mul_mod(
+        u256_sub_mod(y1, x1, ED25519_P),
+        u256_sub_mod(y2, x2, ED25519_P),
+        ED25519_P,
+    );
+    let b = u256_mul_mod(
+        u256_add_mod(y1, x1, ED25519_P),
+        u256_add_mod(y2, x2, ED25519_P),
+        ED25519_P,
+    );
     let two_d = u256_add_mod(ED25519_D, ED25519_D, ED25519_P);
     let c = u256_mul_mod(u256_mul_mod(t1, two_d, ED25519_P), t2, ED25519_P);
     let z1_2 = u256_add_mod(z1, z1, ED25519_P);
@@ -10211,7 +13427,11 @@ fn ed_decode_pt(b: &[u8]) -> Option<EdPt> {
     }
     let y2 = u256_mul_mod(y, y, ED25519_P);
     let u = u256_sub_mod(y2, [1, 0, 0, 0], ED25519_P);
-    let v = u256_add_mod(u256_mul_mod(ED25519_D, y2, ED25519_P), [1, 0, 0, 0], ED25519_P);
+    let v = u256_add_mod(
+        u256_mul_mod(ED25519_D, y2, ED25519_P),
+        [1, 0, 0, 0],
+        ED25519_P,
+    );
     let v3 = u256_mul_mod(u256_mul_mod(v, v, ED25519_P), v, ED25519_P);
     let v7 = u256_mul_mod(u256_mul_mod(v3, v3, ED25519_P), v, ED25519_P);
     let uv7 = u256_mul_mod(u, v7, ED25519_P);
@@ -10295,7 +13515,9 @@ fn ed25519_verify(sig: &[u8], msg: &[u8], pub_key: &[u8]) -> bool {
     // verification equation without knowing any signing secret.
     for point in [a_pt, r_pt] {
         let p = ed_pt_mul(point, [8, 0, 0, 0]);
-        if p.0 == [0; 4] && p.1 == p.2 { return false; }
+        if p.0 == [0; 4] && p.1 == p.2 {
+            return false;
+        }
     }
     let mut s_limbs = [0u64; 4];
     for i in 0..4 {
@@ -10374,7 +13596,12 @@ fn ssh_fingerprint_sha256(pub_key: &[u8]) -> String {
     format!("SHA256:{}", b64.trim_end_matches('='))
 }
 
-fn format_openssh_ed25519_privkey(seed: &[u8; 32], pub_key: &[u8; 32], comment: &str, check: u32) -> String {
+fn format_openssh_ed25519_privkey(
+    seed: &[u8; 32],
+    pub_key: &[u8; 32],
+    comment: &str,
+    check: u32,
+) -> String {
     let pub_blob = ssh_ed25519_pubkey_blob(pub_key);
     let mut out = Vec::new();
     out.extend_from_slice(b"openssh-key-v1\0");
@@ -10442,7 +13669,11 @@ fn parse_openssh_ed25519_privkey(pem: &str) -> Option<([u8; 32], [u8; 32], Strin
     let mut pub_key = [0u8; 32];
     seed.copy_from_slice(&kp_vec[0..32]);
     pub_key.copy_from_slice(&pub_vec[0..32]);
-    Some((seed, pub_key, String::from_utf8_lossy(&comment_vec).to_string()))
+    Some((
+        seed,
+        pub_key,
+        String::from_utf8_lossy(&comment_vec).to_string(),
+    ))
 }
 
 fn parse_openssh_ed25519_pubkey(line: &str) -> Option<([u8; 32], String)> {
@@ -10477,10 +13708,14 @@ fn ssh_fingerprint_label(bytes: &[u8], utf8: bool) -> String {
             if c == '\t' || c == '\r' || (!c.is_control() && (c.is_ascii() || utf8)) {
                 out.push(c);
             } else {
-                for b in c.encode_utf8(&mut [0; 4]).bytes() { write!(out, "\\{b:03o}").unwrap(); }
+                for b in c.encode_utf8(&mut [0; 4]).bytes() {
+                    write!(out, "\\{b:03o}").unwrap();
+                }
             }
         }
-        for b in chunk.invalid() { write!(out, "\\{b:03o}").unwrap(); }
+        for b in chunk.invalid() {
+            write!(out, "\\{b:03o}").unwrap();
+        }
     }
     out
 }
@@ -10595,39 +13830,70 @@ fn ssh_vis(byte: u8) -> String {
 
 fn ssh_config_port(option: &str) -> Option<Result<(String, bool), &'static str>> {
     let ws = [' ', '\t', '\r', '\n'];
-    let line = option.trim_start_matches(ws).trim_end_matches([' ', '\t', '\r', '\n', '\x0c']);
-    let end = line.find([' ', '\t', '\r', '\n', '=']).unwrap_or(line.len());
-    if !line[..end].eq_ignore_ascii_case("port") { return None; }
+    let line = option
+        .trim_start_matches(ws)
+        .trim_end_matches([' ', '\t', '\r', '\n', '\x0c']);
+    let end = line
+        .find([' ', '\t', '\r', '\n', '='])
+        .unwrap_or(line.len());
+    if !line[..end].eq_ignore_ascii_case("port") {
+        return None;
+    }
     let rest = line[end..].trim_start_matches(ws);
-    let rest = rest.strip_prefix('=').unwrap_or(rest).trim_start_matches(ws);
-    if rest.is_empty() { return Some(Err("no argument after keyword \"port\"")); }
+    let rest = rest
+        .strip_prefix('=')
+        .unwrap_or(rest)
+        .trim_start_matches(ws);
+    if rest.is_empty() {
+        return Some(Err("no argument after keyword \"port\""));
+    }
     let mut chars = rest.chars().peekable();
     let mut value = String::new();
     let mut count = 0;
     while let Some(&first) = chars.peek() {
-        if first == '#' { break; }
+        if first == '#' {
+            break;
+        }
         count += 1;
         let mut quote = None;
         while let Some(mut c) = chars.next() {
-            if c == '\\' && chars.peek().is_some_and(|&n| matches!(n, '\'' | '"' | '\\') || (n == ' ' && quote.is_none())) {
+            if c == '\\'
+                && chars.peek().is_some_and(|&n| {
+                    matches!(n, '\'' | '"' | '\\') || (n == ' ' && quote.is_none())
+                })
+            {
                 c = chars.next().unwrap();
             } else if quote == Some(c) {
                 quote = None;
                 continue;
             } else if quote.is_none() {
-                if c == ' ' || c == '\t' { break; }
-                if c == '\'' || c == '"' { quote = Some(c); continue; }
+                if c == ' ' || c == '\t' {
+                    break;
+                }
+                if c == '\'' || c == '"' {
+                    quote = Some(c);
+                    continue;
+                }
             }
-            if count == 1 { value.push(c); }
+            if count == 1 {
+                value.push(c);
+            }
         }
-        if quote.is_some() { return Some(Err("invalid quotes")); }
+        if quote.is_some() {
+            return Some(Err("invalid quotes"));
+        }
         while chars.next_if(|c| matches!(c, ' ' | '\t')).is_some() {}
     }
-    Some(if value.is_empty() { Err("Missing argument.") } else { Ok((value, count > 1)) })
+    Some(if value.is_empty() {
+        Err("Missing argument.")
+    } else {
+        Ok((value, count > 1))
+    })
 }
 
 pub(super) fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    const USAGE: &str = "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
+    const USAGE: &str =
+        "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
            [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
            [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
            [-J destination] [-L address] [-l login_name] [-m mac_spec]
@@ -10653,42 +13919,76 @@ pub(super) fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'G' => dump_config = true,
                     '1' => return err_out("SSH protocol v.1 is no longer supported\r\n", 255),
                     f if "BbcDEeFIiJLlmOoPpQRSWw".contains(f) => {
-                        let value = if pos + 1 < arg.len() { &arg[pos + 1..] }
-                            else if let Some(value) = words.next() { value.as_str() }
-                            else { return err_out(&format!("option requires an argument -- {flag}\r\n{USAGE}"), 255); };
-                        let config = if flag == 'o' { ssh_config_port(value) } else { None };
+                        let value = if pos + 1 < arg.len() {
+                            &arg[pos + 1..]
+                        } else if let Some(value) = words.next() {
+                            value.as_str()
+                        } else {
+                            return err_out(
+                                &format!("option requires an argument -- {flag}\r\n{USAGE}"),
+                                255,
+                            );
+                        };
+                        let config = if flag == 'o' {
+                            ssh_config_port(value)
+                        } else {
+                            None
+                        };
                         let (config_value, extra) = match config.transpose() {
-                            Err(msg) => return err_out(&format!("command-line line 0: {msg}\r\n"), 255),
+                            Err(msg) => {
+                                return err_out(&format!("command-line line 0: {msg}\r\n"), 255);
+                            }
                             Ok(Some((v, more))) => (Some(v), more),
                             Ok(None) => (None, false),
                         };
                         if config_value.is_some() || (flag == 'p' && port.is_none()) {
                             let value = config_value.as_deref().unwrap_or(value);
-                            let mut parsed = value.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']).parse::<u16>().ok().filter(|&n| n > 0);
-                            if parsed.is_none() && let Ok(data) = fs.read_file("/etc/services") {
+                            let mut parsed = value
+                                .trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c'])
+                                .parse::<u16>()
+                                .ok()
+                                .filter(|&n| n > 0);
+                            if parsed.is_none()
+                                && let Ok(data) = fs.read_file("/etc/services")
+                            {
                                 parsed = String::from_utf8_lossy(&data).lines().find_map(|line| {
-                                    let mut fields = line.split('#').next()?.split_ascii_whitespace();
+                                    let mut fields =
+                                        line.split('#').next()?.split_ascii_whitespace();
                                     let name = fields.next()?;
                                     let number = fields.next()?.strip_suffix("/tcp")?;
-                                    if name != value && !fields.any(|alias| alias == value) { return None; }
+                                    if name != value && !fields.any(|alias| alias == value) {
+                                        return None;
+                                    }
                                     number.parse::<u16>().ok().filter(|&n| n > 0)
                                 });
                             }
                             let Some(parsed) = parsed else {
-                                if config_value.is_none() { return err_out(&format!("Bad port '{value}'\n"), 255); }
+                                if config_value.is_none() {
+                                    return err_out(&format!("Bad port '{value}'\n"), 255);
+                                }
                                 let mut msg = String::from("command-line line 0: Bad port '");
                                 for byte in crate::vfs::stream_string_to_bytes(value) {
                                     msg.push_str(&ssh_vis(byte));
-                                    if msg.len() >= 1021 { break; }
+                                    if msg.len() >= 1021 {
+                                        break;
+                                    }
                                 }
                                 msg.push_str("'.");
                                 msg.truncate(1021);
                                 return err_out(&(msg + "\r\n"), 255);
                             };
-                            if extra { return err_out("command-line line 0: keyword port extra arguments at end of line\r\n", 255); }
+                            if extra {
+                                return err_out(
+                                    "command-line line 0: keyword port extra arguments at end of line\r\n",
+                                    255,
+                                );
+                            }
                             port.get_or_insert(parsed);
-                        } else if flag == 'l' { user = value; }
-                        else if flag == 'i' { identity = value; }
+                        } else if flag == 'l' {
+                            user = value;
+                        } else if flag == 'i' {
+                            identity = value;
+                        }
                         break;
                     }
                     f if "246AaCfgKkMNnqsTtvXxYy".contains(f) => {}
@@ -10702,24 +14002,50 @@ pub(super) fn cmd_ssh(args: &[String], fs: &dyn SafeBashFs) -> BuiltinOutcome {
         } else if let Some(host) = destination {
             if !dump_config {
                 let port = port.unwrap_or(22);
-                return ok_out(&format!("ssh:{user}@{host}:{port} {}\n", std::iter::once(arg).chain(words).map(String::as_str).collect::<Vec<_>>().join(" ")));
+                return ok_out(&format!(
+                    "ssh:{user}@{host}:{port} {}\n",
+                    std::iter::once(arg)
+                        .chain(words)
+                        .map(String::as_str)
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                ));
             }
             break;
         } else {
             destination = Some(if let Some((login, host)) = arg.rsplit_once('@') {
-                if !login.is_empty() { user = login; }
+                if !login.is_empty() {
+                    user = login;
+                }
                 host
-            } else { arg.as_str() });
+            } else {
+                arg.as_str()
+            });
         }
     }
-    let Some(host) = destination else { return err_out(USAGE, 255); };
+    let Some(host) = destination else {
+        return err_out(USAGE, 255);
+    };
     if dump_config {
-        return ok_out(&format!("user {user}\nhostname {host}\nport {}\nidentityfile {identity}\n", port.unwrap_or(22)));
+        return ok_out(&format!(
+            "user {user}\nhostname {host}\nport {}\nidentityfile {identity}\n",
+            port.unwrap_or(22)
+        ));
     }
-    err_out(&format!("Hi {user}! You've successfully authenticated, but {host} does not provide interactive shell access.\n"), 1)
+    err_out(
+        &format!(
+            "Hi {user}! You've successfully authenticated, but {host} does not provide interactive shell access.\n"
+        ),
+        1,
+    )
 }
 
-fn known_host_match<'a>(line: &'a str, host_bytes: &[u8], host_lower: &[u8], only_matching: bool) -> Option<(bool, &'static str, &'a str, &'a str)> {
+fn known_host_match<'a>(
+    line: &'a str,
+    host_bytes: &[u8],
+    host_lower: &[u8],
+    only_matching: bool,
+) -> Option<(bool, &'static str, &'a str, &'a str)> {
     let mut words = line.split_ascii_whitespace();
     let first = words.next()?;
     let (marker, patterns) = match first {
@@ -10731,22 +14057,54 @@ fn known_host_match<'a>(line: &'a str, host_bytes: &[u8], host_lower: &[u8], onl
     let patterns = patterns?;
     let matched = if patterns.starts_with('|') {
         let (salt, mac) = patterns.strip_prefix("|1|")?.split_once('|')?;
-        if salt.len() != 28 { return None; }
+        if salt.len() != 28 {
+            return None;
+        }
         let key = base64_decode(salt).ok()?;
-        if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt { return None; }
+        if key.len() != 20 || ssh_b64_wrap(&key, 0) != salt {
+            return None;
+        }
         ssh_b64_wrap(&openssl_hmac("sha1", &key, host_bytes), 0) == mac
-    } else { ssh_matches_patterns(host_lower, &crate::vfs::stream_string_to_bytes(patterns).to_ascii_lowercase()) };
-    if only_matching && !matched { return Some((false, marker, "", "")); }
+    } else {
+        ssh_matches_patterns(
+            host_lower,
+            &crate::vfs::stream_string_to_bytes(patterns).to_ascii_lowercase(),
+        )
+    };
+    if only_matching && !matched {
+        return Some((false, marker, "", ""));
+    }
     let (kind, blob) = (words.next()?, words.next()?);
     let base = kind.strip_suffix("-cert-v01@openssh.com").unwrap_or(kind);
-    if !(matches!(base, "ssh-ed25519" | "ssh-dss" | "ssh-rsa" | "rsa-sha2-256" | "rsa-sha2-512"
-        | "ecdsa-sha2-nistp256" | "ecdsa-sha2-nistp384" | "ecdsa-sha2-nistp521")
-        || matches!(kind, "sk-ssh-ed25519@openssh.com" | "sk-ssh-ed25519-cert-v01@openssh.com"
-            | "sk-ecdsa-sha2-nistp256@openssh.com" | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")) { return None; }
+    if !(matches!(
+        base,
+        "ssh-ed25519"
+            | "ssh-dss"
+            | "ssh-rsa"
+            | "rsa-sha2-256"
+            | "rsa-sha2-512"
+            | "ecdsa-sha2-nistp256"
+            | "ecdsa-sha2-nistp384"
+            | "ecdsa-sha2-nistp521"
+    ) || matches!(
+        kind,
+        "sk-ssh-ed25519@openssh.com"
+            | "sk-ssh-ed25519-cert-v01@openssh.com"
+            | "sk-ecdsa-sha2-nistp256@openssh.com"
+            | "sk-ecdsa-sha2-nistp256-cert-v01@openssh.com"
+    )) {
+        return None;
+    }
     Some((matched, marker, kind, blob))
 }
 
-fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_ssh_keygen(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut file_arg: Option<String> = None;
     let mut comment = "user@safe-bash".to_string();
     let mut encrypt = false;
@@ -10776,8 +14134,14 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
                 i += 1;
                 comment = args[i].clone();
             }
-            "-N" if i + 1 < args.len() => { i += 1; encrypt = !args[i].is_empty(); }
-            "-t" if i + 1 < args.len() => { i += 1; key_type = &args[i]; }
+            "-N" if i + 1 < args.len() => {
+                i += 1;
+                encrypt = !args[i].is_empty();
+            }
+            "-t" if i + 1 < args.len() => {
+                i += 1;
+                key_type = &args[i];
+            }
             "-y" => derive_pub = true,
             "-l" => show_fp = true,
             "-F" if i + 1 < args.len() => {
@@ -10825,7 +14189,13 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
     };
 
     if removing && show_fp {
-        return err_out(concat!("Cannot use -l with -H or -R.\r\n", include_str!("help/ssh-keygen.txt")), 1);
+        return err_out(
+            concat!(
+                "Cannot use -l with -H or -R.\r\n",
+                include_str!("help/ssh-keygen.txt")
+            ),
+            1,
+        );
     }
     if let Some(host) = host {
         let file = file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts");
@@ -10837,12 +14207,22 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             Err(e) if removing && e.starts_with("EISDIR:") => Vec::new(),
             Ok(bytes) => bytes,
             Err(e) if e.starts_with("EISDIR:") => return err_out("", 1),
-            Err(e) => return err_out(&format!("Cannot stat {file}: {}\r\n", super::coreutils::file_error_reason(&e)), 255),
+            Err(e) => {
+                return err_out(
+                    &format!(
+                        "Cannot stat {file}: {}\r\n",
+                        super::coreutils::file_error_reason(&e)
+                    ),
+                    255,
+                );
+            }
         };
         let mut out = String::new();
         let host_bytes = crate::vfs::stream_string_to_bytes(host);
         let host_lower = host_bytes.to_ascii_lowercase();
-        let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter().find_map(|k| env.get(*k).filter(|s| !s.is_empty()));
+        let locale = ["LC_ALL", "LC_CTYPE", "LANG"]
+            .iter()
+            .find_map(|k| env.get(*k).filter(|s| !s.is_empty()));
         let utf8 = locale.is_some_and(|s| s.to_ascii_lowercase().replace('-', "").contains("utf8"));
         let mut kept = Vec::new();
         let mut found = false;
@@ -10857,44 +14237,99 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
                 kept.push(b'\n');
             }
             let content = line.trim_start_matches([' ', '\t']);
-            if content.is_empty() || content.starts_with('#') { continue; }
-            let Some((matched, marker, kind, blob)) = known_host_match(&line, &host_bytes, &host_lower, finding) else {
-                if removing && finding { out.push_str(&line); out.push('\n'); }
-                if removing { errors.push_str(&format!("{file}:{}: invalid line\r\n", index + 1)); }
+            if content.is_empty() || content.starts_with('#') {
+                continue;
+            }
+            let Some((matched, marker, kind, blob)) =
+                known_host_match(&line, &host_bytes, &host_lower, finding)
+            else {
+                if removing && finding {
+                    out.push_str(&line);
+                    out.push('\n');
+                }
+                if removing {
+                    errors.push_str(&format!("{file}:{}: invalid line\r\n", index + 1));
+                }
                 continue;
             };
-            if !matched { continue; }
+            if !matched {
+                continue;
+            }
             if removing {
                 if !marker.is_empty() {
-                    if finding { out.push_str(&line); out.push('\n'); }
+                    if finding {
+                        out.push_str(&line);
+                        out.push('\n');
+                    }
                     continue;
                 }
                 kept.truncate(before);
                 found = true;
-                if !quiet { out.push_str(&format!("# Host {host} found: line {}\n", index + 1)); }
+                if !quiet {
+                    out.push_str(&format!("# Host {host} found: line {}\n", index + 1));
+                }
                 continue;
             }
             let record = if show_fp {
-                if kind != "ssh-ed25519" { continue; }
-                let Some((pk, _)) = parse_openssh_ed25519_pubkey(&format!("{kind} {blob}")) else { continue; };
+                if kind != "ssh-ed25519" {
+                    continue;
+                }
+                let Some((pk, _)) = parse_openssh_ed25519_pubkey(&format!("{kind} {blob}")) else {
+                    continue;
+                };
                 let end = blob.as_ptr() as usize - line.as_ptr() as usize + blob.len();
                 let comment = line[end..].trim_start_matches([' ', '\t']);
-                let comment = if comment == "\r" { String::new() } else { ssh_fingerprint_label(&crate::vfs::stream_string_to_bytes(comment), utf8) };
+                let comment = if comment == "\r" {
+                    String::new()
+                } else {
+                    ssh_fingerprint_label(&crate::vfs::stream_string_to_bytes(comment), utf8)
+                };
                 let sep = if comment.is_empty() { "" } else { " " };
-                format!("{} ED25519 {}{sep}{comment}", ssh_fingerprint_label(&host_bytes, utf8), ssh_fingerprint_sha256(&pk))
-            } else { line };
-            if !quiet { out.push_str(&format!("# Host {host} found: line {} {marker}\n", index + 1)); }
+                format!(
+                    "{} ED25519 {}{sep}{comment}",
+                    ssh_fingerprint_label(&host_bytes, utf8),
+                    ssh_fingerprint_sha256(&pk)
+                )
+            } else {
+                line
+            };
+            if !quiet {
+                out.push_str(&format!(
+                    "# Host {host} found: line {} {marker}\n",
+                    index + 1
+                ));
+            }
             out.push_str(&record);
             out.push('\n');
         }
-        if !removing { return BuiltinOutcome { exit_code: i32::from(out.is_empty()), stdout: out, stderr: String::new() }; }
+        if !removing {
+            return BuiltinOutcome {
+                exit_code: i32::from(out.is_empty()),
+                stdout: out,
+                stderr: String::new(),
+            };
+        }
         if !errors.is_empty() {
             errors.push_str(&format!("{file} is not a valid known_hosts file.\r\n"));
-            if !finding { errors.push_str("Not replacing existing known_hosts file because of errors\r\n"); }
-            return BuiltinOutcome { exit_code: 1, stdout: out, stderr: errors };
+            if !finding {
+                errors.push_str("Not replacing existing known_hosts file because of errors\r\n");
+            }
+            return BuiltinOutcome {
+                exit_code: 1,
+                stdout: out,
+                stderr: errors,
+            };
         }
-        if !found { return BuiltinOutcome { exit_code: i32::from(finding), stdout: out, stderr: format!("Host {host} not found in {file}\r\n") }; }
-        if finding { return ok_out(&out); }
+        if !found {
+            return BuiltinOutcome {
+                exit_code: i32::from(finding),
+                stdout: out,
+                stderr: format!("Host {host} not found in {file}\r\n"),
+            };
+        }
+        if finding {
+            return ok_out(&out);
+        }
         let replace = || -> Result<(), String> {
             let mode = fs.stat(&path)?.mode & 0o777;
             let mut nonce = [0; 16];
@@ -10909,26 +14344,45 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
                 let publish = fs.rename(&staged, &backup, false);
                 // A rename onto another link to the same inode leaves both names in place.
                 let _ = fs.remove_one(&staged, false);
-                publish.map_err(|e| format!("unlink {file}.old: {}", super::coreutils::file_error_reason(&e)))?;
+                publish.map_err(|e| {
+                    format!(
+                        "unlink {file}.old: {}",
+                        super::coreutils::file_error_reason(&e)
+                    )
+                })?;
                 fs.rename(&temp, &path, false)
             })();
-            if result.is_err() { let _ = fs.remove_one(&temp, false); }
+            if result.is_err() {
+                let _ = fs.remove_one(&temp, false);
+            }
             result
         };
-        if let Err(e) = replace() { return err_out(&format!("{e}\r\n"), 255); }
-        out.push_str(&format!("{file} updated.\nOriginal contents retained as {file}.old\n"));
+        if let Err(e) = replace() {
+            return err_out(&format!("{e}\r\n"), 255);
+        }
+        out.push_str(&format!(
+            "{file} updated.\nOriginal contents retained as {file}.old\n"
+        ));
         return ok_out(&out);
     }
 
     if let Some(action) = y_action {
         if action == "sign" {
-            let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
+            let key_path = resolve_ssh_path(
+                cwd,
+                file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"),
+            );
             let key_bytes = match read_ssh_file(&key_path) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
             };
-            let Some((seed, pub_key, _)) = parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes)) else {
-                return err_out(&format!("ssh-keygen: invalid OpenSSH Ed25519 key: {key_path}\n"), 1);
+            let Some((seed, pub_key, _)) =
+                parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes))
+            else {
+                return err_out(
+                    &format!("ssh-keygen: invalid OpenSSH Ed25519 key: {key_path}\n"),
+                    1,
+                );
             };
             let target_file = positional.first();
             let payload = if let Some(tf) = target_file {
@@ -10975,7 +14429,10 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
         }
 
         if action == "verify" || action == "check-novalidate" || action == "find-principals" {
-            let sig_rel = signature_file.as_deref().or_else(|| positional.first().map(|s| s.as_str())).unwrap_or("");
+            let sig_rel = signature_file
+                .as_deref()
+                .or_else(|| positional.first().map(|s| s.as_str()))
+                .unwrap_or("");
             let sig_path = resolve_ssh_path(cwd, sig_rel);
             let sig_bytes = match read_ssh_file(&sig_path) {
                 Ok(b) => b,
@@ -11015,15 +14472,26 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
                 return err_out("ssh-keygen: invalid SSHSIG key/signature\n", 1);
             };
 
-            if action != "find-principals" && (!namespace_provided || String::from_utf8_lossy(&sig_ns) != namespace) {
-                return err_out("ssh-keygen: signature namespace does not match requested namespace\n", 1);
+            if action != "find-principals"
+                && (!namespace_provided || String::from_utf8_lossy(&sig_ns) != namespace)
+            {
+                return err_out(
+                    "ssh-keygen: signature namespace does not match requested namespace\n",
+                    1,
+                );
             }
             if action == "verify" || action == "find-principals" {
                 let Some(ref as_file) = file_arg else {
-                    return err_out("ssh-keygen: allowed signers file and signer identity are required for verification\n", 1);
+                    return err_out(
+                        "ssh-keygen: allowed signers file and signer identity are required for verification\n",
+                        1,
+                    );
                 };
                 if action == "verify" && signer_identity.is_none() {
-                    return err_out("ssh-keygen: allowed signers file and signer identity are required for verification\n", 1);
+                    return err_out(
+                        "ssh-keygen: allowed signers file and signer identity are required for verification\n",
+                        1,
+                    );
                 }
                 let as_path = resolve_ssh_path(cwd, as_file);
                 let as_bytes = match read_ssh_file(&as_path) {
@@ -11031,26 +14499,38 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
                     Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
                 };
                 let as_text = String::from_utf8_lossy(&as_bytes);
-                let entries: Vec<(String, Option<String>, [u8; 32])> =
-                    as_text.lines().filter_map(parse_allowed_signer_line).collect();
+                let entries: Vec<(String, Option<String>, [u8; 32])> = as_text
+                    .lines()
+                    .filter_map(parse_allowed_signer_line)
+                    .collect();
                 let matching: Vec<&(String, Option<String>, [u8; 32])> = entries
                     .iter()
                     .filter(|(_, ns_opt, pk)| {
                         pk.as_slice() == pub_key.as_slice()
                             && (action == "find-principals"
-                                || ssh_matches_patterns(namespace.as_bytes(), ns_opt.as_deref().unwrap_or("*").as_bytes()))
+                                || ssh_matches_patterns(
+                                    namespace.as_bytes(),
+                                    ns_opt.as_deref().unwrap_or("*").as_bytes(),
+                                ))
                     })
                     .collect();
                 if action == "find-principals" {
                     if matching.is_empty() {
                         return err_out("", 1);
                     }
-                    let principals: Vec<&str> = matching.iter().map(|(p, _, _)| p.as_str()).collect();
+                    let principals: Vec<&str> =
+                        matching.iter().map(|(p, _, _)| p.as_str()).collect();
                     return ok_out(&format!("{}\n", principals.join("\n")));
                 }
                 let id_str = signer_identity.as_deref().unwrap_or("");
-                if !matching.iter().any(|(p, _, _)| ssh_matches_patterns(id_str.as_bytes(), p.as_bytes())) {
-                    return err_out("ssh-keygen: signer is not authorized by allowed signers\n", 1);
+                if !matching
+                    .iter()
+                    .any(|(p, _, _)| ssh_matches_patterns(id_str.as_bytes(), p.as_bytes()))
+                {
+                    return err_out(
+                        "ssh-keygen: signer is not authorized by allowed signers\n",
+                        1,
+                    );
                 }
             }
 
@@ -11075,20 +14555,33 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
     }
 
     if derive_pub {
-        let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
+        let key_path = resolve_ssh_path(
+            cwd,
+            file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"),
+        );
         let key_bytes = match read_ssh_file(&key_path) {
             Ok(b) => b,
             Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
         };
-        let Some((_, pub_key, cmt)) = parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes)) else {
-            return err_out(&format!("ssh-keygen: invalid OpenSSH private key: {key_path}\n"), 1);
+        let Some((_, pub_key, cmt)) =
+            parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes))
+        else {
+            return err_out(
+                &format!("ssh-keygen: invalid OpenSSH private key: {key_path}\n"),
+                1,
+            );
         };
         let pub_b64 = ssh_b64_wrap(&ssh_ed25519_pubkey_blob(&pub_key), 0);
         return ok_out(&format!("ssh-ed25519 {pub_b64} {cmt}\n"));
     }
 
     if show_fp {
-        let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519.pub"));
+        let key_path = resolve_ssh_path(
+            cwd,
+            file_arg
+                .as_deref()
+                .unwrap_or("/home/user/.ssh/id_ed25519.pub"),
+        );
         let key_bytes = match read_ssh_file(&key_path) {
             Ok(b) => b,
             Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
@@ -11098,34 +14591,64 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String
             .map(|(_, pk, c)| (pk, c))
             .or_else(|| parse_openssh_ed25519_pubkey(&content));
         let Some((pub_key, cmt)) = parsed else {
-            return err_out(&format!("ssh-keygen: not a public key file: {key_path}\n"), 1);
+            return err_out(
+                &format!("ssh-keygen: not a public key file: {key_path}\n"),
+                1,
+            );
         };
         let fp = ssh_fingerprint_sha256(&pub_key);
-        let label = if cmt.is_empty() { key_path.as_str() } else { cmt.as_str() };
+        let label = if cmt.is_empty() {
+            key_path.as_str()
+        } else {
+            cmt.as_str()
+        };
         return ok_out(&format!("256 {fp} {label} (ED25519)\n"));
     }
 
-    if encrypt { return err_out("ssh-keygen: encrypted private key generation is unsupported\n", 1); }
-    if key_type != "ed25519" { return err_out("ssh-keygen: only Ed25519 key generation is supported\n", 1); }
-    let out_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
+    if encrypt {
+        return err_out(
+            "ssh-keygen: encrypted private key generation is unsupported\n",
+            1,
+        );
+    }
+    if key_type != "ed25519" {
+        return err_out("ssh-keygen: only Ed25519 key generation is supported\n", 1);
+    }
+    let out_path = resolve_ssh_path(
+        cwd,
+        file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"),
+    );
     let mut seed = [0; 32];
     let mut check = [0; 4];
-    if let Err(e) = crate::vfs::memory::fill_random(&mut seed).and_then(|()| crate::vfs::memory::fill_random(&mut check)) {
+    if let Err(e) = crate::vfs::memory::fill_random(&mut seed)
+        .and_then(|()| crate::vfs::memory::fill_random(&mut check))
+    {
         return err_out(&format!("ssh-keygen: {e}\n"), 1);
     }
     let pub_key = ed25519_pubkey_from_seed(&seed);
-    let priv_pem = format_openssh_ed25519_privkey(&seed, &pub_key, &comment, u32::from_be_bytes(check));
+    let priv_pem =
+        format_openssh_ed25519_privkey(&seed, &pub_key, &comment, u32::from_be_bytes(check));
     let pub_line = format!(
         "ssh-ed25519 {} {comment}\n",
         ssh_b64_wrap(&ssh_ed25519_pubkey_blob(&pub_key), 0)
     );
     let create = || -> Result<(), String> {
-        if let Some((dir, _)) = out_path.rsplit_once('/') && !dir.is_empty() { fs.mkdir_all(dir)?; }
-        fs.create_file(&fs.access_path(&out_path, false)?, priv_pem.as_bytes(), 0o600)?;
+        if let Some((dir, _)) = out_path.rsplit_once('/')
+            && !dir.is_empty()
+        {
+            fs.mkdir_all(dir)?;
+        }
+        fs.create_file(
+            &fs.access_path(&out_path, false)?,
+            priv_pem.as_bytes(),
+            0o600,
+        )?;
         let public = fs.access_path(&format!("{out_path}.pub"), false)?;
         fs.create_file(&public, pub_line.as_bytes(), 0o644)
     };
-    if let Err(e) = create() { return err_out(&format!("ssh-keygen: {e}\n"), 1); }
+    if let Err(e) = create() {
+        return err_out(&format!("ssh-keygen: {e}\n"), 1);
+    }
     let fp = ssh_fingerprint_sha256(&pub_key);
     ok_out(&format!(
         "Generating public/private ed25519 key pair.\nYour identification has been saved in {out_path}\nYour public key has been saved in {out_path}.pub\nThe key fingerprint is:\n{fp} {comment}\n"
@@ -11152,13 +14675,29 @@ mod tests {
         lower.write_file("/dir/src.gz", b"old").unwrap();
         lower.hard_link("/dir/src.gz", "/old-link").unwrap();
         let overlay = crate::vfs::OverlayVfs::new(lower.clone(), Arc::new(MemoryVfs::new()));
-        let run = try_run_archive_command("gzip", &args(&["-f", "/dir/src"]), "", "/", &BTreeMap::new(), &overlay).unwrap();
+        let run = try_run_archive_command(
+            "gzip",
+            &args(&["-f", "/dir/src"]),
+            "",
+            "/",
+            &BTreeMap::new(),
+            &overlay,
+        )
+        .unwrap();
         assert_eq!(run.exit_code, 0, "{}", run.stderr);
         assert!(!overlay.exists("/dir/src"));
         assert_eq!(overlay.read_file("/old-link").unwrap(), b"old");
         assert_eq!(lower.read_file("/dir/src").unwrap(), b"input");
         assert_eq!(lower.read_file("/dir/src.gz").unwrap(), b"old");
-        let read = try_run_archive_command("gunzip", &args(&["-c", "/dir/src.gz"]), "", "/", &BTreeMap::new(), &overlay).unwrap();
+        let read = try_run_archive_command(
+            "gunzip",
+            &args(&["-c", "/dir/src.gz"]),
+            "",
+            "/",
+            &BTreeMap::new(),
+            &overlay,
+        )
+        .unwrap();
         assert_eq!((read.exit_code, read.stdout.as_str()), (0, "input"));
     }
 
@@ -11221,25 +14760,47 @@ mod tests {
         let vfs = MemoryVfs::new();
         let data = b"alpha\nbeta\nbeta\n";
         for (name, flags, method, ascii) in [
-            ("text", vec!["-q"], 8, 1), ("text", vec!["-q0"], 0, 0),
+            ("text", vec!["-q"], 8, 1),
+            ("text", vec!["-q0"], 0, 0),
             ("text", vec!["-Z", "store", "-9"], 0, 0),
-            ("text.zip", vec!["-q"], 0, 0), ("text.zip", vec!["-9"], 8, 1),
+            ("text.zip", vec!["-q"], 0, 0),
+            ("text.zip", vec!["-9"], 8, 1),
             ("text", vec!["-n", "text"], 0, 0),
         ] {
             vfs.write_file(&format!("/{name}"), data).unwrap();
             let mut argv = args(&flags);
             argv.extend(args(&["out.zip", name]));
-            let result = cmd_zip(&argv,super::super::CommandInput{text:&mut String::new(),file:None}, "/", &vfs, false, &mut super::super::capture_write, &mut |_| unreachable!());
+            let result = cmd_zip(
+                &argv,
+                super::super::CommandInput {
+                    text: &mut String::new(),
+                    file: None,
+                },
+                "/",
+                &vfs,
+                false,
+                &mut super::super::capture_write,
+                &mut |_| unreachable!(),
+            );
             assert_eq!(result.exit_code, 0, "{flags:?} {}", result.stderr);
             let bytes = vfs.read_file("/out.zip").unwrap();
             assert_eq!(bytes[8], method, "{flags:?} {name}");
             let eocd = bytes.len() - 22;
-            let central = u32::from_le_bytes(bytes[eocd+16..eocd+20].try_into().unwrap()) as usize;
-            assert_eq!((bytes[central+10], bytes[central+36]), (method, ascii));
+            let central =
+                u32::from_le_bytes(bytes[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
+            assert_eq!((bytes[central + 10], bytes[central + 36]), (method, ascii));
             if method == 8 {
-                assert_eq!(&bytes[central-12..central], &[0x4b,0xcc,0x29,0xc8,0x48,0xe4,0x4a,0x4a,0x2d,0x81,0x12,0]);
+                assert_eq!(
+                    &bytes[central - 12..central],
+                    &[
+                        0x4b, 0xcc, 0x29, 0xc8, 0x48, 0xe4, 0x4a, 0x4a, 0x2d, 0x81, 0x12, 0
+                    ]
+                );
             }
-            assert_eq!(crate::commands::codecs::parse_zip_archive(&bytes).unwrap()[0].content, data);
+            assert_eq!(
+                crate::commands::codecs::parse_zip_archive(&bytes).unwrap()[0].content,
+                data
+            );
             vfs.remove_path("/out.zip").unwrap();
         }
     }
@@ -11250,54 +14811,105 @@ mod tests {
         fs.mkdir_all("/dir").unwrap();
         fs.write_file("/dir/entry", b"archive").unwrap();
         fs.write_file("/file", b"before").unwrap();
-        fs.symlink("file","/link").unwrap();
-        let receipts = ["/dir/entry","/file","/link"].into_iter().map(|p| ZipMove {
-            path:p.into(), source:p[1..].into(), directory:false,
-            receipt:fs.retain_removal(p,fs.lstat(&crate::vfs::dirname_posix_path(p)).unwrap(),fs.lstat(p).unwrap()).unwrap(),
-        }).collect();
+        fs.symlink("file", "/link").unwrap();
+        let receipts = ["/dir/entry", "/file", "/link"]
+            .into_iter()
+            .map(|p| ZipMove {
+                path: p.into(),
+                source: p[1..].into(),
+                directory: false,
+                receipt: fs
+                    .retain_removal(
+                        p,
+                        fs.lstat(&crate::vfs::dirname_posix_path(p)).unwrap(),
+                        fs.lstat(p).unwrap(),
+                    )
+                    .unwrap(),
+            })
+            .collect();
         fs.write_file("/file", b"edited").unwrap();
-        fs.rename("/dir","/saved",false).unwrap();
+        fs.rename("/dir", "/saved", false).unwrap();
         fs.mkdir_all("/dir").unwrap();
-        fs.rename("/saved/entry","/dir/entry",false).unwrap();
-        fs.remove_one("/link",false).unwrap();
-        fs.symlink("dir/entry","/link").unwrap();
+        fs.rename("/saved/entry", "/dir/entry", false).unwrap();
+        fs.remove_one("/link", false).unwrap();
+        fs.symlink("dir/entry", "/link").unwrap();
         let mut warnings = String::new();
-        remove_zip_sources(&fs,receipts,false,&mut warnings).unwrap();
-        assert_eq!(warnings,"\tzip warning: error deleting dir/entry\n\tzip warning: error deleting file\n\tzip warning: error deleting link\n");
-        assert_eq!(fs.read_file("/dir/entry").unwrap(),b"archive");
-        assert_eq!(fs.read_file("/file").unwrap(),b"edited");
-        assert_eq!(fs.readlink("/link").unwrap(),"dir/entry");
+        remove_zip_sources(&fs, receipts, false, &mut warnings).unwrap();
+        assert_eq!(
+            warnings,
+            "\tzip warning: error deleting dir/entry\n\tzip warning: error deleting file\n\tzip warning: error deleting link\n"
+        );
+        assert_eq!(fs.read_file("/dir/entry").unwrap(), b"archive");
+        assert_eq!(fs.read_file("/file").unwrap(), b"edited");
+        assert_eq!(fs.readlink("/link").unwrap(), "dir/entry");
     }
 
     #[test]
     fn zip_member_collisions_preserve_the_archive_and_every_move_source() {
         for (operands, conflict) in [
-            (vec!["one/x","two/x"],true), (vec!["one/x","./one/x"],true),
-            (vec!["one/x","/one/x"],true), (vec!["one","two"],true), (vec!["one/x","one/x"],false),
+            (vec!["one/x", "two/x"], true),
+            (vec!["one/x", "./one/x"], true),
+            (vec!["one/x", "/one/x"], true),
+            (vec!["one", "two"], true),
+            (vec!["one/x", "one/x"], false),
         ] {
             let fs = MemoryVfs::new();
             for (dir, bytes) in [("one", b"first".as_slice()), ("two", b"second")] {
                 fs.mkdir_all(&format!("/{dir}")).unwrap();
-                fs.write_file(&format!("/{dir}/x"),bytes).unwrap();
+                fs.write_file(&format!("/{dir}/x"), bytes).unwrap();
             }
-            fs.write_file("/keep",b"old member").unwrap();
-            assert_eq!(cmd_zip(&args(&["-q","out.zip","keep"]),super::super::CommandInput{text:&mut String::new(),file:None},"/",&fs, false, &mut super::super::capture_write, &mut |_| unreachable!()).exit_code,0);
+            fs.write_file("/keep", b"old member").unwrap();
+            assert_eq!(
+                cmd_zip(
+                    &args(&["-q", "out.zip", "keep"]),
+                    super::super::CommandInput {
+                        text: &mut String::new(),
+                        file: None
+                    },
+                    "/",
+                    &fs,
+                    false,
+                    &mut super::super::capture_write,
+                    &mut |_| unreachable!()
+                )
+                .exit_code,
+                0
+            );
             let original = fs.read_file("/out.zip").unwrap();
-            let mut argv = args(&["-qrmj","out.zip"]);
+            let mut argv = args(&["-qrmj", "out.zip"]);
             argv.extend(args(&operands));
-            let result = cmd_zip(&argv,super::super::CommandInput{text:&mut String::new(),file:None},"/",&fs, false, &mut super::super::capture_write, &mut |_| unreachable!());
+            let result = cmd_zip(
+                &argv,
+                super::super::CommandInput {
+                    text: &mut String::new(),
+                    file: None,
+                },
+                "/",
+                &fs,
+                false,
+                &mut super::super::capture_write,
+                &mut |_| unreachable!(),
+            );
             if conflict {
-                assert_eq!(result.exit_code,16,"{operands:?}");
-                assert_eq!(result.stdout,"\nzip error: Invalid command arguments (cannot repeat names in zip file)\n");
-                assert_eq!(fs.read_file("/out.zip").unwrap(),original);
-                assert_eq!(fs.read_file("/one/x").unwrap(),b"first");
+                assert_eq!(result.exit_code, 16, "{operands:?}");
+                assert_eq!(
+                    result.stdout,
+                    "\nzip error: Invalid command arguments (cannot repeat names in zip file)\n"
+                );
+                assert_eq!(fs.read_file("/out.zip").unwrap(), original);
+                assert_eq!(fs.read_file("/one/x").unwrap(), b"first");
             } else {
-                assert_eq!(result.exit_code,0,"{}",result.stderr);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 assert!(!fs.exists("/one/x"));
-                let entries = crate::commands::codecs::parse_zip_archive(&fs.read_file("/out.zip").unwrap()).unwrap();
-                assert_eq!(entries.iter().map(|e|e.name.as_str()).collect::<Vec<_>>(),["keep","x"]);
+                let entries =
+                    crate::commands::codecs::parse_zip_archive(&fs.read_file("/out.zip").unwrap())
+                        .unwrap();
+                assert_eq!(
+                    entries.iter().map(|e| e.name.as_str()).collect::<Vec<_>>(),
+                    ["keep", "x"]
+                );
             }
-            assert_eq!(fs.read_file("/two/x").unwrap(),b"second");
+            assert_eq!(fs.read_file("/two/x").unwrap(), b"second");
         }
     }
 
@@ -11306,23 +14918,59 @@ mod tests {
         let fs = MemoryVfs::new();
         for p in ["one", "token=private"] {
             fs.mkdir_all(&format!("/{p}")).unwrap();
-            fs.write_file(&format!("/{p}/name"),b"input").unwrap();
+            fs.write_file(&format!("/{p}/name"), b"input").unwrap();
         }
-        let r = cmd_zip(&args(&["-qvj","out.zip","one/name","token=private/name"]),super::super::CommandInput{text:&mut String::new(),file:None},"/",&fs, false, &mut super::super::capture_write, &mut |_| unreachable!());
-        assert_eq!(r.stdout,"\tzip warning:   first full name: one/name\n                      second full name: [redacted]\n                     name in zip file repeated: name\n\nzip error: Invalid command arguments (cannot repeat names in zip file)\n");
+        let r = cmd_zip(
+            &args(&["-qvj", "out.zip", "one/name", "token=private/name"]),
+            super::super::CommandInput {
+                text: &mut String::new(),
+                file: None,
+            },
+            "/",
+            &fs,
+            false,
+            &mut super::super::capture_write,
+            &mut |_| unreachable!(),
+        );
+        assert_eq!(
+            r.stdout,
+            "\tzip warning:   first full name: one/name\n                      second full name: [redacted]\n                     name in zip file repeated: name\n\nzip error: Invalid command arguments (cannot repeat names in zip file)\n"
+        );
         assert!(!fs.exists("/out.zip"));
     }
 
     #[test]
     fn zip_rejects_invalid_archives_before_mutating_sources_or_outputs() {
-        for options in [vec!["-qm"], vec!["-qd"], vec!["-qf"], vec!["-qU", "-O", "copy.zip"], vec!["-FS"], vec!["-sf"]] {
+        for options in [
+            vec!["-qm"],
+            vec!["-qd"],
+            vec!["-qf"],
+            vec!["-qU", "-O", "copy.zip"],
+            vec!["-FS"],
+            vec!["-sf"],
+        ] {
             let vfs = MemoryVfs::new();
             vfs.write_file("/broken.zip", b"broken").unwrap();
             vfs.write_file("/input", b"contents").unwrap();
             let mut argv = args(&options);
             argv.extend(args(&["broken.zip", "input"]));
-            let result = cmd_zip(&argv,super::super::CommandInput{text:&mut String::new(),file:None}, "/", &vfs, false, &mut super::super::capture_write, &mut |_| unreachable!());
-            assert_eq!((result.exit_code, result.stderr.as_str()), (2, "zip: ZIP missing end record\n"), "{options:?}");
+            let result = cmd_zip(
+                &argv,
+                super::super::CommandInput {
+                    text: &mut String::new(),
+                    file: None,
+                },
+                "/",
+                &vfs,
+                false,
+                &mut super::super::capture_write,
+                &mut |_| unreachable!(),
+            );
+            assert_eq!(
+                (result.exit_code, result.stderr.as_str()),
+                (2, "zip: ZIP missing end record\n"),
+                "{options:?}"
+            );
             assert_eq!(vfs.read_file("/broken.zip").unwrap(), b"broken");
             assert_eq!(vfs.read_file("/input").unwrap(), b"contents");
             assert!(!vfs.exists("/copy.zip"));
@@ -11337,15 +14985,23 @@ mod tests {
 
         let sha = try_run_archive_command("sha256sum", &[], "abc", "/work", &env, &vfs).unwrap();
         assert_eq!(sha.exit_code, 0);
-        assert!(sha
-            .stdout
-            .starts_with("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"));
+        assert!(
+            sha.stdout
+                .starts_with("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+        );
 
-        let b64_enc = try_run_archive_command("base64", &[], "safe-bash", "/work", &env, &vfs).unwrap();
+        let b64_enc =
+            try_run_archive_command("base64", &[], "safe-bash", "/work", &env, &vfs).unwrap();
         assert_eq!(b64_enc.stdout, "c2FmZS1iYXNo\n");
-        let b64_dec =
-            try_run_archive_command("base64", &args(&["-d"]), &b64_enc.stdout, "/work", &env, &vfs)
-                .unwrap();
+        let b64_dec = try_run_archive_command(
+            "base64",
+            &args(&["-d"]),
+            &b64_enc.stdout,
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(b64_dec.stdout, "safe-bash");
 
         let qr = try_run_archive_command(
@@ -11362,7 +15018,6 @@ mod tests {
         assert!(qr_svg.contains("<svg"));
     }
 
-
     #[test]
     fn unit_tar_list_and_xxd_reverse_roundtrip() {
         let vfs = MemoryVfs::new();
@@ -11374,7 +15029,14 @@ mod tests {
         assert_eq!(
             try_run_archive_command(
                 "tar",
-                &args(&["-cf", "/work/plain.tar", "-C", "/work/src", "one.txt", "two.txt"]),
+                &args(&[
+                    "-cf",
+                    "/work/plain.tar",
+                    "-C",
+                    "/work/src",
+                    "one.txt",
+                    "two.txt"
+                ]),
                 "",
                 "/work",
                 &env,
@@ -11396,8 +15058,17 @@ mod tests {
         assert_eq!(listed.exit_code, 0);
         assert!(listed.stdout.contains("one.txt") && listed.stdout.contains("two.txt"));
 
-        let hex = try_run_archive_command("xxd", &args(&["-p"]), "safe-bash", "/work", &env, &vfs).unwrap();
-        let rev = try_run_archive_command("xxd", &args(&["-r", "-p"]), &hex.stdout, "/work", &env, &vfs).unwrap();
+        let hex = try_run_archive_command("xxd", &args(&["-p"]), "safe-bash", "/work", &env, &vfs)
+            .unwrap();
+        let rev = try_run_archive_command(
+            "xxd",
+            &args(&["-r", "-p"]),
+            &hex.stdout,
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(rev.stdout, "safe-bash");
     }
 
@@ -11409,7 +15080,15 @@ mod tests {
 
         let gen_rsa = try_run_archive_command(
             "openssl",
-            &args(&["genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048", "-out", "/work/rsa.pem"]),
+            &args(&[
+                "genpkey",
+                "-algorithm",
+                "RSA",
+                "-pkeyopt",
+                "rsa_keygen_bits:2048",
+                "-out",
+                "/work/rsa.pem",
+            ]),
             "",
             "/work",
             &env,
@@ -11418,11 +15097,22 @@ mod tests {
         .unwrap();
         assert_eq!(gen_rsa.exit_code, 0, "stderr: {}", gen_rsa.stderr);
         let rsa_priv = vfs.read_file("/work/rsa.pem").unwrap();
-        assert!(rsa_priv.len() > 1200, "expected >1200 bytes, got {}", rsa_priv.len());
+        assert!(
+            rsa_priv.len() > 1200,
+            "expected >1200 bytes, got {}",
+            rsa_priv.len()
+        );
 
         let pub_rsa = try_run_archive_command(
             "openssl",
-            &args(&["pkey", "-in", "/work/rsa.pem", "-pubout", "-out", "/work/rsa.pub.pem"]),
+            &args(&[
+                "pkey",
+                "-in",
+                "/work/rsa.pem",
+                "-pubout",
+                "-out",
+                "/work/rsa.pub.pem",
+            ]),
             "",
             "/work",
             &env,
@@ -11431,13 +15121,26 @@ mod tests {
         .unwrap();
         assert_eq!(pub_rsa.exit_code, 0);
         let rsa_pub = vfs.read_file("/work/rsa.pub.pem").unwrap();
-        assert!(rsa_pub.len() > 400, "expected >400 bytes, got {}", rsa_pub.len());
+        assert!(
+            rsa_pub.len() > 400,
+            "expected >400 bytes, got {}",
+            rsa_pub.len()
+        );
 
-        vfs.write_file("/work/msg.txt", b"signed payload\n").unwrap();
+        vfs.write_file("/work/msg.txt", b"signed payload\n")
+            .unwrap();
         assert_eq!(
             try_run_archive_command(
                 "openssl",
-                &args(&["dgst", "-sha256", "-sign", "/work/rsa.pem", "-out", "/work/msg.sig", "/work/msg.txt"]),
+                &args(&[
+                    "dgst",
+                    "-sha256",
+                    "-sign",
+                    "/work/rsa.pem",
+                    "-out",
+                    "/work/msg.sig",
+                    "/work/msg.txt"
+                ]),
                 "",
                 "/work",
                 &env,
@@ -11450,7 +15153,15 @@ mod tests {
         assert_eq!(vfs.read_file("/work/msg.sig").unwrap().len(), 256);
         let ver_rsa = try_run_archive_command(
             "openssl",
-            &args(&["dgst", "-sha256", "-verify", "/work/rsa.pub.pem", "-signature", "/work/msg.sig", "/work/msg.txt"]),
+            &args(&[
+                "dgst",
+                "-sha256",
+                "-verify",
+                "/work/rsa.pub.pem",
+                "-signature",
+                "/work/msg.sig",
+                "/work/msg.txt",
+            ]),
             "",
             "/work",
             &env,
@@ -11463,12 +15174,24 @@ mod tests {
         let cert = try_run_archive_command(
             "openssl",
             &args(&[
-                "req", "-new", "-x509", "-nodes", "-newkey", "ec:prime256v1",
-                "-keyout", "/work/ec.key", "-subj", "/CN=test.example/O=Test",
-                "-days", "3",
-                "-addext", "basicConstraints=critical,CA:TRUE,pathlen:1",
-                "-addext", "subjectAltName=DNS:test.example,IP:127.0.0.1",
-                "-out", "/work/cert.pem",
+                "req",
+                "-new",
+                "-x509",
+                "-nodes",
+                "-newkey",
+                "ec:prime256v1",
+                "-keyout",
+                "/work/ec.key",
+                "-subj",
+                "/CN=test.example/O=Test",
+                "-days",
+                "3",
+                "-addext",
+                "basicConstraints=critical,CA:TRUE,pathlen:1",
+                "-addext",
+                "subjectAltName=DNS:test.example,IP:127.0.0.1",
+                "-out",
+                "/work/cert.pem",
             ]),
             "",
             "/work",
@@ -11479,7 +15202,14 @@ mod tests {
         assert_eq!(cert.exit_code, 0, "stderr: {}", cert.stderr);
         let ext_out = try_run_archive_command(
             "openssl",
-            &args(&["x509", "-in", "/work/cert.pem", "-noout", "-ext", "subjectAltName,basicConstraints"]),
+            &args(&[
+                "x509",
+                "-in",
+                "/work/cert.pem",
+                "-noout",
+                "-ext",
+                "subjectAltName,basicConstraints",
+            ]),
             "",
             "/work",
             &env,
@@ -11487,11 +15217,20 @@ mod tests {
         )
         .unwrap();
         assert_eq!(ext_out.exit_code, 0);
-        assert!(ext_out.stdout.contains("DNS: test.example") && ext_out.stdout.contains("CA: true"));
+        assert!(
+            ext_out.stdout.contains("DNS: test.example") && ext_out.stdout.contains("CA: true")
+        );
 
         let exp_soon = try_run_archive_command(
             "openssl",
-            &args(&["x509", "-in", "/work/cert.pem", "-noout", "-checkend", "999999"]),
+            &args(&[
+                "x509",
+                "-in",
+                "/work/cert.pem",
+                "-noout",
+                "-checkend",
+                "999999",
+            ]),
             "",
             "/work",
             &env,
@@ -11501,11 +15240,27 @@ mod tests {
         assert_eq!(exp_soon.exit_code, 1);
         assert_eq!(exp_soon.stdout, "Certificate will expire\n");
 
-        let generated = try_run_archive_command("gpg", &args(&["--quick-generate-key", "Alice <alice@example.com>"]), "", "/work", &env, &vfs).unwrap();
+        let generated = try_run_archive_command(
+            "gpg",
+            &args(&["--quick-generate-key", "Alice <alice@example.com>"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(generated.exit_code, 0, "{}", generated.stderr);
         let gpg_sign = try_run_archive_command(
             "gpg",
-            &args(&["--detach-sign", "--armor", "-u", "Alice <alice@example.com>", "-o", "/work/msg.asc", "/work/msg.txt"]),
+            &args(&[
+                "--detach-sign",
+                "--armor",
+                "-u",
+                "Alice <alice@example.com>",
+                "-o",
+                "/work/msg.asc",
+                "/work/msg.txt",
+            ]),
             "",
             "/work",
             &env,
@@ -11515,7 +15270,12 @@ mod tests {
         assert_eq!(gpg_sign.exit_code, 0);
         let gpg_ver = try_run_archive_command(
             "gpg",
-            &args(&["--status-fd=1", "--verify", "/work/msg.asc", "/work/msg.txt"]),
+            &args(&[
+                "--status-fd=1",
+                "--verify",
+                "/work/msg.asc",
+                "/work/msg.txt",
+            ]),
             "",
             "/work",
             &env,
@@ -11532,18 +15292,37 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        let bad_zstd = try_run_archive_command("zstd", &args(&["-o", "out.zst"]), "", "/work", &env, &vfs).unwrap();
+        let bad_zstd =
+            try_run_archive_command("zstd", &args(&["-o", "out.zst"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(bad_zstd.exit_code, 2);
         assert!(bad_zstd.stderr.contains("invalid option -- 'o'"));
 
-        let bad_gz = try_run_archive_command("gzip", &args(&["-z"]), "", "/work", &env, &vfs).unwrap();
+        let bad_gz =
+            try_run_archive_command("gzip", &args(&["-z"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(bad_gz.exit_code, 2);
         assert!(bad_gz.stderr.contains("invalid option -- 'z'"));
 
-        let b32_enc = try_run_archive_command("base32", &args(&["-w", "0"]), "hello_base32", "/work", &env, &vfs).unwrap();
+        let b32_enc = try_run_archive_command(
+            "base32",
+            &args(&["-w", "0"]),
+            "hello_base32",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(b32_enc.exit_code, 0);
         assert_eq!(b32_enc.stdout, "NBSWY3DPL5RGC43FGMZA====");
-        let b32_dec = try_run_archive_command("base32", &args(&["-d"]), &b32_enc.stdout, "/work", &env, &vfs).unwrap();
+        let b32_dec = try_run_archive_command(
+            "base32",
+            &args(&["-d"]),
+            &b32_enc.stdout,
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(b32_dec.stdout, "hello_base32");
 
         let kg = try_run_archive_command(
@@ -11559,7 +15338,15 @@ mod tests {
         vfs.write_file("/work/msg.txt", b"payload\n").unwrap();
         let sg = try_run_archive_command(
             "ssh-keygen",
-            &args(&["-Y", "sign", "-f", "/work/id_ed", "-n", "git", "/work/msg.txt"]),
+            &args(&[
+                "-Y",
+                "sign",
+                "-f",
+                "/work/id_ed",
+                "-n",
+                "git",
+                "/work/msg.txt",
+            ]),
             "",
             "/work",
             &env,
@@ -11576,7 +15363,8 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        vfs.write_file("/work/doc.html", b"<h1>Title</h1><p>Body</p>").unwrap();
+        vfs.write_file("/work/doc.html", b"<h1>Title</h1><p>Body</p>")
+            .unwrap();
         let wk = try_run_archive_command(
             "wkhtmltopdf",
             &args(&["--title", "Spec", "/work/doc.html", "/work/doc.pdf"]),
@@ -11590,7 +15378,12 @@ mod tests {
 
         let qp = try_run_archive_command(
             "qpdf",
-            &args(&["/work/doc.pdf", "/work/lin.pdf", "--linearize", "--rotate=+90:1"]),
+            &args(&[
+                "/work/doc.pdf",
+                "/work/lin.pdf",
+                "--linearize",
+                "--rotate=+90:1",
+            ]),
             "",
             "/work",
             &env,
@@ -11625,7 +15418,20 @@ mod tests {
 
         let sx = try_run_archive_command(
             "sox",
-            &args(&["-r", "4000", "-c", "2", "-b", "16", "-n", "/work/tone.wav", "synth", "0.1", "sine", "400"]),
+            &args(&[
+                "-r",
+                "4000",
+                "-c",
+                "2",
+                "-b",
+                "16",
+                "-n",
+                "/work/tone.wav",
+                "synth",
+                "0.1",
+                "sine",
+                "400",
+            ]),
             "",
             "/work",
             &env,
@@ -11633,7 +15439,15 @@ mod tests {
         )
         .unwrap();
         assert_eq!(sx.exit_code, 0);
-        let sxi = try_run_archive_command("soxi", &args(&["-s", "/work/tone.wav"]), "", "/work", &env, &vfs).unwrap();
+        let sxi = try_run_archive_command(
+            "soxi",
+            &args(&["-s", "/work/tone.wav"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(sxi.stdout.trim(), "400");
 
         let pf_loc = try_run_archive_command(
@@ -11658,7 +15472,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pf_err.exit_code, 99);
-        assert!(pf_err.stderr.contains("Command Line Error: Wrong page range given"));
+        assert!(
+            pf_err
+                .stderr
+                .contains("Command Line Error: Wrong page range given")
+        );
 
         let ff = try_run_archive_command(
             "ffmpeg",
@@ -11682,7 +15500,15 @@ mod tests {
         assert_eq!(ff.exit_code, 0);
         let fp = try_run_archive_command(
             "ffprobe",
-            &args(&["-v", "quiet", "-print_format", "json=compact=1", "-show_format", "-show_streams", "/work/out.mp4"]),
+            &args(&[
+                "-v",
+                "quiet",
+                "-print_format",
+                "json=compact=1",
+                "-show_format",
+                "-show_streams",
+                "/work/out.mp4",
+            ]),
             "",
             "/work",
             &env,
@@ -11713,7 +15539,16 @@ mod tests {
 
         let kg = try_run_archive_command(
             "ssh-keygen",
-            &args(&["-t", "ed25519", "-C", "ci@test", "-f", "/work/id_ed25519", "-N", ""]),
+            &args(&[
+                "-t",
+                "ed25519",
+                "-C",
+                "ci@test",
+                "-f",
+                "/work/id_ed25519",
+                "-N",
+                "",
+            ]),
             "",
             "/work",
             &env,
@@ -11736,10 +15571,11 @@ mod tests {
             String::from_utf8_lossy(&vfs.read_file("/work/id_ed25519.pub").unwrap())
         );
 
-        let exts = openssl_validate_and_format_addexts(&[
-            "basicConstraints=critical,CA:FALSE".to_string(),
-        ])
-        .unwrap();
+        let exts =
+            openssl_validate_and_format_addexts(
+                &["basicConstraints=critical,CA:FALSE".to_string()],
+            )
+            .unwrap();
         assert_eq!(exts[0].1, "Basic Constraints: critical");
     }
 
@@ -11749,68 +15585,119 @@ mod tests {
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();
 
-        let gz_h = try_run_archive_command("gzip", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
+        let gz_h =
+            try_run_archive_command("gzip", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(gz_h.exit_code, 0);
         assert!(gz_h.stdout.contains("Usage: gzip [OPTION]... [FILE]..."));
 
-        let bz_h = try_run_archive_command("bzip2", &args(&["-s", "-h"]), "", "/work", &env, &vfs).unwrap();
+        let bz_h = try_run_archive_command("bzip2", &args(&["-s", "-h"]), "", "/work", &env, &vfs)
+            .unwrap();
         assert_eq!(bz_h.exit_code, 0);
         assert!(bz_h.stdout.contains("Default compression level: 2."));
 
-        let zs_fast = try_run_archive_command("zstd", &args(&["--fast=2"]), "", "/work", &env, &vfs).unwrap();
+        let zs_fast =
+            try_run_archive_command("zstd", &args(&["--fast=2"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(zs_fast.exit_code, 2);
         assert_eq!(
             zs_fast.stderr,
             "zstd: unsupported compression level -2; the bounded Zstandard codec supports only levels 1 through 9 (fast mode is unsupported)\n"
         );
 
-        let lz_chk = try_run_archive_command("lzma", &args(&["--check=crc32"]), "", "/work", &env, &vfs).unwrap();
+        let lz_chk =
+            try_run_archive_command("lzma", &args(&["--check=crc32"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(lz_chk.exit_code, 2);
-        assert_eq!(lz_chk.stderr, "lzma: the LZMA format supports only --check=none\n");
+        assert_eq!(
+            lz_chk.stderr,
+            "lzma: the LZMA format supports only --check=none\n"
+        );
 
-        let tar_h = try_run_archive_command("tar", &args(&["--help"]), "", "/work", &env, &vfs).unwrap();
+        let tar_h =
+            try_run_archive_command("tar", &args(&["--help"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(tar_h.exit_code, 0);
         assert!(tar_h.stdout.contains("Usage: tar [OPTION]... [FILE]..."));
 
-        let tar_dup = try_run_archive_command("tar", &args(&["-ct", "-f", "a.tar"]), "", "/work", &env, &vfs).unwrap();
+        let tar_dup = try_run_archive_command(
+            "tar",
+            &args(&["-ct", "-f", "a.tar"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(tar_dup.exit_code, 2);
         assert_eq!(
             tar_dup.stderr,
             "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n"
         );
 
-        let zip_v = try_run_archive_command("zip", &args(&["-v"]), "", "/work", &env, &vfs).unwrap();
+        let zip_v =
+            try_run_archive_command("zip", &args(&["-v"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(zip_v.exit_code, 0);
         assert!(zip_v.stdout.starts_with("safe-bash zip (virtual-bash)\n"));
 
-        let zip_err = try_run_archive_command("zip", &args(&["-r", "-R", "a.zip", "*.txt"]), "", "/work", &env, &vfs).unwrap();
+        let zip_err = try_run_archive_command(
+            "zip",
+            &args(&["-r", "-R", "a.zip", "*.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(zip_err.exit_code, 16);
         assert_eq!(
             zip_err.stdout,
             "\nzip error: Invalid command arguments (do not specify both -r and -R)\n"
         );
 
-        let unzip_err = try_run_archive_command("unzip", &args(&["-t", "-l", "a.zip"]), "", "/work", &env, &vfs).unwrap();
+        let unzip_err = try_run_archive_command(
+            "unzip",
+            &args(&["-t", "-l", "a.zip"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(unzip_err.exit_code, 2);
         assert_eq!(
             unzip_err.stderr,
             "unzip: unzip test mode cannot be combined with listing, pipe or destination\n"
         );
 
-        let xxd_err = try_run_archive_command("xxd", &args(&["-e", "-g", "3"]), "abcd", "/work", &env, &vfs).unwrap();
+        let xxd_err = try_run_archive_command(
+            "xxd",
+            &args(&["-e", "-g", "3"]),
+            "abcd",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(xxd_err.exit_code, 2);
         assert_eq!(
             xxd_err.stderr,
             "xxd: number of octets per group must be a power of 2 with -e\n"
         );
 
-        let hd_err = try_run_archive_command("hexdump", &args(&["-f", "fmt"]), "", "/work", &env, &vfs).unwrap();
+        let hd_err =
+            try_run_archive_command("hexdump", &args(&["-f", "fmt"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(hd_err.exit_code, 1);
-        assert_eq!(hd_err.stderr, "hexdump: -f: format files are not supported\n");
+        assert_eq!(
+            hd_err.stderr,
+            "hexdump: -f: format files are not supported\n"
+        );
 
-        let od_err = try_run_archive_command("od", &args(&["-ebig"]), "", "/work", &env, &vfs).unwrap();
+        let od_err =
+            try_run_archive_command("od", &args(&["-ebig"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(od_err.exit_code, 2);
-        assert_eq!(od_err.stderr, "od: use --endian=little or --endian=big; -e is unsupported\n");
+        assert_eq!(
+            od_err.stderr,
+            "od: use --endian=little or --endian=big; -e is unsupported\n"
+        );
     }
 
     #[test]
@@ -11820,34 +15707,60 @@ mod tests {
         vfs.write_file("/work/f.txt", b"hello\n").unwrap();
         let env = BTreeMap::new();
 
-        let sha_z = try_run_archive_command("sha256sum", &args(&["-Z"]), "", "/work", &env, &vfs).unwrap();
+        let sha_z =
+            try_run_archive_command("sha256sum", &args(&["-Z"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(sha_z.exit_code, 2);
         assert_eq!(sha_z.stderr, "sha256sum: unrecognized option '-Z'\n");
 
-        let sha_dir = try_run_archive_command("sha256sum", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        let sha_dir =
+            try_run_archive_command("sha256sum", &args(&["/work/dir"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(sha_dir.exit_code, 1);
         assert_eq!(sha_dir.stderr, "sha256sum: /work/dir: Is a directory\n");
 
-        let sha_miss = try_run_archive_command("sha256sum", &args(&["/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        let sha_miss = try_run_archive_command(
+            "sha256sum",
+            &args(&["/work/missing"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(sha_miss.exit_code, 1);
         assert_eq!(
             sha_miss.stderr,
             "sha256sum: ENOENT: no such file or directory, readStream '/work/missing'\n"
         );
 
-        let ck_alg = try_run_archive_command("cksum", &args(&["-a", "SHA256"]), "", "/work", &env, &vfs).unwrap();
+        let ck_alg =
+            try_run_archive_command("cksum", &args(&["-a", "SHA256"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(ck_alg.exit_code, 2);
-        assert_eq!(ck_alg.stderr, "cksum: unsupported checksum algorithm 'SHA256'\n");
+        assert_eq!(
+            ck_alg.stderr,
+            "cksum: unsupported checksum algorithm 'SHA256'\n"
+        );
 
-        let ck_eq = try_run_archive_command("cksum", &args(&["--tag=1"]), "", "/work", &env, &vfs).unwrap();
+        let ck_eq =
+            try_run_archive_command("cksum", &args(&["--tag=1"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(ck_eq.exit_code, 2);
-        assert_eq!(ck_eq.stderr, "cksum: option '--tag' does not take an argument\n");
+        assert_eq!(
+            ck_eq.stderr,
+            "cksum: option '--tag' does not take an argument\n"
+        );
 
-        let b64_wrap = try_run_archive_command("base64", &args(&["--wrap"]), "", "/work", &env, &vfs).unwrap();
+        let b64_wrap =
+            try_run_archive_command("base64", &args(&["--wrap"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(b64_wrap.exit_code, 2);
-        assert_eq!(b64_wrap.stderr, "base64: option '--wrap' requires an argument\n");
+        assert_eq!(
+            b64_wrap.stderr,
+            "base64: option '--wrap' requires an argument\n"
+        );
 
-        let b64_dir = try_run_archive_command("base64", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        let b64_dir =
+            try_run_archive_command("base64", &args(&["/work/dir"]), "", "/work", &env, &vfs)
+                .unwrap();
         assert_eq!(b64_dir.exit_code, 1);
         assert_eq!(
             b64_dir.stderr,
@@ -11856,7 +15769,14 @@ mod tests {
 
         let ossl_utl = try_run_archive_command(
             "openssl",
-            &args(&["pkeyutl", "-inkey", "/work/f.txt", "-sign", "-digest", "md5"]),
+            &args(&[
+                "pkeyutl",
+                "-inkey",
+                "/work/f.txt",
+                "-sign",
+                "-digest",
+                "md5",
+            ]),
             "",
             "/work",
             &env,
@@ -11878,14 +15798,30 @@ mod tests {
         assert_eq!(ossl_ecp.exit_code, 0);
         assert!(ossl_ecp.stdout.contains("BggqhkjOPQMBBw=="));
 
-        let gpg_ver = try_run_archive_command("gpg", &args(&["--verify", "/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        let gpg_ver = try_run_archive_command(
+            "gpg",
+            &args(&["--verify", "/work/missing"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(gpg_ver.exit_code, 2);
         assert_eq!(
             gpg_ver.stderr,
             "gpg: ENOENT: no such file or directory, readFile '/work/missing'\n"
         );
 
-        let ssh_kg = try_run_archive_command("ssh-keygen", &args(&["-y", "-f", "/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        let ssh_kg = try_run_archive_command(
+            "ssh-keygen",
+            &args(&["-y", "-f", "/work/missing"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
         assert_eq!(ssh_kg.exit_code, 1);
         assert_eq!(
             ssh_kg.stderr,

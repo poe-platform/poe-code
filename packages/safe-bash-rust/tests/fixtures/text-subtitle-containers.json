@@ -1,0 +1,479 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "stl-None-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "out.mkv"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "stl-subrip-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "stl-copy-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "stl-None-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "out.webm"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "stl-webvtt-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "webvtt",
+        "out.webm"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "stl-copy-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "stl-None-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "out.mp4"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "stl-mov_text-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,250 --> 00:00:03,500\nFirst\r\nline\n\n2\n00:00:04,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "stl-copy-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "stl",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "input": "00:00:01:25,00:00:03:50,First|line\n00:00:04:00,00:00:06:00,Second\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "subviewer1-None-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "out.mkv"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subviewer1-subrip-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "subrip",
+        "out.mkv"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subviewer1-copy-mkv",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 218,
+      "output": ""
+    },
+    {
+      "name": "subviewer1-None-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "out.webm"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subviewer1-webvtt-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "webvtt",
+        "out.webm"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subviewer1-copy-webm",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "subviewer1-None-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "out.mp4"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    },
+    {
+      "name": "subviewer1-mov_text-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "1\n00:00:01,000 --> 00:00:03,000\nFirst\r\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n"
+    },
+    {
+      "name": "subviewer1-copy-mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "subviewer1",
+        "-i",
+        "input.txt",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "input": "******** START SCRIPT ********\n[00:00:01]\nFirst|line\n[00:00:03]\nSecond\n[00:00:06]\n",
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "exitCode": 234,
+      "output": ""
+    }
+  ]
+}

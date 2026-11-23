@@ -1,0 +1,2517 @@
+{
+  "source": "Current TypeScript soffice sync, async and filesystem APIs (not native LibreOffice); complete output files, including XLSX workbook metadata",
+  "cases": [
+    {
+      "name": "breaks.html-cat",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--cat",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "Top text\nBottom\n\nEnd\nA\nB\n",
+      "stderr": ""
+    },
+    {
+      "name": "breaks.html-txt",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/breaks.txt",
+      "sha256": "cc8c6d9bf589bb804d6c78f5cebb25ec7bbfb7b4c68f935e9f0a114281103ec1"
+    },
+    {
+      "name": "breaks.html-txt:Text",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/breaks.txt",
+      "sha256": "878d2f7350b551fd097cfbe8c44b50f78d881ccf1e16e56c8715475f0c4ebd54"
+    },
+    {
+      "name": "breaks.html-html",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/breaks.html",
+      "sha256": "864d84eae3079ca7495f0a9be7cbee09defb7eae17b65f2f6752afd74fcbf4f1"
+    },
+    {
+      "name": "breaks.html-docx",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/breaks.docx",
+      "sha256": "c47e2189e6e89d68f2e17035a26b99f7c34a7204e1d644b20ca2cf7cc14c6fb8"
+    },
+    {
+      "name": "breaks.html-pdf",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/breaks.pdf",
+      "sha256": "f081b1066dca1448455e8539da05d6a902c6273e029c4b4343c07f5891054597"
+    },
+    {
+      "name": "breaks.html-xlsx",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/breaks.xlsx",
+      "sha256": "66337b1ebb3e71c9611f65c3eb30a260b05c3d89fb56ee52e645529f0a23d086"
+    },
+    {
+      "name": "breaks.html-csv",
+      "input": "breaks.html",
+      "bytes": "3c703e20546f70200a2074657874203c62723e203c623e426f74746f6d3c2f623e3c62722f3e3c62723e456e64203c2f703e3c68313e413c62723e423c2f68313e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/breaks.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /breaks.html -> /converted/breaks.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/breaks.csv",
+      "sha256": "bd32a56dbd6797c70dbfb3b6830c3baedafb78b9a0965dc77cd86de93d13d41f"
+    },
+    {
+      "name": "paragraphs.htm-cat",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--cat",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "Title\nFirst & second\nThird inline text\n",
+      "stderr": ""
+    },
+    {
+      "name": "paragraphs.htm-txt",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.txt",
+      "sha256": "c37afdfd72de7f42b045f2d5d82c780496f09a4266729b8e14517908d73f0612"
+    },
+    {
+      "name": "paragraphs.htm-txt:Text",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.txt",
+      "sha256": "af4a56d0c434cf0b4fa4659b390e153e4d9bca9384960466687c24aa051bf6e5"
+    },
+    {
+      "name": "paragraphs.htm-html",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.html",
+      "sha256": "99c96e67ee778fe936bde26e46a86755729c21c0efcc15b33fb8807b2e4cfb20"
+    },
+    {
+      "name": "paragraphs.htm-docx",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.docx",
+      "sha256": "43019803705d33e187c275422170eec623497976a457db0d09ccbac6b729d45d"
+    },
+    {
+      "name": "paragraphs.htm-pdf",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.pdf",
+      "sha256": "ea8bd6e1247396d991e871bdfa0a0c421785d547c37552714cde2e68f48f796d"
+    },
+    {
+      "name": "paragraphs.htm-xlsx",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.xlsx",
+      "sha256": "64248ae6abab333a26ab4c91e6f25c49a3dc07d7891e6b7df3c7d681dafd199e"
+    },
+    {
+      "name": "paragraphs.htm-csv",
+      "input": "paragraphs.htm",
+      "bytes": "3c7469746c653e48696464656e3c2f7469746c653e3c7374796c653e69676e6f7265643c2f7374796c653e3c68323e5469746c653c2f68323e3c703e46697273742026616d703b207365636f6e643c2f703e3c6469763e5468697264203c656d3e696e6c696e653c2f656d3e20746578743c2f6469763e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/paragraphs.htm"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /paragraphs.htm -> /converted/paragraphs.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/paragraphs.csv",
+      "sha256": "c37afdfd72de7f42b045f2d5d82c780496f09a4266729b8e14517908d73f0612"
+    },
+    {
+      "name": "pre.html-cat",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--cat",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "before\n  alpha\n\tbeta\n  gamma  \nafter\n",
+      "stderr": ""
+    },
+    {
+      "name": "pre.html-txt",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/pre.txt",
+      "sha256": "4ca91e897e56bb15a406716249fc970de5dd1292efc75643e49fde50d14b1da5"
+    },
+    {
+      "name": "pre.html-txt:Text",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/pre.txt",
+      "sha256": "77890c02eb49f81bc67c5f240bdf22caad00f2a8122171168f04969f268f48a4"
+    },
+    {
+      "name": "pre.html-html",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/pre.html",
+      "sha256": "800a92aeb01f3ac910eceba48cb487a7d99ef38265ad6e56f38466abafdedf69"
+    },
+    {
+      "name": "pre.html-docx",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/pre.docx",
+      "sha256": "c2adc11ba062264e295aa18f91638ab323cfd910e00ed25409e1ab616e5c243b"
+    },
+    {
+      "name": "pre.html-pdf",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/pre.pdf",
+      "sha256": "188f3fccb8e9756c052ade98ad1d7fe3bcb0805e5082015faebc48ac5d14705b"
+    },
+    {
+      "name": "pre.html-xlsx",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/pre.xlsx",
+      "sha256": "5c8cee0bfdd067b92be9166b30f214d457b33a4239d64487ad8967c0333c7857"
+    },
+    {
+      "name": "pre.html-csv",
+      "input": "pre.html",
+      "bytes": "3c703e6265666f72653c2f703e3c7072653e2020616c7068610a09626574613c62723e202067616d6d6120203c2f7072653e3c703e61667465723c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/pre.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /pre.html -> /converted/pre.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/pre.csv",
+      "sha256": "02b8f38f6e6202bc38f6693315af9697b9420ffd53affeaf9a8269b32c8977d6"
+    },
+    {
+      "name": "lists.html-cat",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--cat",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "1. First\n2. Second\n• Nested\n• Again\n3. Third\nEnd\n",
+      "stderr": ""
+    },
+    {
+      "name": "lists.html-txt",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/lists.txt",
+      "sha256": "809a47ec11ea1b20c680d8d7856bd592ae0ccee49cbc6dae298c060681c1dbfa"
+    },
+    {
+      "name": "lists.html-txt:Text",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/lists.txt",
+      "sha256": "0e7a3fc2ebd1d384822f62b7387aa01fc22bf68a046dbf9c125963fe47109c87"
+    },
+    {
+      "name": "lists.html-html",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/lists.html",
+      "sha256": "975232fecb99426afc4f5e6dc8489cbbcc5123b0068818ead6d03ca28dc43380"
+    },
+    {
+      "name": "lists.html-docx",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/lists.docx",
+      "sha256": "0537a1efcc43c8ba087d66044a5236587649c260e5dd2ffc80d423721d1ab9bd"
+    },
+    {
+      "name": "lists.html-pdf",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/lists.pdf",
+      "sha256": "aaaa07037224f1304c4ad14681327caec1a4704b1a8ad4acb76f63cfa7b0f164"
+    },
+    {
+      "name": "lists.html-xlsx",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/lists.xlsx",
+      "sha256": "7ff6debd3c7b5c0cb37b1b8b5b87d876461727261ed81b6c0e3035b567957665"
+    },
+    {
+      "name": "lists.html-csv",
+      "input": "lists.html",
+      "bytes": "3c6f6c3e3c6c693e46697273743c6c693e5365636f6e643c756c3e3c6c693e4e65737465643c6c693e416761696e3c2f756c3e3c6c693e54686972643c2f6f6c3e3c703e456e643c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/lists.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /lists.html -> /converted/lists.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/lists.csv",
+      "sha256": "809a47ec11ea1b20c680d8d7856bd592ae0ccee49cbc6dae298c060681c1dbfa"
+    },
+    {
+      "name": "table.html-cat",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--cat",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "Table\nName\tValue\nA B\t42\ninner cell\tend\nTail\n",
+      "stderr": ""
+    },
+    {
+      "name": "table.html-txt",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/table.txt",
+      "sha256": "36ca94f9efc83b6ffa48d3fb114dd74317b76ad5d3f745a9eaa3568ca6902422"
+    },
+    {
+      "name": "table.html-txt:Text",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/table.txt",
+      "sha256": "bbf6c38e3de72e3715e4a8d26bc37f86f9a158701e2d2d42df12aa0bb6f293e3"
+    },
+    {
+      "name": "table.html-html",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/table.html",
+      "sha256": "b29f52d7d75811433447c88b778009ed49ff66909f75b0ef88ed4e7b3c712cea"
+    },
+    {
+      "name": "table.html-docx",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/table.docx",
+      "sha256": "6e78d4fe8fcc4ca0425920320d02ffa26c514625669bbad5d61ee1f15202a535"
+    },
+    {
+      "name": "table.html-pdf",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/table.pdf",
+      "sha256": "2d75383d6eda46052d05483ffa01917f81d0e5118e3def0e6ffec9c249d3bb0b"
+    },
+    {
+      "name": "table.html-xlsx",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/table.xlsx",
+      "sha256": "58a11311d0f9112a48292c8fafe7a4f56ee17b9858a1b797693c3f5b52cbe0ff"
+    },
+    {
+      "name": "table.html-csv",
+      "input": "table.html",
+      "bytes": "3c68313e5461626c653c2f68313e3c7461626c653e3c74723e3c74683e4e616d653c74683e56616c75653c74723e3c74643e2041203c62723e2042203c74643e34323c74723e3c74643e3c7461626c653e3c74723e3c74643e696e6e65723c74643e63656c6c3c2f7461626c653e3c74643e656e643c2f7461626c653e3c703e5461696c3c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/table.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /table.html -> /converted/table.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/table.csv",
+      "sha256": "c5aeba7a03f6ab00567ab89fde8559a09a8b440fbd8779420e9318925f9dea5c"
+    },
+    {
+      "name": "unicode.html-cat",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--cat",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "café   naïve λ\n a\t  b\n c\n",
+      "stderr": ""
+    },
+    {
+      "name": "unicode.html-txt",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/unicode.txt",
+      "sha256": "d4f05c1c80bb1508d90a09cd94ff8088efc6fd9dfd696b4d99897421a1644e75"
+    },
+    {
+      "name": "unicode.html-txt:Text",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/unicode.txt",
+      "sha256": "fdcde129dc4b12c0c401f049e2a1211b8edb669dd04d04e48a575f6b5e106366"
+    },
+    {
+      "name": "unicode.html-html",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/unicode.html",
+      "sha256": "7b35f1b339eada4da3a2accd60d7d203245d9a371a5324508963ac9c6b9c8375"
+    },
+    {
+      "name": "unicode.html-docx",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/unicode.docx",
+      "sha256": "e58ffacfef6a93755f7dd9f4a5e7bc767d7c191a3be5cb14c012a5c2bbbb2375"
+    },
+    {
+      "name": "unicode.html-pdf",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/unicode.pdf",
+      "sha256": "6da1d718f5a08abfe6a1e8419b46935858c20bcc4d24c9b5d4de4f8e70513d28"
+    },
+    {
+      "name": "unicode.html-xlsx",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/unicode.xlsx",
+      "sha256": "f90df93062f9199c0437894386e42b3df528d0ee2dcef57e2e20a0589f655efc"
+    },
+    {
+      "name": "unicode.html-csv",
+      "input": "unicode.html",
+      "bytes": "3c703e636166c3a920266e6273703b206e61c3af7665202623783362623b3c2f703e3c7072653e2061092020620a20633c2f7072653e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/unicode.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unicode.html -> /converted/unicode.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/unicode.csv",
+      "sha256": "235a9cfa9a87fb5944b9dbf07052c019a1c4bfc438d1a41ae135f99d5bdec2f6"
+    },
+    {
+      "name": "empty.html-cat",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--cat",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "name": "empty.html-txt",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "name": "empty.html-txt:Text",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/empty.txt",
+      "sha256": "b42f2099187886def637d6aa840022266e05cb6c987a9394e708e23cd505eb46"
+    },
+    {
+      "name": "empty.html-html",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.html",
+      "sha256": "d020f938045d2c35179433d9024fbaa7e1435b3a87edb926779a02c6c67b743e"
+    },
+    {
+      "name": "empty.html-docx",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.docx",
+      "sha256": "fdd5f70f198999c7c60ee414ed1610b2aea711cd0507b8f13b84a71967e759bb"
+    },
+    {
+      "name": "empty.html-pdf",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.pdf",
+      "sha256": "7be6509971dcf757b2a0479b1613957e7756a23f262d86aa6f955cac271c74d7"
+    },
+    {
+      "name": "empty.html-xlsx",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.xlsx",
+      "sha256": "ab4aabff529d47739411f19cd6d9308200b27c3784b38e6544ee864c75c755a7"
+    },
+    {
+      "name": "empty.html-csv",
+      "input": "empty.html",
+      "bytes": "3c686561643e3c7469746c653e48696464656e3c2f7469746c653e3c2f686561643e3c7363726970743e69676e6f7265643c2f7363726970743e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/empty.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.html -> /converted/empty.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/empty.csv",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "name": "crlf.html-cat",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--cat",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "  one\n  two\nthree\nfour five\n",
+      "stderr": ""
+    },
+    {
+      "name": "crlf.html-txt",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/crlf.txt",
+      "sha256": "ee840660e5c051104cb8e831f46ac8ae98f80c7213d2cdf50c3640681f4b9553"
+    },
+    {
+      "name": "crlf.html-txt:Text",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/crlf.txt",
+      "sha256": "3d40fcd801623eedd0bc7eb23a259f28c374d5f949152654784c755df088b3a4"
+    },
+    {
+      "name": "crlf.html-html",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/crlf.html",
+      "sha256": "c113d0200f9cf6b90cfc186aa72417d5ffe0bd8b645bc022235c789a2e6d6bed"
+    },
+    {
+      "name": "crlf.html-docx",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/crlf.docx",
+      "sha256": "bed22695a60adedb6a207ab9994d32529eebec8fbfa497614be5c32eed4a0576"
+    },
+    {
+      "name": "crlf.html-pdf",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/crlf.pdf",
+      "sha256": "622622b719973e8df47ca5673dd1b1796e8f63fe0cb8c5df717c4abd7f50ff46"
+    },
+    {
+      "name": "crlf.html-xlsx",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/crlf.xlsx",
+      "sha256": "48409d106c6f0c40fc77f1cbca7d0e4dcb99d79f35b4154d6aefd88832feb18e"
+    },
+    {
+      "name": "crlf.html-csv",
+      "input": "crlf.html",
+      "bytes": "3c7072653e0d0a20206f6e650d0a202074776f0d74687265653c2f7072653e3c703e2020666f75720d0a206669766520203c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/crlf.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /crlf.html -> /converted/crlf.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/crlf.csv",
+      "sha256": "c968a059057b2944eca0669d387271474f099ad587c08d0fddd856aa29358f49"
+    },
+    {
+      "name": "wrap.html-cat",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--cat",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "word word word word word word word word word word word word word word word word word word word word\nTitle end\nword word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word\nLast line\n",
+      "stderr": ""
+    },
+    {
+      "name": "wrap.html-txt",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/wrap.txt",
+      "sha256": "879557cebff4da4deff5dc0193583d7073f07ef5d84187e0dc9be2ddcc5cd7e2"
+    },
+    {
+      "name": "wrap.html-txt:Text",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/wrap.txt",
+      "sha256": "c88526e5952b49a816d452e85ee1c8a0c02ced0e95e8608eee7b4239cabba2b9"
+    },
+    {
+      "name": "wrap.html-html",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/wrap.html",
+      "sha256": "7f1ed16a35a9ef9e6eca1f73b880679294f99e96cbbdbc5c6c488be46f69f7eb"
+    },
+    {
+      "name": "wrap.html-docx",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/wrap.docx",
+      "sha256": "8dcffda9a48be4a19ead135e1b5010a7c68d11064e83a1db24bec947a9f156e3"
+    },
+    {
+      "name": "wrap.html-pdf",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/wrap.pdf",
+      "sha256": "f05005df4c7f5c9c84c7a90d7a9e1ef27f00e27a5d019b44bfaa7d85a0b642f3"
+    },
+    {
+      "name": "wrap.html-xlsx",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/wrap.xlsx",
+      "sha256": "1e0c3a36816ee1285a5fbaa031c649636ede8252e5d14ceff9ee81eef8d5264f"
+    },
+    {
+      "name": "wrap.html-csv",
+      "input": "wrap.html",
+      "bytes": "3c68313e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e5469746c6520656e643c2f68313e3c703e776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f726420776f7264203c62723e4c617374206c696e653c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/wrap.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /wrap.html -> /converted/wrap.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/wrap.csv",
+      "sha256": "77447e1810d7c998a26841136e575ab1c2754a2e7ca40a414adf07ecc6728dcc"
+    },
+    {
+      "name": "bom.html-cat",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--cat",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "Typography\n",
+      "stderr": ""
+    },
+    {
+      "name": "bom.html-txt",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.txt",
+      "sha256": "03176701cc2fcca6b4f0644d7e3f994ae4d5e477ee18fb14fa8d147ef4a25115"
+    },
+    {
+      "name": "bom.html-txt:Text",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/bom.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "bom.html-html",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.html",
+      "sha256": "6b0d3daa6b5d18baea6cc4ef73e497f3e8cd57e6028f7efa18193b047827aeb0"
+    },
+    {
+      "name": "bom.html-docx",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.docx",
+      "sha256": "ce25439602af3b38d55b44ed92eadfce68b1248285aae8423bbd5ffe691f3ec1"
+    },
+    {
+      "name": "bom.html-pdf",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.pdf",
+      "sha256": "754dc9f5c8a0b61bea33fec45e618de87a1d0214d01795871e44f7796b999d88"
+    },
+    {
+      "name": "bom.html-xlsx",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.xlsx",
+      "sha256": "202e87df6bf597336fb92b1423408251e80ae2df83eb8cf102778cd19f3b7bec"
+    },
+    {
+      "name": "bom.html-csv",
+      "input": "bom.html",
+      "bytes": "efbbbf3c703e5479706f6772617068793c2f703e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/bom.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.html -> /converted/bom.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/bom.csv",
+      "sha256": "03176701cc2fcca6b4f0644d7e3f994ae4d5e477ee18fb14fa8d147ef4a25115"
+    },
+    {
+      "name": "body-title.html-cat",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--cat",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "Visible\nBody\n",
+      "stderr": ""
+    },
+    {
+      "name": "body-title.html-txt",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/body-title.txt",
+      "sha256": "39ca94989e7ee710408ab724205ca5206e7cdc43a5e676e97874668182ba09c0"
+    },
+    {
+      "name": "body-title.html-txt:Text",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/body-title.txt",
+      "sha256": "413ccd1c1ec8af619d190282594b1bf20400a0e451ab2144c2f210c9844dfd98"
+    },
+    {
+      "name": "body-title.html-html",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/body-title.html",
+      "sha256": "febef4697a47a7508c7b0d1ef9687bf12072186c59aef6c5409e4554041310db"
+    },
+    {
+      "name": "body-title.html-docx",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/body-title.docx",
+      "sha256": "f20af045c8ff1a2b2e5422a356ea6deb24c85bb4ff2663034fddabbaf74e36c2"
+    },
+    {
+      "name": "body-title.html-pdf",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "pdf",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.pdf using filter : writer_pdf_Export\n",
+      "stderr": "",
+      "dest": "/converted/body-title.pdf",
+      "sha256": "2d9b925ab350da794b882068e8f880fefc8d8c677c9ea2d4afb174fe6012333c"
+    },
+    {
+      "name": "body-title.html-xlsx",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.xlsx using filter : xlsx_Export\n",
+      "stderr": "",
+      "dest": "/converted/body-title.xlsx",
+      "sha256": "4ca1b0a49cca8481a68ca456fbb60623a73cf02f36e419bd1a06177b36820117"
+    },
+    {
+      "name": "body-title.html-csv",
+      "input": "body-title.html",
+      "bytes": "3c68746d6c3e3c626f64793e3c7469746c653e56697369626c653c2f7469746c653e3c703e426f64793c2f703e3c2f626f64793e3c2f68746d6c3e",
+      "args": [
+        "--convert-to",
+        "csv",
+        "--outdir",
+        "/converted",
+        "/body-title.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /body-title.html -> /converted/body-title.csv using filter : Text - txt - csv (StarCalc)\n",
+      "stderr": "",
+      "dest": "/converted/body-title.csv",
+      "sha256": "39ca94989e7ee710408ab724205ca5206e7cdc43a5e676e97874668182ba09c0"
+    },
+    {
+      "name": "plain.txt-txt:Text",
+      "input": "plain.txt",
+      "bytes": "5479706f6772617068790a",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/plain.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.txt -> /converted/plain.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "bom.txt-txt:Text",
+      "input": "bom.txt",
+      "bytes": "efbbbf5479706f6772617068790a",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/bom.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.txt -> /converted/bom.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/bom.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.md-txt:Text",
+      "input": "plain.md",
+      "bytes": "5479706f6772617068790a",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/plain.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.md -> /converted/plain.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.rtf-txt:Text",
+      "input": "plain.rtf",
+      "bytes": "7b5c72746631205479706f6772617068797d",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/plain.rtf"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.rtf -> /converted/plain.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.odt-txt:Text",
+      "input": "plain.odt",
+      "bytes": "504b030414000000000000000000ed2d66f600010000000100000b000000636f6e74656e742e786d6c3c6f66666963653a646f63756d656e742d636f6e74656e7420786d6c6e733a6f66666963653d2275726e3a6f617369733a6e616d65733a74633a6f70656e646f63756d656e743a786d6c6e733a6f66666963653a312e302220786d6c6e733a746578743d2275726e3a6f617369733a6e616d65733a74633a6f70656e646f63756d656e743a786d6c6e733a746578743a312e30223e3c6f66666963653a626f64793e3c6f66666963653a746578743e3c746578743a703e5479706f6772617068793c2f746578743a703e3c2f6f66666963653a746578743e3c2f6f66666963653a626f64793e3c2f6f66666963653a646f63756d656e742d636f6e74656e743e504b0102140014000000000000000000ed2d66f600010000000100000b0000000000000000000000000000000000636f6e74656e742e786d6c504b0506000000000100010039000000290100000000",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/plain.odt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.odt -> /converted/plain.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.docx-txt:Text",
+      "input": "plain.docx",
+      "bytes": "504b030414000000000000000000e997f8c49c0000009c00000011000000776f72642f646f63756d656e742e786d6c3c773a646f63756d656e7420786d6c6e733a773d22687474703a2f2f736368656d61732e6f70656e786d6c666f726d6174732e6f72672f776f726470726f63657373696e676d6c2f323030362f6d61696e223e3c773a626f64793e3c773a703e3c773a723e3c773a743e5479706f6772617068793c2f773a743e3c2f773a723e3c2f773a703e3c2f773a626f64793e3c2f773a646f63756d656e743e504b0102140014000000000000000000e997f8c49c0000009c000000110000000000000000000000000000000000776f72642f646f63756d656e742e786d6c504b050600000000010001003f000000cb0000000000",
+      "args": [
+        "--convert-to",
+        "txt:Text",
+        "--outdir",
+        "/converted",
+        "/plain.docx"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.docx -> /converted/plain.txt using filter : Text\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.docx-txt",
+      "input": "plain.docx",
+      "bytes": "504b030414000000000000000000e997f8c49c0000009c00000011000000776f72642f646f63756d656e742e786d6c3c773a646f63756d656e7420786d6c6e733a773d22687474703a2f2f736368656d61732e6f70656e786d6c666f726d6174732e6f72672f776f726470726f63657373696e676d6c2f323030362f6d61696e223e3c773a626f64793e3c773a703e3c773a723e3c773a743e5479706f6772617068793c2f773a743e3c2f773a723e3c2f773a703e3c2f773a626f64793e3c2f773a646f63756d656e743e504b0102140014000000000000000000e997f8c49c0000009c000000110000000000000000000000000000000000776f72642f646f63756d656e742e786d6c504b050600000000010001003f000000cb0000000000",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/plain.docx"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /plain.docx -> /converted/plain.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/plain.txt",
+      "sha256": "40bff4a3057d41c0aebb3a48a2bd1388c1545287d8a55ec9c03c937dce23352a"
+    },
+    {
+      "name": "plain.docx-cat",
+      "input": "plain.docx",
+      "bytes": "504b030414000000000000000000e997f8c49c0000009c00000011000000776f72642f646f63756d656e742e786d6c3c773a646f63756d656e7420786d6c6e733a773d22687474703a2f2f736368656d61732e6f70656e786d6c666f726d6174732e6f72672f776f726470726f63657373696e676d6c2f323030362f6d61696e223e3c773a626f64793e3c773a703e3c773a723e3c773a743e5479706f6772617068793c2f773a743e3c2f773a723e3c2f773a703e3c2f773a626f64793e3c2f773a646f63756d656e743e504b0102140014000000000000000000e997f8c49c0000009c000000110000000000000000000000000000000000776f72642f646f63756d656e742e786d6c504b050600000000010001003f000000cb0000000000",
+      "args": [
+        "--cat",
+        "/plain.docx"
+      ],
+      "exitCode": 0,
+      "stdout": "﻿Typography\n",
+      "stderr": ""
+    },
+    {
+      "name": "fallback.tsv-txt",
+      "input": "fallback.tsv",
+      "bytes": "2230303132332209320d0a0d0a223d53554d2841313a4231292209226c69746572616c220d0a",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/fallback.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /fallback.tsv -> /converted/fallback.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/fallback.txt",
+      "sha256": "cfb3abb330ba0e3656a29a44d7dc66ad7ef9cc6cbcde1da2f81ab86efadb7b5f"
+    },
+    {
+      "name": "fallback.tsv-ods",
+      "input": "fallback.tsv",
+      "bytes": "2230303132332209320d0a0d0a223d53554d2841313a4231292209226c69746572616c220d0a",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/fallback.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /fallback.tsv -> /converted/fallback.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/fallback.ods",
+      "sha256": "cfb3abb330ba0e3656a29a44d7dc66ad7ef9cc6cbcde1da2f81ab86efadb7b5f"
+    },
+    {
+      "name": "fallback.tsv-odt",
+      "input": "fallback.tsv",
+      "bytes": "2230303132332209320d0a0d0a223d53554d2841313a4231292209226c69746572616c220d0a",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/fallback.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /fallback.tsv -> /converted/fallback.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/fallback.odt",
+      "sha256": "cfb3abb330ba0e3656a29a44d7dc66ad7ef9cc6cbcde1da2f81ab86efadb7b5f"
+    },
+    {
+      "name": "unclosed.tsv-txt",
+      "input": "unclosed.tsv",
+      "bytes": "22756e636c6f736564096669656c640a6e65787420726f77",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/unclosed.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unclosed.tsv -> /converted/unclosed.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/unclosed.txt",
+      "sha256": "7d71029e1214af9b35773fe5ed87decd847d7a21da14824307c13d640ba7716b"
+    },
+    {
+      "name": "unclosed.tsv-ods",
+      "input": "unclosed.tsv",
+      "bytes": "22756e636c6f736564096669656c640a6e65787420726f77",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/unclosed.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unclosed.tsv -> /converted/unclosed.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/unclosed.ods",
+      "sha256": "7d71029e1214af9b35773fe5ed87decd847d7a21da14824307c13d640ba7716b"
+    },
+    {
+      "name": "unclosed.tsv-odt",
+      "input": "unclosed.tsv",
+      "bytes": "22756e636c6f736564096669656c640a6e65787420726f77",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/unclosed.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unclosed.tsv -> /converted/unclosed.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/unclosed.odt",
+      "sha256": "7d71029e1214af9b35773fe5ed87decd847d7a21da14824307c13d640ba7716b"
+    },
+    {
+      "name": "spacing.txt-txt",
+      "input": "spacing.txt",
+      "bytes": "2020666972737420200d0a0d0a097365636f6e64090d0a",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/spacing.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /spacing.txt -> /converted/spacing.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/spacing.txt",
+      "sha256": "95bcd3a14b9ad6d624a261c2d7eaf04de6a6741b4cc9bc257d57e1aaaee7a7da"
+    },
+    {
+      "name": "spacing.txt-ods",
+      "input": "spacing.txt",
+      "bytes": "2020666972737420200d0a0d0a097365636f6e64090d0a",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/spacing.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /spacing.txt -> /converted/spacing.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/spacing.ods",
+      "sha256": "95bcd3a14b9ad6d624a261c2d7eaf04de6a6741b4cc9bc257d57e1aaaee7a7da"
+    },
+    {
+      "name": "spacing.txt-odt",
+      "input": "spacing.txt",
+      "bytes": "2020666972737420200d0a0d0a097365636f6e64090d0a",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/spacing.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /spacing.txt -> /converted/spacing.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/spacing.odt",
+      "sha256": "95bcd3a14b9ad6d624a261c2d7eaf04de6a6741b4cc9bc257d57e1aaaee7a7da"
+    },
+    {
+      "name": "unterminated.txt-txt",
+      "input": "unterminated.txt",
+      "bytes": "23206c69746572616c2068656164696e670a6c617374206c696e65",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/unterminated.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unterminated.txt -> /converted/unterminated.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/unterminated.txt",
+      "sha256": "1259d92cd1a5e27a22daea714f1fb998023c581affe2f4dbeaab864c427e5ce9"
+    },
+    {
+      "name": "unterminated.txt-ods",
+      "input": "unterminated.txt",
+      "bytes": "23206c69746572616c2068656164696e670a6c617374206c696e65",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/unterminated.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unterminated.txt -> /converted/unterminated.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/unterminated.ods",
+      "sha256": "1259d92cd1a5e27a22daea714f1fb998023c581affe2f4dbeaab864c427e5ce9"
+    },
+    {
+      "name": "unterminated.txt-odt",
+      "input": "unterminated.txt",
+      "bytes": "23206c69746572616c2068656164696e670a6c617374206c696e65",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/unterminated.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unterminated.txt -> /converted/unterminated.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/unterminated.odt",
+      "sha256": "1259d92cd1a5e27a22daea714f1fb998023c581affe2f4dbeaab864c427e5ce9"
+    },
+    {
+      "name": "raw.dat-txt",
+      "input": "raw.dat",
+      "bytes": "4100ff0d0a42",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/raw.dat"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /raw.dat -> /converted/raw.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/raw.txt",
+      "sha256": "0fd7251c4cef8f3091479a66757366ae8722015005780a565eb1db530be0a7b8"
+    },
+    {
+      "name": "raw.dat-ods",
+      "input": "raw.dat",
+      "bytes": "4100ff0d0a42",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/raw.dat"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /raw.dat -> /converted/raw.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/raw.ods",
+      "sha256": "0fd7251c4cef8f3091479a66757366ae8722015005780a565eb1db530be0a7b8"
+    },
+    {
+      "name": "raw.dat-odt",
+      "input": "raw.dat",
+      "bytes": "4100ff0d0a42",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/raw.dat"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /raw.dat -> /converted/raw.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/raw.odt",
+      "sha256": "0fd7251c4cef8f3091479a66757366ae8722015005780a565eb1db530be0a7b8"
+    },
+    {
+      "name": "extensionless-txt",
+      "input": "extensionless",
+      "bytes": "6c6566740972696768740a0a6c617374",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/extensionless"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /extensionless -> /converted/extensionless.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/extensionless.txt",
+      "sha256": "c9e28408efea1aefa1e95cb686eb970fb4c880fa3cce800325b08b44d0de5c64"
+    },
+    {
+      "name": "extensionless-ods",
+      "input": "extensionless",
+      "bytes": "6c6566740972696768740a0a6c617374",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/extensionless"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /extensionless -> /converted/extensionless.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/extensionless.ods",
+      "sha256": "c9e28408efea1aefa1e95cb686eb970fb4c880fa3cce800325b08b44d0de5c64"
+    },
+    {
+      "name": "extensionless-odt",
+      "input": "extensionless",
+      "bytes": "6c6566740972696768740a0a6c617374",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/extensionless"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /extensionless -> /converted/extensionless.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/extensionless.odt",
+      "sha256": "c9e28408efea1aefa1e95cb686eb970fb4c880fa3cce800325b08b44d0de5c64"
+    },
+    {
+      "name": "empty.tsv-txt",
+      "input": "empty.tsv",
+      "bytes": "",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/empty.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.tsv -> /converted/empty.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "empty.tsv-ods",
+      "input": "empty.tsv",
+      "bytes": "",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/empty.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.tsv -> /converted/empty.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.ods",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "empty.tsv-odt",
+      "input": "empty.tsv",
+      "bytes": "",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/empty.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.tsv -> /converted/empty.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.odt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bom.tsv-txt",
+      "input": "bom.tsv",
+      "bytes": "efbbbf6109620d0a",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/bom.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.tsv -> /converted/bom.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.txt",
+      "sha256": "fd329411f7c5b4bc97b5d6dde20521826cb036ed61716fec8949a8e2ed599cb3"
+    },
+    {
+      "name": "bom.tsv-ods",
+      "input": "bom.tsv",
+      "bytes": "efbbbf6109620d0a",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/bom.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.tsv -> /converted/bom.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.ods",
+      "sha256": "fd329411f7c5b4bc97b5d6dde20521826cb036ed61716fec8949a8e2ed599cb3"
+    },
+    {
+      "name": "bom.tsv-odt",
+      "input": "bom.tsv",
+      "bytes": "efbbbf6109620d0a",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/bom.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.tsv -> /converted/bom.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.odt",
+      "sha256": "fd329411f7c5b4bc97b5d6dde20521826cb036ed61716fec8949a8e2ed599cb3"
+    },
+    {
+      "name": "control.md-txt",
+      "input": "control.md",
+      "bytes": "232068656164696e670a0a7061726167726170680a",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/control.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.md -> /converted/control.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.txt",
+      "sha256": "97f0e14d839dbfc6837ec087e4e20143f31d896376812535631f4662964caa3f"
+    },
+    {
+      "name": "control.md-ods",
+      "input": "control.md",
+      "bytes": "232068656164696e670a0a7061726167726170680a",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/control.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.md -> /converted/control.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.ods",
+      "sha256": "97f0e14d839dbfc6837ec087e4e20143f31d896376812535631f4662964caa3f"
+    },
+    {
+      "name": "control.md-odt",
+      "input": "control.md",
+      "bytes": "232068656164696e670a0a7061726167726170680a",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/control.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.md -> /converted/control.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.odt",
+      "sha256": "97f0e14d839dbfc6837ec087e4e20143f31d896376812535631f4662964caa3f"
+    },
+    {
+      "name": "control.html-txt",
+      "input": "control.html",
+      "bytes": "3c703e66697273743c2f703e3c703e7365636f6e643c2f703e",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/control.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.html -> /converted/control.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.txt",
+      "sha256": "dbea9325179efe46ea2add94f7b6b745ca983fabb208dc6d34aa064623d7ee23"
+    },
+    {
+      "name": "control.html-ods",
+      "input": "control.html",
+      "bytes": "3c703e66697273743c2f703e3c703e7365636f6e643c2f703e",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/control.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.html -> /converted/control.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.ods",
+      "sha256": "457098d8c79229c8199e82791bf8d67aa0a37adbd1ab5e3e145a13f9832d5a23"
+    },
+    {
+      "name": "control.html-odt",
+      "input": "control.html",
+      "bytes": "3c703e66697273743c2f703e3c703e7365636f6e643c2f703e",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/control.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.html -> /converted/control.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.odt",
+      "sha256": "457098d8c79229c8199e82791bf8d67aa0a37adbd1ab5e3e145a13f9832d5a23"
+    },
+    {
+      "name": "control.csv-txt",
+      "input": "control.csv",
+      "bytes": "223030313233222c320a223d53554d2841313a423129220a",
+      "args": [
+        "--convert-to",
+        "txt",
+        "--outdir",
+        "/converted",
+        "/control.csv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.csv -> /converted/control.txt using filter : txt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.txt",
+      "sha256": "82e556190142e97876e7eac9d9637b584dc4bff7fc53351e7df9e8a55b85da33"
+    },
+    {
+      "name": "control.csv-ods",
+      "input": "control.csv",
+      "bytes": "223030313233222c320a223d53554d2841313a423129220a",
+      "args": [
+        "--convert-to",
+        "ods",
+        "--outdir",
+        "/converted",
+        "/control.csv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.csv -> /converted/control.ods using filter : ods_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.ods",
+      "sha256": "82e556190142e97876e7eac9d9637b584dc4bff7fc53351e7df9e8a55b85da33"
+    },
+    {
+      "name": "control.csv-odt",
+      "input": "control.csv",
+      "bytes": "223030313233222c320a223d53554d2841313a423129220a",
+      "args": [
+        "--convert-to",
+        "odt",
+        "--outdir",
+        "/converted",
+        "/control.csv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.csv -> /converted/control.odt using filter : odt_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.odt",
+      "sha256": "82e556190142e97876e7eac9d9637b584dc4bff7fc53351e7df9e8a55b85da33"
+    },
+    {
+      "name": "fallback.tsv-docx",
+      "input": "fallback.tsv",
+      "bytes": "2230303132332209320d0a0d0a223d53554d2841313a4231292209226c69746572616c220d0a",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/fallback.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /fallback.tsv -> /converted/fallback.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/fallback.docx",
+      "sha256": "fd83e76a1d79384aac9b43cec07d6109088baf64e07bd137e94c393675ae6e14"
+    },
+    {
+      "name": "fallback.tsv-html",
+      "input": "fallback.tsv",
+      "bytes": "2230303132332209320d0a0d0a223d53554d2841313a4231292209226c69746572616c220d0a",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/fallback.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /fallback.tsv -> /converted/fallback.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/fallback.html",
+      "sha256": "2c97ab284683cb6f6f8a2a4e8d05ac3ac255a0dc43edaf2d64718b08c8189e00"
+    },
+    {
+      "name": "unclosed.tsv-docx",
+      "input": "unclosed.tsv",
+      "bytes": "22756e636c6f736564096669656c640a6e65787420726f77",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/unclosed.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unclosed.tsv -> /converted/unclosed.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/unclosed.docx",
+      "sha256": "428bf42246b3e5717c3c67e9514feb885ed8163a281809678fc7352d8b1b86ad"
+    },
+    {
+      "name": "unclosed.tsv-html",
+      "input": "unclosed.tsv",
+      "bytes": "22756e636c6f736564096669656c640a6e65787420726f77",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/unclosed.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unclosed.tsv -> /converted/unclosed.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/unclosed.html",
+      "sha256": "aa7cfccd98ced470e41eb82db69d0db0bfcdbbeb58d8c9d0112b78b731476ba5"
+    },
+    {
+      "name": "spacing.txt-docx",
+      "input": "spacing.txt",
+      "bytes": "2020666972737420200d0a0d0a097365636f6e64090d0a",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/spacing.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /spacing.txt -> /converted/spacing.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/spacing.docx",
+      "sha256": "26d389943c0f63543c3e5936610c05cd94dc9094bc8abe8f9e22bf6f0ed57824"
+    },
+    {
+      "name": "spacing.txt-html",
+      "input": "spacing.txt",
+      "bytes": "2020666972737420200d0a0d0a097365636f6e64090d0a",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/spacing.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /spacing.txt -> /converted/spacing.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/spacing.html",
+      "sha256": "45dcfe407f32cd1a6c401033f7f3439b48da2fb5e6537332ae53f6d71033ffed"
+    },
+    {
+      "name": "unterminated.txt-docx",
+      "input": "unterminated.txt",
+      "bytes": "23206c69746572616c2068656164696e670a6c617374206c696e65",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/unterminated.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unterminated.txt -> /converted/unterminated.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/unterminated.docx",
+      "sha256": "5cdc7c5f954e68dc6d9a0afcca8eae41dfa703c7889acefe4a652200d2d6560e"
+    },
+    {
+      "name": "unterminated.txt-html",
+      "input": "unterminated.txt",
+      "bytes": "23206c69746572616c2068656164696e670a6c617374206c696e65",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/unterminated.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /unterminated.txt -> /converted/unterminated.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/unterminated.html",
+      "sha256": "c789d5bba12a515da4181b3607d1857990b4cd842960d60e6a7c08d0ce7afe8a"
+    },
+    {
+      "name": "raw.dat-docx",
+      "input": "raw.dat",
+      "bytes": "4100ff0d0a42",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/raw.dat"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /raw.dat -> /converted/raw.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/raw.docx",
+      "sha256": "afe1fd0bdae164c482cca48edef4045565621076b57ca906f7b3669d8165103e"
+    },
+    {
+      "name": "raw.dat-html",
+      "input": "raw.dat",
+      "bytes": "4100ff0d0a42",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/raw.dat"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /raw.dat -> /converted/raw.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/raw.html",
+      "sha256": "8f4e11a9bb3523ac5321b873f481b1a3cac79b5023cfd9599da93445e785a64f"
+    },
+    {
+      "name": "extensionless-docx",
+      "input": "extensionless",
+      "bytes": "6c6566740972696768740a0a6c617374",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/extensionless"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /extensionless -> /converted/extensionless.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/extensionless.docx",
+      "sha256": "e539bbc14c5ed0a12ab3ea0222004af907bb7b69552f99dc507c71d5eefcfeb2"
+    },
+    {
+      "name": "extensionless-html",
+      "input": "extensionless",
+      "bytes": "6c6566740972696768740a0a6c617374",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/extensionless"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /extensionless -> /converted/extensionless.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/extensionless.html",
+      "sha256": "02c9b04b7dec7e902b6a7f28fa2067bf55883fe71bb0be89c577dfb4cee52b1d"
+    },
+    {
+      "name": "empty.tsv-docx",
+      "input": "empty.tsv",
+      "bytes": "",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/empty.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.tsv -> /converted/empty.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.docx",
+      "sha256": "fdd5f70f198999c7c60ee414ed1610b2aea711cd0507b8f13b84a71967e759bb"
+    },
+    {
+      "name": "empty.tsv-html",
+      "input": "empty.tsv",
+      "bytes": "",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/empty.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /empty.tsv -> /converted/empty.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/empty.html",
+      "sha256": "d020f938045d2c35179433d9024fbaa7e1435b3a87edb926779a02c6c67b743e"
+    },
+    {
+      "name": "bom.tsv-docx",
+      "input": "bom.tsv",
+      "bytes": "efbbbf6109620d0a",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/bom.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.tsv -> /converted/bom.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.docx",
+      "sha256": "63bbc29f571905d7ccc9f47791ce835ae8de1b1d78af3a676a1a08a1eb3eaa6b"
+    },
+    {
+      "name": "bom.tsv-html",
+      "input": "bom.tsv",
+      "bytes": "efbbbf6109620d0a",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/bom.tsv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /bom.tsv -> /converted/bom.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/bom.html",
+      "sha256": "bfb461ef0dbf745e8ae17f17bfe4752be8b63d7121cb44416c82d96aa43b5a81"
+    },
+    {
+      "name": "control.md-docx",
+      "input": "control.md",
+      "bytes": "232068656164696e670a0a7061726167726170680a",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/control.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.md -> /converted/control.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.docx",
+      "sha256": "77831d8047680e0c6fcf0b391f08c26822603b9de3ddb705eec6d95ee3404f64"
+    },
+    {
+      "name": "control.md-html",
+      "input": "control.md",
+      "bytes": "232068656164696e670a0a7061726167726170680a",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/control.md"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.md -> /converted/control.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.html",
+      "sha256": "53b2069c309293c32de43031f5261794c5ec80e9b365dba6d85d6a0cb336fb99"
+    },
+    {
+      "name": "control.html-docx",
+      "input": "control.html",
+      "bytes": "3c703e66697273743c2f703e3c703e7365636f6e643c2f703e",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/control.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.html -> /converted/control.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.docx",
+      "sha256": "27f7ada7235edab43398c6de0586b200669ead721f823445c13687f97c1804d8"
+    },
+    {
+      "name": "control.html-html",
+      "input": "control.html",
+      "bytes": "3c703e66697273743c2f703e3c703e7365636f6e643c2f703e",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/control.html"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.html -> /converted/control.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.html",
+      "sha256": "d8ca4d866ae485dd7f767f66230e4c2ad1a5c4cf3324279d7ada8a667b6ffc4a"
+    },
+    {
+      "name": "control.csv-docx",
+      "input": "control.csv",
+      "bytes": "223030313233222c320a223d53554d2841313a423129220a",
+      "args": [
+        "--convert-to",
+        "docx",
+        "--outdir",
+        "/converted",
+        "/control.csv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.csv -> /converted/control.docx using filter : docx_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.docx",
+      "sha256": "956bccf5307259776ad9bacaf2a1357a35bda8f91636810d3713bdf8a95c4823"
+    },
+    {
+      "name": "control.csv-html",
+      "input": "control.csv",
+      "bytes": "223030313233222c320a223d53554d2841313a423129220a",
+      "args": [
+        "--convert-to",
+        "html",
+        "--outdir",
+        "/converted",
+        "/control.csv"
+      ],
+      "exitCode": 0,
+      "stdout": "convert /control.csv -> /converted/control.html using filter : html_Export\n",
+      "stderr": "",
+      "dest": "/converted/control.html",
+      "sha256": "7c11285624c37d4e423075e716c4ff25476f2df52ed1952e73c86844481f6aba"
+    }
+  ],
+  "exportMetadataValidation": "LibreOffice 24.8.7.2 controls validate exporter identity, disabled default iteration, omitted synthetic names and lowercase unknown Gnumeric functions. Other archive parts and cell data match the prior snapshot, apart from 75 independently verified unknown-function controls in soffice-ods-references.json.",
+  "nativeWriterText": "LibreOffice 24.8.7.2 rejects these ODT/DOCX fragments without archive manifests/relationships.",
+  "nativeExportValidation": "LibreOffice 24.8.7.2: explicit Writer Text filter refuses Calc export; default spreadsheet export refuses Writer input. Source parts retained unchanged.",
+  "directCsvProductionParity": "Text/document input to CSV captured from current production runSofficeCli on 2026-11-21; other outputs retained.",
+  "currentMainPdfReference": "PDF outputs recaptured through runSofficeFileCli from poe-code main f54b71c72ad; other references retain their recorded source."
+}

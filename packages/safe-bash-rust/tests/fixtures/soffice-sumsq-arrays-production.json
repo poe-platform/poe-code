@@ -1,0 +1,284 @@
+[
+  {
+    "formula": "SUMSQ({1,TRUE,\"2\";3,4,0})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 30
+      },
+      {
+        "kind": "number",
+        "value": 30
+      },
+      {
+        "kind": "number",
+        "value": 30
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ(IF({TRUE,FALSE,TRUE},\"2\",3))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 9
+      },
+      {
+        "kind": "number",
+        "value": 9
+      },
+      {
+        "kind": "number",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ(IF(TRUE(),{\"2\",3,4},{4,5,6}))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 29
+      },
+      {
+        "kind": "number",
+        "value": 29
+      },
+      {
+        "kind": "number",
+        "value": 29
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({\"#N/A\",3})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({\" 2 \",\"2%\",\"1e2\"})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10004
+      },
+      {
+        "kind": "number",
+        "value": 10004
+      },
+      {
+        "kind": "number",
+        "value": 10004
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({100000000,1;1,1},1)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 10000000000000004
+      },
+      {
+        "kind": "number",
+        "value": 10000000000000004
+      },
+      {
+        "kind": "number",
+        "value": 10000000000000004
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({1,2,3}+{4,5,6})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 155
+      },
+      {
+        "kind": "number",
+        "value": 155
+      },
+      {
+        "kind": "number",
+        "value": 155
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({1,2,3}>1)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({1,2}+1)",
+    "kind": "scalar",
+    "value": 4
+  },
+  {
+    "formula": "SUMSQ(-{1,2})",
+    "kind": "scalar",
+    "value": 1
+  },
+  {
+    "formula": "SUMSQ({1,2}*{3,4})",
+    "kind": "scalar",
+    "value": 9
+  },
+  {
+    "formula": "SUMSQ(+{1,2})",
+    "kind": "scalar",
+    "value": 1
+  },
+  {
+    "formula": "SUM({1,2}={1,2})",
+    "kind": "scalar",
+    "value": 1
+  },
+  {
+    "formula": "SUM(ISTEXT({\"Apple\";\"Pear\"}))",
+    "kind": "scalar",
+    "value": 1
+  },
+  {
+    "formula": "SUMSQ({1,2}+1)",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 13
+      },
+      {
+        "kind": "number",
+        "value": 13
+      },
+      {
+        "kind": "number",
+        "value": 13
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ(-{1,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5
+      },
+      {
+        "kind": "number",
+        "value": 5
+      },
+      {
+        "kind": "number",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ({1,2}*{3,4})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 73
+      },
+      {
+        "kind": "number",
+        "value": 73
+      },
+      {
+        "kind": "number",
+        "value": 73
+      }
+    ]
+  },
+  {
+    "formula": "SUMSQ(+{1,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 5
+      },
+      {
+        "kind": "number",
+        "value": 5
+      },
+      {
+        "kind": "number",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "formula": "SUM({1,2}={1,2})",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "formula": "SUM(ISTEXT({\"Apple\";\"Pear\"}))",
+    "kind": "array",
+    "value": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      }
+    ]
+  }
+]

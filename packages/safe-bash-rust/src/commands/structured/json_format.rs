@@ -22,14 +22,22 @@ impl JsonStrings {
                 '\t' => r"\t",
                 '\x08' if !matches!(self, Self::Plain) => r"\b",
                 '\x0c' if !matches!(self, Self::Plain) => r"\f",
-                c if c < ' ' || (c == '\x7f' && matches!(self, Self::Jq | Self::Ascii))
-                    || (!c.is_ascii() && matches!(self, Self::Ascii)) => "",
+                c if c < ' '
+                    || (c == '\x7f' && matches!(self, Self::Jq | Self::Ascii))
+                    || (!c.is_ascii() && matches!(self, Self::Ascii)) =>
+                {
+                    ""
+                }
                 _ => continue,
             };
             out.write_str(&text[start..at])?;
             if escape.is_empty() {
-                for unit in c.encode_utf16(&mut [0; 2]) { write!(out, "\\u{unit:04x}")?; }
-            } else { out.write_str(escape)?; }
+                for unit in c.encode_utf16(&mut [0; 2]) {
+                    write!(out, "\\u{unit:04x}")?;
+                }
+            } else {
+                out.write_str(escape)?;
+            }
             start = at + c.len_utf8();
         }
         out.write_str(&text[start..])?;

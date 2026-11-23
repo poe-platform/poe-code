@@ -217,7 +217,30 @@ function parseNut(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocu
       } else decodedAudio = rawAudio.find(plugin => plugin.id === format)!.parse(data,
         { ...options, budget, sampleRate: desc.sampleRate, channels: desc.channels }).tracks[0]!.decodedAudio;
     }
-    return { ...track, samples, duration, decodedAudio };
+    let decodedVideoFrames: MediaTrack["decodedVideoFrames"];
+    if (track.type === "video" && options.decodeFrames !== false) {
+      const width = desc.width!, height = desc.height!;
+      const bgr = desc.pixFmt === "bgr24";
+      decodedVideoFrames = samples.map(sample => {
+        budget.recordFrame(width, height);
+        const size = width * height * 4;
+        if (!Number.isSafeInteger(size) || sample.data.length !== width * height * 3) {
+          throw new Error("Invalid NUT packed video frame size");
+        }
+        budget.allocateMemory(size);
+        const data = new Uint8Array(size);
+        for (let i = 0; i < width * height; i++) {
+          if (i % 4096 === 0) budget.checkCpu();
+          data[i * 4] = sample.data[i * 3 + (bgr ? 2 : 0)]!;
+          data[i * 4 + 1] = sample.data[i * 3 + 1]!;
+          data[i * 4 + 2] = sample.data[i * 3 + (bgr ? 0 : 2)]!;
+          data[i * 4 + 3] = 255;
+        }
+        return { width, height, data, ptsSeconds: sample.pts / track.timescale,
+          durationSeconds: sample.duration / track.timescale, keyframe: sample.isKeyframe, offset: sample.offset };
+      });
+    }
+    return { ...track, samples, duration, decodedAudio, decodedVideoFrames };
   });
   const durationSeconds = Math.max(...tracks.map(track => track.duration / track.timescale));
   return { containerFormat: "nut", timescale: 1000, duration: durationSeconds * 1000, durationSeconds,
@@ -349,7 +372,7 @@ export function nutAst(): MediaAstPlugin {
     detect: bytes => signature.every((byte, i) => bytes[i] === byte),
     parse: parseNut,
     probe(bytes, options = {}) {
-      return buildProbeResultFromDoc(parseNut(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
+      return buildProbeResultFromDoc(parseNut(bytes, { ...options, decodeAudio: false, decodeFrames: false }), bytes.length, options.filename,
         { ...options, formatName: "nut", formatLongName: "NUT" });
     },
     serialize: serializeNut

@@ -161,8 +161,12 @@ fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
                     );
                 } else {
                     match kind {
-                        Kind::Value if matches!(name, "--vault" | "--current-vault") &&
-                            resolved.is_some_and(|p| p.starts_with("item ") || p.starts_with("document ")) => {
+                        Kind::Value
+                            if matches!(name, "--vault" | "--current-vault")
+                                && resolved.is_some_and(|p| {
+                                    p.starts_with("item ") || p.starts_with("document ")
+                                }) =>
+                        {
                             scan.vault = value.map(str::to_owned);
                         }
                         Kind::Value => {

@@ -27,7 +27,7 @@ export async function probeFlacSource(source: AudioProbeSource, options: { signa
   const prefix = signature.startsWith("ID3") ? id3HeaderSize((await read(0, Math.min(10, source.size))).bytes) : 0;
   if ((prefix ? (await read(prefix, 4)).text(0, 4) : signature) !== "fLaC") throw new Error("Expected FLAC signature");
   let offset = prefix + 4, last = false, stream: AudioStream | undefined;
-  const tags: AudioTags = {};
+  let tags: AudioTags = {};
   while (!last) {
     const header = await read(offset, 4), type = header.u8(0) & 127, length = header.u24(1), start = offset + 4, end = start + length;
     last = !!(header.u8(0) & 128);
@@ -73,6 +73,6 @@ export async function probeFlacSource(source: AudioProbeSource, options: { signa
   }
   if (!stream) throw new Error("Missing FLAC STREAMINFO");
   options.signal?.throwIfAborted();
-  if (prefix && !options.onComment && !Object.keys(tags).length) Object.assign(tags, (await probeId3Source(source, options)).tags);
+  if (prefix && !options.onComment && !Object.keys(tags).length) tags = (await probeId3Source(source, options)).tags;
   return { format: "flac", streams: [stream], tags, duration: stream.duration, bitrate: stream.bitrate };
 }

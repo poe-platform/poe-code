@@ -1,0 +1,227 @@
+{
+  "source": "JVBERi0xLjcKJb/3ov4KOSAwIG9iago8PCAvTGluZWFyaXplZCAxIC9MIDIzOTggL0ggWyA3MzEgMTU1IF0gL08gMTMgL0UgMTMzMiAvTiAzIC9UIDIxMDAgPj4KZW5kb2JqCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKeHJlZgo5IDkKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwNTc0IDAwMDAwIG4gCjAwMDAwMDA2OTAgMDAwMDAgbiAKMDAwMDAwMDczMSAwMDAwMCBuIAowMDAwMDAwODg2IDAwMDAwIG4gCjAwMDAwMDEwMTcgMDAwMDAgbiAKMDAwMDAwMTEyNCAwMDAwMCBuIAowMDAwMDAxMjIyIDAwMDAwIG4gCjAwMDAwMDEyNzEgMDAwMDAgbiAKdHJhaWxlciA8PCAvSW5mbyA4IDAgUiAvUm9vdCAxMCAwIFIgL1NpemUgMTggL1ByZXYgMjA5MiAgICAgICAgICAgICAgICAgIC9JRCBbPDVmNzdkY2QzNzYyYjdlNjU4MGVlYzA3MjhmZmNlNTczPjxhMzczNzJiYzk2ZTdlNWI2OTRmOTYyYjk4ZjM4MjRlYT5dID4+CnN0YXJ0eHJlZgowCiUlRU9GCjEwIDAgb2JqCjw8IC9PdXRsaW5lcyAxNiAwIFIgL1BhZ2VNb2RlIC9Vc2VPdXRsaW5lcyAvUGFnZXMgNiAwIFIgL1R5cGUgL0NhdGFsb2cgL1ZpZXdlclByZWZlcmVuY2VzIDExIDAgUiA+PgplbmRvYmoKMTEgMCBvYmoKPDwgL0hpZGVUb29sYmFyIC90cnVlID4+CmVuZG9iagoxMiAwIG9iago8PCAvUyA0NSAvTyA3NiAvTGVuZ3RoIDkyID4+CnN0cmVhbQoAAAACAAAC2wACAAAA9wAIAAAAAAAAAAAA9wAIAAEAAwAAAATAxwAAYLTHAAAAAAAFAAAGhwAAAAUAAAAGAAAAAAAxAAek6YgBjAAAAAAAEAAABCsAAAACAAAAbgplbmRzdHJlYW0KZW5kb2JqCjEzIDAgb2JqCjw8IC9Db250ZW50cyAxNCAwIFIgL01lZGlhQm94IFsgMCAwIDIwMCAzMDAgXSAvUGFyZW50IDYgMCBSIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDE1IDAgUiA+PiA+PiAvVHlwZSAvUGFnZSA+PgplbmRvYmoKMTQgMCBvYmoKPDwgL0xlbmd0aCA1NyA+PgpzdHJlYW0KcQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAyMCAyMCBUbQooUGFnZSAwKSBUagpFVApRZW5kc3RyZWFtCmVuZG9iagoxNSAwIG9iago8PCAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQgPj4KZW5kb2JqCjE2IDAgb2JqCjw8IC9GaXJzdCAxNyAwIFIgL0xhc3QgMTcgMCBSID4+CmVuZG9iagoxNyAwIG9iago8PCAvRGVzdCBbIDEzIDAgUiAvRml0IF0gL1RpdGxlIChDaGFwdGVyKSA+PgplbmRvYmoKMSAwIG9iago8PCAvQ29udGVudHMgMiAwIFIgL01lZGlhQm94IFsgMCAwIDIwMCAzMDAgXSAvUGFyZW50IDYgMCBSIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDUgMCBSID4+ID4+IC9UaHVtYiA3IDAgUiAvVHlwZSAvUGFnZSA+PgplbmRvYmoKMiAwIG9iago8PCAvTGVuZ3RoIDU3ID4+CnN0cmVhbQpxCjAgMCAwIHJnCkJUCi9GMSAxMiBUZgoxIDAgMCAxIDIwIDIwIFRtCihQYWdlIDEpIFRqCkVUClFlbmRzdHJlYW0KZW5kb2JqCjMgMCBvYmoKPDwgL0NvbnRlbnRzIDQgMCBSIC9NZWRpYUJveCBbIDAgMCAyMDAgMzAwIF0gL1BhcmVudCA2IDAgUiAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvVGh1bWIgNyAwIFIgL1R5cGUgL1BhZ2UgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA1NyA+PgpzdHJlYW0KcQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSAyMCAyMCBUbQooUGFnZSAyKSBUagpFVApRZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9CYXNlRm9udCAvSGVsdmV0aWNhIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udCA+PgplbmRvYmoKNiAwIG9iago8PCAvQ291bnQgMyAvS2lkcyBbIDEzIDAgUiAxIDAgUiAzIDAgUiBdIC9UeXBlIC9QYWdlcyA+PgplbmRvYmoKNyAwIG9iago8PCAvRGVzY3JpcHRpb24gKHRodW1ibmFpbCkgPj4KZW5kb2JqCjggMCBvYmoKPDwgL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkgPj4KZW5kb2JqCnhyZWYKMCA5CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMTMzMiAwMDAwMCBuIAowMDAwMDAxNDczIDAwMDAwIG4gCjAwMDAwMDE1NzkgMDAwMDAgbiAKMDAwMDAwMTcyMCAwMDAwMCBuIAowMDAwMDAxODI2IDAwMDAwIG4gCjAwMDAwMDE5MjMgMDAwMDAgbiAKMDAwMDAwMTk5NSAwMDAwMCBuIAowMDAwMDAyMDQxIDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgOSAvSUQgWzw1Zjc3ZGNkMzc2MmI3ZTY1ODBlZWMwNzI4ZmZjZTU3Mz48YTM3MzcyYmM5NmU3ZTViNjk0Zjk2MmI5OGYzODI0ZWE+XSA+PgpzdGFydHhyZWYKMjE2CiUlRU9GCg==",
+  "cases": [
+    {
+      "name": "min-objects",
+      "changes": [
+        [
+          779,
+          3
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: object count mismatch for page 0: hint table = 6; computed = 5\nWARNING: in.pdf: no xref table entry for 18 0\nWARNING: in.pdf: object count mismatch for page 1: hint table = 3; computed = 2\nWARNING: in.pdf: page length mismatch for page 1: hint table = 247; computed length = 388 (offset = 1332)\nWARNING: in.pdf: object count mismatch for page 2: hint table = 3; computed = 2\nWARNING: in.pdf: page length mismatch for page 2: hint table = 247; computed length = 344 (offset = 1579)\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "first-offset",
+      "changes": [
+        [
+          783,
+          220
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: first page object offset mismatch\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "min-length",
+      "changes": [
+        [
+          789,
+          248
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: page length mismatch for page 0: hint table = 447; computed length = 446 (offset = 886)\nWARNING: in.pdf: page length mismatch for page 1: hint table = 248; computed length = 247 (offset = 1332)\nWARNING: in.pdf: page length mismatch for page 2: hint table = 248; computed length = 247 (offset = 1579)\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "min-content-offset",
+      "changes": [
+        [
+          795,
+          1
+        ]
+      ],
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "min-content-length",
+      "changes": [
+        [
+          801,
+          248
+        ]
+      ],
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "first-shared",
+      "changes": [
+        [
+          824,
+          6
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: first shared object number mismatch: hint table = 6; computed = 5\nWARNING: in.pdf: first shared object offset mismatch: hint table = 1826; computed = 1923\nWARNING: in.pdf: shared object 5 length mismatch: hint table = 97; computed = 72\nWARNING: in.pdf: page 1: shared object 6: in hint table but not computed list\nWARNING: in.pdf: page 1: shared object 5: in computed list but not hint table\nWARNING: in.pdf: page 2: shared object 6: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 5: in computed list but not hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "shared-offset",
+      "changes": [
+        [
+          828,
+          136
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: first shared object offset mismatch: hint table = 1827; computed = 1826\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "first-groups",
+      "changes": [
+        [
+          832,
+          6
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: no xref table entry for 18 0\nWARNING: in.pdf: shared object 5 length mismatch: hint table = 97; computed = 0\nWARNING: in.pdf: page 1: shared object 18: in hint table but not computed list\nWARNING: in.pdf: page 1: shared object 5: in computed list but not hint table\nWARNING: in.pdf: page 2: shared object 18: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 5: in computed list but not hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "min-group-length",
+      "changes": [
+        [
+          842,
+          50
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: shared object 0 length mismatch: hint table = 132; computed = 131\nWARNING: in.pdf: shared object 1 length mismatch: hint table = 108; computed = 107\nWARNING: in.pdf: shared object 2 length mismatch: hint table = 99; computed = 98\nWARNING: in.pdf: shared object 3 length mismatch: hint table = 50; computed = 49\nWARNING: in.pdf: shared object 4 length mismatch: hint table = 62; computed = 61\nWARNING: in.pdf: shared object 5 length mismatch: hint table = 98; computed = 97\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "outline-first",
+      "changes": [
+        [
+          855,
+          17
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: incorrect first object number in outline hints table.\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "outline-offset",
+      "changes": [
+        [
+          859,
+          44
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: incorrect offset in outlines table: hint table = 1223; computed = 1222\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "outline-count",
+      "changes": [
+        [
+          863,
+          3
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: incorrect object count in outline hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "outline-length",
+      "changes": [
+        [
+          867,
+          111
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: incorrect length in outlines table: hint table = 111; computed = 110\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "objects-zero",
+      "changes": [
+        [
+          779,
+          0
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: object count mismatch for page 0: hint table = 3; computed = 5\nWARNING: in.pdf: page length mismatch for page 0: hint table = 446; computed length = 336 (offset = 886)\nWARNING: in.pdf: object count mismatch for page 1: hint table = 0; computed = 2\nWARNING: in.pdf: page length mismatch for page 1: hint table = 247; computed length = 0 (offset = 1332)\nWARNING: in.pdf: object count mismatch for page 2: hint table = 0; computed = 2\nWARNING: in.pdf: page length mismatch for page 2: hint table = 247; computed length = 0 (offset = 1579)\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "shared-total-plus",
+      "changes": [
+        [
+          836,
+          7
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: shared object 6 length mismatch: hint table = 49; computed = 72\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "no-first-groups",
+      "changes": [
+        [
+          832,
+          0
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: shared object 0 length mismatch: hint table = 131; computed = 97\nWARNING: in.pdf: shared object 1 length mismatch: hint table = 107; computed = 72\nWARNING: in.pdf: shared object 2 length mismatch: hint table = 98; computed = 46\nWARNING: in.pdf: shared object 3 length mismatch: hint table = 49; computed = 51\nWARNING: in.pdf: shared object 4 length mismatch: hint table = 61; computed = 201\nWARNING: in.pdf: shared object 5 length mismatch: hint table = 97; computed = 116\nWARNING: in.pdf: page 1: shared object 10: in hint table but not computed list\nWARNING: in.pdf: page 1: shared object 5: in computed list but not hint table\nWARNING: in.pdf: page 2: shared object 10: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 5: in computed list but not hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "shared-id-zero",
+      "changes": [
+        [
+          817,
+          0
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: page 1: shared object 13: in hint table but not computed list\nWARNING: in.pdf: page 1: shared object 5: in computed list but not hint table\nWARNING: in.pdf: page 2: shared object 13: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 5: in computed list but not hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    },
+    {
+      "name": "shared-outside",
+      "changes": [
+        [
+          817,
+          252
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: error encountered while checking linearization data: in.pdf: unable to get object 7 for item in shared objects hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3,
+      "showStderr": "WARNING: in.pdf: in.pdf: unable to get object 7 for item in shared objects hint table\nqpdf: operation succeeded with warnings\n"
+    },
+    {
+      "name": "shared-total-minus",
+      "changes": [
+        [
+          836,
+          5
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: error encountered while checking linearization data: in.pdf: unable to get object 5 for item in shared objects hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3,
+      "showStderr": "WARNING: in.pdf: in.pdf: unable to get object 5 for item in shared objects hint table\nqpdf: operation succeeded with warnings\n"
+    },
+    {
+      "name": "firstpage-shared",
+      "changes": [
+        [
+          816,
+          224
+        ]
+      ],
+      "stderr": "WARNING: in.pdf: page 0 has shared identifier entries\nWARNING: in.pdf: page 0: shared object 5: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 14: in hint table but not computed list\nWARNING: in.pdf: page 2: shared object 5: in computed list but not hint table\nqpdf: operation succeeded with warnings\n",
+      "exitCode": 3
+    }
+  ]
+}

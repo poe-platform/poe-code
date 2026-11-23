@@ -1,10 +1,10 @@
 mod chmod;
-pub use chmod::OverlayChmodReceipt;
 use crate::vfs::path::normalize_posix_path;
 use crate::vfs::{EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
+pub use chmod::OverlayChmodReceipt;
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
 
 static NEXT_DIRECTORY_SCOPE: AtomicU64 = AtomicU64::new(1);
 
@@ -16,10 +16,29 @@ struct DirectoryObservation {
 
 #[derive(Clone, Copy)]
 pub(super) enum FileWrite<'a> {
-    Create(u32), Install { mode: u32, times: (Option<f64>, Option<f64>), version: u64 }, Replace, Append,
-    Symlink { target: &'a str, parent: &'a FileStat, expected: Option<&'a FileStat> },
-    Edit { original: &'a FileStat, before: &'a [u8], in_place: bool },
-    Publish { inputs: &'a [String], version: u64, stamp: u64 },
+    Create(u32),
+    Install {
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        version: u64,
+    },
+    Replace,
+    Append,
+    Symlink {
+        target: &'a str,
+        parent: &'a FileStat,
+        expected: Option<&'a FileStat>,
+    },
+    Edit {
+        original: &'a FileStat,
+        before: &'a [u8],
+        in_place: bool,
+    },
+    Publish {
+        inputs: &'a [String],
+        version: u64,
+        stamp: u64,
+    },
 }
 
 enum MetadataChange {
@@ -54,25 +73,60 @@ impl super::FileReadHandle for OverlayDirectoryRead {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Removal { Rm { recursive: bool }, Unlink, Rmdir }
+enum Removal {
+    Rm { recursive: bool },
+    Unlink,
+    Rmdir,
+}
 
 impl OverlayVfs {
-    fn walk(&self, path: &str, follow_final: bool, purpose: super::path::WalkPurpose) -> Result<String, String> {
-        super::path::walk_path(path, follow_final, purpose, |p| {
-            let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
-            (None, layer.as_ref(), p.to_owned())
-        }, |_| false).map_err(|e| {
+    fn walk(
+        &self,
+        path: &str,
+        follow_final: bool,
+        purpose: super::path::WalkPurpose,
+    ) -> Result<String, String> {
+        super::path::walk_path(
+            path,
+            follow_final,
+            purpose,
+            |p| {
+                let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) {
+                    &self.upper
+                } else {
+                    &self.lower
+                };
+                (None, layer.as_ref(), p.to_owned())
+            },
+            |_| false,
+        )
+        .map_err(|e| {
             if e.starts_with("ELOOP:") && !self.lower.default_device_view() {
                 format!("ELOOP: too many symbolic links encountered, overlay '{path}'")
-            } else { e }
+            } else {
+                e
+            }
         })
     }
 
-    fn staged_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'static>, String> {
+    fn staged_stream(
+        &self,
+        path: &str,
+        entry: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+    ) -> Result<super::ChunkWriter<'static>, String> {
         match self.stat(entry) {
-            Ok(st) if st.kind == VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'")),
+            Ok(st) if st.kind == VfsEntryKind::Directory => {
+                return Err(format!(
+                    "EISDIR: illegal operation on a directory, overlay '{entry}'"
+                ));
+            }
             Err(e) if e.starts_with("ENOENT:") => {
-                if self.stat(&super::dirname_posix_path(entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+                if self.stat(&super::dirname_posix_path(entry))?.mode & 0o300 != 0o300 {
+                    return Err("EACCES: permission denied".into());
+                }
             }
             Err(e) => return Err(e),
             _ => {}
@@ -82,9 +136,17 @@ impl OverlayVfs {
         let fs = self.clone();
         Ok(Box::new(move |chunk| match chunk {
             Some(bytes) => stage.write_at(None, bytes),
-            None => if exclusive { fs.create_file(&path, &stage.read_at(0, usize::MAX)?, mode) }
-                else { fs.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode) }.map_err(|e| {
-                if e.contains(", ") { e } else { format!("{e}, overlay '{path}'") }
+            None => if exclusive {
+                fs.create_file(&path, &stage.read_at(0, usize::MAX)?, mode)
+            } else {
+                fs.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode)
+            }
+            .map_err(|e| {
+                if e.contains(", ") {
+                    e
+                } else {
+                    format!("{e}, overlay '{path}'")
+                }
             }),
         }))
     }
@@ -94,11 +156,21 @@ impl OverlayVfs {
         let (fs, st) = if let Ok(st) = self.upper.lstat(&norm) {
             (&self.upper, st)
         } else {
-            if self.is_deleted(&norm) { return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")); }
+            if self.is_deleted(&norm) {
+                return Err(format!(
+                    "ENOENT: no such file or directory, overlay '{norm}'"
+                ));
+            }
             (&self.lower, self.lower.lstat(&norm)?)
         };
-        if st.kind == VfsEntryKind::Directory { return Err(format!("EISDIR: illegal operation on a directory, overlay '{norm}'")); }
-        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
+        if st.kind == VfsEntryKind::Directory {
+            return Err(format!(
+                "EISDIR: illegal operation on a directory, overlay '{norm}'"
+            ));
+        }
+        if st.mode & 0o400 == 0 {
+            return Err(format!("EACCES: permission denied, overlay '{norm}'"));
+        }
         Ok((fs.as_ref(), norm))
     }
 
@@ -143,23 +215,58 @@ impl OverlayVfs {
         let upper_id = upper.as_ref().and_then(|st| st.identity.clone());
         let mut st = match upper {
             Some(st) => st,
-            None if self.is_deleted(&norm) => return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")),
-            None => self.lower.lstat(&norm).map_err(|e| if e.starts_with("ENOENT:") {
-                format!("ENOENT: no such file or directory, overlay '{norm}'")
-            } else { e })?,
+            None if self.is_deleted(&norm) => {
+                return Err(format!(
+                    "ENOENT: no such file or directory, overlay '{norm}'"
+                ));
+            }
+            None => self.lower.lstat(&norm).map_err(|e| {
+                if e.starts_with("ENOENT:") {
+                    format!("ENOENT: no such file or directory, overlay '{norm}'")
+                } else {
+                    e
+                }
+            })?,
         };
-        if st.kind == VfsEntryKind::Directory && self.upper.memory_backend().is_some() && self.lower.memory_backend().is_some()
-            && let Some(EntryIdentity::Memory(dev, ino)) = st.identity {
-            let lower_id = if upper_id.is_none() { st.identity.clone() }
-                else if self.is_deleted(&norm) { None } else { self.lower.lstat(&norm).ok().and_then(|s| s.identity) };
-            let mut dirs = self.directories.lock().map_err(|_| "EIO: input/output error")?;
-            if versions != (self.upper.generation(), self.lower.generation()) { return Err("EAGAIN: directory changed during stat".into()); }
-            if let Some(d) = dirs.get(&norm) && d.upper == upper_id && d.lower == lower_id {
+        if st.kind == VfsEntryKind::Directory
+            && self.upper.memory_backend().is_some()
+            && self.lower.memory_backend().is_some()
+            && let Some(EntryIdentity::Memory(dev, ino)) = st.identity
+        {
+            let lower_id = if upper_id.is_none() {
+                st.identity.clone()
+            } else if self.is_deleted(&norm) {
+                None
+            } else {
+                self.lower.lstat(&norm).ok().and_then(|s| s.identity)
+            };
+            let mut dirs = self
+                .directories
+                .lock()
+                .map_err(|_| "EIO: input/output error")?;
+            if versions != (self.upper.generation(), self.lower.generation()) {
+                return Err("EAGAIN: directory changed during stat".into());
+            }
+            if let Some(d) = dirs.get(&norm)
+                && d.upper == upper_id
+                && d.lower == lower_id
+            {
                 st.identity = Some(d.logical.clone());
             } else {
-                let logical = EntryIdentity::OverlayDirectory { scope: NEXT_DIRECTORY_SCOPE.fetch_add(1, Ordering::Relaxed), dev, ino };
+                let logical = EntryIdentity::OverlayDirectory {
+                    scope: NEXT_DIRECTORY_SCOPE.fetch_add(1, Ordering::Relaxed),
+                    dev,
+                    ino,
+                };
                 st.identity = Some(logical.clone());
-                dirs.insert(norm, DirectoryObservation { upper: upper_id, lower: lower_id, logical });
+                dirs.insert(
+                    norm,
+                    DirectoryObservation {
+                        upper: upper_id,
+                        lower: lower_id,
+                        logical,
+                    },
+                );
             }
         }
         Ok(st)
@@ -168,24 +275,57 @@ impl OverlayVfs {
     // A successful write to stock memory advances its generation once. Carry an
     // existing directory observation across the upper parents created by that write.
     // Independent layer edits cannot certify a copy-up.
-    fn copy_up_directories(&self, dir: &str, write: impl FnOnce() -> Result<(), String>) -> Result<(), String> {
-        if self.upper.memory_backend().is_none() || self.lower.memory_backend().is_none() { return write(); }
-        let mut dirs = self.directories.lock().map_err(|_| "EIO: input/output error")?;
-        if dirs.is_empty() { drop(dirs); return write(); }
+    fn copy_up_directories(
+        &self,
+        dir: &str,
+        write: impl FnOnce() -> Result<(), String>,
+    ) -> Result<(), String> {
+        if self.upper.memory_backend().is_none() || self.lower.memory_backend().is_none() {
+            return write();
+        }
+        let mut dirs = self
+            .directories
+            .lock()
+            .map_err(|_| "EIO: input/output error")?;
+        if dirs.is_empty() {
+            drop(dirs);
+            return write();
+        }
         let versions = (self.upper.generation(), self.lower.generation());
         let mut watched = Vec::new();
         let mut path = dir;
         while !path.is_empty() && path != "/" && self.upper.lstat(path).is_err() {
-            if let Some(d) = dirs.get(path) && d.upper.is_none() && d.lower.is_some() { watched.push(path); }
+            if let Some(d) = dirs.get(path)
+                && d.upper.is_none()
+                && d.lower.is_some()
+            {
+                watched.push(path);
+            }
             path = path.rsplit_once('/').map_or("", |(parent, _)| parent);
         }
-        if watched.is_empty() { drop(dirs); return write(); }
+        if watched.is_empty() {
+            drop(dirs);
+            return write();
+        }
         write()?;
         for path in watched {
-            let upper = self.upper.lstat(path).ok().filter(|s| s.kind == VfsEntryKind::Directory).and_then(|s| s.identity);
+            let upper = self
+                .upper
+                .lstat(path)
+                .ok()
+                .filter(|s| s.kind == VfsEntryKind::Directory)
+                .and_then(|s| s.identity);
             let lower = self.lower.lstat(path).ok().and_then(|s| s.identity);
-            if versions.0.checked_add(1) != Some(self.upper.generation()) || versions.1 != self.lower.generation() { break; }
-            if let Some(d) = dirs.get_mut(path) && d.lower == lower { d.upper = upper; }
+            if versions.0.checked_add(1) != Some(self.upper.generation())
+                || versions.1 != self.lower.generation()
+            {
+                break;
+            }
+            if let Some(d) = dirs.get_mut(path)
+                && d.lower == lower
+            {
+                d.upper = upper;
+            }
         }
         Ok(())
     }
@@ -193,55 +333,90 @@ impl OverlayVfs {
     fn prepare_parent(&self, path: &str) -> Result<usize, String> {
         let mut parent = crate::vfs::dirname_posix_path(path);
         let st = self.stat(&parent)?;
-        if st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        if st.mode & 0o300 != 0o300 {
+            return Err("EACCES: permission denied".into());
+        }
         let mut missing = Vec::new();
         while !self.upper.exists(&parent) {
             let mode = self.stat(&parent)?.mode;
             missing.push((parent.clone(), mode));
             parent = crate::vfs::dirname_posix_path(&parent);
         }
-        let count=missing.len();
-        for (dir, mode) in missing.into_iter().rev() { self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?; }
+        let count = missing.len();
+        for (dir, mode) in missing.into_iter().rev() {
+            self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?;
+        }
         Ok(count)
     }
 
     fn movable_link(layer: &dyn SafeBashFs, path: &str) -> Result<String, String> {
         let target = layer.readlink(path)?;
-        let canonical = layer.access_path(path,true).and_then(|p| layer.lstat(&p).map(|_| p))
+        let canonical = layer
+            .access_path(path, true)
+            .and_then(|p| layer.lstat(&p).map(|_| p))
             .map_err(|e| {
-                let reason = if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
-                    else { e.split_once(", ").map_or(e.as_str(),|(reason,_)| reason) };
+                let reason = if e.starts_with("ELOOP:") {
+                    "ELOOP: too many symbolic links encountered"
+                } else {
+                    e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
+                };
                 format!("{reason}, realpath '{path}'")
             })?;
-        let mut current = if target.starts_with('/') { "/".into() } else { super::dirname_posix_path(path) };
-        for component in target.split('/').filter(|s| !s.is_empty())
-            .chain(target.ends_with('/').then_some(".")) {
+        let mut current = if target.starts_with('/') {
+            "/".into()
+        } else {
+            super::dirname_posix_path(path)
+        };
+        for component in target
+            .split('/')
+            .filter(|s| !s.is_empty())
+            .chain(target.ends_with('/').then_some("."))
+        {
             if layer.lstat(&current)?.kind != VfsEntryKind::Directory {
-                return Err(format!("ENOTSUP: symlink copy-up requires an alias-free target path, overlay '{path}'"));
+                return Err(format!(
+                    "ENOTSUP: symlink copy-up requires an alias-free target path, overlay '{path}'"
+                ));
             }
             match component {
                 "." => continue,
                 ".." => current = super::dirname_posix_path(&current),
-                name => current = format!("{}/{name}",current.trim_end_matches('/')),
+                name => current = format!("{}/{name}", current.trim_end_matches('/')),
             }
             if layer.lstat(&current)?.kind == VfsEntryKind::Symlink {
-                return Err(format!("ENOTSUP: symlink copy-up cannot preserve an ambiguous target alias, overlay '{path}'"));
+                return Err(format!(
+                    "ENOTSUP: symlink copy-up cannot preserve an ambiguous target alias, overlay '{path}'"
+                ));
             }
         }
-        if canonical != current { return Err(format!("ENOTSUP: backend cannot prove symlink semantics survive copy-up, overlay '{path}'")); }
+        if canonical != current {
+            return Err(format!(
+                "ENOTSUP: backend cannot prove symlink semantics survive copy-up, overlay '{path}'"
+            ));
+        }
         Ok(target)
     }
 
     fn check_file_copy_up(&self, path: &str, st: &FileStat) -> Result<(), String> {
-        if st.nlink.map_or_else(|| self.lower.supports_hard_links(path), |n| n > 1) {
-            return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{path}'"));
+        if st
+            .nlink
+            .map_or_else(|| self.lower.supports_hard_links(path), |n| n > 1)
+        {
+            return Err(format!(
+                "ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{path}'"
+            ));
         }
-        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
+        if st.mode & 0o400 == 0 {
+            return Err(format!("EACCES: permission denied, overlay '{path}'"));
+        }
         Ok(())
     }
 
     fn change_metadata(&self, path: &str, change: MetadataChange) -> Result<(), String> {
-        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let whiteout_count = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?
+            .len();
         let versions = (self.lower.generation(), self.upper.generation());
         let norm = self.access_path(path, true)?;
         if self.upper.lstat(&norm).is_ok() {
@@ -258,10 +433,14 @@ impl OverlayVfs {
             if self.stat(&ancestor)?.mode & 0o300 != 0o300 {
                 return Err(format!("EACCES: permission denied, overlay '{ancestor}'"));
             }
-            if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() { break; }
+            if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() {
+                break;
+            }
             ancestor = crate::vfs::dirname_posix_path(&ancestor);
         }
-        if !dir { self.check_file_copy_up(&norm, &st)?; }
+        if !dir {
+            self.check_file_copy_up(&norm, &st)?;
+        }
         match change {
             MetadataChange::Mode(mode) => st.mode = (st.mode & !0o7777) | (mode & 0o7777),
             MetadataChange::Times(atime, mtime) => {
@@ -269,9 +448,16 @@ impl OverlayVfs {
                 st.mtime_ms = mtime.unwrap_or(st.mtime_ms);
             }
         }
-        if let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) {
-            let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
-            if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during metadata copy-up".into()); }
+        if let (Some(lower), Some(upper)) =
+            (self.lower.memory_backend(), self.upper.memory_backend())
+        {
+            let whiteouts = self
+                .whiteouts
+                .read()
+                .map_err(|_| "EIO: input/output error")?;
+            if whiteouts.len() != whiteout_count {
+                return Err("EBUSY: overlay changed during metadata copy-up".into());
+            }
             return self.copy_up_directories(if dir { &norm } else { &parent }, || {
                 upper.copy_up_metadata(lower, versions, &norm, &st)
             });
@@ -283,49 +469,86 @@ impl OverlayVfs {
             self.copy_up_directories(&parent, || self.upper.write_file(&norm, &bytes))?;
         }
         self.upper.chmod(&norm, st.mode)?;
-        self.upper.set_times(&norm, Some(st.atime_ms), Some(st.mtime_ms))
+        self.upper
+            .set_times(&norm, Some(st.atime_ms), Some(st.mtime_ms))
     }
 
     fn write_entry(&self, path: &str, data: &[u8], operation: FileWrite<'_>) -> Result<(), String> {
-        let exclusive_mode = match operation { FileWrite::Create(mode) => Some(mode), _ => None };
+        let exclusive_mode = match operation {
+            FileWrite::Create(mode) => Some(mode),
+            _ => None,
+        };
         let memory_layers = self.lower.memory_backend().zip(self.upper.memory_backend());
         if exclusive_mode.is_some() && memory_layers.is_none() {
             return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
         }
-        if let FileWrite::Edit { in_place, .. } = operation && memory_layers.is_none() {
-            return Err(if in_place { "VFS atomic in-place publication not supported" }
-                else { "VFS atomic replacement publication not supported" }.into());
+        if let FileWrite::Edit { in_place, .. } = operation
+            && memory_layers.is_none()
+        {
+            return Err(if in_place {
+                "VFS atomic in-place publication not supported"
+            } else {
+                "VFS atomic replacement publication not supported"
+            }
+            .into());
         }
         let versions = (self.lower.generation(), self.upper.generation());
-        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let whiteout_count = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?
+            .len();
         if let FileWrite::Publish { version, .. } | FileWrite::Install { version, .. } = operation {
             if memory_layers.is_none() {
-                return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into());
+                return Err(
+                    "UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into(),
+                );
             }
             if self.generation() != version {
                 return Err("EAGAIN: filesystem changed before publication".into());
             }
         }
-        let target = self.access_path(path, matches!(operation, FileWrite::Replace | FileWrite::Append))?;
-        if exclusive_mode.is_some() && target != path { return Err("EAGAIN: resolved entry changed".into()); }
+        let target = self.access_path(
+            path,
+            matches!(operation, FileWrite::Replace | FileWrite::Append),
+        )?;
+        if exclusive_mode.is_some() && target != path {
+            return Err("EAGAIN: resolved entry changed".into());
+        }
         let existing = match self.lstat(&target) {
             Ok(_) if exclusive_mode.is_some() => return Err("EEXIST: file already exists".into()),
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
-        if let FileWrite::Symlink {parent,expected,..}=operation {
-            if memory_layers.is_none() {return Err("ENOTSUP: guarded overlay symlink publication unavailable".into());}
-            if target!=path || parent.identity.is_none() || self.lstat(&super::dirname_posix_path(path))?.identity!=parent.identity ||
-                !match (existing.as_ref(),expected) {
-                    (None,None)=>true,
-                    (Some(now),Some(old))=>now.same_snapshot(old),
-                    _=>false,
-                } {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
+        if let FileWrite::Symlink {
+            parent, expected, ..
+        } = operation
+        {
+            if memory_layers.is_none() {
+                return Err("ENOTSUP: guarded overlay symlink publication unavailable".into());
+            }
+            if target != path
+                || parent.identity.is_none()
+                || self.lstat(&super::dirname_posix_path(path))?.identity != parent.identity
+                || !match (existing.as_ref(), expected) {
+                    (None, None) => true,
+                    (Some(now), Some(old)) => now.same_snapshot(old),
+                    _ => false,
+                }
+            {
+                return Err(format!("EAGAIN: extraction destination changed: {path}"));
+            }
         }
         if let FileWrite::Edit { in_place, .. } = operation {
-            if existing.is_none() { return Err(format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'")); }
-            if !in_place && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
+            if existing.is_none() {
+                return Err(format!(
+                    "EAGAIN: resource temporarily unavailable, fileStaging '{path}'"
+                ));
+            }
+            if !in_place
+                && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300
+            {
                 return Err("EACCES: permission denied".into());
             }
         }
@@ -353,15 +576,27 @@ impl OverlayVfs {
                 }
             }
         }
-        let install_mode = match operation { FileWrite::Install { mode, .. } => Some(mode), FileWrite::Symlink {..} => Some(0o777), _ => None };
-        if install_mode.is_some() && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
+        let install_mode = match operation {
+            FileWrite::Install { mode, .. } => Some(mode),
+            FileWrite::Symlink { .. } => Some(0o777),
+            _ => None,
+        };
+        if install_mode.is_some()
+            && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300
+        {
             return Err("EACCES: permission denied".into());
         }
         let upper_exists = self.upper.lstat(&target).is_ok();
         if let Some(st) = &existing {
-            if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
-            if install_mode.is_none() && st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
-            if install_mode.is_none() && !upper_exists { self.check_file_copy_up(&target, st)?; }
+            if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 {
+                return Err("EISDIR: illegal operation on a directory".into());
+            }
+            if install_mode.is_none() && st.mode & 0o200 == 0 {
+                return Err("EACCES: permission denied".into());
+            }
+            if install_mode.is_none() && !upper_exists {
+                self.check_file_copy_up(&target, st)?;
+            }
         }
         let Some((lower, upper)) = memory_layers else {
             if matches!(operation, FileWrite::Append) && existing.is_some() {
@@ -377,102 +612,219 @@ impl OverlayVfs {
             let mut dir = parent.clone();
             loop {
                 let st = self.stat(&dir)?;
-                if st.mode & 0o300 != 0o300 { return Err(format!("EACCES: permission denied, overlay '{dir}'")); }
-                if upper.exists(&dir) { break; }
+                if st.mode & 0o300 != 0o300 {
+                    return Err(format!("EACCES: permission denied, overlay '{dir}'"));
+                }
+                if upper.exists(&dir) {
+                    break;
+                }
                 parents.push((dir.clone(), st));
                 dir = crate::vfs::dirname_posix_path(&dir);
             }
         }
-        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
-        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
-        let mode = install_mode.or(exclusive_mode).unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
-        let atime = if install_mode.is_some() || matches!(operation, FileWrite::Edit { in_place: false, .. }) { None } else { existing.map(|st| st.atime_ms) };
-        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, atime), parents, operation))
+        let whiteouts = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count {
+            return Err("EBUSY: overlay changed during write".into());
+        }
+        let mode = install_mode
+            .or(exclusive_mode)
+            .unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
+        let atime = if install_mode.is_some()
+            || matches!(
+                operation,
+                FileWrite::Edit {
+                    in_place: false,
+                    ..
+                }
+            ) {
+            None
+        } else {
+            existing.map(|st| st.atime_ms)
+        };
+        self.copy_up_directories(&parent, || {
+            upper.write_overlay_file(
+                lower,
+                versions,
+                &target,
+                data,
+                (mode, atime),
+                parents,
+                operation,
+            )
+        })
     }
 
     fn forget_directory(&self, path: &str) {
         let mut dirs = self.directories.lock().unwrap();
         dirs.remove(path);
         let prefix = format!("{path}/");
-        let descendants: Vec<_> = dirs.range(prefix.clone()..).map(|(p, _)| p)
-            .take_while(|p| p.starts_with(&prefix)).cloned().collect();
-        for p in descendants { dirs.remove(&p); }
+        let descendants: Vec<_> = dirs
+            .range(prefix.clone()..)
+            .map(|(p, _)| p)
+            .take_while(|p| p.starts_with(&prefix))
+            .cloned()
+            .collect();
+        for p in descendants {
+            dirs.remove(&p);
+        }
     }
 
     pub(crate) fn rm(&self, path: &str, recursive: bool) -> Result<(), String> {
         self.remove_entry(path, Removal::Rm { recursive }, None)
     }
 
-    fn remove_entry(&self, path: &str, operation: Removal, expected: Option<(&FileStat, &FileStat)>) -> Result<(), String> {
+    fn remove_entry(
+        &self,
+        path: &str,
+        operation: Removal,
+        expected: Option<(&FileStat, &FileStat)>,
+    ) -> Result<(), String> {
         // Whiteouts are only inserted, so their count also identifies the visible namespace.
-        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let whiteout_count = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?
+            .len();
         let versions = (self.lower.generation(), self.upper.generation());
-        if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+        if path.is_empty() {
+            return Err("ENOENT: no such file or directory".into());
+        }
         let trimmed = path.trim_end_matches('/');
         let rm = matches!(operation, Removal::Rm { .. });
-        if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
+        if trimmed.is_empty() {
+            return Err("EBUSY: resource busy or locked".into());
+        }
         let entry = self.access_path(if rm { path } else { trimmed }, false)?;
         let st = self.lstat(&entry)?;
-        if !rm && matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
-        if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
+        if !rm && matches!(trimmed.rsplit('/').next(), Some("." | "..")) {
+            return Err("EINVAL: invalid argument".into());
+        }
+        if entry == "/" {
+            return Err("EBUSY: resource busy or locked".into());
+        }
         let parent_path = crate::vfs::dirname_posix_path(&entry);
         let parent = self.stat(&parent_path)?;
         if let Some((dir, file)) = expected
-            && (entry != path || parent.identity.is_none() || parent.identity != dir.identity || !st.same_snapshot(file)) {
+            && (entry != path
+                || parent.identity.is_none()
+                || parent.identity != dir.identity
+                || !st.same_snapshot(file))
+        {
             return Err(format!("EBUSY: input changed; input retained '{path}'"));
         }
         if st.mode & 0o170000 == 0o020000 {
             return Err("EBUSY: resource busy or locked".into());
         }
         let is_dir = st.kind == VfsEntryKind::Directory;
-        if !is_dir && (operation == Removal::Rmdir || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
-        if is_dir && operation == (Removal::Rm { recursive: false }) && !self.list_dir(&entry)?.is_empty() {
+        if !is_dir && (operation == Removal::Rmdir || path.ends_with('/')) {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        if is_dir
+            && operation == (Removal::Rm { recursive: false })
+            && !self.list_dir(&entry)?.is_empty()
+        {
             return Err(format!("ENOTEMPTY: directory not empty, overlay '{path}'"));
         }
-        if parent.mode & 0o300 != 0o300 { return Err(format!("EACCES: permission denied, overlay '{parent_path}'")); }
-        if is_dir && operation == Removal::Unlink { return Err("EISDIR: illegal operation on a directory".into()); }
+        if parent.mode & 0o300 != 0o300 {
+            return Err(format!(
+                "EACCES: permission denied, overlay '{parent_path}'"
+            ));
+        }
+        if is_dir && operation == Removal::Unlink {
+            return Err("EISDIR: illegal operation on a directory".into());
+        }
         if is_dir && operation == Removal::Rmdir && !self.list_dir(&entry)?.is_empty() {
             return Err("ENOTEMPTY: directory not empty".into());
         }
-        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend())
+        else {
             return Err("ENOTSUP: overlay layers do not support conditional removal".into());
         };
-        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
-        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during removal".into()); }
-        upper.remove_overlay_entry(lower, versions, &entry, operation == Removal::Rmdir, rm, None)?;
-        if is_dir { self.forget_directory(&entry); }
-        self.copied_links.lock().unwrap().retain(|p| !super::is_path_within(&entry,p));
+        let mut whiteouts = self
+            .whiteouts
+            .write()
+            .map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count {
+            return Err("EBUSY: overlay changed during removal".into());
+        }
+        upper.remove_overlay_entry(
+            lower,
+            versions,
+            &entry,
+            operation == Removal::Rmdir,
+            rm,
+            None,
+        )?;
+        if is_dir {
+            self.forget_directory(&entry);
+        }
+        self.copied_links
+            .lock()
+            .unwrap()
+            .retain(|p| !super::is_path_within(&entry, p));
         whiteouts.insert(entry);
         Ok(())
     }
 }
 
 impl SafeBashFs for OverlayVfs {
-    fn has_path_capabilities(&self) -> bool { true }
-    fn default_device_view(&self) -> bool { self.lower.default_device_view() }
+    fn has_path_capabilities(&self) -> bool {
+        true
+    }
+    fn default_device_view(&self) -> bool {
+        self.lower.default_device_view()
+    }
 
-    fn overlay_backend(&self) -> Option<&Self> { Some(self) }
-    fn start_command_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
+    fn overlay_backend(&self) -> Option<&Self> {
+        Some(self)
+    }
+    fn start_command_stream(
+        &self,
+        path: &str,
+        entry: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+    ) -> Result<super::ChunkWriter<'_>, String> {
         self.staged_stream(path, entry, append, exclusive, mode)
     }
 
-    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+    fn open_exclusive_redirect(
+        &self,
+        path: &str,
+        mode: u32,
+    ) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
         if self.lower.memory_backend().is_none() || self.upper.memory_backend().is_none() {
             return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
         }
-        if self.lstat(path).is_ok() { return Err("EEXIST: file already exists".into()); }
+        if self.lstat(path).is_ok() {
+            return Err("EEXIST: file already exists".into());
+        }
         self.staged_stream(path, path, false, true, mode).map(Some)
     }
 
-    fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+    fn open_redirect_file(
+        &self,
+        path: &str,
+        access: super::RedirectAccess,
+        mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         use super::RedirectAccess;
         match access {
             RedirectAccess::Read => {
                 let (layer, entry) = self.read_source(path)?;
                 layer.open_redirect_file(&entry, access, mode)
             }
-            RedirectAccess::ReadWrite | RedirectAccess::Write => Err(format!("ENOTSUP: operation not supported, open '{path}'")),
-            RedirectAccess::Exclusive => { self.create_file(path, &[], mode.ok_or("EINVAL: missing creation mode")?)?; Ok(None) }
+            RedirectAccess::ReadWrite | RedirectAccess::Write => {
+                Err(format!("ENOTSUP: operation not supported, open '{path}'"))
+            }
+            RedirectAccess::Exclusive => {
+                self.create_file(path, &[], mode.ok_or("EINVAL: missing creation mode")?)?;
+                Ok(None)
+            }
             _ => Ok(None),
         }
     }
@@ -481,22 +833,31 @@ impl SafeBashFs for OverlayVfs {
         let (fs, path) = self.read_source(path).map_err(|e| {
             if let Some(entry) = e.strip_prefix("ENOENT: no such file or directory, lstat ") {
                 format!("ENOENT: no such file or directory, overlay {entry}")
-            } else { e }
+            } else {
+                e
+            }
         })?;
         fs.read_file(&path)
     }
 
-    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+    fn open_read_file(
+        &self,
+        path: &str,
+        allow_directory: bool,
+    ) -> Result<Box<dyn super::FileReadHandle>, String> {
         let versions = (self.upper.generation(), self.lower.generation());
         let entry = self.access_path(path, true)?;
         let (layer, st) = match self.upper.lstat(&entry) {
             Ok(st) => (&self.upper, st),
-            Err(e) if e.starts_with("ENOENT:") && !self.is_deleted(&entry) =>
-                (&self.lower, self.lower.lstat(&entry)?),
+            Err(e) if e.starts_with("ENOENT:") && !self.is_deleted(&entry) => {
+                (&self.lower, self.lower.lstat(&entry)?)
+            }
             Err(e) => return Err(e),
         };
         if st.kind == VfsEntryKind::Directory && !allow_directory {
-            return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'"));
+            return Err(format!(
+                "EISDIR: illegal operation on a directory, overlay '{entry}'"
+            ));
         }
         if st.mode & 0o400 == 0 {
             return Err(format!("EACCES: permission denied, overlay '{entry}'"));
@@ -506,8 +867,13 @@ impl SafeBashFs for OverlayVfs {
             return Err("ENOTSUP: overlay reads require stable backend identity".into());
         }
         let opened: Box<dyn super::FileReadHandle> = if st.kind == VfsEntryKind::Directory {
-            Box::new(OverlayDirectoryRead { handle, identity: self.stat(&entry)?.identity })
-        } else { handle };
+            Box::new(OverlayDirectoryRead {
+                handle,
+                identity: self.stat(&entry)?.identity,
+            })
+        } else {
+            handle
+        };
         if versions != (self.upper.generation(), self.lower.generation()) {
             return Err("EAGAIN: overlay changed during open".into());
         }
@@ -519,17 +885,38 @@ impl SafeBashFs for OverlayVfs {
         fs.open_chunks(&path)
     }
 
-    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
+    fn open_chunks_sized(
+        &self,
+        path: &str,
+        size: std::num::NonZeroUsize,
+    ) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.read_source(path)?;
         fs.open_chunks_sized(&path, size)
     }
 
-    fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
-        self.write_entry(path, after, FileWrite::Edit { original, before, in_place })
+    fn commit_file_edit(
+        &self,
+        path: &str,
+        original: &FileStat,
+        before: &[u8],
+        after: &[u8],
+        in_place: bool,
+    ) -> Result<(), String> {
+        self.write_entry(
+            path,
+            after,
+            FileWrite::Edit {
+                original,
+                before,
+                in_place,
+            },
+        )
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
-        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        if mode > 0o7777 {
+            return Err("EINVAL: invalid argument".into());
+        }
         self.write_entry(path, data, FileWrite::Create(mode))
     }
 
@@ -541,16 +928,34 @@ impl SafeBashFs for OverlayVfs {
         self.write_entry(path, data, FileWrite::Append)
     }
 
-    fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(),String> {
-        let Some((first, _, _)) = files.first() else { return Ok(()); };
-        let (lower,upper) = self.lower.memory_backend().zip(self.upper.memory_backend()).ok_or("ZIP split publication requires atomic owned staging")?;
-        let versions = (lower.generation(),upper.generation());
-        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
-        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
-        let parent = super::dirname_posix_path(&self.access_path(first,false)?);
+    fn replace_file_batch(
+        &self,
+        mut files: Vec<(String, Vec<u8>, u32)>,
+        version: u64,
+    ) -> Result<(), String> {
+        let Some((first, _, _)) = files.first() else {
+            return Ok(());
+        };
+        let (lower, upper) = self
+            .lower
+            .memory_backend()
+            .zip(self.upper.memory_backend())
+            .ok_or("ZIP split publication requires atomic owned staging")?;
+        let versions = (lower.generation(), upper.generation());
+        let whiteout_count = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?
+            .len();
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before replacement".into());
+        }
+        let parent = super::dirname_posix_path(&self.access_path(first, false)?);
         for (path, _, _) in &mut files {
-            *path = self.access_path(path,false)?;
-            if super::dirname_posix_path(path) != parent { return Err("EXDEV: split destinations in different directories".into()); }
+            *path = self.access_path(path, false)?;
+            if super::dirname_posix_path(path) != parent {
+                return Err("EXDEV: split destinations in different directories".into());
+            }
             match self.lstat(path) {
                 Ok(st) if st.kind == VfsEntryKind::File && st.nlink == Some(1) => {}
                 Ok(_) => return Err("ZIP split destination is not a safe regular file".into()),
@@ -562,52 +967,130 @@ impl SafeBashFs for OverlayVfs {
         let mut dir = parent.clone();
         loop {
             let st = self.stat(&dir)?;
-            if st.kind != VfsEntryKind::Directory || st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
-            if upper.exists(&dir) { break; }
-            parents.push((dir.clone(),st));
+            if st.kind != VfsEntryKind::Directory || st.mode & 0o300 != 0o300 {
+                return Err("EACCES: permission denied".into());
+            }
+            if upper.exists(&dir) {
+                break;
+            }
+            parents.push((dir.clone(), st));
             dir = super::dirname_posix_path(&dir);
         }
-        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
-        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
-        self.copy_up_directories(&parent, || upper.install_overlay_batch(lower,versions,files,parents))
+        let whiteouts = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count {
+            return Err("EBUSY: overlay changed during write".into());
+        }
+        self.copy_up_directories(&parent, || {
+            upper.install_overlay_batch(lower, versions, files, parents)
+        })
     }
 
-    fn publish_zip_volumes(&self,files:Vec<(String,Vec<u8>,u32)>,_guards:&[super::PublicationStamp],
-        temporary:Option<(&str,u64)>,stamp:u64)->Result<(),String>{
-        let Some((dir,_))=temporary else {return self.replace_file_batch(files,stamp)};
-        let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned ZIP staging unavailable")?;
-        let version=upper.generation();
-        if self.generation()!=stamp {return Err("EAGAIN: filesystem changed before staging".into());}
-        let copies=self.prepare_parent(&format!("{}/archive.zip",dir.trim_end_matches('/')))? as u64;
-        let next=upper.stage_zip_volumes(dir,&files,version.wrapping_add(copies),|path|match self.lstat(path){
-            Ok(_)=>Ok(false),Err(e) if e.starts_with("ENOENT:")=>Ok(!self.is_deleted(path)),Err(e)=>Err(e),
-        })?;
-        self.replace_file_batch(files,stamp.wrapping_add(next.wrapping_sub(version)))
-    }
-
-    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64, _check_only: bool,
-        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
-        let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned validation staging unavailable")?;
-        let version=upper.generation();
-        if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
-        let (parent,copies)=if let Some((dir,_))=temporary {
-            let copies=self.prepare_parent(&format!("{}/archive.zip",dir.trim_end_matches('/')))?;
-            (dir.to_owned(),copies as u64)
-        } else {
-            let mut parent=self.access_path(&super::dirname_posix_path(destination),true)?;
-            while parent!="/" && !upper.exists(&parent) { parent=super::dirname_posix_path(&parent); }
-            (parent,0)
+    fn publish_zip_volumes(
+        &self,
+        files: Vec<(String, Vec<u8>, u32)>,
+        _guards: &[super::PublicationStamp],
+        temporary: Option<(&str, u64)>,
+        stamp: u64,
+    ) -> Result<(), String> {
+        let Some((dir, _)) = temporary else {
+            return self.replace_file_batch(files, stamp);
         };
-        let (valid,next)=upper.check_in_owned_stage(&parent,bytes,version.wrapping_add(copies),|dir| match self.lstat(dir) {
-            Ok(_) => Ok(false), Err(e) if e.starts_with("ENOENT:") => Ok(!self.is_deleted(dir)), Err(e) => Err(e),
-        },check)?;
-        Ok((valid,stamp.wrapping_add(next.wrapping_sub(version))))
+        let upper = self
+            .upper
+            .memory_backend()
+            .ok_or("ENOTSUP: owned ZIP staging unavailable")?;
+        let version = upper.generation();
+        if self.generation() != stamp {
+            return Err("EAGAIN: filesystem changed before staging".into());
+        }
+        let copies =
+            self.prepare_parent(&format!("{}/archive.zip", dir.trim_end_matches('/')))? as u64;
+        let next =
+            upper.stage_zip_volumes(
+                dir,
+                &files,
+                version.wrapping_add(copies),
+                |path| match self.lstat(path) {
+                    Ok(_) => Ok(false),
+                    Err(e) if e.starts_with("ENOENT:") => Ok(!self.is_deleted(path)),
+                    Err(e) => Err(e),
+                },
+            )?;
+        self.replace_file_batch(files, stamp.wrapping_add(next.wrapping_sub(version)))
     }
 
-    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
-        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        if [times.0, times.1].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid file timestamp".into()); }
-        self.write_entry(path, data, FileWrite::Install { mode, times, version })
+    fn validate_staged_file(
+        &self,
+        destination: &str,
+        temporary: Option<(&str, u64)>,
+        bytes: &[u8],
+        stamp: u64,
+        _check_only: bool,
+        check: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(bool, u64), String> {
+        let upper = self
+            .upper
+            .memory_backend()
+            .ok_or("ENOTSUP: owned validation staging unavailable")?;
+        let version = upper.generation();
+        if self.generation() != stamp {
+            return Err("EAGAIN: filesystem changed before staging".into());
+        }
+        let (parent, copies) = if let Some((dir, _)) = temporary {
+            let copies =
+                self.prepare_parent(&format!("{}/archive.zip", dir.trim_end_matches('/')))?;
+            (dir.to_owned(), copies as u64)
+        } else {
+            let mut parent = self.access_path(&super::dirname_posix_path(destination), true)?;
+            while parent != "/" && !upper.exists(&parent) {
+                parent = super::dirname_posix_path(&parent);
+            }
+            (parent, 0)
+        };
+        let (valid, next) = upper.check_in_owned_stage(
+            &parent,
+            bytes,
+            version.wrapping_add(copies),
+            |dir| match self.lstat(dir) {
+                Ok(_) => Ok(false),
+                Err(e) if e.starts_with("ENOENT:") => Ok(!self.is_deleted(dir)),
+                Err(e) => Err(e),
+            },
+            check,
+        )?;
+        Ok((valid, stamp.wrapping_add(next.wrapping_sub(version))))
+    }
+
+    fn replace_file_entry_with_metadata(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        version: u64,
+    ) -> Result<(), String> {
+        if mode > 0o7777 {
+            return Err("EINVAL: invalid argument".into());
+        }
+        if [times.0, times.1]
+            .into_iter()
+            .flatten()
+            .any(|t| !t.is_finite())
+        {
+            return Err("EINVAL: invalid file timestamp".into());
+        }
+        self.write_entry(
+            path,
+            data,
+            FileWrite::Install {
+                mode,
+                times,
+                version,
+            },
+        )
     }
 
     fn publish_file(
@@ -633,8 +1116,21 @@ impl SafeBashFs for OverlayVfs {
     fn supports_conditional_removal(&self, _path: &str) -> bool {
         self.upper.memory_backend().is_some() && self.lower.memory_backend().is_some()
     }
-    fn remove_unchanged_entry(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
-        self.remove_entry(path, if expected.kind == VfsEntryKind::Directory { Removal::Rmdir } else { Removal::Unlink }, Some((parent, expected)))
+    fn remove_unchanged_entry(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: &FileStat,
+    ) -> Result<(), String> {
+        self.remove_entry(
+            path,
+            if expected.kind == VfsEntryKind::Directory {
+                Removal::Rmdir
+            } else {
+                Removal::Unlink
+            },
+            Some((parent, expected)),
+        )
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
@@ -668,10 +1164,15 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
-        let entry = |path: &str| self.access_path(path,false).map_err(|e| {
-            if e.starts_with("ELOOP:") && !e.contains(", ") { format!("ELOOP: too many symbolic links encountered, overlay '{path}'") }
-            else { e }
-        });
+        let entry = |path: &str| {
+            self.access_path(path, false).map_err(|e| {
+                if e.starts_with("ELOOP:") && !e.contains(", ") {
+                    format!("ELOOP: too many symbolic links encountered, overlay '{path}'")
+                } else {
+                    e
+                }
+            })
+        };
         let from = entry(source)?;
         let original = self.lstat(&from)?;
         let to = entry(destination)?;
@@ -680,23 +1181,48 @@ impl SafeBashFs for OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
-        if no_replace && target.is_some() { return Err(format!("EEXIST: file already exists, overlay '{destination}'")); }
-        if from == to { return Ok(()); }
-        if from == "/" || to == "/" || original.mode & 0o170000 == 0o020000
-            || target.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000) {
-            return Err(format!("EBUSY: resource busy or locked, overlay '{source}'"));
+        if no_replace && target.is_some() {
+            return Err(format!(
+                "EEXIST: file already exists, overlay '{destination}'"
+            ));
+        }
+        if from == to {
+            return Ok(());
+        }
+        if from == "/"
+            || to == "/"
+            || original.mode & 0o170000 == 0o020000
+            || target
+                .as_ref()
+                .is_some_and(|t| t.mode & 0o170000 == 0o020000)
+        {
+            return Err(format!(
+                "EBUSY: resource busy or locked, overlay '{source}'"
+            ));
         }
         if original.kind == VfsEntryKind::Directory && crate::vfs::is_path_within(&from, &to) {
             return Err(format!("EINVAL: invalid argument, overlay '{destination}'"));
         }
         if let Some(target) = target {
-            if original.identity.is_some() && target.identity == original.identity { return Ok(()); }
+            if original.identity.is_some() && target.identity == original.identity {
+                return Ok(());
+            }
             match (original.kind, target.kind) {
                 (VfsEntryKind::Directory, VfsEntryKind::Directory) => {
-                    if !self.list_dir(&to)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty, overlay '{destination}'")); }
+                    if !self.list_dir(&to)?.is_empty() {
+                        return Err(format!(
+                            "ENOTEMPTY: directory not empty, overlay '{destination}'"
+                        ));
+                    }
                 }
-                (VfsEntryKind::Directory, _) => return Err(format!("ENOTDIR: not a directory, overlay '{destination}'")),
-                (_, VfsEntryKind::Directory) => return Err(format!("EISDIR: illegal operation on a directory, overlay '{destination}'")),
+                (VfsEntryKind::Directory, _) => {
+                    return Err(format!("ENOTDIR: not a directory, overlay '{destination}'"));
+                }
+                (_, VfsEntryKind::Directory) => {
+                    return Err(format!(
+                        "EISDIR: illegal operation on a directory, overlay '{destination}'"
+                    ));
+                }
                 _ => {}
             }
         }
@@ -715,58 +1241,96 @@ impl SafeBashFs for OverlayVfs {
             let stat = self.lstat(&path)?;
             let lower = self.upper.lstat(&path).is_err();
             let children = if stat.kind == VfsEntryKind::Directory {
-                if stat.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
+                if stat.mode & 0o400 == 0 {
+                    return Err(format!("EACCES: permission denied, overlay '{path}'"));
+                }
                 let mut names = self.list_dir(&path)?;
-                names.sort_unstable_by(|a,b| a.encode_utf16().cmp(b.encode_utf16()));
+                names.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
                 names
-            } else { Vec::new() };
+            } else {
+                Vec::new()
+            };
             if stat.kind == VfsEntryKind::Symlink {
                 let layer = if lower { &self.lower } else { &self.upper };
-                let target = Self::movable_link(layer.as_ref(),&path)?;
+                let target = Self::movable_link(layer.as_ref(), &path)?;
                 if lower {
                     self.prepare_parent(&path)?;
-                    self.upper.symlink(&target,&path)?;
+                    self.upper.symlink(&target, &path)?;
                     self.copied_links.lock().unwrap().insert(path.clone());
                 }
                 if self.copied_links.lock().unwrap().contains(&path) {
-                    moved_links.push((path.clone(),target));
+                    moved_links.push((path.clone(), target));
                 }
             } else if lower {
                 if stat.kind == VfsEntryKind::File {
-                    self.check_file_copy_up(&path,&stat)?;
-                    self.upper.write_file(&path,&self.lower.read_file(&path)?)?;
-                } else { self.upper.mkdir_all(&path)?; }
+                    self.check_file_copy_up(&path, &stat)?;
+                    self.upper
+                        .write_file(&path, &self.lower.read_file(&path)?)?;
+                } else {
+                    self.upper.mkdir_all(&path)?;
+                }
                 self.upper.chmod(&path, stat.mode)?;
-                self.upper.set_times(&path, Some(stat.atime_ms), Some(stat.mtime_ms))?;
+                self.upper
+                    .set_times(&path, Some(stat.atime_ms), Some(stat.mtime_ms))?;
             }
-            pending.extend(children.into_iter().rev().map(|name| format!("{path}/{name}")));
+            pending.extend(
+                children
+                    .into_iter()
+                    .rev()
+                    .map(|name| format!("{path}/{name}")),
+            );
         }
         // Only links materialized from the lower layer carry its namespace.
         // A relative target inside the moved tree moves with it; an outside
         // target must still name the same entry after publication.
         let relocate = |path: &str| format!("{to}{}", &path[from.len()..]);
-        for (path,target) in &moved_links {
-            let old = super::resolve_posix_path(&super::dirname_posix_path(path),target);
-            let expected = if !target.starts_with('/') && super::is_path_within(&from,&old) { relocate(&old) } else { old };
-            if super::resolve_posix_path(&super::dirname_posix_path(&relocate(path)),target) != expected {
-                return Err(format!("ENOTSUP: relocation changes an unprovable relative symlink target, overlay '{path}'"));
+        for (path, target) in &moved_links {
+            let old = super::resolve_posix_path(&super::dirname_posix_path(path), target);
+            let expected = if !target.starts_with('/') && super::is_path_within(&from, &old) {
+                relocate(&old)
+            } else {
+                old
+            };
+            if super::resolve_posix_path(&super::dirname_posix_path(&relocate(path)), target)
+                != expected
+            {
+                return Err(format!(
+                    "ENOTSUP: relocation changes an unprovable relative symlink target, overlay '{path}'"
+                ));
             }
         }
         let parent = crate::vfs::dirname_posix_path(&to);
         self.copy_up_directories(&parent, || self.upper.mkdir_all(&parent))?;
-        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
+        let mut whiteouts = self
+            .whiteouts
+            .write()
+            .map_err(|_| "EIO: input/output error")?;
         self.upper.rename(&from, &to, no_replace)?;
         let mut links = self.copied_links.lock().unwrap();
-        links.retain(|p| !super::is_path_within(&to,p));
-        for (path,_) in moved_links { links.remove(&path); links.insert(relocate(&path)); }
-        if original.kind == VfsEntryKind::Directory { self.forget_directory(&from); self.forget_directory(&to); }
+        links.retain(|p| !super::is_path_within(&to, p));
+        for (path, _) in moved_links {
+            links.remove(&path);
+            links.insert(relocate(&path));
+        }
+        if original.kind == VfsEntryKind::Directory {
+            self.forget_directory(&from);
+            self.forget_directory(&to);
+        }
         whiteouts.insert(from);
         whiteouts.insert(to);
         Ok(())
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
-        self.remove_entry(path, if directory { Removal::Rmdir } else { Removal::Unlink }, None)
+        self.remove_entry(
+            path,
+            if directory {
+                Removal::Rmdir
+            } else {
+                Removal::Unlink
+            },
+            None,
+        )
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
@@ -774,12 +1338,20 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Overlay, |p| (None, self, p.to_owned()))
+        super::mkdir::mkdir(
+            path,
+            recursive,
+            mode,
+            super::mkdir::Namespace::Overlay,
+            |p| (None, self, p.to_owned()),
+        )
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let path = self.access_path(path, false)?;
-        if self.lstat(&path).is_ok() { return Err("EEXIST: file already exists".into()); }
+        if self.lstat(&path).is_ok() {
+            return Err("EEXIST: file already exists".into());
+        }
         self.prepare_parent(&path)?;
         self.upper.mkdir_one(&path, mode)
     }
@@ -807,7 +1379,9 @@ impl SafeBashFs for OverlayVfs {
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         let norm = self.access_path(path, true)?;
         if !self.is_dir(&norm) {
-            return Err(format!("ENOENT: no such file or directory, scandir '{norm}'"));
+            return Err(format!(
+                "ENOENT: no such file or directory, scandir '{norm}'"
+            ));
         }
         let mut names = BTreeSet::new();
         if !self.is_deleted(&norm) && self.lower.is_dir(&norm) {
@@ -831,12 +1405,18 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
-        if self.stat(path)?.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
+        if self.stat(path)?.mode & 0o400 == 0 {
+            return Err(format!("EACCES: permission denied, overlay '{path}'"));
+        }
         let mut entries = BTreeMap::new();
-        if self.upper.is_dir(path) { entries.extend(self.upper.directory_entries(path, limit)?); }
+        if self.upper.is_dir(path) {
+            entries.extend(self.upper.directory_entries(path, limit)?);
+        }
         if !self.is_deleted(path) && self.lower.is_dir(path) {
             for (name, mode) in self.lower.directory_entries(path, limit)? {
-                if !entries.contains_key(&name) && entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+                if !entries.contains_key(&name) && entries.len() == limit {
+                    return Err("EFBIG: directory entry limit exceeded".into());
+                }
                 entries.entry(name).or_insert(mode);
             }
         }
@@ -845,15 +1425,27 @@ impl SafeBashFs for OverlayVfs {
             !self.is_deleted(&p) || self.upper.lstat(&p).is_ok()
         });
         if !entries.is_empty() && self.stat(path)?.mode & 0o100 == 0 {
-            let name = entries.keys().min_by(|a,b| a.encode_utf16().cmp(b.encode_utf16())).unwrap();
-            return Err(format!("EACCES: permission denied, lstat '{}/{name}'", path.trim_end_matches('/')));
+            let name = entries
+                .keys()
+                .min_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()))
+                .unwrap();
+            return Err(format!(
+                "EACCES: permission denied, lstat '{}/{name}'",
+                path.trim_end_matches('/')
+            ));
         }
         Ok(entries.into_iter().collect())
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        if target.is_empty() { return Err(format!("ENOENT: no such file or directory, overlay '{path}'")); }
-        if target.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
+        if target.is_empty() {
+            return Err(format!(
+                "ENOENT: no such file or directory, overlay '{path}'"
+            ));
+        }
+        if target.contains('\0') {
+            return Err("EINVAL: paths must be strings without NUL bytes, resolve".into());
+        }
         let entry = self.access_path(path, false)?;
         match self.lstat(&entry) {
             Ok(_) => return Err(format!("EEXIST: file already exists, overlay '{path}'")),
@@ -864,9 +1456,26 @@ impl SafeBashFs for OverlayVfs {
         self.upper.symlink(target, &entry)
     }
 
-    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
-        if target.is_empty() || target.contains('\0'){return Err("EINVAL: invalid symlink target".into());}
-        self.write_entry(path,&[],FileWrite::Symlink {target,parent,expected})
+    fn publish_extraction_symlink(
+        &self,
+        path: &str,
+        target: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        _stamp: u64,
+    ) -> Result<(), String> {
+        if target.is_empty() || target.contains('\0') {
+            return Err("EINVAL: invalid symlink target".into());
+        }
+        self.write_entry(
+            path,
+            &[],
+            FileWrite::Symlink {
+                target,
+                parent,
+                expected,
+            },
+        )
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
@@ -875,7 +1484,9 @@ impl SafeBashFs for OverlayVfs {
             return self.upper.readlink(&norm);
         }
         if self.is_deleted(&norm) {
-            return Err(format!("ENOENT: no such file or directory, readlink '{norm}'"));
+            return Err(format!(
+                "ENOENT: no such file or directory, readlink '{norm}'"
+            ));
         }
         self.lower.readlink(&norm)
     }
@@ -885,18 +1496,29 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
-        super::mkdir::creation_mode(path, recursive, |p| self.walk(p, true, super::path::WalkPurpose::OverlayCreate))
+        super::mkdir::creation_mode(path, recursive, |p| {
+            self.walk(p, true, super::path::WalkPurpose::OverlayCreate)
+        })
     }
 
-    fn stat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, true) }
+    fn stat(&self, path: &str) -> Result<FileStat, String> {
+        self.metadata(path, true)
+    }
 
-    fn lstat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, false) }
+    fn lstat(&self, path: &str) -> Result<FileStat, String> {
+        self.metadata(path, false)
+    }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         self.change_metadata(path, MetadataChange::Mode(mode))
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
+    fn set_times(
+        &self,
+        path: &str,
+        atime_ms: Option<f64>,
+        mtime_ms: Option<f64>,
+    ) -> Result<(), String> {
         if atime_ms.is_some_and(|t| !t.is_finite()) || mtime_ms.is_some_and(|t| !t.is_finite()) {
             return Err(format!("EINVAL: invalid argument, utimes '{path}'"));
         }
@@ -948,34 +1570,44 @@ mod tests {
 
     #[test]
     fn deferred_symlink_rechecks_the_overlay_entry_across_copy_up() {
-        for upper_file in [false,true] {
-            let lower=Arc::new(MemoryVfs::new());
-            let upper=Arc::new(MemoryVfs::new());
-            let backing=if upper_file {&upper} else {&lower};
-            backing.write_file("/dir/file",b"old").unwrap();
-            backing.hard_link("/dir/file","/alias").unwrap();
-            let fs=OverlayVfs::new(lower.clone(),upper.clone());
-            let parent=fs.lstat("/dir").unwrap();
-            let existing=fs.lstat("/dir/file").unwrap();
-            fs.write_file("/dir/later",b"new").unwrap();
-            fs.publish_extraction_symlink("/dir/file","later",&parent,Some(&existing),0).unwrap();
-            assert_eq!(fs.read_file("/alias").unwrap(),b"old");
-            assert_eq!(fs.read_file("/dir/file").unwrap(),b"new");
-            assert!(fs.publish_extraction_symlink("/dir/file","alias",&parent,Some(&existing),0).is_err());
-            assert_eq!(fs.readlink("/dir/file").unwrap(),"later");
+        for upper_file in [false, true] {
+            let lower = Arc::new(MemoryVfs::new());
+            let upper = Arc::new(MemoryVfs::new());
+            let backing = if upper_file { &upper } else { &lower };
+            backing.write_file("/dir/file", b"old").unwrap();
+            backing.hard_link("/dir/file", "/alias").unwrap();
+            let fs = OverlayVfs::new(lower.clone(), upper.clone());
+            let parent = fs.lstat("/dir").unwrap();
+            let existing = fs.lstat("/dir/file").unwrap();
+            fs.write_file("/dir/later", b"new").unwrap();
+            fs.publish_extraction_symlink("/dir/file", "later", &parent, Some(&existing), 0)
+                .unwrap();
+            assert_eq!(fs.read_file("/alias").unwrap(), b"old");
+            assert_eq!(fs.read_file("/dir/file").unwrap(), b"new");
+            assert!(
+                fs.publish_extraction_symlink("/dir/file", "alias", &parent, Some(&existing), 0)
+                    .is_err()
+            );
+            assert_eq!(fs.readlink("/dir/file").unwrap(), "later");
         }
     }
 
     #[test]
     fn rename_cannot_separate_one_name_from_a_lower_hardlink_group() {
         let lower = Arc::new(MemoryVfs::new());
-        lower.write_file("/src/f",b"keep").unwrap();
-        lower.hard_link("/src/f","/peer").unwrap();
+        lower.write_file("/src/f", b"keep").unwrap();
+        lower.hard_link("/src/f", "/peer").unwrap();
         let fs = OverlayVfs::new(lower, Arc::new(MemoryVfs::new()));
-        for path in ["/src/f","/src"] {
-            assert_eq!(fs.rename(path,"/out",false).unwrap_err(),"ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/src/f'");
+        for path in ["/src/f", "/src"] {
+            assert_eq!(
+                fs.rename(path, "/out", false).unwrap_err(),
+                "ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/src/f'"
+            );
             assert!(!fs.exists("/out"));
-            assert_eq!(fs.lstat("/src/f").unwrap().identity,fs.lstat("/peer").unwrap().identity);
+            assert_eq!(
+                fs.lstat("/src/f").unwrap().identity,
+                fs.lstat("/peer").unwrap().identity
+            );
         }
     }
 
@@ -988,8 +1620,9 @@ mod tests {
         lower.hard_link("/docs/page", "/docs/alias").unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let overlay = OverlayVfs::new(lower.clone(), upper.clone());
-        let publish =
-            |name: &str, v| SafeBashFs::publish_file(&overlay, name, b"PDF", &["/docs/page".into()], v);
+        let publish = |name: &str, v| {
+            SafeBashFs::publish_file(&overlay, name, b"PDF", &["/docs/page".into()], v)
+        };
         let v = overlay.generation();
         assert!(
             publish("/docs/link", v)
@@ -1022,15 +1655,32 @@ mod tests {
         lower.hard_link("/dir/archive", "/alias").unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
-        fs.replace_file_entry_with_metadata("/dir/archive", b"first", 0o600, (Some(-500.), Some(1000.)), fs.generation()).unwrap();
+        fs.replace_file_entry_with_metadata(
+            "/dir/archive",
+            b"first",
+            0o600,
+            (Some(-500.), Some(1000.)),
+            fs.generation(),
+        )
+        .unwrap();
         let first = fs.stat("/dir/archive").unwrap();
         assert_eq!((first.atime_ms, first.mtime_ms), (-500., 1000.));
         assert_eq!(fs.read_file("/alias").unwrap(), b"old");
         assert_eq!(lower.read_file("/dir/archive").unwrap(), b"old");
         let version = fs.generation();
         upper.hard_link("/dir/archive", "/second-alias").unwrap();
-        assert!(fs.replace_file_entry_with_mode("/dir/archive", b"stale", 0o644, version).is_err());
-        fs.replace_file_entry_with_metadata("/dir/archive", b"second", 0o640, (Some(1500.), Some(2500.)), fs.generation()).unwrap();
+        assert!(
+            fs.replace_file_entry_with_mode("/dir/archive", b"stale", 0o644, version)
+                .is_err()
+        );
+        fs.replace_file_entry_with_metadata(
+            "/dir/archive",
+            b"second",
+            0o640,
+            (Some(1500.), Some(2500.)),
+            fs.generation(),
+        )
+        .unwrap();
         let second = fs.stat("/dir/archive").unwrap();
         assert_eq!((second.atime_ms, second.mtime_ms), (1500., 2500.));
         assert_eq!(fs.stat("/second-alias").unwrap().mtime_ms, 1000.);
@@ -1046,11 +1696,21 @@ mod tests {
         lower.hard_link("/f", "/alias").unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let overlay = OverlayVfs::new(Arc::new(crate::vfs::MountVfs::new(lower)), upper.clone());
-        for result in [overlay.write_file("/f", b"new"), overlay.append_file("/f", b"+"), overlay.chmod("/f", 0o600)] {
-            assert_eq!(result.unwrap_err(), "ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/f'");
+        for result in [
+            overlay.write_file("/f", b"new"),
+            overlay.append_file("/f", b"+"),
+            overlay.chmod("/f", 0o600),
+        ] {
+            assert_eq!(
+                result.unwrap_err(),
+                "ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/f'"
+            );
         }
         assert!(!upper.exists("/f"));
-        assert_eq!(overlay.stat("/f").unwrap().identity, overlay.stat("/alias").unwrap().identity);
+        assert_eq!(
+            overlay.stat("/f").unwrap().identity,
+            overlay.stat("/alias").unwrap().identity
+        );
     }
 
     #[test]
@@ -1068,16 +1728,26 @@ mod tests {
         lower.mkdir_all("/dir/child").unwrap();
         assert!(set("/dir/child").unwrap_err().starts_with("EACCES:"));
         assert!(!upper.exists("/dir/child"));
-        assert_eq!(set("/dir/file").unwrap_err(), "EACCES: permission denied, overlay '/dir'");
+        assert_eq!(
+            set("/dir/file").unwrap_err(),
+            "EACCES: permission denied, overlay '/dir'"
+        );
         lower.chmod("/dir", 0o751).unwrap();
         assert!(set("/dir/private").unwrap_err().starts_with("EACCES:"));
         assert!(set("/dir/linked").unwrap_err().starts_with("ENOTSUP:"));
-        assert!(!upper.exists("/dir/file") && !upper.exists("/dir/private") && !upper.exists("/dir/linked"));
+        assert!(
+            !upper.exists("/dir/file")
+                && !upper.exists("/dir/private")
+                && !upper.exists("/dir/linked")
+        );
         lower.set_times("/dir", Some(5.0), Some(7.0)).unwrap();
         let dir = fs.stat("/dir").unwrap();
         set("/dir/file").unwrap();
         let after = fs.stat("/dir").unwrap();
-        assert_eq!((after.mode, after.identity, after.atime_ms), (dir.mode, dir.identity, 5.0));
+        assert_eq!(
+            (after.mode, after.identity, after.atime_ms),
+            (dir.mode, dir.identity, 5.0)
+        );
         assert_eq!(fs.stat("/dir/file").unwrap().mtime_ms, 123.75);
         assert_ne!(lower.stat("/dir/file").unwrap().mtime_ms, 123.75);
     }
@@ -1088,15 +1758,24 @@ mod tests {
         let upper = Arc::new(MemoryVfs::new());
         lower.write_file("/private/f", b"x").unwrap();
         lower.chmod("/private", 0o700).unwrap();
-        lower.set_times("/private/f", Some(123.0), Some(456.0)).unwrap();
+        lower
+            .set_times("/private/f", Some(123.0), Some(456.0))
+            .unwrap();
         lower.chmod("/private/f", 0o200).unwrap();
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
-        assert!(fs.chmod("/private/f", 0o600).unwrap_err().starts_with("EACCES:"));
+        assert!(
+            fs.chmod("/private/f", 0o600)
+                .unwrap_err()
+                .starts_with("EACCES:")
+        );
         assert!(!upper.exists("/private"));
         lower.chmod("/private/f", 0o400).unwrap();
         fs.chmod("/private/f", 0o600).unwrap();
         let st = fs.stat("/private/f").unwrap();
-        assert_eq!((st.mode & 0o777, st.atime_ms, st.mtime_ms), (0o600, 123.0, 456.0));
+        assert_eq!(
+            (st.mode & 0o777, st.atime_ms, st.mtime_ms),
+            (0o600, 123.0, 456.0)
+        );
         assert_eq!(fs.stat("/private").unwrap().mode & 0o777, 0o700);
         assert_eq!(lower.stat("/private/f").unwrap().mode & 0o777, 0o400);
     }
@@ -1108,14 +1787,19 @@ mod tests {
         lower.write_file("/pre/dir/file", b"x").unwrap();
         upper.mkdir_all("/pre").unwrap();
         let fs = OverlayVfs::new(lower, upper.clone());
-        for path in ["/", "/pre"] { upper.set_times(path, None, Some(-1.0)).unwrap(); }
-        fs.set_times("/pre/dir/file", Some(10.0), Some(20.0)).unwrap();
+        for path in ["/", "/pre"] {
+            upper.set_times(path, None, Some(-1.0)).unwrap();
+        }
+        fs.set_times("/pre/dir/file", Some(10.0), Some(20.0))
+            .unwrap();
         for path in ["/", "/pre"] {
             assert!(fs.stat(path).unwrap().mtime_ms > 0.0, "{path}");
             upper.set_times(path, None, Some(-1.0)).unwrap();
         }
         fs.set_times("/pre/dir/file", None, Some(30.0)).unwrap();
-        for path in ["/", "/pre"] { assert_eq!(fs.stat(path).unwrap().mtime_ms, -1.0, "{path}"); }
+        for path in ["/", "/pre"] {
+            assert_eq!(fs.stat(path).unwrap().mtime_ms, -1.0, "{path}");
+        }
     }
 
     #[test]
@@ -1158,18 +1842,27 @@ mod tests {
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
         lower.set_times("/d/f", Some(42.0), None).unwrap();
         let base = fs.stat("/d/f").unwrap();
-        fs.commit_file_edit("/d/f", &base, b"base", b"copy", false).unwrap();
+        fs.commit_file_edit("/d/f", &base, b"base", b"copy", false)
+            .unwrap();
         assert_eq!(lower.read_file("/d/f").unwrap(), b"base");
         let copy = fs.stat("/d/f").unwrap();
         assert_ne!(base.identity, copy.identity);
         assert_ne!(base.atime_ms, copy.atime_ms);
-        assert!(fs.commit_file_edit("/d/f", &base, b"base", b"stale", false).is_err());
-        assert!(fs.commit_file_edit("/d/f", &copy, b"wrong", b"stale", true).is_err());
+        assert!(
+            fs.commit_file_edit("/d/f", &base, b"base", b"stale", false)
+                .is_err()
+        );
+        assert!(
+            fs.commit_file_edit("/d/f", &copy, b"wrong", b"stale", true)
+                .is_err()
+        );
         let held = fs.open_read_file("/d/f", false).unwrap();
-        fs.commit_file_edit("/d/f", &copy, b"copy", b"new", false).unwrap();
+        fs.commit_file_edit("/d/f", &copy, b"copy", b"new", false)
+            .unwrap();
         assert_eq!(held.read(0, 16).unwrap(), b"copy");
         let edited = fs.stat("/d/f").unwrap();
-        fs.commit_file_edit("/d/f", &edited, b"new", b"in place", true).unwrap();
+        fs.commit_file_edit("/d/f", &edited, b"new", b"in place", true)
+            .unwrap();
         assert_eq!(fs.stat("/d/f").unwrap().identity, edited.identity);
         assert_eq!(fs.read_file("/d/f").unwrap(), b"in place");
     }
@@ -1206,11 +1899,19 @@ mod tests {
         lower.set_times("/d/f", Some(100.0), None).unwrap();
         upper.set_max_total_bytes(4);
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
-        assert!(fs.append_file("/d/f", b"!!").unwrap_err().starts_with("ENOSPC:"));
+        assert!(
+            fs.append_file("/d/f", b"!!")
+                .unwrap_err()
+                .starts_with("ENOSPC:")
+        );
         assert!(!upper.exists("/d"));
         assert_eq!(lower.stat("/d/f").unwrap().atime_ms, 100.0);
         fs.append_file("/d/f", b"!").unwrap();
-        assert!(fs.append_file("/d/f", b"?").unwrap_err().starts_with("ENOSPC:"));
+        assert!(
+            fs.append_file("/d/f", b"?")
+                .unwrap_err()
+                .starts_with("ENOSPC:")
+        );
         assert_eq!(upper.stat("/d/f").unwrap().atime_ms, 100.0);
         assert_eq!(upper.read_file("/d/f").unwrap(), b"old!");
     }
@@ -1222,7 +1923,12 @@ mod tests {
         lower.chmod("/private", 0o710).unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let overlay = OverlayVfs::new(lower.clone(), upper.clone());
-        assert!(overlay.create_file("/private/old", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
+        assert!(
+            overlay
+                .create_file("/private/old", b"no", 0o600)
+                .unwrap_err()
+                .starts_with("EEXIST")
+        );
         overlay.create_file("/private/new", b"new", 0o640).unwrap();
         assert_eq!(upper.stat("/private").unwrap().mode & 0o777, 0o710);
         assert_eq!(upper.stat("/private/new").unwrap().mode & 0o777, 0o640);
@@ -1254,11 +1960,21 @@ mod tests {
         let lower = Arc::new(MemoryVfs::new());
         lower.write_file("/private/shared/taken", b"keep").unwrap();
         lower.chmod("/private", 0o700).unwrap();
-        lower.symlink("/private/shared/taken", "/private/shared/old").unwrap();
+        lower
+            .symlink("/private/shared/taken", "/private/shared/old")
+            .unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let fs = OverlayVfs::new(lower, upper.clone());
-        assert!(fs.symlink("x", "/missing/x").unwrap_err().starts_with("ENOENT:"));
-        assert!(fs.symlink("x", "/private/shared/taken").unwrap_err().starts_with("EEXIST:"));
+        assert!(
+            fs.symlink("x", "/missing/x")
+                .unwrap_err()
+                .starts_with("ENOENT:")
+        );
+        assert!(
+            fs.symlink("x", "/private/shared/taken")
+                .unwrap_err()
+                .starts_with("EEXIST:")
+        );
         assert!(!upper.exists("/missing"));
         assert!(!upper.exists("/private"));
         fs.rename("/private/shared/old", "/moved", false).unwrap();
@@ -1278,7 +1994,10 @@ mod tests {
         overlay.mkdir_one("/private/shared/new", 0o711).unwrap();
         assert_eq!(overlay.stat("/private").unwrap().mode & 0o777, 0o700);
         assert_eq!(overlay.stat("/private/shared").unwrap().mode & 0o777, 0o750);
-        assert_eq!(overlay.stat("/private/shared/new").unwrap().mode & 0o777, 0o711);
+        assert_eq!(
+            overlay.stat("/private/shared/new").unwrap().mode & 0o777,
+            0o711
+        );
         assert!(!lower.exists("/private/shared/new"));
     }
 
@@ -1289,9 +2008,17 @@ mod tests {
         let upper = Arc::new(MemoryVfs::new());
         upper.write_file("/dir/upper", b"keep").unwrap();
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
-        assert!(fs.remove_one("/dir", true).unwrap_err().starts_with("ENOTEMPTY"));
+        assert!(
+            fs.remove_one("/dir", true)
+                .unwrap_err()
+                .starts_with("ENOTEMPTY")
+        );
         fs.remove_one("/dir/upper", false).unwrap();
-        assert!(fs.remove_one("/dir", true).unwrap_err().starts_with("ENOTEMPTY"));
+        assert!(
+            fs.remove_one("/dir", true)
+                .unwrap_err()
+                .starts_with("ENOTEMPTY")
+        );
         fs.remove_one("/dir/lower", false).unwrap();
         fs.remove_one("/dir", true).unwrap();
         assert!(!fs.exists("/dir"));
@@ -1307,7 +2034,12 @@ mod tests {
         let upper = Arc::new(MemoryVfs::new());
         upper.mkdir_all("/private").unwrap();
         let overlay = OverlayVfs::new(lower, upper);
-        assert!(overlay.list_dir("/private").unwrap_err().starts_with("EACCES"));
+        assert!(
+            overlay
+                .list_dir("/private")
+                .unwrap_err()
+                .starts_with("EACCES")
+        );
     }
 
     #[test]

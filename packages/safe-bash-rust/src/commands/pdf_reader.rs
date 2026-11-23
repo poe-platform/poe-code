@@ -8,18 +8,21 @@ pub(super) mod attachments;
 mod pdf_rewrite;
 #[path = "pdf_rotation.rs"]
 mod pdf_rotation;
+pub(super) use pdf_rewrite::{Layer, PageEdits, empty_pdf, rewrite};
 pub(super) use pdf_rotation::{Rotation, pdftk_selection, rotations};
-pub(super) use pdf_rewrite::{Layer,PageEdits,rewrite,empty_pdf};
 #[path = "pdf_json_input.rs"]
 mod pdf_json_input;
 pub(super) use pdf_json_input::JsonDocument;
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
-pub(super) use pdf_copy::{CairoPdfLayout, TextOptions, ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
+pub(super) use pdf_copy::{
+    CairoPdfLayout, ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions,
+    TextOptions,
+};
 
 #[path = "pdf_pptx.rs"]
 mod pdf_pptx;
-pub(super) use pdf_pptx::render_pptx;
+
 
 #[path = "pdf_docx.rs"]
 mod pdf_docx;
@@ -28,19 +31,22 @@ pub(super) use pdf_docx::render_docx;
 #[path = "pdf_office.rs"]
 mod pdf_office;
 pub(super) use pdf_office::render_office;
+#[path = "pdf_document.rs"]
+mod pdf_document;
+pub(super) use pdf_document::{render_document, render_slides};
 
 #[path = "pdf_svg.rs"]
 mod pdf_svg;
 pub(super) use pdf_svg::render_svg;
 
-#[path = "pdf_form_data.rs"]
-mod pdf_form_data;
-#[path = "pdf_form_appearance.rs"]
-mod pdf_form_appearance;
-#[path = "pdf_fill.rs"]
-mod pdf_fill;
 #[path = "pdf_fields.rs"]
 mod pdf_fields;
+#[path = "pdf_fill.rs"]
+mod pdf_fill;
+#[path = "pdf_form_appearance.rs"]
+mod pdf_form_appearance;
+#[path = "pdf_form_data.rs"]
+mod pdf_form_data;
 pub(super) use pdf_fields::report as field_report;
 
 #[path = "pdf_update.rs"]
@@ -101,14 +107,19 @@ impl<'a> Value<'a> {
         }
     }
     fn set_stream_length(&mut self, length: usize) -> Option<()> {
-        let Self::Dict(entries) = self else { return None };
+        let Self::Dict(entries) = self else {
+            return None;
+        };
         let mut found = false;
         for (_, value) in entries.iter_mut().filter(|(k, _)| k.as_ref() == b"Length") {
             *value = Self::Word(length.to_string().into_bytes().into());
             found = true;
         }
         if !found {
-            entries.push((b"Length".into(), Self::Word(length.to_string().into_bytes().into())));
+            entries.push((
+                b"Length".into(),
+                Self::Word(length.to_string().into_bytes().into()),
+            ));
         }
         Some(())
     }
@@ -128,7 +139,11 @@ impl<'a> Value<'a> {
             return token.parse().ok();
         };
         let digits = whole.strip_prefix(['+', '-']).unwrap_or(whole);
-        if !digits.bytes().chain(fraction.bytes()).all(|b| b.is_ascii_digit()) {
+        if !digits
+            .bytes()
+            .chain(fraction.bytes())
+            .all(|b| b.is_ascii_digit())
+        {
             return token.parse().ok();
         }
         let mut number = if digits.is_empty() && !fraction.is_empty() {
@@ -143,7 +158,11 @@ impl<'a> Value<'a> {
             number += f64::from(digit - b'0') * place;
             place *= 0.1;
         }
-        Some(if whole.starts_with('-') { -number } else { number })
+        Some(if whole.starts_with('-') {
+            -number
+        } else {
+            number
+        })
     }
     fn rectangle(&self, number: fn(&Self) -> Option<f64>) -> Option<[f64; 4]> {
         let Self::Array(items) = self else {
@@ -191,12 +210,20 @@ impl<'a> Cursor<'a> {
         let whitespace = |b| matches!(b, 0 | 9 | 10 | 12 | 13 | 32);
         let mut comment = false;
         while let Some((&b, rest)) = self.0.split_first() {
-            if !comment && b != b'%' && !whitespace(b) { break; }
+            if !comment && b != b'%' && !whitespace(b) {
+                break;
+            }
             *budget = budget.checked_sub(1)?;
             comment = (comment || b == b'%') && !matches!(b, b'\n' | b'\r');
             self.0 = rest;
         }
-        Some(self.eat(word) && self.0.first().is_none_or(|&b| whitespace(b) || b"()<>[]{}/%".contains(&b)))
+        Some(
+            self.eat(word)
+                && self
+                    .0
+                    .first()
+                    .is_none_or(|&b| whitespace(b) || b"()<>[]{}/%".contains(&b)),
+        )
     }
 
     fn eat(&mut self, token: &[u8]) -> bool {
@@ -330,7 +357,10 @@ impl<'a> Cursor<'a> {
                 bytes.push(h)
             }
             // Parsed files normalize to literal strings; generated graph edits retain their format.
-            return Some(Value::String { bytes, hex: preserve_hex });
+            return Some(Value::String {
+                bytes,
+                hex: preserve_hex,
+            });
         }
         let word = self.word()?;
         if let Some(id) = uint(word) {
@@ -538,12 +568,14 @@ impl<'a> Objects<'a> {
     }
 
     fn object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
-        let (mut v,c)=self.stored_object(id)?;
+        let (mut v, c) = self.stored_object(id)?;
         // Compressed members have already been decrypted with their container's key.
-        if let Some(security) = &self.security && matches!(self.xref.get(&id)?.0, Location::File(_)) {
+        if let Some(security) = &self.security
+            && matches!(self.xref.get(&id)?.0, Location::File(_))
+        {
             security.strings(id, &mut v);
         }
-        Some((v,c))
+        Some((v, c))
     }
 
     fn stored_object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
@@ -579,10 +611,14 @@ impl<'a> Objects<'a> {
         let preserve_hex = self.preserve_hex;
         let parse = |offset, tokens: &mut usize| {
             let mut c = Cursor(bytes.get(offset..)?);
-            if c.object_header()? != id { return None; }
+            if c.object_header()? != id {
+                return None;
+            }
             Some((c.value(0, tokens, preserve_hex)?, c))
         };
-        if let Some(object) = parse(offset, &mut self.tokens) { return Some(object); }
+        if let Some(object) = parse(offset, &mut self.tokens) {
+            return Some(object);
+        }
         if matches!(self.offset_repair, OffsetRepair::OnError) {
             // The xref is authoritative for membership and order. Repair only
             // the bad location, matching both object number and generation.
@@ -591,7 +627,9 @@ impl<'a> Objects<'a> {
             scanner.tokens = self.tokens;
             scanner.remaining_bytes = self.remaining_bytes;
             let scanned = pdf_repair::scan(&mut scanner, |key, at| {
-                if self.xref.contains_key(&key) { offsets.insert(key, at); }
+                if self.xref.contains_key(&key) {
+                    offsets.insert(key, at);
+                }
             });
             self.tokens = scanner.tokens;
             self.remaining_bytes = scanner.remaining_bytes;
@@ -599,7 +637,9 @@ impl<'a> Objects<'a> {
             scanned?;
             self.offset_repair = OffsetRepair::Scanned(offsets);
         }
-        let OffsetRepair::Scanned(offsets) = &self.offset_repair else { return None; };
+        let OffsetRepair::Scanned(offsets) = &self.offset_repair else {
+            return None;
+        };
         let fixed = *offsets.get(&id)?;
         let object = parse(fixed, &mut self.tokens)?;
         self.recovered_objects.insert(id.0);
@@ -609,19 +649,26 @@ impl<'a> Objects<'a> {
     // Return the terminal (non-stream) value and its owner while preserving
     // any intermediate indirect references in the parent dictionary.
     fn lookup_value(&mut self, node: &Value<'a>) -> Option<(Option<ObjectId>, Value<'a>)> {
-        let (owner,value,stream)=self.lookup_object(node)?;
-        stream.is_none().then_some((owner,value))
+        let (owner, value, stream) = self.lookup_object(node)?;
+        stream.is_none().then_some((owner, value))
     }
 
-    fn lookup_object(&mut self,node:&Value<'a>)->Option<(Option<ObjectId>, Value<'a>, Option<Cursor<'a>>)>{
+    fn lookup_object(
+        &mut self,
+        node: &Value<'a>,
+    ) -> Option<(Option<ObjectId>, Value<'a>, Option<Cursor<'a>>)> {
         let mut value = node.clone();
         let mut owner = None;
         let mut seen = std::collections::BTreeSet::new();
         while let Value::Ref(id) = value {
-            if !seen.insert(id) {return None;}
+            if !seen.insert(id) {
+                return None;
+            }
             let (v, mut cursor) = self.object(id)?;
             cursor.skip();
-            if cursor.0.starts_with(b"stream") {return Some((Some(id),v,Some(cursor)));}
+            if cursor.0.starts_with(b"stream") {
+                return Some((Some(id), v, Some(cursor)));
+            }
             owner = Some(id);
             value = v;
         }
@@ -692,8 +739,12 @@ impl<'a> Objects<'a> {
     }
 
     fn stream(&mut self, dict: &Value<'_>, mut c: Cursor<'a>) -> Option<&'a [u8]> {
-        if !c.keyword(b"stream", &mut self.remaining_bytes)? { return None; }
-        if !c.eat(b"\r\n") && !c.eat(b"\r") { c.eat(b"\n"); }
+        if !c.keyword(b"stream", &mut self.remaining_bytes)? {
+            return None;
+        }
+        if !c.eat(b"\r\n") && !c.eat(b"\r") {
+            c.eat(b"\n");
+        }
         let payload = c.0;
         let length = dict.get(b"Length").and_then(|v| match v.reference() {
             Some(r) => uint(self.object(r)?.0.word()?),
@@ -708,7 +759,9 @@ impl<'a> Objects<'a> {
         let mut first = None;
         for (offset, window) in payload.windows(9).enumerate() {
             self.remaining_bytes = self.remaining_bytes.checked_sub(1)?;
-            if window != b"endstream" { continue; }
+            if window != b"endstream" {
+                continue;
+            }
             first.get_or_insert(offset);
             if Cursor(&payload[offset + 9..]).keyword(b"endobj", &mut self.remaining_bytes)? {
                 first = Some(offset);
@@ -718,11 +771,17 @@ impl<'a> Objects<'a> {
         let data = &payload[..first?];
         let offset = self.bytes.len().checked_sub(payload.len())?;
         if !self.recovered_streams.contains(&offset) {
-            self.remaining_bytes = self.remaining_bytes.checked_sub(std::mem::size_of::<usize>() * 4)?;
+            self.remaining_bytes = self
+                .remaining_bytes
+                .checked_sub(std::mem::size_of::<usize>() * 4)?;
             self.recovered_streams.insert(offset);
         }
-        Some(data.strip_suffix(b"\r\n").or_else(|| data.strip_suffix(b"\n"))
-            .or_else(|| data.strip_suffix(b"\r")).unwrap_or(data))
+        Some(
+            data.strip_suffix(b"\r\n")
+                .or_else(|| data.strip_suffix(b"\n"))
+                .or_else(|| data.strip_suffix(b"\r"))
+                .unwrap_or(data),
+        )
     }
 
     fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
@@ -828,12 +887,21 @@ impl<'a> Objects<'a> {
 pub(super) fn header_version(bytes: &[u8]) -> Option<String> {
     let head = &bytes[..bytes.len().min(1024)];
     let start = head.windows(5).position(|w| w == b"%PDF-")? + 5;
-    Some(head[start..head.len().min(start + 3)].iter().copied().map(char::from).collect())
+    Some(
+        head[start..head.len().min(start + 3)]
+            .iter()
+            .copied()
+            .map(char::from)
+            .collect(),
+    )
 }
 
 fn last_xref(bytes: &[u8]) -> Option<usize> {
     let offset_pos = bytes.windows(9).rposition(|w| w == b"startxref")? + 9;
-    let offset: f64 = std::str::from_utf8(Cursor(&bytes[offset_pos..]).word()?).ok()?.parse().ok()?;
+    let offset: f64 = std::str::from_utf8(Cursor(&bytes[offset_pos..]).word()?)
+        .ok()?
+        .parse()
+        .ok()?;
     (offset >= 0. && offset < bytes.len() as f64 && offset.fract() == 0.).then_some(offset as usize)
 }
 
@@ -850,29 +918,46 @@ pub(super) fn encryption_status(bytes: &[u8], password: &str) -> Result<bool, &'
 
 fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
-        objects.authenticate(&trailer,password)?;
+        objects.authenticate(&trailer, password)?;
         objects.offset_repair = OffsetRepair::OnError;
-        if let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
-                .and_then(|id| objects.object(id)).map(|(value, _)| value)
+        if let Some(catalog) = trailer
+            .get(b"Root")
+            .and_then(Value::reference)
+            .and_then(|id| objects.object(id))
+            .map(|(value, _)| value)
             && matches!(catalog, Value::Dict(_))
         {
             return Ok((objects, trailer));
         }
     }
-    let (mut objects, trailer) = pdf_repair::recover(bytes,password)?;
+    let (mut objects, trailer) = pdf_repair::recover(bytes, password)?;
     objects.recovered_xref = true;
-    trailer.get(b"Root").and_then(Value::reference).ok_or(NO_CATALOG)?;
+    trailer
+        .get(b"Root")
+        .and_then(Value::reference)
+        .ok_or(NO_CATALOG)?;
     Ok((objects, trailer))
 }
 
 pub(super) fn recovery_warnings(bytes: &[u8], password: &str) -> Vec<String> {
-    let Ok((mut objects, trailer)) = index(bytes, password) else { return Vec::new(); };
-    let Some((catalog, _)) = trailer.get(b"Root").and_then(Value::reference)
-        .and_then(|id| objects.object(id)) else { return Vec::new(); };
-    if objects.require_page_tree(&catalog).is_err() { return Vec::new(); }
+    let Ok((mut objects, trailer)) = index(bytes, password) else {
+        return Vec::new();
+    };
+    let Some((catalog, _)) = trailer
+        .get(b"Root")
+        .and_then(Value::reference)
+        .and_then(|id| objects.object(id))
+    else {
+        return Vec::new();
+    };
+    if objects.require_page_tree(&catalog).is_err() {
+        return Vec::new();
+    }
     let ids: Vec<_> = objects.xref.keys().copied().collect();
     for id in ids {
-        let Some((node, mut cursor)) = objects.object(id) else { continue; };
+        let Some((node, mut cursor)) = objects.object(id) else {
+            continue;
+        };
         cursor.skip();
         if cursor.0.starts_with(b"stream") {
             // Only inspect encoded framing. Bad unused filters must remain inspectable.
@@ -883,14 +968,26 @@ pub(super) fn recovery_warnings(bytes: &[u8], password: &str) -> Vec<String> {
     if objects.recovered_xref {
         warnings.push("Damaged cross-reference data; reconstructing cross-reference table".into());
     }
-    warnings.extend(objects.recovered_objects.into_iter().map(|id| format!("Recovered object {id} from damaged cross-reference data")));
-    warnings.extend(objects.recovered_streams.into_iter().map(|offset| format!("Recovered stream length at byte offset {offset}")));
+    warnings.extend(
+        objects
+            .recovered_objects
+            .into_iter()
+            .map(|id| format!("Recovered object {id} from damaged cross-reference data")),
+    );
+    warnings.extend(
+        objects
+            .recovered_streams
+            .into_iter()
+            .map(|offset| format!("Recovered stream length at byte offset {offset}")),
+    );
     warnings
 }
 
 fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
     // PDF offsets start at the header, even when the file has a leading prefix.
-    let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
+    let header = bytes[..bytes.len().min(1024)]
+        .windows(5)
+        .position(|w| w == b"%PDF-")?;
     let mut offset = last_xref(bytes)?.checked_add(header)?;
     let mut objects = Objects::new(bytes);
     // Keep the first traversal position for inspection, but the last row
@@ -908,20 +1005,26 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             }
         };
         let trailer = objects.xref_revision(offset, &mut record)?;
-        let hybrid = trailer.get(b"XRefStm").map(|v| uint(v.word()?)?.checked_add(header));
+        let hybrid = trailer
+            .get(b"XRefStm")
+            .map(|v| uint(v.word()?)?.checked_add(header));
         let supplement = match hybrid {
             Some(Some(p)) if p != offset => Some(objects.xref_revision(p, &mut record)?),
             Some(None) => return None,
             _ => None,
         };
-        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?)?.checked_add(header));
+        let prev = trailer
+            .get(b"Prev")
+            .map(|v| uint(v.word()?)?.checked_add(header));
         for trailer in std::iter::once(trailer).chain(supplement) {
             let Value::Dict(entries) = trailer else {
                 return None;
             };
             for (key, value) in entries {
-                if matches!(key.as_ref(), b"Root" | b"Info" | b"ID" | b"Size" | b"Encrypt")
-                    && !latest.iter().any(|(k, _)| *k == key)
+                if matches!(
+                    key.as_ref(),
+                    b"Root" | b"Info" | b"ID" | b"Size" | b"Encrypt"
+                ) && !latest.iter().any(|(k, _)| *k == key)
                 {
                     latest.push((key, value));
                 }
@@ -940,7 +1043,9 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         })
         .collect();
     for (location, _) in objects.xref.values_mut() {
-        if let Location::File(offset) = location { *offset = offset.checked_add(header)?; }
+        if let Location::File(offset) = location {
+            *offset = offset.checked_add(header)?;
+        }
     }
     Some((objects, Value::Dict(latest)))
 }
@@ -949,10 +1054,13 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
 mod pdf_metadata;
 pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
 
-pub(super) fn read(bytes: &[u8], password: &str) -> Result<(PdfDoc, Option<pdf_security::Security>), &'static str> {
-    let (mut objects, trailer) = index(bytes,password)?;
+pub(super) fn read(
+    bytes: &[u8],
+    password: &str,
+) -> Result<(PdfDoc, Option<pdf_security::Security>), &'static str> {
+    let (mut objects, trailer) = index(bytes, password)?;
     let doc = read_pages(bytes, &mut objects, trailer).ok_or("Invalid PDF object graph")?;
-    Ok((doc,objects.security))
+    Ok((doc, objects.security))
 }
 
 fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -> Option<PdfDoc> {
@@ -960,9 +1068,9 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
     let mut doc = PdfDoc::new();
     doc.version = header_version(bytes)?;
     if let Some(id_array @ Value::Array(ids)) = trailer.get(b"ID") {
-        let mut encoded=Vec::new();
-        pdf_rewrite::encode(id_array,&mut encoded).ok()?;
-        doc.trailer_id=Some(encoded);
+        let mut encoded = Vec::new();
+        pdf_rewrite::encode(id_array, &mut encoded).ok()?;
+        doc.trailer_id = Some(encoded);
         for (id, target) in ids.iter().zip([&mut doc.pdf_id0, &mut doc.pdf_id1]) {
             if let Value::String { bytes, .. } = id {
                 *target = super::hex_enc(bytes);
@@ -980,8 +1088,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     b"Author" => doc.author.clone_from(&value),
                     _ => {}
                 }
-                doc.info
-                    .push((pdf_string::name(&k), value));
+                doc.info.push((pdf_string::name(&k), value));
             }
         }
     }
@@ -1010,7 +1117,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
             style.into(),
         ));
     }
-    let mut page_ids=Vec::new();
+    let mut page_ids = Vec::new();
     let mut pending = vec![(
         catalog.get(b"Pages")?.clone(),
         [0.0, 0.0, 612.0, 792.0],
@@ -1019,7 +1126,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
     )];
     let mut seen = BTreeSet::new();
     while let Some((kid, mut media, mut crop, mut rotation)) = pending.pop() {
-        let id=kid.reference();
+        let id = kid.reference();
         let node = match id {
             Some(id) if !seen.insert(id) => continue,
             Some(id) => objects.object(id)?.0,
@@ -1065,7 +1172,9 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     match objects.resolve(contents)? {
                         Value::Array(streams) => {
                             for s in streams {
-                                if !page.text.is_empty() { page.text.push('\n'); }
+                                if !page.text.is_empty() {
+                                    page.text.push('\n');
+                                }
                                 page.text.push_str(&objects.stream_text(s.reference()?)?);
                             }
                         }
@@ -1079,19 +1188,31 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     doc.page_h = h;
                 }
                 doc.pages.push(page);
-                if node.get(b"MediaBox").is_some() && media != [0.,0.,w.abs(),h.abs()] {doc.direct_media.insert(doc.pages.len(),media);}
+                if node.get(b"MediaBox").is_some() && media != [0., 0., w.abs(), h.abs()] {
+                    doc.direct_media.insert(doc.pages.len(), media);
+                }
                 doc.page_media.insert(doc.pages.len(), (w, h, crop));
             }
             _ => return None,
         }
     }
-    doc.linearized = objects.xref.keys().copied().collect::<Vec<_>>().into_iter().any(|id| {
-        objects.object(id).is_some_and(|(v,mut cursor)| {
-            cursor.skip();
-            !cursor.0.starts_with(b"stream") && v.get(b"Linearized").is_some()
-        })
-    });
-    doc.bookmarks = objects.outlines(&catalog,&page_ids)?.into_iter().map(|(title,level,index)|(title,level.to_string(),(index+1).to_string())).collect();
+    doc.linearized = objects
+        .xref
+        .keys()
+        .copied()
+        .collect::<Vec<_>>()
+        .into_iter()
+        .any(|id| {
+            objects.object(id).is_some_and(|(v, mut cursor)| {
+                cursor.skip();
+                !cursor.0.starts_with(b"stream") && v.get(b"Linearized").is_some()
+            })
+        });
+    doc.bookmarks = objects
+        .outlines(&catalog, &page_ids)?
+        .into_iter()
+        .map(|(title, level, index)| (title, level.to_string(), (index + 1).to_string()))
+        .collect();
     Some(doc)
 }
 
@@ -1104,7 +1225,8 @@ mod tests {
         for bytes in [
             include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-table.pdf").as_slice(),
             include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-stream.pdf").as_slice(),
-            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-incremental.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-incremental.pdf")
+                .as_slice(),
             include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-unindexed.pdf").as_slice(),
             include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-linearized.pdf").as_slice(),
         ] {
@@ -1133,14 +1255,23 @@ mod tests {
         assert!(objects.stream(&dict, Cursor(bytes)).is_none());
         assert!(objects.recovered_streams.is_empty());
         objects.remaining_bytes = bytes.len() + std::mem::size_of::<usize>() * 4;
-        assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
+        assert_eq!(
+            objects.stream(&dict, Cursor(bytes)),
+            Some(b"x\rendstream junk ".as_slice())
+        );
         assert_eq!(objects.recovered_streams.len(), 1);
         // Reading the same recovered stream again does not allocate another record.
         objects.remaining_bytes = bytes.len();
-        assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
+        assert_eq!(
+            objects.stream(&dict, Cursor(bytes)),
+            Some(b"x\rendstream junk ".as_slice())
+        );
         assert_eq!(objects.recovered_streams.len(), 1);
         objects.remaining_bytes = bytes.len() + std::mem::size_of::<usize>() * 4;
-        assert_eq!(objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")), Some(b"x".as_slice()));
+        assert_eq!(
+            objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")),
+            Some(b"x".as_slice())
+        );
     }
 
     #[test]

@@ -1,0 +1,194 @@
+{
+  "source": "qpdf 12.4.2",
+  "indexed": {
+    "value": {
+      "/Filter": "/FlateDecode",
+      "/Info": "3 0 R",
+      "/Length": 67,
+      "/Root": "1 0 R",
+      "/Size": 17,
+      "/Type": "/XRef",
+      "/W": [
+        1,
+        4,
+        2
+      ]
+    }
+  },
+  "packed": {
+    "value": {
+      "/Filter": "/FlateDecode",
+      "/Index": [
+        0,
+        9
+      ],
+      "/Info": "3 0 R",
+      "/Length": 38,
+      "/Root": "2 0 R",
+      "/Size": 9,
+      "/Type": "/XRef",
+      "/W": [
+        1,
+        2,
+        2
+      ]
+    }
+  },
+  "aes": {
+    "pdf": "JVBERi0yLjAKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNSAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIDwyOTYyOTFFNTIxMTcyRTc4MDRDNzVBN0M3MkRDRTMwQ0QwRThFMjBCMkMzM0U3QUM1RTgzRUQ4NkE2NTMzNzIyNDlENjI2RTRCMjk4MUUyMjQwMUE4QjBBOUE2QTE1RDc+Ci9UaXRsZSA8NTY4QUNBNjk5QzZCNDY2NDUwOTNBNUYxMzI1M0ExOTgyQ0MzM0U1Q0QwOUQwRUNFNjg4NUMyMkRDQUUzQTgwMD4KPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggODAKPj4Kc3RyZWFtCgEjt8imza73pJvfCbrOlPTFUMnq6KKkXiuQn1SXGc9hci/X/kik//KImVsOR/VMIQt1ru0BISnI/3zMKEFG8pczGvL4ki80pXmsL72MfMGBCmVuZHN0cmVhbQplbmRvYmoKCjUgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0YxIDYgMCBSCj4+Cj4+Ci9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjYgMCBvYmoKPDwKL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvSGVsdmV0aWNhCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCj4+CmVuZG9iagoKNyAwIG9iago8PAovRmlsdGVyIC9TdGFuZGFyZAovViA1Ci9SIDYKL0xlbmd0aCAyNTYKL1AgLTEwNTIKL0VuY3J5cHRNZXRhZGF0YSB0cnVlCi9VIDwwNTRGNEEwQTM2NzIzMjFDQjU1NzhCNzIwRTg0NEM2N0Q5NUNBNTBEMTJGQUI1OENCQTNFNDZDQkZBMTgwNjc1QzM4MThDMzlEOTUxQjAwRUVEMEU2NkI0MjIzN0MwOEU+Ci9PIDxBODFBODg0RURBRTMzQTNBRkE5NDQ2OURDN0ZCNzlDRjM3QUM4OENDQzVGNjhCNzA1OEY4NTExNUMzODhCMDZFOUE0MTU0MjY0MUFDODVFMDhFNUNCNTIyOTRDNTRCODU+Ci9VRSA8OURGMDIxRjdDQjgxNjNGNDEwQUE1MUVDRjAzMUZBM0Q2NjlGQUQxNzg2MkYyMEVENTA1RjA1NTVCMzBCNTJENz4KL09FIDxCMTNGNjE0NUE3RDY3MTIwNkMwOTlCNEQ1MjVGNUY2MTJFMkFEOTI4RTkwNTIyRTBEMUY3QTBDRDI1OTg3NTQ1PgovUGVybXMgPEU2RkM3NzQ2MDUxMTg3QjZCNjkwNEE5NUNCNjUwQTc5PgovQ0YgPDwKL1N0ZENGIDw8Ci9DRk0gL0FFU1YzCi9BdXRoRXZlbnQgL0RvY09wZW4KL0xlbmd0aCAzMgo+Pgo+PgovU3RtRiAvU3RkQ0YKL1N0ckYgL1N0ZENGCj4+CmVuZG9iagoKeHJlZgowIDgKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEzMCAwMDAwMCBuIAowMDAwMDAwMzM1IDAwMDAwIG4gCjAwMDAwMDA0ODcgMDAwMDAgbiAKMDAwMDAwMDYxNiAwMDAwMCBuIAowMDAwMDAwNzE0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgOAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgovRW5jcnlwdCA3IDAgUgovSUQgWyA8NDlFQkQwNzU1Q0RGMkQxQTVGRjI4MDlBN0RDRjMyMTk+IDw0OUVCRDA3NTVDREYyRDFBNUZGMjgwOUE3RENGMzIxOT4gXQo+PgoKc3RhcnR4cmVmCjEyODcKJSVFT0Y=",
+    "json": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [
+            "4 0 R"
+          ],
+          "images": [],
+          "label": null,
+          "object": "5 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "pagelabels": [],
+      "acroform": {
+        "fields": [],
+        "hasacroform": false,
+        "needappearances": false
+      },
+      "attachments": {},
+      "encrypt": {
+        "capabilities": {
+          "accessibility": true,
+          "extract": false,
+          "modify": false,
+          "modifyannotations": true,
+          "modifyassembly": false,
+          "modifyforms": true,
+          "modifyother": false,
+          "printhigh": true,
+          "printlow": true
+        },
+        "encrypted": true,
+        "ownerpasswordmatched": false,
+        "parameters": {
+          "P": -1052,
+          "R": 6,
+          "V": 5,
+          "bits": 256,
+          "filemethod": "AESv3",
+          "key": null,
+          "method": "AESv3",
+          "streammethod": "AESv3",
+          "stringmethod": "AESv3"
+        },
+        "recovereduserpassword": null,
+        "userpasswordmatched": true
+      },
+      "outlines": [],
+      "qpdf": [
+        {
+          "jsonversion": 2,
+          "pdfversion": "2.0",
+          "pushedinheritedpageresources": false,
+          "calledgetallpages": true,
+          "maxobjectid": 7
+        },
+        {
+          "obj:1 0 R": {
+            "value": {
+              "/Pages": "2 0 R",
+              "/Type": "/Catalog"
+            }
+          },
+          "obj:2 0 R": {
+            "value": {
+              "/Count": 1,
+              "/Kids": [
+                "5 0 R"
+              ],
+              "/Type": "/Pages"
+            }
+          },
+          "obj:3 0 R": {
+            "value": {
+              "/Producer": "u:@poe-code/pdf-ast",
+              "/Title": "u:AES 雪"
+            }
+          },
+          "obj:4 0 R": {
+            "stream": {
+              "data": "cQowIDAgMCByZwpCVAovRjEgMTIgVGYKMSAwIDAgMSA0IDYgVG0KKGNvbmZpZGVudGlhbCkgVGoKRVQKUQ==",
+              "dict": {}
+            }
+          },
+          "obj:5 0 R": {
+            "value": {
+              "/Contents": "4 0 R",
+              "/MediaBox": [
+                0,
+                0,
+                612,
+                792
+              ],
+              "/Parent": "2 0 R",
+              "/Resources": {
+                "/Font": {
+                  "/F1": "6 0 R"
+                }
+              },
+              "/Type": "/Page"
+            }
+          },
+          "obj:6 0 R": {
+            "value": {
+              "/BaseFont": "/Helvetica",
+              "/Encoding": "/WinAnsiEncoding",
+              "/Subtype": "/Type1",
+              "/Type": "/Font"
+            }
+          },
+          "obj:7 0 R": {
+            "value": {
+              "/CF": {
+                "/StdCF": {
+                  "/AuthEvent": "/DocOpen",
+                  "/CFM": "/AESV3",
+                  "/Length": 32
+                }
+              },
+              "/EncryptMetadata": true,
+              "/Filter": "/Standard",
+              "/Length": 256,
+              "/O": "b:a81a884edae33a3afa94469dc7fb79cf37ac88ccc5f68b7058f85115c388b06e9a41542641ac85e08e5cb52294c54b85",
+              "/OE": "b:b13f6145a7d671206c099b4d525f5f612e2ad928e90522e0d1f7a0cd25987545",
+              "/P": -1052,
+              "/Perms": "b:e6fc7746051187b6b6904a95cb650a79",
+              "/R": 6,
+              "/StmF": "/StdCF",
+              "/StrF": "/StdCF",
+              "/U": "b:054f4a0a3672321cb5578b720e844c67d95ca50d12fab58cba3e46cbfa180675c3818c39d951b00eed0e66b42237c08e",
+              "/UE": "b:9df021f7cb8163f410aa51ecf031fa3d669fad17862f20ed505f0555b30b52d7",
+              "/V": 5
+            }
+          },
+          "trailer": {
+            "value": {
+              "/Encrypt": "7 0 R",
+              "/ID": [
+                "b:49ebd0755cdf2d1a5ff2809a7dcf3219",
+                "b:49ebd0755cdf2d1a5ff2809a7dcf3219"
+              ],
+              "/Info": "3 0 R",
+              "/Root": "1 0 R",
+              "/Size": 8
+            }
+          }
+        }
+      ]
+    }
+  }
+}

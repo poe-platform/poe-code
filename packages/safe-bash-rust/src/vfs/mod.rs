@@ -8,7 +8,7 @@ pub mod real;
 
 pub use memory::{MemoryVfs, MemoryVfsLimits};
 pub use mount::MountVfs;
-pub use overlay::{OverlayVfs,OverlayChmodReceipt};
+pub use overlay::{OverlayChmodReceipt, OverlayVfs};
 pub use path::{
     basename_posix_path, dirname_posix_path, is_path_within, normalize_posix_path,
     parent_posix_path, resolve_posix_path,
@@ -20,14 +20,18 @@ pub(crate) fn now_ms() -> f64 {
     #[cfg(target_arch = "wasm32")]
     {
         #[link(wasm_import_module = "safe_bash")]
-        unsafe extern "C" { fn wall_clock_ms() -> f64; }
+        unsafe extern "C" {
+            fn wall_clock_ms() -> f64;
+        }
         unsafe { wall_clock_ms() }
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
         use std::time::{SystemTime, UNIX_EPOCH};
-        SystemTime::now().duration_since(UNIX_EPOCH)
-            .map(|d| d.as_millis() as f64).unwrap_or_else(|e| -(e.duration().as_millis() as f64))
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_millis() as f64)
+            .unwrap_or_else(|e| -(e.duration().as_millis() as f64))
     }
 }
 
@@ -49,9 +53,20 @@ pub enum EntryIdentity {
 impl EntryIdentity {
     pub(crate) fn same_filesystem(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Memory(a, _), Self::Memory(b, _)) | (Self::Unix(a, _), Self::Unix(b, _)) => a == b,
-            (Self::Host { scope: a, dev: x, .. }, Self::Host { scope: b, dev: y, .. }) => a == b && x == y,
-            (Self::OverlayDirectory { scope: a, .. }, Self::OverlayDirectory { scope: b, .. }) => a == b,
+            (Self::Memory(a, _), Self::Memory(b, _)) | (Self::Unix(a, _), Self::Unix(b, _)) => {
+                a == b
+            }
+            (
+                Self::Host {
+                    scope: a, dev: x, ..
+                },
+                Self::Host {
+                    scope: b, dev: y, ..
+                },
+            ) => a == b && x == y,
+            (Self::OverlayDirectory { scope: a, .. }, Self::OverlayDirectory { scope: b, .. }) => {
+                a == b
+            }
             _ => false,
         }
     }
@@ -79,13 +94,26 @@ pub struct FileStat {
 
 impl FileStat {
     pub(crate) fn same_snapshot(&self, other: &Self) -> bool {
-        self.identity.is_some() && self.identity == other.identity && self.revision == other.revision
-            && self.kind == other.kind && self.mode == other.mode && self.size == other.size
-            && self.nlink == other.nlink && self.mtime_ms == other.mtime_ms && self.ctime_ms == other.ctime_ms
-            && self.birthtime_ms == other.birthtime_ms && self.uid == other.uid && self.gid == other.gid
+        self.identity.is_some()
+            && self.identity == other.identity
+            && self.revision == other.revision
+            && self.kind == other.kind
+            && self.mode == other.mode
+            && self.size == other.size
+            && self.nlink == other.nlink
+            && self.mtime_ms == other.mtime_ms
+            && self.ctime_ms == other.ctime_ms
+            && self.birthtime_ms == other.birthtime_ms
+            && self.uid == other.uid
+            && self.gid == other.gid
     }
 
-    pub(crate) fn check_receipt(&self, expected: &Self, unchanged: bool, path: &str) -> Result<(),String> {
+    pub(crate) fn check_receipt(
+        &self,
+        expected: &Self,
+        unchanged: bool,
+        path: &str,
+    ) -> Result<(), String> {
         let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
         let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
             return Err("ENOTSUP: missing filesystem identity".into());
@@ -93,13 +121,20 @@ impl FileStat {
         if !matches!(self.identity, Some(EntryIdentity::Memory(id,_)) if scope == id) {
             return Err("ENOTSUP: different filesystem identity".into());
         }
-        if expected.identity != self.identity || expected.kind != self.kind { return Err(changed()); }
+        if expected.identity != self.identity || expected.kind != self.kind {
+            return Err(changed());
+        }
         if unchanged {
             if self.revision.is_none() || expected.revision.is_none() {
                 return Err("ENOTSUP: missing file revision".into());
             }
-            if expected.revision != self.revision || expected.size != self.size || expected.mode != self.mode ||
-                expected.nlink != self.nlink || expected.mtime_ms != self.mtime_ms || expected.ctime_ms != self.ctime_ms {
+            if expected.revision != self.revision
+                || expected.size != self.size
+                || expected.mode != self.mode
+                || expected.nlink != self.nlink
+                || expected.mtime_ms != self.mtime_ms
+                || expected.ctime_ms != self.ctime_ms
+            {
                 return Err(changed());
             }
         }
@@ -107,16 +142,25 @@ impl FileStat {
     }
 }
 
-fn validate_chmod_ancestry(path: &str, mode: u32, ancestors: &[(&str, FileStat)]) -> Result<(),String> {
+fn validate_chmod_ancestry(
+    path: &str,
+    mode: u32,
+    ancestors: &[(&str, FileStat)],
+) -> Result<(), String> {
     let dir = dirname_posix_path(path);
-    if mode > 0o7777 || path != normalize_posix_path(path) || path.contains('\0')
-        || ancestors.last().map(|(p,_)|*p) != Some(dir.as_str()) {
+    if mode > 0o7777
+        || path != normalize_posix_path(path)
+        || path.contains('\0')
+        || ancestors.last().map(|(p, _)| *p) != Some(dir.as_str())
+    {
         return Err("EINVAL: invalid chmod receipt".into());
     }
     let mut previous = "";
     for (i, (p, stat)) in ancestors.iter().enumerate() {
-        if (i == 0 && *p != "/") || (i > 0 && (*p == "/" || dirname_posix_path(p) != previous))
-            || stat.kind != VfsEntryKind::Directory {
+        if (i == 0 && *p != "/")
+            || (i > 0 && (*p == "/" || dirname_posix_path(p) != previous))
+            || stat.kind != VfsEntryKind::Directory
+        {
             return Err("EINVAL: invalid chmod ancestry".into());
         }
         previous = p;
@@ -165,22 +209,39 @@ impl FsError {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RedirectAccess { Read, Write, Truncate, Append, Exclusive, ReadWrite }
+pub enum RedirectAccess {
+    Read,
+    Write,
+    Truncate,
+    Append,
+    Exclusive,
+    ReadWrite,
+}
 
 /// An open descriptor. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {
     /// Stream reads cannot be repeated at an earlier offset.
-    fn is_stream(&self) -> bool { false }
+    fn is_stream(&self) -> bool {
+        false
+    }
     /// None means changes outside this shell cannot be tracked.
-    fn revision(&self) -> Option<u64> { None }
+    fn revision(&self) -> Option<u64> {
+        None
+    }
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String>;
-    fn stat(&self) -> Result<FileStat, String> { Err("ENOTSUP: operation not supported".into()) }
-    fn truncate_to(&self, _len: usize) -> Result<(), String> { Err("ENOTSUP: operation not supported".into()) }
+    fn stat(&self) -> Result<FileStat, String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
+    fn truncate_to(&self, _len: usize) -> Result<(), String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
 }
 
 impl PartialEq for dyn OpenRedirectFile {
-    fn eq(&self, other: &Self) -> bool { std::ptr::eq(self, other) }
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Eq for dyn OpenRedirectFile {}
 
@@ -193,7 +254,9 @@ pub type ChunkWriter<'a> = Box<dyn FnMut(Option<&[u8]>) -> Result<(), String> + 
 /// Positioned reads and metadata on the same opened object, even after unlink.
 pub trait FileReadHandle: Send + Sync {
     fn stat(&self) -> Result<FileStat, String>;
-    fn seek_end(&self) -> Result<u64, String> { Err("ENOTSUP: operation not supported".into()) }
+    fn seek_end(&self) -> Result<u64, String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
     fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String>;
 }
 
@@ -201,21 +264,36 @@ pub trait FileReadHandle: Send + Sync {
 pub struct RedirectCharge(pub(crate) usize);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum RmdirSupport { Available, Unsupported, InspectDirectory }
+pub enum RmdirSupport {
+    Available,
+    Unsupported,
+    InspectDirectory,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum PublicationMode { Write, Rollback, Replace, StagingDirectory }
+pub enum PublicationMode {
+    Write,
+    Rollback,
+    Replace,
+    StagingDirectory,
+}
 
 /// Keep a host's destination and parent observations alive until publication or rollback.
 pub struct PublicationStamp {
-    pub version:u64,
-    release:Option<Box<dyn FnOnce()>>,
+    pub version: u64,
+    release: Option<Box<dyn FnOnce()>>,
 }
 impl PublicationStamp {
-    pub(crate) fn new(version:u64, release:Option<Box<dyn FnOnce()>>) -> Self { Self {version,release} }
+    pub(crate) fn new(version: u64, release: Option<Box<dyn FnOnce()>>) -> Self {
+        Self { version, release }
+    }
 }
 impl Drop for PublicationStamp {
-    fn drop(&mut self) { if let Some(release)=self.release.take() {release();} }
+    fn drop(&mut self) {
+        if let Some(release) = self.release.take() {
+            release();
+        }
+    }
 }
 
 pub struct RemovalReceipt<'a> {
@@ -227,32 +305,60 @@ pub struct RemovalReceipt<'a> {
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
-        path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()), |_| false)
+        path::walk_path(
+            path,
+            follow_final,
+            path::WalkPurpose::Access,
+            |p| (None, self, p.to_owned()),
+            |_| false,
+        )
     }
 
     /// Resolve a command descriptor's create-if-missing capability query.
     fn command_create_path(&self, path: &str) -> Result<String, String> {
-        if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+        if path.is_empty() {
+            return Err("ENOENT: no such file or directory ''".into());
+        }
         let resolved = if let Some(memory) = self.memory_backend() {
-            path::walk_path(path, true, path::WalkPurpose::CommandCreate, |p| (None, memory, p.to_owned()), |_| false)
-        } else { self.access_path(path, true) };
+            path::walk_path(
+                path,
+                true,
+                path::WalkPurpose::CommandCreate,
+                |p| (None, memory, p.to_owned()),
+                |_| false,
+            )
+        } else {
+            self.access_path(path, true)
+        };
         resolved.map_err(|e| {
             if let Some(parent) = e.strip_prefix("ENOENT: no such file or directory, stat ") {
                 format!("ENOENT: no such file or directory, lstat {parent}")
             } else if e == "ENOTDIR: not a directory" {
-                if path.ends_with('/') { format!("EISDIR: illegal operation on a directory '{path}'") }
-                else { format!("{e} '{path}'") }
+                if path.ends_with('/') {
+                    format!("EISDIR: illegal operation on a directory '{path}'")
+                } else {
+                    format!("{e} '{path}'")
+                }
             } else if e.starts_with("ELOOP:") {
                 format!("ELOOP: too many symbolic links encountered '{path}'")
-            } else { e }
+            } else {
+                e
+            }
         })
     }
 
     /// Whether command capabilities depend on the operand’s filesystem location.
-    fn has_path_capabilities(&self) -> bool { false }
+    fn has_path_capabilities(&self) -> bool {
+        false
+    }
 
     /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.
-    fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
+    fn inspect_command_entry(
+        &self,
+        path: &str,
+        follow: bool,
+        _syscall: &str,
+    ) -> Result<(String, FileStat), String> {
         let entry = self.access_path(path, follow)?;
         self.lstat(&entry).map(|st| (entry, st))
     }
@@ -263,31 +369,65 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// Whether commands can request positioned descriptors at a resolved entry.
-    fn supports_command_descriptor(&self, _entry: &str) -> bool { false }
+    fn supports_command_descriptor(&self, _entry: &str) -> bool {
+        false
+    }
 
-    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+    fn open_exclusive_redirect(
+        &self,
+        path: &str,
+        mode: u32,
+    ) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
         self.open_redirect_file(path, RedirectAccess::Exclusive, Some(mode))?;
         Ok(None)
     }
 
     /// None uses the filesystem’s path-based output or special-device operations.
-    fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
-        if matches!(access, RedirectAccess::ReadWrite | RedirectAccess::Write) { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
-        else {
-            if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode.ok_or("EINVAL: missing creation mode")?)?; }
+    fn open_redirect_file(
+        &self,
+        path: &str,
+        access: RedirectAccess,
+        create_mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
+        if matches!(access, RedirectAccess::ReadWrite | RedirectAccess::Write) {
+            Err(format!("ENOTSUP: operation not supported, open '{path}'"))
+        } else {
+            if access == RedirectAccess::Exclusive {
+                self.create_file(
+                    path,
+                    &[],
+                    create_mode.ok_or("EINVAL: missing creation mode")?,
+                )?;
+            }
             Ok(None)
         }
     }
 
-    fn open_command_stream<'a>(&'a self, path: &str, append: bool, exclusive: bool, mode: u32, budget: Option<&'a crate::ExecutionBudget>) -> Result<ChunkWriter<'a>, String> {
-        if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+    fn open_command_stream<'a>(
+        &'a self,
+        path: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+        budget: Option<&'a crate::ExecutionBudget>,
+    ) -> Result<ChunkWriter<'a>, String> {
+        if path.is_empty() {
+            return Err("ENOENT: no such file or directory ''".into());
+        }
         if let Some(b) = budget {
             // tee and its output adapter each query capabilities before access(W_OK).
-            b.tick_fs_op()?; b.tick_fs_op()?; if !exclusive { b.tick_fs_op()?; }
+            b.tick_fs_op()?;
+            b.tick_fs_op()?;
+            if !exclusive {
+                b.tick_fs_op()?;
+            }
         }
         let access = self.access_path(path, !exclusive);
         let diagnostic = |e: String, syscall: &str| {
-            if e.contains(", overlay '") || e.contains(", realpath '") || e.contains(", lstat '") && e.starts_with("EACCES:") {
+            if e.contains(", overlay '")
+                || e.contains(", realpath '")
+                || e.contains(", lstat '") && e.starts_with("EACCES:")
+            {
                 e
             } else {
                 format!("{}, {syscall} '{path}'", e.split(", ").next().unwrap_or(&e))
@@ -295,25 +435,54 @@ pub trait SafeBashFs: Send + Sync {
         };
         if !exclusive && let Ok(entry) = &access {
             if self.lstat(entry).is_ok_and(|st| st.mode & 0o200 == 0) {
-                let syscall = if self.overlay_backend().is_some() { "overlay" } else { "access" };
+                let syscall = if self.overlay_backend().is_some() {
+                    "overlay"
+                } else {
+                    "access"
+                };
                 return Err(format!("EACCES: permission denied, {syscall} '{entry}'"));
             }
         } else if let Err(e) = &access {
-            if !e.starts_with("ENOENT:") { return Err(diagnostic(e.clone(), "access")); }
+            if !e.starts_with("ENOENT:") {
+                return Err(diagnostic(e.clone(), "access"));
+            }
         }
-        if let Some(b) = budget { b.tick_fs_op()?; }
+        if let Some(b) = budget {
+            b.tick_fs_op()?;
+        }
         let entry = access.map_err(|e| diagnostic(e, "writeStream"))?;
-        if exclusive && self.lstat(&entry).is_ok() { return Err("EEXIST: file exists".into()); }
-        if entry == "/" { return Err(format!("EISDIR: illegal operation on a directory '{path}'")); }
-        let mut stream = self.start_command_stream(path, &entry, append, exclusive, mode).map_err(|e| diagnostic(e, "writeStream"))?;
+        if exclusive && self.lstat(&entry).is_ok() {
+            return Err("EEXIST: file exists".into());
+        }
+        if entry == "/" {
+            return Err(format!("EISDIR: illegal operation on a directory '{path}'"));
+        }
+        let mut stream = self
+            .start_command_stream(path, &entry, append, exclusive, mode)
+            .map_err(|e| diagnostic(e, "writeStream"))?;
         Ok(Box::new(move |chunk| {
-            if let (Some(b), Some(bytes)) = (budget, chunk) { b.add_output_bytes(bytes.len())?; }
+            if let (Some(b), Some(bytes)) = (budget, chunk) {
+                b.add_output_bytes(bytes.len())?;
+            }
             stream(chunk)
         }))
     }
 
-    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<ChunkWriter<'_>, String> {
-        let access = if exclusive { RedirectAccess::Exclusive } else if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+    fn start_command_stream(
+        &self,
+        _path: &str,
+        entry: &str,
+        append: bool,
+        exclusive: bool,
+        mode: u32,
+    ) -> Result<ChunkWriter<'_>, String> {
+        let access = if exclusive {
+            RedirectAccess::Exclusive
+        } else if append {
+            RedirectAccess::Append
+        } else {
+            RedirectAccess::Truncate
+        };
         if let Some(handle) = self.open_redirect_file(entry, access, Some(mode))? {
             let mut cursor = 0;
             return Ok(Box::new(move |chunk| {
@@ -329,48 +498,93 @@ pub trait SafeBashFs: Send + Sync {
         self.write_command_path(entry, &[], append, mode)?;
         let entry = entry.to_owned();
         Ok(Box::new(move |chunk| {
-            if let Some(bytes) = chunk { self.append_file(&entry, bytes)?; }
+            if let Some(bytes) = chunk {
+                self.append_file(&entry, bytes)?;
+            }
             Ok(())
         }))
     }
 
     /// A command's named writeFile/appendFile opens the path afresh for each write.
-    fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
+    fn write_command_path(
+        &self,
+        path: &str,
+        bytes: &[u8],
+        append: bool,
+        mode: u32,
+    ) -> Result<(), String> {
         let entry = self.access_path(path, true)?;
-        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        let access = if append {
+            RedirectAccess::Append
+        } else {
+            RedirectAccess::Truncate
+        };
         if let Some(handle) = self.open_redirect_file(&entry, access, Some(mode))? {
-            if !bytes.is_empty() { handle.write_at(if append { None } else { Some(0) }, bytes)?; }
+            if !bytes.is_empty() {
+                handle.write_at(if append { None } else { Some(0) }, bytes)?;
+            }
             return Ok(());
         }
         // Path-only filesystems (including overlays) perform the write themselves.
         let create = match self.lstat(&entry) {
-            Ok(st) if st.kind == VfsEntryKind::Directory => return Err("EISDIR: illegal operation on a directory".into()),
+            Ok(st) if st.kind == VfsEntryKind::Directory => {
+                return Err("EISDIR: illegal operation on a directory".into());
+            }
             Ok(st) if st.mode & 0o200 == 0 => return Err("EACCES: permission denied".into()),
             Ok(_) => false,
             Err(e) if e.starts_with("ENOENT:") => {
-                if self.stat(&dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+                if self.stat(&dirname_posix_path(&entry))?.mode & 0o300 != 0o300 {
+                    return Err("EACCES: permission denied".into());
+                }
                 true
             }
             Err(e) => return Err(e),
         };
-        if create && mode != 0o644 { return self.create_file(&entry, bytes, mode); }
-        if append { self.append_file(&entry, bytes) } else { self.write_file(&entry, bytes) }
+        if create && mode != 0o644 {
+            return self.create_file(&entry, bytes, mode);
+        }
+        if append {
+            self.append_file(&entry, bytes)
+        } else {
+            self.write_file(&entry, bytes)
+        }
     }
 
     /// Admit an operation on an already-open command descriptor (such as fstat or truncate).
-    fn command_descriptor_op(&self) -> Result<(), String> { Ok(()) }
+    fn command_descriptor_op(&self) -> Result<(), String> {
+        Ok(())
+    }
 
     /// Write to a retained command output; None appends at its current end.
-    fn write_command_file_at(&self, file: &dyn OpenRedirectFile, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
+    fn write_command_file_at(
+        &self,
+        file: &dyn OpenRedirectFile,
+        offset: Option<usize>,
+        bytes: &[u8],
+    ) -> Result<(), String> {
         file.write_at(offset, bytes)
     }
 
     /// Write to a path when the filesystem did not supply a retained redirect handle.
-    fn write_redirect_path(&self, path: &str, data: &[u8], append: bool, _charge: RedirectCharge) -> Result<(), String> {
-        if append { self.append_file(path, data) } else { self.write_file(path, data) }
+    fn write_redirect_path(
+        &self,
+        path: &str,
+        data: &[u8],
+        append: bool,
+        _charge: RedirectCharge,
+    ) -> Result<(), String> {
+        if append {
+            self.append_file(path, data)
+        } else {
+            self.write_file(path, data)
+        }
     }
 
-    fn open_read_file(&self, _path: &str, _allow_directory: bool) -> Result<Box<dyn FileReadHandle>, String> {
+    fn open_read_file(
+        &self,
+        _path: &str,
+        _allow_directory: bool,
+    ) -> Result<Box<dyn FileReadHandle>, String> {
         Err("ENOTSUP: retained reads are not supported".into())
     }
 
@@ -380,12 +594,22 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
-    fn supplies_single_chunk_input(&self) -> bool { self.memory_backend().is_some() }
+    fn supplies_single_chunk_input(&self) -> bool {
+        self.memory_backend().is_some()
+    }
     /// Read a command input supplied as a single chunk by a direct memory filesystem.
-    fn read_single_chunk_input(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {
-        if let Some(budget) = budget { budget.tick_fs_op()?; }
+    fn read_single_chunk_input(
+        &self,
+        path: &str,
+        budget: Option<&crate::ExecutionBudget>,
+    ) -> Result<Vec<u8>, String> {
+        if let Some(budget) = budget {
+            budget.tick_fs_op()?;
+        }
         let entry = self.access_path(path, true)?;
-        if let Some(budget) = budget { budget.tick_fs_op()?; }
+        if let Some(budget) = budget {
+            budget.tick_fs_op()?;
+        }
         self.read_file(&entry)
     }
     fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
@@ -400,12 +624,19 @@ pub trait SafeBashFs: Send + Sync {
         }))
     }
     /// Read chunks of at most `size` bytes, including on backends with a fixed block size.
-    fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<ChunkReader<'_>, String> {
+    fn open_chunks_sized(
+        &self,
+        path: &str,
+        size: std::num::NonZeroUsize,
+    ) -> Result<ChunkReader<'_>, String> {
         let mut next = self.open_chunks(path)?;
         let mut block = Vec::new();
         let mut pos = 0;
         Ok(Box::new(move |chunk| {
-            if pos == block.len() { next(&mut block)?; pos = 0; }
+            if pos == block.len() {
+                next(&mut block)?;
+                pos = 0;
+            }
             let end = pos + (block.len() - pos).min(size.get());
             chunk.clear();
             chunk.extend_from_slice(&block[pos..end]);
@@ -414,20 +645,37 @@ pub trait SafeBashFs: Send + Sync {
         }))
     }
     /// Deliver successive file chunks until EOF or the consumer returns false.
-    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+    fn read_chunks(
+        &self,
+        path: &str,
+        consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>,
+    ) -> Result<(), String> {
         let mut next = self.open_chunks(path)?;
         let mut chunk = Vec::new();
         loop {
             next(&mut chunk)?;
-            if chunk.is_empty() || !consume(&chunk)? { return Ok(()); }
+            if chunk.is_empty() || !consume(&chunk)? {
+                return Ok(());
+            }
         }
     }
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Commit an edit only while the original regular file and its contents still match.
     /// A replacement gets a new inode; an in-place edit keeps existing links and handles.
-    fn commit_file_edit(&self, _path: &str, _original: &FileStat, _before: &[u8], _after: &[u8], in_place: bool) -> Result<(), String> {
-        Err(if in_place { "VFS atomic in-place publication not supported" }
-            else { "VFS atomic replacement publication not supported" }.into())
+    fn commit_file_edit(
+        &self,
+        _path: &str,
+        _original: &FileStat,
+        _before: &[u8],
+        _after: &[u8],
+        in_place: bool,
+    ) -> Result<(), String> {
+        Err(if in_place {
+            "VFS atomic in-place publication not supported"
+        } else {
+            "VFS atomic replacement publication not supported"
+        }
+        .into())
     }
     /// Create at the resolved entry with the requested mode. An occupied name is never followed or overwritten.
     fn create_file(&self, _path: &str, _data: &[u8], _mode: u32) -> Result<(), String> {
@@ -436,127 +684,278 @@ pub trait SafeBashFs: Send + Sync {
     /// Create a private entry exclusively with the given permissions; never follow the final name.
     fn create_temp(&self, path: &str, directory: bool, mode: u32) -> Result<(), String> {
         let entry = self.access_path(path, false)?;
-        if directory { self.mkdir_one(&entry, mode) } else { self.create_file(&entry, &[], mode) }
+        if directory {
+            self.mkdir_one(&entry, mode)
+        } else {
+            self.create_file(&entry, &[], mode)
+        }
     }
     /// Filesystem identity and revision covering a patch target and its local ancestors.
     fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
         Err("filesystem does not support race-safe patch mutations".into())
     }
-    fn observe_patch(&self,path:&str)->Result<(u64,PublicationStamp),String> {
-        self.patch_revision(path).map(|(scope,version)|(scope,PublicationStamp::new(version,None)))
+    fn observe_patch(&self, path: &str) -> Result<(u64, PublicationStamp), String> {
+        self.patch_revision(path)
+            .map(|(scope, version)| (scope, PublicationStamp::new(version, None)))
     }
     /// Replace or unlink a regular file only at the inspected revision. Return the revision after this change.
-    fn patch_file(&self, _path: &str, _bytes: Option<&[u8]>, _expected: (u64, u64)) -> Result<u64, String> {
+    fn patch_file(
+        &self,
+        _path: &str,
+        _bytes: Option<&[u8]>,
+        _expected: (u64, u64),
+    ) -> Result<u64, String> {
         Err("filesystem does not support race-safe patch mutations".into())
     }
     /// Atomically install a fresh regular file, leaving existing descriptors and hard links intact.
     fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.replace_file_entry_with_mode(path, data, 0o644, version)
     }
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_mode(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        version: u64,
+    ) -> Result<(), String> {
         self.replace_file_entry_with_metadata(path, data, mode, (None, None), version)
     }
     /// Install a new file and move the inspected original to a guarded sibling in one commit.
-    fn replace_file_with_backup(&self, _path: &str, _data: &[u8], _version: u64, _backup: &str, _backup_version: u64) -> Result<(), String> {
+    fn replace_file_with_backup(
+        &self,
+        _path: &str,
+        _data: &[u8],
+        _version: u64,
+        _backup: &str,
+        _backup_version: u64,
+    ) -> Result<(), String> {
         Err("ENOTSUP: atomic file replacement with backup is unsupported".into())
     }
     /// Install prepared regular files together, after admitting the complete batch.
-    fn replace_file_batch(&self, _files: Vec<(String, Vec<u8>, u32)>, _version: u64) -> Result<(), String> {
+    fn replace_file_batch(
+        &self,
+        _files: Vec<(String, Vec<u8>, u32)>,
+        _version: u64,
+    ) -> Result<(), String> {
         Err("ZIP split publication requires atomic owned staging".into())
     }
-    fn publish_zip_volumes(&self, files: Vec<(String,Vec<u8>,u32)>, _guards:&[PublicationStamp],
-        temporary:Option<(&str,u64)>, version:u64) -> Result<(),String> {
-        if temporary.is_some() {return Err("ZIP split publication requires atomic owned staging".into());}
-        self.replace_file_batch(files,version)
+    fn publish_zip_volumes(
+        &self,
+        files: Vec<(String, Vec<u8>, u32)>,
+        _guards: &[PublicationStamp],
+        temporary: Option<(&str, u64)>,
+        version: u64,
+    ) -> Result<(), String> {
+        if temporary.is_some() {
+            return Err("ZIP split publication requires atomic owned staging".into());
+        }
+        self.replace_file_batch(files, version)
     }
     /// Run a virtual checker on owned temporary bytes. Return the publication
     /// stamp adjusted only for this stage's own filesystem mutations.
-    fn validate_staged_file(&self, _destination: &str, _temporary: Option<(&str,u64)>, _bytes: &[u8], _stamp: u64, _check_only: bool,
-        _check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
+    fn validate_staged_file(
+        &self,
+        _destination: &str,
+        _temporary: Option<(&str, u64)>,
+        _bytes: &[u8],
+        _stamp: u64,
+        _check_only: bool,
+        _check: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(bool, u64), String> {
         Err("ENOTSUP: owned validation staging unavailable".into())
     }
     /// Publish command-private staging bytes without charging them to stdout.
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.replace_file_entry_with_mode(path, data, 0o600, version)
     }
-    fn supports_conditional_removal(&self, _path: &str) -> bool { false }
-    fn retain_removal(&self, path: &str, parent: FileStat, mut expected: FileStat) -> Result<RemovalReceipt<'_>,String> {
-        if !self.supports_conditional_removal(path) { return Err("ZIP move requires atomic conditional source removal".into()); }
-        let Some((dir,entry))=parent.identity.clone().zip(expected.identity.clone()).filter(|_|expected.revision.is_some()) else {
+    fn supports_conditional_removal(&self, _path: &str) -> bool {
+        false
+    }
+    fn retain_removal(
+        &self,
+        path: &str,
+        parent: FileStat,
+        mut expected: FileStat,
+    ) -> Result<RemovalReceipt<'_>, String> {
+        if !self.supports_conditional_removal(path) {
+            return Err("ZIP move requires atomic conditional source removal".into());
+        }
+        let Some((dir, entry)) = parent
+            .identity
+            .clone()
+            .zip(expected.identity.clone())
+            .filter(|_| expected.revision.is_some())
+        else {
             return Err("ZIP move requires known source identity and revision".into());
         };
-        let path=path.to_owned();
-        Ok(RemovalReceipt {parent:(0,dir),entry:(0,entry),remove:Box::new(move |advance|{
-            if advance!=0 && let Ok(current)=self.lstat(&path)
-                && current.identity==expected.identity && current.kind==expected.kind
-                && current.revision==expected.revision.and_then(|rev|rev.checked_add(advance)) { expected=current; }
-            self.remove_unchanged_entry(&path,&parent,&expected)
-        })})
+        let path = path.to_owned();
+        Ok(RemovalReceipt {
+            parent: (0, dir),
+            entry: (0, entry),
+            remove: Box::new(move |advance| {
+                if advance != 0
+                    && let Ok(current) = self.lstat(&path)
+                    && current.identity == expected.identity
+                    && current.kind == expected.kind
+                    && current.revision
+                        == expected.revision.and_then(|rev| rev.checked_add(advance))
+                {
+                    expected = current;
+                }
+                self.remove_unchanged_entry(&path, &parent, &expected)
+            }),
+        })
     }
-    fn remove_unchanged_entry(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
+    fn remove_unchanged_entry(
+        &self,
+        _path: &str,
+        _parent: &FileStat,
+        _expected: &FileStat,
+    ) -> Result<(), String> {
         Err("ENOTSUP: atomic source removal unavailable (use -k or -c)".into())
     }
-    fn remove_command_entry(&self, path: &str, parent: &FileStat, expected: &FileStat, _force: bool) -> Result<(), String> {
-        if expected.kind == VfsEntryKind::File && expected.revision.is_some() && matches!(expected.identity, Some(EntryIdentity::Memory(..))) {
-            self.remove_unchanged_file(path,parent,expected)
-        } else { self.remove_one(path,false) }
+    fn remove_command_entry(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: &FileStat,
+        _force: bool,
+    ) -> Result<(), String> {
+        if expected.kind == VfsEntryKind::File
+            && expected.revision.is_some()
+            && matches!(expected.identity, Some(EntryIdentity::Memory(..)))
+        {
+            self.remove_unchanged_file(path, parent, expected)
+        } else {
+            self.remove_one(path, false)
+        }
     }
-    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
-        if expected.kind != VfsEntryKind::File { return Err(format!("EBUSY: input changed; input retained '{path}'")); }
-        self.remove_unchanged_entry(path,parent,expected)
+    fn remove_unchanged_file(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: &FileStat,
+    ) -> Result<(), String> {
+        if expected.kind != VfsEntryKind::File {
+            return Err(format!("EBUSY: input changed; input retained '{path}'"));
+        }
+        self.remove_unchanged_entry(path, parent, expected)
     }
     /// Inspect the extraction destination and bind its replacement to that observation.
-    fn inspect_extraction(&self, path: &str, _allow_trusted_ancestry: bool) -> Result<(Option<FileStat>,PublicationStamp),String> {
+    fn inspect_extraction(
+        &self,
+        path: &str,
+        _allow_trusted_ancestry: bool,
+    ) -> Result<(Option<FileStat>, PublicationStamp), String> {
         let version = self.generation();
         let existing = match self.lstat(path) {
             Ok(stat) => Some(stat),
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
             Err(e) => return Err(e),
         };
-        Ok((existing,PublicationStamp::new(version,None)))
+        Ok((existing, PublicationStamp::new(version, None)))
     }
-    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
-        if expected.is_some() {return Err("ENOTSUP: guarded symlink replacement unavailable".into());}
-        if parent.identity.is_none() || self.lstat(&dirname_posix_path(path))?.identity!=parent.identity {
+    fn publish_extraction_symlink(
+        &self,
+        path: &str,
+        target: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        _stamp: u64,
+    ) -> Result<(), String> {
+        if expected.is_some() {
+            return Err("ENOTSUP: guarded symlink replacement unavailable".into());
+        }
+        if parent.identity.is_none()
+            || self.lstat(&dirname_posix_path(path))?.identity != parent.identity
+        {
             return Err(format!("EAGAIN: extraction parent changed: {path}"));
         }
-        self.symlink(target,path)
+        self.symlink(target, path)
     }
-    fn charge_extraction_bytes(&self,_bytes:usize)->Result<(),String>{Ok(())}
-    fn prepare_extraction_directory(&self,path:&str,parent:&FileStat,expected:Option<&FileStat>,mode:u32,times:(Option<f64>,Option<f64>),_stamp:u64)->Result<FileStat,String> {
-        if let Some(memory)=self.memory_backend() {
-            return memory.prepare_directory(path,parent,expected,Some(mode),times.0,times.1);
+    fn charge_extraction_bytes(&self, _bytes: usize) -> Result<(), String> {
+        Ok(())
+    }
+    fn prepare_extraction_directory(
+        &self,
+        path: &str,
+        parent: &FileStat,
+        expected: Option<&FileStat>,
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        _stamp: u64,
+    ) -> Result<FileStat, String> {
+        if let Some(memory) = self.memory_backend() {
+            return memory.prepare_directory(path, parent, expected, Some(mode), times.0, times.1);
         }
-        let changed=||format!("EAGAIN: extraction directory changed: {path}");
-        if parent.identity.is_none() || self.lstat(&dirname_posix_path(path))?.identity!=parent.identity {return Err(changed());}
-        if let Some(expected)=expected {
-            let current=self.lstat(path)?;
-            if current.kind!=VfsEntryKind::Directory || current.identity.is_none() || current.identity!=expected.identity {return Err(changed());}
+        let changed = || format!("EAGAIN: extraction directory changed: {path}");
+        if parent.identity.is_none()
+            || self.lstat(&dirname_posix_path(path))?.identity != parent.identity
+        {
+            return Err(changed());
+        }
+        if let Some(expected) = expected {
+            let current = self.lstat(path)?;
+            if current.kind != VfsEntryKind::Directory
+                || current.identity.is_none()
+                || current.identity != expected.identity
+            {
+                return Err(changed());
+            }
         } else {
-            self.mkdir_one(path,mode)?;
+            self.mkdir_one(path, mode)?;
         }
-        if times!=(None,None) { self.set_times(path,times.0,times.1)?; }
-        if expected.is_some() { self.chmod(path,mode)?; }
+        if times != (None, None) {
+            self.set_times(path, times.0, times.1)?;
+        }
+        if expected.is_some() {
+            self.chmod(path, mode)?;
+        }
         self.lstat(path)
     }
-    fn remove_extraction_entry(&self,path:&str,expected:&FileStat,version:u64)->Result<(),String> {
-        if self.generation()!=version {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
+    fn remove_extraction_entry(
+        &self,
+        path: &str,
+        expected: &FileStat,
+        version: u64,
+    ) -> Result<(), String> {
+        if self.generation() != version {
+            return Err(format!("EAGAIN: extraction destination changed: {path}"));
+        }
         if self.supports_conditional_removal(path) {
-            let parent=self.lstat(&dirname_posix_path(path))?;
-            self.remove_unchanged_entry(path,&parent,expected)
+            let parent = self.lstat(&dirname_posix_path(path))?;
+            self.remove_unchanged_entry(path, &parent, expected)
         } else {
-            self.remove_one(path,expected.kind==VfsEntryKind::Directory)
+            self.remove_one(path, expected.kind == VfsEntryKind::Directory)
         }
     }
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
-    fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(
+        &self,
+        _path: &str,
+        _data: &[u8],
+        _mode: u32,
+        _times: (Option<f64>, Option<f64>),
+        _version: u64,
+    ) -> Result<(), String> {
         Err("ENOTSUP: retained file replacement is unsupported".into())
     }
-    fn observe_publication(&self, _path:&str, generation:u64, _mode:PublicationMode)->Result<PublicationStamp,String> {
-        Ok(PublicationStamp::new(generation,None))
+    fn observe_publication(
+        &self,
+        _path: &str,
+        generation: u64,
+        _mode: PublicationMode,
+    ) -> Result<PublicationStamp, String> {
+        Ok(PublicationStamp::new(generation, None))
     }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.
-    fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<u64, String> {
+    fn publish_file(
+        &self,
+        _path: &str,
+        _data: &[u8],
+        _inputs: &[String],
+        _version: u64,
+    ) -> Result<u64, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into())
     }
     /// Remove only the file version returned by publish_file. A replacement is left intact.
@@ -564,16 +963,38 @@ pub trait SafeBashFs: Send + Sync {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into())
     }
     /// Validate a mount namespace before the caller's commit guard may run.
-    fn prepare_chmod(&self, _path: &str, _ancestors: &[(&str, FileStat)]) -> Result<(), String> { Ok(()) }
-
-    fn chmod_conditional(&self, path: &str, mode: u32, ancestors: &[(&str, FileStat)], parent: &FileStat, expected: &FileStat) -> Result<(),String> {
-        self.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?.chmod_conditional(path,mode,ancestors,parent,expected)
+    fn prepare_chmod(&self, _path: &str, _ancestors: &[(&str, FileStat)]) -> Result<(), String> {
+        Ok(())
     }
-    fn overlay_backend(&self) -> Option<&OverlayVfs> { None }
-    fn memory_backend(&self) -> Option<&MemoryVfs> { None }
 
-    fn move_across_devices(&self, source: &str, _destination: &str, _budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
-        Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'"))
+    fn chmod_conditional(
+        &self,
+        path: &str,
+        mode: u32,
+        ancestors: &[(&str, FileStat)],
+        parent: &FileStat,
+        expected: &FileStat,
+    ) -> Result<(), String> {
+        self.memory_backend()
+            .ok_or("ENOTSUP: unsupported conditional chmod backend")?
+            .chmod_conditional(path, mode, ancestors, parent, expected)
+    }
+    fn overlay_backend(&self) -> Option<&OverlayVfs> {
+        None
+    }
+    fn memory_backend(&self) -> Option<&MemoryVfs> {
+        None
+    }
+
+    fn move_across_devices(
+        &self,
+        source: &str,
+        _destination: &str,
+        _budget: Option<&crate::ExecutionBudget>,
+    ) -> Result<(), String> {
+        Err(format!(
+            "ENOTSUP: operation not supported, removeEntryConditional '{source}'"
+        ))
     }
 
     fn rename(&self, _source: &str, _destination: &str, _no_replace: bool) -> Result<(), String> {
@@ -585,36 +1006,73 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: operation not supported".into())
     }
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
-        mkdir::mkdir(path, recursive, mode, mkdir::Namespace::Direct, |p| (None, self, p.to_owned()))
+        mkdir::mkdir(path, recursive, mode, mkdir::Namespace::Direct, |p| {
+            (None, self, p.to_owned())
+        })
     }
 
     /// Preserve the failing operation for device lookups and routed filesystems.
-    fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, _try_backing: bool) -> Result<(), (String, &'static str, String)> {
-        let syscall = if self.overlay_backend().is_some() { "overlay" } else { "mkdir" };
-        self.mkdir(path, recursive, mode).map_err(|(code, at)| (code, syscall, at))
+    fn mkdir_with_operation(
+        &self,
+        path: &str,
+        recursive: bool,
+        mode: u32,
+        _try_backing: bool,
+    ) -> Result<(), (String, &'static str, String)> {
+        let syscall = if self.overlay_backend().is_some() {
+            "overlay"
+        } else {
+            "mkdir"
+        };
+        self.mkdir(path, recursive, mode)
+            .map_err(|(code, at)| (code, syscall, at))
     }
 
     /// A normal shell mkdir can use a backend's own defaults when it has no POSIX permissions.
-    fn mkdir_with_default_mode(&self, path: &str, recursive: bool, try_backing: bool) -> Result<(), (String, &'static str, String)> {
+    fn mkdir_with_default_mode(
+        &self,
+        path: &str,
+        recursive: bool,
+        try_backing: bool,
+    ) -> Result<(), (String, &'static str, String)> {
         self.mkdir_with_operation(path, recursive, 0o755, try_backing)
     }
 
     // Mode selection happens inside the charged mkdir operation.
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
-        mkdir::creation_mode(path, recursive, |candidate| self.command_create_path(candidate))
+        mkdir::creation_mode(path, recursive, |candidate| {
+            self.command_create_path(candidate)
+        })
     }
 
     /// A missing rmdir capability stops the operand batch before its first mutation.
-    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
-        Ok(if entry.unwrap_or(path) == "/dev" && self.default_device_view() { RmdirSupport::Unsupported } else { RmdirSupport::Available })
+    fn rmdir_support(
+        &self,
+        path: &str,
+        entry: Option<&str>,
+    ) -> Result<crate::vfs::RmdirSupport, String> {
+        Ok(
+            if entry.unwrap_or(path) == "/dev" && self.default_device_view() {
+                RmdirSupport::Unsupported
+            } else {
+                RmdirSupport::Available
+            },
+        )
     }
 
-    fn default_device_view(&self) -> bool { false }
+    fn default_device_view(&self) -> bool {
+        false
+    }
     /// Select a reserved device path for an already admitted host operation.
     fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
-        if !self.default_device_view() { return Ok(None); }
-        Ok(match self.access_path(path,follow)?.as_str() {
-            "/" => Some("/"), "/dev" => Some("/dev"), "/dev/null" => Some("/dev/null"), _ => None,
+        if !self.default_device_view() {
+            return Ok(None);
+        }
+        Ok(match self.access_path(path, follow)?.as_str() {
+            "/" => Some("/"),
+            "/dev" => Some("/dev"),
+            "/dev/null" => Some("/dev/null"),
+            _ => None,
         })
     }
 
@@ -625,27 +1083,45 @@ pub trait SafeBashFs: Send + Sync {
     fn mkdir_all(&self, path: &str) -> Result<(), String>;
     fn exists(&self, path: &str) -> bool;
     fn is_dir(&self, path: &str) -> bool;
-    fn link_free_memory(&self) -> bool { false }
+    fn link_free_memory(&self) -> bool {
+        false
+    }
 
     /// Literal directory-entry lookup when a link-free memory index is available.
     /// The caller has already resolved the parent and checked traversal access.
-    fn indexed_directory_entry(&self, _path: &str) -> Option<bool> { None }
+    fn indexed_directory_entry(&self, _path: &str) -> Option<bool> {
+        None
+    }
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String>;
     /// Read names and no-follow file type bits from a resolved, readable directory.
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
         let names = self.list_dir(path)?;
-        if names.len() > limit { return Err("EFBIG: directory entry limit exceeded".into()); }
-        names.into_iter().map(|name| {
-            let mode = self.lstat(&format!("{}/{name}", path.trim_end_matches('/')))?.mode;
-            Ok((name, mode & 0o170000))
-        }).collect()
+        if names.len() > limit {
+            return Err("EFBIG: directory entry limit exceeded".into());
+        }
+        names
+            .into_iter()
+            .map(|name| {
+                let mode = self
+                    .lstat(&format!("{}/{name}", path.trim_end_matches('/')))?
+                    .mode;
+                Ok((name, mode & 0o170000))
+            })
+            .collect()
     }
-    fn needs_readlink_lookup(&self, _path: &str) -> bool { self.has_path_capabilities() || self.default_device_view() }
+    fn needs_readlink_lookup(&self, _path: &str) -> bool {
+        self.has_path_capabilities() || self.default_device_view()
+    }
     fn readlink_supported(&self, path: &str) -> Result<bool, String> {
-        self.inspect_command_entry(path, true, "capabilitiesFor").map(|(entry, _)| self.supports_symbolic_links(&entry))
+        self.inspect_command_entry(path, true, "capabilitiesFor")
+            .map(|(entry, _)| self.supports_symbolic_links(&entry))
     }
-    fn supports_symbolic_links(&self, _entry: &str) -> bool { true }
-    fn supports_hard_links(&self, _path: &str) -> bool { false }
+    fn supports_symbolic_links(&self, _entry: &str) -> bool {
+        true
+    }
+    fn supports_hard_links(&self, _path: &str) -> bool {
+        false
+    }
     /// Create a second name for the source inode without following its final symlink.
     fn hard_link(&self, _source: &str, _destination: &str) -> Result<(), String> {
         Err("ENOTSUP: operation not supported".into())
@@ -663,7 +1139,9 @@ pub trait SafeBashFs: Send + Sync {
         crate::ShellLimits::limit_error(name, maximum)
     }
 
-    fn remaining_output_bytes(&self) -> usize { self.shell_limits().max_output_bytes }
+    fn remaining_output_bytes(&self) -> usize {
+        self.shell_limits().max_output_bytes
+    }
 
     fn max_input_bytes(&self) -> usize {
         crate::budget::ShellLimits::default().max_input_bytes
@@ -674,7 +1152,11 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn remove(&self, path: &str, recursive: bool) -> Result<(), String> {
-        if recursive { self.remove_path(path) } else { self.remove_one(path, false) }
+        if recursive {
+            self.remove_path(path)
+        } else {
+            self.remove_one(path, false)
+        }
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
@@ -692,7 +1174,12 @@ pub trait SafeBashFs: Send + Sync {
         if self.is_dir(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
+                nlink: None,
+                uid: None,
+                gid: None,
+                io_block_size: None,
+                preferred_io_block_size: None,
+                filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Directory,
@@ -700,13 +1187,19 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o40755,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
-                ctime_ms: None, birthtime_ms: None,
+                ctime_ms: None,
+                birthtime_ms: None,
             });
         }
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
+                nlink: None,
+                uid: None,
+                gid: None,
+                io_block_size: None,
+                preferred_io_block_size: None,
+                filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::File,
@@ -714,7 +1207,8 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o100644,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
-                ctime_ms: None, birthtime_ms: None,
+                ctime_ms: None,
+                birthtime_ms: None,
             });
         }
         Err(format!("ENOENT: no such file or directory, stat '{norm}'"))
@@ -725,7 +1219,12 @@ pub trait SafeBashFs: Send + Sync {
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
                 revision: None,
-                nlink: None, uid: None, gid: None, io_block_size: None, preferred_io_block_size: None, filesystem_type: None,
+                nlink: None,
+                uid: None,
+                gid: None,
+                io_block_size: None,
+                preferred_io_block_size: None,
+                filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Symlink,
@@ -733,7 +1232,8 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o120777,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
-                ctime_ms: None, birthtime_ms: None,
+                ctime_ms: None,
+                birthtime_ms: None,
             });
         }
         self.stat(&norm)
@@ -747,7 +1247,12 @@ pub trait SafeBashFs: Send + Sync {
         self.set_times(path, None, Some(mtime_ms as f64))
     }
 
-    fn set_times(&self, _path: &str, _atime_ms: Option<f64>, _mtime_ms: Option<f64>) -> Result<(), String> {
+    fn set_times(
+        &self,
+        _path: &str,
+        _atime_ms: Option<f64>,
+        _mtime_ms: Option<f64>,
+    ) -> Result<(), String> {
         Err("ENOTSUP: setting timestamps is unsupported".into())
     }
 
@@ -778,7 +1283,9 @@ pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
 pub(crate) fn shell_text(s: &str) -> std::borrow::Cow<'_, str> {
     // U+E080..U+E0FF represent individual raw bytes internally. Quote
     // literal occurrences as their UTF-8 bytes so decoding is reversible.
-    if s.as_bytes().contains(&0xee) && let Some(start) = s.find(is_stream_byte) {
+    if s.as_bytes().contains(&0xee)
+        && let Some(start) = s.find(is_stream_byte)
+    {
         let mut out = String::with_capacity(s.len());
         out.push_str(&s[..start]);
         for c in s[start..].chars() {
@@ -800,8 +1307,12 @@ pub(crate) fn host_text(s: &str) -> std::borrow::Cow<'_, str> {
     stream_utf8(s).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned().into())
 }
 
-pub(crate) fn stream_utf8(s: &str) -> Result<std::borrow::Cow<'_, str>, std::string::FromUtf8Error> {
-    if !s.as_bytes().contains(&0xee) || !s.contains(is_stream_byte) { return Ok(s.into()); }
+pub(crate) fn stream_utf8(
+    s: &str,
+) -> Result<std::borrow::Cow<'_, str>, std::string::FromUtf8Error> {
+    if !s.as_bytes().contains(&0xee) || !s.contains(is_stream_byte) {
+        return Ok(s.into());
+    }
     String::from_utf8(stream_string_to_bytes(s)).map(Into::into)
 }
 
@@ -810,7 +1321,9 @@ pub(crate) fn is_stream_byte(c: char) -> bool {
 }
 
 pub(crate) fn stream_byte_len(s: &str) -> usize {
-    if !s.as_bytes().contains(&0xee) { return s.len(); }
+    if !s.as_bytes().contains(&0xee) {
+        return s.len();
+    }
     // Each encoded raw byte occupies three UTF-8 bytes in the internal string.
     s.len() - 2 * s.chars().filter(|&c| is_stream_byte(c)).count()
 }
@@ -841,19 +1354,44 @@ mod tests {
     fn an_unreadable_file_cannot_be_replaced_by_a_fallback_append() {
         struct WriteOnly;
         impl SafeBashFs for WriteOnly {
-            fn read_file(&self, _: &str) -> Result<Vec<u8>, String> { Err("EACCES: permission denied".into()) }
-            fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> { panic!("append overwrote unreadable bytes") }
-            fn mkdir_all(&self, _: &str) -> Result<(), String> { unreachable!() }
-            fn remove_path(&self, _: &str) -> Result<(), String> { unreachable!() }
-            fn exists(&self, _: &str) -> bool { true }
-            fn is_dir(&self, _: &str) -> bool { false }
-            fn list_dir(&self, _: &str) -> Result<Vec<String>, String> { unreachable!() }
-            fn symlink(&self, _: &str, _: &str) -> Result<(), String> { unreachable!() }
-            fn readlink(&self, _: &str) -> Result<String, String> { unreachable!() }
-            fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> { unreachable!() }
-            fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> { unreachable!() }
+            fn read_file(&self, _: &str) -> Result<Vec<u8>, String> {
+                Err("EACCES: permission denied".into())
+            }
+            fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> {
+                panic!("append overwrote unreadable bytes")
+            }
+            fn mkdir_all(&self, _: &str) -> Result<(), String> {
+                unreachable!()
+            }
+            fn remove_path(&self, _: &str) -> Result<(), String> {
+                unreachable!()
+            }
+            fn exists(&self, _: &str) -> bool {
+                true
+            }
+            fn is_dir(&self, _: &str) -> bool {
+                false
+            }
+            fn list_dir(&self, _: &str) -> Result<Vec<String>, String> {
+                unreachable!()
+            }
+            fn symlink(&self, _: &str, _: &str) -> Result<(), String> {
+                unreachable!()
+            }
+            fn readlink(&self, _: &str) -> Result<String, String> {
+                unreachable!()
+            }
+            fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
+                unreachable!()
+            }
+            fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> {
+                unreachable!()
+            }
         }
-        assert_eq!(WriteOnly.append_file("/log", b"tail").unwrap_err(), "EACCES: permission denied");
+        assert_eq!(
+            WriteOnly.append_file("/log", b"tail").unwrap_err(),
+            "EACCES: permission denied"
+        );
     }
 
     #[test]

@@ -1,0 +1,455 @@
+{
+  "source": "qpdf 12.4.2",
+  "cases": {
+    "missing": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0ICA+PgpzdGFydHhyZWYKMTQ1CiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=1": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--replace-input": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        }
+      }
+    },
+    "dangling": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0IC9Sb290IDEyIDAgUiA+PgpzdGFydHhyZWYKMTQ1CiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=1": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--replace-input": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        }
+      }
+    },
+    "wrong": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0IC9Sb290IDIgMCBSID4+CnN0YXJ0eHJlZgoxNDUKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-object=1": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--replace-input": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: in.pdf: unable to find page tree\n"
+        }
+      }
+    },
+    "invalidType": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQm9ndXMgL1BhZ2VzIDIgMCBSID4+IGVuZG9iagoyIDAgb2JqIDw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbXSAvQ291bnQgMCA+PiBlbmRvYmoKMyAwIG9iaiA8PCAvVGl0bGUgKGluZm8pID4+IGVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1NiAwMDAwMCBuIAowMDAwMDAwMTA4IDAwMDAwIG4gCnRyYWlsZXIgPDwgL1NpemUgNCAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMTQzCiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MAo=",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=1": {
+          "status": 3,
+          "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIiwKICAgICAgICAgICIvVHlwZSI6ICIvQ2F0YWxvZyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Db3VudCI6IDAsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvU2l6ZSI6IDQKICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nERROR: file does not contain any pages\nqpdf: errors detected\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "missingType": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDQzIDAwMDAwIG4gCjAwMDAwMDAwOTUgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgoxMzAKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MAo=",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=1": {
+          "status": 3,
+          "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIiwKICAgICAgICAgICIvVHlwZSI6ICIvQ2F0YWxvZyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Db3VudCI6IDAsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvU2l6ZSI6IDQKICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nERROR: file does not contain any pages\nqpdf: errors detected\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: Catalog: setting missing or invalid /Type entry to /Catalog\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "missingPages": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyA+PiBlbmRvYmoKMiAwIG9iaiA8PCAvVHlwZSAvUGFnZXMgL0tpZHMgW10gL0NvdW50IDAgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1RpdGxlIChpbmZvKSA+PiBlbmRvYmoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNDUgMDAwMDAgbiAKMDAwMDAwMDA5NyAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDQgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjEzMgolJUVPRgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-object=1": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--replace-input": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find page tree\n"
+        }
+      }
+    },
+    "size": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSAxMiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMTQ1CiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 3,
+          "stdout": "MAo=",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=1": {
+          "status": 3,
+          "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--show-object=trailer": {
+          "status": 3,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgMTIgPj4K",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 3,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIiwKICAgICAgICAgICIvVHlwZSI6ICIvQ2F0YWxvZyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Db3VudCI6IDAsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvU2l6ZSI6IDEyCiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nERROR: file does not contain any pages\nqpdf: errors detected\n"
+        },
+        "out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "WARNING: in.pdf: reported number of objects (12) is not one plus the highest object number (3)\nqpdf: operation succeeded with warnings; resulting file may have some problems\n"
+        }
+      }
+    },
+    "incrementMissing": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0IC9Sb290IDEgMCBSIC9JbmZvIDMgMCBSID4+CnN0YXJ0eHJlZgoxNDUKJSVFT0YKeHJlZgowIDEKMDAwMDAwMDAwMCA2NTUzNSBmIAp0cmFpbGVyIDw8IC9TaXplIDQgL1ByZXYgMTQ1ICA+PgpzdGFydHhyZWYKMzAwCiUlRU9GCg==",
+      "reports": {
+        "--show-npages": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=1": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--show-object=trailer": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--json --json-key=qpdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--split-pages out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--replace-input": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        },
+        "--pages . 1 -- out.pdf": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+        }
+      }
+    },
+    "incrementRoot": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA0IC9Sb290IDEgMCBSIC9JbmZvIDMgMCBSID4+CnN0YXJ0eHJlZgoxNDUKJSVFT0YKeHJlZgowIDEKMDAwMDAwMDAwMCA2NTUzNSBmIAp0cmFpbGVyIDw8IC9TaXplIDQgL1ByZXYgMTQ1IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgozMDAKJSVFT0YK",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MAo=",
+          "stderr": ""
+        },
+        "--show-object=1": {
+          "status": 0,
+          "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL1ByZXYgMTQ1IC9Sb290IDEgMCBSIC9TaXplIDQgPj4K",
+          "stderr": ""
+        },
+        "--json --json-key=qpdf": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIiwKICAgICAgICAgICIvVHlwZSI6ICIvQ2F0YWxvZyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Db3VudCI6IDAsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9QcmV2IjogMTQ1LAogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvU2l6ZSI6IDQKICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "ERROR: file does not contain any pages\nqpdf: errors detected\n"
+        },
+        "out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--split-pages out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    "indirectType": {
+      "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSA0IDAgUiAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoaW5mbykgPj4gZW5kb2JqCjQgMCBvYmogL0NhdGFsb2cgZW5kb2JqCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU1IDAwMDAwIG4gCjAwMDAwMDAxMDcgMDAwMDAgbiAKMDAwMDAwMDE0MiAwMDAwMCBuIAp0cmFpbGVyIDw8IC9TaXplIDUgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjE2NgolJUVPRgo=",
+      "reports": {
+        "--show-npages": {
+          "status": 0,
+          "stdout": "MAo=",
+          "stderr": ""
+        },
+        "--show-object=1": {
+          "status": 0,
+          "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIDQgMCBSID4+Cg==",
+          "stderr": ""
+        },
+        "--show-object=trailer": {
+          "status": 0,
+          "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNSA+Pgo=",
+          "stderr": ""
+        },
+        "--json --json-key=qpdf": {
+          "status": 0,
+          "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNAogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIiwKICAgICAgICAgICIvVHlwZSI6ICI0IDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Db3VudCI6IDAsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAidmFsdWUiOiAiL0NhdGFsb2ciCiAgICAgIH0sCiAgICAgICJ0cmFpbGVyIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvUm9vdCI6ICIxIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA1CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+          "stderr": ""
+        },
+        "--check": {
+          "status": 2,
+          "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+          "stderr": "ERROR: file does not contain any pages\nqpdf: errors detected\n"
+        },
+        "out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "--split-pages out.pdf": {
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    }
+  }
+}

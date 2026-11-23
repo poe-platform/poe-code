@@ -2235,9 +2235,9 @@ it("detects incomplete multichannel and floating-point PCM frames", async () => 
       assert.equal(result.exitCode, 0);
       assert.match(result.stderr, /Invalid PCM packet/);
       assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 3);
-      const copied = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "-f", "null", "-"], vfs);
+      const copied = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/input.wav", "-c:a", "copy", "-f", "null", "-"], vfs);
       assert.equal(copied.exitCode, 0);
-      assert.equal(copied.stderr, channels === 1 ? "ffmpeg: Guessed Channel Layout: mono\n" : "");
+      assert.equal(copied.stderr, "");
     }
   }
 });
@@ -6914,7 +6914,7 @@ it("seeks H.264 B-frames in display order before limiting image output", async (
   const expected = vfs.store.get("/full_005.png")!;
   assert.notDeepEqual(expected, vfs.store.get("/full_001.png"));
   for (const seek of [["-ss", "0.4", "-i", "in.mp4"], ["-i", "in.mp4", "-ss", "0.4"]]) {
-    for (const output of [["-frames:v", "1", "single.png"], ["sequence_%03d.png"], ["-frames:v", "1", "limited_%03d.png"], ["-vf", "scale=64:48", "-frames:v", "1", "filtered.png"]]) {
+    for (const output of [["-frames:v", "1", "single.png"], ["sequence_%03d.png"], ["-frames:v", "1", "limited_%03d.png"], ["-vf", "null", "-frames:v", "1", "passthrough.png"], ["-vf", "scale=64:48", "-frames:v", "1", "filtered.png"]]) {
       const result = await runCmd(command, ["-y", ...seek, ...output], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const filename = output.at(-1)!.replace("%03d", "001");

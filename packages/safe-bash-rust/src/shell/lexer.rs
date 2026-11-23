@@ -1,5 +1,9 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DupOrigin { Default, Explicit, Pipeline }
+pub enum DupOrigin {
+    Default,
+    Explicit,
+    Pipeline,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
@@ -12,6 +16,7 @@ pub enum Token {
     Background,
     LParen,
     RParen,
+    RedirectName(String),
     RedirectOut(u32),
     RedirectAppend(u32),
     RedirectClobber(u32),
@@ -192,7 +197,10 @@ pub fn read_heredoc_raw_delim(chars: &[char], i: &mut usize) -> Result<String, S
             raw_delim.push('\\');
             raw_delim.push(chars[*i + 1]);
             *i += 2;
-        } else if c == '$' && *i + 1 < chars.len() && (chars[*i + 1] == '\'' || chars[*i + 1] == '"') {
+        } else if c == '$'
+            && *i + 1 < chars.len()
+            && (chars[*i + 1] == '\'' || chars[*i + 1] == '"')
+        {
             let q = chars[*i + 1];
             raw_delim.push('$');
             raw_delim.push(q);
@@ -427,7 +435,9 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
         }
         match ch {
             '\n' => {
-                if !current.is_empty() || (in_double_bracket && after_regex_op && regex_paren_depth > 0) {
+                if !current.is_empty()
+                    || (in_double_bracket && after_regex_op && regex_paren_depth > 0)
+                {
                     flush_current_word(
                         &mut current,
                         &mut tokens,
@@ -446,7 +456,17 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                 if !pending_heredocs.is_empty() {
                     let drains = std::mem::take(&mut pending_heredocs);
                     for (tok_idx, delim_offset) in drains {
-                        let Token::RedirectHereDoc { delimiter: delim, quoted, strip_tabs, body: stored_body, eof_warning: warning, .. } = &mut tokens[tok_idx] else { unreachable!() };
+                        let Token::RedirectHereDoc {
+                            delimiter: delim,
+                            quoted,
+                            strip_tabs,
+                            body: stored_body,
+                            eof_warning: warning,
+                            ..
+                        } = &mut tokens[tok_idx]
+                        else {
+                            unreachable!()
+                        };
                         let mut body = String::new();
                         let mut found = false;
                         while i < chars.len() {
@@ -715,7 +735,12 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                 }
                 i += 1;
             }
-            '(' | ')' if in_double_bracket && after_pat_op && (regex_paren_depth > 0 || (ch == '(' && current.ends_with(['?', '*', '+', '@', '!']))) => {
+            '(' | ')'
+                if in_double_bracket
+                    && after_pat_op
+                    && (regex_paren_depth > 0
+                        || (ch == '(' && current.ends_with(['?', '*', '+', '@', '!']))) =>
+            {
                 if ch == '(' {
                     regex_paren_depth += 1;
                 } else {
@@ -962,7 +987,13 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
             '>' | '<' if i + 1 < chars.len() && chars[i + 1] == '(' => {
                 current.push(ch);
                 i += 1;
-                read_paren_sub_body(&chars, &mut i, &mut current, "process substitution", extglob)?;
+                read_paren_sub_body(
+                    &chars,
+                    &mut i,
+                    &mut current,
+                    "process substitution",
+                    extglob,
+                )?;
             }
             '>' | '<' if in_double_bracket => {
                 flush_current_word(
@@ -982,16 +1013,31 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                 i += 1;
             }
             '>' => {
-                let (fd, explicit_fd) = if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
-                    let parsed = current.parse::<u32>().unwrap_or(1);
+                let named = current
+                    .strip_prefix('{')
+                    .and_then(|s| s.strip_suffix('}'))
+                    .filter(|s| {
+                        !s.is_empty()
+                            && s.bytes().enumerate().all(|(i, b)| {
+                                b == b'_' || b.is_ascii_alphabetic() || i > 0 && b.is_ascii_digit()
+                            })
+                    });
+                if let Some(name) = named {
+                    tokens.push(Token::RedirectName(name.to_owned()));
                     current.clear();
-                    (parsed, true)
-                } else {
-                    if !current.is_empty() {
-                        tokens.push(Token::Word(std::mem::take(&mut current)));
-                    }
-                    (1, false)
-                };
+                }
+                let named_fd = matches!(tokens.last(), Some(Token::RedirectName(_)));
+                let (fd, explicit_fd) =
+                    if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
+                        let parsed = current.parse::<u32>().unwrap_or(1);
+                        current.clear();
+                        (parsed, true)
+                    } else {
+                        if !current.is_empty() {
+                            tokens.push(Token::Word(std::mem::take(&mut current)));
+                        }
+                        (1, named_fd)
+                    };
                 i += 1;
                 if i < chars.len() && chars[i] == '>' {
                     i += 1;
@@ -1001,12 +1047,32 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                     tokens.push(Token::RedirectClobber(fd));
                 } else if i < chars.len() && chars[i] == '&' {
                     i += 1;
-                    tokens.push(Token::RedirectDupOut(fd, if explicit_fd { DupOrigin::Explicit } else { DupOrigin::Default }));
+                    tokens.push(Token::RedirectDupOut(
+                        fd,
+                        if explicit_fd {
+                            DupOrigin::Explicit
+                        } else {
+                            DupOrigin::Default
+                        },
+                    ));
                 } else {
                     tokens.push(Token::RedirectOut(fd));
                 }
             }
             '<' => {
+                let named = current
+                    .strip_prefix('{')
+                    .and_then(|s| s.strip_suffix('}'))
+                    .filter(|s| {
+                        !s.is_empty()
+                            && s.bytes().enumerate().all(|(i, b)| {
+                                b == b'_' || b.is_ascii_alphabetic() || i > 0 && b.is_ascii_digit()
+                            })
+                    });
+                if let Some(name) = named {
+                    tokens.push(Token::RedirectName(name.to_owned()));
+                    current.clear();
+                }
                 let fd = if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
                     let parsed = current.parse::<u32>().unwrap_or(0);
                     current.clear();
@@ -1036,7 +1102,9 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                         let delim_offset = i;
                         let raw_delim = read_heredoc_raw_delim(&chars, &mut i)?;
                         if raw_delim.is_empty() {
-                            return Err("Syntax error: expected here-document delimiter".to_string());
+                            return Err(
+                                "Syntax error: expected here-document delimiter".to_string()
+                            );
                         }
                         let (clean_delim, quoted) = unquote_heredoc_delimiter(&raw_delim);
                         let tok_idx = tokens.len();
@@ -1131,8 +1199,15 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
 
     if !pending_heredocs.is_empty() {
         for (tok_idx, delim_offset) in pending_heredocs {
-            if let Token::RedirectHereDoc { delimiter, eof_warning, .. } = &mut tokens[tok_idx] {
-                *eof_warning = Some(format!("here-document at offset {delim_offset} delimited by end-of-file (wanted {delimiter:?})"));
+            if let Token::RedirectHereDoc {
+                delimiter,
+                eof_warning,
+                ..
+            } = &mut tokens[tok_idx]
+            {
+                *eof_warning = Some(format!(
+                    "here-document at offset {delim_offset} delimited by end-of-file (wanted {delimiter:?})"
+                ));
             }
         }
     }
@@ -1143,8 +1218,12 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
 
 pub(super) fn syntax_token(source: &str) -> &str {
     let operator = |c: char| matches!(c, ';' | '&' | '|' | '(' | ')' | '<' | '>');
-    if source.starts_with(operator) { return &source[..1]; }
-    let end = source.find(|c: char| c.is_whitespace() || operator(c)).unwrap_or(source.len());
+    if source.starts_with(operator) {
+        return &source[..1];
+    }
+    let end = source
+        .find(|c: char| c.is_whitespace() || operator(c))
+        .unwrap_or(source.len());
     if end == 0 { "newline" } else { &source[..end] }
 }
 
@@ -1152,7 +1231,9 @@ pub(super) const UNSUPPORTED_DOLLAR: &str = "Unsupported shell quoting or specia
 
 fn source_offset(chars: &[char]) -> usize {
     if chars.iter().any(|&c| crate::vfs::is_stream_byte(c)) {
-        crate::vfs::host_text(&chars.iter().collect::<String>()).encode_utf16().count()
+        crate::vfs::host_text(&chars.iter().collect::<String>())
+            .encode_utf16()
+            .count()
     } else {
         chars.iter().map(|c| c.len_utf16()).sum()
     }
@@ -1348,14 +1429,22 @@ fn read_paren_sub_body(
     let inner_body = &out[body_start..out.len() - 1];
     if let Err(err) = crate::shell::parser::parse_script_with_extglob(inner_body, extglob) {
         let clean = err.strip_prefix("__exit127__").unwrap_or(&err);
-        if let Some(offset) = clean.strip_prefix(UNSUPPORTED_DOLLAR)
-            .and_then(|s| s.strip_prefix(" at offset ")).and_then(|s| s.parse::<usize>().ok()) {
+        if let Some(offset) = clean
+            .strip_prefix(UNSUPPORTED_DOLLAR)
+            .and_then(|s| s.strip_prefix(" at offset "))
+            .and_then(|s| s.parse::<usize>().ok())
+        {
             let inner_body = crate::vfs::host_text(inner_body);
             let mut units = 0;
             if let Some((pos, _)) = inner_body.char_indices().find(|(_, c)| {
-                let found = units == offset; units += c.len_utf16(); found
+                let found = units == offset;
+                units += c.len_utf16();
+                found
             }) {
-                return Err(format!("__exit127__Syntax error: unexpected `{}`", crate::vfs::shell_text(syntax_token(&inner_body[pos..]))));
+                return Err(format!(
+                    "__exit127__Syntax error: unexpected `{}`",
+                    crate::vfs::shell_text(syntax_token(&inner_body[pos..]))
+                ));
             }
         }
         if clean.contains("unexpected end of file") {
@@ -1377,16 +1466,24 @@ fn read_dollar_brace(
     *i += 2;
     if chars.get(*i) == Some(&'$') {
         let offset = source_offset(&chars[..*i]);
-        return Err(format!("Unsupported parameter expansion at offset {offset}"));
+        return Err(format!(
+            "Unsupported parameter expansion at offset {offset}"
+        ));
     }
     if chars.get(*i) == Some(&'!') {
         let mut op = *i + 1;
-        while chars.get(op).is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_') {
+        while chars
+            .get(op)
+            .is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_')
+        {
             op += 1;
         }
         if op > *i + 1 && matches!(chars.get(op..op + 3), Some(['[', '@' | '*', ']'])) {
             op += 3;
-            if chars.get(op).is_some_and(|c| !matches!(c, '}' | '@' | '\\')) {
+            if chars
+                .get(op)
+                .is_some_and(|c| !matches!(c, '}' | '@' | '\\'))
+            {
                 let offset = source_offset(&chars[..op]);
                 return Err(format!("Unsupported array-key operator at offset {offset}"));
             }
@@ -1547,8 +1644,14 @@ mod tests {
 
     #[test]
     fn unit_tokenize_here_string_arithmetic_for_and_fd_redirections() {
-        let tokens = tokenize_shell("for ((i=0; i<3; i++)); do cat <<< \"val=$i\" 3>&2 2>/dev/null; done").unwrap();
-        assert!(tokens.iter().any(|t| matches!(t, Token::RedirectHereString(0))));
+        let tokens =
+            tokenize_shell("for ((i=0; i<3; i++)); do cat <<< \"val=$i\" 3>&2 2>/dev/null; done")
+                .unwrap();
+        assert!(
+            tokens
+                .iter()
+                .any(|t| matches!(t, Token::RedirectHereString(0)))
+        );
         assert!(tokens.contains(&Token::RedirectDupOut(3, DupOrigin::Explicit)));
         assert!(tokens.contains(&Token::RedirectOut(2)));
         assert!(tokens.contains(&Token::LParen));

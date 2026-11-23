@@ -1,7 +1,9 @@
-use crate::commands::structured::{JVal, cmd_jq_with_env, parse_json_stream};
 use crate::commands::archive::{base64_decode, base64_encode, sha1_bytes, sha256_bytes};
+use crate::commands::structured::{JVal, cmd_jq_with_env, parse_json_stream};
 use crate::shell::builtins::BuiltinOutcome;
-use crate::vfs::{SafeBashFs, bytes_to_stream_string, path::resolve_posix_path, stream_string_to_bytes};
+use crate::vfs::{
+    SafeBashFs, bytes_to_stream_string, path::resolve_posix_path, stream_string_to_bytes,
+};
 use std::collections::BTreeMap;
 use std::sync::{Mutex, OnceLock};
 
@@ -120,38 +122,62 @@ trait ToJVal {
     fn to_jval(&self) -> JVal;
 }
 impl<T: ToJVal + ?Sized> ToJVal for &T {
-    fn to_jval(&self) -> JVal { (**self).to_jval() }
+    fn to_jval(&self) -> JVal {
+        (**self).to_jval()
+    }
 }
 impl ToJVal for JVal {
-    fn to_jval(&self) -> JVal { self.clone() }
+    fn to_jval(&self) -> JVal {
+        self.clone()
+    }
 }
 impl ToJVal for String {
-    fn to_jval(&self) -> JVal { JVal::Str(self.clone()) }
+    fn to_jval(&self) -> JVal {
+        JVal::Str(self.clone())
+    }
 }
 impl ToJVal for str {
-    fn to_jval(&self) -> JVal { JVal::Str(self.to_string()) }
+    fn to_jval(&self) -> JVal {
+        JVal::Str(self.to_string())
+    }
 }
 impl ToJVal for bool {
-    fn to_jval(&self) -> JVal { JVal::Bool(*self) }
+    fn to_jval(&self) -> JVal {
+        JVal::Bool(*self)
+    }
 }
 impl ToJVal for u64 {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
+    fn to_jval(&self) -> JVal {
+        JVal::Number(*self as f64, None)
+    }
 }
 impl ToJVal for usize {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
+    fn to_jval(&self) -> JVal {
+        JVal::Number(*self as f64, None)
+    }
 }
 impl ToJVal for i32 {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
+    fn to_jval(&self) -> JVal {
+        JVal::Number(*self as f64, None)
+    }
 }
 impl ToJVal for Vec<JVal> {
-    fn to_jval(&self) -> JVal { JVal::Array(self.clone()) }
+    fn to_jval(&self) -> JVal {
+        JVal::Array(self.clone())
+    }
 }
 impl ToJVal for Map {
-    fn to_jval(&self) -> JVal { JVal::Object(self.0.clone()) }
+    fn to_jval(&self) -> JVal {
+        JVal::Object(self.0.clone())
+    }
 }
 impl ToJVal for BTreeMap<String, String> {
     fn to_jval(&self) -> JVal {
-        JVal::Object(self.iter().map(|(k, v)| (k.clone(), JVal::Str(v.clone()))).collect())
+        JVal::Object(
+            self.iter()
+                .map(|(k, v)| (k.clone(), JVal::Str(v.clone())))
+                .collect(),
+        )
     }
 }
 impl From<BTreeMap<String, String>> for JVal {
@@ -416,13 +442,31 @@ fn change_vault_permissions(
         ("create_items", &["view_items"]),
         ("view_and_copy_passwords", &["view_items"]),
         ("edit_items", &["view_and_copy_passwords", "view_items"]),
-        ("archive_items", &["edit_items", "view_and_copy_passwords", "view_items"]),
-        ("delete_items", &["edit_items", "view_and_copy_passwords", "view_items"]),
-        ("view_item_history", &["view_and_copy_passwords", "view_items"]),
+        (
+            "archive_items",
+            &["edit_items", "view_and_copy_passwords", "view_items"],
+        ),
+        (
+            "delete_items",
+            &["edit_items", "view_and_copy_passwords", "view_items"],
+        ),
+        (
+            "view_item_history",
+            &["view_and_copy_passwords", "view_items"],
+        ),
         ("import_items", &["create_items", "view_items"]),
-        ("export_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
-        ("copy_and_share_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
-        ("print_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
+        (
+            "export_items",
+            &["view_item_history", "view_and_copy_passwords", "view_items"],
+        ),
+        (
+            "copy_and_share_items",
+            &["view_item_history", "view_and_copy_passwords", "view_items"],
+        ),
+        (
+            "print_items",
+            &["view_item_history", "view_and_copy_passwords", "view_items"],
+        ),
         ("manage_vault", &[]),
     ];
     let mut missing = Vec::new();
@@ -650,11 +694,31 @@ impl Default for IntegrationState {
                 prs: Vec::new(),
                 releases: Vec::new(),
                 labels: vec![
-                    ("bug".into(), "d73a4a".into(), "Something isn't working".into()),
-                    ("documentation".into(), "0075ca".into(), "Improvements or additions to documentation".into()),
-                    ("enhancement".into(), "a2eeef".into(), "New feature or request".into()),
-                    ("good first issue".into(), "7057ff".into(), "Good for newcomers".into()),
-                    ("help wanted".into(), "008672".into(), "Extra attention is needed".into()),
+                    (
+                        "bug".into(),
+                        "d73a4a".into(),
+                        "Something isn't working".into(),
+                    ),
+                    (
+                        "documentation".into(),
+                        "0075ca".into(),
+                        "Improvements or additions to documentation".into(),
+                    ),
+                    (
+                        "enhancement".into(),
+                        "a2eeef".into(),
+                        "New feature or request".into(),
+                    ),
+                    (
+                        "good first issue".into(),
+                        "7057ff".into(),
+                        "Good for newcomers".into(),
+                    ),
+                    (
+                        "help wanted".into(),
+                        "008672".into(),
+                        "Extra attention is needed".into(),
+                    ),
                 ],
                 variables: BTreeMap::new(),
                 secrets: Vec::new(),
@@ -731,7 +795,11 @@ fn next_op_id(st: &mut IntegrationState) -> String {
     let mut digits = Vec::new();
     while n > 0 {
         let rem = (n % 36) as u8;
-        digits.push(if rem < 10 { (b'0' + rem) as char } else { (b'a' + rem - 10) as char });
+        digits.push(if rem < 10 {
+            (b'0' + rem) as char
+        } else {
+            (b'a' + rem - 10) as char
+        });
         n /= 36;
     }
     digits.reverse();
@@ -746,41 +814,113 @@ fn op_object_index<'a>(
     let folded = selector.to_lowercase();
     let mut named = Err("Object not found");
     for (i, id, name) in objects {
-        if id.eq_ignore_ascii_case(selector) { return Ok(i); }
+        if id.eq_ignore_ascii_case(selector) {
+            return Ok(i);
+        }
         if name.to_lowercase() == folded {
-            named = match named { Err("Object not found") => Ok(i), _ => Err("Ambiguous object selector") };
+            named = match named {
+                Err("Object not found") => Ok(i),
+                _ => Err("Ambiguous object selector"),
+            };
         }
     }
     named
 }
 
 fn op_vault_index(st: &IntegrationState, selector: &str) -> Result<usize, &'static str> {
-    op_object_index(st.op_vaults.iter().enumerate().map(|(i,v)| (i, v.id.as_str(), v.name.as_str())), selector)
+    op_object_index(
+        st.op_vaults
+            .iter()
+            .enumerate()
+            .map(|(i, v)| (i, v.id.as_str(), v.name.as_str())),
+        selector,
+    )
 }
 
-fn op_item_index(st: &IntegrationState, vault: Option<usize>, selector: &str, include_archive: bool) -> Result<usize, &'static str> {
-    op_object_index(st.op_items.iter().enumerate()
-        .filter(|(_, it)| vault.is_none_or(|v| it.vault_id == st.op_vaults[v].id)
-            && it.state != "DELETED" && (it.state != "ARCHIVED" || include_archive || it.id.eq_ignore_ascii_case(selector)))
-        .map(|(i,it)| (i, it.id.as_str(), it.title.as_str())), selector)
+fn op_item_index(
+    st: &IntegrationState,
+    vault: Option<usize>,
+    selector: &str,
+    include_archive: bool,
+) -> Result<usize, &'static str> {
+    op_object_index(
+        st.op_items
+            .iter()
+            .enumerate()
+            .filter(|(_, it)| {
+                vault.is_none_or(|v| it.vault_id == st.op_vaults[v].id)
+                    && it.state != "DELETED"
+                    && (it.state != "ARCHIVED"
+                        || include_archive
+                        || it.id.eq_ignore_ascii_case(selector))
+            })
+            .map(|(i, it)| (i, it.id.as_str(), it.title.as_str())),
+        selector,
+    )
 }
 
-fn op_document_index(st: &IntegrationState, vault: Option<usize>, selector: &str) -> Result<usize, &'static str> {
-    op_object_index(st.op_docs.iter().enumerate()
-        .filter(|(_, d)| vault.is_none_or(|v| d.vault_id == st.op_vaults[v].id))
-        .map(|(i,d)| (i, d.id.as_str(), d.title.as_str())), selector)
+fn op_document_index(
+    st: &IntegrationState,
+    vault: Option<usize>,
+    selector: &str,
+) -> Result<usize, &'static str> {
+    op_object_index(
+        st.op_docs
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| vault.is_none_or(|v| d.vault_id == st.op_vaults[v].id))
+            .map(|(i, d)| (i, d.id.as_str(), d.title.as_str())),
+        selector,
+    )
 }
 
 fn is_valid_vault_icon(icon: &str) -> bool {
     matches!(
         icon,
-        "airplane" | "application" | "art-supplies" | "bankers-box" | "brown-briefcase"
-        | "brown-gate" | "buildings" | "cabin" | "castle" | "circle-of-dots" | "coffee"
-        | "color-wheel" | "curtained-window" | "document" | "doughnut" | "fence" | "galaxy"
-        | "gears" | "globe" | "green-backpack" | "green-gem" | "handshake" | "heart-with-monitor"
-        | "house" | "id-card" | "jet" | "large-ship" | "luggage" | "plant" | "porthole" | "puzzle"
-        | "rainbow" | "record" | "round-door" | "sandals" | "scales" | "screwdriver" | "shop"
-        | "tall-window" | "treasure-chest" | "vault-door" | "vehicle" | "wallet" | "wrench"
+        "airplane"
+            | "application"
+            | "art-supplies"
+            | "bankers-box"
+            | "brown-briefcase"
+            | "brown-gate"
+            | "buildings"
+            | "cabin"
+            | "castle"
+            | "circle-of-dots"
+            | "coffee"
+            | "color-wheel"
+            | "curtained-window"
+            | "document"
+            | "doughnut"
+            | "fence"
+            | "galaxy"
+            | "gears"
+            | "globe"
+            | "green-backpack"
+            | "green-gem"
+            | "handshake"
+            | "heart-with-monitor"
+            | "house"
+            | "id-card"
+            | "jet"
+            | "large-ship"
+            | "luggage"
+            | "plant"
+            | "porthole"
+            | "puzzle"
+            | "rainbow"
+            | "record"
+            | "round-door"
+            | "sandals"
+            | "scales"
+            | "screwdriver"
+            | "shop"
+            | "tall-window"
+            | "treasure-chest"
+            | "vault-door"
+            | "vehicle"
+            | "wallet"
+            | "wrench"
     )
 }
 
@@ -814,7 +954,11 @@ fn item_json(item: &OpItem, vault_name: &str, show_values: bool) -> Value {
             }
             let hidden = matches!(f.field_type.as_str(), "CONCEALED" | "OTP" | "SSHKEY")
                 || f.purpose.as_deref() == Some("PASSWORD");
-            let value = if hidden && !show_values { "(use 'op item get --reveal' to reveal)" } else { &f.value };
+            let value = if hidden && !show_values {
+                "(use 'op item get --reveal' to reveal)"
+            } else {
+                &f.value
+            };
             m.insert("value".into(), JVal::Str(value.into()));
             let ref_path = if let Some(slabel) = &f.section_label {
                 format!("op://{}/{}/{}/{}", vault_name, item.title, slabel, f.label)
@@ -898,7 +1042,9 @@ fn generate_recipe_password(spec: Option<&str>, seq: u64) -> String {
         }
     }
     let alphabet = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let mut state = seq.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    let mut state = seq
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
     let mut out = String::with_capacity(len);
     for i in 0..len {
         state = state
@@ -911,12 +1057,19 @@ fn generate_recipe_password(spec: Option<&str>, seq: u64) -> String {
 }
 
 fn mask_op_output(out: &mut BuiltinOutcome, secrets: &[String]) {
-    let mut patterns: Vec<_> = secrets.iter().filter(|s| !s.is_empty())
-        .map(|s| stream_string_to_bytes(s)).collect();
-    if patterns.is_empty() { return; }
+    let mut patterns: Vec<_> = secrets
+        .iter()
+        .filter(|s| !s.is_empty())
+        .map(|s| stream_string_to_bytes(s))
+        .collect();
+    if patterns.is_empty() {
+        return;
+    }
     patterns.sort_unstable_by_key(|p| std::cmp::Reverse(p.len()));
     for stream in [&mut out.stdout, &mut out.stderr] {
-        if stream.is_empty() { continue; }
+        if stream.is_empty() {
+            continue;
+        }
         let bytes = stream_string_to_bytes(stream);
         let mut rest = bytes.as_slice();
         let mut masked = Vec::with_capacity(rest.len());
@@ -937,8 +1090,14 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
     resolve_op_reference_with_kind(st, uri).map(|(v, _)| v)
 }
 
-fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(String, bool), String> {
-    if !uri.get(..5).is_some_and(|scheme| scheme.eq_ignore_ascii_case("op://")) {
+fn resolve_op_reference_with_kind(
+    st: &IntegrationState,
+    uri: &str,
+) -> Result<(String, bool), String> {
+    if !uri
+        .get(..5)
+        .is_some_and(|scheme| scheme.eq_ignore_ascii_case("op://"))
+    {
         return Err("Invalid secret reference scheme".to_string());
     }
     let query_start = uri.find('?');
@@ -951,7 +1110,10 @@ fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(S
         let lc = c.to_ascii_lowercase();
         lc.is_ascii_lowercase()
             || lc.is_ascii_digit()
-            || matches!(lc, '-' | '_' | '.' | ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c')
+            || matches!(
+                lc,
+                '-' | '_' | '.' | ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c'
+            )
     };
     if (parts.len() != 3 && parts.len() != 4)
         || parts
@@ -1014,9 +1176,16 @@ fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(S
         }
     };
     let vault = &st.op_vaults[op_vault_index(st, parts[0])?];
-    let i = op_object_index(st.op_items.iter().enumerate()
-        .filter(|(_, it)| it.vault_id == vault.id && !matches!(it.state.as_str(), "ARCHIVED" | "DELETED"))
-        .map(|(i,it)| (i, it.id.as_str(), it.title.as_str())), parts[1])?;
+    let i = op_object_index(
+        st.op_items
+            .iter()
+            .enumerate()
+            .filter(|(_, it)| {
+                it.vault_id == vault.id && !matches!(it.state.as_str(), "ARCHIVED" | "DELETED")
+            })
+            .map(|(i, it)| (i, it.id.as_str(), it.title.as_str())),
+        parts[1],
+    )?;
     let item = &st.op_items[i];
 
     if parts.len() == 3 {
@@ -1027,18 +1196,14 @@ fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(S
         }) {
             return eval_field_attr(f);
         }
-        if let Some(f) = item
-            .fields
-            .iter()
-            .find(|f| f.id.eq_ignore_ascii_case(field_sel) || f.label.eq_ignore_ascii_case(field_sel))
-        {
+        if let Some(f) = item.fields.iter().find(|f| {
+            f.id.eq_ignore_ascii_case(field_sel) || f.label.eq_ignore_ascii_case(field_sel)
+        }) {
             return eval_field_attr(f);
         }
-        if let Some(fa) = item
-            .files
-            .iter()
-            .find(|fa| fa.id.eq_ignore_ascii_case(field_sel) || fa.name.eq_ignore_ascii_case(field_sel))
-        {
+        if let Some(fa) = item.files.iter().find(|fa| {
+            fa.id.eq_ignore_ascii_case(field_sel) || fa.name.eq_ignore_ascii_case(field_sel)
+        }) {
             return eval_file_attr(fa);
         }
         return Err("Object not found".to_string());
@@ -1165,7 +1330,9 @@ fn render_op_inject_template(
             out.push_str(&expr[1..expr.len() - 1]);
         } else {
             let expanded = expand_env_vars_in_ref(expr, env);
-            if let Some(error) = selection { return Err(error.to_string()); }
+            if let Some(error) = selection {
+                return Err(error.to_string());
+            }
             let val = resolve_op_reference(st, expanded.trim())?;
             if !val.is_empty() && !secret_values.contains(&val) {
                 secret_values.push(val.clone());
@@ -1240,7 +1407,8 @@ where
 {
     match cmd {
         "op" => {
-            let exported = env.iter()
+            let exported = env
+                .iter()
                 .filter(|(key, _)| crate::shell::is_exported_scalar(env, key))
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect();
@@ -1259,7 +1427,13 @@ fn op_err(msg: &str) -> BuiltinOutcome {
     }
 }
 
-fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cwd: &str, seq: &mut u64) -> Result<(), String> {
+fn apply_field_assignment(
+    item: &mut OpItem,
+    spec: &str,
+    fs: &dyn SafeBashFs,
+    cwd: &str,
+    seq: &mut u64,
+) -> Result<(), String> {
     if let Some(before_del) = spec.strip_suffix("[delete]") {
         let (sec, label) = if let Some((s, f)) = before_del.split_once('.') {
             (Some(s.trim()), f.trim())
@@ -1272,7 +1446,8 @@ fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cw
                 (None, None) => true,
                 _ => false,
             };
-            !(sec_match && (f.label.eq_ignore_ascii_case(label) || f.id.eq_ignore_ascii_case(label)))
+            !(sec_match
+                && (f.label.eq_ignore_ascii_case(label) || f.id.eq_ignore_ascii_case(label)))
         });
         return Ok(());
     }
@@ -1336,13 +1511,21 @@ fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cw
     } else {
         (None, name_parts[0].trim().to_string())
     };
-    let section_id = section_label.as_ref().map(|s| s.to_ascii_lowercase().replace(' ', "_"));
+    let section_id = section_label
+        .as_ref()
+        .map(|s| s.to_ascii_lowercase().replace(' ', "_"));
     if let (Some(sid), Some(slabel)) = (&section_id, &section_label)
-        && !item.sections.iter().any(|(id, l)| id == sid || l.eq_ignore_ascii_case(slabel))
+        && !item
+            .sections
+            .iter()
+            .any(|(id, l)| id == sid || l.eq_ignore_ascii_case(slabel))
     {
         item.sections.push((sid.clone(), slabel.clone()));
     }
-    if explicit_type.map(|t| t.eq_ignore_ascii_case("file")).unwrap_or(false) {
+    if explicit_type
+        .map(|t| t.eq_ignore_ascii_case("file"))
+        .unwrap_or(false)
+    {
         let resolved = resolve_posix_path(cwd, val);
         let bytes = fs
             .read_file(&resolved)
@@ -1377,7 +1560,9 @@ fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cw
             (None, None) => true,
             _ => false,
         };
-        sec_ok && (f.label.eq_ignore_ascii_case(&field_label) || f.id.eq_ignore_ascii_case(&field_label))
+        sec_ok
+            && (f.label.eq_ignore_ascii_case(&field_label)
+                || f.id.eq_ignore_ascii_case(&field_label))
     }) {
         existing.value = val.to_string();
         if explicit_type.is_some() {
@@ -1413,7 +1598,10 @@ fn op_bool(val: &str) -> Option<bool> {
 }
 
 fn supported_op_encoding(value: &str) -> bool {
-    matches!(value.to_ascii_lowercase().as_str(), "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk")
+    matches!(
+        value.to_ascii_lowercase().as_str(),
+        "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk"
+    )
 }
 
 fn parse_op_file_mode_str(val: &str) -> Option<u32> {
@@ -1436,7 +1624,10 @@ fn parse_op_file_mode_str(val: &str) -> Option<u32> {
 fn is_op_password_recipe(val: &str) -> bool {
     let mut length_seen = false;
     for part in val.split(',') {
-        if matches!(part.to_ascii_lowercase().as_str(), "letters" | "digits" | "symbols") {
+        if matches!(
+            part.to_ascii_lowercase().as_str(),
+            "letters" | "digits" | "symbols"
+        ) {
             continue;
         }
         let digits = part.strip_prefix('+').unwrap_or(part);
@@ -1581,38 +1772,61 @@ where
     let args = parsed.args.as_slice();
     let first = args[0].as_str();
     let selection = parsed.selection;
-    if let Some(error) = selection && !matches!(parsed.path, "completion" | "run" | "inject" | "item get" | "item edit" | "document edit") {
+    if let Some(error) = selection
+        && !matches!(
+            parsed.path,
+            "completion" | "run" | "inject" | "item get" | "item edit" | "document edit"
+        )
+    {
         return op_err(error);
     }
-    if parsed.vault.as_deref() == Some("") { return op_err("A vault is required"); }
+    if parsed.vault.as_deref() == Some("") {
+        return op_err("A vault is required");
+    }
     let format_json = parsed.format_json;
     let fs_id = fs.fs_id();
     match first {
         "whoami" => {
             let pos_cnt = op_positional_args(args, 1).len();
             if pos_cnt > 0 {
-                return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+                return op_err(&format!(
+                    "expected at most 0 arguments but got {pos_cnt} instead"
+                ));
             }
             op_err("No authenticated session")
         }
         "signin" | "update" => op_err("Admin command requires an injected hook"),
         "signout" => {
-            let all_flag = args.iter().skip(1).any(|a| a == "--all" || a == "--all=true");
-            let has_account = args.iter().skip(1).any(|a| a == "--account" || a.starts_with("--account="))
+            let all_flag = args
+                .iter()
+                .skip(1)
+                .any(|a| a == "--all" || a == "--all=true");
+            let has_account = args
+                .iter()
+                .skip(1)
+                .any(|a| a == "--account" || a.starts_with("--account="))
                 || env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
             let pos_cnt = op_positional_args(args, 1).len();
             if pos_cnt > 0 || (all_flag && has_account) {
                 return op_err("Conflicting account selection");
             }
             if all_flag {
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             op_err("Account selection is required")
         }
         "account" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             if sub == "list" || sub == "ls" {
-                let stdout = if format_json { "[]\n".to_string() } else { String::new() };
+                let stdout = if format_json {
+                    "[]\n".to_string()
+                } else {
+                    String::new()
+                };
                 BuiltinOutcome {
                     stdout,
                     stderr: String::new(),
@@ -1623,15 +1837,25 @@ where
             } else if sub == "get" {
                 op_err("Account selection is required")
             } else if sub == "forget" {
-                let all_flag = args.iter().skip(2).any(|a| a == "--all" || a == "--all=true");
-                let has_account = args.iter().skip(2).any(|a| a == "--account" || a.starts_with("--account="))
+                let all_flag = args
+                    .iter()
+                    .skip(2)
+                    .any(|a| a == "--all" || a == "--all=true");
+                let has_account = args
+                    .iter()
+                    .skip(2)
+                    .any(|a| a == "--account" || a.starts_with("--account="))
                     || env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
                 let pos_cnt = op_positional_args(args, 2).len();
                 if all_flag && (has_account || pos_cnt > 0) {
                     return op_err("Conflicting account selection");
                 }
                 if all_flag {
-                    return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    };
                 }
                 op_err("Account selection is required")
             } else {
@@ -1648,7 +1872,8 @@ where
                     let mut li = 2usize;
                     while li < args.len() {
                         match args[li].as_str() {
-                            "--user" | "--group" | "--permission" | "--format" | "--account" | "--config" | "--session" | "--encoding" => li += 2,
+                            "--user" | "--group" | "--permission" | "--format" | "--account"
+                            | "--config" | "--session" | "--encoding" => li += 2,
                             a if a.starts_with('-') => li += 1,
                             _ => {
                                 pos_cnt += 1;
@@ -1657,7 +1882,9 @@ where
                         }
                     }
                     if pos_cnt > 0 {
-                        return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+                        return op_err(&format!(
+                            "expected at most 0 arguments but got {pos_cnt} instead"
+                        ));
                     }
                     let arr: Vec<Value> = st.op_vaults.iter().map(vault_json).collect();
                     let stdout = if format_json {
@@ -1671,7 +1898,11 @@ where
                         }
                         s
                     };
-                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "create" => {
                     let mut name = None;
@@ -1707,21 +1938,39 @@ where
                         return op_err("Invalid vault icon");
                     }
                     let id = next_op_id(st);
-                    let v = OpVault { id: id.clone(), name, description, icon };
+                    let v = OpVault {
+                        id: id.clone(),
+                        name,
+                        description,
+                        icon,
+                    };
                     let out = to_pretty_json(&vault_json(&v));
                     st.op_vaults.push(v);
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "get" => {
-                    let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).map(|s| s.as_str());
+                    let sel = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .map(|s| s.as_str());
                     let Some(sel_str) = sel else {
                         return op_err("One object selector is required");
                     };
                     let v = match op_vault_index(st, sel_str) {
-                        Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
+                        Ok(i) => &st.op_vaults[i],
+                        Err(error) => return op_err(error),
                     };
                     let out = to_pretty_json(&vault_json(v));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
                     let mut sel = None;
@@ -1757,9 +2006,13 @@ where
                         return op_err("One object selector is required");
                     };
                     let v = match op_vault_index(st, &sel) {
-                        Ok(i) => &mut st.op_vaults[i], Err(error) => return op_err(error),
+                        Ok(i) => &mut st.op_vaults[i],
+                        Err(error) => return op_err(error),
                     };
-                    if new_icon.as_deref().is_some_and(|ic| !ic.is_empty() && !is_valid_vault_icon(ic)) {
+                    if new_icon
+                        .as_deref()
+                        .is_some_and(|ic| !ic.is_empty() && !is_valid_vault_icon(ic))
+                    {
                         return op_err("Invalid vault icon");
                     }
                     if let Some(n) = new_name {
@@ -1772,7 +2025,11 @@ where
                         v.icon = if ic.is_empty() { None } else { Some(ic) };
                     }
                     let out = to_pretty_json(&vault_json(v));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "delete" | "remove" | "rm" => {
                     let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
@@ -1780,16 +2037,25 @@ where
                         return op_err("One object selector is required");
                     };
                     let index = match op_vault_index(st, &sel) {
-                        Ok(i) => i, Err(error) => return op_err(error),
+                        Ok(i) => i,
+                        Err(error) => return op_err(error),
                     };
                     let id = &st.op_vaults[index].id;
-                    if st.op_items.iter().any(|item| item.vault_id == *id && item.state != "DELETED")
+                    if st
+                        .op_items
+                        .iter()
+                        .any(|item| item.vault_id == *id && item.state != "DELETED")
                         || st.op_docs.iter().any(|doc| doc.vault_id == *id)
-                        || st.op_vault_groups.iter().any(|grant| grant.vault_id == *id) {
+                        || st.op_vault_groups.iter().any(|grant| grant.vault_id == *id)
+                    {
                         return op_err("Vault is not empty");
                     }
                     st.op_vaults.remove(index);
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "group" => {
                     let gsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
@@ -1825,17 +2091,27 @@ where
                         "grant" | "revoke" => {
                             let vs = vault_sel.unwrap_or_default();
                             let gs = group_sel.unwrap_or_default();
-                            if vs.is_empty() { return op_err("Object selector is required"); }
+                            if vs.is_empty() {
+                                return op_err("Object selector is required");
+                            }
                             let v = match op_vault_index(st, &vs) {
-                                Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
+                                Ok(i) => &st.op_vaults[i],
+                                Err(error) => return op_err(error),
                             };
                             let vid = v.id.clone();
-                            let Some(g) = st.op_groups.iter().find(|g| g.id.eq_ignore_ascii_case(&gs) || g.name.eq_ignore_ascii_case(&gs)) else {
+                            let Some(g) = st.op_groups.iter().find(|g| {
+                                g.id.eq_ignore_ascii_case(&gs) || g.name.eq_ignore_ascii_case(&gs)
+                            }) else {
                                 return op_err("Object not found");
                             };
                             let gid = g.id.clone();
                             let req_perms: Vec<String> = perms_raw
-                                .map(|s| s.split(',').filter(|p| !p.is_empty()).map(|p| p.to_string()).collect())
+                                .map(|s| {
+                                    s.split(',')
+                                        .filter(|p| !p.is_empty())
+                                        .map(|p| p.to_string())
+                                        .collect()
+                                })
                                 .unwrap_or_default();
                             let cur_perms: Vec<String> = st
                                 .op_vault_groups
@@ -1843,14 +2119,27 @@ where
                                 .find(|vg| vg.vault_id == vid && vg.group_id == gid)
                                 .map(|vg| vg.permissions.clone())
                                 .unwrap_or_default();
-                            let new_perms = match change_vault_permissions(&cur_perms, &req_perms, gsub == "grant") {
+                            let new_perms = match change_vault_permissions(
+                                &cur_perms,
+                                &req_perms,
+                                gsub == "grant",
+                            ) {
                                 Ok(p) => p,
                                 Err(e) => return op_err(&e),
                             };
-                            if let Some(existing) = st.op_vault_groups.iter_mut().find(|vg| vg.vault_id == vid && vg.group_id == gid) {
+                            if let Some(existing) = st
+                                .op_vault_groups
+                                .iter_mut()
+                                .find(|vg| vg.vault_id == vid && vg.group_id == gid)
+                            {
                                 if new_perms.is_empty() && gsub == "revoke" {
-                                    st.op_vault_groups.retain(|vg| !(vg.vault_id == vid && vg.group_id == gid));
-                                    return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                                    st.op_vault_groups
+                                        .retain(|vg| !(vg.vault_id == vid && vg.group_id == gid));
+                                    return BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: String::new(),
+                                        exit_code: 0,
+                                    };
                                 }
                                 existing.permissions = new_perms;
                             } else if gsub == "grant" {
@@ -1862,20 +2151,33 @@ where
                                     permissions: new_perms,
                                 });
                             }
-                            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "list" => {
-                            let Some(vs) = vault_sel else { return op_err("One object selector is required"); };
-                            if vs.is_empty() { return op_err("Object selector is required"); }
+                            let Some(vs) = vault_sel else {
+                                return op_err("One object selector is required");
+                            };
+                            if vs.is_empty() {
+                                return op_err("Object selector is required");
+                            }
                             let v = match op_vault_index(st, &vs) {
-                                Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
+                                Ok(i) => &st.op_vaults[i],
+                                Err(error) => return op_err(error),
                             };
                             let vid = v.id.clone();
                             let mut arr = Vec::new();
                             let mut out = String::new();
                             for vg in st.op_vault_groups.iter().filter(|vg| vg.vault_id == vid) {
                                 if let Some(g) = st.op_groups.iter().find(|g| g.id == vg.group_id) {
-                                    let p_arr: Vec<Value> = vg.permissions.iter().map(|p| JVal::Str(p.clone())).collect();
+                                    let p_arr: Vec<Value> = vg
+                                        .permissions
+                                        .iter()
+                                        .map(|p| JVal::Str(p.clone()))
+                                        .collect();
                                     arr.push(jval!({
                                         "id": g.id,
                                         "name": g.name,
@@ -1897,9 +2199,17 @@ where
                             }
                             if format_json {
                                 let s = to_pretty_json(&Value::Array(arr));
-                                return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                                return BuiltinOutcome {
+                                    stdout: format!("{s}\n"),
+                                    stderr: String::new(),
+                                    exit_code: 0,
+                                };
                             }
-                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: out,
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         _ => op_err("Unsupported admin action"),
                     }
@@ -1912,8 +2222,14 @@ where
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
-            let vault = match parsed.vault.as_deref().map(|v| op_vault_index(st, v)).transpose() {
-                Ok(v) => v, Err(error) => return op_err(error),
+            let vault = match parsed
+                .vault
+                .as_deref()
+                .map(|v| op_vault_index(st, v))
+                .transpose()
+            {
+                Ok(v) => v,
+                Err(error) => return op_err(error),
             };
             match sub {
                 "template" => {
@@ -1921,14 +2237,20 @@ where
                     if tsub == "list" || tsub == "ls" {
                         let pos_cnt = op_positional_args(args, 3).len();
                         if pos_cnt > 0 {
-                            return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+                            return op_err(&format!(
+                                "expected at most 0 arguments but got {pos_cnt} instead"
+                            ));
                         }
                         let out = if format_json {
                             to_pretty_json(&jval!(["Login"]))
                         } else {
                             "[\"Login\"]".to_string()
                         };
-                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{out}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     if tsub != "get" {
                         return op_err(&format!("unknown command: item template {tsub}"));
@@ -1947,7 +2269,11 @@ where
                         ]
                     });
                     let out = to_pretty_json(&tpl);
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "create" => {
                     let mut category = "LOGIN".to_string();
@@ -1980,7 +2306,11 @@ where
                             }
                             "--tags" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    tags = v.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                                    tags = v
+                                        .split(',')
+                                        .map(|s| s.trim().to_string())
+                                        .filter(|s| !s.is_empty())
+                                        .collect();
                                 }
                                 i += 2;
                             }
@@ -2013,7 +2343,8 @@ where
                         }
                     }
 
-                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0)) else {
+                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0))
+                    else {
                         return op_err("Select a vault or configure defaultVault");
                     };
                     let vault = st.op_vaults[vault].clone();
@@ -2051,11 +2382,30 @@ where
                             }
                             if let Some(farr) = val.get("fields").and_then(|v| v.as_array()) {
                                 for f in farr {
-                                    let fid = f.get("id").and_then(|v| v.as_str()).unwrap_or("field").to_string();
-                                    let flabel = f.get("label").and_then(|v| v.as_str()).unwrap_or(&fid).to_string();
-                                    let ftype = f.get("type").and_then(|v| v.as_str()).unwrap_or("STRING").to_string();
-                                    let fpurpose = f.get("purpose").and_then(|v| v.as_str()).map(|s| s.to_string());
-                                    let fval = f.get("value").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                    let fid = f
+                                        .get("id")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or("field")
+                                        .to_string();
+                                    let flabel = f
+                                        .get("label")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or(&fid)
+                                        .to_string();
+                                    let ftype = f
+                                        .get("type")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or("STRING")
+                                        .to_string();
+                                    let fpurpose = f
+                                        .get("purpose")
+                                        .and_then(|v| v.as_str())
+                                        .map(|s| s.to_string());
+                                    let fval = f
+                                        .get("value")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or("")
+                                        .to_string();
                                     item.fields.push(OpField {
                                         id: fid,
                                         label: flabel,
@@ -2103,7 +2453,11 @@ where
                     if let Some(recipe) = gen_pw {
                         st.op_seq += 1;
                         let pw = generate_recipe_password(recipe.as_deref(), st.op_seq);
-                        if let Some(f) = item.fields.iter_mut().find(|f| f.label.eq_ignore_ascii_case("password")) {
+                        if let Some(f) = item
+                            .fields
+                            .iter_mut()
+                            .find(|f| f.label.eq_ignore_ascii_case("password"))
+                        {
                             f.value = pw;
                         } else {
                             item.fields.push(OpField {
@@ -2119,7 +2473,9 @@ where
                     }
 
                     for spec in &assignments {
-                        if let Err(e) = apply_field_assignment(&mut item, spec, fs, cwd, &mut st.op_seq) {
+                        if let Err(e) =
+                            apply_field_assignment(&mut item, spec, fs, cwd, &mut st.op_seq)
+                        {
                             return op_err(&e);
                         }
                     }
@@ -2127,7 +2483,11 @@ where
                     let out_json = item_json(&item, &vault.name, show_values);
                     st.op_items.push(item);
                     let out = to_pretty_json(&out_json);
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "list" | "ls" => {
                     let mut categories: Vec<String> = Vec::new();
@@ -2139,13 +2499,17 @@ where
                         match args[i].as_str() {
                             "--categories" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    categories = v.split(',').map(|s| s.trim().to_ascii_uppercase().replace(' ', "_")).collect();
+                                    categories = v
+                                        .split(',')
+                                        .map(|s| s.trim().to_ascii_uppercase().replace(' ', "_"))
+                                        .collect();
                                 }
                                 i += 2;
                             }
                             "--tags" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    tags_filter = v.split(',').map(|s| s.trim().to_string()).collect();
+                                    tags_filter =
+                                        v.split(',').map(|s| s.trim().to_string()).collect();
                                 }
                                 i += 2;
                             }
@@ -2179,12 +2543,19 @@ where
                         }
                         if !tags_filter.is_empty()
                             && !tags_filter.iter().any(|tf| {
-                                it.tags.iter().any(|t| t == tf || t.starts_with(&format!("{tf}/")))
+                                it.tags
+                                    .iter()
+                                    .any(|t| t == tf || t.starts_with(&format!("{tf}/")))
                             })
                         {
                             continue;
                         }
-                        let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
+                        let vname = st
+                            .op_vaults
+                            .iter()
+                            .find(|v| v.id == it.vault_id)
+                            .map(|v| v.name.as_str())
+                            .unwrap_or("Private");
                         arr.push(item_json(it, vname, show_values));
                     }
                     let stdout = if format_json {
@@ -2198,12 +2569,19 @@ where
                                 "{}\t{}\t{}\n",
                                 v.get("id").and_then(|x| x.as_str()).unwrap_or(""),
                                 v.get("title").and_then(|x| x.as_str()).unwrap_or(""),
-                                v.get("vault").and_then(|x| x.get("name")).and_then(|x| x.as_str()).unwrap_or("")
+                                v.get("vault")
+                                    .and_then(|x| x.get("name"))
+                                    .and_then(|x| x.as_str())
+                                    .unwrap_or("")
                             ));
                         }
                         s
                     };
-                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "get" => {
                     let mut sel: Option<String> = None;
@@ -2249,7 +2627,9 @@ where
                         }
                     }
                     if pos_cnt > 1 {
-                        return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+                        return op_err(&format!(
+                            "expected at most 1 arguments but got {pos_cnt} instead"
+                        ));
                     }
                     if sel.is_none() && !stdin.is_empty() {
                         let trimmed = stdin.trim();
@@ -2260,7 +2640,9 @@ where
                     let Some(sel) = sel else {
                         return op_err("An object selector or piped input is required");
                     };
-                    if let Some(error) = selection { return op_err(error); }
+                    if let Some(error) = selection {
+                        return op_err(error);
+                    }
                     if sel == "-" {
                         let Ok(parsed) = from_json_str(stdin) else {
                             return op_err("invalid JSON on stdin");
@@ -2273,42 +2655,85 @@ where
                         };
                         let mut codes = Vec::new();
                         for entry in inputs {
-                            let id_or_title = entry.get("id").and_then(|v| v.as_str()).or_else(|| entry.get("title").and_then(|v| v.as_str())).unwrap_or("");
+                            let id_or_title = entry
+                                .get("id")
+                                .and_then(|v| v.as_str())
+                                .or_else(|| entry.get("title").and_then(|v| v.as_str()))
+                                .unwrap_or("");
                             let idx = match op_item_index(st, vault, id_or_title, false) {
-                                Ok(i) => i, Err(error) => return op_err(error),
+                                Ok(i) => i,
+                                Err(error) => return op_err(error),
                             };
                             let it = &st.op_items[idx];
                             if otp_mode {
-                                if !fields_spec.is_empty() { return op_err("backend did not return a generated one-time password"); }
+                                if !fields_spec.is_empty() {
+                                    return op_err(
+                                        "backend did not return a generated one-time password",
+                                    );
+                                }
                                 match op_otp::generate(it) {
-                                    Ok(code) => codes.push(code), Err(error) => return op_err(error),
+                                    Ok(code) => codes.push(code),
+                                    Err(error) => return op_err(error),
                                 }
                                 continue;
                             }
-                            let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
+                            let vname = st
+                                .op_vaults
+                                .iter()
+                                .find(|v| v.id == it.vault_id)
+                                .map(|v| v.name.as_str())
+                                .unwrap_or("Private");
                             results.push(item_json(it, vname, show_values));
                         }
                         if otp_mode {
-                            if codes.is_empty() { return op_err("Object selectors are required"); }
-                            return BuiltinOutcome { stdout: format!("{}\n", codes.join("\n")), stderr: String::new(), exit_code: 0 };
+                            if codes.is_empty() {
+                                return op_err("Object selectors are required");
+                            }
+                            return BuiltinOutcome {
+                                stdout: format!("{}\n", codes.join("\n")),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            };
                         }
                         let out = to_pretty_json(&JVal::Array(results));
-                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{out}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
-                    let it = match op_item_index(st, vault, &sel, args.iter().any(|a| a == "--include-archive")) {
-                        Ok(i) => &st.op_items[i], Err(error) => return op_err(error),
+                    let it = match op_item_index(
+                        st,
+                        vault,
+                        &sel,
+                        args.iter().any(|a| a == "--include-archive"),
+                    ) {
+                        Ok(i) => &st.op_items[i],
+                        Err(error) => return op_err(error),
                     };
                     if otp_mode && fields_spec.is_empty() {
                         return match op_otp::generate(it) {
-                            Ok(code) => BuiltinOutcome { stdout: format!("{code}\n"), stderr: String::new(), exit_code: 0 },
+                            Ok(code) => BuiltinOutcome {
+                                stdout: format!("{code}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            },
                             Err(error) => op_err(error),
                         };
                     }
-                    let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
+                    let vname = st
+                        .op_vaults
+                        .iter()
+                        .find(|v| v.id == it.vault_id)
+                        .map(|v| v.name.as_str())
+                        .unwrap_or("Private");
                     if !fields_spec.is_empty() {
                         let full_item = item_json(it, vname, show_values);
                         let empty_fields = Vec::new();
-                        let item_fields = full_item.get("fields").and_then(|v| v.as_array()).unwrap_or(&empty_fields);
+                        let item_fields = full_item
+                            .get("fields")
+                            .and_then(|v| v.as_array())
+                            .unwrap_or(&empty_fields);
                         let mut selected: Vec<Value> = Vec::new();
                         for selector in &fields_spec {
                             let (key, match_val) = match selector.split_once('=') {
@@ -2337,7 +2762,9 @@ where
                                 }
                             }
                         }
-                        if otp_mode { return op_err("backend did not return a generated one-time password"); }
+                        if otp_mode {
+                            return op_err("backend did not return a generated one-time password");
+                        }
                         if format_json {
                             let out_val = if selected.len() == 1 {
                                 selected[0].clone()
@@ -2345,7 +2772,11 @@ where
                                 Value::Array(selected)
                             };
                             let out = to_pretty_json(&out_val);
-                            return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                            return BuiltinOutcome {
+                                stdout: format!("{out}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            };
                         }
                         let vals: Vec<String> = selected
                             .iter()
@@ -2365,7 +2796,11 @@ where
                         };
                     }
                     let out = to_pretty_json(&item_json(it, vname, show_values));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
                     let mut sel: Option<String> = None;
@@ -2403,10 +2838,13 @@ where
                     let Some(sel) = sel else {
                         return op_err("item edit requires an item selector");
                     };
-                    if let Some(error) = selection { return op_err(error); }
+                    if let Some(error) = selection {
+                        return op_err(error);
+                    }
                     let mut seq = st.op_seq;
                     let idx = match op_item_index(st, vault, &sel, false) {
-                        Ok(i) => i, Err(error) => return op_err(error),
+                        Ok(i) => i,
+                        Err(error) => return op_err(error),
                     };
                     if let Some(t) = new_title {
                         st.op_items[idx].title = t;
@@ -2414,7 +2852,11 @@ where
                     if let Some(recipe) = gen_pw {
                         seq += 1;
                         let pw = generate_recipe_password(recipe.as_deref(), seq);
-                        if let Some(f) = st.op_items[idx].fields.iter_mut().find(|f| f.label.eq_ignore_ascii_case("password")) {
+                        if let Some(f) = st.op_items[idx]
+                            .fields
+                            .iter_mut()
+                            .find(|f| f.label.eq_ignore_ascii_case("password"))
+                        {
                             f.value = pw;
                         } else {
                             st.op_items[idx].fields.push(OpField {
@@ -2429,15 +2871,26 @@ where
                         }
                     }
                     for spec in &assignments {
-                        if let Err(e) = apply_field_assignment(&mut st.op_items[idx], spec, fs, cwd, &mut seq) {
+                        if let Err(e) =
+                            apply_field_assignment(&mut st.op_items[idx], spec, fs, cwd, &mut seq)
+                        {
                             st.op_seq = seq;
                             return op_err(&e);
                         }
                     }
                     st.op_seq = seq;
-                    let vname = st.op_vaults.iter().find(|v| v.id == st.op_items[idx].vault_id).map(|v| v.name.clone()).unwrap_or_else(|| "Private".into());
+                    let vname = st
+                        .op_vaults
+                        .iter()
+                        .find(|v| v.id == st.op_items[idx].vault_id)
+                        .map(|v| v.name.clone())
+                        .unwrap_or_else(|| "Private".into());
                     let out = to_pretty_json(&item_json(&st.op_items[idx], &vname, show_values));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "move" => {
                     let mut sel: Option<String> = None;
@@ -2463,18 +2916,26 @@ where
                         return op_err("item selector and --destination-vault are required");
                     };
                     let idx = match op_item_index(st, vault, &sel, false) {
-                        Ok(i) => i, Err(error) => return op_err(error),
+                        Ok(i) => i,
+                        Err(error) => return op_err(error),
                     };
-                    if dst_sel.is_empty() { return op_err("A vault is required"); }
+                    if dst_sel.is_empty() {
+                        return op_err("A vault is required");
+                    }
                     let dst = match op_vault_index(st, &dst_sel) {
-                        Ok(i) => st.op_vaults[i].clone(), Err(error) => return op_err(error),
+                        Ok(i) => st.op_vaults[i].clone(),
+                        Err(error) => return op_err(error),
                     };
                     let new_id = next_op_id(st);
                     let it = &mut st.op_items[idx];
                     it.id = new_id;
                     it.vault_id = dst.id.clone();
                     let out = to_pretty_json(&item_json(it, &dst.name, show_values));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "delete" | "remove" | "rm" => {
                     let mut sel: Option<String> = None;
@@ -2499,10 +2960,19 @@ where
                         return op_err("One object selector is required");
                     };
                     let idx = match op_item_index(st, vault, &sel, false) {
-                        Ok(i) => i, Err(error) => return op_err(error),
+                        Ok(i) => i,
+                        Err(error) => return op_err(error),
                     };
-                    if archive { st.op_items[idx].state = "ARCHIVED".into(); } else { st.op_items.remove(idx); }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    if archive {
+                        st.op_items[idx].state = "ARCHIVED".into();
+                    } else {
+                        st.op_items.remove(idx);
+                    }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "share" => op_err("Admin command requires an injected hook"),
                 _ => op_err(&format!("unknown command: item {sub}")),
@@ -2512,8 +2982,14 @@ where
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
-            let vault = match parsed.vault.as_deref().map(|v| op_vault_index(st, v)).transpose() {
-                Ok(v) => v, Err(error) => return op_err(error),
+            let vault = match parsed
+                .vault
+                .as_deref()
+                .map(|v| op_vault_index(st, v))
+                .transpose()
+            {
+                Ok(v) => v,
+                Err(error) => return op_err(error),
             };
             match sub {
                 "create" => {
@@ -2558,7 +3034,8 @@ where
                             b
                         }
                     };
-                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0)) else {
+                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0))
+                    else {
                         return op_err("Select a vault or configure defaultVault");
                     };
                     let vault = st.op_vaults[vault].clone();
@@ -2580,7 +3057,11 @@ where
                         "title": doc_title,
                         "vault": { "id": vault.id, "name": vault.name }
                     }));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "list" | "ls" => {
                     let arr: Vec<Value> = st
@@ -2598,7 +3079,11 @@ where
                         })
                         .collect();
                     let out = to_pretty_json(&JVal::Array(arr));
-                    BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{out}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "get" => {
                     let mut sel: Option<String> = None;
@@ -2642,13 +3127,16 @@ where
                         }
                     }
                     if pos_cnt > 1 {
-                        return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+                        return op_err(&format!(
+                            "expected at most 1 arguments but got {pos_cnt} instead"
+                        ));
                     }
                     let Some(sel) = sel else {
                         return op_err("expected at least 1 arguments but got 0 instead");
                     };
                     let doc = match op_document_index(st, vault, &sel) {
-                        Ok(i) => &st.op_docs[i], Err(error) => return op_err(error),
+                        Ok(i) => &st.op_docs[i],
+                        Err(error) => return op_err(error),
                     };
                     if let Some(of) = out_file {
                         let resolved = resolve_posix_path(cwd, &of);
@@ -2659,7 +3147,11 @@ where
                             return op_err(&e);
                         }
                         let _ = fs.chmod(&resolved, file_mode.unwrap_or(0o600));
-                        return BuiltinOutcome { stdout: format!("{resolved}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{resolved}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     BuiltinOutcome {
                         stdout: bytes_to_stream_string(&doc.content),
@@ -2698,9 +3190,12 @@ where
                     let Some(sel) = sel else {
                         return op_err("invalid arguments for document edit");
                     };
-                    if let Some(error) = selection { return op_err(error); }
+                    if let Some(error) = selection {
+                        return op_err(error);
+                    }
                     let doc = match op_document_index(st, vault, &sel) {
-                        Ok(i) => &mut st.op_docs[i], Err(error) => return op_err(error),
+                        Ok(i) => &mut st.op_docs[i],
+                        Err(error) => return op_err(error),
                     };
                     if let Some(t) = new_title {
                         doc.title = t;
@@ -2716,7 +3211,11 @@ where
                             }
                         }
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "delete" | "remove" | "rm" => {
                     let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
@@ -2724,10 +3223,16 @@ where
                         return op_err("One object selector is required");
                     };
                     match op_document_index(st, vault, &sel) {
-                        Ok(i) => { st.op_docs.remove(i); }
+                        Ok(i) => {
+                            st.op_docs.remove(i);
+                        }
                         Err(error) => return op_err(error),
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => op_err(&format!("unknown command: document {sub}")),
             }
@@ -2779,7 +3284,9 @@ where
                 }
             }
             if pos_cnt > 1 {
-                return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+                return op_err(&format!(
+                    "expected at most 1 arguments but got {pos_cnt} instead"
+                ));
             }
             let Some(uri) = uri else {
                 return op_err("expected at least 1 arguments but got 0 instead");
@@ -2805,9 +3312,17 @@ where
                     return op_err(&e);
                 }
                 let _ = fs.chmod(&resolved, file_mode.unwrap_or(0o600));
-                return BuiltinOutcome { stdout: format!("{resolved}\n"), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("{resolved}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
-            BuiltinOutcome { stdout: output, stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: output,
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "inject" => {
             let mut in_file: Option<String> = None;
@@ -2851,7 +3366,8 @@ where
             let st = map.get(&fs_id).cloned().unwrap_or_default();
             drop(map);
             let mut secrets = Vec::new();
-            let rendered = match render_op_inject_template(&tpl, &st, env, &mut secrets, selection) {
+            let rendered = match render_op_inject_template(&tpl, &st, env, &mut secrets, selection)
+            {
                 Ok(s) => s,
                 Err(e) => return op_err(&e),
             };
@@ -2866,9 +3382,17 @@ where
                 if let Some(mode) = file_mode {
                     let _ = fs.chmod(&resolved, mode);
                 }
-                return BuiltinOutcome { stdout: format!("{resolved}\n"), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("{resolved}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
-            BuiltinOutcome { stdout: rendered, stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: rendered,
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "run" => {
             let mut no_masking = false;
@@ -2944,12 +3468,20 @@ where
             let snapshot_env = child_env.clone();
             for (_k, val) in child_env.iter_mut() {
                 if val.contains("{{") {
-                    *val = match render_op_inject_template(val, &st, &snapshot_env, &mut secrets, selection) {
+                    *val = match render_op_inject_template(
+                        val,
+                        &st,
+                        &snapshot_env,
+                        &mut secrets,
+                        selection,
+                    ) {
                         Ok(rendered) => rendered,
                         Err(err) => return op_err(&err),
                     };
                 } else if val.starts_with("op://") {
-                    if let Some(error) = selection { return op_err(error); }
+                    if let Some(error) = selection {
+                        return op_err(error);
+                    }
                     let expanded = expand_env_vars_in_ref(val, &snapshot_env);
                     let resolved = match resolve_op_reference(&st, &expanded) {
                         Ok(resolved) => resolved,
@@ -2976,7 +3508,11 @@ where
                 let env_id = args.get(2).cloned().unwrap_or_default();
                 let vars = st.op_envs.get(&env_id).cloned().unwrap_or_default();
                 let out = to_pretty_json(&JVal::from(vars));
-                return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("{out}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub == "snapshot" {
                 let ssub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
@@ -3024,12 +3560,18 @@ where
                             return op_err("Invalid environment snapshot arguments");
                         };
                         let snap_id = next_op_id(st);
-                        let scope = if has_vars_flag { "selected" } else { "complete" };
+                        let scope = if has_vars_flag {
+                            "selected"
+                        } else {
+                            "complete"
+                        };
                         let mut vars_obj = Map::new();
                         if has_vars_flag {
                             for vn in &var_names {
                                 match env.get(vn) {
-                                    Some(val) => vars_obj.insert(vn.clone(), JVal::Str(val.clone())),
+                                    Some(val) => {
+                                        vars_obj.insert(vn.clone(), JVal::Str(val.clone()))
+                                    }
                                     None => vars_obj.insert(vn.clone(), JVal::Null),
                                 }
                             }
@@ -3056,7 +3598,11 @@ where
                             "scope": scope
                         });
                         let out = to_pretty_json(&meta);
-                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{out}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     "list" | "ls" => {
                         let arr: Vec<Value> = st
@@ -3083,7 +3629,11 @@ where
                             })
                             .collect();
                         let out = to_pretty_json(&Value::Array(arr));
-                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{out}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     "get" => {
                         let sel = args
@@ -3103,7 +3653,11 @@ where
                             return op_err("Object not found");
                         };
                         let out = to_pretty_json(snap);
-                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{out}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     "delete" | "rm" => {
                         let sel = args
@@ -3124,7 +3678,11 @@ where
                         if st.op_snapshots.len() == before {
                             return op_err("Object not found");
                         }
-                        return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     "restore" => {
                         let mut shell_opt: Option<String> = None;
@@ -3168,11 +3726,16 @@ where
                         let Some(sel) = pos_args.first().cloned() else {
                             return op_err("Invalid environment snapshot arguments");
                         };
-                        let Some(snap) = st.op_snapshots.iter().find(|s| {
-                            let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
-                            let name = s.get("name").and_then(|v| v.as_str()).unwrap_or("");
-                            id.eq_ignore_ascii_case(&sel) || name.eq_ignore_ascii_case(&sel)
-                        }).cloned() else {
+                        let Some(snap) = st
+                            .op_snapshots
+                            .iter()
+                            .find(|s| {
+                                let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                                let name = s.get("name").and_then(|v| v.as_str()).unwrap_or("");
+                                id.eq_ignore_ascii_case(&sel) || name.eq_ignore_ascii_case(&sel)
+                            })
+                            .cloned()
+                        else {
                             return op_err("Object not found");
                         };
                         drop(map);
@@ -3188,9 +3751,12 @@ where
                         };
                         if let Some(sh) = shell_opt {
                             if pos_args.len() != 1 {
-                                return op_err("Shell output cannot be combined with a child command");
+                                return op_err(
+                                    "Shell output cannot be combined with a child command",
+                                );
                             }
-                            if !matches!(sh.as_str(), "bash" | "zsh" | "sh" | "fish" | "powershell") {
+                            if !matches!(sh.as_str(), "bash" | "zsh" | "sh" | "fish" | "powershell")
+                            {
                                 return op_err("Unsupported restoration shell");
                             }
                             let mut names: Vec<String> = Vec::new();
@@ -3214,7 +3780,9 @@ where
                                             || (idx > 0 && ch.is_ascii_digit())
                                     });
                                 if !valid {
-                                    return op_err("Environment contains a name that cannot be restored by a shell script");
+                                    return op_err(
+                                        "Environment contains a name that cannot be restored by a shell script",
+                                    );
                                 }
                             }
                             let mut lines: Vec<String> = Vec::new();
@@ -3226,7 +3794,10 @@ where
                                 match val_opt {
                                     Some(val) => {
                                         if sh == "powershell" {
-                                            lines.push(format!("$env:{name} = '{}'", val.replace('\'', "''")));
+                                            lines.push(format!(
+                                                "$env:{name} = '{}'",
+                                                val.replace('\'', "''")
+                                            ));
                                         } else if sh == "fish" {
                                             lines.push(format!(
                                                 "set -gx {name} '{}'",
@@ -3284,12 +3855,18 @@ where
                             }
                             return out;
                         }
-                        return op_err("Host environment restoration is unavailable; use --shell or supply a child command after --");
+                        return op_err(
+                            "Host environment restoration is unavailable; use --shell or supply a child command after --",
+                        );
                     }
                     _ => return op_err("Unsupported admin action"),
                 }
             }
-            BuiltinOutcome { stdout: "{}\n".into(), stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: "{}\n".into(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "group" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
@@ -3348,13 +3925,21 @@ where
                             jval!({ "id": gid, "name": gname })
                         };
                         let s = to_pretty_json(&val);
-                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{s}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let mut out = format!("id: {gid}\nname: {gname}\n");
                     if let Some(d) = desc_opt {
                         out.push_str(&format!("description: {d}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "list" => {
                     if format_json {
@@ -3370,10 +3955,18 @@ where
                             })
                             .collect();
                         let s = to_pretty_json(&Value::Array(arr));
-                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{s}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     if st.op_groups.is_empty() {
-                        return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let has_desc = st.op_groups.iter().any(|g| g.description.is_some());
                     let mut out = if has_desc {
@@ -3383,12 +3976,21 @@ where
                     };
                     for g in &st.op_groups {
                         if has_desc {
-                            out.push_str(&format!("{}\t{}\t{}\n", g.id, g.name, g.description.as_deref().unwrap_or("")));
+                            out.push_str(&format!(
+                                "{}\t{}\t{}\n",
+                                g.id,
+                                g.name,
+                                g.description.as_deref().unwrap_or("")
+                            ));
                         } else {
                             out.push_str(&format!("{}\t{}\n", g.id, g.name));
                         }
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "get" => {
                     let sel = args
@@ -3400,7 +4002,9 @@ where
                     if sel.is_empty() {
                         return op_err("One object selector is required");
                     }
-                    let Some(g) = st.op_groups.iter().find(|g| g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)) else {
+                    let Some(g) = st.op_groups.iter().find(|g| {
+                        g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)
+                    }) else {
                         return op_err("Object not found");
                     };
                     if format_json {
@@ -3410,13 +4014,21 @@ where
                             jval!({ "id": g.id, "name": g.name })
                         };
                         let s = to_pretty_json(&val);
-                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{s}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let mut out = format!("id: {}\nname: {}\n", g.id, g.name);
                     if let Some(d) = &g.description {
                         out.push_str(&format!("description: {d}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
                     let sel = args
@@ -3428,7 +4040,9 @@ where
                     if sel.is_empty() {
                         return op_err("One object selector is required");
                     }
-                    let Some(g) = st.op_groups.iter_mut().find(|g| g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)) else {
+                    let Some(g) = st.op_groups.iter_mut().find(|g| {
+                        g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)
+                    }) else {
                         return op_err("Object not found");
                     };
                     if let Some(n) = name_opt {
@@ -3445,13 +4059,21 @@ where
                             jval!({ "id": g_clone.id, "name": g_clone.name })
                         };
                         let s = to_pretty_json(&val);
-                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{s}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let mut out = format!("id: {}\nname: {}\n", g_clone.id, g_clone.name);
                     if let Some(d) = &g_clone.description {
                         out.push_str(&format!("description: {d}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "delete" | "remove" | "rm" => {
                     let sel = args
@@ -3464,11 +4086,17 @@ where
                         return op_err("One object selector is required");
                     }
                     let before = st.op_groups.len();
-                    st.op_groups.retain(|g| !g.id.eq_ignore_ascii_case(&sel) && !g.name.eq_ignore_ascii_case(&sel));
+                    st.op_groups.retain(|g| {
+                        !g.id.eq_ignore_ascii_case(&sel) && !g.name.eq_ignore_ascii_case(&sel)
+                    });
                     if st.op_groups.len() == before {
                         return op_err("Object not found");
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => op_err(&format!("unknown command: group {sub}")),
             }
@@ -3476,30 +4104,80 @@ where
         "plugin" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             const PLUGINS: &[(&str, &str, &str, &str)] = &[
-                ("akamai", "Akamai CLI", "Akamai", "Client Secret, Host, Access Token, Client Token"),
+                (
+                    "akamai",
+                    "Akamai CLI",
+                    "Akamai",
+                    "Client Secret, Host, Access Token, Client Token",
+                ),
                 ("claude", "Claude Code", "Anthropic", "API Key"),
                 ("argocd", "Argo CD CLI", "Argo CD", "Auth Token"),
                 ("aws", "AWS CLI", "AWS", "Access Key ID, Secret Access Key"),
-                ("cdk", "AWS CDK Toolkit", "AWS", "Access Key ID, Secret Access Key"),
-                ("sam", "AWS SAM CLI", "AWS", "Access Key ID, Secret Access Key"),
-                ("eksctl", "eksctl CLI", "AWS", "Access Key ID, Secret Access Key"),
-                ("awslogs", "awslogs", "AWS", "Access Key ID, Secret Access Key"),
+                (
+                    "cdk",
+                    "AWS CDK Toolkit",
+                    "AWS",
+                    "Access Key ID, Secret Access Key",
+                ),
+                (
+                    "sam",
+                    "AWS SAM CLI",
+                    "AWS",
+                    "Access Key ID, Secret Access Key",
+                ),
+                (
+                    "eksctl",
+                    "eksctl CLI",
+                    "AWS",
+                    "Access Key ID, Secret Access Key",
+                ),
+                (
+                    "awslogs",
+                    "awslogs",
+                    "AWS",
+                    "Access Key ID, Secret Access Key",
+                ),
                 ("axiom", "Axiom CLI", "Axiom", "Token, Organization"),
-                ("binance-cli", "Binance CLI", "Binance", "API Key, API Secret"),
+                (
+                    "binance-cli",
+                    "Binance CLI",
+                    "Binance",
+                    "API Key, API Secret",
+                ),
                 ("cachix", "Cachix CLI", "Cachix", "Token"),
                 ("cargo", "Cargo CLI", "Cargo", "Token"),
                 ("circleci", "CircleCI CLI", "CircleCI", "Token"),
                 ("civo", "Civo CLI", "Civo", "API Key"),
                 ("cline", "Cline CLI", "Cline", "API Key"),
-                ("wrangler", "Cloudflare Workers CLI", "Cloudflare Workers", "Token"),
-                ("crash", "CrateDB Shell", "CrateDB", "Host, Username, Password"),
+                (
+                    "wrangler",
+                    "Cloudflare Workers CLI",
+                    "Cloudflare Workers",
+                    "Token",
+                ),
+                (
+                    "crash",
+                    "CrateDB Shell",
+                    "CrateDB",
+                    "Host, Username, Password",
+                ),
                 ("crowdin", "Crowdin CLI", "Crowdin", "Token"),
                 ("agent", "Cursor CLI", "Cursor", "API Key"),
                 ("databricks", "Databricks CLI", "Databricks", "Host, Token"),
                 ("dog", "Dogshell", "Datadog", "API Key, App Key"),
-                ("descope", "Descope CLI", "Descope", "Project ID, Management Key"),
+                (
+                    "descope",
+                    "Descope CLI",
+                    "Descope",
+                    "Project ID, Management Key",
+                ),
                 ("doctl", "DigitalOcean CLI", "DigitalOcean", "Token"),
-                ("exercism", "Exercism CLI", "Exercism", "URL, API Key, Directory"),
+                (
+                    "exercism",
+                    "Exercism CLI",
+                    "Exercism",
+                    "URL, API Key, Directory",
+                ),
                 ("expo", "Expo CLI", "Expo", "Token"),
                 ("eas", "EAS CLI", "Expo", "Token"),
                 ("fastly", "Fastly CLI", "Fastly", "Token"),
@@ -3510,22 +4188,47 @@ where
                 ("gh", "GitHub CLI", "GitHub", "Token"),
                 ("copilot", "GitHub Copilot CLI", "GitHub Copilot", "Token"),
                 ("glab", "GitLab CLI", "GitLab", "Token"),
-                ("gemini", "Google Gemini CLI", "Google Gemini CLI", "API Key"),
+                (
+                    "gemini",
+                    "Google Gemini CLI",
+                    "Google Gemini CLI",
+                    "API Key",
+                ),
                 ("vault", "Vault CLI", "HashiCorp Vault", "Token"),
                 ("heroku", "Heroku CLI", "Heroku", "API Key"),
                 ("hcloud", "Hetzner Cloud CLI", "Hetzner Cloud", "Token"),
                 ("brew", "Homebrew CLI", "Homebrew", "Token"),
-                ("huggingface-cli", "HuggingFace CLI", "Hugging Face", "User Access Token"),
-                ("influx", "InfluxDB CLI", "InfluxDB", "Host, Organization, Access Token"),
+                (
+                    "huggingface-cli",
+                    "HuggingFace CLI",
+                    "Hugging Face",
+                    "User Access Token",
+                ),
+                (
+                    "influx",
+                    "InfluxDB CLI",
+                    "InfluxDB",
+                    "Host, Organization, Access Token",
+                ),
                 ("junie", "JetBrains Junie CLI", "JetBrains Junie", "API Key"),
                 ("kaggle", "Kaggle CLI", "Kaggle", "Token, Username"),
                 ("kiro-cli", "Kiro CLI", "Kiro", "API Key"),
-                ("lacework", "Lacework CLI", "Lacework", "Account, API Key ID, API Secret"),
+                (
+                    "lacework",
+                    "Lacework CLI",
+                    "Lacework",
+                    "Account, API Key ID, API Secret",
+                ),
                 ("forge", "Laravel Forge CLI", "Laravel Forge", "Token"),
                 ("vapor", "Laravel Vapor CLI", "Laravel Vapor", "Token"),
                 ("linode-cli", "Linode CLI", "Linode", "Token"),
                 ("localstack", "LocalStack CLI", "LocalStack", "API Key"),
-                ("atlas", "MongoDB Atlas CLI", "MongoDB Atlas", "Public Key, Private Key"),
+                (
+                    "atlas",
+                    "MongoDB Atlas CLI",
+                    "MongoDB Atlas",
+                    "Public Key, Private Key",
+                ),
                 ("mysql", "mysql", "MySQL", "Password"),
                 ("ngrok", "ngrok CLI", "ngrok", "Authtoken"),
                 ("ohdear", "Oh Dear CLI", "Oh Dear", "Token"),
@@ -3535,11 +4238,21 @@ where
                 ("oaievalset", "OpenAI Eval Set CLI", "OpenAI", "API Key"),
                 ("codex", "OpenAI Codex", "OpenAI", "API Key"),
                 ("opencode", "OpenCode CLI", "OpenCode", "API Key"),
-                ("tofu", "OpenTofu", "OpenTofu", "Depends on configured credentials"),
+                (
+                    "tofu",
+                    "OpenTofu",
+                    "OpenTofu",
+                    "Depends on configured credentials",
+                ),
                 ("pd", "Pipedream CLI", "Pipedream", "API Key"),
                 ("psql", "psql", "PostgreSQL", "Host, User, Password"),
                 ("pg_dump", "pg_dump", "PostgreSQL", "Host, User, Password"),
-                ("pg_restore", "pg_restore", "PostgreSQL", "Host, User, Password"),
+                (
+                    "pg_restore",
+                    "pg_restore",
+                    "PostgreSQL",
+                    "Host, User, Password",
+                ),
                 ("pgcli", "pgcli", "PostgreSQL", "Host, User, Password"),
                 ("pulumi", "Pulumi CLI", "Pulumi", "Token"),
                 ("twine", "Twine", "PyPI", "Token"),
@@ -3548,22 +4261,47 @@ where
                 ("rdme", "ReadMe CLI", "ReadMe", "API Key"),
                 ("redis-cli", "Redis CLI", "Redis", "Password"),
                 ("-", "", "rediscloud", "Account Key, User Key"),
-                ("scw", "Scaleway CLI", "Scaleway", "Access Key ID, Secret Access Key"),
+                (
+                    "scw",
+                    "Scaleway CLI",
+                    "Scaleway",
+                    "Access Key ID, Secret Access Key",
+                ),
                 ("sentry-cli", "Sentry CLI", "Sentry", "Token"),
-                ("snowsql", "Snowflake CLI", "Snowflake", "Account, Username, Password"),
+                (
+                    "snowsql",
+                    "Snowflake CLI",
+                    "Snowflake",
+                    "Account, Username, Password",
+                ),
                 ("snyk", "Snyk CLI", "Snyk", "Token"),
                 ("src", "Sourcegraph CLI", "Sourcegraph", "Token"),
                 ("stripe", "Stripe CLI", "Stripe", "Key"),
                 ("todoist", "Todoist CLI", "Todoist", "Token"),
                 ("td", "Treasure Data Toolbelt", "Treasure Data", "API Key"),
                 ("tugboat", "Tugboat CLI", "Tugboat", "Token"),
-                ("twilio", "Twilio CLI", "Twilio", "Account SID, API Key, API Secret"),
+                (
+                    "twilio",
+                    "Twilio CLI",
+                    "Twilio",
+                    "Account SID, API Key, API Secret",
+                ),
                 ("upctl", "UpCloud CLI", "UpCloud", "Username, Password"),
                 ("upstash", "Upstash CLI", "Upstash", "API Key, Email"),
                 ("vercel", "Vercel CLI", "Vercel", "Token"),
-                ("vsql", "Vertica CLI", "Vertica", "Username, Password, Database"),
+                (
+                    "vsql",
+                    "Vertica CLI",
+                    "Vertica",
+                    "Username, Password, Database",
+                ),
                 ("vultr-cli", "Vultr CLI", "Vultr", "API Key"),
-                ("ysqlsh", "YugabyteDB SQL Shell", "YugabyteDB", "Host, Username, Password"),
+                (
+                    "ysqlsh",
+                    "YugabyteDB SQL Shell",
+                    "YugabyteDB",
+                    "Host, Username, Password",
+                ),
                 ("zapier", "Zapier CLI", "Zapier", "Key"),
                 ("zcli", "Zendesk CLI", "Zendesk", "Subdomain, Email, Token"),
             ];
@@ -3589,20 +4327,32 @@ where
                             })
                             .collect();
                         let s = to_pretty_json(&Value::Array(arr));
-                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{s}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
-                    let mut out = String::from("EXECUTABLE         NAME                  REQUIRED FIELDS\n");
+                    let mut out =
+                        String::from("EXECUTABLE         NAME                  REQUIRED FIELDS\n");
                     for (exec, _, pname, reqs) in PLUGINS {
                         out.push_str(&format!("{exec:<19}{pname:<22}{reqs}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "inspect" => {
                     let target = args.get(2).map(|s| s.as_str()).unwrap_or("");
                     if target.is_empty() {
                         return op_err("Plugin selection capability is unavailable");
                     }
-                    if PLUGINS.iter().any(|(exec, _, _, _)| exec.eq_ignore_ascii_case(target)) {
+                    if PLUGINS
+                        .iter()
+                        .any(|(exec, _, _, _)| exec.eq_ignore_ascii_case(target))
+                    {
                         return op_err("Plugin configuration is unavailable");
                     }
                     op_err("Object not found")
@@ -3612,21 +4362,48 @@ where
         }
         "user" | "connect" | "service-account" | "events-api" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
-            if (first == "service-account" && (sub == "create" || sub == "ratelimit" || sub == "ratelimits"))
+            if (first == "service-account"
+                && (sub == "create" || sub == "ratelimit" || sub == "ratelimits"))
                 || (first == "events-api" && sub == "create")
                 || (first == "user" && sub == "provision")
-                || (first == "connect" && matches!(sub, "server" | "token") && args.get(2).map(|s| s.as_str()) == Some("create"))
+                || (first == "connect"
+                    && matches!(sub, "server" | "token")
+                    && args.get(2).map(|s| s.as_str()) == Some("create"))
             {
                 return op_err("Admin command requires an injected hook");
             }
-            if (first == "user" && !matches!(sub, "list" | "ls" | "get" | "edit" | "delete" | "remove" | "rm" | "confirm" | "suspend" | "reactivate" | "recovery"))
-                || (first == "connect" && !matches!(sub, "list" | "ls" | "server" | "token" | "vault" | "group"))
-                || (first == "service-account" && !matches!(sub, "list" | "ls" | "create" | "ratelimit" | "ratelimits"))
+            if (first == "user"
+                && !matches!(
+                    sub,
+                    "list"
+                        | "ls"
+                        | "get"
+                        | "edit"
+                        | "delete"
+                        | "remove"
+                        | "rm"
+                        | "confirm"
+                        | "suspend"
+                        | "reactivate"
+                        | "recovery"
+                ))
+                || (first == "connect"
+                    && !matches!(sub, "list" | "ls" | "server" | "token" | "vault" | "group"))
+                || (first == "service-account"
+                    && !matches!(sub, "list" | "ls" | "create" | "ratelimit" | "ratelimits"))
                 || (first == "events-api" && !matches!(sub, "list" | "ls" | "create"))
             {
                 return op_err(&format!("unknown command: {first} {sub}"));
             }
-            BuiltinOutcome { stdout: if format_json { "[]\n".into() } else { String::new() }, stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: if format_json {
+                    "[]\n".into()
+                } else {
+                    String::new()
+                },
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "completion" => {
             let pos = op_positional_args(args, 1);
@@ -3634,18 +4411,28 @@ where
                 return op_err("completion requires one shell: bash, zsh, fish, or powershell");
             }
             let script = match pos[0] {
-                "bash" => "_op() {\n  local response directive choice current op_cword\n  local -a op_words\n  if declare -F _get_comp_words_by_ref >/dev/null; then\n    _get_comp_words_by_ref -n =: -w op_words -i op_cword -c current || return\n  else\n    op_words=(\"${COMP_WORDS[@]}\")\n    op_cword=$COMP_CWORD\n    current=\"${op_words[op_cword]}\"\n  fi\n  op_words[op_cword]=\"$current\"\n  COMPREPLY=()\n  response=$(OP_COMPATIBILITY_CHANNEL=stable \"${op_words[0]}\" __completeNoDesc \"${op_words[@]:1:op_cword}\" 2>/dev/null) || return\n  directive=\"${response##*$'\\n'}\"\n  case \"$directive\" in\n    :0) while IFS= read -r choice; do COMPREPLY+=(\"$choice\"); done < <(compgen -f -- \"$current\") ;;\n    :4) while IFS= read -r choice; do [[ \"$choice\" == :4 ]] || COMPREPLY+=(\"$choice\"); done <<< \"$response\" ;;\n  esac\n}\ncomplete -o filenames -F _op op\n",
-                "zsh" => "#compdef op\n_op() {\n  local line directive\n  local -a response candidates descriptions\n  response=(\"${(@f)$(OP_COMPATIBILITY_CHANNEL=stable \"${words[1]}\" __complete \"${(@)words[2,CURRENT]}\" 2>/dev/null)}\")\n  directive=\"${response[-1]}\"\n  case \"$directive\" in\n    :0) _files ;;\n    :4)\n      for line in \"${response[@]}\"; do\n        [[ \"$line\" == :4 ]] && continue\n        candidates+=(\"${line%%$'\\t'*}\")\n        descriptions+=(\"${line#*$'\\t'}\")\n      done\n      (( ${#candidates} )) && compadd -d descriptions -- \"${candidates[@]}\"\n      ;;\n  esac\n  return 0\n}\ncompdef _op op\n",
-                "fish" => "function __op_candidates\n  set -lx OP_COMPATIBILITY_CHANNEL stable\n  set -l tokens (commandline -opc)\n  set -l current (commandline -ct)\n  set -l response ($tokens[1] __complete $tokens[2..-1] \"$current\" 2>/dev/null)\n  set -l directive $response[-1]\n  switch \"$directive\"\n    case :0\n      __fish_complete_path \"$current\"\n    case :4\n      set -e response[-1]\n      for candidate in $response\n        printf \"%s\\n\" \"$candidate\"\n      end\n  end\nend\ncomplete -c op -f -a '(__op_candidates)'\n",
-                "powershell" => "Register-ArgumentCompleter -Native -CommandName op -ScriptBlock {\n  param($wordToComplete, $commandAst, $cursorPosition)\n  $program = $commandAst.CommandElements[0].Value\n  $arguments = @()\n  foreach ($element in ($commandAst.CommandElements | Select-Object -Skip 1)) {\n    if ($element.Extent.EndOffset -ge $cursorPosition) { break }\n    if ($element -is [System.Management.Automation.Language.StringConstantExpressionAst]) { $arguments += $element.Value }\n    else { $arguments += $element.Extent.Text }\n  }\n  $current = $wordToComplete\n  if ($current -eq \"\" -and ($PSVersionTable.PSVersion -lt [version]\"7.3\" -or $PSNativeCommandArgumentPassing -eq \"Legacy\")) { $current = '\"\"' }\n  $previousChannel = $env:OP_COMPATIBILITY_CHANNEL\n  try {\n    $env:OP_COMPATIBILITY_CHANNEL = 'stable'\n    $response = @(& $program __complete @arguments $current 2>$null)\n  } finally { $env:OP_COMPATIBILITY_CHANNEL = $previousChannel }\n  if ($response.Count -eq 0) { return }\n  $directive = $response[-1]\n  if ($directive -eq \":0\") { return }\n  if ($directive -ne \":4\") { \"\"; return }\n  if ($response.Count -eq 1) { \"\"; return }\n  foreach ($line in $response[0..($response.Count - 2)]) {\n    $parts = $line.Split([char]9, 2)\n    $description = if ($parts.Count -gt 1) { $parts[1] } else { \" \" }\n    [System.Management.Automation.CompletionResult]::new($parts[0], $parts[0], 'ParameterValue', $description)\n  }\n}\n",
-                _ => return op_err("completion requires one shell: bash, zsh, fish, or powershell"),
+                "bash" => {
+                    "_op() {\n  local response directive choice current op_cword\n  local -a op_words\n  if declare -F _get_comp_words_by_ref >/dev/null; then\n    _get_comp_words_by_ref -n =: -w op_words -i op_cword -c current || return\n  else\n    op_words=(\"${COMP_WORDS[@]}\")\n    op_cword=$COMP_CWORD\n    current=\"${op_words[op_cword]}\"\n  fi\n  op_words[op_cword]=\"$current\"\n  COMPREPLY=()\n  response=$(OP_COMPATIBILITY_CHANNEL=stable \"${op_words[0]}\" __completeNoDesc \"${op_words[@]:1:op_cword}\" 2>/dev/null) || return\n  directive=\"${response##*$'\\n'}\"\n  case \"$directive\" in\n    :0) while IFS= read -r choice; do COMPREPLY+=(\"$choice\"); done < <(compgen -f -- \"$current\") ;;\n    :4) while IFS= read -r choice; do [[ \"$choice\" == :4 ]] || COMPREPLY+=(\"$choice\"); done <<< \"$response\" ;;\n  esac\n}\ncomplete -o filenames -F _op op\n"
+                }
+                "zsh" => {
+                    "#compdef op\n_op() {\n  local line directive\n  local -a response candidates descriptions\n  response=(\"${(@f)$(OP_COMPATIBILITY_CHANNEL=stable \"${words[1]}\" __complete \"${(@)words[2,CURRENT]}\" 2>/dev/null)}\")\n  directive=\"${response[-1]}\"\n  case \"$directive\" in\n    :0) _files ;;\n    :4)\n      for line in \"${response[@]}\"; do\n        [[ \"$line\" == :4 ]] && continue\n        candidates+=(\"${line%%$'\\t'*}\")\n        descriptions+=(\"${line#*$'\\t'}\")\n      done\n      (( ${#candidates} )) && compadd -d descriptions -- \"${candidates[@]}\"\n      ;;\n  esac\n  return 0\n}\ncompdef _op op\n"
+                }
+                "fish" => {
+                    "function __op_candidates\n  set -lx OP_COMPATIBILITY_CHANNEL stable\n  set -l tokens (commandline -opc)\n  set -l current (commandline -ct)\n  set -l response ($tokens[1] __complete $tokens[2..-1] \"$current\" 2>/dev/null)\n  set -l directive $response[-1]\n  switch \"$directive\"\n    case :0\n      __fish_complete_path \"$current\"\n    case :4\n      set -e response[-1]\n      for candidate in $response\n        printf \"%s\\n\" \"$candidate\"\n      end\n  end\nend\ncomplete -c op -f -a '(__op_candidates)'\n"
+                }
+                "powershell" => {
+                    "Register-ArgumentCompleter -Native -CommandName op -ScriptBlock {\n  param($wordToComplete, $commandAst, $cursorPosition)\n  $program = $commandAst.CommandElements[0].Value\n  $arguments = @()\n  foreach ($element in ($commandAst.CommandElements | Select-Object -Skip 1)) {\n    if ($element.Extent.EndOffset -ge $cursorPosition) { break }\n    if ($element -is [System.Management.Automation.Language.StringConstantExpressionAst]) { $arguments += $element.Value }\n    else { $arguments += $element.Extent.Text }\n  }\n  $current = $wordToComplete\n  if ($current -eq \"\" -and ($PSVersionTable.PSVersion -lt [version]\"7.3\" -or $PSNativeCommandArgumentPassing -eq \"Legacy\")) { $current = '\"\"' }\n  $previousChannel = $env:OP_COMPATIBILITY_CHANNEL\n  try {\n    $env:OP_COMPATIBILITY_CHANNEL = 'stable'\n    $response = @(& $program __complete @arguments $current 2>$null)\n  } finally { $env:OP_COMPATIBILITY_CHANNEL = $previousChannel }\n  if ($response.Count -eq 0) { return }\n  $directive = $response[-1]\n  if ($directive -eq \":0\") { return }\n  if ($directive -ne \":4\") { \"\"; return }\n  if ($response.Count -eq 1) { \"\"; return }\n  foreach ($line in $response[0..($response.Count - 2)]) {\n    $parts = $line.Split([char]9, 2)\n    $description = if ($parts.Count -gt 1) { $parts[1] } else { \" \" }\n    [System.Management.Automation.CompletionResult]::new($parts[0], $parts[0], 'ParameterValue', $description)\n  }\n}\n"
+                }
+                _ => {
+                    return op_err("completion requires one shell: bash, zsh, fish, or powershell");
+                }
             };
             BuiltinOutcome {
                 stdout: script.to_string(),
                 stderr: String::new(),
                 exit_code: 0,
             }
-        },
+        }
         _ => op_err(&format!("unknown command: {first}")),
     }
 }
@@ -3663,7 +4450,9 @@ fn filter_json_fields(val: &Value, fields: &[String]) -> Value {
         return val.clone();
     }
     match val {
-        Value::Array(arr) => Value::Array(arr.iter().map(|v| filter_json_fields(v, fields)).collect()),
+        Value::Array(arr) => {
+            Value::Array(arr.iter().map(|v| filter_json_fields(v, fields)).collect())
+        }
         JVal::Object(entries) => {
             let mut out = Map::new();
             for f in fields {
@@ -3700,7 +4489,14 @@ fn format_gh_json_output(
     }
 }
 
-fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>>, Option<String>, Vec<String>) {
+fn parse_gh_common_flags(
+    args: &[String],
+) -> (
+    Option<String>,
+    Option<Vec<String>>,
+    Option<String>,
+    Vec<String>,
+) {
     let mut repo = None;
     let mut json_fields = None;
     let mut jq_expr = None;
@@ -3758,7 +4554,11 @@ fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>
     (repo, json_fields, jq_expr, filtered)
 }
 
-fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &BTreeMap<String, String>) -> String {
+fn resolve_gh_repo_key(
+    st: &mut IntegrationState,
+    explicit: Option<&str>,
+    env: &BTreeMap<String, String>,
+) -> String {
     let key = explicit
         .map(|s| s.to_string())
         .or_else(|| env.get("GH_REPO").cloned())
@@ -3768,7 +4568,9 @@ fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &
         .trim_start_matches("https://github.com/")
         .trim_end_matches(".git")
         .to_string();
-    let (owner, name) = normalized.split_once('/').unwrap_or(("octocat", &normalized));
+    let (owner, name) = normalized
+        .split_once('/')
+        .unwrap_or(("octocat", &normalized));
     let full = format!("{owner}/{name}");
     if !st.gh_repos.contains_key(&full) {
         st.gh_next_id += 7;
@@ -3799,11 +4601,31 @@ fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &
                 prs: Vec::new(),
                 releases: Vec::new(),
                 labels: vec![
-                    ("bug".into(), "d73a4a".into(), "Something isn't working".into()),
-                    ("documentation".into(), "0075ca".into(), "Improvements or additions to documentation".into()),
-                    ("enhancement".into(), "a2eeef".into(), "New feature or request".into()),
-                    ("good first issue".into(), "7057ff".into(), "Good for newcomers".into()),
-                    ("help wanted".into(), "008672".into(), "Extra attention is needed".into()),
+                    (
+                        "bug".into(),
+                        "d73a4a".into(),
+                        "Something isn't working".into(),
+                    ),
+                    (
+                        "documentation".into(),
+                        "0075ca".into(),
+                        "Improvements or additions to documentation".into(),
+                    ),
+                    (
+                        "enhancement".into(),
+                        "a2eeef".into(),
+                        "New feature or request".into(),
+                    ),
+                    (
+                        "good first issue".into(),
+                        "7057ff".into(),
+                        "Good for newcomers".into(),
+                    ),
+                    (
+                        "help wanted".into(),
+                        "008672".into(),
+                        "Extra attention is needed".into(),
+                    ),
                 ],
                 variables: BTreeMap::new(),
                 secrets: Vec::new(),
@@ -3819,7 +4641,11 @@ fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &
 }
 
 fn find_git_root_in_vfs(cwd: &str, fs: &dyn SafeBashFs) -> Option<String> {
-    let mut current = if cwd.is_empty() { "/".to_string() } else { cwd.to_string() };
+    let mut current = if cwd.is_empty() {
+        "/".to_string()
+    } else {
+        cwd.to_string()
+    };
     loop {
         let git_dir = if current == "/" {
             "/.git".to_string()
@@ -3868,33 +4694,80 @@ fn split_gh_alias_expansion(expansion: &str) -> Vec<String> {
 
 fn gh_config_dir(env: &BTreeMap<String, String>) -> String {
     let get = |key| env.get(key).filter(|v| !v.is_empty());
-    if let Some(dir) = get("GH_CONFIG_DIR") { return dir.clone(); }
-    if let Some(xdg) = get("XDG_CONFIG_HOME") { return format!("{xdg}/gh"); }
-    format!("{}/.config/gh", get("HOME").map(String::as_str).unwrap_or("/home/user"))
+    if let Some(dir) = get("GH_CONFIG_DIR") {
+        return dir.clone();
+    }
+    if let Some(xdg) = get("XDG_CONFIG_HOME") {
+        return format!("{xdg}/gh");
+    }
+    format!(
+        "{}/.config/gh",
+        get("HOME").map(String::as_str).unwrap_or("/home/user")
+    )
 }
 
-fn gh_clear_cache<'a>(args: impl Iterator<Item = &'a str>, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
+fn gh_clear_cache<'a>(
+    args: impl Iterator<Item = &'a str>,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let error = |stderr| BuiltinOutcome {
+        stdout: String::new(),
+        stderr,
+        exit_code: 1,
+    };
     let mut count = 0;
     let mut help = false;
     let mut options = true;
     for word in args {
-        if options && word == "--" { options = false; continue; }
-        if !options || word == "-" || !word.starts_with('-') { count += 1; continue; }
-        if word.starts_with("-h") { help = true; break; }
-        if word == "--help" { help = true; continue; }
+        if options && word == "--" {
+            options = false;
+            continue;
+        }
+        if !options || word == "-" || !word.starts_with('-') {
+            count += 1;
+            continue;
+        }
+        if word.starts_with("-h") {
+            help = true;
+            break;
+        }
+        if word == "--help" {
+            help = true;
+            continue;
+        }
         let reason = if let Some(value) = word.strip_prefix("--help=") {
             match value {
-                "1" | "t" | "T" | "TRUE" | "true" | "True" => { help = true; continue; }
-                "0" | "f" | "F" | "FALSE" | "false" | "False" => { help = false; continue; }
-                _ => format!("invalid argument {value:?} for \"--help\" flag: strconv.ParseBool: parsing {value:?}: invalid syntax"),
+                "1" | "t" | "T" | "TRUE" | "true" | "True" => {
+                    help = true;
+                    continue;
+                }
+                "0" | "f" | "F" | "FALSE" | "false" | "False" => {
+                    help = false;
+                    continue;
+                }
+                _ => format!(
+                    "invalid argument {value:?} for \"--help\" flag: strconv.ParseBool: parsing {value:?}: invalid syntax"
+                ),
             }
-        } else if word.starts_with("---") || word.starts_with("--=") { format!("bad flag syntax: {word}") }
-        else if word.starts_with("--") { format!("unknown flag: {}", word.split('=').next().unwrap()) }
-        else { format!("unknown shorthand flag: '{}' in {word}", word.chars().nth(1).unwrap()) };
-        return error(format!("{reason}\n\nUsage:  gh config clear-cache [flags]\n"));
+        } else if word.starts_with("---") || word.starts_with("--=") {
+            format!("bad flag syntax: {word}")
+        } else if word.starts_with("--") {
+            format!("unknown flag: {}", word.split('=').next().unwrap())
+        } else {
+            format!(
+                "unknown shorthand flag: '{}' in {word}",
+                word.chars().nth(1).unwrap()
+            )
+        };
+        return error(format!(
+            "{reason}\n\nUsage:  gh config clear-cache [flags]\n"
+        ));
     }
-    if help { return BuiltinOutcome { stdout: "Clear the cli cache
+    if help {
+        return BuiltinOutcome {
+            stdout: "Clear the cli cache
 
 USAGE
   gh config clear-cache [flags]
@@ -3912,22 +4785,48 @@ LEARN MORE
   Learn about exit codes using `gh help exit-codes`
   Learn about accessibility experiences using `gh help accessibility`
 
-".into(), stderr: String::new(), exit_code: 0 }; }
-    if count > 0 { return error(format!("accepts 0 arg(s), received {count}\n")); }
-    let dir = env.get("XDG_CACHE_HOME").filter(|v| !v.is_empty()).cloned().unwrap_or_else(|| {
-        let home = env.get("HOME").map(String::as_str).filter(|v| !v.is_empty()).unwrap_or("/home/user");
-        format!("{}/.cache", home.trim_end_matches('/'))
-    });
+"
+            .into(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+    if count > 0 {
+        return error(format!("accepts 0 arg(s), received {count}\n"));
+    }
+    let dir = env
+        .get("XDG_CACHE_HOME")
+        .filter(|v| !v.is_empty())
+        .cloned()
+        .unwrap_or_else(|| {
+            let home = env
+                .get("HOME")
+                .map(String::as_str)
+                .filter(|v| !v.is_empty())
+                .unwrap_or("/home/user");
+            format!("{}/.cache", home.trim_end_matches('/'))
+        });
     let cache = format!("{}/gh", dir.trim_end_matches('/'));
     let path = resolve_posix_path(cwd, &cache);
-    if let Err(e) = fs.command_descriptor_op().and_then(|_| fs.remove_path(&path)) && !e.starts_with("ENOENT:") && !e.ends_with("(os error 2)") {
+    if let Err(e) = fs
+        .command_descriptor_op()
+        .and_then(|_| fs.remove_path(&path))
+        && !e.starts_with("ENOENT:")
+        && !e.ends_with("(os error 2)")
+    {
         let reason = match e.split(':').next() {
-            Some("ENOTDIR") => "not a directory", Some("EACCES") => "permission denied",
-            Some("EROFS") => "read-only file system", _ => "could not remove cache",
+            Some("ENOTDIR") => "not a directory",
+            Some("EACCES") => "permission denied",
+            Some("EROFS") => "read-only file system",
+            _ => "could not remove cache",
         };
         return error(format!("unlinkat {cache}: {reason}\n"));
     }
-    BuiltinOutcome { stdout: "✓ Cleared the cache\n".into(), stderr: String::new(), exit_code: 0 }
+    BuiltinOutcome {
+        stdout: "✓ Cleared the cache\n".into(),
+        stderr: String::new(),
+        exit_code: 0,
+    }
 }
 
 fn cmd_gh(
@@ -3960,11 +4859,17 @@ fn cmd_gh_inner(
 
     let fs_id = fs.fs_id();
     let (repo_flag, json_fields, jq_expr, filtered_args) = parse_gh_common_flags(args);
-    let mut names = filtered_args.iter().map(String::as_str).skip_while(|s| matches!(*s, "--help" | "-h"));
+    let mut names = filtered_args
+        .iter()
+        .map(String::as_str)
+        .skip_while(|s| matches!(*s, "--help" | "-h"));
     if names.next() == Some("config") && names.next() == Some("clear-cache") {
         // Validate the original flags before deleting; the common parser strips flags for other subcommands.
         let mut command = ["config", "clear-cache"].into_iter().peekable();
-        let flags = args.iter().map(String::as_str).filter(|word| command.next_if_eq(word).is_none());
+        let flags = args
+            .iter()
+            .map(String::as_str)
+            .filter(|word| command.next_if_eq(word).is_none());
         return gh_clear_cache(flags, cwd, env, fs);
     }
     if filtered_args.is_empty() {
@@ -3977,7 +4882,9 @@ fn cmd_gh_inner(
     let first = filtered_args[0].as_str();
     if first == "--version" || first == "version" || first == "-v" {
         return BuiltinOutcome {
-            stdout: "gh version 2.67.0 (2026-09-28)\nhttps://github.com/cli/cli/releases/tag/v2.67.0\n".to_string(),
+            stdout:
+                "gh version 2.67.0 (2026-09-28)\nhttps://github.com/cli/cli/releases/tag/v2.67.0\n"
+                    .to_string(),
             stderr: String::new(),
             exit_code: 0,
         };
@@ -4004,7 +4911,10 @@ fn cmd_gh_inner(
             break;
         }
         if a == "-h" {
-            if h_takes_value && hi + 1 < filtered_args.len() && !filtered_args[hi + 1].starts_with('-') {
+            if h_takes_value
+                && hi + 1 < filtered_args.len()
+                && !filtered_args[hi + 1].starts_with('-')
+            {
                 hi += 2;
                 continue;
             }
@@ -4021,7 +4931,9 @@ fn cmd_gh_inner(
             .collect::<Vec<_>>()
             .join(" ");
         return BuiltinOutcome {
-            stdout: format!("Work seamlessly with GitHub from the command line.\n\nUSAGE\n  gh {topic} [flags]\n"),
+            stdout: format!(
+                "Work seamlessly with GitHub from the command line.\n\nUSAGE\n  gh {topic} [flags]\n"
+            ),
             stderr: String::new(),
             exit_code: 0,
         };
@@ -4046,7 +4958,11 @@ fn cmd_gh_inner(
             return gh_err("alias expansion depth limit exceeded");
         }
         let clean = if let Some(stripped) = expansion.strip_prefix('!') {
-            stripped.trim_start().strip_prefix("gh ").unwrap_or(stripped).trim_start()
+            stripped
+                .trim_start()
+                .strip_prefix("gh ")
+                .unwrap_or(stripped)
+                .trim_start()
         } else {
             expansion.as_str()
         };
@@ -4125,7 +5041,10 @@ fn cmd_gh_inner(
                     _ => i += 1,
                 }
             }
-            let env_token = env.get("GH_TOKEN").or_else(|| env.get("GITHUB_TOKEN")).cloned();
+            let env_token = env
+                .get("GH_TOKEN")
+                .or_else(|| env.get("GITHUB_TOKEN"))
+                .cloned();
             match sub {
                 "status" => {
                     if st.gh_hosts.is_empty() && env_token.is_none() {
@@ -4185,7 +5104,14 @@ fn cmd_gh_inner(
                             hosts_obj.push((h.clone(), Value::Array(arr)));
                         }
                         let obj = jval!({ "hosts": JVal::Object(hosts_obj) });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut lines = Vec::new();
                     for (h, entries) in &hosts_to_show {
@@ -4196,8 +5122,14 @@ fn cmd_gh_inner(
                             }
                             let tok_ref = env_token.as_deref().unwrap_or(&e.oauth_token);
                             let tok_disp = mask_token(tok_ref, show_token);
-                            let scopes_disp = e.scopes.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", ");
-                            lines.push(format!("  ✓ Logged in to {h} account {} (keyring)", e.user));
+                            let scopes_disp = e
+                                .scopes
+                                .iter()
+                                .map(|s| format!("'{s}'"))
+                                .collect::<Vec<_>>()
+                                .join(", ");
+                            lines
+                                .push(format!("  ✓ Logged in to {h} account {} (keyring)", e.user));
                             lines.push(format!("  - Active account: {}", e.active));
                             lines.push(format!("  - Git operations protocol: {}", e.git_protocol));
                             lines.push(format!("  - Token: {tok_disp}"));
@@ -4220,7 +5152,10 @@ fn cmd_gh_inner(
                                 if let Some(ref u) = user_opt {
                                     entries.iter().find(|e| &e.user == u)
                                 } else {
-                                    entries.iter().find(|e| e.active).or_else(|| entries.first())
+                                    entries
+                                        .iter()
+                                        .find(|e| e.active)
+                                        .or_else(|| entries.first())
                                 }
                             })
                             .map(|e| e.oauth_token.clone())
@@ -4256,10 +5191,19 @@ fn cmd_gh_inner(
                     st.gh_user = user.clone();
                     if let Some(p) = proto_opt {
                         st.gh_git_protocol = p.clone();
-                        st.gh_config.entry(resolve_posix_path(cwd, &gh_config_dir(env))).or_default().entry(String::new()).or_default().insert("git_protocol".into(), p);
+                        st.gh_config
+                            .entry(resolve_posix_path(cwd, &gh_config_dir(env)))
+                            .or_default()
+                            .entry(String::new())
+                            .or_default()
+                            .insert("git_protocol".into(), p);
                     }
                     if let Some(sc) = scopes_opt {
-                        st.gh_scopes = sc.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                        st.gh_scopes = sc
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .filter(|s| !s.is_empty())
+                            .collect();
                     }
                     st.gh_logged_in = true;
                     let entry = GhHostAuthEntry {
@@ -4281,14 +5225,22 @@ fn cmd_gh_inner(
                     } else {
                         st.gh_hosts.push((host.clone(), vec![entry]));
                     }
-                    let cfg_dir = env
-                        .get("GH_CONFIG_DIR")
-                        .cloned()
-                        .unwrap_or_else(|| format!("{}/.config/gh", env.get("HOME").cloned().unwrap_or_else(|| "/home/user".into())));
+                    let cfg_dir = env.get("GH_CONFIG_DIR").cloned().unwrap_or_else(|| {
+                        format!(
+                            "{}/.config/gh",
+                            env.get("HOME")
+                                .cloned()
+                                .unwrap_or_else(|| "/home/user".into())
+                        )
+                    });
                     let _ = fs.mkdir_all(&cfg_dir);
                     let mut hosts_yml = String::new();
                     for (h, entries) in &st.gh_hosts {
-                        if let Some(act) = entries.iter().find(|e| e.active).or_else(|| entries.first()) {
+                        if let Some(act) = entries
+                            .iter()
+                            .find(|e| e.active)
+                            .or_else(|| entries.first())
+                        {
                             hosts_yml.push_str(&format!(
                                 "{h}:\n    user: {}\n    oauth_token: {}\n    git_protocol: {}\n",
                                 act.user, act.oauth_token, act.git_protocol
@@ -4348,7 +5300,9 @@ fn cmd_gh_inner(
                             .read_file(&git_cfg)
                             .map(|b| String::from_utf8_lossy(&b).into_owned())
                             .unwrap_or_default();
-                        let helper = format!("\n[credential \"https://{host}\"]\n\thelper = !gh auth git-credential\n");
+                        let helper = format!(
+                            "\n[credential \"https://{host}\"]\n\thelper = !gh auth git-credential\n"
+                        );
                         if !existing.contains(&format!("credential \"https://{host}\"")) {
                             existing.push_str(&helper);
                             let _ = fs.write_file(&git_cfg, existing.as_bytes());
@@ -4362,7 +5316,8 @@ fn cmd_gh_inner(
                 }
                 "switch" => {
                     let host = host_opt.unwrap_or_else(|| "github.com".into());
-                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host) else {
+                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host)
+                    else {
                         return gh_err(&format!("not logged in to {host}"));
                     };
                     let target_user = if let Some(u) = user_opt {
@@ -4394,7 +5349,8 @@ fn cmd_gh_inner(
                 }
                 "refresh" => {
                     let host = host_opt.unwrap_or_else(|| "github.com".into());
-                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host) else {
+                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host)
+                    else {
                         return gh_err(&format!("not logged in to {host}"));
                     };
                     if let Some(sc) = scopes_opt {
@@ -4423,12 +5379,26 @@ fn cmd_gh_inner(
         "config" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             const DEFAULTS: &[(&str, &str)] = &[
-                ("api_host", ""), ("git_protocol", "https"), ("editor", ""), ("prompt", "enabled"),
-                ("prefer_editor_prompt", "disabled"), ("pager", ""), ("http_unix_socket", ""), ("browser", ""),
-                ("clipboard", "enabled"), ("color_labels", "disabled"), ("accessible_colors", "disabled"),
-                ("accessible_prompter", "disabled"), ("spinner", "enabled"), ("telemetry", "enabled"),
+                ("api_host", ""),
+                ("git_protocol", "https"),
+                ("editor", ""),
+                ("prompt", "enabled"),
+                ("prefer_editor_prompt", "disabled"),
+                ("pager", ""),
+                ("http_unix_socket", ""),
+                ("browser", ""),
+                ("clipboard", "enabled"),
+                ("color_labels", "disabled"),
+                ("accessible_colors", "disabled"),
+                ("accessible_prompter", "disabled"),
+                ("spinner", "enabled"),
+                ("telemetry", "enabled"),
             ];
-            let error = |stderr| BuiltinOutcome { stdout: String::new(), stderr, exit_code: 1 };
+            let error = |stderr| BuiltinOutcome {
+                stdout: String::new(),
+                stderr,
+                exit_code: 1,
+            };
             let display_dir = gh_config_dir(env);
             let dir = resolve_posix_path(cwd, &display_dir);
             let config = match super::gh_config::read(fs, cwd, &display_dir) {
@@ -4440,47 +5410,147 @@ fn cmd_gh_inner(
             let mut pos = Vec::new();
             let mut words = args.iter().skip(2).map(String::as_str);
             while let Some(word) = words.next() {
-                if word == "--" { pos.extend(words); break; }
+                if word == "--" {
+                    pos.extend(words);
+                    break;
+                }
                 if word == "-h" || word == "--host" {
-                    let Some(value) = words.next() else { return error(format!("flag needs an argument: {word}\n")); };
+                    let Some(value) = words.next() else {
+                        return error(format!("flag needs an argument: {word}\n"));
+                    };
                     host = value;
-                } else if let Some(value) = word.strip_prefix("--host=").or_else(|| word.strip_prefix("-h=")).or_else(|| word.strip_prefix("-h")) {
+                } else if let Some(value) = word
+                    .strip_prefix("--host=")
+                    .or_else(|| word.strip_prefix("-h="))
+                    .or_else(|| word.strip_prefix("-h"))
+                {
                     host = value;
-                } else { pos.push(word); }
+                } else {
+                    pos.push(word);
+                }
             }
-            let expected = match sub { "list" | "ls" => Some(0), "get" => Some(1), "set" => Some(2), _ => None };
-            if let Some(n) = expected && n != pos.len() {
+            let expected = match sub {
+                "list" | "ls" => Some(0),
+                "get" => Some(1),
+                "set" => Some(2),
+                _ => None,
+            };
+            if let Some(n) = expected
+                && n != pos.len()
+            {
                 return error(format!("accepts {n} arg(s), received {}\n", pos.len()));
             }
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
             let scopes = st.gh_config.get(&dir);
-            let lookup = |key: &str, scope: &str| scopes.and_then(|m| m.get(scope)).and_then(|items| items.get(key))
-                .or_else(|| config.hosts.iter().find(|(name, _)| !scope.is_empty() && name == scope).and_then(|(_, items)| items.get(key)))
-                .or_else(|| scopes.and_then(|m| m.get("")).and_then(|items| items.get(key))).or_else(|| file.get(key)).map(String::as_str)
-                .or_else(|| DEFAULTS.iter().find(|(k, _)| *k == key).map(|(_, value)| *value));
+            let lookup = |key: &str, scope: &str| {
+                scopes
+                    .and_then(|m| m.get(scope))
+                    .and_then(|items| items.get(key))
+                    .or_else(|| {
+                        config
+                            .hosts
+                            .iter()
+                            .find(|(name, _)| !scope.is_empty() && name == scope)
+                            .and_then(|(_, items)| items.get(key))
+                    })
+                    .or_else(|| {
+                        scopes
+                            .and_then(|m| m.get(""))
+                            .and_then(|items| items.get(key))
+                    })
+                    .or_else(|| file.get(key))
+                    .map(String::as_str)
+                    .or_else(|| {
+                        DEFAULTS
+                            .iter()
+                            .find(|(k, _)| *k == key)
+                            .map(|(_, value)| *value)
+                    })
+            };
             match sub {
                 "list" | "ls" => {
-                    let mut hosts = config.hosts.iter().map(|(name, _)| name).chain(scopes.into_iter().flat_map(|m| m.keys()).filter(|h| !config.hosts.iter().any(|(name, _)| name == *h))).map(String::as_str).filter(|h| !h.is_empty());
-                    let scope = if !host.is_empty() { host }
-                        else if let Some(h) = env.get("GH_HOST").filter(|h| !h.is_empty()) { h }
-                        else { match (hosts.next(), hosts.next()) { (Some(h), None) => h, _ => "github.com" } };
-                    let stdout = DEFAULTS.iter().map(|(k, _)| format!("{k}={}\n", lookup(k, if matches!(*k, "telemetry" | "clipboard") { "" } else { scope }).unwrap())).collect();
-                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
+                    let mut hosts = config
+                        .hosts
+                        .iter()
+                        .map(|(name, _)| name)
+                        .chain(
+                            scopes
+                                .into_iter()
+                                .flat_map(|m| m.keys())
+                                .filter(|h| !config.hosts.iter().any(|(name, _)| name == *h)),
+                        )
+                        .map(String::as_str)
+                        .filter(|h| !h.is_empty());
+                    let scope = if !host.is_empty() {
+                        host
+                    } else if let Some(h) = env.get("GH_HOST").filter(|h| !h.is_empty()) {
+                        h
+                    } else {
+                        match (hosts.next(), hosts.next()) {
+                            (Some(h), None) => h,
+                            _ => "github.com",
+                        }
+                    };
+                    let stdout = DEFAULTS
+                        .iter()
+                        .map(|(k, _)| {
+                            format!(
+                                "{k}={}\n",
+                                lookup(
+                                    k,
+                                    if matches!(*k, "telemetry" | "clipboard") {
+                                        ""
+                                    } else {
+                                        scope
+                                    }
+                                )
+                                .unwrap()
+                            )
+                        })
+                        .collect();
+                    BuiltinOutcome {
+                        stdout,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "get" => {
                     let key = pos[0];
-                    let val = lookup(key, host).or(match key { _ if !file.is_empty() => None, "version" => Some("1"), "aliases" => Some(""), _ => None });
-                    let Some(val) = val else { return error(format!("could not find key \"{key}\"\n")); };
-                    let stdout = if val.is_empty() { String::new() } else { format!("{val}\n") };
-                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
+                    let val = lookup(key, host).or(match key {
+                        _ if !file.is_empty() => None,
+                        "version" => Some("1"),
+                        "aliases" => Some(""),
+                        _ => None,
+                    });
+                    let Some(val) = val else {
+                        return error(format!("could not find key \"{key}\"\n"));
+                    };
+                    let stdout = if val.is_empty() {
+                        String::new()
+                    } else {
+                        format!("{val}\n")
+                    };
+                    BuiltinOutcome {
+                        stdout,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "set" => {
                     let (key, value) = (pos[0], pos[1]);
                     let default = DEFAULTS.iter().find(|(k, _)| *k == key).map(|(_, v)| *v);
-                    if (key == "api_host" && host.is_empty()) || (key == "clipboard" && !host.is_empty()) {
-                        let message = if host.is_empty() { "--host required when setting api_host" } else { "--host cannot be used when setting clipboard" };
-                        return error(format!("{message}\n\nUsage:  gh config set <key> <value> [flags]\n\nFlags:\n  -h, --host string   Set per-host setting\n  \n"));
+                    if (key == "api_host" && host.is_empty())
+                        || (key == "clipboard" && !host.is_empty())
+                    {
+                        let message = if host.is_empty() {
+                            "--host required when setting api_host"
+                        } else {
+                            "--host cannot be used when setting clipboard"
+                        };
+                        return error(format!(
+                            "{message}\n\nUsage:  gh config set <key> <value> [flags]\n\nFlags:\n  -h, --host string   Set per-host setting\n  \n"
+                        ));
                     }
                     let choices: &[&str] = match (key, default) {
                         ("git_protocol", _) => &["https", "ssh"],
@@ -4489,30 +5559,63 @@ fn cmd_gh_inner(
                         _ => &[],
                     };
                     if !choices.is_empty() && !choices.contains(&value) {
-                        return error(format!("failed to set {key:?} to {value:?}: valid values are '{}'\n", choices.join("', '")));
+                        return error(format!(
+                            "failed to set {key:?} to {value:?}: valid values are '{}'\n",
+                            choices.join("', '")
+                        ));
                     }
-                    let stderr = if default.is_none() { format!("! warning: '{key}' is not a known configuration key\n") } else { String::new() };
+                    let stderr = if default.is_none() {
+                        format!("! warning: '{key}' is not a known configuration key\n")
+                    } else {
+                        String::new()
+                    };
                     drop(map);
-                    use super::gh_config::{set_config, default_config};
+                    use super::gh_config::{default_config, set_config};
                     let mut writes = Vec::new();
                     let (name, source) = if host.is_empty() {
-                        ("config.yml", config.original.as_deref().unwrap_or_else(|| default_config()))
-                    } else { ("hosts.yml", config.host_source.as_str()) };
+                        (
+                            "config.yml",
+                            config
+                                .original
+                                .as_deref()
+                                .unwrap_or_else(|| default_config()),
+                        )
+                    } else {
+                        ("hosts.yml", config.host_source.as_str())
+                    };
                     match set_config(source, host, key, value) {
-                        Ok(out) => writes.push((name, out)), Err(e) => return error(format!("{stderr}{e}\n")),
+                        Ok(out) => writes.push((name, out)),
+                        Err(e) => return error(format!("{stderr}{e}\n")),
                     }
-                    if !host.is_empty() && config.original.is_none() { writes.push(("config.yml", default_config().into())); }
-                    let umask = env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+                    if !host.is_empty() && config.original.is_none() {
+                        writes.push(("config.yml", default_config().into()));
+                    }
+                    let umask = env
+                        .get("\0umask")
+                        .and_then(|s| u32::from_str_radix(s, 8).ok())
+                        .unwrap_or(0o022);
                     if let Err(e) = super::gh_config::write(fs, cwd, &display_dir, writes, umask) {
                         return error(format!("{stderr}{e}\n"));
                     }
                     if host.is_empty() {
                         let mut map = states().lock().unwrap();
                         let st = map.entry(fs_id).or_default();
-                        if let Some(global) = st.gh_config.get_mut(&dir).and_then(|hosts| hosts.get_mut("")) { global.remove(key); }
-                        if key == "git_protocol" { st.gh_git_protocol = value.into(); }
+                        if let Some(global) = st
+                            .gh_config
+                            .get_mut(&dir)
+                            .and_then(|hosts| hosts.get_mut(""))
+                        {
+                            global.remove(key);
+                        }
+                        if key == "git_protocol" {
+                            st.gh_git_protocol = value.into();
+                        }
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 0,
+                    }
                 }
                 _ => BuiltinOutcome {
                     stdout: String::new(),
@@ -4531,13 +5634,26 @@ fn cmd_gh_inner(
                     for (k, v) in &st.gh_aliases {
                         out.push_str(&format!("{k}: {v}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "set" => {
                     let is_shell = args.iter().skip(2).any(|a| a == "-s" || a == "--shell");
-                    let pos: Vec<&str> = args.iter().skip(2).filter(|a| !a.starts_with('-')).map(|s| s.as_str()).collect();
+                    let pos: Vec<&str> = args
+                        .iter()
+                        .skip(2)
+                        .filter(|a| !a.starts_with('-'))
+                        .map(|s| s.as_str())
+                        .collect();
                     if let (Some(k), Some(v)) = (pos.first().copied(), pos.get(1).copied()) {
-                        let exp = if is_shell { format!("!{v}") } else { v.to_string() };
+                        let exp = if is_shell {
+                            format!("!{v}")
+                        } else {
+                            v.to_string()
+                        };
                         if let Some(existing) = st.gh_aliases.iter_mut().find(|(ak, _)| ak == k) {
                             existing.1 = exp.clone();
                         } else {
@@ -4564,7 +5680,12 @@ fn cmd_gh_inner(
                             exit_code: 0,
                         };
                     }
-                    let k = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                    let k = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .cloned()
+                        .unwrap_or_default();
                     let Some(idx) = st.gh_aliases.iter().position(|(ak, _)| ak == &k) else {
                         return gh_err(&format!("no such alias {k}"));
                     };
@@ -4610,22 +5731,40 @@ fn cmd_gh_inner(
                     let r_list: Vec<(String, String, bool)> = st
                         .gh_repos
                         .values()
-                        .map(|r| (format!("{}/{}", r.owner, r.name), r.description.clone(), r.is_private))
+                        .map(|r| {
+                            (
+                                format!("{}/{}", r.owner, r.name),
+                                r.description.clone(),
+                                r.is_private,
+                            )
+                        })
                         .collect();
                     drop(map);
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for (full, desc, priv_flag) in r_list {
                         let vis = if priv_flag { "private" } else { "public" };
                         out.push_str(&format!("{full}\t{desc}\t{vis}\t2026-09-28T12:00:00Z\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
                     let pos_repo = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
-                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    let full =
+                        resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
                     let r = st.gh_repos.get(&full).unwrap().clone();
                     drop(map);
                     if let Some(fields) = &json_fields {
@@ -4653,7 +5792,14 @@ fn cmd_gh_inner(
                             "sshUrl": format!("git@github.com:{}/{}.git", r.owner, r.name),
                             "url": format!("https://github.com/{}/{}", r.owner, r.name)
                         });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
                         stdout: format!(
@@ -4696,7 +5842,8 @@ fn cmd_gh_inner(
                                 visibility = "PUBLIC".into();
                                 i += 1;
                             }
-                            "-g" | "--gitignore" | "-l" | "--license" | "-r" | "--remote" | "-s" | "--source" | "-p" | "--template" | "-t" | "--team" => {
+                            "-g" | "--gitignore" | "-l" | "--license" | "-r" | "--remote"
+                            | "-s" | "--source" | "-p" | "--template" | "-t" | "--team" => {
                                 i += 2;
                             }
                             a if !a.starts_with('-') => {
@@ -4743,11 +5890,31 @@ fn cmd_gh_inner(
                             prs: Vec::new(),
                             releases: Vec::new(),
                             labels: vec![
-                                ("bug".into(), "d73a4a".into(), "Something isn't working".into()),
-                                ("documentation".into(), "0075ca".into(), "Improvements or additions to documentation".into()),
-                                ("enhancement".into(), "a2eeef".into(), "New feature or request".into()),
-                                ("good first issue".into(), "7057ff".into(), "Good for newcomers".into()),
-                                ("help wanted".into(), "008672".into(), "Extra attention is needed".into()),
+                                (
+                                    "bug".into(),
+                                    "d73a4a".into(),
+                                    "Something isn't working".into(),
+                                ),
+                                (
+                                    "documentation".into(),
+                                    "0075ca".into(),
+                                    "Improvements or additions to documentation".into(),
+                                ),
+                                (
+                                    "enhancement".into(),
+                                    "a2eeef".into(),
+                                    "New feature or request".into(),
+                                ),
+                                (
+                                    "good first issue".into(),
+                                    "7057ff".into(),
+                                    "Good for newcomers".into(),
+                                ),
+                                (
+                                    "help wanted".into(),
+                                    "008672".into(),
+                                    "Extra attention is needed".into(),
+                                ),
                             ],
                             variables: BTreeMap::new(),
                             secrets: Vec::new(),
@@ -4769,18 +5936,28 @@ fn cmd_gh_inner(
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "-d" | "--description" | "-h" | "--homepage" | "--default-branch" | "--visibility"
-                            | "--add-topic" | "--remove-topic" | "-R" | "--repo" => {
+                            "-d" | "--description" | "-h" | "--homepage" | "--default-branch"
+                            | "--visibility" | "--add-topic" | "--remove-topic" | "-R"
+                            | "--repo" => {
                                 if i + 1 < args.len() {
                                     i += 2;
                                 } else {
                                     i += 1;
                                 }
                             }
-                            "--enable-issues" | "--enable-wiki" | "--enable-projects" | "--enable-discussions"
-                            | "--enable-auto-merge" | "--enable-merge-commit" | "--enable-squash-merge"
-                            | "--enable-rebase-merge" | "--delete-branch-on-merge" | "--template" => {
-                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                            "--enable-issues"
+                            | "--enable-wiki"
+                            | "--enable-projects"
+                            | "--enable-discussions"
+                            | "--enable-auto-merge"
+                            | "--enable-merge-commit"
+                            | "--enable-squash-merge"
+                            | "--enable-rebase-merge"
+                            | "--delete-branch-on-merge"
+                            | "--template" => {
+                                if i + 1 < args.len()
+                                    && (args[i + 1] == "true" || args[i + 1] == "false")
+                                {
                                     i += 2;
                                 } else {
                                     i += 1;
@@ -4795,7 +5972,8 @@ fn cmd_gh_inner(
                             _ => i += 1,
                         }
                     }
-                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    let full =
+                        resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
                     let repo = st.gh_repos.get_mut(&full).unwrap();
                     let parse_b = |val: Option<&String>| -> bool {
                         match val.map(|s| s.as_str()) {
@@ -4912,7 +6090,9 @@ fn cmd_gh_inner(
                             }
                             "--add-topic" => {
                                 if let Some(v) = next_val {
-                                    for t in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for t in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         if !repo.topics.iter().any(|x| x == t) {
                                             repo.topics.push(t.to_string());
                                         }
@@ -4922,7 +6102,9 @@ fn cmd_gh_inner(
                             }
                             "--remove-topic" => {
                                 if let Some(v) = next_val {
-                                    for t in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for t in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         repo.topics.retain(|x| x != t);
                                     }
                                 }
@@ -4939,7 +6121,8 @@ fn cmd_gh_inner(
                 }
                 "delete" => {
                     let pos_repo = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
-                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    let full =
+                        resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
                     st.gh_repos.remove(&full);
                     BuiltinOutcome {
                         stdout: format!("✓ Deleted repository {full}\n"),
@@ -4949,11 +6132,16 @@ fn cmd_gh_inner(
                 }
                 "archive" | "unarchive" => {
                     let pos_repo = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
-                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    let full =
+                        resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
                     if let Some(r) = st.gh_repos.get_mut(&full) {
                         r.is_archived = sub == "archive";
                     }
-                    let verb = if sub == "archive" { "Archived" } else { "Unarchived" };
+                    let verb = if sub == "archive" {
+                        "Archived"
+                    } else {
+                        "Unarchived"
+                    };
                     BuiltinOutcome {
                         stdout: format!("✓ {verb} repository {full}\n"),
                         stderr: String::new(),
@@ -4961,7 +6149,12 @@ fn cmd_gh_inner(
                     }
                 }
                 "rename" => {
-                    let new_name = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "renamed-repo".into());
+                    let new_name = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .cloned()
+                        .unwrap_or_else(|| "renamed-repo".into());
                     let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
                     if let Some(mut r) = st.gh_repos.remove(&full) {
                         let new_full = format!("{}/{new_name}", r.owner);
@@ -4973,7 +6166,11 @@ fn cmd_gh_inner(
                             exit_code: 0,
                         };
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "set-default" => {
                     let Some(git_root) = find_git_root_in_vfs(cwd, fs) else {
@@ -4992,7 +6189,10 @@ fn cmd_gh_inner(
                                 .lines()
                                 .filter(|l| !l.trim().starts_with("gh-resolved ="))
                                 .collect();
-                            let _ = fs.write_file(&git_cfg, format!("{}\n", filtered.join("\n")).as_bytes());
+                            let _ = fs.write_file(
+                                &git_cfg,
+                                format!("{}\n", filtered.join("\n")).as_bytes(),
+                            );
                         }
                         return BuiltinOutcome {
                             stdout: "✓ Unset default repository\n".into(),
@@ -5014,16 +6214,25 @@ fn cmd_gh_inner(
                             exit_code: 0,
                         };
                     }
-                    let target = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "octocat/Hello-World".into());
+                    let target = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .cloned()
+                        .unwrap_or_else(|| "octocat/Hello-World".into());
                     st.gh_default_repo = Some(target.clone());
                     let mut existing = fs
                         .read_file(&git_cfg)
                         .map(|b| String::from_utf8_lossy(&b).into_owned())
                         .unwrap_or_default();
-                    existing.push_str(&format!("\n[remote \"origin\"]\n\tgh-resolved = {target}\n"));
+                    existing.push_str(&format!(
+                        "\n[remote \"origin\"]\n\tgh-resolved = {target}\n"
+                    ));
                     let _ = fs.write_file(&git_cfg, existing.as_bytes());
                     BuiltinOutcome {
-                        stdout: format!("✓ Set {target} as the default repository for the current directory\n"),
+                        stdout: format!(
+                            "✓ Set {target} as the default repository for the current directory\n"
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -5049,14 +6258,32 @@ fn cmd_gh_inner(
                                     })
                                     .collect();
                                 drop(map);
-                                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &Value::Array(arr),
+                                    fields,
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             let mut out = String::new();
                             for k in &repo.deploy_keys {
-                                let ro = if k.read_only { "read-only" } else { "read-write" };
-                                out.push_str(&format!("{}\t{}\t{ro}\t{}\t{}\n", k.id, k.title, k.key, k.created_at));
+                                let ro = if k.read_only {
+                                    "read-only"
+                                } else {
+                                    "read-write"
+                                };
+                                out.push_str(&format!(
+                                    "{}\t{}\t{ro}\t{}\t{}\n",
+                                    k.id, k.title, k.key, k.created_at
+                                ));
                             }
-                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: out,
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "add" => {
                             let mut title = String::new();
@@ -5089,7 +6316,11 @@ fn cmd_gh_inner(
                                     let resolved = resolve_posix_path(cwd, p);
                                     match fs.read_file(&resolved) {
                                         Ok(b) => String::from_utf8_lossy(&b).trim().to_string(),
-                                        Err(_) => return gh_err(&format!("{p}: No such file or directory")),
+                                        Err(_) => {
+                                            return gh_err(&format!(
+                                                "{p}: No such file or directory"
+                                            ));
+                                        }
                                     }
                                 }
                             };
@@ -5113,7 +6344,12 @@ fn cmd_gh_inner(
                             }
                         }
                         "delete" => {
-                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let id_str = args
+                                .iter()
+                                .skip(3)
+                                .find(|a| !a.starts_with('-'))
+                                .cloned()
+                                .unwrap_or_default();
                             let repo = st.gh_repos.get_mut(&full).unwrap();
                             repo.deploy_keys.retain(|k| k.id.to_string() != id_str);
                             BuiltinOutcome {
@@ -5122,7 +6358,11 @@ fn cmd_gh_inner(
                                 exit_code: 0,
                             }
                         }
-                        _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                        _ => BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        },
                     }
                 }
                 "autolink" => {
@@ -5145,16 +6385,31 @@ fn cmd_gh_inner(
                                     })
                                     .collect();
                                 drop(map);
-                                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &Value::Array(arr),
+                                    fields,
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             let mut out = String::new();
                             for a in &repo.autolinks {
-                                out.push_str(&format!("{}\t{}\t{}\t{}\n", a.id, a.key_prefix, a.url_template, a.is_alphanumeric));
+                                out.push_str(&format!(
+                                    "{}\t{}\t{}\t{}\n",
+                                    a.id, a.key_prefix, a.url_template, a.is_alphanumeric
+                                ));
                             }
-                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: out,
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "create" => {
-                            let numeric = args.iter().skip(3).any(|a| a == "-n" || a == "--numeric");
+                            let numeric =
+                                args.iter().skip(3).any(|a| a == "-n" || a == "--numeric");
                             let pos: Vec<&str> = args
                                 .iter()
                                 .skip(3)
@@ -5162,7 +6417,11 @@ fn cmd_gh_inner(
                                 .map(|s| s.as_str())
                                 .collect();
                             let prefix = pos.first().copied().unwrap_or("TICKET-").to_string();
-                            let tpl = pos.get(1).copied().unwrap_or("https://example.com/TICKET?query=<num>").to_string();
+                            let tpl = pos
+                                .get(1)
+                                .copied()
+                                .unwrap_or("https://example.com/TICKET?query=<num>")
+                                .to_string();
                             st.gh_next_id += 1;
                             let id = st.gh_next_id;
                             let repo = st.gh_repos.get_mut(&full).unwrap();
@@ -5179,9 +6438,19 @@ fn cmd_gh_inner(
                             }
                         }
                         "view" => {
-                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let id_str = args
+                                .iter()
+                                .skip(3)
+                                .find(|a| !a.starts_with('-'))
+                                .cloned()
+                                .unwrap_or_default();
                             let repo = st.gh_repos.get(&full).unwrap();
-                            let Some(al) = repo.autolinks.iter().find(|a| a.id.to_string() == id_str).cloned() else {
+                            let Some(al) = repo
+                                .autolinks
+                                .iter()
+                                .find(|a| a.id.to_string() == id_str)
+                                .cloned()
+                            else {
                                 return gh_err(&format!("autolink {id_str} not found"));
                             };
                             drop(map);
@@ -5192,7 +6461,14 @@ fn cmd_gh_inner(
                                     "urlTemplate": al.url_template,
                                     "isAlphanumeric": al.is_alphanumeric
                                 });
-                                return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &obj,
+                                    fields,
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             BuiltinOutcome {
                                 stdout: format!(
@@ -5204,7 +6480,12 @@ fn cmd_gh_inner(
                             }
                         }
                         "delete" => {
-                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let id_str = args
+                                .iter()
+                                .skip(3)
+                                .find(|a| !a.starts_with('-'))
+                                .cloned()
+                                .unwrap_or_default();
                             let repo = st.gh_repos.get_mut(&full).unwrap();
                             repo.autolinks.retain(|a| a.id.to_string() != id_str);
                             BuiltinOutcome {
@@ -5213,7 +6494,11 @@ fn cmd_gh_inner(
                                 exit_code: 0,
                             }
                         }
-                        _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                        _ => BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        },
                     }
                 }
                 "gitignore" => {
@@ -5243,18 +6528,19 @@ fn cmd_gh_inner(
                     }
                     let key = args.get(3).map(|s| s.as_str()).unwrap_or("mit");
                     BuiltinOutcome {
-                        stdout: format!("{} License\n\nPermission is hereby granted, free of charge...\n", key.to_ascii_uppercase()),
+                        stdout: format!(
+                            "{} License\n\nPermission is hereby granted, free of charge...\n",
+                            key.to_ascii_uppercase()
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
                 }
-                "credits" => {
-                    BuiltinOutcome {
-                        stdout: "Contributors: octocat\n".into(),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    }
-                }
+                "credits" => BuiltinOutcome {
+                    stdout: "Contributors: octocat\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                },
                 _ => BuiltinOutcome {
                     stdout: String::new(),
                     stderr: format!("unknown command \"{sub}\" for \"gh repo\"\n"),
@@ -5302,7 +6588,13 @@ fn cmd_gh_inner(
                                         v.split(',')
                                             .map(|s| s.trim())
                                             .filter(|s| !s.is_empty())
-                                            .map(|s| if s == "@me" { gh_user.clone() } else { s.to_string() }),
+                                            .map(|s| {
+                                                if s == "@me" {
+                                                    gh_user.clone()
+                                                } else {
+                                                    s.to_string()
+                                                }
+                                            }),
                                     );
                                 }
                                 i += 2;
@@ -5369,21 +6661,39 @@ fn cmd_gh_inner(
                         .issues
                         .iter()
                         .rev()
-                        .filter(|iss| state_filter == "ALL" || iss.state.eq_ignore_ascii_case(&state_filter))
+                        .filter(|iss| {
+                            state_filter == "ALL" || iss.state.eq_ignore_ascii_case(&state_filter)
+                        })
                         .map(|i| (i.number, i.state.clone(), i.title.clone()))
                         .collect();
                     drop(map);
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for (n, s, t) in rows {
                         out.push_str(&format!("{n}\t{s}\t{t}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(iss) = repo.issues.iter().find(|i| i.number == num).cloned() else {
                         return gh_err(&format!("issue #{num} not found"));
                     };
@@ -5400,34 +6710,67 @@ fn cmd_gh_inner(
                             "assignees": iss.assignees.iter().map(|a| jval!({ "login": a })).collect::<Vec<_>>(),
                             "comments": iss.comments.iter().map(|c| jval!({ "body": c })).collect::<Vec<_>>()
                         });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
-                        stdout: format!("{} #{}\n{}\n\n{}\n", iss.title, iss.number, iss.state, iss.body),
+                        stdout: format!(
+                            "{} #{}\n{}\n\n{}\n",
+                            iss.title, iss.number, iss.state, iss.body
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
                 }
                 "close" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut title = String::new();
                     if let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) {
                         iss.state = "CLOSED".into();
                         title = iss.title.clone();
                     }
-                    BuiltinOutcome { stdout: format!("✓ Closed issue #{num} ({title})\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Closed issue #{num} ({title})\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "reopen" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut title = String::new();
                     if let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) {
                         iss.state = "OPEN".into();
                         title = iss.title.clone();
                     }
-                    BuiltinOutcome { stdout: format!("✓ Reopened issue #{num} ({title})\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Reopened issue #{num} ({title})\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "comment" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut body = String::new();
                     for w in args.windows(2) {
                         if w[0] == "-b" || w[0] == "--body" {
@@ -5437,10 +6780,19 @@ fn cmd_gh_inner(
                     if let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) {
                         iss.comments.push(body);
                     }
-                    BuiltinOutcome { stdout: format!("https://github.com/{full}/issues/{num}#issuecomment-1\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{full}/issues/{num}#issuecomment-1\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) else {
                         return gh_err(&format!("issue #{num} not found"));
                     };
@@ -5461,7 +6813,9 @@ fn cmd_gh_inner(
                             }
                             "--add-label" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for lbl in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for lbl in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         if !iss.labels.iter().any(|l| l.eq_ignore_ascii_case(lbl)) {
                                             iss.labels.push(lbl.to_string());
                                         }
@@ -5471,7 +6825,9 @@ fn cmd_gh_inner(
                             }
                             "--remove-label" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for lbl in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for lbl in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         iss.labels.retain(|l| !l.eq_ignore_ascii_case(lbl));
                                     }
                                 }
@@ -5479,8 +6835,14 @@ fn cmd_gh_inner(
                             }
                             "--add-assignee" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
-                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                    for a in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
+                                        let login = if a == "@me" {
+                                            gh_user.clone()
+                                        } else {
+                                            a.to_string()
+                                        };
                                         if !iss.assignees.iter().any(|x| x == &login) {
                                             iss.assignees.push(login);
                                         }
@@ -5490,8 +6852,14 @@ fn cmd_gh_inner(
                             }
                             "--remove-assignee" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
-                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                    for a in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
+                                        let login = if a == "@me" {
+                                            gh_user.clone()
+                                        } else {
+                                            a.to_string()
+                                        };
                                         iss.assignees.retain(|x| x != &login);
                                     }
                                 }
@@ -5507,7 +6875,12 @@ fn cmd_gh_inner(
                     }
                 }
                 "delete" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     repo.issues.retain(|i| i.number != num);
                     BuiltinOutcome {
                         stdout: format!("✓ Deleted issue #{num}\n"),
@@ -5516,7 +6889,12 @@ fn cmd_gh_inner(
                     }
                 }
                 "pin" | "unpin" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) else {
                         return gh_err(&format!("issue #{num} not found"));
                     };
@@ -5529,7 +6907,12 @@ fn cmd_gh_inner(
                     }
                 }
                 "lock" | "unlock" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(_iss) = repo.issues.iter().find(|i| i.number == num) else {
                         return gh_err(&format!("issue #{num} not found"));
                     };
@@ -5560,7 +6943,11 @@ fn cmd_gh_inner(
                         .map(|(_, s)| s.as_str())
                         .collect();
                     let num: u64 = pos.first().and_then(|s| s.parse().ok()).unwrap_or(1);
-                    let dest = pos.get(1).copied().unwrap_or("octocat/Hello-World").to_string();
+                    let dest = pos
+                        .get(1)
+                        .copied()
+                        .unwrap_or("octocat/Hello-World")
+                        .to_string();
                     let Some(idx) = repo.issues.iter().position(|i| i.number == num) else {
                         return gh_err(&format!("issue #{num} not found"));
                     };
@@ -5639,7 +7026,8 @@ fn cmd_gh_inner(
                     }
                 }
                 "status" => {
-                    let open: Vec<&GhIssueRecord> = repo.issues.iter().filter(|i| i.state == "OPEN").collect();
+                    let open: Vec<&GhIssueRecord> =
+                        repo.issues.iter().filter(|i| i.state == "OPEN").collect();
                     let assigned_open: Vec<&&GhIssueRecord> = open
                         .iter()
                         .filter(|i| i.assignees.iter().any(|a| a == &gh_user))
@@ -5673,20 +7061,36 @@ fn cmd_gh_inner(
                             "createdBy": created_arr
                         });
                         drop(map);
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let assigned_body = if assigned_open.is_empty() {
                         "  There are no issues assigned to you".to_string()
                     } else {
-                        assigned_open.iter().map(|i| format!("  #{}  {}", i.number, i.title)).collect::<Vec<_>>().join("\n")
+                        assigned_open
+                            .iter()
+                            .map(|i| format!("  #{}  {}", i.number, i.title))
+                            .collect::<Vec<_>>()
+                            .join("\n")
                     };
                     let created_body = if open.is_empty() {
                         "  There are no issues created by you".to_string()
                     } else {
-                        open.iter().map(|i| format!("  #{}  {}", i.number, i.title)).collect::<Vec<_>>().join("\n")
+                        open.iter()
+                            .map(|i| format!("  #{}  {}", i.number, i.title))
+                            .collect::<Vec<_>>()
+                            .join("\n")
                     };
                     BuiltinOutcome {
-                        stdout: format!("Relevant issues in {full}\n\nAssigned to you\n{assigned_body}\n\nCreated by you\n{created_body}\n"),
+                        stdout: format!(
+                            "Relevant issues in {full}\n\nAssigned to you\n{assigned_body}\n\nCreated by you\n{created_body}\n"
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -5758,7 +7162,13 @@ fn cmd_gh_inner(
                                         v.split(',')
                                             .map(|s| s.trim())
                                             .filter(|s| !s.is_empty())
-                                            .map(|s| if s == "@me" { gh_user.clone() } else { s.to_string() }),
+                                            .map(|s| {
+                                                if s == "@me" {
+                                                    gh_user.clone()
+                                                } else {
+                                                    s.to_string()
+                                                }
+                                            }),
                                     );
                                 }
                                 i += 2;
@@ -5851,22 +7261,39 @@ fn cmd_gh_inner(
                         .filter(|pr| {
                             state_filter == "ALL"
                                 || pr.state.eq_ignore_ascii_case(&state_filter)
-                                || (state_filter == "CLOSED" && pr.state.eq_ignore_ascii_case("MERGED"))
+                                || (state_filter == "CLOSED"
+                                    && pr.state.eq_ignore_ascii_case("MERGED"))
                         })
                         .map(|p| (p.number, p.title.clone(), p.head.clone(), p.state.clone()))
                         .collect();
                     drop(map);
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for (n, t, h, s) in rows {
                         out.push_str(&format!("{n}\t{t}\t{h}\t{s}\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(pr) = repo.prs.iter().find(|p| p.number == num).cloned() else {
                         return gh_err(&format!("pull request #{num} not found"));
                     };
@@ -5888,16 +7315,31 @@ fn cmd_gh_inner(
                             "comments": pr.comments.iter().map(|c| jval!({ "body": c })).collect::<Vec<_>>(),
                             "url": format!("https://github.com/{full}/pull/{}", pr.number)
                         });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
-                        stdout: format!("{} #{}\n{}\n\n{}\n", pr.title, pr.number, pr.state, pr.body),
+                        stdout: format!(
+                            "{} #{}\n{}\n\n{}\n",
+                            pr.title, pr.number, pr.state, pr.body
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
                 }
                 "merge" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let method = if args.iter().any(|a| a == "-s" || a == "--squash") {
                         "squash"
                     } else if args.iter().any(|a| a == "-r" || a == "--rebase") {
@@ -5912,7 +7354,9 @@ fn cmd_gh_inner(
                         if pr.is_draft && !args.iter().any(|a| a == "--admin") {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("Pull request #{num} is a draft and cannot be merged; mark it ready with 'gh pr ready'\n"),
+                                stderr: format!(
+                                    "Pull request #{num} is a draft and cannot be merged; mark it ready with 'gh pr ready'\n"
+                                ),
                                 exit_code: 1,
                             };
                         }
@@ -5921,29 +7365,62 @@ fn cmd_gh_inner(
                         title = pr.title.clone();
                         head = pr.head.clone();
                     }
-                    let suffix = if delete_branch { format!(" and deleted branch {head}") } else { String::new() };
-                    BuiltinOutcome { stdout: format!("✓ Merged pull request #{num} ({title}) via {method}{suffix}\n"), stderr: String::new(), exit_code: 0 }
+                    let suffix = if delete_branch {
+                        format!(" and deleted branch {head}")
+                    } else {
+                        String::new()
+                    };
+                    BuiltinOutcome {
+                        stdout: format!(
+                            "✓ Merged pull request #{num} ({title}) via {method}{suffix}\n"
+                        ),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "close" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut title = String::new();
                     if let Some(pr) = repo.prs.iter_mut().find(|p| p.number == num) {
                         pr.state = "CLOSED".into();
                         title = pr.title.clone();
                     }
-                    BuiltinOutcome { stdout: format!("✓ Closed pull request #{num} ({title})\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Closed pull request #{num} ({title})\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "reopen" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut title = String::new();
                     if let Some(pr) = repo.prs.iter_mut().find(|p| p.number == num) {
                         pr.state = "OPEN".into();
                         title = pr.title.clone();
                     }
-                    BuiltinOutcome { stdout: format!("✓ Reopened pull request #{num} ({title})\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Reopened pull request #{num} ({title})\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(pr) = repo.prs.iter_mut().find(|p| p.number == num) else {
                         return gh_err(&format!("pull request #{num} not found"));
                     };
@@ -5970,7 +7447,9 @@ fn cmd_gh_inner(
                             }
                             "--add-label" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for lbl in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for lbl in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         if !pr.labels.iter().any(|l| l.eq_ignore_ascii_case(lbl)) {
                                             pr.labels.push(lbl.to_string());
                                         }
@@ -5980,7 +7459,9 @@ fn cmd_gh_inner(
                             }
                             "--remove-label" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for lbl in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for lbl in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         pr.labels.retain(|l| !l.eq_ignore_ascii_case(lbl));
                                     }
                                 }
@@ -5988,8 +7469,14 @@ fn cmd_gh_inner(
                             }
                             "--add-assignee" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
-                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                    for a in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
+                                        let login = if a == "@me" {
+                                            gh_user.clone()
+                                        } else {
+                                            a.to_string()
+                                        };
                                         if !pr.assignees.iter().any(|x| x == &login) {
                                             pr.assignees.push(login);
                                         }
@@ -5999,8 +7486,14 @@ fn cmd_gh_inner(
                             }
                             "--remove-assignee" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
-                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                    for a in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
+                                        let login = if a == "@me" {
+                                            gh_user.clone()
+                                        } else {
+                                            a.to_string()
+                                        };
                                         pr.assignees.retain(|x| x != &login);
                                     }
                                 }
@@ -6008,7 +7501,9 @@ fn cmd_gh_inner(
                             }
                             "--add-reviewer" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for r in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for r in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         if !pr.reviewers.iter().any(|x| x == r) {
                                             pr.reviewers.push(r.to_string());
                                         }
@@ -6018,7 +7513,9 @@ fn cmd_gh_inner(
                             }
                             "--remove-reviewer" => {
                                 if let Some(v) = args.get(i + 1) {
-                                    for r in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                    for r in
+                                        v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty())
+                                    {
                                         pr.reviewers.retain(|x| x != r);
                                     }
                                 }
@@ -6034,7 +7531,12 @@ fn cmd_gh_inner(
                     }
                 }
                 "ready" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let undo = args.iter().any(|a| a == "--undo");
                     if let Some(pr) = repo.prs.iter_mut().find(|p| p.number == num) {
                         pr.is_draft = undo;
@@ -6044,10 +7546,19 @@ fn cmd_gh_inner(
                     } else {
                         format!("✓ Pull request #{num} is marked as \"ready for review\"\n")
                     };
-                    BuiltinOutcome { stdout: msg, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: msg,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "review" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let verb = if args.iter().any(|a| a == "-a" || a == "--approve") {
                         "Approved"
                     } else if args.iter().any(|a| a == "-r" || a == "--request-changes") {
@@ -6055,10 +7566,19 @@ fn cmd_gh_inner(
                     } else {
                         "Reviewed"
                     };
-                    BuiltinOutcome { stdout: format!("✓ {verb} pull request #{num}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} pull request #{num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "comment" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let mut body = String::new();
                     for w in args.windows(2) {
                         if w[0] == "-b" || w[0] == "--body" {
@@ -6068,10 +7588,19 @@ fn cmd_gh_inner(
                     if let Some(pr) = repo.prs.iter_mut().find(|p| p.number == num) {
                         pr.comments.push(body);
                     }
-                    BuiltinOutcome { stdout: format!("https://github.com/{full}/pull/{num}#issuecomment-1\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{full}/pull/{num}#issuecomment-1\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "lock" | "unlock" => {
-                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let num: u64 = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(1);
                     let Some(_pr) = repo.prs.iter().find(|p| p.number == num) else {
                         return gh_err(&format!("pull request #{num} not found"));
                     };
@@ -6083,10 +7612,15 @@ fn cmd_gh_inner(
                     }
                 }
                 "status" => {
-                    let open: Vec<&GhPrRecord> = repo.prs.iter().filter(|p| p.state == "OPEN").collect();
+                    let open: Vec<&GhPrRecord> =
+                        repo.prs.iter().filter(|p| p.state == "OPEN").collect();
                     let cur_branch = find_git_root_in_vfs(cwd, fs)
                         .and_then(|root| {
-                            let head_path = if root == "/" { "/.git/HEAD".to_string() } else { format!("{root}/.git/HEAD") };
+                            let head_path = if root == "/" {
+                                "/.git/HEAD".to_string()
+                            } else {
+                                format!("{root}/.git/HEAD")
+                            };
                             fs.read_file(&head_path).ok()
                         })
                         .map(|b| {
@@ -6133,27 +7667,46 @@ fn cmd_gh_inner(
                             "needsReview": []
                         });
                         drop(map);
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let body = if open.is_empty() {
                         "  There are no pull requests created by you".to_string()
                     } else {
-                        open.iter().map(|p| format!("  #{}  {} [{}]", p.number, p.title, p.head)).collect::<Vec<_>>().join("\n")
+                        open.iter()
+                            .map(|p| format!("  #{}  {} [{}]", p.number, p.title, p.head))
+                            .collect::<Vec<_>>()
+                            .join("\n")
                     };
                     BuiltinOutcome {
-                        stdout: format!("Relevant pull requests in {full}\n\nCreated by you\n{body}\n"),
+                        stdout: format!(
+                            "Relevant pull requests in {full}\n\nCreated by you\n{body}\n"
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
                 }
                 "update-branch" => {
-                    let num_opt = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse::<u64>().ok());
+                    let num_opt = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse::<u64>().ok());
                     let pr_opt = match num_opt {
                         Some(n) => repo.prs.iter().find(|p| p.number == n),
                         None => repo.prs.first(),
                     };
                     let Some(pr) = pr_opt else {
-                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                        return gh_err(&format!(
+                            "pull request #{} not found",
+                            num_opt.unwrap_or(1)
+                        ));
                     };
                     BuiltinOutcome {
                         stdout: format!("✓ Pull request #{} branch updated\n", pr.number),
@@ -6196,10 +7749,16 @@ fn cmd_gh_inner(
                         None => repo.prs.first().cloned(),
                     };
                     let Some(orig) = orig_opt else {
-                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                        return gh_err(&format!(
+                            "pull request #{} not found",
+                            num_opt.unwrap_or(1)
+                        ));
                     };
                     if orig.state != "MERGED" {
-                        return gh_err(&format!("pull request #{} is not merged and cannot be reverted", orig.number));
+                        return gh_err(&format!(
+                            "pull request #{} is not merged and cannot be reverted",
+                            orig.number
+                        ));
                     }
                     let rev_num = repo.next_number;
                     repo.next_number += 1;
@@ -6223,13 +7782,20 @@ fn cmd_gh_inner(
                     }
                 }
                 "checks" => {
-                    let num_opt = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse::<u64>().ok());
+                    let num_opt = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .and_then(|s| s.parse::<u64>().ok());
                     let pr_opt = match num_opt {
                         Some(n) => repo.prs.iter().find(|p| p.number == n).cloned(),
                         None => repo.prs.first().cloned(),
                     };
                     let Some(_pr) = pr_opt else {
-                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                        return gh_err(&format!(
+                            "pull request #{} not found",
+                            num_opt.unwrap_or(1)
+                        ));
                     };
                     drop(map);
                     if let Some(fields) = &json_fields {
@@ -6257,7 +7823,14 @@ fn cmd_gh_inner(
                                 "completedAt": "2026-09-28T12:00:01Z"
                             }),
                         ];
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
                         stdout: format!(
@@ -6359,8 +7932,13 @@ fn cmd_gh_inner(
                     let title = title_opt.unwrap_or_else(|| tag.clone());
                     let mut assets = Vec::new();
                     for file_arg in pos.iter().skip(1) {
-                        let (path_part, _) = file_arg.split_once('#').unwrap_or((file_arg.as_str(), ""));
-                        let name = path_part.rsplit('/').next().unwrap_or(path_part).to_string();
+                        let (path_part, _) =
+                            file_arg.split_once('#').unwrap_or((file_arg.as_str(), ""));
+                        let name = path_part
+                            .rsplit('/')
+                            .next()
+                            .unwrap_or(path_part)
+                            .to_string();
                         let resolved = resolve_posix_path(cwd, path_part);
                         let data = fs.read_file(&resolved).unwrap_or_default();
                         let size = data.len();
@@ -6400,16 +7978,31 @@ fn cmd_gh_inner(
                             })
                         })
                         .collect();
-                    let rows: Vec<(String, String)> = repo.releases.iter().map(|r| (r.name.clone(), r.tag_name.clone())).collect();
+                    let rows: Vec<(String, String)> = repo
+                        .releases
+                        .iter()
+                        .map(|r| (r.name.clone(), r.tag_name.clone()))
+                        .collect();
                     drop(map);
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for (n, t) in rows {
                         out.push_str(&format!("{n}\tLatest\t{t}\t2026-09-28T12:00:00Z\n"));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
                     let tag = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
@@ -6431,7 +8024,14 @@ fn cmd_gh_inner(
                             "assets": rel.assets.iter().map(|(n, sz, u, _)| jval!({ "name": n, "size": *sz, "url": u })).collect::<Vec<_>>(),
                             "url": format!("https://github.com/{full}/releases/tag/{}", rel.tag_name)
                         });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
                         stdout: format!("{}\n{}\n\n{}\n", rel.tag_name, rel.name, rel.body),
@@ -6466,7 +8066,11 @@ fn cmd_gh_inner(
                     };
                     for file_arg in pos.iter().skip(1) {
                         let (path_part, _) = file_arg.split_once('#').unwrap_or((*file_arg, ""));
-                        let name = path_part.rsplit('/').next().unwrap_or(path_part).to_string();
+                        let name = path_part
+                            .rsplit('/')
+                            .next()
+                            .unwrap_or(path_part)
+                            .to_string();
                         let resolved = resolve_posix_path(cwd, path_part);
                         let data = fs.read_file(&resolved).unwrap_or_default();
                         let size = data.len();
@@ -6516,7 +8120,9 @@ fn cmd_gh_inner(
                     let Some(rel) = rel_opt else {
                         return gh_err("release not found");
                     };
-                    let dest_dir = dir_opt.map(|d| resolve_posix_path(cwd, &d)).unwrap_or_else(|| cwd.to_string());
+                    let dest_dir = dir_opt
+                        .map(|d| resolve_posix_path(cwd, &d))
+                        .unwrap_or_else(|| cwd.to_string());
                     let _ = fs.mkdir_all(&dest_dir);
                     if let Some(o) = out_opt {
                         let target = resolve_posix_path(cwd, &o);
@@ -6531,7 +8137,11 @@ fn cmd_gh_inner(
                             let _ = fs.write_file(&format!("{dest_dir}/{name}"), data);
                         }
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
                     let mut tag_opt: Option<String> = None;
@@ -6552,7 +8162,9 @@ fn cmd_gh_inner(
                                 i += 2;
                             }
                             "--draft" => {
-                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                                if i + 1 < args.len()
+                                    && (args[i + 1] == "true" || args[i + 1] == "false")
+                                {
                                     draft_opt = Some(args[i + 1] != "false");
                                     i += 2;
                                 } else {
@@ -6561,7 +8173,9 @@ fn cmd_gh_inner(
                                 }
                             }
                             "--prerelease" => {
-                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                                if i + 1 < args.len()
+                                    && (args[i + 1] == "true" || args[i + 1] == "false")
+                                {
                                     prerelease_opt = Some(args[i + 1] != "false");
                                     i += 2;
                                 } else {
@@ -6604,7 +8218,10 @@ fn cmd_gh_inner(
                         rel.is_prerelease = p;
                     }
                     BuiltinOutcome {
-                        stdout: format!("https://github.com/{full}/releases/tag/{}\n", rel.tag_name),
+                        stdout: format!(
+                            "https://github.com/{full}/releases/tag/{}\n",
+                            rel.tag_name
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -6678,14 +8295,16 @@ fn cmd_gh_inner(
                             Value::Array(
                                 r.releases
                                     .iter()
-                                    .map(|rel| jval!({
-                                        "tagName": rel.tag_name,
-                                        "tag_name": rel.tag_name,
-                                        "name": rel.name,
-                                        "body": rel.body,
-                                        "isDraft": rel.is_draft,
-                                        "isPrerelease": rel.is_prerelease
-                                    }))
+                                    .map(|rel| {
+                                        jval!({
+                                            "tagName": rel.tag_name,
+                                            "tag_name": rel.tag_name,
+                                            "name": rel.name,
+                                            "body": rel.body,
+                                            "isDraft": rel.is_draft,
+                                            "isPrerelease": rel.is_prerelease
+                                        })
+                                    })
                                     .collect(),
                             )
                         } else {
@@ -6757,7 +8376,12 @@ fn cmd_gh_inner(
                         exit_code: 1,
                     };
                 };
-                if !force && repo.labels.iter().any(|(n, _, _)| n.eq_ignore_ascii_case(&name)) {
+                if !force
+                    && repo
+                        .labels
+                        .iter()
+                        .any(|(n, _, _)| n.eq_ignore_ascii_case(&name))
+                {
                     return BuiltinOutcome {
                         stdout: String::new(),
                         stderr: format!("label \"{name}\" already exists; use --force to update\n"),
@@ -6766,7 +8390,8 @@ fn cmd_gh_inner(
                 }
                 let color = color_opt.unwrap_or_else(|| "ededed".to_string());
                 let desc = desc_opt.unwrap_or_default();
-                repo.labels.retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
+                repo.labels
+                    .retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
                 repo.labels.push((name.clone(), color, desc));
                 return BuiltinOutcome {
                     stdout: format!("✓ Created label \"{name}\" in {full}\n"),
@@ -6776,7 +8401,11 @@ fn cmd_gh_inner(
             }
             if sub == "edit" {
                 let old_name = pos_arg.unwrap_or_default();
-                let Some(existing) = repo.labels.iter_mut().find(|(n, _, _)| n.eq_ignore_ascii_case(&old_name)) else {
+                let Some(existing) = repo
+                    .labels
+                    .iter_mut()
+                    .find(|(n, _, _)| n.eq_ignore_ascii_case(&old_name))
+                else {
                     return BuiltinOutcome {
                         stdout: String::new(),
                         stderr: format!("label \"{old_name}\" not found\n"),
@@ -6801,7 +8430,8 @@ fn cmd_gh_inner(
             }
             if sub == "delete" {
                 let name = pos_arg.unwrap_or_default();
-                repo.labels.retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
+                repo.labels
+                    .retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
                 return BuiltinOutcome {
                     stdout: format!("✓ Deleted label \"{name}\" from {full}\n"),
                     stderr: String::new(),
@@ -6824,7 +8454,11 @@ fn cmd_gh_inner(
                     .unwrap_or_default();
                 let repo = st.gh_repos.get_mut(&full).unwrap();
                 for (sn, sc, sd) in src_labels {
-                    if let Some(existing) = repo.labels.iter_mut().find(|(n, _, _)| n.eq_ignore_ascii_case(&sn)) {
+                    if let Some(existing) = repo
+                        .labels
+                        .iter_mut()
+                        .find(|(n, _, _)| n.eq_ignore_ascii_case(&sn))
+                    {
                         if force {
                             existing.0 = sn;
                             existing.1 = sc;
@@ -6847,12 +8481,27 @@ fn cmd_gh_inner(
                     exit_code: 1,
                 };
             }
-            let arr: Vec<Value> = repo.labels.iter().map(|(n, c, d)| jval!({ "name": n, "color": c, "description": d })).collect();
+            let arr: Vec<Value> = repo
+                .labels
+                .iter()
+                .map(|(n, c, d)| jval!({ "name": n, "color": c, "description": d }))
+                .collect();
             drop(map);
             if let Some(fields) = &json_fields {
-                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                return format_gh_json_output(
+                    &Value::Array(arr),
+                    fields,
+                    jq_expr.as_deref(),
+                    cwd,
+                    env,
+                    fs,
+                );
             }
-            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "variable" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
@@ -6870,7 +8519,9 @@ fn cmd_gh_inner(
                             body_val = Some(args[vi + 1].clone());
                             vi += 2;
                         }
-                        "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org" if vi + 1 < args.len() => {
+                        "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org"
+                            if vi + 1 < args.len() =>
+                        {
                             vi += 2;
                         }
                         a if a.starts_with('-') => vi += 1,
@@ -6932,7 +8583,11 @@ fn cmd_gh_inner(
                         exit_code: 0,
                     };
                 }
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub != "list" && sub != "ls" {
                 return BuiltinOutcome {
@@ -6941,12 +8596,27 @@ fn cmd_gh_inner(
                     exit_code: 1,
                 };
             }
-            let arr: Vec<Value> = repo.variables.iter().map(|(k, v)| jval!({ "name": k, "value": v })).collect();
+            let arr: Vec<Value> = repo
+                .variables
+                .iter()
+                .map(|(k, v)| jval!({ "name": k, "value": v }))
+                .collect();
             drop(map);
             if let Some(fields) = &json_fields {
-                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                return format_gh_json_output(
+                    &Value::Array(arr),
+                    fields,
+                    jq_expr.as_deref(),
+                    cwd,
+                    env,
+                    fs,
+                );
             }
-            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "secret" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
@@ -6959,7 +8629,9 @@ fn cmd_gh_inner(
                 let mut si = 2usize;
                 while si < args.len() {
                     match args[si].as_str() {
-                        "-b" | "--body" | "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org" if si + 1 < args.len() => {
+                        "-b" | "--body" | "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org"
+                            if si + 1 < args.len() =>
+                        {
                             si += 2;
                         }
                         a if a.starts_with('-') => si += 1,
@@ -6996,7 +8668,11 @@ fn cmd_gh_inner(
                         exit_code: 0,
                     };
                 }
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub != "list" && sub != "ls" {
                 return BuiltinOutcome {
@@ -7008,9 +8684,20 @@ fn cmd_gh_inner(
             let arr: Vec<Value> = repo.secrets.iter().map(|s| jval!({ "name": s })).collect();
             drop(map);
             if let Some(fields) = &json_fields {
-                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                return format_gh_json_output(
+                    &Value::Array(arr),
+                    fields,
+                    jq_expr.as_deref(),
+                    cwd,
+                    env,
+                    fs,
+                );
             }
-            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
         }
         "workflow" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
@@ -7023,9 +8710,7 @@ fn cmd_gh_inner(
                     return if wfs.is_empty() { None } else { Some(0) };
                 };
                 wfs.iter().position(|w| {
-                    w.id.to_string() == s
-                        || w.name.eq_ignore_ascii_case(s)
-                        || w.path.ends_with(s)
+                    w.id.to_string() == s || w.name.eq_ignore_ascii_case(s) || w.path.ends_with(s)
                 })
             };
             match sub {
@@ -7048,26 +8733,48 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for w in filtered {
                         out.push_str(&format!("{}\t{}\t{}\n", w.name, w.state, w.id));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
                     let yaml_flag = args.iter().any(|a| a == "-y" || a == "--yaml");
-                    let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).map(|s| s.as_str());
+                    let sel = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-'))
+                        .map(|s| s.as_str());
                     let Some(idx) = find_wf_idx(&repo.workflows, sel) else {
                         return gh_err("workflow not found");
                     };
                     let w = &repo.workflows[idx];
                     if yaml_flag {
-                        return BuiltinOutcome { stdout: w.content.clone(), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: w.content.clone(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     BuiltinOutcome {
-                        stdout: format!("{} - {}\nID: {}\nState: {}\n", w.name, w.path, w.id, w.state),
+                        stdout: format!(
+                            "{} - {}\nID: {}\nState: {}\n",
+                            w.name, w.path, w.id, w.state
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -7119,10 +8826,14 @@ fn cmd_gh_inner(
                         url: format!("https://github.com/{full}/actions/runs/{run_id}"),
                         actor_login: st.gh_user.clone(),
                         job_id,
-                        job_log: format!("{wf_name}\tbuild\t2026-09-28T12:00:00Z Completed workflow_dispatch\n"),
+                        job_log: format!(
+                            "{wf_name}\tbuild\t2026-09-28T12:00:00Z Completed workflow_dispatch\n"
+                        ),
                     });
                     BuiltinOutcome {
-                        stdout: format!("✓ Created workflow_dispatch event for {wf_path} at {ref_branch}\n"),
+                        stdout: format!(
+                            "✓ Created workflow_dispatch event for {wf_path} at {ref_branch}\n"
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -7151,7 +8862,11 @@ fn cmd_gh_inner(
                         "disabled_manually".into()
                     };
                     let wf_name = repo.workflows[idx].name.clone();
-                    let verb = if sub == "enable" { "Enabled" } else { "Disabled" };
+                    let verb = if sub == "enable" {
+                        "Enabled"
+                    } else {
+                        "Disabled"
+                    };
                     BuiltinOutcome {
                         stdout: format!("✓ {verb} {wf_name}\n"),
                         stderr: String::new(),
@@ -7215,19 +8930,39 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for r in &repo.workflow_runs {
                         out.push_str(&format!(
                             "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-                            r.status, r.conclusion, r.display_title, r.workflow_name, r.head_branch, r.event, r.database_id
+                            r.status,
+                            r.conclusion,
+                            r.display_title,
+                            r.workflow_name,
+                            r.head_branch,
+                            r.event,
+                            r.database_id
                         ));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
-                    let log_flag = args.iter().skip(2).any(|a| a == "--log" || a == "--log-failed");
+                    let log_flag = args
+                        .iter()
+                        .skip(2)
+                        .any(|a| a == "--log" || a == "--log-failed");
                     let sel_id = args
                         .iter()
                         .skip(2)
@@ -7258,7 +8993,14 @@ fn cmd_gh_inner(
                             "workflowDatabaseId": r.workflow_database_id,
                             "workflowName": r.workflow_name
                         });
-                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &obj,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     if log_flag {
                         return BuiltinOutcome {
@@ -7270,7 +9012,12 @@ fn cmd_gh_inner(
                     BuiltinOutcome {
                         stdout: format!(
                             "✓ {} {} · {}\nTriggered via {} by {}\n\nJOBS\n✓ build in 1s (ID {})\n",
-                            r.head_branch, r.workflow_name, r.database_id, r.event, r.actor_login, r.job_id
+                            r.head_branch,
+                            r.workflow_name,
+                            r.database_id,
+                            r.event,
+                            r.actor_login,
+                            r.job_id
                         ),
                         stderr: String::new(),
                         exit_code: 0,
@@ -7284,7 +9031,13 @@ fn cmd_gh_inner(
                         .and_then(|s| s.parse::<u64>().ok());
                     let idx_opt = match sel_id {
                         Some(id) => repo.workflow_runs.iter().position(|r| r.database_id == id),
-                        None => if repo.workflow_runs.is_empty() { None } else { Some(0) },
+                        None => {
+                            if repo.workflow_runs.is_empty() {
+                                None
+                            } else {
+                                Some(0)
+                            }
+                        }
                     };
                     let Some(idx) = idx_opt else {
                         return gh_err("run not found");
@@ -7292,7 +9045,12 @@ fn cmd_gh_inner(
                     let db_id = repo.workflow_runs[idx].database_id;
                     match sub {
                         "watch" => BuiltinOutcome {
-                            stdout: format!("✓ Run {} ({}) completed with '{}'\n", repo.workflow_runs[idx].workflow_name, db_id, repo.workflow_runs[idx].conclusion),
+                            stdout: format!(
+                                "✓ Run {} ({}) completed with '{}'\n",
+                                repo.workflow_runs[idx].workflow_name,
+                                db_id,
+                                repo.workflow_runs[idx].conclusion
+                            ),
                             stderr: String::new(),
                             exit_code: 0,
                         },
@@ -7310,7 +9068,9 @@ fn cmd_gh_inner(
                             repo.workflow_runs[idx].status = "completed".into();
                             repo.workflow_runs[idx].conclusion = "cancelled".into();
                             BuiltinOutcome {
-                                stdout: format!("✓ Requested cancellation of workflow run {db_id}\n"),
+                                stdout: format!(
+                                    "✓ Requested cancellation of workflow run {db_id}\n"
+                                ),
                                 stderr: String::new(),
                                 exit_code: 0,
                             }
@@ -7337,7 +9097,8 @@ fn cmd_gh_inner(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
             if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
                 return BuiltinOutcome {
-                    stdout: "Usage: gh gist <create|list|view|edit|clone|delete|rename> [flags]\n".into(),
+                    stdout: "Usage: gh gist <create|list|view|edit|clone|delete|rename> [flags]\n"
+                        .into(),
                     stderr: String::new(),
                     exit_code: 0,
                 };
@@ -7455,16 +9216,30 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for g in filtered {
                         let fc = g.files.len();
                         let plural = if fc == 1 { "" } else { "s" };
                         let vis = if g.is_public { "public" } else { "secret" };
-                        out.push_str(&format!("{}\t{}\t{fc} file{plural}\t{vis}\t{}\n", g.id, g.description, g.updated_at));
+                        out.push_str(&format!(
+                            "{}\t{}\t{fc} file{plural}\t{vis}\t{}\n",
+                            g.id, g.description, g.updated_at
+                        ));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
                     let list_files = args.iter().any(|a| a == "--files");
@@ -7490,7 +9265,10 @@ fn cmd_gh_inner(
                     let gist_opt = if id_arg.is_empty() {
                         st.gh_gists.first()
                     } else {
-                        st.gh_gists.iter().find(|g| g.id == id_arg).or_else(|| st.gh_gists.first())
+                        st.gh_gists
+                            .iter()
+                            .find(|g| g.id == id_arg)
+                            .or_else(|| st.gh_gists.first())
                     };
                     let Some(g) = gist_opt else {
                         return gh_err(&format!("gist {id_arg} not found"));
@@ -7500,17 +9278,33 @@ fn cmd_gh_inner(
                         for f in &g.files {
                             out.push_str(&format!("{}\n", f.filename));
                         }
-                        return BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let body: String = if let Some(ref fname) = fn_filter
                         && let Some(f) = g.files.iter().find(|f| &f.filename == fname)
                     {
                         f.content.clone()
                     } else {
-                        g.files.iter().map(|f| f.content.as_str()).collect::<Vec<_>>().join("\n")
+                        g.files
+                            .iter()
+                            .map(|f| f.content.as_str())
+                            .collect::<Vec<_>>()
+                            .join("\n")
                     };
-                    let stdout = if body.ends_with('\n') { body } else { format!("{body}\n") };
-                    BuiltinOutcome { stdout, stderr: String::new(), exit_code: 0 }
+                    let stdout = if body.ends_with('\n') {
+                        body
+                    } else {
+                        format!("{body}\n")
+                    };
+                    BuiltinOutcome {
+                        stdout,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "edit" => {
                     let mut id_arg = String::new();
@@ -7557,12 +9351,19 @@ fn cmd_gh_inner(
                         if let Ok(bytes) = fs.read_file(&resolved) {
                             let content = String::from_utf8_lossy(&bytes).into_owned();
                             let size = content.len();
-                            let fname = fn_flag.unwrap_or_else(|| resolved.rsplit('/').next().unwrap_or(&af).to_string());
-                            if let Some(existing) = g.files.iter_mut().find(|f| f.filename == fname) {
+                            let fname = fn_flag.unwrap_or_else(|| {
+                                resolved.rsplit('/').next().unwrap_or(&af).to_string()
+                            });
+                            if let Some(existing) = g.files.iter_mut().find(|f| f.filename == fname)
+                            {
                                 existing.content = content;
                                 existing.size = size;
                             } else {
-                                g.files.push(GhGistFileRecord { filename: fname, content, size });
+                                g.files.push(GhGistFileRecord {
+                                    filename: fname,
+                                    content,
+                                    size,
+                                });
                             }
                         }
                     }
@@ -7570,10 +9371,18 @@ fn cmd_gh_inner(
                         g.files.retain(|f| f.filename != rf);
                     }
                     let gid = g.id.clone();
-                    BuiltinOutcome { stdout: format!("✓ Edited gist {gid}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Edited gist {gid}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "rename" => {
-                    let pos_args: Vec<&String> = args.iter().skip(2).filter(|a| !a.starts_with('-')).collect();
+                    let pos_args: Vec<&String> = args
+                        .iter()
+                        .skip(2)
+                        .filter(|a| !a.starts_with('-'))
+                        .collect();
                     if pos_args.len() < 3 {
                         return gh_err("gist or file not found");
                     }
@@ -7618,7 +9427,8 @@ fn cmd_gh_inner(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
             if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
                 return BuiltinOutcome {
-                    stdout: "Usage: gh search <prs|issues|repos|commits|code> [<query>] [flags]\n".into(),
+                    stdout: "Usage: gh search <prs|issues|repos|commits|code> [<query>] [flags]\n"
+                        .into(),
                     stderr: String::new(),
                     exit_code: 0,
                 };
@@ -7631,7 +9441,8 @@ fn cmd_gh_inner(
             let mut i = 2usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-R" | "--repo" | "--json" | "-q" | "--jq" | "-t" | "--template" | "-L" | "--limit" | "--author" | "--assignee" | "--label" | "--language" => {
+                    "-R" | "--repo" | "--json" | "-q" | "--jq" | "-t" | "--template" | "-L"
+                    | "--limit" | "--author" | "--assignee" | "--label" | "--language" => {
                         i += 2;
                     }
                     "--state" if i + 1 < args.len() => {
@@ -7686,12 +9497,27 @@ fn cmd_gh_inner(
                             "owner": { "login": r.owner },
                             "url": format!("https://github.com/{full}")
                         }));
-                        lines.push_str(&format!("{full}\t{}\t{}\n", r.description, vis.to_ascii_lowercase()));
+                        lines.push_str(&format!(
+                            "{full}\t{}\t{}\n",
+                            r.description,
+                            vis.to_ascii_lowercase()
+                        ));
                     }
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(results), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(results),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
-                    BuiltinOutcome { stdout: lines, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: lines,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "issues" => {
                     let mut results = Vec::new();
@@ -7720,13 +9546,27 @@ fn cmd_gh_inner(
                                 "repository": { "name": r.name, "nameWithOwner": full },
                                 "url": format!("https://github.com/{full}/issues/{}", iss.number)
                             }));
-                            lines.push_str(&format!("{full}\t#{}\t{}\t{}\n", iss.number, iss.state, iss.title));
+                            lines.push_str(&format!(
+                                "{full}\t#{}\t{}\t{}\n",
+                                iss.number, iss.state, iss.title
+                            ));
                         }
                     }
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(results), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(results),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
-                    BuiltinOutcome { stdout: lines, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: lines,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "prs" => {
                     let mut results = Vec::new();
@@ -7753,7 +9593,8 @@ fn cmd_gh_inner(
                             {
                                 continue;
                             }
-                            let hay = format!("{} {} {}", pr.title, pr.body, pr.head).to_ascii_lowercase();
+                            let hay = format!("{} {} {}", pr.title, pr.body, pr.head)
+                                .to_ascii_lowercase();
                             if !query.is_empty() && !hay.contains(&query) {
                                 continue;
                             }
@@ -7766,19 +9607,44 @@ fn cmd_gh_inner(
                                 "repository": { "name": r.name, "nameWithOwner": full },
                                 "url": format!("https://github.com/{full}/pull/{}", pr.number)
                             }));
-                            lines.push_str(&format!("{full}\t#{}\t{}\t{}\n", pr.number, pr.state, pr.title));
+                            lines.push_str(&format!(
+                                "{full}\t#{}\t{}\t{}\n",
+                                pr.number, pr.state, pr.title
+                            ));
                         }
                     }
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(results), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(results),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
-                    BuiltinOutcome { stdout: lines, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: lines,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "commits" | "code" => {
                     if let Some(fields) = &json_fields {
-                        return format_gh_json_output(&Value::Array(Vec::new()), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(Vec::new()),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => BuiltinOutcome {
                     stdout: String::new(),
@@ -7822,13 +9688,27 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for c in &repo.caches {
-                        out.push_str(&format!("{}\t{}\t{} B\t{}\n", c.id, c.key, c.size_in_bytes, c.last_accessed_at));
+                        out.push_str(&format!(
+                            "{}\t{}\t{} B\t{}\n",
+                            c.id, c.key, c.size_in_bytes, c.last_accessed_at
+                        ));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "delete" => {
                     if args.iter().any(|a| a == "-a" || a == "--all") {
@@ -7845,7 +9725,8 @@ fn cmd_gh_inner(
                         .find(|a| !a.starts_with('-'))
                         .cloned()
                         .unwrap_or_default();
-                    repo.caches.retain(|c| c.id.to_string() != target && c.key != target);
+                    repo.caches
+                        .retain(|c| c.id.to_string() != target && c.key != target);
                     BuiltinOutcome {
                         stdout: format!("✓ Deleted cache {target}\n"),
                         stderr: String::new(),
@@ -7879,13 +9760,27 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for k in &st.gh_ssh_keys {
-                        out.push_str(&format!("{}\t{}\t{}\t{}\t{}\n", k.title, k.key, k.created_at, k.id, k.key_type));
+                        out.push_str(&format!(
+                            "{}\t{}\t{}\t{}\t{}\n",
+                            k.title, k.key, k.created_at, k.id, k.key_type
+                        ));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "add" => {
                     let mut title_opt: Option<String> = None;
@@ -8010,13 +9905,24 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for k in &st.gh_gpg_keys {
                         out.push_str(&format!("{}\t{}\t{}\t\n", k.email, k.key_id, k.created_at));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "add" => {
                     let mut title_opt: Option<String> = None;
@@ -8082,7 +9988,9 @@ fn cmd_gh_inner(
                         .find(|a| !a.starts_with('-'))
                         .cloned()
                         .unwrap_or_default();
-                    st.gh_gpg_keys.retain(|k| k.id.to_string() != sel && !k.key_id.eq_ignore_ascii_case(&sel));
+                    st.gh_gpg_keys.retain(|k| {
+                        k.id.to_string() != sel && !k.key_id.eq_ignore_ascii_case(&sel)
+                    });
                     BuiltinOutcome {
                         stdout: format!("✓ GPG key {sel} deleted\n"),
                         stderr: String::new(),
@@ -8138,7 +10046,9 @@ fn cmd_gh_inner(
                     exit_code: 0,
                 },
                 "view" => BuiltinOutcome {
-                    stdout: format!("Ruleset: main-branch-protection (ID: 1)\nTarget: branch\nEnforcement: active\nSource: {full}\nRules: pull_request, required_status_checks\n"),
+                    stdout: format!(
+                        "Ruleset: main-branch-protection (ID: 1)\nTarget: branch\nEnforcement: active\nSource: {full}\nRules: pull_request, required_status_checks\n"
+                    ),
                     stderr: String::new(),
                     exit_code: 0,
                 },
@@ -8150,7 +10060,9 @@ fn cmd_gh_inner(
                         .cloned()
                         .unwrap_or_else(|| repo.default_branch.clone());
                     BuiltinOutcome {
-                        stdout: format!("Rules applying to branch \"{branch}\" in {full}:\n- pull_request (main-branch-protection)\n- required_status_checks (main-branch-protection)\n"),
+                        stdout: format!(
+                            "Rules applying to branch \"{branch}\" in {full}:\n- pull_request (main-branch-protection)\n- required_status_checks (main-branch-protection)\n"
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -8258,20 +10170,34 @@ fn cmd_gh_inner(
             let issues_block = if assigned_issues.is_empty() {
                 "  Nothing here ^_^".to_string()
             } else {
-                assigned_issues.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+                assigned_issues
+                    .into_iter()
+                    .map(|s| format!("  {s}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
             };
             let prs_block = if assigned_prs.is_empty() {
                 "  Nothing here ^_^".to_string()
             } else {
-                assigned_prs.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+                assigned_prs
+                    .into_iter()
+                    .map(|s| format!("  {s}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
             };
             let reviews_block = if review_requests.is_empty() {
                 "  Nothing here ^_^".to_string()
             } else {
-                review_requests.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+                review_requests
+                    .into_iter()
+                    .map(|s| format!("  {s}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
             };
             BuiltinOutcome {
-                stdout: format!("Assigned Issues\n{issues_block}\n\nAssigned Pull Requests\n{prs_block}\n\nReview Requests\n{reviews_block}\n"),
+                stdout: format!(
+                    "Assigned Issues\n{issues_block}\n\nAssigned Pull Requests\n{prs_block}\n\nReview Requests\n{reviews_block}\n"
+                ),
                 stderr: String::new(),
                 exit_code: 0,
             }
@@ -8432,7 +10358,10 @@ fn cmd_gh_inner(
             let map = states().lock().unwrap();
             let st = map.get(&fs_id).cloned().unwrap_or_default();
             let repo_str = repo_flag.unwrap_or_else(|| {
-                format!("{}/Hello-World", owner_opt.unwrap_or_else(|| st.gh_user.clone()))
+                format!(
+                    "{}/Hello-World",
+                    owner_opt.unwrap_or_else(|| st.gh_user.clone())
+                )
             });
             let _ = bundle_opt;
             if is_json {
@@ -8444,10 +10373,16 @@ fn cmd_gh_inner(
                     "workflowRef": "octocat/Hello-World/.github/workflows/release.yml@refs/heads/main"
                 }]);
                 let s = to_pretty_json(&res);
-                return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("{s}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             BuiltinOutcome {
-                stdout: format!("Loaded digest sha256:{digest} for file://{farg}\n✓ Verification succeeded!\n"),
+                stdout: format!(
+                    "Loaded digest sha256:{digest} for file://{farg}\n✓ Verification succeeded!\n"
+                ),
                 stderr: String::new(),
                 exit_code: 0,
             }
@@ -8579,7 +10514,11 @@ fn cmd_gh_inner(
                         });
                         return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
                     }
-                    BuiltinOutcome { stdout: format!("{url}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{url}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "list" => {
                     if is_json {
@@ -8605,7 +10544,11 @@ fn cmd_gh_inner(
                         let st_str = if p.closed { "closed" } else { "open" };
                         out.push_str(&format!("{}\t{}\t{st_str}\t{}\n", p.number, p.title, p.id));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => {
                     let num = pos_num.unwrap_or(1);
@@ -8640,28 +10583,52 @@ fn cmd_gh_inner(
                     if sub == "copy" {
                         let new_num = (st.gh_projects.len() + 1) as u64;
                         let src_proj = st.gh_projects.iter().find(|p| p.number == num).cloned();
-                        let src_title = src_proj.as_ref().map(|p| p.title.clone()).unwrap_or_else(|| format!("Project {num}"));
+                        let src_title = src_proj
+                            .as_ref()
+                            .map(|p| p.title.clone())
+                            .unwrap_or_else(|| format!("Project {num}"));
                         let copy_title = title_opt.unwrap_or_else(|| format!("{src_title} (Copy)"));
-                        let copy_url = format!("https://github.com/orgs/{owner}/projects/{new_num}");
+                        let copy_url =
+                            format!("https://github.com/orgs/{owner}/projects/{new_num}");
                         st.gh_projects.push(GhProjectRecord {
                             number: new_num,
                             id: format!("PVT_{new_num}"),
                             title: copy_title,
-                            short_description: src_proj.as_ref().map(|p| p.short_description.clone()).unwrap_or_default(),
-                            readme: src_proj.as_ref().map(|p| p.readme.clone()).unwrap_or_default(),
+                            short_description: src_proj
+                                .as_ref()
+                                .map(|p| p.short_description.clone())
+                                .unwrap_or_default(),
+                            readme: src_proj
+                                .as_ref()
+                                .map(|p| p.readme.clone())
+                                .unwrap_or_default(),
                             is_public: src_proj.as_ref().map(|p| p.is_public).unwrap_or(false),
                             closed: src_proj.as_ref().map(|p| p.closed).unwrap_or(false),
                             is_template: src_proj.as_ref().map(|p| p.is_template).unwrap_or(false),
                             owner: owner.clone(),
                             url: copy_url.clone(),
-                            fields: src_proj.as_ref().map(|p| p.fields.clone()).unwrap_or_else(|| vec![
-                                ("PVTF_1".into(), "Title".into(), "TITLE".into()),
-                                ("PVTF_2".into(), "Status".into(), "SINGLE_SELECT".into()),
-                            ]),
-                            items: src_proj.as_ref().map(|p| p.items.clone()).unwrap_or_default(),
-                            linked_repos: src_proj.as_ref().map(|p| p.linked_repos.clone()).unwrap_or_default(),
+                            fields: src_proj.as_ref().map(|p| p.fields.clone()).unwrap_or_else(
+                                || {
+                                    vec![
+                                        ("PVTF_1".into(), "Title".into(), "TITLE".into()),
+                                        ("PVTF_2".into(), "Status".into(), "SINGLE_SELECT".into()),
+                                    ]
+                                },
+                            ),
+                            items: src_proj
+                                .as_ref()
+                                .map(|p| p.items.clone())
+                                .unwrap_or_default(),
+                            linked_repos: src_proj
+                                .as_ref()
+                                .map(|p| p.linked_repos.clone())
+                                .unwrap_or_default(),
                         });
-                        return BuiltinOutcome { stdout: format!("{copy_url}\n"), stderr: String::new(), exit_code: 0 };
+                        return BuiltinOutcome {
+                            stdout: format!("{copy_url}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     let p = st.gh_projects.iter_mut().find(|p| p.number == num).unwrap();
                     match sub {
@@ -8674,11 +10641,21 @@ fn cmd_gh_inner(
                                     "closed": p.closed,
                                     "url": p.url
                                 });
-                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &val,
+                                    &[],
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             let st_str = if p.closed { "closed" } else { "open" };
                             BuiltinOutcome {
-                                stdout: format!("Title: {}\nNumber: {}\nID: {}\nState: {st_str}\nURL: {}\n", p.title, p.number, p.id, p.url),
+                                stdout: format!(
+                                    "Title: {}\nNumber: {}\nID: {}\nState: {st_str}\nURL: {}\n",
+                                    p.title, p.number, p.id, p.url
+                                ),
                                 stderr: String::new(),
                                 exit_code: 0,
                             }
@@ -8693,11 +10670,19 @@ fn cmd_gh_inner(
                             if let Some(rm) = readme_opt {
                                 p.readme = rm;
                             }
-                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("{}\n", p.url),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "close" => {
                             p.closed = !undo;
-                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("{}\n", p.url),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "field-list" => {
                             if is_json {
@@ -8708,13 +10693,24 @@ fn cmd_gh_inner(
                                     .collect();
                                 let cnt = arr.len();
                                 let val = jval!({ "fields": arr, "totalCount": cnt });
-                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &val,
+                                    &[],
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             let mut out = String::new();
                             for (fid, fname, ftype) in &p.fields {
                                 out.push_str(&format!("{fname}\t{ftype}\t{fid}\n"));
                             }
-                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: out,
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "field-create" => {
                             let fid = format!("PVTF_{}", p.fields.len() + 1);
@@ -8723,19 +10719,39 @@ fn cmd_gh_inner(
                                 name_opt.unwrap_or_else(|| "New Field".into()),
                                 dtype_opt.unwrap_or_else(|| "TEXT".into()),
                             ));
-                            BuiltinOutcome { stdout: format!("{fid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("{fid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "field-delete" => {
                             let fid = id_opt.unwrap_or_default();
                             p.fields.retain(|(id, _, _)| id != &fid);
-                            BuiltinOutcome { stdout: format!("Deleted field {fid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("Deleted field {fid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "item-create" | "item-add" => {
                             let iid = format!("PVTI_{}", p.items.len() + 1);
-                            let ititle = title_opt.or_else(|| url_opt.clone()).unwrap_or_else(|| format!("Item {}", p.items.len() + 1));
+                            let ititle = title_opt
+                                .or_else(|| url_opt.clone())
+                                .unwrap_or_else(|| format!("Item {}", p.items.len() + 1));
                             let ibody = body_opt.unwrap_or_default();
-                            let itype = if sub == "item-add" { "ISSUE" } else { "DRAFT_ISSUE" };
-                            p.items.push((iid.clone(), ititle.clone(), ibody.clone(), itype.into(), url_opt));
+                            let itype = if sub == "item-add" {
+                                "ISSUE"
+                            } else {
+                                "DRAFT_ISSUE"
+                            };
+                            p.items.push((
+                                iid.clone(),
+                                ititle.clone(),
+                                ibody.clone(),
+                                itype.into(),
+                                url_opt,
+                            ));
                             if is_json {
                                 let val = jval!({
                                     "id": iid,
@@ -8744,9 +10760,20 @@ fn cmd_gh_inner(
                                     "type": itype,
                                     "fieldValues": {}
                                 });
-                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &val,
+                                    &[],
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
-                            BuiltinOutcome { stdout: format!("Created item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("Created item {iid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "item-list" => {
                             if is_json {
@@ -8765,17 +10792,29 @@ fn cmd_gh_inner(
                                     .collect();
                                 let cnt = arr.len();
                                 let val = jval!({ "items": arr, "totalCount": cnt });
-                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                                return format_gh_json_output(
+                                    &val,
+                                    &[],
+                                    jq_expr.as_deref(),
+                                    cwd,
+                                    env,
+                                    fs,
+                                );
                             }
                             let mut out = String::new();
                             for (iid, ititle, _, itype, _) in &p.items {
                                 out.push_str(&format!("{itype}\t{ititle}\t{iid}\n"));
                             }
-                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: out,
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "item-edit" => {
                             let iid = id_opt.unwrap_or_else(|| "PVTI_1".into());
-                            if let Some(it) = p.items.iter_mut().find(|(id, _, _, _, _)| id == &iid) {
+                            if let Some(it) = p.items.iter_mut().find(|(id, _, _, _, _)| id == &iid)
+                            {
                                 if let Some(t) = title_opt {
                                     it.1 = t;
                                 }
@@ -8783,16 +10822,28 @@ fn cmd_gh_inner(
                                     it.2 = b;
                                 }
                             }
-                            BuiltinOutcome { stdout: format!("Edited item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("Edited item {iid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "item-archive" => {
                             let iid = id_opt.unwrap_or_else(|| "PVTI_1".into());
-                            BuiltinOutcome { stdout: format!("Archived item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("Archived item {iid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "item-delete" => {
                             let iid = id_opt.unwrap_or_default();
                             p.items.retain(|(id, _, _, _, _)| id != &iid);
-                            BuiltinOutcome { stdout: format!("Deleted item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("Deleted item {iid}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         "link" | "unlink" => {
                             let rname = repo_link_opt.unwrap_or_else(|| "octocat/repo".into());
@@ -8805,7 +10856,11 @@ fn cmd_gh_inner(
                         }
                         "mark-template" => {
                             p.is_template = !undo;
-                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                            BuiltinOutcome {
+                                stdout: format!("{}\n", p.url),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
                         }
                         _ => BuiltinOutcome {
                             stdout: String::new(),
@@ -8882,7 +10937,11 @@ fn cmd_gh_inner(
                         machine_name: machine,
                         created_at: "2026-09-28T12:00:00Z".into(),
                     });
-                    BuiltinOutcome { stdout: format!("{name}\n"), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: format!("{name}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "list" => {
                     if let Some(fields) = &json_fields {
@@ -8901,18 +10960,35 @@ fn cmd_gh_inner(
                                 })
                             })
                             .collect();
-                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &Value::Array(arr),
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     let mut out = String::new();
                     for cs in &st.gh_codespaces {
-                        out.push_str(&format!("{}\t{}\t{}\t{}\t{}\n", cs.name, cs.display_name, cs.repository, cs.branch, cs.state));
+                        out.push_str(&format!(
+                            "{}\t{}\t{}\t{}\t{}\n",
+                            cs.name, cs.display_name, cs.repository, cs.branch, cs.state
+                        ));
                     }
-                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: out,
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "view" => {
-                    let sel = cs_name
-                        .or(pos_arg)
-                        .unwrap_or_else(|| st.gh_codespaces.first().map(|c| c.name.clone()).unwrap_or_else(|| "codespace-1".into()));
+                    let sel = cs_name.or(pos_arg).unwrap_or_else(|| {
+                        st.gh_codespaces
+                            .first()
+                            .map(|c| c.name.clone())
+                            .unwrap_or_else(|| "codespace-1".into())
+                    });
                     let Some(cs) = st.gh_codespaces.iter().find(|c| c.name == sel) else {
                         return gh_err(&format!("codespace {sel} not found"));
                     };
@@ -8926,10 +11002,20 @@ fn cmd_gh_inner(
                             "machineName": cs.machine_name,
                             "createdAt": cs.created_at
                         });
-                        return format_gh_json_output(&val, fields, jq_expr.as_deref(), cwd, env, fs);
+                        return format_gh_json_output(
+                            &val,
+                            fields,
+                            jq_expr.as_deref(),
+                            cwd,
+                            env,
+                            fs,
+                        );
                     }
                     BuiltinOutcome {
-                        stdout: format!("Name: {}\nRepository: {}\nBranch: {}\nState: {}\n", cs.name, cs.repository, cs.branch, cs.state),
+                        stdout: format!(
+                            "Name: {}\nRepository: {}\nBranch: {}\nState: {}\n",
+                            cs.name, cs.repository, cs.branch, cs.state
+                        ),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -9120,7 +11206,14 @@ mod tests {
         let mut env = BTreeMap::new();
 
         assert_eq!(
-            cmd_gh(&args(&["repo", "create", "acme/core"]), "", "/", &mut env, &vfs).exit_code,
+            cmd_gh(
+                &args(&["repo", "create", "acme/core"]),
+                "",
+                "/",
+                &mut env,
+                &vfs
+            )
+            .exit_code,
             0
         );
         cmd_gh(
@@ -9156,7 +11249,14 @@ mod tests {
 
         let all_issues = cmd_gh(
             &args(&[
-                "issue", "list", "-R", "acme/core", "--state", "all", "--json", "number",
+                "issue",
+                "list",
+                "-R",
+                "acme/core",
+                "--state",
+                "all",
+                "--json",
+                "number",
             ]),
             "",
             "/",
@@ -9165,7 +11265,6 @@ mod tests {
         );
         assert!(all_issues.stdout.contains("1") && all_issues.stdout.contains("2"));
     }
-
 
     #[test]
     fn unit_op_document_template_and_escaped_file_field_suite() {
@@ -9177,7 +11276,15 @@ mod tests {
         let mut exec = dummy_exec;
 
         assert_eq!(
-            cmd_op(&args(&["vault", "create", "Certs"]), "", &mut cwd, &mut env, &vfs, &mut exec).exit_code,
+            cmd_op(
+                &args(&["vault", "create", "Certs"]),
+                "",
+                &mut cwd,
+                &mut env,
+                &vfs,
+                &mut exec
+            )
+            .exit_code,
             0
         );
         assert_eq!(
@@ -9261,8 +11368,11 @@ mod tests {
             &mut exec,
         );
         assert_eq!(r_dot.exit_code, 0, "{}", r_dot.stderr);
-        assert_eq!(r_dot.stdout, "secret_dot_val
-");
+        assert_eq!(
+            r_dot.stdout,
+            "secret_dot_val
+"
+        );
         let r_eq_unsupported = cmd_op(
             &args(&["read", "op://Certs/TLS/Docs.Private/api=key"]),
             "",
@@ -9272,9 +11382,11 @@ mod tests {
             &mut exec,
         );
         assert_eq!(r_eq_unsupported.exit_code, 1);
-        assert!(r_eq_unsupported
-            .stderr
-            .contains("Invalid secret reference path; use IDs for unsupported names"));
+        assert!(
+            r_eq_unsupported
+                .stderr
+                .contains("Invalid secret reference path; use IDs for unsupported names")
+        );
 
         let esc_bad = cmd_op(
             &args(&["item", "edit", "TLS", "--vault", "Certs", r"bad\q=val"]),
@@ -9296,12 +11408,27 @@ mod tests {
         let mut cwd = "/work".to_string();
 
         assert_eq!(
-            cmd_gh(&args(&["repo", "create", "acme/app"]), "", &mut cwd, &mut env, &vfs).exit_code,
+            cmd_gh(
+                &args(&["repo", "create", "acme/app"]),
+                "",
+                &mut cwd,
+                &mut env,
+                &vfs
+            )
+            .exit_code,
             0
         );
         assert_eq!(
             cmd_gh(
-                &args(&["variable", "set", "DEPLOY_ENV", "-b", "staging", "-R", "acme/app"]),
+                &args(&[
+                    "variable",
+                    "set",
+                    "DEPLOY_ENV",
+                    "-b",
+                    "staging",
+                    "-R",
+                    "acme/app"
+                ]),
                 "",
                 &mut cwd,
                 &mut env,
@@ -9347,9 +11474,11 @@ mod tests {
         let mut cwd = "/work".to_string();
         let mut env = BTreeMap::new();
 
-        let mut noop = |_: &[String], _: &str, _: &mut String, _: &mut BTreeMap<String, String>| -> BuiltinOutcome {
-            unreachable!()
-        };
+        let mut noop = |_: &[String],
+                        _: &str,
+                        _: &mut String,
+                        _: &mut BTreeMap<String, String>|
+         -> BuiltinOutcome { unreachable!() };
         let v_create = cmd_op(
             &args(&["vault", "create", "SecOps", "--format", "json"]),
             "",
@@ -9362,7 +11491,9 @@ mod tests {
         assert!(v_create.stdout.contains("SecOps"));
 
         let doc_create = cmd_op(
-            &args(&["document", "create", "--title", "CertPem", "--vault", "SecOps", "--format", "json"]),
+            &args(&[
+                "document", "create", "--title", "CertPem", "--vault", "SecOps", "--format", "json",
+            ]),
             "-----BEGIN CERT-----\nMIIB\n-----END CERT-----\n",
             &mut cwd,
             &mut env,
@@ -9395,7 +11526,17 @@ mod tests {
         );
         assert_eq!(
             cmd_gh(
-                &args(&["release", "create", "v2.0.0", "-R", "acme/rel-repo", "-t", "Release 2.0", "-n", "Notes"]),
+                &args(&[
+                    "release",
+                    "create",
+                    "v2.0.0",
+                    "-R",
+                    "acme/rel-repo",
+                    "-t",
+                    "Release 2.0",
+                    "-n",
+                    "Notes"
+                ]),
                 "",
                 &mut cwd,
                 &mut env,
@@ -9405,7 +11546,15 @@ mod tests {
             0
         );
         let rel_view = cmd_gh(
-            &args(&["release", "view", "v2.0.0", "-R", "acme/rel-repo", "--json", "tagName,name,body"]),
+            &args(&[
+                "release",
+                "view",
+                "v2.0.0",
+                "-R",
+                "acme/rel-repo",
+                "--json",
+                "tagName,name,body",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9423,7 +11572,15 @@ mod tests {
         let mut noop = dummy_exec;
 
         let grp_create = cmd_op(
-            &args(&["group", "create", "PlatformEng", "--description", "Core Platform", "--format", "json"]),
+            &args(&[
+                "group",
+                "create",
+                "PlatformEng",
+                "--description",
+                "Core Platform",
+                "--format",
+                "json",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9433,21 +11590,48 @@ mod tests {
         assert_eq!(grp_create.exit_code, 0);
         assert!(grp_create.stdout.contains("PlatformEng"));
 
-        let grp_list = cmd_op(&args(&["group", "list"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let grp_list = cmd_op(
+            &args(&["group", "list"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(grp_list.exit_code, 0);
-        assert!(grp_list.stdout.contains("PlatformEng") && grp_list.stdout.contains("Core Platform"));
+        assert!(
+            grp_list.stdout.contains("PlatformEng") && grp_list.stdout.contains("Core Platform")
+        );
 
         let gist_create = cmd_gh(
-            &args(&["gist", "create", "-d", "deploy snippet", "-f", "deploy.sh", "--public"]),
+            &args(&[
+                "gist",
+                "create",
+                "-d",
+                "deploy snippet",
+                "-f",
+                "deploy.sh",
+                "--public",
+            ]),
             "#!/bin/sh\necho ok\n",
             &mut cwd,
             &mut env,
             &vfs,
         );
         assert_eq!(gist_create.exit_code, 0);
-        assert!(gist_create.stdout.starts_with("https://gist.github.com/octocat/"));
+        assert!(
+            gist_create
+                .stdout
+                .starts_with("https://gist.github.com/octocat/")
+        );
 
-        let gist_view = cmd_gh(&args(&["gist", "view", "-f", "deploy.sh"]), "", &mut cwd, &mut env, &vfs);
+        let gist_view = cmd_gh(
+            &args(&["gist", "view", "-f", "deploy.sh"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(gist_view.exit_code, 0);
         assert_eq!(gist_view.stdout, "#!/bin/sh\necho ok\n");
 
@@ -9463,19 +11647,52 @@ mod tests {
             &vfs,
         );
         assert_eq!(ssh_add.exit_code, 0);
-        assert!(ssh_add.stdout.contains("✓ Public key added to your account (SHA256:"));
+        assert!(
+            ssh_add
+                .stdout
+                .contains("✓ Public key added to your account (SHA256:")
+        );
 
-        let gpg_add = cmd_gh(&args(&["gpg-key", "add", "-", "-t", "sec-gpg"]), "FAKE-PGP-BLOCK", &mut cwd, &mut env, &vfs);
+        let gpg_add = cmd_gh(
+            &args(&["gpg-key", "add", "-", "-t", "sec-gpg"]),
+            "FAKE-PGP-BLOCK",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(gpg_add.exit_code, 0);
         assert!(gpg_add.stdout.contains("✓ GPG key "));
 
-        let search_repos = cmd_gh(&args(&["search", "repos", "Hello"]), "", &mut cwd, &mut env, &vfs);
+        let search_repos = cmd_gh(
+            &args(&["search", "repos", "Hello"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(search_repos.exit_code, 0);
         assert!(search_repos.stdout.contains("octocat/Hello-World"));
 
-        let _ = cmd_op(&args(&["vault", "create", "ProdVault"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let _ = cmd_op(
+            &args(&["vault", "create", "ProdVault"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         let vg_grant = cmd_op(
-            &args(&["vault", "group", "grant", "--vault", "ProdVault", "--group", "PlatformEng", "--permissions", "view_items,view_and_copy_passwords,edit_items"]),
+            &args(&[
+                "vault",
+                "group",
+                "grant",
+                "--vault",
+                "ProdVault",
+                "--group",
+                "PlatformEng",
+                "--permissions",
+                "view_items,view_and_copy_passwords,edit_items",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9483,19 +11700,54 @@ mod tests {
             &mut noop,
         );
         assert_eq!(vg_grant.exit_code, 0);
-        let vg_list = cmd_op(&args(&["vault", "group", "list", "ProdVault", "--format", "json"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let vg_list = cmd_op(
+            &args(&["vault", "group", "list", "ProdVault", "--format", "json"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(vg_list.exit_code, 0);
         assert!(vg_list.stdout.contains("PlatformEng") && vg_list.stdout.contains("edit_items"));
 
-        let browse_out = cmd_gh(&args(&["browse", "-R", "octocat/Hello-World", "-s", "-n"]), "", &mut cwd, &mut env, &vfs);
+        let browse_out = cmd_gh(
+            &args(&["browse", "-R", "octocat/Hello-World", "-s", "-n"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(browse_out.exit_code, 0);
-        assert_eq!(browse_out.stdout, "https://github.com/octocat/Hello-World/settings\n");
+        assert_eq!(
+            browse_out.stdout,
+            "https://github.com/octocat/Hello-World/settings\n"
+        );
 
-        let proj_create = cmd_gh(&args(&["project", "create", "--title", "Roadmap"]), "", &mut cwd, &mut env, &vfs);
+        let proj_create = cmd_gh(
+            &args(&["project", "create", "--title", "Roadmap"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(proj_create.exit_code, 0);
         assert!(proj_create.stdout.contains("/projects/1"));
 
-        let cs_create = cmd_gh(&args(&["codespace", "create", "-R", "octocat/Hello-World", "-b", "main"]), "", &mut cwd, &mut env, &vfs);
+        let cs_create = cmd_gh(
+            &args(&[
+                "codespace",
+                "create",
+                "-R",
+                "octocat/Hello-World",
+                "-b",
+                "main",
+            ]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
         assert_eq!(cs_create.exit_code, 0);
         assert_eq!(cs_create.stdout, "codespace-1\n");
     }
@@ -9506,14 +11758,28 @@ mod tests {
         let mut cwd = "/workspace".to_string();
         let mut env = BTreeMap::new();
         env.insert("API_TOKEN".to_string(), "super-secret-token".to_string());
-        let mut noop = |words: &[String], _stdin: &str, _cwd: &mut String, child_env: &mut BTreeMap<String, String>| BuiltinOutcome {
-            stdout: format!("cmd={} token={}\n", words.join(" "), child_env.get("API_TOKEN").cloned().unwrap_or_default()),
-            stderr: String::new(),
-            exit_code: 0,
-        };
+        let mut noop =
+            |words: &[String],
+             _stdin: &str,
+             _cwd: &mut String,
+             child_env: &mut BTreeMap<String, String>| BuiltinOutcome {
+                stdout: format!(
+                    "cmd={} token={}\n",
+                    words.join(" "),
+                    child_env.get("API_TOKEN").cloned().unwrap_or_default()
+                ),
+                stderr: String::new(),
+                exit_code: 0,
+            };
 
         let snap_create = cmd_op(
-            &args(&["environment", "snapshot", "create", "dev-snap", "--vars=API_TOKEN,MISSING_VAR"]),
+            &args(&[
+                "environment",
+                "snapshot",
+                "create",
+                "dev-snap",
+                "--vars=API_TOKEN,MISSING_VAR",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9521,15 +11787,34 @@ mod tests {
             &mut noop,
         );
         assert_eq!(snap_create.exit_code, 0);
-        assert!(snap_create.stdout.contains("\"name\": \"dev-snap\"") && snap_create.stdout.contains("\"scope\": \"selected\""));
+        assert!(
+            snap_create.stdout.contains("\"name\": \"dev-snap\"")
+                && snap_create.stdout.contains("\"scope\": \"selected\"")
+        );
         assert!(!snap_create.stdout.contains("super-secret-token"));
 
-        let snap_get = cmd_op(&args(&["environment", "snapshot", "get", "dev-snap"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let snap_get = cmd_op(
+            &args(&["environment", "snapshot", "get", "dev-snap"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(snap_get.exit_code, 0);
-        assert!(snap_get.stdout.contains("super-secret-token") && snap_get.stdout.contains("\"MISSING_VAR\": null"));
+        assert!(
+            snap_get.stdout.contains("super-secret-token")
+                && snap_get.stdout.contains("\"MISSING_VAR\": null")
+        );
 
         let snap_restore_sh = cmd_op(
-            &args(&["environment", "snapshot", "restore", "dev-snap", "--shell=bash"]),
+            &args(&[
+                "environment",
+                "snapshot",
+                "restore",
+                "dev-snap",
+                "--shell=bash",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9537,10 +11822,20 @@ mod tests {
             &mut noop,
         );
         assert_eq!(snap_restore_sh.exit_code, 0);
-        assert_eq!(snap_restore_sh.stdout, "export API_TOKEN='super-secret-token'\nunset MISSING_VAR\n");
+        assert_eq!(
+            snap_restore_sh.stdout,
+            "export API_TOKEN='super-secret-token'\nunset MISSING_VAR\n"
+        );
 
         let snap_restore_masked = cmd_op(
-            &args(&["environment", "snapshot", "restore", "dev-snap", "--", "print-tok"]),
+            &args(&[
+                "environment",
+                "snapshot",
+                "restore",
+                "dev-snap",
+                "--",
+                "print-tok",
+            ]),
             "",
             &mut cwd,
             &mut env,
@@ -9548,14 +11843,39 @@ mod tests {
             &mut noop,
         );
         assert_eq!(snap_restore_masked.exit_code, 0);
-        assert_eq!(snap_restore_masked.stdout, "cmd=print-tok token=<concealed by 1Password>\n");
+        assert_eq!(
+            snap_restore_masked.stdout,
+            "cmd=print-tok token=<concealed by 1Password>\n"
+        );
 
-        let plugin_ls = cmd_op(&args(&["plugin", "list"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let plugin_ls = cmd_op(
+            &args(&["plugin", "list"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(plugin_ls.exit_code, 0);
-        assert!(plugin_ls.stdout.starts_with("EXECUTABLE         NAME                  REQUIRED FIELDS\n"));
-        assert!(plugin_ls.stdout.contains("gh                 GitHub                Token\n"));
+        assert!(
+            plugin_ls
+                .stdout
+                .starts_with("EXECUTABLE         NAME                  REQUIRED FIELDS\n")
+        );
+        assert!(
+            plugin_ls
+                .stdout
+                .contains("gh                 GitHub                Token\n")
+        );
 
-        let comp_bash = cmd_op(&args(&["completion", "bash"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let comp_bash = cmd_op(
+            &args(&["completion", "bash"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(comp_bash.exit_code, 0);
         assert!(comp_bash.stdout.contains("complete -o filenames -F _op op"));
     }
@@ -9564,13 +11884,34 @@ mod tests {
     fn unit_gh_repo_issue_pr_release_run_auth_deep_parity() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work/.git").unwrap();
-        vfs.write_file("/work/.git/config", b"[core]\n\trepositoryformatversion = 0\n").unwrap();
-        vfs.write_file("/work/id_ed25519.pub", b"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeployKey deploy@acme\n").unwrap();
-        vfs.write_file("/work/artifact.tar.gz", b"BINARY-ARTIFACT-BYTES").unwrap();
+        vfs.write_file(
+            "/work/.git/config",
+            b"[core]\n\trepositoryformatversion = 0\n",
+        )
+        .unwrap();
+        vfs.write_file(
+            "/work/id_ed25519.pub",
+            b"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeployKey deploy@acme\n",
+        )
+        .unwrap();
+        vfs.write_file("/work/artifact.tar.gz", b"BINARY-ARTIFACT-BYTES")
+            .unwrap();
         let mut env = BTreeMap::new();
 
         let login = cmd_gh(
-            &args(&["auth", "login", "--with-token", "-h", "github.com", "-u", "secbot", "-p", "ssh", "-s", "repo,workflow"]),
+            &args(&[
+                "auth",
+                "login",
+                "--with-token",
+                "-h",
+                "github.com",
+                "-u",
+                "secbot",
+                "-p",
+                "ssh",
+                "-s",
+                "repo,workflow",
+            ]),
             "gho_custom_token_12345\n",
             "/work",
             &mut env,
@@ -9578,45 +11919,241 @@ mod tests {
         );
         assert_eq!(login.exit_code, 0);
         assert!(login.stdout.contains("✓ Logged in as secbot"));
-        let setup_git = cmd_gh(&args(&["auth", "setup-git", "-h", "github.com"]), "", "/work", &mut env, &vfs);
-        assert!(setup_git.stdout.contains("✓ Configured git credential helper for github.com"));
+        let setup_git = cmd_gh(
+            &args(&["auth", "setup-git", "-h", "github.com"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        assert!(
+            setup_git
+                .stdout
+                .contains("✓ Configured git credential helper for github.com")
+        );
 
         assert_eq!(
-            cmd_gh(&args(&["repo", "create", "acme/ops", "-d", "Ops Repo", "-h", "https://ops.acme.test", "--private"]), "", "/work", &mut env, &vfs).exit_code,
+            cmd_gh(
+                &args(&[
+                    "repo",
+                    "create",
+                    "acme/ops",
+                    "-d",
+                    "Ops Repo",
+                    "-h",
+                    "https://ops.acme.test",
+                    "--private"
+                ]),
+                "",
+                "/work",
+                &mut env,
+                &vfs
+            )
+            .exit_code,
             0
         );
         assert_eq!(
-            cmd_gh(&args(&["repo", "edit", "acme/ops", "--add-topic", "secops,infra", "--enable-auto-merge", "--delete-branch-on-merge"]), "", "/work", &mut env, &vfs).exit_code,
+            cmd_gh(
+                &args(&[
+                    "repo",
+                    "edit",
+                    "acme/ops",
+                    "--add-topic",
+                    "secops,infra",
+                    "--enable-auto-merge",
+                    "--delete-branch-on-merge"
+                ]),
+                "",
+                "/work",
+                &mut env,
+                &vfs
+            )
+            .exit_code,
             0
         );
-        let dk = cmd_gh(&args(&["repo", "deploy-key", "add", "/work/id_ed25519.pub", "-R", "acme/ops", "-t", "prod-deploy", "-w"]), "", "/work", &mut env, &vfs);
+        let dk = cmd_gh(
+            &args(&[
+                "repo",
+                "deploy-key",
+                "add",
+                "/work/id_ed25519.pub",
+                "-R",
+                "acme/ops",
+                "-t",
+                "prod-deploy",
+                "-w",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(dk.stdout.contains("✓ Deploy key added to acme/ops"));
-        let al = cmd_gh(&args(&["repo", "autolink", "create", "SEC-", "https://jira.acme.test/browse/SEC-<num>", "-n", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        let al = cmd_gh(
+            &args(&[
+                "repo",
+                "autolink",
+                "create",
+                "SEC-",
+                "https://jira.acme.test/browse/SEC-<num>",
+                "-n",
+                "-R",
+                "acme/ops",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(al.stdout.contains("✓ Created autolink "));
 
-        cmd_gh(&args(&["issue", "create", "-R", "acme/ops", "-t", "Rotate keys", "-a", "@me"]), "", "/work", &mut env, &vfs);
-        let pin = cmd_gh(&args(&["issue", "pin", "1", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        cmd_gh(
+            &args(&[
+                "issue",
+                "create",
+                "-R",
+                "acme/ops",
+                "-t",
+                "Rotate keys",
+                "-a",
+                "@me",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        let pin = cmd_gh(
+            &args(&["issue", "pin", "1", "-R", "acme/ops"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(pin.stdout.contains("✓ Pinned issue #1"));
-        let dev_create = cmd_gh(&args(&["issue", "develop", "1", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
-        assert!(dev_create.stdout.contains("https://github.com/acme/ops/tree/1-rotate-keys"));
-        let dev = cmd_gh(&args(&["issue", "develop", "1", "-R", "acme/ops", "--list"]), "", "/work", &mut env, &vfs);
-        assert!(dev.stdout.contains("1-rotate-keys\thttps://github.com/acme/ops/tree/1-rotate-keys"));
+        let dev_create = cmd_gh(
+            &args(&["issue", "develop", "1", "-R", "acme/ops"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        assert!(
+            dev_create
+                .stdout
+                .contains("https://github.com/acme/ops/tree/1-rotate-keys")
+        );
+        let dev = cmd_gh(
+            &args(&["issue", "develop", "1", "-R", "acme/ops", "--list"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        assert!(
+            dev.stdout
+                .contains("1-rotate-keys\thttps://github.com/acme/ops/tree/1-rotate-keys")
+        );
 
-        cmd_gh(&args(&["pr", "create", "-R", "acme/ops", "-t", "Fix rotation", "-H", "1-rotate-keys", "-a", "@me", "-r", "alice"]), "", "/work", &mut env, &vfs);
-        let checks = cmd_gh(&args(&["pr", "checks", "2", "-R", "acme/ops", "--json", "bucket,name,state"]), "", "/work", &mut env, &vfs);
+        cmd_gh(
+            &args(&[
+                "pr",
+                "create",
+                "-R",
+                "acme/ops",
+                "-t",
+                "Fix rotation",
+                "-H",
+                "1-rotate-keys",
+                "-a",
+                "@me",
+                "-r",
+                "alice",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        let checks = cmd_gh(
+            &args(&[
+                "pr",
+                "checks",
+                "2",
+                "-R",
+                "acme/ops",
+                "--json",
+                "bucket,name,state",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(checks.stdout.contains("\"bucket\": \"pass\""));
-        cmd_gh(&args(&["pr", "merge", "2", "-R", "acme/ops", "--squash"]), "", "/work", &mut env, &vfs);
-        let rev = cmd_gh(&args(&["pr", "revert", "2", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        cmd_gh(
+            &args(&["pr", "merge", "2", "-R", "acme/ops", "--squash"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        let rev = cmd_gh(
+            &args(&["pr", "revert", "2", "-R", "acme/ops"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(rev.stdout.contains("https://github.com/acme/ops/pull/3"));
 
-        cmd_gh(&args(&["release", "create", "v1.0.0", "-R", "acme/ops", "-t", "v1.0.0", "-n", "Initial"]), "", "/work", &mut env, &vfs);
-        let up = cmd_gh(&args(&["release", "upload", "v1.0.0", "/work/artifact.tar.gz", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        cmd_gh(
+            &args(&[
+                "release", "create", "v1.0.0", "-R", "acme/ops", "-t", "v1.0.0", "-n", "Initial",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        let up = cmd_gh(
+            &args(&[
+                "release",
+                "upload",
+                "v1.0.0",
+                "/work/artifact.tar.gz",
+                "-R",
+                "acme/ops",
+            ]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(up.stdout.contains("✓ Uploaded assets to v1.0.0"));
 
-        cmd_gh(&args(&["workflow", "run", "CI", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
-        let log_out = cmd_gh(&args(&["run", "view", "-R", "acme/ops", "--log"]), "", "/work", &mut env, &vfs);
+        cmd_gh(
+            &args(&["workflow", "run", "CI", "-R", "acme/ops"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        let log_out = cmd_gh(
+            &args(&["run", "view", "-R", "acme/ops", "--log"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(log_out.stdout.contains("Completed workflow_dispatch"));
-        let rerun = cmd_gh(&args(&["run", "rerun", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        let rerun = cmd_gh(
+            &args(&["run", "rerun", "-R", "acme/ops"]),
+            "",
+            "/work",
+            &mut env,
+            &vfs,
+        );
         assert!(rerun.stdout.contains("✓ Requested rerun of run "));
     }
 
@@ -9624,7 +12161,8 @@ mod tests {
     fn unit_op_read_file_attachment_preserves_exact_bytes_without_extra_newline() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
-        vfs.write_file("/work/tls.pem", b"CERT-RAW-NO-NEWLINE").unwrap();
+        vfs.write_file("/work/tls.pem", b"CERT-RAW-NO-NEWLINE")
+            .unwrap();
         let mut cwd = "/work".to_string();
         let mut env = BTreeMap::new();
         let mut noop = |_: &[String], _: &str, _: &mut String, _: &mut BTreeMap<String, String>| {
@@ -9634,7 +12172,14 @@ mod tests {
                 exit_code: 0,
             }
         };
-        cmd_op(&args(&["vault", "create", "Keys"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        cmd_op(
+            &args(&["vault", "create", "Keys"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         cmd_op(
             &args(&[
                 "item",
@@ -9689,25 +12234,66 @@ mod tests {
 
         // OP_BIOMETRIC_UNLOCK_ENABLED validation
         env.insert("OP_BIOMETRIC_UNLOCK_ENABLED".into(), "invalid".into());
-        let bio_bad = cmd_op(&args(&["vault", "list"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let bio_bad = cmd_op(
+            &args(&["vault", "list"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(bio_bad.exit_code, 1);
-        assert_eq!(bio_bad.stderr, "op: OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.\n");
+        assert_eq!(
+            bio_bad.stderr,
+            "op: OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.\n"
+        );
         env.remove("OP_BIOMETRIC_UNLOCK_ENABLED");
 
         // op static flag & operand validations
-        let fmt_bad = cmd_op(&args(&["vault", "list", "--format", "xml"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let fmt_bad = cmd_op(
+            &args(&["vault", "list", "--format", "xml"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(fmt_bad.exit_code, 1);
-        assert_eq!(fmt_bad.stderr, "op: format must be json or human-readable\n");
+        assert_eq!(
+            fmt_bad.stderr,
+            "op: format must be json or human-readable\n"
+        );
 
-        let ver_sub = cmd_op(&args(&["vault", "--version"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let ver_sub = cmd_op(
+            &args(&["vault", "--version"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(ver_sub.exit_code, 1);
         assert_eq!(ver_sub.stderr, "op: unknown flag: --version\n");
 
-        let fm_bad = cmd_op(&args(&["read", "op://v/i/f", "--file-mode", "0o600"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let fm_bad = cmd_op(
+            &args(&["read", "op://v/i/f", "--file-mode", "0o600"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(fm_bad.exit_code, 1);
         assert_eq!(fm_bad.stderr, "op: invalid value for --file-mode\n");
 
-        let unk_op = cmd_op(&args(&["unknowncmd"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let unk_op = cmd_op(
+            &args(&["unknowncmd"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
         assert_eq!(unk_op.exit_code, 1);
         assert_eq!(unk_op.stderr, "op: unknown command: unknowncmd\n");
 
@@ -9720,11 +12306,22 @@ mod tests {
         assert_eq!(cfg_bad.exit_code, 1);
         assert_eq!(cfg_bad.stderr, "could not find key \"badkey\"\n");
 
-        cmd_gh(&args(&["alias", "set", "loop1", "loop2"]), "", "/", &mut env, &vfs);
-        cmd_gh(&args(&["alias", "set", "loop2", "loop1"]), "", "/", &mut env, &vfs);
+        cmd_gh(
+            &args(&["alias", "set", "loop1", "loop2"]),
+            "",
+            "/",
+            &mut env,
+            &vfs,
+        );
+        cmd_gh(
+            &args(&["alias", "set", "loop2", "loop1"]),
+            "",
+            "/",
+            &mut env,
+            &vfs,
+        );
         let loop_res = cmd_gh(&args(&["loop1"]), "", "/", &mut env, &vfs);
         assert_eq!(loop_res.exit_code, 1);
         assert_eq!(loop_res.stderr, "gh: alias expansion loop detected\n");
     }
-
 }

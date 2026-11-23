@@ -58,10 +58,17 @@ fn partition(mut bytes: Vec<u8>, size: usize) -> Result<Vec<Vec<u8>>, String> {
         }
         headers.push((p, local));
         let payload = local + 30 + word(local + 26) + word(local + 28);
-        local_headers.push((local,payload));
+        local_headers.push((local, payload));
         if word(local + 6) & 8 != 0 {
-            let descriptor = payload.checked_add(dword(p + 20)).ok_or("ZIP invalid descriptor offset")?;
-            local_headers.push((descriptor,descriptor.checked_add(16).ok_or("ZIP invalid descriptor offset")?));
+            let descriptor = payload
+                .checked_add(dword(p + 20))
+                .ok_or("ZIP invalid descriptor offset")?;
+            local_headers.push((
+                descriptor,
+                descriptor
+                    .checked_add(16)
+                    .ok_or("ZIP invalid descriptor offset")?,
+            ));
         }
         let next = p + 46 + word(p + 28) + word(p + 30) + word(p + 32);
         central_headers.push((p, next));
@@ -133,7 +140,7 @@ fn partition(mut bytes: Vec<u8>, size: usize) -> Result<Vec<Vec<u8>>, String> {
 }
 
 pub(super) struct Volumes {
-    pub files: Vec<(String,Vec<u8>,u32)>,
+    pub files: Vec<(String, Vec<u8>, u32)>,
     pub guards: Vec<crate::vfs::PublicationStamp>,
     pub report: String,
 }
@@ -142,10 +149,10 @@ pub(super) fn prepare(
     fs: &dyn SafeBashFs,
     dest: &str,
     bytes: Vec<u8>,
-    (size,verbose): (usize,bool),
+    (size, verbose): (usize, bool),
     inputs: &[(String, Option<EntryIdentity>)],
     version: u64,
-    final_guard:crate::vfs::PublicationStamp,
+    final_guard: crate::vfs::PublicationStamp,
 ) -> Result<Volumes, String> {
     if !dest.to_ascii_lowercase().ends_with(".zip") {
         return Err("split output requires a .zip filename".into());
@@ -154,8 +161,8 @@ pub(super) fn prepare(
     let count = parts.len();
     let mut files = Vec::new();
     let mut report = String::new();
-    let mut guards=Vec::with_capacity(count);
-    let mut last=Some(final_guard);
+    let mut guards = Vec::with_capacity(count);
+    let mut last = Some(final_guard);
     for (disk, part) in parts.into_iter().enumerate() {
         let path = if disk + 1 == count {
             dest.into()
@@ -165,8 +172,10 @@ pub(super) fn prepare(
         if inputs.iter().any(|(p, _)| p == &path) {
             return Err("ZIP split output aliases an input volume".into());
         }
-        guards.push(if disk+1==count {last.take().unwrap()} else {
-            fs.observe_publication(&path,version,crate::vfs::PublicationMode::Replace)?
+        guards.push(if disk + 1 == count {
+            last.take().unwrap()
+        } else {
+            fs.observe_publication(&path, version, crate::vfs::PublicationMode::Replace)?
         });
         let mode = match fs.lstat(&path) {
             Ok(st)
@@ -192,5 +201,9 @@ pub(super) fn prepare(
         }
         files.push((path, part, mode));
     }
-    Ok(Volumes {files,guards,report})
+    Ok(Volumes {
+        files,
+        guards,
+        report,
+    })
 }

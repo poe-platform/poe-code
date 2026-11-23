@@ -238,6 +238,7 @@ pub(in crate::commands) fn expr_match(
         false,
         RxSearch::Expr,
         groups > 0,
+        |_| Some(()),
         |_| true,
     );
     if groups == 0 {

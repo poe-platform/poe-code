@@ -2,6 +2,15 @@ import { expect, it } from "vitest";
 import { encodeId3, parseId3 } from "./id3.js";
 
 for (const version of [3, 4] as const) {
+  it(`round-trips ID3v2.${version} tags named after Object prototype properties`, () => {
+    const tags = Object.fromEntries(["__proto__", "constructor", "toString"].map(key => [key, "Retained"]));
+    const parsed = parseId3(encodeId3(tags, [], [], version));
+    expect(parsed.tags).toEqual(tags);
+    expect(Object.getPrototypeOf(parsed.tags)).toBe(Object.prototype);
+    expect(Object.keys(parsed.tags)).toEqual(Object.keys(tags));
+    expect(parseId3(encodeId3(parsed.tags, parsed.nodes, [], version)).tags).toEqual(tags);
+  });
+
   it(`writes ID3v2.${version} text, comments, custom tags and pictures`, () => {
     const tags = { title: "Écho 日本 😀".repeat(40), comment: "Draft 日本", custom: "Écho", date: "2026" };
     const pictures = [{ mime: "image/png", type: 3, description: "日本", data: new Uint8Array(200).fill(255) }];

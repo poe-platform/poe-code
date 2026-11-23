@@ -18,12 +18,17 @@ impl crate::vfs::FileReadHandle for RetainedDirectory {
         let fs = self.fs.state.read().map_err(|e| e.to_string())?;
         let handle = self.location.lock().map_err(|e| e.to_string())?;
         match &handle.path {
-            Some(p) => self.fs.resolved_metadata(&fs, p).ok_or_else(|| "ESTALE: directory entry changed".into()),
+            Some(p) => self
+                .fs
+                .resolved_metadata(&fs, p)
+                .ok_or_else(|| "ESTALE: directory entry changed".into()),
             None => Ok(handle.stat.clone()),
         }
     }
     // Memory directories use the same end offset as the production ext4 directory model.
-    fn seek_end(&self) -> Result<u64, String> { Ok(i64::MAX as u64) }
+    fn seek_end(&self) -> Result<u64, String> {
+        Ok(i64::MAX as u64)
+    }
     fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> {
         Err("EISDIR".into())
     }
@@ -32,9 +37,15 @@ impl crate::vfs::FileReadHandle for RetainedDirectory {
 pub(super) struct NullRead(pub(super) FileStat);
 
 impl crate::vfs::FileReadHandle for NullRead {
-    fn stat(&self) -> Result<FileStat, String> { Ok(self.0.clone()) }
-    fn seek_end(&self) -> Result<u64, String> { Ok(0) }
-    fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> { Ok(Vec::new()) }
+    fn stat(&self) -> Result<FileStat, String> {
+        Ok(self.0.clone())
+    }
+    fn seek_end(&self) -> Result<u64, String> {
+        Ok(0)
+    }
+    fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> {
+        Ok(Vec::new())
+    }
 }
 
 #[derive(Debug)]
@@ -44,16 +55,24 @@ pub(super) struct DeviceInput {
 }
 
 impl crate::vfs::OpenRedirectFile for DeviceInput {
-    fn is_stream(&self) -> bool { true }
+    fn is_stream(&self) -> bool {
+        true
+    }
 
     fn read_at(&self, _: usize, limit: usize) -> Result<Vec<u8>, String> {
         let mut bytes = vec![0; limit.min(65536)];
-        if self.random { fill_random(&mut bytes)?; }
+        if self.random {
+            fill_random(&mut bytes)?;
+        }
         Ok(bytes)
     }
 
     fn write_at(&self, _: Option<usize>, _: &[u8]) -> Result<(), String> {
-        if self.writable { Ok(()) } else { Err("EBADF: bad file descriptor".into()) }
+        if self.writable {
+            Ok(())
+        } else {
+            Err("EBADF: bad file descriptor".into())
+        }
     }
 }
 
@@ -71,22 +90,35 @@ impl std::fmt::Debug for RetainedFile {
 }
 
 impl crate::vfs::OpenRedirectFile for RetainedFile {
-    fn revision(&self) -> Option<u64> { Some(self.fs.generation()) }
+    fn revision(&self) -> Option<u64> {
+        Some(self.fs.generation())
+    }
 
-    fn stat(&self) -> Result<FileStat, String> { Ok(self.stat()) }
+    fn stat(&self) -> Result<FileStat, String> {
+        Ok(self.stat())
+    }
 
     fn truncate_to(&self, len: usize) -> Result<(), String> {
-        if self.access == crate::vfs::RedirectAccess::Read { return Err("EBADF: bad file descriptor".into()); }
+        if self.access == crate::vfs::RedirectAccess::Read {
+            return Err("EBADF: bad file descriptor".into());
+        }
         self.truncate(len as u64)
     }
 
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
-        if !matches!(self.access, crate::vfs::RedirectAccess::Read | crate::vfs::RedirectAccess::ReadWrite) { return Err("EBADF: bad file descriptor".into()); }
+        if !matches!(
+            self.access,
+            crate::vfs::RedirectAccess::Read | crate::vfs::RedirectAccess::ReadWrite
+        ) {
+            return Err("EBADF: bad file descriptor".into());
+        }
         Ok(self.read(offset as u64, limit))
     }
 
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
-        if self.access == crate::vfs::RedirectAccess::Read { return Err("EBADF: bad file descriptor".into()); }
+        if self.access == crate::vfs::RedirectAccess::Read {
+            return Err("EBADF: bad file descriptor".into());
+        }
         self.write(offset.map(|n| n as u64), bytes).map(|_| ())
     }
 }
@@ -97,18 +129,30 @@ impl MemoryVfs {
         let path = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
         let ino = match state.nodes.get(&path) {
             Some(&MemoryNode::File { ino }) => ino,
-            Some(MemoryNode::Directory { .. }) => return Err("EISDIR: illegal operation on a directory".into()),
+            Some(MemoryNode::Directory { .. }) => {
+                return Err("EISDIR: illegal operation on a directory".into());
+            }
             _ => return Err("ENOENT: missing regular file".into()),
         };
         state.files.get_mut(&ino).unwrap().opens += 1;
-        Ok(RetainedFile { fs: self.clone(), ino, access: crate::vfs::RedirectAccess::ReadWrite })
+        Ok(RetainedFile {
+            fs: self.clone(),
+            ino,
+            access: crate::vfs::RedirectAccess::ReadWrite,
+        })
     }
 }
 
 impl crate::vfs::FileReadHandle for RetainedFile {
-    fn stat(&self) -> Result<FileStat, String> { Ok(self.stat()) }
-    fn seek_end(&self) -> Result<u64, String> { Ok(self.stat().size as u64) }
-    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> { Ok(self.read(offset, maximum)) }
+    fn stat(&self) -> Result<FileStat, String> {
+        Ok(self.stat())
+    }
+    fn seek_end(&self) -> Result<u64, String> {
+        Ok(self.stat().size as u64)
+    }
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> {
+        Ok(self.read(offset, maximum))
+    }
 }
 
 impl RetainedFile {
@@ -117,8 +161,14 @@ impl RetainedFile {
         let file = &state.files[&self.ino];
         FileStat {
             revision: Some(file.revision),
-            nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra)),
-            uid: Some(0), gid: Some(0), io_block_size: Some(65536), preferred_io_block_size: Some(4096), filesystem_type: Some("memory".into()),
+            nlink: Some(
+                usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra),
+            ),
+            uid: Some(0),
+            gid: Some(0),
+            io_block_size: Some(65536),
+            preferred_io_block_size: Some(4096),
+            filesystem_type: Some("memory".into()),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
             allocated_bytes: None,
             kind: VfsEntryKind::File,
@@ -126,7 +176,8 @@ impl RetainedFile {
             mode: file.mode,
             atime_ms: file.atime_ms,
             mtime_ms: file.mtime_ms,
-            ctime_ms: Some(file.ctime_ms), birthtime_ms: Some(file.birthtime_ms),
+            ctime_ms: Some(file.ctime_ms),
+            birthtime_ms: Some(file.birthtime_ms),
         }
     }
 
@@ -148,13 +199,18 @@ impl RetainedFile {
             .and_then(|n| n.checked_add(data.len()))
             .ok_or("EFBIG: file too large")?;
         self.resize_locked(&mut state, size.max(end))?;
-        Arc::get_mut(&mut state.files.get_mut(&self.ino).unwrap().data).unwrap()[end - data.len()..end].copy_from_slice(data);
+        Arc::get_mut(&mut state.files.get_mut(&self.ino).unwrap().data).unwrap()
+            [end - data.len()..end]
+            .copy_from_slice(data);
         Ok(end)
     }
 
     pub(crate) fn truncate(&self, size: u64) -> Result<(), String> {
         let mut state = self.fs.state.write().unwrap();
-        self.resize_locked(&mut state, usize::try_from(size).map_err(|_| "EFBIG: file too large")?)
+        self.resize_locked(
+            &mut state,
+            usize::try_from(size).map_err(|_| "EFBIG: file too large")?,
+        )
     }
 
     fn resize_locked(&self, state: &mut MemoryState, size: usize) -> Result<(), String> {
@@ -170,7 +226,9 @@ impl RetainedFile {
             return Err("ENOSPC: byte limit exceeded".into());
         }
         let data = file.resize_data(size)?;
-        if size < old { data.shrink_to_fit(); }
+        if size < old {
+            data.shrink_to_fit();
+        }
         file.publication = None;
         file.mtime_ms = crate::vfs::now_ms();
         file.status_changed(file.mtime_ms);
@@ -204,7 +262,10 @@ mod tests {
         fs.replace_entries(&fs.export_entries().unwrap()).unwrap();
         fs.chmod("/dir", 0o500).unwrap();
         let after = handle.stat().unwrap();
-        assert_eq!((after.identity, after.mode, after.nlink), (before.identity, before.mode, Some(0)));
+        assert_eq!(
+            (after.identity, after.mode, after.nlink),
+            (before.identity, before.mode, Some(0))
+        );
         assert_ne!(fs.stat("/dir").unwrap().mode, before.mode);
     }
 
@@ -216,7 +277,11 @@ mod tests {
         let mut snapshot = fs.export_entries().unwrap();
         snapshot[0].path = "/new".into();
         fs.set_max_total_bytes(7);
-        assert!(fs.replace_entries(&snapshot).unwrap_err().starts_with("ENOSPC"));
+        assert!(
+            fs.replace_entries(&snapshot)
+                .unwrap_err()
+                .starts_with("ENOSPC")
+        );
         assert_eq!(fs.read_file("/old").unwrap(), b"four");
         fs.set_max_total_bytes(8);
         fs.replace_entries(&snapshot).unwrap();
@@ -234,7 +299,10 @@ mod tests {
             let open = || {
                 start.wait();
                 match fs.open_redirect_file("/output", RedirectAccess::Exclusive, Some(0o600)) {
-                    Ok(Some(fd)) => { fd.write_at(Some(0), b"winner").unwrap(); true }
+                    Ok(Some(fd)) => {
+                        fd.write_at(Some(0), b"winner").unwrap();
+                        true
+                    }
                     Err(e) if e.starts_with("EEXIST:") => false,
                     other => panic!("{other:?}"),
                 }
@@ -244,7 +312,11 @@ mod tests {
         });
         assert_eq!(fs.read_file("/output").unwrap(), b"winner");
         fs.symlink("/missing", "/link").unwrap();
-        assert!(fs.open_redirect_file("/link", RedirectAccess::Exclusive, Some(0o600)).unwrap_err().starts_with("EEXIST:"));
+        assert!(
+            fs.open_redirect_file("/link", RedirectAccess::Exclusive, Some(0o600))
+                .unwrap_err()
+                .starts_with("EEXIST:")
+        );
         assert!(!fs.exists("/missing"));
     }
 

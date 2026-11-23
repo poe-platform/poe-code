@@ -11,7 +11,7 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
   const id3 = prefix ? parseId3(bytes) : undefined;
   if (id3) nodes.push({ type: "ID3", offset: 0, size: prefix, data: bytes.subarray(0, prefix),
     children: id3.nodes, fields: { tags: id3.tags } });
-  const tags: AudioTags = {};
+  let tags: AudioTags = {};
   let offset = prefix + 4,
     last = false,
     stream: AudioStream | undefined;
@@ -74,7 +74,7 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
     offset += 4 + size;
   }
   if (!stream) throw new Error("Missing FLAC STREAMINFO");
-  if (!Object.keys(tags).length && id3) Object.assign(tags, id3.tags);
+  if (!Object.keys(tags).length && id3) tags = id3.tags;
   if (offset < bytes.length)
     nodes.push({
       type: "FRAMES",

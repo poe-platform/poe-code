@@ -44,3 +44,36 @@ it("rejects truncation, damaged headers and oversized input within resource limi
   assert.throws(() => ast.parse(rgb, { limits: { maxDurationSeconds: 0.1 } }), /limit/i);
   assert.throws(() => ast.parse(tone, { limits: { maxMemoryBytes: 1 } }), /limit/i);
 });
+
+for (const name of ["rgb", "bgr"]) it(`decodes packed NUT ${name} packets without changing their bytes or timestamps`, () => {
+  const bytes = readFileSync(new URL(`./fixtures/${name}.nut`, import.meta.url));
+  const track = ast.parse(bytes).tracks[0]!;
+  assert.equal(track.decodedVideoFrames?.length, 4);
+  for (const [i, frame] of track.decodedVideoFrames!.entries()) {
+    assert.equal(frame.ptsSeconds, i / 5);
+    assert.equal(frame.durationSeconds, 1 / 5);
+    const expected = Array.from({ length: 24 }, (_, j) => j % 4 === 3 ? 255
+      : ((i * 18 + Math.floor(j / 4) * 3 + j % 4) * 7 + 11) % 256);
+    assert.deepEqual([...frame.data], expected);
+  }
+});
+
+it("bounds decoded NUT video memory while keeping probing independent of pixel allocation", () => {
+  assert.throws(() => ast.parse(rgb, { limits: { maxMemoryBytes: 23 } }), /limit/i);
+  assert.throws(() => ast.parse(rgb, { limits: { maxPixelsPerFrame: 5 } }), /limit/i);
+  assert.equal(ast.parse(rgb, { decodeFrames: false, limits: { maxMemoryBytes: 1 } }).tracks[0]!.decodedVideoFrames, undefined);
+  assert.equal(ast.probe(rgb, { limits: { maxMemoryBytes: 1 } }).streams[0]!.codec_name, "rawvideo");
+});
+
+it("reports native integer sample formats for PCM64BE and unsigned PCM", () => {
+  const bytes = readFileSync(new URL("./fixtures/s64be.nut", import.meta.url));
+  assert.equal(ast.probe(bytes, { showFrames: true }).streams[0]!.sample_fmt, "s64");
+  for (const [codec, bits, expected] of [["pcm_u16le", 16, "s16"], ["pcm_u24be", 24, "s32"], ["pcm_u32le", 32, "s32"]] as const) {
+    const source = ast.parse(tone, { decodeAudio: false });
+    const track = source.tracks[0]!;
+    const encoded = ast.serialize({ ...source, tracks: [{ ...track, codecDescriptions: [{ ...track.codecDescriptions[0]!, codecName: codec, bitsPerSample: bits }] }] }, { audioCodec: "copy" });
+    const probe = ast.probe(encoded, { showFrames: true });
+    assert.equal(probe.streams[0]!.sample_fmt, expected, codec);
+    assert.ok(probe.frames!.every(frame => frame.sample_fmt === expected), codec);
+  }
+});

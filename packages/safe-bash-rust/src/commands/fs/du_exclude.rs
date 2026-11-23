@@ -10,16 +10,28 @@ enum Token {
 
 fn class(units: &[u16]) -> Option<(Token, usize)> {
     let mut i = 1;
-    let negated = units.get(i).is_some_and(|&c| c == u16::from(b'!') || c == u16::from(b'^'));
+    let negated = units
+        .get(i)
+        .is_some_and(|&c| c == u16::from(b'!') || c == u16::from(b'^'));
     i += usize::from(negated);
     let mut ranges = Vec::new();
     let atom = |i: usize| -> Option<(u16, usize)> {
-        let i = if units.get(i) == Some(&u16::from(b'\\')) && i + 1 < units.len() { i + 1 } else { i };
+        let i = if units.get(i) == Some(&u16::from(b'\\')) && i + 1 < units.len() {
+            i + 1
+        } else {
+            i
+        };
         Some((*units.get(i)?, i + 1))
     };
     let named = |i: usize| {
-        if !units[i..].starts_with(&b"[:".map(u16::from)) { return None; }
-        let end = i + 2 + units[i + 2..].windows(2).position(|pair| pair == b":]".map(u16::from))?;
+        if !units[i..].starts_with(&b"[:".map(u16::from)) {
+            return None;
+        }
+        let end = i
+            + 2
+            + units[i + 2..]
+                .windows(2)
+                .position(|pair| pair == b":]".map(u16::from))?;
         let name = String::from_utf16(&units[i + 2..end]).ok()?;
         Some((crate::commands::search::posix_class_ranges(&name)?, end + 2))
     };
@@ -34,7 +46,10 @@ fn class(units: &[u16]) -> Option<(Token, usize)> {
         }
         let (lo, next) = atom(i)?;
         i = next;
-        if units.get(i) == Some(&u16::from(b'-')) && units.get(i + 1).is_some_and(|&u| u != u16::from(b']')) && named(i + 1).is_none() {
+        if units.get(i) == Some(&u16::from(b'-'))
+            && units.get(i + 1).is_some_and(|&u| u != u16::from(b']'))
+            && named(i + 1).is_none()
+        {
             let (hi, next) = atom(i + 1)?;
             ranges.push((lo, hi));
             i = next;
@@ -67,7 +82,11 @@ impl Pattern {
 
     pub(super) fn matches(&self, path: &[u16]) -> bool {
         let mut positions = vec![0];
-        positions.extend(path.iter().enumerate().filter_map(|(i,&c)| (c == u16::from(b'/')).then_some(i + 1)));
+        positions.extend(
+            path.iter()
+                .enumerate()
+                .filter_map(|(i, &c)| (c == u16::from(b'/')).then_some(i + 1)),
+        );
         for token in &self.0 {
             if matches!(token, Token::Star) {
                 let start = positions[0];
@@ -80,11 +99,15 @@ impl Pattern {
                     match token {
                         Token::Literal(unit) => *unit == c,
                         Token::Any => true,
-                        Token::Class(negated, ranges) => *negated != ranges.iter().any(|&(lo, hi)| lo <= c && c <= hi),
+                        Token::Class(negated, ranges) => {
+                            *negated != ranges.iter().any(|&(lo, hi)| lo <= c && c <= hi)
+                        }
                         Token::Star => unreachable!(),
                     }
                 });
-                if positions.is_empty() { return false; }
+                if positions.is_empty() {
+                    return false;
+                }
             }
         }
         positions.last() == Some(&path.len())

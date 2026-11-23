@@ -1,0 +1,2440 @@
+{
+  "reference": "ffprobe version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2007-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-packet",
+      "input": "[ar:Artist]\n[ti:Song]\n[00:01.24]First\n[00:03.40]Last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1240,
+            "pts_time": "1.240000",
+            "dts": 1240,
+            "dts_time": "1.240000",
+            "duration": 2160,
+            "duration_time": "2.160000",
+            "size": "6",
+            "pos": "22"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3400,
+            "pts_time": "3.400000",
+            "dts": 3400,
+            "dts_time": "3.400000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "5",
+            "pos": "38"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1240,
+            "start_time": "1.240000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "53",
+          "probe_score": 0,
+          "tags": {
+            "artist": "Artist",
+            "title": "Song"
+          }
+        }
+      }
+    },
+    {
+      "name": "basic-frame",
+      "input": "[ar:Artist]\n[ti:Song]\n[00:01.24]First\n[00:03.40]Last\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1240000,
+            "pts_time": "1.240000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 2160,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3400000,
+            "pts_time": "3.400000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1240,
+            "start_time": "1.240000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "53",
+          "probe_score": 0,
+          "tags": {
+            "artist": "Artist",
+            "title": "Song"
+          }
+        }
+      }
+    },
+    {
+      "name": "offset-packet",
+      "input": "[offset:250]\n[00:01.00]one\n[offset:500]\n[00:05.00]end\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 750,
+            "pts_time": "0.750000",
+            "dts": 750,
+            "dts_time": "0.750000",
+            "duration": 3750,
+            "duration_time": "3.750000",
+            "size": "4",
+            "pos": "13"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 4500,
+            "pts_time": "4.500000",
+            "dts": 4500,
+            "dts_time": "4.500000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "40"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 750,
+            "start_time": "0.750000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "54",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "offset-frame",
+      "input": "[offset:250]\n[00:01.00]one\n[offset:500]\n[00:05.00]end\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 750000,
+            "pts_time": "0.750000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 3750,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 4500000,
+            "pts_time": "4.500000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 750,
+            "start_time": "0.750000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "54",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "offset-prefix-packet",
+      "input": "[offset: +500junk]\n[00:01.00]one\n[offset:bad]\n[00:02.00]two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 500,
+            "pts_time": "0.500000",
+            "dts": 500,
+            "dts_time": "0.500000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "4",
+            "pos": "19"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1500,
+            "pts_time": "1.500000",
+            "dts": 1500,
+            "dts_time": "1.500000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "46"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 500,
+            "start_time": "0.500000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "60",
+          "probe_score": 0,
+          "tags": {
+            "offset": "bad"
+          }
+        }
+      }
+    },
+    {
+      "name": "offset-prefix-frame",
+      "input": "[offset: +500junk]\n[00:01.00]one\n[offset:bad]\n[00:02.00]two\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 500000,
+            "pts_time": "0.500000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 1500000,
+            "pts_time": "1.500000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 500,
+            "start_time": "0.500000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "60",
+          "probe_score": 0,
+          "tags": {
+            "offset": "bad"
+          }
+        }
+      }
+    },
+    {
+      "name": "signed-packet",
+      "input": "[-00:01.00]First\n[00:03.00]Two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": -1000,
+            "pts_time": "-1.000000",
+            "dts": -1000,
+            "dts_time": "-1.000000",
+            "duration": 4000,
+            "duration_time": "4.000000",
+            "size": "6",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3000,
+            "pts_time": "3.000000",
+            "dts": 3000,
+            "dts_time": "3.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "17"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": -1000,
+            "start_time": "-1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "31",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "signed-frame",
+      "input": "[-00:01.00]First\n[00:03.00]Two\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": -1000000,
+            "pts_time": "-1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3000000,
+            "pts_time": "3.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": -1000,
+            "start_time": "-1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "31",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "fraction-packet",
+      "input": "[00:01.2]a\n[00:01.234]b\n[00:61.00]c\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1020,
+            "pts_time": "1.020000",
+            "dts": 1020,
+            "dts_time": "1.020000",
+            "duration": 2320,
+            "duration_time": "2.320000",
+            "size": "2",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3340,
+            "pts_time": "3.340000",
+            "dts": 3340,
+            "dts_time": "3.340000",
+            "duration": 57660,
+            "duration_time": "57.660000",
+            "size": "2",
+            "pos": "11"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 61000,
+            "pts_time": "61.000000",
+            "dts": 61000,
+            "dts_time": "61.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "2",
+            "pos": "24"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1020,
+            "start_time": "1.020000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "36",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "fraction-frame",
+      "input": "[00:01.2]a\n[00:01.234]b\n[00:61.00]c\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1020000,
+            "pts_time": "1.020000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 2320,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3340000,
+            "pts_time": "3.340000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 57660,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 61000000,
+            "pts_time": "61.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1020,
+            "start_time": "1.020000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "36",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "repeated-packet",
+      "input": "[00:03.00][00:01.0] Same\n[00:01.00]other\n[00:04.10]\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "size": "5",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 2000,
+            "duration_time": "2.000000",
+            "size": "6",
+            "pos": "25"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3000,
+            "pts_time": "3.000000",
+            "dts": 3000,
+            "dts_time": "3.000000",
+            "duration": 1100,
+            "duration_time": "1.100000",
+            "size": "5",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 4100,
+            "pts_time": "4.100000",
+            "dts": 4100,
+            "dts_time": "4.100000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "1",
+            "pos": "41"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "4",
+            "nb_read_packets": "4"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "52",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "repeated-frame",
+      "input": "[00:03.00][00:01.0] Same\n[00:01.00]other\n[00:04.10]\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 0,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 2000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3000000,
+            "pts_time": "3.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1100,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 4100000,
+            "pts_time": "4.100000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "4",
+            "nb_read_packets": "4"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "52",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "duplicate-packet",
+      "input": "[00:01.00]same\n[00:01.00]same\n[00:02.00]last\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "size": "5",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "5",
+            "pos": "15"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2000,
+            "pts_time": "2.000000",
+            "dts": 2000,
+            "dts_time": "2.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "5",
+            "pos": "30"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "45",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "duplicate-frame",
+      "input": "[00:01.00]same\n[00:01.00]same\n[00:02.00]last\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 0,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 2000000,
+            "pts_time": "2.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "45",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "spaces-packet",
+      "input": "[00:01.00]  hi  \r\n[00:02.00]\t[04:50.0] alpha\n[00:03.00]x",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "5",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2000,
+            "pts_time": "2.000000",
+            "dts": 2000,
+            "dts_time": "2.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "6",
+            "pos": "18"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3000,
+            "pts_time": "3.000000",
+            "dts": 3000,
+            "dts_time": "3.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "2",
+            "pos": "45"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "56",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "spaces-frame",
+      "input": "[00:01.00]  hi  \r\n[00:02.00]\t[04:50.0] alpha\n[00:03.00]x",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 2000000,
+            "pts_time": "2.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3000000,
+            "pts_time": "3.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "56",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "metadata-packet",
+      "input": "[ti:Title]\n[ar:Artist]\n[by:Creator]\n[au:Author]\n[ve:V]\n[re:Enc]\n[length:03:00]\n[custom:Tag]\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "92",
+          "probe_score": 0,
+          "tags": {
+            "title": "Title",
+            "artist": "Artist",
+            "creator": "Creator",
+            "author": "Author",
+            "encoder_version": "V",
+            "encoder": "Enc",
+            "length": "03:00",
+            "custom": "Tag"
+          }
+        }
+      }
+    },
+    {
+      "name": "metadata-frame",
+      "input": "[ti:Title]\n[ar:Artist]\n[by:Creator]\n[au:Author]\n[ve:V]\n[re:Enc]\n[length:03:00]\n[custom:Tag]\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "92",
+          "probe_score": 0,
+          "tags": {
+            "title": "Title",
+            "artist": "Artist",
+            "creator": "Creator",
+            "author": "Author",
+            "encoder_version": "V",
+            "encoder": "Enc",
+            "length": "03:00",
+            "custom": "Tag"
+          }
+        }
+      }
+    },
+    {
+      "name": "freeform-packet",
+      "input": "[unknown:value]\n[ti:first]\n[ti:second]\n[AR:ignored]\n [ar:Odd]\n[00:01.00]hi\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "3",
+            "pos": "62"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "75",
+          "probe_score": 0,
+          "tags": {
+            "unknown": "value",
+            "title": "second",
+            "[ar": "Odd"
+          }
+        }
+      }
+    },
+    {
+      "name": "freeform-frame",
+      "input": "[unknown:value]\n[ti:first]\n[ti:second]\n[AR:ignored]\n [ar:Odd]\n[00:01.00]hi\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "75",
+          "probe_score": 0,
+          "tags": {
+            "unknown": "value",
+            "title": "second",
+            "[ar": "Odd"
+          }
+        }
+      }
+    },
+    {
+      "name": "malformed-packet",
+      "input": "garbage\n[aa:bb]\n[00:01]bad\n[00:02.34missing\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2340,
+            "pts_time": "2.340000",
+            "dts": 2340,
+            "dts_time": "2.340000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "8",
+            "pos": "27"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 2340,
+            "start_time": "2.340000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "44",
+          "probe_score": 0,
+          "tags": {
+            "aa": "bb"
+          }
+        }
+      }
+    },
+    {
+      "name": "malformed-frame",
+      "input": "garbage\n[aa:bb]\n[00:01]bad\n[00:02.34missing\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 2340000,
+            "pts_time": "2.340000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 2340,
+            "start_time": "2.340000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "44",
+          "probe_score": 0,
+          "tags": {
+            "aa": "bb"
+          }
+        }
+      }
+    },
+    {
+      "name": "empty-packet",
+      "input": "",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "0",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "empty-frame",
+      "input": "",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "0",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "blank-cues-packet",
+      "input": "[00:01.00]\n[00:02.00]   \n[00:03.00]x\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "1",
+            "pos": "0"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2000,
+            "pts_time": "2.000000",
+            "dts": 2000,
+            "dts_time": "2.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "1",
+            "pos": "11"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3000,
+            "pts_time": "3.000000",
+            "dts": 3000,
+            "dts_time": "3.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "2",
+            "pos": "25"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "37",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "blank-cues-frame",
+      "input": "[00:01.00]\n[00:02.00]   \n[00:03.00]x\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 2000000,
+            "pts_time": "2.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 1000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3000000,
+            "pts_time": "3.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "3",
+            "nb_read_packets": "3"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "37",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "unicode-packet",
+      "input": "\ufeff[ar:\u6b4c\u624b]\n[00:01.00]\u6b4c\u8a5e\r\n[00:03.00]\ud83c\udfb5\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags:packet=codec_type,stream_index,pts,pts_time,dts,dts_time,duration,duration_time,size,pos",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 2000,
+            "duration_time": "2.000000",
+            "size": "7",
+            "pos": "15"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 3000,
+            "pts_time": "3.000000",
+            "dts": 3000,
+            "dts_time": "3.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "5",
+            "pos": "33"
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "48",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "unicode-frame",
+      "input": "\ufeff[ar:\u6b4c\u624b]\n[00:01.00]\u6b4c\u8a5e\r\n[00:03.00]\ud83c\udfb5\n",
+      "args": [
+        "-show_frames",
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-count_packets",
+        "-count_frames",
+        "-show_entries",
+        "program=:stream=index,codec_name,codec_long_name,codec_type,codec_tag_string,codec_tag,r_frame_rate,avg_frame_rate,time_base,start_pts,start_time,nb_read_packets,nb_read_frames:format=filename,nb_streams,nb_programs,format_name,format_long_name,size,probe_score:format_tags",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "frames": [
+          {
+            "media_type": "subtitle",
+            "pts": 1000000,
+            "pts_time": "1.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 2000,
+            "num_rects": 1
+          },
+          {
+            "media_type": "subtitle",
+            "pts": 3000000,
+            "pts_time": "3.000000",
+            "format": 1,
+            "start_display_time": 0,
+            "end_display_time": 4294967295,
+            "num_rects": 1
+          }
+        ],
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2"
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "48",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "automatic",
+      "input": "[ar:Artist]\n[00:01.00]one\n[00:02.00]two\n",
+      "args": [
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "4",
+            "pos": "12",
+            "flags": "K__"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2000,
+            "pts_time": "2.000000",
+            "dts": 2000,
+            "dts_time": "2.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "26",
+            "flags": "K__"
+          }
+        ],
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2",
+            "disposition": {
+              "default": 0,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            }
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "40",
+          "probe_score": 40,
+          "tags": {
+            "artist": "Artist"
+          }
+        }
+      }
+    },
+    {
+      "name": "automatic-timestamp",
+      "input": "[00:01.00]one\n",
+      "args": [
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "0",
+            "flags": "K__"
+          }
+        ],
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1",
+            "disposition": {
+              "default": 0,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            }
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "14",
+          "probe_score": 50
+        }
+      }
+    },
+    {
+      "name": "all-fields",
+      "input": "[00:01.00]one\n[00:02.00]two\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": 1000,
+            "duration_time": "1.000000",
+            "size": "4",
+            "pos": "0",
+            "flags": "K__"
+          },
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 2000,
+            "pts_time": "2.000000",
+            "dts": 2000,
+            "dts_time": "2.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "14",
+            "flags": "K__"
+          }
+        ],
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "2",
+            "nb_read_packets": "2",
+            "disposition": {
+              "default": 0,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            }
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "28",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "subtitle-selected",
+      "input": "[00:01.00]one\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-select_streams",
+        "s:0",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [
+          {
+            "codec_type": "subtitle",
+            "stream_index": 0,
+            "pts": 1000,
+            "pts_time": "1.000000",
+            "dts": 1000,
+            "dts_time": "1.000000",
+            "duration": -1,
+            "duration_time": "-0.001000",
+            "size": "4",
+            "pos": "0",
+            "flags": "K__"
+          }
+        ],
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "text",
+            "codec_long_name": "raw UTF-8 text",
+            "codec_type": "subtitle",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 1000,
+            "start_time": "1.000000",
+            "nb_read_frames": "1",
+            "nb_read_packets": "1",
+            "disposition": {
+              "default": 0,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0
+            }
+          }
+        ],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "14",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "subtitle-absent",
+      "input": "[00:01.00]one\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-select_streams",
+        "s:1",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [],
+        "programs": [],
+        "streams": [],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "14",
+          "probe_score": 0
+        }
+      }
+    },
+    {
+      "name": "audio-selected",
+      "input": "[00:01.00]one\n",
+      "args": [
+        "-v",
+        "error",
+        "-f",
+        "lrc",
+        "-select_streams",
+        "a",
+        "-show_streams",
+        "-show_format",
+        "-show_packets",
+        "-show_programs",
+        "-count_packets",
+        "-count_frames",
+        "-of",
+        "json",
+        "input.lrc"
+      ],
+      "expected": {
+        "packets": [],
+        "programs": [],
+        "streams": [],
+        "format": {
+          "filename": "input.lrc",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "lrc",
+          "format_long_name": "LRC lyrics",
+          "size": "14",
+          "probe_score": 0
+        }
+      }
+    }
+  ]
+}

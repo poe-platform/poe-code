@@ -1,0 +1,1157 @@
+{
+  "reference": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+  "cases": [
+    {
+      "name": "basic-mkv-None",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-copy",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mkv-srt",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mkv-webvtt",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-None",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-webm-copy",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mp4-mov_text",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-mp4-copy",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "basic-mov-mov_text",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,000 --> 00:00:02,000\n<i>First\r\nline</i>\n\n2\n00:00:03,000 --> 00:00:04,000\nSecond\n\n"
+    },
+    {
+      "name": "basic-sub-copy",
+      "input": "{1}{1}25\n{25}{50}{Y:i}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.sub"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-f",
+        "microdvd",
+        "-i",
+        "out.sub",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<i>First\r\nline</i>\n\n2\n00:00:03,128 --> 00:00:04,171\nSecond\n\n"
+    },
+    {
+      "name": "default-style-mkv-None",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>First\r\nline</b></font>\n\n2\n00:00:03,128 --> 00:00:04,171\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>Second</b></font>\n\n"
+    },
+    {
+      "name": "default-style-mkv-copy",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "default-style-mkv-srt",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<font face=\"Courier\"><font size=\"24\"><font color=\"#ff0000\"><b>First\r\nline</b></font></font></font>\n\n2\n00:00:03,128 --> 00:00:04,171\n<font face=\"Courier\"><font size=\"24\"><font color=\"#ff0000\"><b>Second</b></font></font></font>\n\n"
+    },
+    {
+      "name": "default-style-mkv-webvtt",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<b>First\r\nline</b>\n\n2\n00:00:03,128 --> 00:00:04,171\n<b>Second</b>\n\n"
+    },
+    {
+      "name": "default-style-webm-None",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<b>First\r\nline</b>\n\n2\n00:00:03,128 --> 00:00:04,171\n<b>Second</b>\n\n"
+    },
+    {
+      "name": "default-style-webm-copy",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "default-style-mp4-mov_text",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>First\r\nline</b></font>\n\n2\n00:00:03,128 --> 00:00:04,171\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>Second</b></font>\n\n"
+    },
+    {
+      "name": "default-style-mp4-copy",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "default-style-mov-mov_text",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>First\r\nline</b></font>\n\n2\n00:00:03,128 --> 00:00:04,171\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>Second</b></font>\n\n"
+    },
+    {
+      "name": "default-style-sub-copy",
+      "input": "{DEFAULT}{}{y:b}{f:Courier}{s:24}{c:$0000ff}\n{25}{50}First|line\n{75}{100}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.sub"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-f",
+        "microdvd",
+        "-i",
+        "out.sub",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:01,043 --> 00:00:02,086\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>First\r\nline</b></font>\n\n2\n00:00:03,128 --> 00:00:04,171\n<font face=\"Courier\" size=\"24\" color=\"#ff0000\"><b>Second</b></font>\n\n"
+    },
+    {
+      "name": "negative-mkv-None",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-copy",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mkv-srt",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-mkv-webvtt",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-None",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,166 --> 00:00:01,999\nAfter\n\n"
+    },
+    {
+      "name": "negative-webm-copy",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mp4-mov_text",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,167 --> 00:00:03,166\nAfter\n\n"
+    },
+    {
+      "name": "negative-mp4-copy",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "negative-mov-mov_text",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,167\nBefore\n\n2\n00:00:01,167 --> 00:00:03,166\nAfter\n\n"
+    },
+    {
+      "name": "negative-sub-copy",
+      "input": "{-10}{25}Before\n{25}{50}After\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.sub"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-f",
+        "microdvd",
+        "-i",
+        "out.sub",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,000 --> 00:00:01,460\nBefore\n\n2\n00:00:01,460 --> 00:00:02,503\nAfter\n\n"
+    },
+    {
+      "name": "fractional-mkv-None",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-mkv-copy",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mkv"
+      ],
+      "exitCode": 218,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "fractional-mkv-srt",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "srt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-mkv-webvtt",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "webvtt",
+        "out.mkv"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mkv",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-webm-None",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "out.webm"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-webm-copy",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.webm"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.webm",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "fractional-mp4-mov_text",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mp4"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-mp4-copy",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.mp4"
+      ],
+      "exitCode": 234,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mp4",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "fractional-mov-mov_text",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "mov_text",
+        "out.mov"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-i",
+        "out.mov",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,033 --> 00:00:00,100\nFirst\n\n2\n00:00:00,267 --> 00:00:03,370\nSecond\n\n"
+    },
+    {
+      "name": "fractional-sub-copy",
+      "input": "{1}{3}First\n{8}{101}Second\n",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-f",
+        "microdvd",
+        "-subfps",
+        "30000/1001",
+        "-i",
+        "input.sub",
+        "-bitexact",
+        "-c:s",
+        "copy",
+        "out.sub"
+      ],
+      "exitCode": 0,
+      "after": [
+        "-v",
+        "error",
+        "-f",
+        "microdvd",
+        "-i",
+        "out.sub",
+        "-f",
+        "srt",
+        "-"
+      ],
+      "output": "1\n00:00:00,042 --> 00:00:00,125\nFirst\n\n2\n00:00:00,334 --> 00:00:04,213\nSecond\n\n"
+    }
+  ]
+}

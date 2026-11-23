@@ -1,0 +1,4443 @@
+{
+  "reference": "FFmpeg 9.0.1",
+  "inputs": {
+    "pbm-ascii": "50310a3320320a30203120300a31203020310a",
+    "pbm-compact": "50310a3320320a3031303130310a",
+    "pbm-comments": "50310a23206d61736b0a3320320a302031202320726f770a300a31203020310a",
+    "pbm-binary": "50340a3320320a5fbf",
+    "pbm-crlf": "50340d0a3820310d0aff",
+    "pgm-ascii": "50320a3420310a3235340a30203120313237203235340a",
+    "pgm-binary": "50350a3420310a3235350a00017fff",
+    "pgm-scale": "50350a3420310a3235340a00017ffe",
+    "pgm-crlf": "50350d0a3420310d0a3235350d0a11227fff",
+    "ppm-ascii": "50330a3220320a31350a31352030203020302031352030203020302031352031352031352031350a",
+    "ppm-binary": "50360a3220320a3235350aff000000ff000000ffffffff",
+    "pgm-gray": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080",
+    "ppm-gray": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080",
+    "ppm-random": "50360a313720390a3235350aac74c4c13e4df0aa3fda42a53451f6a77d705dd3b775172516b86fc5a703c0e4292cd852727d9869a5fb18f54e45fce5399eeb19e0e1067d84f549dde221ee60b0e77f3a0f46d5e63e331d1f0255f57e1ed0ab7d52277d3b3900f796caa088f112b50ea672ffccb364c5bca617e3b179aca58705b4ecf722f312c74f232f778845ab97ab871159dc66e1ef140b6032b7bcdd6d4d5419dc868b49c8e01887ebe0aa6004ffaa2aeed29d7b6991119aa5c511de68448e58b57f31fa5c38825b7f410729fcf167ece212a69088bdcbb675037c58b2f75032ded390a3ddeaadb48be43242a72b1db031785c9a24d0b7048e78cde08867b2a07b6959a8029334d5fc9213217a61f8b1c8fa75234b55b9c8980807ca79df239efb1c045f6f5ee390245ce4b2150e2a4953ba63e43070f67a98717f20fe4cc7a044794f6aaaa02d146d71ce8dd76e7522c9c82f410793d7512ce029708e14dfee15faa12c381f39deb7433d5a5af7df16852c869a42b64e8e858c2705e43fa770a9ed49183937f03b168e81545b7f9e3dbb1ea74fea26602a9bf0562d12bf1cfe858e52c8b1bbf7e8bbd7b0169cb52ace37d0a3667db1dac386a8c123e1061ec71aa7464e4537a849be6ee4a706dd3e30de045206f8",
+    "two": "50350a3420310a3235350a00017fff50350a3420310a3235350aff7f0100",
+    "pgm16": "50350a3420310a36353533350a12343456789abcde",
+    "pgm16-scaled": "50350a3420310a36353533340a000000017ffffffe",
+    "pgm16-ascii": "50320a3420310a313032330a3020312035313120313032330a",
+    "pgm16-random": "50350a313720390a36353533350a4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcbe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38ab2f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb2b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2bd22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82",
+    "two16": "50350a3420310a36353533350a12343456789abcde50350a3420310a36353533350abcde789a34561234",
+    "pgm-ascii-tail": "50320a3420310a3235340a30203120313237203235340a232072657461696e205061636b657420636f6d6d656e74203132330a"
+  },
+  "cases": [
+    {
+      "name": "pbm-ascii-pgm-pipe",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-ascii-pgm-file",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-ascii-pbm-pipe",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-ascii-pbm-file",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-ascii-ppm-pipe",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-ascii-ppm-file",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-ascii-raw-gray",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff00ff00ff00"
+    },
+    {
+      "name": "pbm-ascii-raw-rgb24",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-ascii-raw-rgba",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffff000000ffffffffff000000ffffffffff000000ff"
+    },
+    {
+      "name": "pbm-ascii-hflip",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-ascii-vflip",
+      "input": "pbm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350a00ff00ff00ff"
+    },
+    {
+      "name": "pbm-compact-pgm-pipe",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-compact-pgm-file",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-compact-pbm-pipe",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-compact-pbm-file",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-compact-ppm-pipe",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-compact-ppm-file",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-compact-raw-gray",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff00ff00ff00"
+    },
+    {
+      "name": "pbm-compact-raw-rgb24",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-compact-raw-rgba",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffff000000ffffffffff000000ffffffffff000000ff"
+    },
+    {
+      "name": "pbm-compact-hflip",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-compact-vflip",
+      "input": "pbm-compact",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350a00ff00ff00ff"
+    },
+    {
+      "name": "pbm-comments-pgm-pipe",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-comments-pgm-file",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-comments-pbm-pipe",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-comments-pbm-file",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3320320a40a0",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-comments-ppm-pipe",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-comments-ppm-file",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-comments-raw-gray",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff00ff00ff00"
+    },
+    {
+      "name": "pbm-comments-raw-rgb24",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-comments-raw-rgba",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffff000000ffffffffff000000ffffffffff000000ff"
+    },
+    {
+      "name": "pbm-comments-hflip",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-comments-vflip",
+      "input": "pbm-comments",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350a00ff00ff00ff"
+    },
+    {
+      "name": "pbm-binary-pgm-pipe",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-binary-pgm-file",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-binary-pbm-pipe",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3320320a5fbf",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-binary-pbm-file",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3320320a5fbf",
+      "mask": "ffffffffffffffe0e0"
+    },
+    {
+      "name": "pbm-binary-ppm-pipe",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-binary-ppm-file",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3320320a3235350affffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-binary-raw-gray",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff00ff00ff00"
+    },
+    {
+      "name": "pbm-binary-raw-rgb24",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffff000000ffffff000000ffffff000000"
+    },
+    {
+      "name": "pbm-binary-raw-rgba",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffff000000ffffffffff000000ffffffffff000000ff"
+    },
+    {
+      "name": "pbm-binary-hflip",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350aff00ff00ff00"
+    },
+    {
+      "name": "pbm-binary-vflip",
+      "input": "pbm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3320320a3235350a00ff00ff00ff"
+    },
+    {
+      "name": "pbm-crlf-pgm-pipe",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3820310a3235350affffffff00ff00ff"
+    },
+    {
+      "name": "pbm-crlf-pgm-file",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3820310a3235350affffffff00ff00ff"
+    },
+    {
+      "name": "pbm-crlf-pbm-pipe",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3820310a0a",
+      "mask": "ffffffffffffffff"
+    },
+    {
+      "name": "pbm-crlf-pbm-file",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3820310a0a",
+      "mask": "ffffffffffffffff"
+    },
+    {
+      "name": "pbm-crlf-ppm-pipe",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3820310a3235350affffffffffffffffffffffff000000ffffff000000ffffff"
+    },
+    {
+      "name": "pbm-crlf-ppm-file",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3820310a3235350affffffffffffffffffffffff000000ffffff000000ffffff"
+    },
+    {
+      "name": "pbm-crlf-raw-gray",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffff00ff00ff"
+    },
+    {
+      "name": "pbm-crlf-raw-rgb24",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffffffffffffffffffff000000ffffff000000ffffff"
+    },
+    {
+      "name": "pbm-crlf-raw-rgba",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffffffffffffffffffffffffffffff000000ffffffffff000000ffffffffff"
+    },
+    {
+      "name": "pbm-crlf-hflip",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3820310a3235350aff00ff00ffffffff"
+    },
+    {
+      "name": "pbm-crlf-vflip",
+      "input": "pbm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3820310a3235350affffffff00ff00ff"
+    },
+    {
+      "name": "pgm-ascii-pgm-pipe",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a000180ff"
+    },
+    {
+      "name": "pgm-ascii-pgm-file",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3420310a3235350a000180ff"
+    },
+    {
+      "name": "pgm-ascii-pbm-pipe",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3420310ac5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-ascii-pbm-file",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3420310ac5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-ascii-ppm-pipe",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3420310a3235350a000000010101808080ffffff"
+    },
+    {
+      "name": "pgm-ascii-ppm-file",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3420310a3235350a000000010101808080ffffff"
+    },
+    {
+      "name": "pgm-ascii-raw-gray",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000180ff"
+    },
+    {
+      "name": "pgm-ascii-raw-rgb24",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000010101808080ffffff"
+    },
+    {
+      "name": "pgm-ascii-raw-rgba",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff010101ff808080ffffffffff"
+    },
+    {
+      "name": "pgm-ascii-hflip",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350aff800100"
+    },
+    {
+      "name": "pgm-ascii-vflip",
+      "input": "pgm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a000180ff"
+    },
+    {
+      "name": "pgm-binary-pgm-pipe",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-binary-pgm-file",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-binary-pbm-pipe",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3420310ac5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-binary-pbm-file",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3420310ac5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-binary-ppm-pipe",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3420310a3235350a0000000101017f7f7fffffff"
+    },
+    {
+      "name": "pgm-binary-ppm-file",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3420310a3235350a0000000101017f7f7fffffff"
+    },
+    {
+      "name": "pgm-binary-raw-gray",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fff"
+    },
+    {
+      "name": "pgm-binary-raw-rgb24",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000000101017f7f7fffffff"
+    },
+    {
+      "name": "pgm-binary-raw-rgba",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff010101ff7f7f7fffffffffff"
+    },
+    {
+      "name": "pgm-binary-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350aff7f0100"
+    },
+    {
+      "name": "pgm-binary-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-scale-pgm-pipe",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00018000"
+    },
+    {
+      "name": "pgm-scale-pgm-file",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3420310a3235350a00018000"
+    },
+    {
+      "name": "pgm-scale-pbm-pipe",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3420310ad5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-scale-pbm-file",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3420310ad5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-scale-ppm-pipe",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3420310a3235350a000000010101808080000000"
+    },
+    {
+      "name": "pgm-scale-ppm-file",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3420310a3235350a000000010101808080000000"
+    },
+    {
+      "name": "pgm-scale-raw-gray",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00018000"
+    },
+    {
+      "name": "pgm-scale-raw-rgb24",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000010101808080000000"
+    },
+    {
+      "name": "pgm-scale-raw-rgba",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff010101ff808080ff000000ff"
+    },
+    {
+      "name": "pgm-scale-hflip",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00800100"
+    },
+    {
+      "name": "pgm-scale-vflip",
+      "input": "pgm-scale",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00018000"
+    },
+    {
+      "name": "pgm-crlf-pgm-pipe",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a0a11227f"
+    },
+    {
+      "name": "pgm-crlf-pgm-file",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3420310a3235350a0a11227f"
+    },
+    {
+      "name": "pgm-crlf-pbm-pipe",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3420310af5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-crlf-pbm-file",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3420310af5",
+      "mask": "fffffffffffffff0"
+    },
+    {
+      "name": "pgm-crlf-ppm-pipe",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3420310a3235350a0a0a0a1111112222227f7f7f"
+    },
+    {
+      "name": "pgm-crlf-ppm-file",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3420310a3235350a0a0a0a1111112222227f7f7f"
+    },
+    {
+      "name": "pgm-crlf-raw-gray",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0a11227f"
+    },
+    {
+      "name": "pgm-crlf-raw-rgb24",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0a0a0a1111112222227f7f7f"
+    },
+    {
+      "name": "pgm-crlf-raw-rgba",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0a0a0aff111111ff222222ff7f7f7fff"
+    },
+    {
+      "name": "pgm-crlf-hflip",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a7f22110a"
+    },
+    {
+      "name": "pgm-crlf-vflip",
+      "input": "pgm-crlf",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a0a11227f"
+    },
+    {
+      "name": "ppm-ascii-pgm-pipe",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a4c961dff"
+    },
+    {
+      "name": "ppm-ascii-pgm-file",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3220320a3235350a4c961dff"
+    },
+    {
+      "name": "ppm-ascii-pbm-pipe",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3220320ad5aa",
+      "mask": "ffffffffffffffc0c0"
+    },
+    {
+      "name": "ppm-ascii-pbm-file",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3220320ad5aa",
+      "mask": "ffffffffffffffc0c0"
+    },
+    {
+      "name": "ppm-ascii-ppm-pipe",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3220320a3235350aff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-ascii-ppm-file",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3220320a3235350aff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-ascii-raw-gray",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "4c961dff"
+    },
+    {
+      "name": "ppm-ascii-raw-rgb24",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-ascii-raw-rgba",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff0000ff00ff00ff0000ffffffffffff"
+    },
+    {
+      "name": "ppm-ascii-hflip",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a964cff1d"
+    },
+    {
+      "name": "ppm-ascii-vflip",
+      "input": "ppm-ascii",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a1dff4c96"
+    },
+    {
+      "name": "ppm-binary-pgm-pipe",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a4c961dff"
+    },
+    {
+      "name": "ppm-binary-pgm-file",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3220320a3235350a4c961dff"
+    },
+    {
+      "name": "ppm-binary-pbm-pipe",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3220320ad5aa",
+      "mask": "ffffffffffffffc0c0"
+    },
+    {
+      "name": "ppm-binary-pbm-file",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3220320ad5aa",
+      "mask": "ffffffffffffffc0c0"
+    },
+    {
+      "name": "ppm-binary-ppm-pipe",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3220320a3235350aff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-binary-ppm-file",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3220320a3235350aff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-binary-raw-gray",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "4c961dff"
+    },
+    {
+      "name": "ppm-binary-raw-rgb24",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff000000ff000000ffffffff"
+    },
+    {
+      "name": "ppm-binary-raw-rgba",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff0000ff00ff00ff0000ffffffffffff"
+    },
+    {
+      "name": "ppm-binary-hflip",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a964cff1d"
+    },
+    {
+      "name": "ppm-binary-vflip",
+      "input": "ppm-binary",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3220320a3235350a1dff4c96"
+    },
+    {
+      "name": "pgm-gray-pgm-pipe",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-pgm-file",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-pbm-pipe",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3920390a5555aaaa5555aaaa5454aaaa5555aaaa5555",
+      "mask": "ffffffffffffffff80ff80ff80ff80ff80ff80ff80ff80ff80"
+    },
+    {
+      "name": "pgm-gray-pbm-file",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3920390a5555aaaa5555aaaa5454aaaa5555aaaa5555",
+      "mask": "ffffffffffffffff80ff80ff80ff80ff80ff80ff80ff80ff80"
+    },
+    {
+      "name": "pgm-gray-ppm-pipe",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-ppm-file",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-raw-gray",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-raw-rgb24",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-raw-rgba",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff"
+    },
+    {
+      "name": "pgm-gray-hflip",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "pgm-gray-vflip",
+      "input": "pgm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-pgm-pipe",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-pgm-file",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-pbm-pipe",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3920390a5555aaaa5555aaaa5554aaaa5555aaaa5555",
+      "mask": "ffffffffffffffff80ff80ff80ff80ff80ff80ff80ff80ff80"
+    },
+    {
+      "name": "ppm-gray-pbm-file",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a3920390a5555aaaa5555aaaa5554aaaa5555aaaa5555",
+      "mask": "ffffffffffffffff80ff80ff80ff80ff80ff80ff80ff80ff80"
+    },
+    {
+      "name": "ppm-gray-ppm-pipe",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-ppm-file",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-raw-gray",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-raw-rgb24",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-raw-rgba",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff"
+    },
+    {
+      "name": "ppm-gray-hflip",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-vflip",
+      "input": "ppm-gray",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-random-pgm-pipe",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350a8e67b37b5b88ad357f9dc4957d9da0c389a55a8d729e4aac341497b13e33b99b7192b1bca09c40db6a327b9f3c97544fc64ba0a571b2aab08347a787735f4b6d379f6190b554cfa9a4c0b57b766b9a62d09a6d44a93b7ac7409d339d8416724baf25916da2708f66694d7ab54e5f714c5ea4ab32a842c55a8a747e8f87744d2f628a5da5477f79aaa2e3ca778ca9a69c682a724673ba8b9138"
+    },
+    {
+      "name": "ppm-random-pgm-file",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "/out.pgm"
+      ],
+      "output": "50350a313720390a3235350a8e67b37b5b88ad357f9dc4957d9da0c389a55a8d729e4aac341497b13e33b99b7192b1bca09c40db6a327b9f3c97544fc64ba0a571b2aab08347a787735f4b6d379f6190b554cfa9a4c0b57b766b9a62d09a6d44a93b7ac7409d339d8416724baf25916da2708f66694d7ab54e5f714c5ea4ab32a842c55a8a747e8f87744d2f628a5da5477f79aaa2e3ca778ca9a69c682a724673ba8b9138"
+    },
+    {
+      "name": "ppm-random-pbm-pipe",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a313720390a5d4455aaaaaa193d55aaaaaa41d554aaaaaa737555aaaaaa14d8d5",
+      "mask": "ffffffffffffffffffff80ffff80ffff80ffff80ffff80ffff80ffff80ffff80ffff80"
+    },
+    {
+      "name": "ppm-random-pbm-file",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pbm",
+        "/out.pbm"
+      ],
+      "output": "50340a313720390a5d4455aaaaaa193d55aaaaaa41d554aaaaaa737555aaaaaa14d8d5",
+      "mask": "ffffffffffffffffffff80ffff80ffff80ffff80ffff80ffff80ffff80ffff80ffff80"
+    },
+    {
+      "name": "ppm-random-ppm-pipe",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a313720390a3235350aac74c4c13e4df0aa3fda42a53451f6a77d705dd3b775172516b86fc5a703c0e4292cd852727d9869a5fb18f54e45fce5399eeb19e0e1067d84f549dde221ee60b0e77f3a0f46d5e63e331d1f0255f57e1ed0ab7d52277d3b3900f796caa088f112b50ea672ffccb364c5bca617e3b179aca58705b4ecf722f312c74f232f778845ab97ab871159dc66e1ef140b6032b7bcdd6d4d5419dc868b49c8e01887ebe0aa6004ffaa2aeed29d7b6991119aa5c511de68448e58b57f31fa5c38825b7f410729fcf167ece212a69088bdcbb675037c58b2f75032ded390a3ddeaadb48be43242a72b1db031785c9a24d0b7048e78cde08867b2a07b6959a8029334d5fc9213217a61f8b1c8fa75234b55b9c8980807ca79df239efb1c045f6f5ee390245ce4b2150e2a4953ba63e43070f67a98717f20fe4cc7a044794f6aaaa02d146d71ce8dd76e7522c9c82f410793d7512ce029708e14dfee15faa12c381f39deb7433d5a5af7df16852c869a42b64e8e858c2705e43fa770a9ed49183937f03b168e81545b7f9e3dbb1ea74fea26602a9bf0562d12bf1cfe858e52c8b1bbf7e8bbd7b0169cb52ace37d0a3667db1dac386a8c123e1061ec71aa7464e4537a849be6ee4a706dd3e30de045206f8"
+    },
+    {
+      "name": "ppm-random-ppm-file",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "ppm",
+        "/out.ppm"
+      ],
+      "output": "50360a313720390a3235350aac74c4c13e4df0aa3fda42a53451f6a77d705dd3b775172516b86fc5a703c0e4292cd852727d9869a5fb18f54e45fce5399eeb19e0e1067d84f549dde221ee60b0e77f3a0f46d5e63e331d1f0255f57e1ed0ab7d52277d3b3900f796caa088f112b50ea672ffccb364c5bca617e3b179aca58705b4ecf722f312c74f232f778845ab97ab871159dc66e1ef140b6032b7bcdd6d4d5419dc868b49c8e01887ebe0aa6004ffaa2aeed29d7b6991119aa5c511de68448e58b57f31fa5c38825b7f410729fcf167ece212a69088bdcbb675037c58b2f75032ded390a3ddeaadb48be43242a72b1db031785c9a24d0b7048e78cde08867b2a07b6959a8029334d5fc9213217a61f8b1c8fa75234b55b9c8980807ca79df239efb1c045f6f5ee390245ce4b2150e2a4953ba63e43070f67a98717f20fe4cc7a044794f6aaaa02d146d71ce8dd76e7522c9c82f410793d7512ce029708e14dfee15faa12c381f39deb7433d5a5af7df16852c869a42b64e8e858c2705e43fa770a9ed49183937f03b168e81545b7f9e3dbb1ea74fea26602a9bf0562d12bf1cfe858e52c8b1bbf7e8bbd7b0169cb52ace37d0a3667db1dac386a8c123e1061ec71aa7464e4537a849be6ee4a706dd3e30de045206f8"
+    },
+    {
+      "name": "ppm-random-raw-gray",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "8e67b37b5b88ad357f9dc4957d9da0c389a55a8d729e4aac341497b13e33b99b7192b1bca09c40db6a327b9f3c97544fc64ba0a571b2aab08347a787735f4b6d379f6190b554cfa9a4c0b57b766b9a62d09a6d44a93b7ac7409d339d8416724baf25916da2708f66694d7ab54e5f714c5ea4ab32a842c55a8a747e8f87744d2f628a5da5477f79aaa2e3ca778ca9a69c682a724673ba8b9138"
+    },
+    {
+      "name": "ppm-random-raw-rgb24",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ac74c4c13e4df0aa3fda42a53451f6a77d705dd3b775172516b86fc5a703c0e4292cd852727d9869a5fb18f54e45fce5399eeb19e0e1067d84f549dde221ee60b0e77f3a0f46d5e63e331d1f0255f57e1ed0ab7d52277d3b3900f796caa088f112b50ea672ffccb364c5bca617e3b179aca58705b4ecf722f312c74f232f778845ab97ab871159dc66e1ef140b6032b7bcdd6d4d5419dc868b49c8e01887ebe0aa6004ffaa2aeed29d7b6991119aa5c511de68448e58b57f31fa5c38825b7f410729fcf167ece212a69088bdcbb675037c58b2f75032ded390a3ddeaadb48be43242a72b1db031785c9a24d0b7048e78cde08867b2a07b6959a8029334d5fc9213217a61f8b1c8fa75234b55b9c8980807ca79df239efb1c045f6f5ee390245ce4b2150e2a4953ba63e43070f67a98717f20fe4cc7a044794f6aaaa02d146d71ce8dd76e7522c9c82f410793d7512ce029708e14dfee15faa12c381f39deb7433d5a5af7df16852c869a42b64e8e858c2705e43fa770a9ed49183937f03b168e81545b7f9e3dbb1ea74fea26602a9bf0562d12bf1cfe858e52c8b1bbf7e8bbd7b0169cb52ace37d0a3667db1dac386a8c123e1061ec71aa7464e4537a849be6ee4a706dd3e30de045206f8"
+    },
+    {
+      "name": "ppm-random-raw-rgba",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ac74c4ffc13e4dfff0aa3fffda42a5ff3451f6ffa77d70ff5dd3b7ff751725ff16b86fffc5a703ffc0e429ff2cd852ff727d98ff69a5fbff18f54eff45fce5ff399eebff19e0e1ff067d84fff549ddffe221eeff60b0e7ff7f3a0fff46d5e6ff3e331dff1f0255fff57e1effd0ab7dff52277dff3b3900fff796caffa088f1ff12b50effa672ffffccb364ffc5bca6ff17e3b1ff79aca5ff8705b4ffecf722fff312c7ff4f232fff778845ffab97abff871159ffdc66e1ffef140bff6032b7ffbcdd6dff4d5419ffdc868bff49c8e0ff1887ebffe0aa60ff04ffaaff2aeed2ff9d7b69ff91119affa5c511ffde6844ff8e58b5ff7f31faff5c3882ff5b7f41ff0729fcfff167ecffe212a6ff9088bdffcbb675ff037c58ffb2f750ff32ded3ff90a3ddffeaadb4ff8be432ff42a72bff1db031ff785c9aff24d0b7ff048e78ffcde088ff67b2a0ff7b6959ffa80293ff34d5fcff921321ff7a61f8ffb1c8faff75234bff55b9c8ff980807ffca79dfff239efbff1c045fff6f5ee3ff90245cffe4b215ff0e2a49ff53ba63ffe43070fff67a98ff717f20fffe4cc7ffa04479ff4f6aaaffa02d14ff6d71ceff8dd76eff7522c9ffc82f41ff0793d7ff512ce0ff29708eff14dfeeff15faa1ff2c381fff39deb7ff433d5aff5af7dfff16852cff869a42ffb64e8eff858c27ff05e43fffa770a9ffed4918ff3937f0ff3b168eff81545bff7f9e3dffbb1ea7ff4fea26ff602a9bfff0562dff12bf1cfffe858eff52c8b1ffbbf7e8ffbbd7b0ff169cb5ff2ace37ffd0a366ff7db1daffc386a8ffc123e1ff061ec7ff1aa746ff4e4537ffa849beff6ee4a7ff06dd3eff30de04ff5206f8ff"
+    },
+    {
+      "name": "ppm-random-hflip",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350a89c3a09d7d95c49d7f35ad885b7bb3678e92719bb9333eb1971434ac4a9e728d5aa5a04bc64f54973c9f7b326adb409ca0bcb190619f376d4b5f7387a74783b0aab271a5a9446d9ad0629a6b767bb5c0a4a9cf54b570a26d9125af4b7216849d339d40c77a3bc542a832aba45e4c715f4eb57a4d69668faa797f47a55d8a622f4d74878f7e748a5a38918bba7346722a689ca6a98c77cae3a2"
+    },
+    {
+      "name": "ppm-random-vflip",
+      "input": "ppm-random",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350aa2e3ca778ca9a69c682a724673ba8b91385a8a747e8f87744d2f628a5da5477f79aa8f66694d7ab54e5f714c5ea4ab32a842c53b7ac7409d339d8416724baf25916da270b554cfa9a4c0b57b766b9a62d09a6d44a9a571b2aab08347a787735f4b6d379f6190b1bca09c40db6a327b9f3c97544fc64ba0a55a8d729e4aac341497b13e33b99b71928e67b37b5b88ad357f9dc4957d9da0c389"
+    },
+    {
+      "name": "two-decode",
+      "input": "two",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fffff7f0100"
+    },
+    {
+      "name": "two-loop",
+      "input": "two",
+      "args": [
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fffff7f010000017fffff7f0100"
+    },
+    {
+      "name": "two-cut",
+      "input": "two",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-ss",
+        "0.04",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff7f0100"
+    },
+    {
+      "name": "two-frame-limit",
+      "input": "two",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "1",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fff"
+    },
+    {
+      "name": "two-copy",
+      "input": "two",
+      "args": [
+        "-y",
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff50350a3420310a3235350aff7f0100"
+    },
+    {
+      "name": "pgm16-pgm-gray-null",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a123478bc"
+    },
+    {
+      "name": "pgm16-pgm-gray-hflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350abc783412"
+    },
+    {
+      "name": "pgm16-pgm-gray-vflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a123478bc"
+    },
+    {
+      "name": "pgm16-pgm-gray16be-null",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a12343456789abcde"
+    },
+    {
+      "name": "pgm16-pgm-gray16be-hflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350abcde789a34561234"
+    },
+    {
+      "name": "pgm16-pgm-gray16be-vflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a12343456789abcde"
+    },
+    {
+      "name": "pgm16-rawvideo-gray-null",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "123478bc"
+    },
+    {
+      "name": "pgm16-rawvideo-gray-hflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "bc783412"
+    },
+    {
+      "name": "pgm16-rawvideo-gray-vflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "123478bc"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16be-null",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcde"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16be-hflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "bcde789a34561234"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16be-vflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcde"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16le-null",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "341256349a78debc"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16le-hflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "debc9a7856343412"
+    },
+    {
+      "name": "pgm16-rawvideo-gray16le-vflip",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "341256349a78debc"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray-null",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00007f00"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray-hflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a007f0000"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray-vflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00007f00"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray16be-null",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a0000000180000000"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray16be-hflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a0000800000010000"
+    },
+    {
+      "name": "pgm16-scaled-pgm-gray16be-vflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a0000000180000000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray-null",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00007f00"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray-hflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "007f0000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray-vflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00007f00"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16be-null",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000000180000000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16be-hflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000800000010000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16be-vflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000000180000000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16le-null",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000010000800000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16le-hflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000008001000000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-gray16le-vflip",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000010000800000"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray-null",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00007fff"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray-hflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350aff7f0000"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray-vflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00007fff"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray16be-null",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a000000407fdfffff"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray16be-hflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350affff7fdf00400000"
+    },
+    {
+      "name": "pgm16-ascii-pgm-gray16be-vflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a000000407fdfffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray-null",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00007fff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray-hflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff7f0000"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray-vflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00007fff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16be-null",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000407fdfffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16be-hflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffff7fdf00400000"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16be-vflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000407fdfffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16le-null",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00004000df7fffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16le-hflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffffdf7f40000000"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-gray16le-vflip",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00004000df7fffff"
+    },
+    {
+      "name": "pgm16-random-pgm-gray-null",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350a4bb3154a1806216e732c83588a7fd22283b0c7d6013491785fc6d54bd555d8af56ebe7c80f52db64d7a52009bb4a48725ea553fa905dfc168b11af1318a1fb6b842550382f39041e993ff2cdc2e8f464d340785b8c68f377ad59111b2dcbf268cde93f28036fb0979d360a6dec3dd1f531065cb7d3200fd1bf4735c303761c50f8a048443a37eb51fb3059bbc9bc62fb2da22f95c0b2b1312f"
+    },
+    {
+      "name": "pgm16-random-pgm-gray-hflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350a8322d2808a58832c736e2106184915b34beb56afd855d54bd5c65f78913400d6c7b053a55f72484abb0920a5d764db520fc8e7385025846bfba11813af118b16fc5d90fa8c5b7840d364f4e8c2cdf23f991e04392f6f03283fe9cd68f2cb2d1b1159ad77f3680f20d3b75c0631f5d13dec6d0a369d97b051eb373a4448a0f8501c7603c33547bfd12f31b1b2c0952ea22dfb62bcc9ba5930fb"
+    },
+    {
+      "name": "pgm16-random-pgm-gray-vflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a3235350afb3059bbc9bc62fb2da22f95c0b2b1312fd1bf4735c303771c50f8a048443a37eb51b1979d360a6dec3dd1f531065cb7d3200f68f377ad59111b2dcbf268cde93f28036f2f39041e993ff2cdc2e8f464d340785b8cfa905dfc168b11af1318a1fb6b84255038e7c80f52db65d7a52009bb4a48725fa553b0c7d6003491785fc6d54bd555d8af56eb4bb3154a1806216e732c83588a7fd22283"
+    },
+    {
+      "name": "pgm16-random-pgm-gray16be-null",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a36353533350a4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcbe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38ab2f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb2b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2bd22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82"
+    },
+    {
+      "name": "pgm16-random-pgm-gray16be-hflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a36353533350a83c92256d35d80318af458de83ab2c84742b6e8921d70676185f49f9155bb3724bb6ebcb56d8afdfd9315502d6124b7dd5e2c725602b78579266343000e8d66fc810b0d153f7a56b5f3472f7486b4aa7bbc909142081a62bd7b26510dc83524d0fc0c91ae86738ab506c2553854c6be9fbffa207187c12efafc711458b9d15c1fd015d23910bfb5e8c975b91784540cbd4aa6468f4e7e938c2b2ce08f3b43fd399fe1e39040039152f196fb203aa28363fd3e9b3ce02682bf35fcb842d5c1abb1116596aae0577eaf415680f0f2b20ccd495b7a95d14066e317cf5a7d2063d42ecdc6d900a85368c9e2497b2b17f5140ec2d37793a604440486ba088f9aa50111c5876fc03cec3ce359646f5bfefd22e2f823155b23bb2d6c0c795ad2ef2a28c2db9fc7762e8bd40c9d3bb6559513025fc40"
+    },
+    {
+      "name": "pgm16-random-pgm-gray16be-vflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a36353533350afc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82d22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2b680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb22f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38abe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcb4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray-null",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "4bb3154a1806216e732c83588a7fd22283b0c7d6013491785fc6d54bd555d8af56ebe7c80f52db64d7a52009bb4a48725ea553fa905dfc168b11af1318a1fb6b842550382f39041e993ff2cdc2e8f464d340785b8c68f377ad59111b2dcbf268cde93f28036fb0979d360a6dec3dd1f531065cb7d3200fd1bf4735c303761c50f8a048443a37eb51fb3059bbc9bc62fb2da22f95c0b2b1312f"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray-hflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "8322d2808a58832c736e2106184915b34beb56afd855d54bd5c65f78913400d6c7b053a55f72484abb0920a5d764db520fc8e7385025846bfba11813af118b16fc5d90fa8c5b7840d364f4e8c2cdf23f991e04392f6f03283fe9cd68f2cb2d1b1159ad77f3680f20d3b75c0631f5d13dec6d0a369d97b051eb373a4448a0f8501c7603c33547bfd12f31b1b2c0952ea22dfb62bcc9ba5930fb"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray-vflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "fb3059bbc9bc62fb2da22f95c0b2b1312fd1bf4735c303771c50f8a048443a37eb51b1979d360a6dec3dd1f531065cb7d3200f68f377ad59111b2dcbf268cde93f28036f2f39041e993ff2cdc2e8f464d340785b8cfa905dfc168b11af1318a1fb6b84255038e7c80f52db65d7a52009bb4a48725fa553b0c7d6003491785fc6d54bd555d8af56eb4bb3154a1806216e732c83588a7fd22283"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16be-null",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcbe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38ab2f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb2b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2bd22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16be-hflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "83c92256d35d80318af458de83ab2c84742b6e8921d70676185f49f9155bb3724bb6ebcb56d8afdfd9315502d6124b7dd5e2c725602b78579266343000e8d66fc810b0d153f7a56b5f3472f7486b4aa7bbc909142081a62bd7b26510dc83524d0fc0c91ae86738ab506c2553854c6be9fbffa207187c12efafc711458b9d15c1fd015d23910bfb5e8c975b91784540cbd4aa6468f4e7e938c2b2ce08f3b43fd399fe1e39040039152f196fb203aa28363fd3e9b3ce02682bf35fcb842d5c1abb1116596aae0577eaf415680f0f2b20ccd495b7a95d14066e317cf5a7d2063d42ecdc6d900a85368c9e2497b2b17f5140ec2d37793a604440486ba088f9aa50111c5876fc03cec3ce359646f5bfefd22e2f823155b23bb2d6c0c795ad2ef2a28c2db9fc7762e8bd40c9d3bb6559513025fc40"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16be-vflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82d22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2b680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb22f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38abe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcb4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16le-null",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "b64b72b35b15f9495f187606d721896e2b74842cab83de58f48a31805dd35622c983d1b010c86fd6e8003034669257782b6025c7e2d57d4b12d6025531d9dfafd856cbeb67e81ac9c00f4d5283dc1065b2d72ba681201409c9bba74a6b48f772345f6ba5f7535efb0b91235d01fdc1159d8b4511c7afef127c1807a2fffbe96b4c8553256c50ab38192f15390004391efe99d33fb4f308ceb2c238e9e7f46864aad4cb404578915b978c0f6815f4ea7705ae6a591611bb1a5c2d84cb5ff32b6802ceb3e9d33f3628aa03b26f7fb1b297249e8c36850a906ddcec423d06d2a7f57c316e06145da9b795d4cc202b0f2ed2efbff5469635cec3ce03fc76581c1150aaf988a06b484044603a79372dec405140fc2530515965bbd3c940bde86277fcb92d8ca2f22ead95c7c0d6b23bb25531822f"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16le-hflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "c98356225dd33180f48ade58ab83842c2b74896ed72176065f18f9495b1572b3b64bcbebd856dfaf31d9025512d67d4be2d525c72b60577866923034e8006fd610c8d1b0f7536ba5345ff7726b48a74ac9bb140981202ba6b2d7106583dc4d52c00f1ac967e8ab386c5053254c85e96bfffb07a27c18ef12c7af45119d8bc11501fd235d0b915efb978c915b4578cb40aad46864e7f438e9b2c208ceb4f3d33ffe99391e00041539192fb26faa033628d33fb3e902ce2b685ff384cb5c2dbb1a16116a5905aeea7715f40f682b0fcc2095d4a9b7145d6e067c31a7f506d2423ddcec906d850a8c36249eb2977fb140512dec7937603a40446b4888a0aaf91150581cfc76ce03cec39635f546efbf2ed2822f55313bb2d6b2c7c0ad95f22e8ca2b92d77fce86240bdd3c965bb5159253040fc"
+    },
+    {
+      "name": "pgm16-random-rawvideo-gray16le-vflip",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "40fc2530515965bbd3c940bde86277fcb92d8ca2f22ead95c7c0d6b23bb25531822f2ed2efbff5469635cec3ce03fc76581c1150aaf988a06b484044603a79372dec40517fb1b297249e8c36850a906ddcec423d06d2a7f57c316e06145da9b795d4cc202b0f0f6815f4ea7705ae6a591611bb1a5c2d84cb5ff32b6802ceb3e9d33f3628aa03b26f192f15390004391efe99d33fb4f308ceb2c238e9e7f46864aad4cb404578915b978c5efb0b91235d01fdc1159d8b4511c7afef127c1807a2fffbe96b4c8553256c50ab3867e81ac9c00f4d5283dc1065b2d72ba681201409c9bba74a6b48f772345f6ba5f753d1b010c86fd6e8003034669257782b6025c7e2d57d4b12d6025531d9dfafd856cbebb64b72b35b15f9495f187606d721896e2b74842cab83de58f48a31805dd35622c983"
+    },
+    {
+      "name": "pgm-binary-pgm-gray-null",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-binary-pgm-gray-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350aff7f0100"
+    },
+    {
+      "name": "pgm-binary-pgm-gray-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-binary-pgm-gray16be-null",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-pgm-gray16be-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350affff7f7f01010000"
+    },
+    {
+      "name": "pgm-binary-pgm-gray16be-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "pgm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray-null",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ff7f0100"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00017fff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16be-null",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16be-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffff7f7f01010000"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16be-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16le-null",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "null",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16le-hflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "hflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "ffff7f7f01010000"
+    },
+    {
+      "name": "pgm-binary-rawvideo-gray16le-vflip",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-vf",
+        "vflip",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "gray16le",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000001017f7fffff"
+    },
+    {
+      "name": "pgm-binary-pgm-default",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-binary-rawvideo-rgba",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff010101ff7f7f7fffffffffff"
+    },
+    {
+      "name": "pgm16-pgm-default",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a12343456789abcde"
+    },
+    {
+      "name": "pgm16-rawvideo-default",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "341256349a78debc"
+    },
+    {
+      "name": "pgm16-rawvideo-rgba",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "121212ff343434ff797979ffbdbdbdff"
+    },
+    {
+      "name": "pgm16-ascii-pgm-default",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a000000407fdfffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-default",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "00004000df7fffff"
+    },
+    {
+      "name": "pgm16-ascii-rawvideo-rgba",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff000000ff808080ffffffffff"
+    },
+    {
+      "name": "pgm16-scaled-pgm-default",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a0000000180000000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-default",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "0000010000800000"
+    },
+    {
+      "name": "pgm16-scaled-rawvideo-rgba",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000000ff000000ff808080ff000000ff"
+    },
+    {
+      "name": "pgm16-random-pgm-default",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a36353533350a4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcbe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38ab2f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb2b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2bd22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82"
+    },
+    {
+      "name": "pgm16-random-rawvideo-default",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "b64b72b35b15f9495f187606d721896e2b74842cab83de58f48a31805dd35622c983d1b010c86fd6e8003034669257782b6025c7e2d57d4b12d6025531d9dfafd856cbeb67e81ac9c00f4d5283dc1065b2d72ba681201409c9bba74a6b48f772345f6ba5f7535efb0b91235d01fdc1159d8b4511c7afef127c1807a2fffbe96b4c8553256c50ab38192f15390004391efe99d33fb4f308ceb2c238e9e7f46864aad4cb404578915b978c0f6815f4ea7705ae6a591611bb1a5c2d84cb5ff32b6802ceb3e9d33f3628aa03b26f7fb1b297249e8c36850a906ddcec423d06d2a7f57c316e06145da9b795d4cc202b0f2ed2efbff5469635cec3ce03fc76581c1150aaf988a06b484044603a79372dec405140fc2530515965bbd3c940bde86277fcb92d8ca2f22ead95c7c0d6b23bb25531822f"
+    },
+    {
+      "name": "pgm16-random-rawvideo-rgba",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c:v",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "4c4c4cffb3b3b3ff151515ff4a4a4aff181818ff060606ff222222ff6f6f6fff747474ff2d2d2dff848484ff595959ff8b8b8bff808080ffd3d3d3ff222222ff848484ffb1b1b1ffc8c8c8ffd6d6d6ff010101ff343434ff929292ff787878ff606060ffc7c7c7ffd6d6d6ff4b4b4bffd6d6d6ff555555ffd9d9d9ffb0b0b0ff575757ffecececffe8e8e8ffc9c9c9ff101010ff525252ffddddddff656565ffd8d8d8ffa6a6a6ff212121ff090909ffbcbcbcff4b4b4bff484848ff737373ff5f5f5fffa5a5a5ff545454fffbfbfbff919191ff5d5d5dfffdfdfdff161616ff8c8c8cff111111ffb0b0b0ff131313ff181818ffa2a2a2fffcfcfcff6c6c6cff858585ff252525ff505050ff393939ff2f2f2fff393939ff040404ff1e1e1eff9a9a9aff404040fff4f4f4ffcececeffc3c3c3ffe9e9e9fff5f5f5ff646464ffd5d5d5ff414141ff787878ff5c5c5cff8d8d8dff686868fff4f4f4ff787878ffaeaeaeff595959ff111111ff1b1b1bff2d2d2dffccccccfff3f3f3ff686868ffcececeffeaeaeaff404040ff282828ff040404ff707070ffb1b1b1ff989898ff9e9e9eff373737ff0b0b0bff6e6e6effedededff3d3d3dffd2d2d2fff6f6f6ff313131ff060606ff5d5d5dffb8b8b8ffd5d5d5ff212121ff0f0f0fffd2d2d2ffc0c0c0ff474747ff363636ffc4c4c4ff040404ff777777ff1c1c1cff505050fffafafaffa1a1a1ff484848ff444444ff3a3a3aff373737ffecececff515151fffcfcfcff303030ff595959ffbbbbbbffcacacaffbdbdbdff636363fffcfcfcff2e2e2effa3a3a3ff2f2f2fff969696ffc1c1c1ffb3b3b3ffb2b2b2ff313131ff303030ff"
+    },
+    {
+      "name": "pbm-ascii-packet-copy",
+      "input": "pbm-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50310a3320320a30203120300a31203020310a"
+    },
+    {
+      "name": "pbm-compact-packet-copy",
+      "input": "pbm-compact",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50310a3320320a3031303130310a"
+    },
+    {
+      "name": "pbm-comments-packet-copy",
+      "input": "pbm-comments",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50310a23206d61736b0a3320320a302031202320726f770a300a31203020310a"
+    },
+    {
+      "name": "pbm-binary-packet-copy",
+      "input": "pbm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340a3320320a5fbf"
+    },
+    {
+      "name": "pbm-crlf-packet-copy",
+      "input": "pbm-crlf",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50340d0a3820310d0aff"
+    },
+    {
+      "name": "pgm-ascii-packet-copy",
+      "input": "pgm-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50320a3420310a3235340a30203120313237203235340a"
+    },
+    {
+      "name": "pgm-binary-packet-copy",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff"
+    },
+    {
+      "name": "pgm-scale-packet-copy",
+      "input": "pgm-scale",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235340a00017ffe"
+    },
+    {
+      "name": "pgm-crlf-packet-copy",
+      "input": "pgm-crlf",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350d0a3420310d0a3235350d0a11227fff"
+    },
+    {
+      "name": "ppm-ascii-packet-copy",
+      "input": "ppm-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50330a3220320a31350a31352030203020302031352030203020302031352031352031352031350a"
+    },
+    {
+      "name": "ppm-binary-packet-copy",
+      "input": "ppm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3220320a3235350aff000000ff000000ffffffff"
+    },
+    {
+      "name": "pgm-gray-packet-copy",
+      "input": "pgm-gray",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-gray-packet-copy",
+      "input": "ppm-gray",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a3920390a3235350a808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080"
+    },
+    {
+      "name": "ppm-random-packet-copy",
+      "input": "ppm-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50360a313720390a3235350aac74c4c13e4df0aa3fda42a53451f6a77d705dd3b775172516b86fc5a703c0e4292cd852727d9869a5fb18f54e45fce5399eeb19e0e1067d84f549dde221ee60b0e77f3a0f46d5e63e331d1f0255f57e1ed0ab7d52277d3b3900f796caa088f112b50ea672ffccb364c5bca617e3b179aca58705b4ecf722f312c74f232f778845ab97ab871159dc66e1ef140b6032b7bcdd6d4d5419dc868b49c8e01887ebe0aa6004ffaa2aeed29d7b6991119aa5c511de68448e58b57f31fa5c38825b7f410729fcf167ece212a69088bdcbb675037c58b2f75032ded390a3ddeaadb48be43242a72b1db031785c9a24d0b7048e78cde08867b2a07b6959a8029334d5fc9213217a61f8b1c8fa75234b55b9c8980807ca79df239efb1c045f6f5ee390245ce4b2150e2a4953ba63e43070f67a98717f20fe4cc7a044794f6aaaa02d146d71ce8dd76e7522c9c82f410793d7512ce029708e14dfee15faa12c381f39deb7433d5a5af7df16852c869a42b64e8e858c2705e43fa770a9ed49183937f03b168e81545b7f9e3dbb1ea74fea26602a9bf0562d12bf1cfe858e52c8b1bbf7e8bbd7b0169cb52ace37d0a3667db1dac386a8c123e1061ec71aa7464e4537a849be6ee4a706dd3e30de045206f8"
+    },
+    {
+      "name": "two-packet-copy",
+      "input": "two",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a3235350a00017fff50350a3420310a3235350aff7f0100"
+    },
+    {
+      "name": "pgm16-packet-copy",
+      "input": "pgm16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533350a12343456789abcde"
+    },
+    {
+      "name": "pgm16-scaled-packet-copy",
+      "input": "pgm16-scaled",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a3420310a36353533340a000000017ffffffe"
+    },
+    {
+      "name": "pgm16-ascii-packet-copy",
+      "input": "pgm16-ascii",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50320a3420310a313032330a3020312035313120313032330a"
+    },
+    {
+      "name": "pgm16-random-packet-copy",
+      "input": "pgm16-random",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50350a313720390a36353533350a4bb6b372155b49f9185f067621d76e89742b2c8483ab58de8af48031d35d225683c9b0d1c810d66f00e8343092667857602bc725d5e24b7dd6125502d931afdf56d8ebcbe867c91a0fc0524ddc836510d7b2a62b20810914bbc94aa7486b72f75f34a56b53f7fb5e910b5d23fd0115c18b9d1145afc712ef187ca207fbff6be9854c2553506c38ab2f19391504001e3999fe3fd3f3b4ce08c2b2e938f4e76468d4aa40cb78455b918c97680ff41577eaae05596a11161abb2d5ccb84f35f682bce02e9b33fd3283603aa6fb2b17f97b29e24368c0a856d90ecdc3d42d206f5a7317c066e5d14b7a9d49520cc0f2bd22ebfef46f53596c3ce03ce76fc1c585011f9aaa088486b44403a603779ec2d5140fc4030255951bb65c9d3bd4062e8fc772db9a28c2ef295adc0c7b2d6b23b31552f82"
+    },
+    {
+      "name": "two16-decode",
+      "input": "two16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcdebcde789a34561234"
+    },
+    {
+      "name": "two16-loop",
+      "input": "two16",
+      "args": [
+        "-stream_loop",
+        "1",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcdebcde789a3456123412343456789abcdebcde789a34561234"
+    },
+    {
+      "name": "two16-input-seek",
+      "input": "two16",
+      "args": [
+        "-ss",
+        "0.04",
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "two16-output-seek",
+      "input": "two16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-ss",
+        "0.04",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "bcde789a34561234"
+    },
+    {
+      "name": "two16-duration",
+      "input": "two16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-t",
+        "0.04",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcde"
+    },
+    {
+      "name": "two16-frame-limit",
+      "input": "two16",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "1",
+        "-pix_fmt",
+        "gray16be",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "12343456789abcde"
+    },
+    {
+      "name": "pgm-ascii-tail-copy",
+      "input": "pgm-ascii-tail",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-c",
+        "copy",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": "50320a3420310a3235340a30203120313237203235340a232072657461696e205061636b657420636f6d6d656e74203132330a"
+    },
+    {
+      "name": "pgm-ascii-tail-decode",
+      "input": "pgm-ascii-tail",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-"
+      ],
+      "output": "000180ff"
+    },
+    {
+      "name": "empty-pgm",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "0",
+        "-c:v",
+        "pgm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "empty-pbm",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "0",
+        "-c:v",
+        "pbm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "empty-ppm",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "0",
+        "-c:v",
+        "ppm",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "empty-qoi",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "0",
+        "-c:v",
+        "qoi",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": ""
+    },
+    {
+      "name": "empty-png",
+      "input": "pgm-binary",
+      "args": [
+        "-i",
+        "/in.pnm",
+        "-frames:v",
+        "0",
+        "-c:v",
+        "png",
+        "-f",
+        "image2pipe",
+        "-"
+      ],
+      "output": ""
+    }
+  ]
+}

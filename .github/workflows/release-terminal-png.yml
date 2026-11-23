@@ -1,12 +1,6 @@
 name: Release terminal-png + terminal-png-mcp
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/terminal-png/**"
-      - "packages/terminal-png-mcp/**"
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

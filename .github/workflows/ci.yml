@@ -1,0 +1,15 @@
+name: Package CI
+on:
+  push:
+    branches:
+      - main
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: package-ci-${{ github.ref }}
+  queue: single
+  cancel-in-progress: false
+jobs:
+  validate:
+    uses: ./.github/workflows/release-validation.yml

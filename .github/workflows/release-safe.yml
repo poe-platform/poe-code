@@ -1,39 +1,6 @@
 name: Release scoped safe packages
 on:
   workflow_dispatch: null
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/safe-bash/**"
-      - "packages/safe-fs/**"
-      - "packages/safe-js/**"
-      - "packages/safe-bash-contracts/**"
-      - "packages/pdf-ast/**"
-      - "packages/office-package/**"
-      - "packages/safe-bash-csv-engine/**"
-      - "packages/safe-bash-*-engine/**"
-      - "packages/safe-bash-command-*/**"
-      - "packages/mcp-oauth/**"
-      - "packages/tiny-mcp-client/**"
-      - "packages/safe-playwright/**"
-      - "packages/safe-playwright-cloudflare/**"
-      - "packages/package-lint/**"
-      - "scripts/package-safe.mjs"
-      - "scripts/package-safe.test.ts"
-      - "scripts/bundle-safe-bash.mjs"
-      - "scripts/fixtures/safe-packages-*"
-      - "scripts/verify-safe-publication.mjs"
-      - "scripts/verify-safe-browser.mjs"
-      - "scripts/verify-safe-cloudflare.mjs"
-      - "scripts/verify-safe-bash-profiles.mjs"
-      - "scripts/build-workspaces.mjs"
-      - "scripts/check-cache.mjs"
-      - ".github/workflows/release-safe.yml"
-      - "packages/spreadsheet-*/**"
-      - "packages/xml-ast/**"
-      - "packages/xlsx-ast/**"
-      - "packages/xls-ast/**"
 permissions:
   contents: write
   id-token: write

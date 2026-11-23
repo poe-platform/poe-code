@@ -1,11 +1,6 @@
 name: Release tiny-stdio-mcp-test-server
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/tiny-stdio-mcp-test-server/**'
-      - '.github/workflows/release-tiny-mcp-test.yml'
+  ? workflow_dispatch
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

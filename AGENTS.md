@@ -13,7 +13,7 @@ When adding a new provider, the author should be creating 1 provider file, every
 
 In poe-code only, we are not doing branches unless requested. Everything happens on main and we push straight to main (when requested).
 
-ALWAYS monitor the build after push until the release is successful. 
+Monitor CI after pushing. When a release is requested by a commit trailer or manual workflow dispatch, also monitor publication.
 
 ## Bad habits that I want to avoid
 
@@ -44,15 +44,36 @@ Use `npm run lint:workflows`
 
 - Report local commits, verified remote-main delivery, and successful releases separately. A local commit is not a completed push; a completed push is not a verified release.
 - Close validated issues when their fixes are verified on remote `main`, without waiting for the release.
-- Continue with the next validated issue while release builds run, and keep monitoring those builds through successful publication.
+- Continue with the next validated issue while CI runs. When releasing, keep monitoring through successful publication.
 
 ## Release
 
-- Stable release: Push to `main` branch → publishes `poe-code@latest`
+- Release on demand, not after every commit. Ordinary pushes to `main` run package CI without publishing npm or PyPI packages.
+- Agents may trigger a release as part of authorized commit/push work; no separate release approval is required. For a series of fixes, commit each separately and release once at the end.
+- Keep using Conventional Commits for version calculation. To release from a push, add a `Release: <workflow.yml>` Git trailer to the final commit, separated from the subject/body by a blank line. Only the pushed head commit's trailers are read; repeat the trailer to request multiple publishers.
 
-Releases are always done on github, not locally
+```text
+fix(safe-bash): finish the command fixes
 
-See NPM_PUBLISHING.md for publishing new packages
+Release: release-safe.yml
+```
+
+- Alternatively, dispatch once after pushing the series. Releases run in GitHub Actions, not locally. Choose the package's workflow and **Run workflow** on `main`, or use:
+
+```sh
+# Root poe-code@latest
+gh workflow run release.yml --ref main --repo poe-platform/poe-code
+# Scoped SafeFS, SafeJS, and Safe Bash (shared version)
+gh workflow run release-safe.yml --ref main --repo poe-platform/poe-code
+# Toolcraft packages
+gh workflow run release-toolcraft.yml --ref main --repo poe-platform/poe-code
+```
+
+- Use `Release: release.yml` for the root package or the matching `release-*.yml` for other packages; list them with `gh workflow list --repo poe-platform/poe-code`. Each dispatch uses the `main` revision at dispatch time. Do not use both a trailer and a manual dispatch for the same release.
+- After dispatch, identify the new run with `gh run list --workflow <workflow.yml> --event workflow_dispatch --repo poe-platform/poe-code`, monitor it, and verify the published version before reporting release success.
+- `bump-version.yml` creates an empty commit and dispatches a root release when a version bump is needed. Prefer a trailer on the final real fix or a direct dispatch. Keep release validation enabled.
+
+See `docs/development/NPM_PUBLISHING.md` for publishing details.
 
 ## Configure commands / Providers
 

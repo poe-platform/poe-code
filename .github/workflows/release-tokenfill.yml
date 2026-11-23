@@ -1,11 +1,6 @@
 name: Release tokenfill
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/tokenfill/**'
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

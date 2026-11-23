@@ -1,0 +1,25 @@
+name: Dispatch requested releases
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    if: "contains(github.event.head_commit.message, 'Release: ')"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+      - name: Dispatch publishers from commit trailers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/dispatch-releases.mjs

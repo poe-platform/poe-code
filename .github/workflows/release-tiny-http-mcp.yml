@@ -1,15 +1,6 @@
 name: Release tiny-http-mcp-server
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/tiny-http-mcp-server/**'
-      - 'packages/auth-store/**'
-      - 'packages/mcp-oauth/**'
-      - 'packages/tiny-mcp-client/**'
-      - '.github/workflows/release-tiny-http-mcp.yml'
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

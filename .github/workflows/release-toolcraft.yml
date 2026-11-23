@@ -1,61 +1,6 @@
 name: Release toolcraft packages
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/toolcraft/**"
-      - "packages/toolcraft-design/**"
-      - "packages/toolcraft-schema/**"
-      - "packages/toolcraft-openapi/**"
-      - "packages/agent-defs/**"
-      - "packages/agent-human-in-loop/**"
-      - "packages/agent-mcp-config/**"
-      - "packages/auth-store/**"
-      - "packages/config-mutations/**"
-      - "packages/frontmatter/**"
-      - "packages/mcp-oauth/**"
-      - "packages/mcp-oauth-server/**"
-      - "packages/process-runner/**"
-      - "packages/task-list/**"
-      - "packages/tiny-http-mcp-server/**"
-      - "packages/tiny-mcp-client/**"
-      - "scripts/toolcraft-standalone-bundle.mjs"
-      - "scripts/manage-bundled-workspace-deps.mjs"
-      - "scripts/npm-command.mjs"
-      - "scripts/prepare-published-workspace-version.mjs"
-      - "scripts/verify-toolcraft-cli-bundle.mjs"
-      - "scripts/verify-toolcraft-standalone.mjs"
-      - "scripts/verify-toolcraft-published-sdk-types.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/release-toolcraft.yml"
-      - packages/safe-bash-command-csvkit/**
-      - packages/safe-bash-media-engine/**
-      - packages/office-package/**
-      - packages/op/**
-      - packages/package-lint/**
-      - packages/safe-bash-command-pandoc/**
-      - packages/safe-bash-pdf-engine/**
-      - packages/safe-bash-pptx-engine/**
-      - packages/remote-execution/**
-      - packages/safe-bash/**
-      - packages/safe-bash-command-csvcut/**
-      - packages/safe-bash-command-csvgrep/**
-      - packages/safe-bash-command-diff3/**
-      - packages/safe-bash-command-exiftool/**
-      - packages/safe-bash-command-fmt/**
-      - packages/safe-bash-command-fold/**
-      - packages/safe-bash-command-htmlq/**
-      - packages/safe-bash-command-unrtf/**
-      - packages/safe-bash-command-wkhtmltopdf/**
-      - packages/safe-bash-contracts/**
-      - packages/safe-bash-csv-engine/**
-      - packages/safe-fs/**
-      - packages/safe-playwright/**
-      - packages/ssconvert/**
-      - turbo.json
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

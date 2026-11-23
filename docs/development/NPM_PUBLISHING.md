@@ -7,16 +7,41 @@ exception is the first publish of a new package (see Initial Publish).
 
 The root `poe-code` package is released by `.github/workflows/release.yml`.
 
-Pushing to `main` publishes the `latest` dist tag.
+Package publishers run on demand through `workflow_dispatch`. Ordinary pushes
+run package checks through `.github/workflows/ci.yml` without publishing.
+To request a release on the final commit of a series, add a Git trailer:
 
-Use `.github/workflows/bump-version.yml` when GitHub should bump and release the
-root package. The release workflow runs semantic-release and publishes from
-GitHub.
+```text
+fix(safe-bash): finish the command fixes
+
+Release: release-safe.yml
+```
+
+`dispatch-releases.yml` reads only the pushed head commit's trailers and dispatches
+the named publishers on `main`. Use `Release: release.yml` for the root package;
+repeat the trailer for multiple publishers. Conventional Commits still determine
+the root version when semantic-release runs.
+
+Alternatively, dispatch the root release after pushing the series:
+
+```sh
+gh workflow run release.yml --ref main --repo poe-platform/poe-code
+```
+
+Use `release-safe.yml` for the scoped Safe libraries or the corresponding
+`release-*.yml` for another package. The Actions UI's **Run workflow** on `main`
+is equivalent. Agents may release as part of authorized commit/push work without
+a separate approval. Use either a trailer or a direct dispatch, not both for the
+same release. Monitor the dispatched run and verify its published version.
+
+`.github/workflows/bump-version.yml` creates a commit and dispatches the root
+release workflow when a version bump is needed. Prefer a trailer on the final
+real fix or a direct dispatch, and release once for a series of commits.
 
 ## Release Queues
 
-Automatic package releases use GitHub's native concurrency queue to accumulate
-pending changes independently for each publisher:
+On-demand package releases use GitHub's native concurrency queue independently
+for each publisher:
 
 ```yaml
 concurrency:
@@ -30,11 +55,10 @@ publication retain separate groups, so validation can continue while a previous
 validated build publishes. Build-only validation has its own group. Each run
 continues using its triggering commit and its own verified build artifacts.
 
-The active run finishes even when `main` advances. While it runs, newer pushes
-replace the pending run for that publisher. The remaining run contains the
-accumulated commits, so a burst of package changes produces one follow-up release
-without a debounce delay or a backlog of one release per push. Package path
-filters and independent concurrency groups keep unrelated publishers parallel.
+The active run finishes even when `main` advances. Pushes without a release
+trailer do not enqueue publication. While a release runs, newer dispatches replace
+the pending run for that publisher. Independent concurrency groups keep unrelated publishers
+parallel.
 SafeFS, SafeJS, and Safe Bash retain their existing shared-version release group.
 
 Running validation and builds are never discarded merely because a newer commit
@@ -44,7 +68,7 @@ against republishing changes already covered by a newer publication. The
 `pin_revision` input is no longer needed: every active run keeps its revision.
 
 GitHub schedules concurrency slots by arrival, which can differ from commit or
-dispatch order. Pending manual dispatches share the publisher's queue and can
+dispatch order. Pending manual dispatches use the publisher's queue and can
 also be replaced; this queue does not promise a release for every requested SHA.
 The manual-only opencode-poe-auth publisher retains `queue: max`.
 
@@ -179,7 +203,7 @@ Before making a workspace package public:
 
 Release workflows should:
 
-- trigger from `main` with package-specific path filters when possible;
+- expose only `workflow_dispatch` for publication, normally dispatched on `main`;
 - build the package before publishing;
 - publish with `npm publish --provenance --access public`;
 - use GitHub OIDC provenance instead of npm tokens.

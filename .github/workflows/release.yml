@@ -1,11 +1,6 @@
 name: Release
-# Note: workflow_dispatch is needed because pushes made with GitHub App tokens
-# don't trigger other workflows (to prevent infinite loops). Workflows like
-# bump-version uses `gh workflow run` to trigger this.
+# Publishing requires an explicit dispatch. Push checks run in ci.yml.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       build_only:

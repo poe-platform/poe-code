@@ -1,12 +1,6 @@
 name: Release terminal-pilot + terminal-pilot-mcp
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/terminal-pilot/**"
-      - "packages/terminal-pilot-mcp/**"
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

@@ -1,11 +1,6 @@
 name: Release poe-oauth
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/poe-oauth/**'
 concurrency:
   # Finish the active release; accumulate newer changes in one pending run.
   queue: single

@@ -1,7 +1,9 @@
+import {readFileSync} from "node:fs";
 import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {createPandocCommand} from "./command.js";
-import fixtures from "../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json" with {type: "json"};
+
+const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string; status: number}[];
 
 it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
   const fs = new MemoryFileSystem();

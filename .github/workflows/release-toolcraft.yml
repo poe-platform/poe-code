@@ -37,7 +37,27 @@ jobs:
         run: npx turbo build --filter=toolcraft
       - name: Verify published SDK declaration types
         if: matrix.node-version == 22
-        run: npm run smoke:toolcraft-sdk-types
+        run: |
+          rustc --version
+          cargo --version
+          mkdir -p out/toolcraft-cargo-diagnostics
+          cat > out/toolcraft-cargo-diagnostics/cargo <<'SH'
+          #!/usr/bin/env bash
+          log="$GITHUB_WORKSPACE/out/toolcraft-cargo-diagnostics/cargo-$$.log"
+          cargo "$@" 2> "$log"
+          status=$?
+          cat "$log" >&2
+          exit "$status"
+          SH
+          chmod +x out/toolcraft-cargo-diagnostics/cargo
+          CARGO="$PWD/out/toolcraft-cargo-diagnostics/cargo" npm run smoke:toolcraft-sdk-types
+      - name: Preserve native compiler diagnostics
+        if: failure() && matrix.node-version == 22
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: toolcraft-cargo-diagnostics
+          path: out/toolcraft-cargo-diagnostics/*.log
+          if-no-files-found: ignore
       - name: Build and start the standalone CLI bundle
         env:
           TOOLCRAFT_TEST_NODE: ${{ steps.runtime.outputs.node }}

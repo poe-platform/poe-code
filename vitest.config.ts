@@ -202,6 +202,7 @@ export default defineConfig({
     ],
     exclude: [
       "**/node_modules/**",
+      "**/dist/**",
       "packages/safe-bash/**",
       "packages/safe-bash-e2e/**", // Optional on-demand Node E2E suite
       "packages/safe-playwright/**",

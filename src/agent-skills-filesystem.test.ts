@@ -18,6 +18,8 @@ it("exports a virtual skill catalog and accepts a grant for one trusted MCP serv
   const fs = createMemoryFileSystem();
   await fs.mkdir("/skills/demo", { recursive: true });
   await fs.writeFile("/skills/demo/SKILL.md", new TextEncoder().encode("# Demo\nUse this virtual skill."));
+  await fs.mkdir("/skills/.system/creator", { recursive: true });
+  await fs.writeFile("/skills/.system/creator/SKILL.md", new TextEncoder().encode("# Creator\nUse this system skill."));
   let system = "";
   await agent({ fs, cwd: "/" })
     .use(skillsPlugin({ directories: ["/skills"] }))
@@ -26,6 +28,7 @@ it("exports a virtual skill catalog and accepts a grant for one trusted MCP serv
     .run("hello", { acpModel: { complete: async () => toAcpModelResponse({ content: "done" }) } });
   expect(system).toContain("/skills/demo/SKILL.md");
   expect(system).toContain("demo");
+  expect(system).toContain("/skills/.system/creator/SKILL.md");
   expect(connect).toHaveBeenCalledOnce();
   expect(close).toHaveBeenCalledOnce();
   await expect(agent({ fs }).mcp({ name: "ungranted", command: "synthetic" }).acp("hello", {

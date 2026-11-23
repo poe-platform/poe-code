@@ -1,4 +1,4 @@
-import { discoverSkillsAsync, renderSkillCatalog } from "@poe-code/agent-skill-config";
+import { discoverSkillsAsync, renderSkillCatalog } from "@poe-code/agent-skill-config-rust";
 import { native } from "./native.js";
 const skills = (options = {}) => {
   const definitions = normalizeDefinitions(options.definitions ?? {});
@@ -17,12 +17,7 @@ const skills = (options = {}) => {
       const catalog = options.directories?.length
         ? await discoverSkillsAsync(options.directories, requireRuntime(runtime))
         : [];
-      const rendered = renderSkillCatalog(catalog);
-      const catalogGuidance = rendered === undefined ? undefined : [
-        "Available file skills:",
-        rendered,
-        "Read the full SKILL.md through the configured filesystem before using a skill."
-      ].join("\n");
+      const catalogGuidance = renderSkillCatalog(catalog);
       const system = [ctx.system, guidance, catalogGuidance].filter(Boolean).join("\n\n");
       return {
         ...ctx,

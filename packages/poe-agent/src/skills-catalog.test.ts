@@ -7,6 +7,61 @@ import { toAcpModelResponse } from "./testing/model-response.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 
+it("loads user and system skills from configured roots, including same-name skills", async () => {
+  const fs = createMemoryFileSystem();
+  const files = {
+    "/work/.agents/skills/report/SKILL.md": "---\nname: report\ndescription: USER_REPORT\n---\nUSER_BODY",
+    "/work/.agents/skills/.system/creator/SKILL.md": "---\nname: creator\ndescription: SYSTEM_CREATOR\n---\nSYSTEM_BODY",
+    "/work/.agents/skills/.system/review/SKILL.md": "---\nname: review\ndescription: SYSTEM_REVIEW\n---",
+    "/home/user/.agents/skills/review/SKILL.md": "---\nname: review\ndescription: USER_REVIEW\n---"
+  };
+  for (const [file, content] of Object.entries(files)) {
+    await fs.mkdir(file.slice(0, file.lastIndexOf("/")), { recursive: true });
+    await fs.writeFile(file, bytes(content));
+  }
+  const runtime = createAgentRuntime({ fs, cwd: "/work" }, new AbortController().signal);
+  const directories = [".agents/skills", "/home/user/.agents/skills"];
+  const plugin = skillsPlugin({ directories });
+  const prompt = { system: "BASE_SYSTEM", userPrompt: "hello" };
+  const first = await plugin.prompt!(prompt, runtime);
+  expect(first.system).toContain("BASE_SYSTEM");
+  expect(first.system).toContain("USER_REPORT");
+  expect(first.system).toContain("SYSTEM_CREATOR");
+  expect(first.system).toContain("USER_REVIEW");
+  expect(first.system).toContain("SYSTEM_REVIEW");
+  expect(first.system).toContain("/work/.agents/skills/.system/creator/SKILL.md");
+  expect(first.system).not.toContain("USER_BODY");
+  expect(first.system).not.toContain("SYSTEM_BODY");
+  expect(first.system).not.toContain("Duplicate skill name: review");
+  const explicitSystem = skillsPlugin({ directories: [...directories, ".agents/skills/.system"] });
+  expect((await explicitSystem.prompt!(prompt, runtime)).system?.split("- creator:")).toHaveLength(2);
+
+  await fs.writeFile("/work/.agents/skills/.system/creator/SKILL.md", bytes("---\ndescription: UPDATED_SYSTEM_CREATOR\n---"));
+  expect((await plugin.prompt!(prompt, runtime)).system).toContain("UPDATED_SYSTEM_CREATOR");
+  await fs.unlink("/work/.agents/skills/.system/creator/SKILL.md");
+  expect((await plugin.prompt!(prompt, runtime)).system).not.toContain("SYSTEM_CREATOR");
+});
+
+it("loads a system-only root and skips missing roots", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/skills/.system/creator", { recursive: true });
+  await fs.writeFile("/skills/.system/creator/SKILL.md", bytes("---\ndescription: SYSTEM_ONLY\n---"));
+  const runtime = createAgentRuntime({ fs, cwd: "/" }, new AbortController().signal);
+  const plugin = skillsPlugin({ directories: ["/missing", "/skills"] });
+  expect((await plugin.prompt!({ userPrompt: "hello" }, runtime)).system).toContain("SYSTEM_ONLY");
+});
+
+it("rejects a symlinked system directory", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/skills", { recursive: true });
+  await fs.mkdir("/outside/creator", { recursive: true });
+  await fs.writeFile("/outside/creator/SKILL.md", bytes("UNTRUSTED_BODY"));
+  await fs.symlink("/outside", "/skills/.system");
+  const runtime = createAgentRuntime({ fs, cwd: "/" }, new AbortController().signal);
+  const plugin = skillsPlugin({ directories: ["/skills"] });
+  await expect(plugin.prompt!({ userPrompt: "hello" }, runtime)).rejects.toThrow("symbolic link");
+});
+
 it("refreshes metadata after a tool edit and resume without putting skill bodies in the prompt", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/skills/report", { recursive: true });
@@ -29,7 +84,10 @@ it("refreshes metadata after a tool edit and resume without putting skill bodies
       const system = JSON.stringify(systems);
       expect(systems).toHaveLength(1);
       expect(system).toContain("BASE_SYSTEM");
-      expect(system).toContain("<name>weekly-report</name>");
+      expect(system).toContain("- weekly-report:");
+      expect(system).toContain("<skills_instructions>");
+      expect(system).toContain("### Available skills");
+      expect(system).not.toContain("Available file skills:");
       expect(system).toContain(file);
       expect(system).not.toContain("BODY_MARKER");
       expect(system).not.toContain("HIDDEN_DESCRIPTION");

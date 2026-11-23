@@ -49,7 +49,11 @@ fn discovery_orders_utf16_names_and_remembers_only_loaded_paths() {
             name: u("\u{e000}")
         }
     );
-    assert_eq!(machine.directory(false), Request::Done);
+    assert_eq!(
+        machine.directory(false),
+        Request::Root(u("/skills/.system"))
+    );
+    assert_eq!(machine.missing(), Request::Done);
     machine.start(u("/skills"));
     machine.root(false).unwrap();
     machine.names(vec![u("a"), u("astral")]);
@@ -61,7 +65,41 @@ fn discovery_orders_utf16_names_and_remembers_only_loaded_paths() {
     machine.regular(true).unwrap();
     machine.loaded();
     machine.directory(true);
-    assert_eq!(machine.file(u("/skills/astral/SKILL.md")), Request::Done);
+    assert_eq!(
+        machine.file(u("/skills/astral/SKILL.md")),
+        Request::Root(u("/skills/.system"))
+    );
+    assert_eq!(machine.missing(), Request::Done);
+}
+
+#[test]
+fn system_discovery_uses_the_same_checks_and_does_not_recurse() {
+    let mut machine = Machine::default();
+    machine.start(u("/"));
+    machine.root(false).unwrap();
+    assert_eq!(machine.names(vec![]), Request::Root(u("/.system")));
+    assert_eq!(
+        machine.root(true),
+        Err(u("Skill directory must not be a symbolic link: /.system"))
+    );
+    assert_eq!(machine.root(false).unwrap(), Request::Names(u("/.system")));
+    machine.names(vec![u("creator")]);
+    assert_eq!(
+        machine.directory(true),
+        Request::FilePath {
+            root: u("/.system"),
+            name: u("creator")
+        }
+    );
+    machine.file(u("/.system/creator/SKILL.md"));
+    assert_eq!(
+        machine.regular(true).unwrap(),
+        Request::Read {
+            name: u("creator"),
+            file: u("/.system/creator/SKILL.md")
+        }
+    );
+    assert_eq!(machine.loaded(), Request::Done);
 }
 
 #[test]

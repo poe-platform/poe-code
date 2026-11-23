@@ -142,7 +142,11 @@ Skills guidance lists active definitions, tags and available tool names while No
 preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
 scalar validation; Node executes the injected spawn callback. Built-in configuration specs are available through `builtinPluginRegistry`.
 
-File skills use the shared metadata catalog: names, descriptions and locations refresh before each request; instruction bodies and explicit-only skills stay out of the system prompt. Invalid metadata and duplicate names appear as diagnostics without removing valid skills. The base prompt and the choice of shell or file tools are preserved.
+File skills use the shared Codex-style Markdown catalog inside `<skills_instructions>`, with `## Skills`, `### Available skills`, `- name: description (file: path)` rows, and `### How to use skills` guidance. Names, descriptions and locations refresh before each request; instruction bodies and explicit-only skills stay out of the system prompt. Invalid metadata appears as diagnostics without removing valid skills. The base prompt and the choice of shell or file tools are preserved.
+
+File skill discovery, YAML parsing and catalog rendering use `@poe-code/agent-skill-config-rust`. The JavaScript adapter supplies asynchronous filesystem calls and connects the result to the prompt hook; it does not invoke the TypeScript skills implementation.
+
+`skillsPlugin({ directories: [".agents/skills"] })` loads user skills from `.agents/skills/<name>/SKILL.md` and system skills from `.agents/skills/.system/<name>/SKILL.md` through the agent filesystem. Each configured root is searched together with its `.system` subdirectory. Distinct skills with the same name remain visible with their own paths, matching Codex. Missing directories are skipped, repeated file paths are listed once, and symbolic-link roots or skill files are rejected. File discovery stays disabled when `directories` is omitted.
 
 `memoryPlugin` finds the nearest project `AGENTS.md` and user memory file, expands
 trusted `@` file imports and caches the load per plugin. It rejects import cycles,

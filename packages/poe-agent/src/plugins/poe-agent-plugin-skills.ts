@@ -42,12 +42,7 @@ const skills = (options: SkillsPluginOptions = {}): AgentPlugin => {
       const catalog = options.directories?.length
         ? await discoverSkillsAsync(options.directories, requireRuntime(runtime))
         : [];
-      const rendered = renderSkillCatalog(catalog);
-      const catalogGuidance = rendered === undefined ? undefined : [
-        "Available file skills:",
-        rendered,
-        "Read the full SKILL.md through the configured filesystem before using a skill."
-      ].join("\n");
+      const catalogGuidance = renderSkillCatalog(catalog);
       const system = [ctx.system, guidance, catalogGuidance].filter(Boolean).join("\n\n");
       return {
         ...ctx,

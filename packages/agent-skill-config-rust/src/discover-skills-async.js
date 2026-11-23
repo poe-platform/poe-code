@@ -21,6 +21,7 @@ export async function discoverSkillsAsync(directories, options) {
       try {
         switch (operation) {
           case 'root': {
+            options.signal?.throwIfAborted();
             const stat = await fs.lstat(request.path);
             request = machine.root(Boolean('isSymbolicLink' in stat ? stat.isSymbolicLink() : stat.type === 'symlink'));
             break;

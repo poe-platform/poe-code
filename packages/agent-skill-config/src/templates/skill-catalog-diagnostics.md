@@ -1,0 +1,2 @@
+### Skill diagnostics
+{{diagnostics}}

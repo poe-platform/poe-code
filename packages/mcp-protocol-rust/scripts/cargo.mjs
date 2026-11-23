@@ -78,6 +78,7 @@ function computeRustInputsState() {
       if (dirName.endsWith("-rust")) walk(path.join(packagesRoot, dirName));
     }
     walk(path.join(packagesRoot, "agent-defs", "src"));
+    walk(path.join(packagesRoot, "agent-skill-config", "src", "templates"));
     walk(path.join(packagesRoot, "poe-code-config", "src"));
   }
   return { digest: hash.digest("hex") };

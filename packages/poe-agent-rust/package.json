@@ -30,7 +30,7 @@
     "vitest": "4.1.11",
     "@poe-code/poe-acp-client-rust": "*",
     "@poe-code/user-error-rust": "*",
-    "@poe-code/agent-skill-config": "*",
+    "@poe-code/agent-skill-config-rust": "*",
     "@poe-code/safe-fs": "*"
   },
   "files": [

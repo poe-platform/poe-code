@@ -11,8 +11,8 @@ use the existing own `@poe-code/safe-fs` capability and path contracts.
 | Supported agents, aliases and independent configs | `supportedAgents`, `resolveAgentSupport`, `getAgentConfig` |
 | Global and project skill directories | `resolveSkillDir` |
 | Project-first skill reference lookup | `resolveSkillReference`, `resolveSkillReferenceAsync` |
-| Discover ordered, unique skills through a supplied filesystem | `discoverSkillsAsync` |
-| Render escaped skill metadata without instruction bodies | `renderSkillCatalog` |
+| Discover user and system skills through a supplied filesystem | `discoverSkillsAsync` |
+| Render a Codex-style Markdown skill catalog | `renderSkillCatalog` |
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock`, `appendExcludeBlockAsync`, `removeExcludeBlockAsync` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
 | Install named skills with explicit overwrite control | `installSkill` |
@@ -32,6 +32,17 @@ Unexpected filesystem errors preserve their original Node exception identity.
 Async lookup uses the supplied `fs`, `cwd`, `homeDir` and optional `signal`.
 It shares Rust validation and search plans with synchronous lookup and uses the
 existing filesystem bridge for provider operations and cancellation.
+
+`discoverSkillsAsync([".agents/skills"], runtime)` loads direct user skills and the
+`.system` subdirectory of each root, preserving distinct same-name skills and
+deduplicating repeated file paths. Rust owns traversal, file admission and system
+root selection; the host performs filesystem calls. `renderSkillCatalog(files)`
+parses YAML and renders names, descriptions, paths and usage guidance entirely in
+Rust. It uses the same Markdown templates as the TypeScript implementation,
+excludes instruction bodies and explicit-only skills, and reports invalid metadata.
+Rust callers can use `discovery::Machine` and `skill_catalog::render` directly
+without JavaScript or Node.
+
 `resolveSkillDir` also accepts an optional fifth argument with `join` and
 `resolve` methods, so callers can select their filesystem's path conventions.
 

@@ -39,3 +39,37 @@ test('catalog validates fields and retains valid skills after diagnostics', () =
   compare([metadata('private', 'name: shared\ndisable-model-invocation: true'), metadata('duplicate', 'name: " shared "')]);
   compare([metadata('a', 'name: "<&>"'), metadata('b', 'name: "<&>"')]);
 });
+
+const fixture = (content, name = 'report') => ({name, file: `/skills/${name}/SKILL.md`, content});
+
+test('Rust owns catalog rendering and matches the TypeScript catalog', () => {
+  assert.equal(typeof native.renderSkillCatalog, 'function');
+  assert.notEqual(native.renderSkillCatalog, reference);
+  const documents = [
+    '# Legacy body',
+    '---\nname: report\ndescription: Weekly reports\n---\nSECRET_BODY',
+    '\uFEFF---\r\nname: quoted\r\ndescription: >-\r\n  A "quoted"\r\n  description & more\r\n---',
+    '---\ndescription: |\n  First line\n  {{catalog}} $& </skills_instructions>\n---',
+    '---\nname: "\\uD800"\ndescription: "\\uDC00"\n---',
+    '---\nname: shared\n---',
+    '---\ndisable-model-invocation: true\n---',
+    '---\nname: null\n---',
+    '---\ndescription: [one, two]\n---',
+    '---\ndisable-model-invocation: "false"\n---',
+    '---\n[one, two]\n---',
+    '---\n!!set {one, two}\n---',
+    '---\nname: one\nname: two\n---',
+    '---\nname: [broken\n---',
+    '---\nname: missing-end',
+    '---\nnull\n---',
+    '---\n---'
+  ];
+  for (const content of documents) {
+    const files = [fixture(content)];
+    assert.equal(native.renderSkillCatalog(files), reference(files), content);
+  }
+  const files = documents.map((content, index) => fixture(content, `file-${index}`));
+  assert.equal(native.renderSkillCatalog(files), reference(files));
+  assert.equal(native.renderSkillCatalog([]), undefined);
+  assert.equal(native.renderSkillCatalog([fixture('---\ndisable-model-invocation: true\n---')]), undefined);
+});

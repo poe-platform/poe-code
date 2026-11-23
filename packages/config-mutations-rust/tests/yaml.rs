@@ -1,5 +1,25 @@
 use config_mutations_rust::{value::Value, yaml};
 #[test]
+fn mapping_metadata_distinguishes_tagged_collections_without_changing_values() {
+    for (source, expected) in [
+        ("name: report", true),
+        ("!!set {one, two}", false),
+        ("[one, two]", false),
+        ("null", false),
+    ] {
+        let parsed = yaml::parse_with_options(
+            &source.encode_utf16().collect::<Vec<_>>(),
+            None,
+            yaml::ParseOptions {
+                unique_keys: true,
+                object_root: false,
+            },
+        )
+        .unwrap();
+        assert_eq!(parsed.plain_mapping, expected, "{source}");
+    }
+}
+#[test]
 fn parser_options_allow_frontmatter_duplicates_and_nonobject_roots_without_changing_config_defaults()
  {
     let source: Vec<u16> = "title: first\ntitle: second\n".encode_utf16().collect();

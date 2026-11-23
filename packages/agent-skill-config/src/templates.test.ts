@@ -10,7 +10,7 @@ it("loads canonical bundled skills without host filesystem or Node compatibility
     format: "iife", globalName: "templates", logLevel: "silent"
   });
   const { loadTemplate } = new Function(`${bundle.outputFiles[0].text}; return templates;`)();
-  for (const id of ["poe-generate.md", "terminal-pilot.md"]) {
+  for (const id of ["poe-generate.md", "terminal-pilot.md", "skill-catalog.md", "skill-catalog-diagnostics.md"]) {
     expect(await loadTemplate(id)).toBe(await readFile(new URL(`./templates/${id}`, import.meta.url), "utf8"));
   }
   await expect(loadTemplate("toString")).rejects.toThrow("Template not found");

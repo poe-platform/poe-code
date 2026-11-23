@@ -323,13 +323,15 @@ Tools:
 Options:
 
 - `definitions?: Record<string, string[] | { tools?: string[]; tags?: string[] }>`
-- `directories?: string[]` — catalog child `SKILL.md` files from the shared filesystem.
+- `directories?: string[]` — catalog user skills at `<root>/<name>/SKILL.md` and system skills at `<root>/.system/<name>/SKILL.md` from the shared filesystem.
 - `skills?: string[] | (() => string[] | undefined)`
 - `toolRegistry?`
 
 Adds active-skill guidance and metadata to the prompt. `skillsPlugin({ directories: ["/.poe-code/skills"] })` loads a catalog through `runtime.fs` and directs the agent to read each full skill before using it. It is also exported from `poe-code/agent`.
 
-File catalogs include YAML frontmatter names, descriptions and locations, refreshed before each model request, including after edits and resume. Instruction bodies stay out of the system prompt. `disable-model-invocation: true` hides a skill from the catalog while leaving its file available for an explicit request. Invalid metadata and duplicate names produce catalog diagnostics; valid skills remain available. Files without frontmatter retain their directory names. Catalogs preserve the base system prompt and work with ordinary shell or file tools; no shell implementation is required.
+For the shared agents layout, use `skillsPlugin({ directories: [".agents/skills"] })`; both `.agents/skills/<name>/SKILL.md` and `.agents/skills/.system/<name>/SKILL.md` are loaded. Relative roots resolve against the agent's working directory. Each configured root is searched together with its `.system` subdirectory. Like Codex, distinct skills with the same name remain visible with their own paths. Missing directories are skipped, repeated file paths are listed once, and symbolic-link roots or skill files are rejected. Omitting `directories` keeps file discovery disabled.
+
+File catalogs use Codex-style Markdown inside `<skills_instructions>`: `## Skills`, `### Available skills`, rows such as `- report: Prepare reports. (file: /skills/report/SKILL.md)`, and `### How to use skills` guidance. Names, descriptions and locations refresh before each model request, including after edits and resume. Instruction bodies stay out of the system prompt. `disable-model-invocation: true` hides a skill from the catalog while leaving its file available for an explicit request. Invalid metadata produces catalog diagnostics; valid skills remain available. Files without frontmatter retain their directory names. Catalogs preserve the base system prompt and work with ordinary shell or file tools; no shell implementation is required.
 
 ### `spawnPlugin()`
 

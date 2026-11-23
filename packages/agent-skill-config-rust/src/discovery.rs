@@ -22,9 +22,16 @@ pub struct Machine {
     name: Vec<u16>,
     file: Vec<u16>,
     listing: bool,
+    system_root: Option<Vec<u16>>,
 }
 impl Machine {
     pub fn start(&mut self, root: Vec<u16>) -> Request {
+        let mut system_root = root.clone();
+        if system_root.last() != Some(&47) {
+            system_root.push(47);
+        }
+        system_root.extend(u(".system"));
+        self.system_root = Some(system_root);
         self.root = root;
         self.names = Vec::new().into_iter();
         self.listing = true;
@@ -53,6 +60,16 @@ impl Machine {
                     root: self.root.clone(),
                     name: self.name.clone(),
                 }
+            }
+            None => self.next_root(),
+        }
+    }
+    fn next_root(&mut self) -> Request {
+        match self.system_root.take() {
+            Some(root) => {
+                self.root = root;
+                self.listing = true;
+                Request::Root(self.root.clone())
             }
             None => Request::Done,
         }
@@ -93,7 +110,7 @@ impl Machine {
     }
     pub fn missing(&mut self) -> Request {
         if self.listing {
-            Request::Done
+            self.next_root()
         } else {
             self.advance()
         }

@@ -9,6 +9,17 @@ test('async discovery is owned by the native package', () => {
   assert.notEqual(own, reference);
 });
 
+test('native discovery includes system skills without host-side root expansion', async () => {
+  const fs = createMemoryFileSystem();
+  for (const name of ['user', '.system/builtin']) {
+    await fs.mkdir(`/skills/${name}`, {recursive: true});
+    await fs.writeFile(`/skills/${name}/SKILL.md`, new TextEncoder().encode(name));
+  }
+  const options = {fs, cwd: '/', homeDir: '/'};
+  assert.deepEqual((await own(['/skills'], options)).map(skill => skill.name), ['user', 'builtin']);
+  assert.deepEqual(await own(['/skills', '/skills/.system'], options), await reference(['/skills', '/skills/.system'], options));
+});
+
 function fixture(settings = {}) {
   const volume = Volume.fromJSON({
     '/work/skills/z/SKILL.md': 'last',

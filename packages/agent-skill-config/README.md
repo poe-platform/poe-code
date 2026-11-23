@@ -30,7 +30,7 @@ Import the asynchronous APIs from `@poe-code/agent-skill-config/runtime` in Work
 
 Use `resolveSkillReferenceAsync(ref, { fs, cwd, homeDir, signal? })` for a canonical safe-fs provider, including in-memory and restricted views. Read the resolved `SKILL.md` through the same provider. The main entrypoint also exports it as `resolveSkillReference`. Synchronous host compatibility is available from `@poe-code/agent-skill-config/node`.
 
-`renderSkillCatalog(await discoverSkillsAsync(directories, runtime))` produces an escaped metadata catalog with names, descriptions and file locations. It omits instruction bodies and skills marked `disable-model-invocation: true`, reports invalid frontmatter and duplicate names, and returns `undefined` for an empty catalog. Both runtime and Node entrypoints export it.
+`renderSkillCatalog(await discoverSkillsAsync(directories, runtime))` produces a Codex-style Markdown catalog inside `<skills_instructions>`, with names, descriptions, file locations and skill usage guidance. Distinct files with the same skill name remain visible. It omits instruction bodies and skills marked `disable-model-invocation: true`, reports invalid frontmatter under `### Skill diagnostics`, and returns `undefined` for an empty catalog. Both runtime and Node entrypoints export it. Prompt text is bundled from Markdown templates, so rendering needs no host filesystem access.
 
 Bare `<name>`:
 

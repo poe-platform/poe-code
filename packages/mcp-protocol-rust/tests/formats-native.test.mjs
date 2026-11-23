@@ -108,8 +108,6 @@ test("URI host validation handles file drives, oversized IPv4 and invalid IDNA l
     "%E2%80%8D.com",
     "%EF%BC%8F.com",
     "%EF%BC%A1.com",
-    "xn--",
-    "xn--a",
     "xn--bcher-kva.test",
     "a.%E2%80%8D",
     "0x10000000000000000",
@@ -120,5 +118,18 @@ test("URI host validation handles file drives, oversized IPv4 and invalid IDNA l
       const source = `${scheme}://${host}/`;
       assert.equal(isValidUri(source), referenceUri(source), source);
     }
+  }
+});
+
+test("special hosts reject empty and control Punycode labels", () => {
+  // Node 24's URL parser accepts these labels; keep the native strict checks
+  // explicit instead of using the host runtime as their validity oracle.
+  for (const host of ["xn--", "xn--a"]) {
+    for (const scheme of ["http", "https", "ftp", "ws", "wss", "file"]) {
+      const source = `${scheme}://${host}/`;
+      assert.equal(isValidUri(source), false, source);
+    }
+    // Custom schemes use opaque hosts, without IDNA interpretation.
+    assert.equal(isValidUri(`custom://${host}/`), true);
   }
 });

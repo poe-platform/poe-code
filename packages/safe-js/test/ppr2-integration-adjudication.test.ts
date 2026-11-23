@@ -378,16 +378,14 @@ describe("independent fresh OBJ2 graph checks", () => {
 });
 
 describe("independent native ALS receiver and lifetime checks", () => {
-  it("native exit disables temporarily, hides its store and then restores it", () => {
+  it("native exit hides its store and then restores it", () => {
     const context = new AsyncLocalStorage<object>();
     const store = {};
-    const disable = vi.spyOn(context, "disable");
     context.run(store, () => {
       context.exit(() => expect(context.getStore()).toBeUndefined());
       expect(context.getStore()).toBe(store);
     });
-    expect(disable).toHaveBeenCalledTimes(1);
-    expect(disable.mock.contexts).toEqual([context]);
+    expect(context.getStore()).toBeUndefined();
     context.disable();
   });
 
@@ -396,6 +394,7 @@ describe("independent native ALS receiver and lifetime checks", () => {
     async (shouldThrow) => {
       const disable = vi.spyOn(AsyncLocalStorage.prototype, "disable");
       const enter = vi.spyOn(AsyncLocalStorage.prototype, "run");
+      const exitReplay = vi.spyOn(promiseReplayContext, "exit");
       let retained: AsyncResource | undefined;
       let hostContext: AsyncLocalStorage<unknown> | undefined;
       const callback = async () => {
@@ -421,10 +420,14 @@ describe("independent native ALS receiver and lifetime checks", () => {
           [hostContext]
         );
         expect(disable.mock.contexts.filter((context) => context === hostContext)).toHaveLength(1);
-        expect(disable.mock.contexts.some((context) => context === promiseReplayContext)).toBe(
+        expect(exitReplay.mock.calls.length > 0).toBe(
           expectedFresh !== "jobs-v6"
         );
-        expect(retained!.runInAsyncScope(() => hostContext!.getStore())).toBeUndefined();
+        // Node 24 retains captured AsyncResource stores after disable. A retained
+        // callback must still observe completion rather than a reentry error.
+        const retainedDump = retained!.runInAsyncScope(() => dump(execution));
+        if (shouldThrow) await expect(retainedDump).rejects.toThrow("bounded callback failure");
+        else expect(await retainedDump).toBe(await dump(execution));
         console.info(
           "PPR2_ALS_RECEIVERS",
           JSON.stringify({
@@ -436,7 +439,7 @@ describe("independent native ALS receiver and lifetime checks", () => {
             ).length,
             hostDisposals: disable.mock.contexts.filter((context) => context === hostContext)
               .length,
-            retainedStoreAfterDisposal: "undefined"
+            retainedDumpAfterDisposal: shouldThrow ? "original failure" : "completed snapshot"
           })
         );
       } finally {

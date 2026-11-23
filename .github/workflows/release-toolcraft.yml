@@ -212,15 +212,15 @@ jobs:
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for toolcraft-schema registry and attestation availability
-        timeout-minutes: 11
+        timeout-minutes: 35
         run: |
-          for _ in {1..120}; do
+          for _ in {1..180}; do
             if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
               && curl --fail --silent --show-error --max-time 10 --output /dev/null \
                 "https://registry.npmjs.org/-/npm/v1/attestations/toolcraft-schema@${{ steps.version.outputs.next }}"; then
               exit 0
             fi
-            sleep 5
+            sleep 10
           done
           echo "toolcraft-schema version or provenance attestation did not become available" >&2
           exit 1
@@ -251,9 +251,9 @@ jobs:
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for Toolcraft registry and attestation availability
-        timeout-minutes: 11
+        timeout-minutes: 35
         run: |
-          for _ in {1..120}; do
+          for _ in {1..180}; do
             if npm view "toolcraft@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
               && npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
               && curl --fail --silent --show-error --max-time 10 --output /dev/null \
@@ -262,7 +262,7 @@ jobs:
                 "https://registry.npmjs.org/-/npm/v1/attestations/toolcraft-openapi@${{ steps.version.outputs.next }}"; then
               exit 0
             fi
-            sleep 5
+            sleep 10
           done
           echo "Toolcraft versions or provenance attestations did not become available" >&2
           exit 1

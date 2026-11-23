@@ -6,6 +6,8 @@ The Rust `commands::spreadsheet::Spreadsheet` API edits sparse workbooks in batc
 
 `edit_axis(sheet, columns, start, delta, limit)` inserts or deletes whole rows or columns at a zero-based position (`columns = false` for rows, positive `delta` to insert, negative to delete). It updates references, tables, filters, merges, arrays, comments, and formatting atomically. Insertion rejects data pushed beyond the worksheet edge; static arrays cannot be split. OpenFormula and affected 3D references currently reject structural edits without changing the workbook.
 
+`filter_table` supports value lists, custom conditions, and top/bottom item or percentage filters. Numeric cutoffs include ties and exclude text, blanks, booleans and errors; percentages round up. Column criteria intersect independently. JSON and XLSX retain criteria and saved row visibility until filters are reapplied.
+
 `map_grid_references` visits resolved cells, ranges, and whole-axis formula references using the Excel parser. Callers can bind them to stable grid identities or remap coordinates while preserving absolute markers, strings, structured references, external workbooks, and unchanged formula spelling.
 
 ```rust

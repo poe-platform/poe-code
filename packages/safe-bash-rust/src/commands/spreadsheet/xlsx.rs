@@ -132,7 +132,14 @@ pub struct Filter {
     pub show_buttons: bool,
 }
 #[derive(Clone)]
+pub struct TopFilter {
+    pub rank: f64,
+    pub percent: bool,
+    pub bottom: bool,
+}
+#[derive(Clone)]
 pub struct FilterField {
+    pub top: Option<TopFilter>,
     pub hidden_rows: Option<Vec<usize>>,
     pub custom: bool,
     pub conditions: Vec<(&'static str, String)>,

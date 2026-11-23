@@ -1562,6 +1562,7 @@ fn imported_filters_preserve_subtotal_visibility_and_criteria() {
             [(
                 0,
                 FilterField {
+                    top: None,
                     hidden_rows: None,
                     custom: false,
                     conditions: vec![("equal", "Spain".into())],
@@ -1606,6 +1607,7 @@ fn imported_filters_preserve_subtotal_visibility_and_criteria() {
             [(
                 1,
                 FilterField {
+                    top: None,
                     hidden_rows: None,
                     custom: false,
                     conditions: vec![("greaterThan", "1".into()), ("lessThanOrEqual", "4".into())],
@@ -2151,6 +2153,7 @@ fn table_filters_keep_column_snapshots_manual_hiding_and_subtotals() {
         },
     );
     let field = |operator, value: &str| FilterField {
+        top: None,
         custom: true,
         conditions: vec![(operator, value.into())],
         conjunction: false,
@@ -2251,6 +2254,7 @@ fn empty_value_filter_and_sort_preserve_visibility_across_excel() {
         0,
         0,
         Some(FilterField {
+            top: None,
             custom: true,
             conditions: vec![("greaterThan", "5".into())],
             conjunction: false,
@@ -2272,6 +2276,7 @@ fn empty_value_filter_and_sort_preserve_visibility_across_excel() {
         0,
         0,
         Some(FilterField {
+            top: None,
             custom: false,
             conditions: vec![],
             conjunction: false,
@@ -2420,6 +2425,7 @@ fn converting_a_filtered_table_reveals_records_and_preserves_manual_hiding_atomi
         0,
         0,
         Some(FilterField {
+            top: None,
             custom: false,
             conjunction: false,
             hidden_rows: None,

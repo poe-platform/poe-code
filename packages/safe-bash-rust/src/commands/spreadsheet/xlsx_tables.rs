@@ -85,7 +85,16 @@ pub(super) fn filter(source: &Filter, limit: usize) -> Option<String> {
         )
         .ok()?;
         if let Some(field) = field {
-            if !field.custom
+            if let Some(top) = &field.top {
+                write!(
+                    output,
+                    r#"<top10 top="{}" percent="{}" val="{}"/>"#,
+                    u8::from(!top.bottom),
+                    u8::from(top.percent),
+                    top.rank
+                )
+                .ok()?;
+            } else if !field.custom
                 && field.conditions.iter().all(|(op, _)| *op == "equal")
                 && !field.conjunction
             {

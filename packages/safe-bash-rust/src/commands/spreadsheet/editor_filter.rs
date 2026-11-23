@@ -86,6 +86,19 @@ fn matches(
     Ok(result)
 }
 fn validate(field: &FilterField) -> Result<(), String> {
+    if let Some(top) = &field.top {
+        return if !field.custom
+            && !field.conjunction
+            && field.conditions.is_empty()
+            && top.rank.is_finite()
+            && top.rank >= 1.
+            && top.rank <= if top.percent { 100. } else { 500. }
+        {
+            Ok(())
+        } else {
+            Err("Invalid top/bottom filter".into())
+        };
+    }
     if field.custom && (field.conditions.is_empty() || field.conditions.len() > 2) {
         return Err("Use one or two custom filter conditions".into());
     }
@@ -183,7 +196,7 @@ impl Spreadsheet {
             .as_ref()
             .and_then(|f| f.fields.as_ref())
             .and_then(|fields| fields.get(&column))
-            .filter(|field| !field.custom);
+            .filter(|field| !field.custom && field.top.is_none());
         let mut work = limit;
         let selected = field
             .map(|field| {
@@ -249,6 +262,7 @@ impl Spreadsheet {
             index,
             column,
             Some(FilterField {
+                top: None,
                 custom: false,
                 conjunction: false,
                 conditions: selected
@@ -284,7 +298,38 @@ impl Spreadsheet {
         if column > area[3] - area[1] {
             return Err("Unknown filter column".into());
         }
-        let accepted = if field.custom {
+        let threshold = if let Some(top) = &field.top {
+            let mut numbers = Vec::new();
+            for row in area[0] + 1..=area[2] {
+                *work = work.checked_sub(128).ok_or(LIMIT)?;
+                if let Some(Value::Number(number)) = self
+                    .cell(sheet, row, area[1] + column)
+                    .as_deref()
+                    .and_then(|cell| cell.value.as_ref())
+                {
+                    numbers.push(*number);
+                }
+            }
+            if numbers.is_empty() {
+                None
+            } else {
+                let count = if top.percent {
+                    (numbers.len() as f64 * top.rank / 100.).ceil()
+                } else {
+                    top.rank.floor()
+                }
+                .clamp(1., numbers.len() as f64) as usize;
+                let at = if top.bottom {
+                    count - 1
+                } else {
+                    numbers.len() - count
+                };
+                Some(*numbers.select_nth_unstable_by(at, f64::total_cmp).1)
+            }
+        } else {
+            None
+        };
+        let accepted = if field.custom || field.top.is_some() {
             None
         } else {
             Some(
@@ -300,7 +345,18 @@ impl Spreadsheet {
         let mut hidden = Vec::new();
         for row in area[0] + 1..=area[2] {
             *work = work.checked_sub(128).ok_or(LIMIT)?;
-            let cell = self.sheets[sheet].cells.get(&(row, area[1] + column));
+            let cell = self.cell(sheet, row, area[1] + column);
+            let cell = cell.as_deref();
+            if let Some(top) = &field.top {
+                let accepted = threshold.is_some_and(|threshold| {
+                    matches!(cell.and_then(|cell| cell.value.as_ref()), Some(Value::Number(value))
+                        if if top.bottom { *value <= threshold } else { *value >= threshold })
+                });
+                if !accepted {
+                    hidden.push(row);
+                }
+                continue;
+            }
             let display = if field.custom {
                 match cell.and_then(|c| c.value.as_ref()) {
                     Some(Value::Number(n)) => n.to_string(),
@@ -491,6 +547,234 @@ impl Spreadsheet {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn libreoffice_top_filter_keeps_excel_visibility_through_json_and_xlsx() {
+        // LibreOffice sc/qa/unit/data/xlsx/tdf143068_top10filter.xlsx
+        // at d79de2a2975db6b34f47b7ccfe8d18692373d6f0
+        // (MPL-2.0; LICENSE.LibreOffice): Excel selects 7, 8, 9, 10.
+        let bytes = include_bytes!("fixtures/libreoffice-top10.xlsx");
+        let mut book = Spreadsheet::import_xlsx(bytes, 20_000_000).unwrap();
+        for _ in 0..2 {
+            assert_eq!(book.filtered_rows(0, 1_000_000).unwrap(), (1..7).collect());
+            assert_eq!(book.input(0, 7, 0), "7");
+            book = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+            assert_eq!(book.filtered_rows(0, 1_000_000).unwrap(), (1..7).collect());
+            book = Spreadsheet::import_xlsx(&book.export_xlsx(20_000_000).unwrap(), 20_000_000)
+                .unwrap();
+        }
+    }
+
+    fn top_filter(rank: f64, percent: bool, bottom: bool) -> FilterField {
+        FilterField {
+            top: Some(model::TopFilter {
+                rank,
+                percent,
+                bottom,
+            }),
+            hidden_rows: None,
+            custom: false,
+            conjunction: false,
+            conditions: Vec::new(),
+        }
+    }
+    #[test]
+    fn closedxml_top_bottom_cutoffs_and_percent_boundaries() {
+        // Ported from ClosedXML.Tests/Excel/AutoFilters/Top10FilterTests.cs
+        // at 057f5976c788d97e8eac86d1a528bd5411d9386e (LICENSE.ClosedXML).
+        for (bottom, rank, percent, values, expected) in [
+            (false, 3., false, vec![4, 4, 1, 3, 2, 5], vec![1, 2, 6]),
+            (
+                false,
+                2.,
+                false,
+                vec![5, 4, 4, 4, 3, 2, 1],
+                vec![1, 2, 3, 4],
+            ),
+            (false, 2., false, vec![5, 5, 4, 4, 4, 3, 2, 1], vec![1, 2]),
+            (true, 2., false, vec![1, 2, 2, 2, 3, 4, 5], vec![1, 2, 3, 4]),
+            (true, 2., false, vec![1, 1, 2, 2, 2, 3, 4, 5], vec![1, 2]),
+            (
+                false,
+                25.,
+                true,
+                (1..=1000).collect(),
+                (751..=1000).collect(),
+            ),
+            (true, 25., true, (1..=1000).collect(), (1..=250).collect()),
+            (false, 1., true, vec![3, 2, 1], vec![1]),
+            (true, 1., true, vec![1, 2, 3], vec![1]),
+            // Fractional counts round up in both directions.
+            (false, 50., true, vec![1, 2, 3], vec![2, 3]),
+            (true, 50., true, vec![1, 2, 3], vec![1, 2]),
+        ] {
+            let mut book = Spreadsheet::new();
+            let values = values.iter().map(ToString::to_string).collect::<Vec<_>>();
+            let cells = values
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (0, i + 1, 0, v.as_str()))
+                .collect::<Vec<_>>();
+            book.edit(&cells, 20_000_000).unwrap();
+            book.add_table(0, "Data", [0, 0, values.len(), 0], 20_000_000)
+                .unwrap();
+            book.filter_table(0, 0, Some(top_filter(rank, percent, bottom)), 20_000_000)
+                .unwrap();
+            let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+            assert_eq!(
+                (1..=values.len())
+                    .filter(|r| !hidden.contains(r))
+                    .collect::<Vec<_>>(),
+                expected
+            );
+        }
+    }
+    #[test]
+    fn top_filters_rank_columns_independently_excluding_headers_and_totals() {
+        let mut book = Spreadsheet::new();
+        book.edit(
+            &[
+                (0, 0, 0, "1000"),
+                (0, 0, 1, "Other"),
+                (0, 1, 0, "10"),
+                (0, 1, 1, "1"),
+                (0, 2, 0, "9"),
+                (0, 2, 1, "8"),
+                (0, 3, 0, "8"),
+                (0, 3, 1, "9"),
+                (0, 4, 0, "1"),
+                (0, 4, 1, "10"),
+                (0, 5, 0, "=SUM(A2:A5)"),
+                (0, 5, 1, "=SUM(B2:B5)"),
+            ],
+            10_000_000,
+        )
+        .unwrap();
+        book.add_table(0, "Sales", [0, 0, 5, 1], 10_000_000)
+            .unwrap();
+        book.options.tables[0].totals = true;
+        book.options.tables[0].filter = None;
+        book.filter_table(0, 0, Some(top_filter(3., false, false)), 10_000_000)
+            .unwrap();
+        book.filter_table(0, 1, Some(top_filter(2., false, false)), 10_000_000)
+            .unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [1, 2, 4].into_iter().collect()
+        );
+        book.edit_axis(0, false, 2, 1, 10_000_000).unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [1, 3, 5].into_iter().collect()
+        );
+        book = Spreadsheet::from_json(&book.to_json(), 10_000_000).unwrap();
+        book.reapply_table_filter(0, 10_000_000).unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [1, 2, 3, 5].into_iter().collect()
+        );
+        book.filter_table(0, 1, None, 10_000_000).unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [2, 5].into_iter().collect()
+        );
+    }
+    #[test]
+    fn top_bottom_filters_include_ties_and_ignore_non_numeric_cells() {
+        let mut book = Spreadsheet::new();
+        book.edit(
+            &[
+                (0, 0, 0, "Amount"),
+                (0, 0, 1, "Group"),
+                (0, 1, 0, "10"),
+                (0, 2, 0, "8"),
+                (0, 3, 0, "8"),
+                (0, 4, 0, "2"),
+                (0, 5, 0, "-3"),
+                (0, 6, 0, "'99"),
+                (0, 7, 0, "TRUE"),
+                (0, 8, 0, "=1/0"),
+                (0, 10, 0, "=\"\""),
+                (0, 11, 0, "=6+6"),
+                (0, 1, 1, "x"),
+                (0, 11, 1, "y"),
+            ],
+            10_000_000,
+        )
+        .unwrap();
+        book.add_table(0, "Sales", [0, 0, 11, 1], 10_000_000)
+            .unwrap();
+        for (rank, percent, bottom, visible) in [
+            (2., false, false, vec![1, 11]),
+            (3., false, false, vec![1, 2, 3, 11]),
+            (2., false, true, vec![4, 5]),
+            (50., true, false, vec![1, 2, 3, 11]),
+            (10., true, false, vec![11]),
+            (100., true, true, vec![1, 2, 3, 4, 5, 11]),
+        ] {
+            book.filter_table(0, 0, Some(top_filter(rank, percent, bottom)), 10_000_000)
+                .unwrap();
+            let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+            assert_eq!(
+                (1..12).filter(|r| !hidden.contains(r)).collect::<Vec<_>>(),
+                visible,
+                "rank={rank}, percent={percent}, bottom={bottom}"
+            );
+        }
+        book.filter_table(0, 0, Some(top_filter(2., false, false)), 10_000_000)
+            .unwrap();
+        book.edit(&[(0, 1, 0, "1")], 10_000_000).unwrap();
+        for _ in 0..2 {
+            let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+            assert_eq!(
+                (1..12).filter(|r| !hidden.contains(r)).collect::<Vec<_>>(),
+                vec![1, 11]
+            );
+            book = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+            book = Spreadsheet::import_xlsx(&book.export_xlsx(20_000_000).unwrap(), 20_000_000)
+                .unwrap();
+        }
+        book.reapply_table_filter(0, 10_000_000).unwrap();
+        let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+        assert_eq!(
+            (1..12).filter(|r| !hidden.contains(r)).collect::<Vec<_>>(),
+            vec![2, 3, 11]
+        );
+    }
+    #[test]
+    fn top_filters_reject_invalid_settings_and_exhaustion_atomically() {
+        let mut book = Spreadsheet::new();
+        book.edit(&[(0, 0, 0, "Amount"), (0, 1, 0, "text")], 10_000_000)
+            .unwrap();
+        book.add_table(0, "Sales", [0, 0, 2, 0], 10_000_000)
+            .unwrap();
+        let before = book.to_json();
+        for rank in [0., -1., f64::NAN, f64::INFINITY, 101.] {
+            assert!(
+                book.filter_table(0, 0, Some(top_filter(rank, true, false)), 10_000_000)
+                    .is_err()
+            );
+            assert_eq!(book.to_json(), before);
+        }
+        assert!(
+            book.filter_table(0, 0, Some(top_filter(501., false, false)), 10_000_000)
+                .is_err()
+        );
+        let mut mixed = top_filter(1., false, false);
+        mixed.conditions.push(("equal", "1".into()));
+        assert!(book.filter_table(0, 0, Some(mixed), 10_000_000).is_err());
+        assert!(
+            book.filter_table(0, 0, Some(top_filter(1., false, false)), 1)
+                .is_err()
+        );
+        assert_eq!(book.to_json(), before);
+        book.filter_table(0, 0, Some(top_filter(1., false, false)), 10_000_000)
+            .unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [1, 2].into_iter().collect()
+        );
+    }
+
     // Assertions ported from Univer custom-filter.spec.ts at
     // 4767b3b309467c283bbd52b725536ca73861e0fc (see LICENSE.Univer).
     #[test]
@@ -576,6 +860,7 @@ mod tests {
     #[test]
     fn values_lists_use_literal_display_values_and_keep_blanks_distinct_from_zero_and_false() {
         let values = FilterField {
+            top: None,
             custom: false,
             conditions: vec![
                 ("equal", "a*".into()),
@@ -601,6 +886,7 @@ mod tests {
         assert!(condition(None, "", "equal", "", &mut 10_000).unwrap());
         assert!(!condition(Some(&Value::Bool(false)), "FALSE", "equal", "", &mut 10_000).unwrap());
         let none = FilterField {
+            top: None,
             conditions: vec![],
             ..values
         };
@@ -609,6 +895,7 @@ mod tests {
     #[test]
     fn conjunction_disjunction_and_expensive_patterns_are_bounded() {
         let mut field = FilterField {
+            top: None,
             custom: true,
             conditions: vec![("greaterThan", "2".into()), ("lessThan", "5".into())],
             conjunction: true,

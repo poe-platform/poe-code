@@ -71,7 +71,7 @@ copyFileSync(path.join(pkgDir, "LICENSE.AAC"), path.join(distDir, "LICENSE.AAC")
 copyFileSync(path.join(pkgDir, "LICENSE.AMR"), path.join(distDir, "LICENSE.AMR"));
 copyFileSync(path.join(pkgDir, "LICENSE.GNUMERIC"), path.join(distDir, "LICENSE.GNUMERIC"));
 copyFileSync(path.join(pkgDir, "LICENSE.GLIB"), path.join(distDir, "LICENSE.GLIB"));
-for (const license of ["LICENSE.IronCalc", "LICENSE.Univer", "LICENSE.XlsxWriter", "LICENSE.OpenOffice", "NOTICE.OpenOffice", "LICENSE.Boost", "LICENSE.Sun"]) {
+for (const license of ["LICENSE.IronCalc", "LICENSE.Univer", "LICENSE.XlsxWriter", "LICENSE.OpenOffice", "NOTICE.OpenOffice", "LICENSE.Boost", "LICENSE.Sun", "LICENSE.LibreOffice", "LICENSE.ClosedXML"]) {
   copyFileSync(path.join(pkgDir, "src/commands/spreadsheet", license), path.join(distDir, license));
 }
 // LGPL recipients can rebuild and replace the linked Rust library, including

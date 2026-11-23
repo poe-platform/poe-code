@@ -353,9 +353,15 @@ impl Codec for Filter {
         })
     }
 }
+structure!(TopFilter {
+    rank,
+    percent,
+    bottom
+});
 impl Codec for FilterField {
     fn json(&self) -> Json {
         object([
+            ("top", self.top.json()),
             ("conditions", self.conditions.json()),
             ("hidden_rows", self.hidden_rows.json()),
             ("conjunction", self.conjunction.json()),
@@ -364,6 +370,7 @@ impl Codec for FilterField {
     }
     fn read(v: &Json) -> Result<Self> {
         Ok(Self {
+            top: Codec::read(v.get("top").unwrap_or(&Json::Null))?,
             conditions: Codec::read(field(v, "conditions")?)?,
             hidden_rows: Codec::read(v.get("hidden_rows").unwrap_or(&Json::Null))?,
             conjunction: Codec::read(field(v, "conjunction")?)?,
@@ -1241,6 +1248,7 @@ mod tests {
                 fields: Some(BTreeMap::from([(
                     0,
                     FilterField {
+                        top: None,
                         hidden_rows: None,
                         custom: false,
                         conditions: vec![("equal", "8".into())],

@@ -1,5 +1,5 @@
 //! Appearance and worksheet metadata for editable XLSX workbooks.
-use super::super::model::{Axis, CalculatedColumn, Filter, FilterField, Style, Table};
+use super::super::model::{Axis, CalculatedColumn, Filter, FilterField, Style, Table, TopFilter};
 use super::{Imported, LIMIT, attr, coordinate, elements, xml};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -53,6 +53,7 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
         show_buttons &= !flag(column, "hiddenButton")
             && !matches!(attr(column, "showButton"), Some("0" | "false"));
         let mut field = FilterField {
+            top: None,
             hidden_rows: None,
             custom: false,
             conditions: Vec::new(),
@@ -87,6 +88,14 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
                 *work = work.checked_sub(value.len() + 32).ok_or(LIMIT)?;
                 field.conditions.push((operator, value.into()));
             }
+        } else if let Some(top) = child(column, "top10") {
+            field.top = Some(TopFilter {
+                rank: attr(top, "val")
+                    .and_then(|s| s.parse().ok())
+                    .ok_or("Invalid XLSX top/bottom filter rank")?,
+                percent: flag(top, "percent"),
+                bottom: matches!(attr(top, "top"), Some("0" | "false")),
+            });
         } else if column
             .children
             .iter()
@@ -113,7 +122,8 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
                 field.hidden_rows = Some(hidden);
             }
         }
-        if child(column, "filters").is_some() || !field.conditions.is_empty() {
+        if child(column, "filters").is_some() || !field.conditions.is_empty() || field.top.is_some()
+        {
             fields.insert(index, field);
         }
     }
@@ -620,6 +630,52 @@ pub(super) fn retain(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn top_filter_attributes_roundtrip_and_invalid_ranks_fail_import() {
+        for (attributes, rank, percent, bottom) in [
+            (r#"val="4""#, 4., false, false),
+            (r#"val="25" top="0" percent="1""#, 25., true, true),
+            (r#"val="2.5" top="true" percent="false""#, 2.5, false, false),
+        ] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><top10 {attributes}/></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+            let mut book = super::super::super::Spreadsheet::new();
+            book.sheets[0].filter = Some(filter);
+            let book =
+                super::super::super::Spreadsheet::from_json(&book.to_json(), 1_000_000).unwrap();
+            let book = super::super::super::Spreadsheet::import_xlsx(
+                &book.export_xlsx(1_000_000).unwrap(),
+                1_000_000,
+            )
+            .unwrap();
+            let top = book.sheets[0]
+                .filter
+                .as_ref()
+                .unwrap()
+                .fields
+                .as_ref()
+                .unwrap()[&0]
+                .top
+                .as_ref()
+                .unwrap();
+            assert_eq!((top.rank, top.percent, top.bottom), (rank, percent, bottom));
+        }
+        for rank in ["", "NaN", "inf", "0", "-1", "501", "text"] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><top10 val="{rank}"/></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            if let Ok(Some(filter)) = auto_filter(&nodes, &mut 100_000) {
+                assert!(
+                    !super::super::super::editor_filter::valid(&filter),
+                    "{rank}"
+                );
+            }
+        }
+    }
     #[test]
     fn custom_equal_filter_keeps_wildcards_and_conjunction() {
         let nodes=xml::parse(r#"<autoFilter ref="B1:B5"><filterColumn colId="0"><customFilters><customFilter operator="equal" val="a*"/></customFilters></filterColumn></autoFilter>"#,None,None).unwrap().nodes;

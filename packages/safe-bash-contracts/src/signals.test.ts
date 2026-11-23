@@ -20,7 +20,13 @@ for (const frozen of [false, true]) {
   test(`external waiters drain and resubscribe without mutating signals, frozen=${frozen}`, () => {
     const controller = new AbortController();
     const signal = controller.signal;
-    if (frozen) Object.freeze(signal);
+    if (frozen) {
+      // Node 24 initializes its native event storage lazily, before it can be frozen.
+      const listener = () => {};
+      signal.addEventListener("abort", listener);
+      signal.removeEventListener("abort", listener);
+      Object.freeze(signal);
+    }
     const keys = Reflect.ownKeys(signal);
     const first = () => {};
     const second = { onAbort() {} };

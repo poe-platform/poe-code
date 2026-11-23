@@ -6,14 +6,26 @@ for (const frozen of [false, true]) {
   for (const external of [false, true]) {
     test(`reused signal replaces internal checkpoint (frozen=${frozen}, external=${external})`, async () => {
       const signal = new AbortController().signal;
-      if (frozen) Object.freeze(signal);
+      if (frozen) {
+        // Initialize Node 24's native event storage before freezing the fixture.
+        const listener = () => {};
+        signal.addEventListener("abort", listener);
+        signal.removeEventListener("abort", listener);
+        Object.freeze(signal);
+      }
       const calls: string[] = [];
       if (external) registerYieldCheckpoint(signal, () => { calls.push("external"); });
       for (let i = 0; i < 100; i++) {
         registerInternalYieldCheckpoint(signal, () => { calls.push(`internal${i}`); });
       }
       const child = new AbortController().signal;
-      if (frozen) Object.freeze(child);
+      if (frozen) {
+        // Initialize Node 24's native event storage before freezing the fixture.
+        const listener = () => {};
+        child.addEventListener("abort", listener);
+        child.removeEventListener("abort", listener);
+        Object.freeze(child);
+      }
       inheritYieldCheckpoint(signal, child);
       registerInternalYieldCheckpoint(child, () => { calls.push("child"); });
       assert.equal(hasRegisteredYieldCheckpoint(child), true);

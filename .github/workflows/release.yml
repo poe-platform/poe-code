@@ -151,8 +151,22 @@ jobs:
                 if (!metadata.dist?.integrity?.startsWith('sha512-') || !metadata.dist?.tarball) {
                   throw new Error('Published npm metadata is missing the tarball or SHA512 integrity.');
                 }
-                const tarball = await fetch(metadata.dist.tarball, { signal: AbortSignal.timeout(120_000) });
-                if (!tarball.ok) throw new Error(`Published npm tarball returned HTTP ${tarball.status}.`);
+                const tarballUrl = new URL(metadata.dist.tarball);
+                let tarball;
+                for (;;) {
+                  tarballUrl.searchParams.set('poll', Date.now());
+                  tarball = await fetch(tarballUrl, {
+                    headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(120_000)
+                  });
+                  if (tarball.ok) break;
+                  if (tarball.status !== 404) throw new Error(`Published npm tarball returned HTTP ${tarball.status}.`);
+                  await tarball.body?.cancel();
+                  if (Date.now() >= registryDeadline) {
+                    throw new Error(`npm poe-code@${version} tarball did not become available within 30 minutes.`);
+                  }
+                  context.logger.log(`Waiting for npm poe-code@${version} tarball.`);
+                  await setTimeout(10_000);
+                }
                 const hash = createHash('sha512');
                 for await (const chunk of tarball.body) hash.update(chunk);
                 if (`sha512-${hash.digest('base64')}` !== metadata.dist.integrity) {

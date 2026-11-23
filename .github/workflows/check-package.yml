@@ -1,0 +1,109 @@
+name: Package checks
+on:
+  workflow_call:
+    inputs:
+      workspace:
+        type: string
+        required: true
+      node:
+        type: string
+        required: true
+      archive-sha256:
+        type: string
+        required: true
+      cold_cache:
+        type: boolean
+        default: false
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test:
+    name: ${{ inputs.workspace == '.' && 'poe-code (root)' || inputs.workspace }}
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    env:
+      TZ: UTC
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      TURBO_TELEMETRY_DISABLED: "1"
+      VITEST_MAX_WORKERS: "2"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ inputs.node }}
+          cache: npm
+      - name: Verify WebAssembly Promise Integration
+        run: node -e 'const assert = require("node:assert/strict"); assert.equal(typeof WebAssembly.Suspending, "function"); assert.equal(typeof WebAssembly.promising, "function");'
+        if: inputs.node == '24.22.3'
+      - run: npm clean-install
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Restore cached build archive
+        id: build-archive-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ${{ runner.temp }}/poe-build/build.tar
+          key: build-tar-v1-${{ github.sha }}
+      - name: Download freshly verified build
+        if: steps.build-archive-cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            rm -rf "$RUNNER_TEMP/poe-build"
+            if gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"; then
+              exit 0
+            fi
+            [ "$attempt" -lt 6 ] && sleep $((attempt * 5 + RANDOM % 10))
+          done
+          exit 1
+      - name: Restore freshly verified build
+        env:
+          BUILD_SHA256: ${{ inputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+          npm --workspace=safe-bash-contracts run build
+      - name: Install Zsh for native completion tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+          test -x /bin/zsh
+        if: inputs.workspace == '.' || contains(fromJSON('["@poe-code/agent-spawn","toolcraft-design"]'), inputs.workspace)
+      - uses: ./.github/actions/setup-ffmpeg-oracle
+        if: inputs.workspace == '.' || contains(fromJSON('["safe-bash-command-ffmpeg","safe-bash-command-imagemagick","safe-bash-media-engine"]'), inputs.workspace)
+      - uses: ./.github/actions/setup-imagemagick-oracle
+        if: inputs.workspace == '.' || inputs.workspace == 'safe-bash-command-imagemagick'
+      - name: Restore package check cache
+        id: package-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: .turbo/package-checks
+          key: ${{ runner.os }}-${{ runner.arch }}-package-v1-${{ inputs.workspace }}-node${{ inputs.node }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-package-v1-${{ inputs.workspace }}-node${{ inputs.node }}-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-package-v1-${{ inputs.workspace }}-node${{ inputs.node }}-
+      - name: Test selected package
+        env:
+          POE_CHECK_CACHE_DIR: .turbo/package-checks
+          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
+          WORKSPACE: ${{ inputs.workspace }}
+        run: npm run test:workspaces -- --workspace="$WORKSPACE"
+      - name: Save package check cache
+        if: always() && steps.package-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/package-checks
+          key: ${{ steps.package-cache.outputs.cache-primary-key }}

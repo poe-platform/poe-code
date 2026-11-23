@@ -124,7 +124,10 @@
         "LC_ALL",
         "POE_CI_RUNTIME"
       ],
-      "cache": true
+      "cache": true,
+      "passThroughEnv": [
+        "POE_CHECK_CACHE_DIR"
+      ]
     },
     "toolcraft#test:unit": {
       "dependsOn": [

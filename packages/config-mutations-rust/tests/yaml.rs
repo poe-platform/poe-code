@@ -13,6 +13,7 @@ fn mapping_metadata_distinguishes_tagged_collections_without_changing_values() {
             yaml::ParseOptions {
                 unique_keys: true,
                 object_root: false,
+                ..Default::default()
             },
         )
         .unwrap();

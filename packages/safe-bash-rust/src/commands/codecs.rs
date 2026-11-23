@@ -1123,6 +1123,43 @@ mod tests {
     }
 
     #[test]
+    fn zip_unused_local_zip64_reservation_keeps_classic_sizes_and_crc_checks() {
+        // Unchanged IronCalc optional_xf_id.xlsx (MIT; spreadsheet/LICENSE.IronCalc).
+        // Its writer left a 16-byte zero ZIP64 reservation in each local header,
+        // while final sizes and checksums use the ordinary 32-bit fields.
+        let bytes = include_bytes!("spreadsheet/fixtures/ironcalc_optional_xf_id.xlsx");
+        let entries = parse_zip_archive(bytes).unwrap();
+        assert_eq!(entries.len(), 10);
+        assert!(entries.iter().any(|e| e.name == "xl/worksheets/sheet1.xml"));
+        let name_len = u16::from_le_bytes(bytes[26..28].try_into().unwrap()) as usize;
+        let extra = 30 + name_len;
+        assert_eq!(
+            &bytes[extra..extra + 20],
+            &[1, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        );
+        let end = bytes.len() - 22;
+        let central = u32::from_le_bytes(bytes[end + 16..end + 20].try_into().unwrap()) as usize;
+        for case in 0..5 {
+            let mut corrupt = bytes.to_vec();
+            match case {
+                0 => corrupt[extra + 4] = 1,   // Nonzero fields are not padding.
+                1 => corrupt[14] ^= 1,         // Local checksum must match the directory.
+                2 => corrupt[22] ^= 1,         // Ordinary sizes must still match.
+                3 => corrupt[extra + 20] ^= 1, // Payload checksum/decoding is checked.
+                _ => {
+                    corrupt[4..6].copy_from_slice(&45u16.to_le_bytes());
+                    corrupt[central + 6..central + 8].copy_from_slice(&45u16.to_le_bytes());
+                    corrupt[22..26].copy_from_slice(&u32::MAX.to_le_bytes());
+                }
+            }
+            assert!(
+                parse_zip_archive(&corrupt).is_err(),
+                "corruption case {case}"
+            );
+        }
+    }
+
+    #[test]
     fn unit_deflate_empty_single_byte_and_repeating_runs() {
         for sample in [&b""[..], &b"A"[..], &[b"X"[0]; 4096][..]] {
             let gz = gzip_compress(sample);
@@ -4309,6 +4346,14 @@ pub(super) fn zip_directory<'a>(
         let raw_size = u32::from_le_bytes(local[22..26].try_into().unwrap());
         let raw_compressed = u32::from_le_bytes(local[18..22].try_into().unwrap());
         let wide = wide_central || raw_size == u32::MAX || raw_compressed == u32::MAX;
+        // Some writers reserve local ZIP64 sizes, then finalize small members
+        // using classic fields. Only an unused, zero-filled reservation is padding;
+        // real ZIP64 sizes and all ordinary size/CRC checks remain mandatory.
+        let wide_sizes = if !wide && wide_sizes == Some(&[0; 16][..]) {
+            None
+        } else {
+            wide_sizes
+        };
         let local_sizes = zip64_values([raw_size, raw_compressed], wide_sizes, version)?;
         if local_sizes
             .into_iter()

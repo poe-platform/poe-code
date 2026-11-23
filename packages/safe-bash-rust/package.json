@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "license": "MIT AND MPL-2.0 AND LGPL-2.1-or-later AND GPL-2.0-or-later",
+  "license": "MIT AND MPL-2.0 AND LGPL-2.1-or-later AND GPL-2.0-or-later AND Apache-2.0 AND BSL-1.0",
   "description": "Zero-dependency Rust and WebAssembly @poe-platform/safe-bash runtime with poe-agent-rust integration",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

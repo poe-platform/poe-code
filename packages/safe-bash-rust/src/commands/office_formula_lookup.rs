@@ -1095,7 +1095,7 @@ impl Calculation<'_> {
                 matching = LookupSearch::Literal;
             }
             if matching == LookupSearch::Regex {
-                ZeroRegex::office(pattern, &mut self.work)?
+                ZeroRegex::office(pattern, true, &mut self.work)?
             } else {
                 None
             }

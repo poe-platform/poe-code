@@ -3,7 +3,7 @@ name = "safe-bash-rust"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
-license = "MIT AND MPL-2.0 AND LGPL-2.1-or-later AND GPL-2.0-or-later"
+license = "MIT AND MPL-2.0 AND LGPL-2.1-or-later AND GPL-2.0-or-later AND Apache-2.0 AND BSL-1.0"
 description = "Zero-dependency Rust @poe-platform/safe-bash runtime with Wasm and poe-agent-rust integration"
 
 [lib]

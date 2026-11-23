@@ -8,6 +8,7 @@ mod gh_config;
 pub mod integrations;
 pub mod search;
 pub mod structured;
+pub mod spreadsheet;
 pub mod text;
 
 use crate::shell::builtins::BuiltinOutcome;

@@ -194,8 +194,10 @@ jobs:
           GIT_CONFIG_VALUE_0: main
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: 22
+          node-version: 24.22.3
           cache: npm
+      - name: Verify WebAssembly Promise Integration
+        run: node -e 'const assert = require("node:assert/strict"); assert.equal(typeof WebAssembly.Suspending, "function"); assert.equal(typeof WebAssembly.promising, "function");'
       - run: npm clean-install
       - name: Restore cached build archive
         id: build-archive-cache

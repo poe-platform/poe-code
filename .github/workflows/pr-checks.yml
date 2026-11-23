@@ -23,7 +23,9 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24.22.3
+      - name: Verify WebAssembly Promise Integration
+        run: node -e 'const assert = require("node:assert/strict"); assert.equal(typeof WebAssembly.Suspending, "function"); assert.equal(typeof WebAssembly.promising, "function");'
       - run: npm ci
       - name: Install Rust WebAssembly target
         run: rustup target add wasm32-unknown-unknown
@@ -42,7 +44,7 @@ jobs:
       - run: npm run typecheck
       - name: Route the complete @poe-platform/safe-bash tests separately
         run: |
-          echo "Both unit jobs use Node22 for native-reference APIs and @poe-platform/safe-bash test discovery."
+          echo "Workspace tests use Node24 for WebAssembly Promise Integration."
           echo "Its complete test:unit suite runs in the separate safe-bash-node22 job; no tests are waived."
       - name: Install Zsh for native completion tests
         run: |

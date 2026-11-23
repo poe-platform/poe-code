@@ -1,0 +1,72 @@
+[
+  {
+    "id": "long",
+    "flags": [
+      "--lua-filter",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "short",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "equals",
+    "flags": [
+      "--lua-filter=/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "attached",
+    "flags": [
+      "-L/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "relative",
+    "flags": [
+      "-L",
+      "upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "missing",
+    "flags": [
+      "--lua-filter",
+      "/missing.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
+    "status": 9
+  },
+  {
+    "id": "malformed",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(",
+    "status": 4
+  },
+  {
+    "id": "runtime-error",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken') end",
+    "status": 4
+  }
+]

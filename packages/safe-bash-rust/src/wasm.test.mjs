@@ -18129,6 +18129,7 @@ import "./magick-terminal-outputs.wasm.test.mjs";
 import "./magick-generated-allocation.wasm.test.mjs";
 
 import "./pandoc-operands.wasm.test.mjs";
+import "./pandoc-lua-filters.wasm.test.mjs";
 
 import "./pandoc-references.wasm.test.mjs";
 

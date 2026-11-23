@@ -36607,6 +36607,11 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             raw_content = Some(args[i + 1].as_str());
             i += 2;
+        } else if a == "--lua-filter" || a.starts_with("--lua-filter=") || a.starts_with("-L") {
+            return err_out(
+                "E_CAPABILITY: Lua filters are not supported by native Pandoc\n",
+                3,
+            );
         } else if a == "--file-scope" {
             file_scope = true;
             i += 1;
@@ -36629,8 +36634,6 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 | "--extract-media"
                 | "--filter"
                 | "-F"
-                | "--lua-filter"
-                | "-L"
                 | "--defaults"
                 | "-d"
                 | "--template"

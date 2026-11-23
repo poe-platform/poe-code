@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: ${{ runner.temp }}/poe-build/build.tar
-          key: build-tar-v1-${{ github.sha }}
+          key: build-tar-v1-${{ needs.validate.outputs.archive-sha256 }}
       - name: Download freshly verified build
         if: steps.build-archive-cache.outputs.cache-hit != 'true'
         env:

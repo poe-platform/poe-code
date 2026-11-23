@@ -85,6 +85,7 @@ async fn write_zip_stored_async(entries: &[(&str, &[u8])]) -> Vec<u8> {
     let mut cd: Vec<u8> = Vec::new();
     for &(name, data) in entries {
         let name_bytes = name.as_bytes();
+        let flags: u16 = if name.is_ascii() { 0 } else { 0x800 };
         yield_now().await;
         let crc = crc32_ieee(data).await;
         let len = data.len() as u32;
@@ -92,7 +93,7 @@ async fn write_zip_stored_async(entries: &[(&str, &[u8])]) -> Vec<u8> {
 
         out.extend_from_slice(b"PK\x03\x04");
         out.extend_from_slice(&20u16.to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&flags.to_le_bytes());
         out.extend_from_slice(&0u16.to_le_bytes());
         out.extend_from_slice(&0u16.to_le_bytes());
         out.extend_from_slice(&0u16.to_le_bytes());
@@ -110,7 +111,7 @@ async fn write_zip_stored_async(entries: &[(&str, &[u8])]) -> Vec<u8> {
         cd.extend_from_slice(b"PK\x01\x02");
         cd.extend_from_slice(&20u16.to_le_bytes());
         cd.extend_from_slice(&20u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&flags.to_le_bytes());
         cd.extend_from_slice(&0u16.to_le_bytes());
         cd.extend_from_slice(&0u16.to_le_bytes());
         cd.extend_from_slice(&0u16.to_le_bytes());
@@ -144,4 +145,40 @@ async fn write_zip_stored_async(entries: &[(&str, &[u8])]) -> Vec<u8> {
     out.extend_from_slice(&cd_offset.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::write_zip_stored;
+
+    #[test]
+    fn zip_names_mark_utf8_in_both_headers_and_preserve_ascii_flags() {
+        for (name, flags) in [
+            ("sheet.xml", 0u16),
+            ("données.xml", 0x800),
+            ("工作表.xml", 0x800),
+        ] {
+            let bytes = write_zip_stored(&[(name, b"content")]);
+            let central =
+                u32::from_le_bytes(bytes[bytes.len() - 6..bytes.len() - 2].try_into().unwrap())
+                    as usize;
+            assert_eq!(&bytes[..4], b"PK\x03\x04");
+            assert_eq!(&bytes[central..central + 4], b"PK\x01\x02");
+            assert_eq!(
+                u16::from_le_bytes(bytes[6..8].try_into().unwrap()),
+                flags,
+                "local: {name}"
+            );
+            assert_eq!(
+                u16::from_le_bytes(bytes[central + 8..central + 10].try_into().unwrap()),
+                flags,
+                "central: {name}"
+            );
+            assert_eq!(&bytes[30..30 + name.len()], name.as_bytes());
+            assert_eq!(
+                &bytes[central + 46..central + 46 + name.len()],
+                name.as_bytes()
+            );
+        }
+    }
 }

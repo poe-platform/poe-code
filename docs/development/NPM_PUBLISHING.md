@@ -5,38 +5,10 @@ exception is the first publish of a new package (see Initial Publish).
 
 ## Root Package
 
-The root `poe-code` package is released by `.github/workflows/release.yml`.
-
-Package publishers run on demand through `workflow_dispatch`. Ordinary pushes
-run package checks through `.github/workflows/ci.yml` without publishing.
-To request a release on the final commit of a series, add a Git trailer:
-
-```text
-fix(safe-bash): finish the command fixes
-
-Release: release-safe.yml
-```
-
-`dispatch-releases.yml` reads only the pushed head commit's trailers and dispatches
-the named publishers on `main`. Use `Release: release.yml` for the root package;
-repeat the trailer for multiple publishers. Conventional Commits still determine
-the root version when semantic-release runs.
-
-Alternatively, dispatch the root release after pushing the series:
-
-```sh
-gh workflow run release.yml --ref main --repo poe-platform/poe-code
-```
-
-Use `release-safe.yml` for the scoped Safe libraries or the corresponding
-`release-*.yml` for another package. The Actions UI's **Run workflow** on `main`
-is equivalent. Agents may release as part of authorized commit/push work without
-a separate approval. Use either a trailer or a direct dispatch, not both for the
-same release. Monitor the dispatched run and verify its published version.
-
-`.github/workflows/bump-version.yml` creates a commit and dispatches the root
-release workflow when a version bump is needed. Prefer a trailer on the final
-real fix or a direct dispatch, and release once for a series of commits.
+Prefer adding `Release: release.yml` after a blank line in the final commit
+message of a series. Use `Release: release-safe.yml` for the scoped Safe
+libraries or the matching workflow filename for another package. Ordinary
+commits run CI without publishing. Manual workflow dispatch also works.
 
 ## Release Queues
 

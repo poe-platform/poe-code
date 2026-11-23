@@ -48,32 +48,7 @@ Use `npm run lint:workflows`
 
 ## Release
 
-- Release on demand, not after every commit. Ordinary pushes to `main` run package CI without publishing npm or PyPI packages.
-- Agents may trigger a release as part of authorized commit/push work; no separate release approval is required. For a series of fixes, commit each separately and release once at the end.
-- Keep using Conventional Commits for version calculation. To release from a push, add a `Release: <workflow.yml>` Git trailer to the final commit, separated from the subject/body by a blank line. Only the pushed head commit's trailers are read; repeat the trailer to request multiple publishers.
-
-```text
-fix(safe-bash): finish the command fixes
-
-Release: release-safe.yml
-```
-
-- Alternatively, dispatch once after pushing the series. Releases run in GitHub Actions, not locally. Choose the package's workflow and **Run workflow** on `main`, or use:
-
-```sh
-# Root poe-code@latest
-gh workflow run release.yml --ref main --repo poe-platform/poe-code
-# Scoped SafeFS, SafeJS, and Safe Bash (shared version)
-gh workflow run release-safe.yml --ref main --repo poe-platform/poe-code
-# Toolcraft packages
-gh workflow run release-toolcraft.yml --ref main --repo poe-platform/poe-code
-```
-
-- Use `Release: release.yml` for the root package or the matching `release-*.yml` for other packages; list them with `gh workflow list --repo poe-platform/poe-code`. Each dispatch uses the `main` revision at dispatch time. Do not use both a trailer and a manual dispatch for the same release.
-- After dispatch, identify the new run with `gh run list --workflow <workflow.yml> --event workflow_dispatch --repo poe-platform/poe-code`, monitor it, and verify the published version before reporting release success.
-- `bump-version.yml` creates an empty commit and dispatches a root release when a version bump is needed. Prefer a trailer on the final real fix or a direct dispatch. Keep release validation enabled.
-
-See `docs/development/NPM_PUBLISHING.md` for publishing details.
+Prefer releasing through the final commit message in a series: add a `Release: <workflow.yml>` trailer after a blank line, e.g. `Release: release-safe.yml`. Commit fixes separately and release once at the end. Manual workflow dispatch also works.
 
 ## Configure commands / Providers
 

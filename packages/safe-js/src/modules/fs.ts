@@ -70,13 +70,10 @@ const BUFFER_BY_DEFAULT = {
 const REFUSED_OPTION_REASONS = {
   signal:
     "the sandbox has no AbortController, and cancelling a run is the host's to request rather than the script's",
-  // @types/node declares this on fs/promises stat and lstat and types
-  // `throwIfNoEntry: false` as answering `Stats | undefined`, but the typings are
-  // ahead of node: only the synchronous API reads the option. Forwarding it would
-  // leave a script holding the ENOENT rejection the typings told it to expect
-  // undefined for, so it is refused rather than dropped.
+  // Node 22 ignores this option, while Node 24 stat and memfs honour it.
+  // Refuse it consistently rather than expose host-dependent missing-path results.
   throwIfNoEntry:
-    "only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead",
+    "support differs across host runtimes and filesystem implementations, so catch the ENOENT rejection instead",
   // cp's filter is a callback the host would invoke, which a sandbox closure can cross the
   // bridge to serve. It is refused for what happens around the call rather than during it:
   // the digest that identifies a host call across a snapshot is built by stringifying the

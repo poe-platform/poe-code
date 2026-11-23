@@ -862,7 +862,7 @@ describe("makeFsModule", () => {
       `fs.${operation} cannot honour the '${option}' option inside SafeJS; node declares no such option for it, and an unrecognised option is refused rather than silently ignored.`;
 
     const THROW_IF_NO_ENTRY_MESSAGE = (operation: string): string =>
-      `fs.${operation} cannot honour the 'throwIfNoEntry' option inside SafeJS; only node's synchronous stat reads it and fs/promises rejects a missing path whatever it says, so catch the ENOENT rejection instead.`;
+      `fs.${operation} cannot honour the 'throwIfNoEntry' option inside SafeJS; support differs across host runtimes and filesystem implementations, so catch the ENOENT rejection instead.`;
 
     // Records the arguments each operation is handed, which is what separates an
     // option that reached node from one the module dropped on the way.
@@ -1231,14 +1231,8 @@ describe("makeFsModule", () => {
       expect(calls).toEqual([]);
     });
 
-    // Only node's synchronous stat reads throwIfNoEntry, so forwarding it to
-    // fs/promises drops it: the script gets the ENOENT rejection that @types/node's
-    // `Stats | undefined` told it to expect undefined for. "proves node's fs/promises
-    // ignores throwIfNoEntry" below measures that against real node.
-    //
-    // memfs is why the premise cannot be measured here: it honours the option node
-    // ignores, so a forwarded `throwIfNoEntry: false` answers with undefined and
-    // crashes the module's own Stats mapping. Refusing the key covers both.
+    // Node 22 ignores this option, while Node 24 stat and memfs honour it.
+    // Refuse it consistently before reaching the host or mapping Stats.
     for (const operation of ["stat", "lstat"] as const) {
       it(`${operation} with throwIfNoEntry rejects rather than promising undefined`, async () => {
         const { fs, calls } = await createOptionFs();
@@ -1625,19 +1619,17 @@ describe("makeFsModule", () => {
       }
     });
 
-    // The premise the module's throwIfNoEntry refusal rests on, measured rather than
-    // remembered. @types/node declares the option on fs/promises stat and lstat and
-    // types `throwIfNoEntry: false` as answering `Stats | undefined`, but only the
-    // synchronous API reads it: node rejects the missing path either way. Were a node
-    // to start honouring it here, this is what fails and says the refusal can be
-    // dropped.
-    it("proves node's fs/promises ignores throwIfNoEntry", async () => {
+    it("refuses throwIfNoEntry consistently with the native filesystem backend", async () => {
+      const fs = untyped(makeFsModule());
       for (const operation of ["stat", "lstat"]) {
         const error = await readArgumentError(
-          reference[operation](MISSING_PATH, { throwIfNoEntry: false })
+          fs[operation](MISSING_PATH, { throwIfNoEntry: false })
         );
 
-        expect(error.code, `node's ${operation} honoured throwIfNoEntry`).toBe("ENOENT");
+        expect(error.name).toBe("TypeError");
+        expect(error.message).toBe(
+          `fs.${operation} cannot honour the 'throwIfNoEntry' option inside SafeJS; support differs across host runtimes and filesystem implementations, so catch the ENOENT rejection instead.`
+        );
       }
     });
 

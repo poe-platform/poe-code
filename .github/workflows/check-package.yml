@@ -81,7 +81,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
-        if: inputs.workspace == '.' || contains(fromJSON('["@poe-code/agent-spawn","toolcraft-design"]'), inputs.workspace)
+        if: inputs.workspace == '.' || contains(fromJSON('["@poe-code/agent-spawn","toolcraft-design","safe-bash-command-op"]'), inputs.workspace)
       - uses: ./.github/actions/setup-ffmpeg-oracle
         if: inputs.workspace == '.' || contains(fromJSON('["safe-bash-command-ffmpeg","safe-bash-command-imagemagick","safe-bash-media-engine"]'), inputs.workspace)
       - uses: ./.github/actions/setup-imagemagick-oracle

@@ -269,7 +269,7 @@ it("keeps small table namespaces local in backing storage", async () => {
       await heap.set(table, 1, index);
     }
     for (let index = 0; index < tables.length; index++) expect(await heap.get(tables[index]!, 1)).toBe(index);
-    expect(allocate.mock.calls.reduce((bytes, [length]) => bytes + length, 0)).toBeLessThanOrEqual(384 * 1024);
+    expect(allocate.mock.calls.reduce((bytes, [length]) => bytes + length, 0)).toBeLessThanOrEqual(256 * (32 + 56));
   } finally {await storage.close(); await context.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
@@ -280,7 +280,7 @@ it("keeps full table identity when storage offsets share their low bits", async 
   const heap = new LuaStorage(storage, units => context.cooperate(units));
   try {
     const first = await heap.table();
-    storage.allocate(0x100000000 - 24);
+    storage.allocate(0x100000000 - (storage.allocate(0) - first.id));
     const second = await heap.table();
     expect(second.id - first.id).toBe(0x100000000);
     await heap.set(first, 1, true);
@@ -334,5 +334,27 @@ it("distinguishes signed and unsigned integer keys sharing a radix slot", async 
     expect(await heap.get(table, -1)).toBeUndefined();
     expect(await heap.get(table, 0xffffffff)).toBe(42);
     expect(await heap.next(table, -1)).toEqual({key: 0xffffffff, value: 42});
+  });
+});
+
+it("splits sparse key prefixes in either insertion order without expanding empty radix paths", async () => {
+  for (const reverse of [false, true]) await usingHeap(async heap => {
+    const table = await heap.table();
+    const keys = [0, ...Array.from({length: 32}, (_, bit) => 2 ** bit), 0xffffffff, 0xfffffffe];
+    if (reverse) keys.reverse();
+    for (const key of keys) await heap.set(table, key, key);
+    for (const key of keys) expect(await heap.get(table, key)).toBe(key);
+    expect(await heap.get(table, 3)).toBeUndefined();
+    let entry = await heap.next(table);
+    for (const key of keys) {
+      expect(entry).toEqual({key, value: key});
+      await heap.set(table, key, undefined);
+      entry = await heap.next(table, key);
+    }
+    expect(entry).toBeUndefined();
+    for (const key of keys) {
+      await heap.set(table, key, true);
+      expect(await heap.get(table, key)).toBe(true);
+    }
   });
 });

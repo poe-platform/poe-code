@@ -1,5 +1,5 @@
 import {PandocError} from "./errors.js";
-import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
+import type {PagedStorage} from "safe-bash-io-engine/storage";
 
 export type LuaReference = {readonly kind: "string" | "table" | "function"; readonly id: number};
 export type LuaInteger = {readonly kind: "integer"; readonly value: number};
@@ -31,16 +31,13 @@ function hash(bytes: Uint8Array, initial = 2166136261): number {
 }
 
 /** Invocation-owned Lua value storage. Strings are byte sequences; tables retain
- * their indexes, values and iteration links in the supplied storage. Only a fixed
- * 64-entry radix cache and current I/O slices are resident. Callers serialize heap
- * mutations and close the supplied storage on every outcome. This is the storage
+ * their indexes, values and iteration links in the supplied storage. Compressed
+ * radix branches skip shared hash prefixes; only current I/O slices are resident.
+ * Callers serialize heap mutations and close the supplied storage on every outcome. This is the storage
  * layer for a retained runtime, not an adapter that makes Fengari's objects spill. */
 export class LuaStorage {
-  private readonly buckets: IntegerTable;
   private stringMetatable: LuaReference | undefined;
-  constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {
-    this.buckets = new IntegerTable(storage, 64);
-  }
+  constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {}
   private async fields(position: number, count: number): Promise<number[]> {
     const bytes = await this.storage.read(position, count * 8), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return Array.from({length: count}, (_, index) => view.getFloat64(index * 8, true));
@@ -132,8 +129,8 @@ export class LuaStorage {
     }
   }
   async table(): Promise<LuaReference> {
-    const id = this.storage.allocate(24);
-    await this.put(id, 0, 0, 0);
+    const id = this.storage.allocate(32);
+    await this.put(id, 0, 0, 0, 0);
     return {kind: "table", id};
   }
   setStringMetatable(value: LuaReference): void {
@@ -201,34 +198,56 @@ export class LuaStorage {
       return true;
     } finally {await right.return(undefined);}
   }
-  private async bucket(table: LuaReference, key: StoredLuaValue): Promise<bigint> {
+  private async bucket(table: LuaReference, key: StoredLuaValue): Promise<number> {
     if (table.kind !== "table") throw new TypeError("Expected Lua table");
     if (typeof key === "object" && key.kind === "integer") key = key.value;
-    // Integer array keys are already a bounded radix index. Hashing them spreads
-    // adjacent Lua slots over unrelated pages and amplifies remote storage IO.
-    const digest = typeof key === "number" && Number.isInteger(key) && key >= -0x80000000 && key <= 0xffffffff
+    return typeof key === "number" && Number.isInteger(key) && key >= -0x80000000 && key <= 0xffffffff
       ? key >>> 0
       : typeof key === "object" && key.kind === "string"
       ? (await this.fields(key.id + 24, 1))[0]!
       : hash(encode(typeof key === "number" && key === 0 ? 0 : key));
-    // Keep nearby table namespaces on shared radix paths. Hashing their offsets
-    // scatters tiny tables over the index; find() still checks full owner IDs
-    // when offsets separated by 4 GiB share the low 32 bits.
-    return BigInt(table.id % 0x100000000) << 32n | BigInt(digest);
   }
-  private async find(table: LuaReference, key: StoredLuaValue, bucket: bigint): Promise<number> {
-    let position = Number(await this.buckets.get(bucket) ?? 0n);
+  // Each table owns its root. Positive pointers are collision-list heads;
+  // negative pointers are [split bit, zero child, one child] radix branches.
+  // Split bits strictly decrease, bounding lookup and insertion to 32 branches.
+  private async bucketHead(table: LuaReference, digest: number): Promise<number> {
+    let position = (await this.fields(table.id + 24, 1))[0]!;
+    while (position < 0) {
+      const [bit, zero, one] = await this.fields(-position, 3);
+      position = (digest >>> bit! & 1) ? one! : zero!;
+    }
+    return position;
+  }
+  private async index(table: LuaReference, digest: number, position: number, head: number): Promise<void> {
+    const previous = head ? (await this.fields(head, 1))[0]! : digest;
+    const bit = 31 - Math.clz32(digest ^ previous);
+    let slot = table.id + 24, child = (await this.fields(slot, 1))[0]!;
+    while (child < 0) {
+      const split = (await this.fields(-child, 1))[0]!;
+      if (split < bit) break;
+      slot = -child + 8 + (digest >>> split & 1) * 8;
+      child = (await this.fields(slot, 1))[0]!;
+    }
+    if (head && bit >= 0) {
+      const branch = this.storage.allocate(24);
+      await this.put(branch, bit, (digest >>> bit & 1) ? child : position, (digest >>> bit & 1) ? position : child);
+      await this.put(slot, -branch);
+    } else await this.put(slot, position);
+  }
+  private async find(key: StoredLuaValue, digest: number, position: number): Promise<number> {
     while (position) {
       await this.cooperate(56);
-      const [owner, next] = await this.fields(position, 2);
-      if (owner === table.id && await this.equal(key, decode(await this.storage.read(position + 24, 16)))) return position;
+      const [stored, next] = await this.fields(position, 2);
+      if (stored !== digest) return 0;
+      if (await this.equal(key, decode(await this.storage.read(position + 24, 16)))) return position;
       position = next!;
     }
     return 0;
   }
   async get(table: LuaReference, key: StoredLuaValue): Promise<StoredLuaValue> {
     if (key === undefined || typeof key === "number" && Number.isNaN(key)) return undefined;
-    const position = await this.find(table, key, await this.bucket(table, key));
+    const bucket = await this.bucket(table, key);
+    const position = await this.find(key, bucket, await this.bucketHead(table, bucket));
     return position ? decode(await this.storage.read(position + 40, 16)) : undefined;
   }
   async set(table: LuaReference, key: StoredLuaValue, value: StoredLuaValue): Promise<void> {
@@ -236,16 +255,17 @@ export class LuaStorage {
     if (typeof key === "number" && Number.isNaN(key)) throw new PandocError("E_AST", "convert", "Table index is NaN");
     await this.cooperate();
     const bucket = await this.bucket(table, key);
-    let position = await this.find(table, key, bucket);
+    const head = await this.bucketHead(table, bucket);
+    let position = await this.find(key, bucket, head);
     if (!position) {
       if (value === undefined) return;
       position = this.storage.allocate(56);
-      await this.put(position, table.id, Number(await this.buckets.get(bucket) ?? 0n), 0);
+      await this.put(position, bucket, head && (await this.fields(head, 1))[0] === bucket ? head : 0, 0);
       await this.storage.write(position + 24, encode(key));
       const [first, last] = await this.fields(table.id, 2);
       if (last) await this.put(last + 16, position);
       await this.put(table.id, first || position, position);
-      await this.buckets.set(bucket, BigInt(position));
+      await this.index(table, bucket, position, head);
     }
     await this.storage.write(position + 40, encode(value));
   }
@@ -255,7 +275,8 @@ export class LuaStorage {
     let position: number;
     if (after === undefined) position = (await this.fields(table.id, 1))[0]!;
     else {
-      const previous = await this.find(table, after, await this.bucket(table, after));
+      const bucket = await this.bucket(table, after);
+      const previous = await this.find(after, bucket, await this.bucketHead(table, bucket));
       if (!previous) throw new PandocError("E_AST", "convert", "Invalid key to next");
       position = (await this.fields(previous + 16, 1))[0]!;
     }

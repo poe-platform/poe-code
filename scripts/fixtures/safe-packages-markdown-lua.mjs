@@ -76,6 +76,9 @@ export async function verifyMarkdownOperands({createStorage, bucket, fileScope})
     throw new Error('Markdown operand dispatch or external backing differs');
   if (largestTransfer > 16384 || opened !== closed || (await bucket.list({limit: 1})).objects.length || (await namespace.readdir('/spill')).length)
     throw new Error('Markdown operand storage bounds or cleanup differ');
+  // The retained Lua table index must not amplify this fixed workload back to
+  // its former 10,845 page reads and 1,946 writes. Keep the 128 KiB cache.
+  if (reads >= 5000 || writes >= 600) throw new Error(`Markdown operand page churn: ${reads} reads, ${writes} writes`);
   return {markdownOperands: true, fileScope};
 }
 

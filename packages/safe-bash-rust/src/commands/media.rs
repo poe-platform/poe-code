@@ -24690,17 +24690,17 @@ mod media_unit_tests {
             (
                 r#"<g transform="translate(2 3)" fill="red"><rect width="5" height="8"/><circle cx="5" cy="2" r="2"/></g>"#,
                 "4ef7756b1c9169ce3864c1b523413360e661921f68c6aba079e0be34fe098095",
-                "78335fc300d788c0d3f6d34bb6999719c00840a17cb4623a3c0bb10ca74b92f5",
+                "a215603b3e1f8b6ceba78ca9251abe4b50f9ab30870da50c1f669b601407e4d7",
             ),
             (
                 r#"<path d="M1 1 l6 3 q3 2 6 -1 Z" fill="green"/>"#,
                 "e443034b529547f27c871c024036a89752528b40713e7d9dd518fb89d751f72b",
-                "d6559b5a215ca50677f4783c8325eb738fd96dd1a6597136cd60757ef960a096",
+                "3beb5923f5e4c3c20a81e9a89e31b02ebc95a15264b2ec6d9215f95b50b99699",
             ),
             (
                 r#"<text x="3" y="9" font-size="8">Hi</text>"#,
                 "20d11261d64abd6ffa687bdf1d31d61e070456a780fd4a483483000a40fb571e",
-                "a94b66200c4108a248ade8d56e1f942a991655357b4413a0c2426369dfbc65b8",
+                "fb07535876b80fcf886e2381eeefa2331bb0a4475c1894c2bd4f342231ff3a1f",
             ),
         ] {
             let svg = format!(r#"<svg width="20" height="12">{body}</svg>"#);
@@ -37336,6 +37336,23 @@ mod media_unit_tests {
         let output = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 4096).unwrap();
         assert!(output.alpha);
         assert_eq!(output.pixels, pixels.into_iter().rev().collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn rsvg_convert_preserves_small_canvas_dimensions_and_transparent_pixels() {
+        let fs = MemoryVfs::new();
+        for (width, height) in [(2, 1), (1, 2)] {
+            let svg = format!(
+                r#"<svg width="{width}" height="{height}"><rect width="1" height="1" fill="red"/></svg>"#
+            );
+            let result = cmd_media_doc(
+                "rsvg-convert", &media_args(&["-o", "/out.png"]), &svg, "/", &fs,
+            );
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let raster = png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(), 4096).unwrap();
+            assert_eq!((raster.width, raster.height), (width, height));
+            assert_eq!(raster.pixels, vec![[255, 0, 0, 255], [0, 0, 0, 0]]);
+        }
     }
 
     #[test]

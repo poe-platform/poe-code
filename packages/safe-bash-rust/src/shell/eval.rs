@@ -6519,6 +6519,7 @@ impl<'a> EvalState<'a> {
                         | "diffpdf"
                         | "pdfdiff"
                         | "svgo"
+                        | "rsvg-convert"
                         | "sox"
                         | "soxi"
                         | "qrencode"

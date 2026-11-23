@@ -975,7 +975,11 @@ impl PageSource<'_> {
                     *target = node
                         .get(key)
                         .and_then(|v| self.objects.resolve(v))
-                        .and_then(|v| v.rectangle(Value::poppler_number));
+                        .and_then(|v| v.rectangle(if opt.backend == RasterBackend::Svg {
+                            Value::number
+                        } else {
+                            Value::poppler_number
+                        }));
                 }
             }
             if rot.is_none() {
@@ -1080,7 +1084,7 @@ impl PageSource<'_> {
             w,
             h,
             // pdftocairo composites the completed ARGB surface over white at export.
-            pixels: vec![if opt.backend == RasterBackend::Svg { [255; 4] } else { [0; 4] }; w * h],
+            pixels: vec![[0; 4]; w * h],
             work: opt.limit.saturating_mul(4),
         };
         let mut faces = std::collections::BTreeMap::new();

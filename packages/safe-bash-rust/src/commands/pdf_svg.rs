@@ -426,7 +426,7 @@ pub(in crate::commands::archive) fn render_svg(
                 jpeg: None,
                 format: "RGBA",
                 color: "rgb",
-                transparent: false,
+                transparent: true,
                 antialias: true,
                 text_aa: true,
                 dpi: [96.; 2],

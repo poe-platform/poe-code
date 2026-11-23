@@ -754,6 +754,31 @@ it("rejects declared assets whose private workspace is missing", async () => {
   await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Qualified private workspace profile mismatch");
 });
 
+it("keeps optional native workspace peers external in scoped companion artifacts", async () => {
+  const { volume, options } = optionalLeftovers();
+  const command = "/repo/packages/safe-bash-command-tesseract";
+  const provider = "/repo/packages/tesseract-rust";
+  for (const directory of [command, provider]) volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(command + "/package.json", readFileSync(new URL("../packages/safe-bash-command-tesseract/package.json", import.meta.url), "utf8"));
+  volume.writeFileSync(command + "/dist/index.js", 'export const load = () => import("@poe-platform/tesseract");');
+  volume.writeFileSync(command + "/dist/index.d.ts", 'export type Options = import("@poe-platform/tesseract").Options;');
+  volume.writeFileSync(provider + "/package.json", readFileSync(new URL("../packages/tesseract-rust/package.json", import.meta.url), "utf8"));
+  volume.writeFileSync(provider + "/dist/index.js", 'export const binary = new URL("./poe-tesseract.node", import.meta.url);');
+  volume.writeFileSync(provider + "/dist/index.d.ts", 'export interface Options { language: string }');
+  volume.writeFileSync(provider + "/dist/poe-tesseract.node", "platform-specific native OCR binary");
+
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const root = "/output/safe-bash";
+  const manifest = JSON.parse(volume.readFileSync(root + "/package.json", "utf8").toString());
+  const entry = manifest.exports["./commands/tesseract"];
+  expect(volume.readFileSync(path.join(root, entry.import), "utf8")).toContain('import("@poe-platform/tesseract")');
+  expect(volume.readFileSync(path.join(root, entry.types), "utf8")).toContain('import("@poe-platform/tesseract")');
+  expect(manifest.peerDependencies["@poe-platform/tesseract"]).toBe("^0.1.0");
+  expect(manifest.peerDependenciesMeta["@poe-platform/tesseract"]).toEqual({ optional: true });
+  expect(manifest.dependencies["@poe-platform/tesseract"]).toBeUndefined();
+  expect(volume.existsSync(root + "/dist/tesseract-rust")).toBe(false);
+});
+
 it.each([false, true])("admits asset-only contract owners against the full private profile: private=%s", async privateFlag => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-contracts";

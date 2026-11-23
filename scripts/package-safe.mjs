@@ -703,6 +703,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return relative.startsWith(".") ? relative : "./" + relative;
           }
           if (publicName === `@poe-platform/${name}` || publicName.startsWith(`@poe-platform/${name}/`)) return publicName;
+          // Optional providers stay external even when linked as private workspaces.
+          if ([...companionPeers.keys()].some(peer => publicName === peer || publicName.startsWith(peer + "/"))) return publicName;
           const qualifiedName = name === "safe-bash" && Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {})
             .find(candidate => publicName === candidate || publicName.startsWith(candidate + "/"));
           if (qualifiedName) {

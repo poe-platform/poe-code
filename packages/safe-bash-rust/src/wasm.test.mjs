@@ -2651,7 +2651,9 @@ test("unzip validates disk numbers, local headers and record coverage before ext
   } finally {await js.dispose();await rust.dispose();}
 });
 
-test("zip writes signed descriptors for selected members and keeps them whole across split volumes",async () => {
+test("zip writes signed descriptors for selected members and keeps them whole across split volumes",async t => {
+  // Reading a member updates its access time, which subsequent archives preserve.
+  t.mock.method(Date, "now", () => 1700000000000);
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
   try {

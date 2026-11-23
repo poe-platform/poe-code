@@ -58,6 +58,8 @@ describe("completed snapshot replay", () => {
 
   it.each([false, true])("marks incomplete yield and failure replay (entry point=%s)", async entryPoint => {
     const snapshots: import("./snapshot/backend.js").Snapshot[] = [];
+    const tick = Promise.withResolvers<void>();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(0);
     const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
     const body = 'await load(); await tick(); throw new Error("guest failure");';
     try {
@@ -65,13 +67,19 @@ describe("completed snapshot replay", () => {
         ...(entryPoint ? { entryPointArgs: [] } : {}),
         bindings: {
           load: async () => ({ callback: () => 1 }),
-          tick: async () => { await new Promise(resolve => setTimeout(resolve, 5)); }
+          tick: () => {
+            clock.mockReturnValue(2);
+            return tick.promise;
+          }
         },
         snapshotIntervalMs: 1,
         snapshotBackend: {
           async read() { return undefined; },
           async remove() {},
-          async write(snapshot) { snapshots.push(snapshot); }
+          async write(snapshot) {
+            snapshots.push(snapshot);
+            if (snapshot.pendingAwaits?.length && snapshot.replayError) tick.resolve();
+          }
         }
       })).rejects.toThrow("guest failure");
       expect(snapshots.length).toBeGreaterThanOrEqual(2);
@@ -81,7 +89,11 @@ describe("completed snapshot replay", () => {
         expect(() => serializeSafeJSSnapshot(snapshot)).toThrow(/not replayable/);
       }
       expect(warning).not.toHaveBeenCalled();
-    } finally { warning.mockRestore(); }
+    } finally {
+      tick.resolve();
+      clock.mockRestore();
+      warning.mockRestore();
+    }
   });
 
   it(

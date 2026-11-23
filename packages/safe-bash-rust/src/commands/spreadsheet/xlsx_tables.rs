@@ -125,6 +125,20 @@ pub(super) fn filter(source: &Filter, limit: usize) -> Option<String> {
                     )
                     .ok()?;
                 }
+                for group in &field.date_groups {
+                    remaining = remaining.checked_sub(256)?;
+                    let names = ["year", "month", "day", "hour", "minute", "second"];
+                    write!(
+                        output,
+                        r#"<dateGroupItem dateTimeGrouping="{}""#,
+                        names.get(group.len().checked_sub(1)?)?
+                    )
+                    .ok()?;
+                    for (name, value) in names.iter().zip(group) {
+                        write!(output, r#" {name}="{value}""#).ok()?;
+                    }
+                    output.push_str("/>");
+                }
                 output.push_str("</filters>");
             } else {
                 write!(output, r#"<customFilters and="{}">"#, field.conjunction).ok()?;

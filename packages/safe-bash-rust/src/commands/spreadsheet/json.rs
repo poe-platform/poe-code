@@ -362,6 +362,14 @@ impl Codec for FilterField {
     fn json(&self) -> Json {
         object([
             ("top", self.top.json()),
+            (
+                "date_groups",
+                if self.date_groups.is_empty() {
+                    Json::Null
+                } else {
+                    self.date_groups.json()
+                },
+            ),
             ("conditions", self.conditions.json()),
             ("hidden_rows", self.hidden_rows.json()),
             ("conjunction", self.conjunction.json()),
@@ -371,6 +379,11 @@ impl Codec for FilterField {
     fn read(v: &Json) -> Result<Self> {
         Ok(Self {
             top: Codec::read(v.get("top").unwrap_or(&Json::Null))?,
+            date_groups: v
+                .get("date_groups")
+                .map(Codec::read)
+                .transpose()?
+                .unwrap_or_default(),
             conditions: Codec::read(field(v, "conditions")?)?,
             hidden_rows: Codec::read(v.get("hidden_rows").unwrap_or(&Json::Null))?,
             conjunction: Codec::read(field(v, "conjunction")?)?,
@@ -1248,6 +1261,7 @@ mod tests {
                 fields: Some(BTreeMap::from([(
                     0,
                     FilterField {
+                        date_groups: Vec::new(),
                         top: None,
                         hidden_rows: None,
                         custom: false,

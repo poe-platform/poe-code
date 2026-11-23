@@ -45,7 +45,7 @@ pub(super) fn serial(
     })
 }
 
-pub(super) fn calendar(serial: i64, date1904: bool) -> (i64, u32, u32) {
+pub(in crate::commands::spreadsheet) fn calendar(serial: i64, date1904: bool) -> (i64, u32, u32) {
     if date1904 {
         civil_from_days(days_from_civil(1904, 1, 1) + serial)
     } else if serial == 0 {

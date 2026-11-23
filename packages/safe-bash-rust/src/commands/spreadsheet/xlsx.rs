@@ -139,6 +139,9 @@ pub struct TopFilter {
 }
 #[derive(Clone)]
 pub struct FilterField {
+    /// Calendar prefixes: [year], [year, month], through [year, month, day, hour, minute, second].
+    /// Combined with ordinary selected values using OR.
+    pub date_groups: Vec<Vec<usize>>,
     pub top: Option<TopFilter>,
     pub hidden_rows: Option<Vec<usize>>,
     pub custom: bool,

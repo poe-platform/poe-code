@@ -85,9 +85,70 @@ fn matches(
     }
     Ok(result)
 }
+fn valid_date_group(group: &[usize]) -> bool {
+    if !(1..=6).contains(&group.len()) || !(1..=9999).contains(&group[0]) {
+        return false;
+    }
+    if group.len() < 2 {
+        return true;
+    }
+    if !(1..=12).contains(&group[1]) {
+        return false;
+    }
+    if group.len() < 3 {
+        return true;
+    }
+    let year = group[0];
+    let days = match group[1] {
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            28 + usize::from(year == 1900 || year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+        }
+        _ => 31,
+    };
+    (1..=days).contains(&group[2])
+        && group.get(3).is_none_or(|hour| *hour < 24)
+        && group.get(4).is_none_or(|minute| *minute < 60)
+        && group.get(5).is_none_or(|second| *second < 60)
+}
+
+// Date/time grouping adapted from ClosedXML XLFilter.CreateDateGroupFilter
+// at 057f5976c788d97e8eac86d1a528bd5411d9386e (LICENSE.ClosedXML).
+// Excel stores dates as numbers. Text and booleans never become date serials.
+fn date_matches(
+    value: Option<&Value<String>>,
+    date1904: bool,
+    groups: &BTreeSet<&[usize]>,
+) -> bool {
+    let Some(Value::Number(n)) = value else {
+        return false;
+    };
+    if groups.is_empty()
+        || !n.is_finite()
+        || *n < 0.
+        || *n >= if date1904 { 2_957_004. } else { 2_958_466. }
+    {
+        return false;
+    }
+    // Correct serial floating-point noise at millisecond precision, then discard
+    // fractional seconds rather than rounding to the nearest whole second.
+    let seconds = ((*n * 86_400_000.).round() as i64) / 1000;
+    let (year, month, day) = super::formulas::date_difference::calendar(seconds / 86400, date1904);
+    let parts = [
+        year as usize,
+        month as usize,
+        day as usize,
+        (seconds % 86400 / 3600) as usize,
+        (seconds % 3600 / 60) as usize,
+        (seconds % 60) as usize,
+    ];
+    (1..=6).any(|depth| groups.contains(&parts[..depth]))
+}
+
 fn validate(field: &FilterField) -> Result<(), String> {
     if let Some(top) = &field.top {
-        return if !field.custom
+        return if field.date_groups.is_empty()
+            && !field.custom
             && !field.conjunction
             && field.conditions.is_empty()
             && top.rank.is_finite()
@@ -98,6 +159,14 @@ fn validate(field: &FilterField) -> Result<(), String> {
         } else {
             Err("Invalid top/bottom filter".into())
         };
+    }
+    if !field.date_groups.is_empty() && (field.custom || field.conjunction)
+        || field
+            .date_groups
+            .iter()
+            .any(|group| !valid_date_group(group))
+    {
+        return Err("Invalid date-group filter".into());
     }
     if field.custom && (field.conditions.is_empty() || field.conditions.len() > 2) {
         return Err("Use one or two custom filter conditions".into());
@@ -223,6 +292,7 @@ impl Spreadsheet {
     }
     /// Applies a value checklist in one Rust batch. `values` is the initial
     /// inclusion list (or exclusion list when all=true); changes override it.
+    /// Existing date-group clauses remain selected independently of value labels.
     pub fn filter_table_selection(
         &mut self,
         index: usize,
@@ -258,10 +328,24 @@ impl Spreadsheet {
                 selected.remove(&key);
             }
         }
+        let date_groups = self
+            .options
+            .tables
+            .get(index)
+            .and_then(|table| table.filter.as_ref())
+            .and_then(|filter| filter.fields.as_ref())
+            .and_then(|fields| fields.get(&column))
+            .map(|field| field.date_groups.as_slice())
+            .unwrap_or_default();
+        work = work
+            .checked_sub(date_groups.len().checked_mul(128).ok_or(LIMIT)?)
+            .ok_or(LIMIT)?;
+        let date_groups = date_groups.to_vec();
         self.filter_table(
             index,
             column,
             Some(FilterField {
+                date_groups,
                 top: None,
                 custom: false,
                 conjunction: false,
@@ -271,7 +355,7 @@ impl Spreadsheet {
                     .collect(),
                 hidden_rows: None,
             }),
-            limit / 3,
+            work,
         )
     }
     pub fn filtered_rows(&self, sheet: usize, limit: usize) -> Result<BTreeSet<usize>, String> {
@@ -298,6 +382,14 @@ impl Spreadsheet {
         if column > area[3] - area[1] {
             return Err("Unknown filter column".into());
         }
+        *work = work
+            .checked_sub(field.date_groups.len().checked_mul(128).ok_or(LIMIT)?)
+            .ok_or(LIMIT)?;
+        let date_groups = field
+            .date_groups
+            .iter()
+            .map(Vec::as_slice)
+            .collect::<BTreeSet<_>>();
         let threshold = if let Some(top) = &field.top {
             let mut numbers = Vec::new();
             for row in area[0] + 1..=area[2] {
@@ -369,7 +461,15 @@ impl Spreadsheet {
                 self.display(sheet, row, area[1] + column, *work)?
             };
             let accepted = if let Some(accepted) = &accepted {
+                if !date_groups.is_empty() {
+                    *work = work.checked_sub(256).ok_or(LIMIT)?;
+                }
                 accepted.contains(&collation::key(&display, false, work).ok_or(LIMIT)?)
+                    || date_matches(
+                        cell.and_then(|cell| cell.value.as_ref()),
+                        self.options.date1904,
+                        &date_groups,
+                    )
             } else {
                 matches(field, cell.and_then(|c| c.value.as_ref()), &display, work)?
             };
@@ -548,6 +648,26 @@ impl Spreadsheet {
 mod tests {
     use super::*;
     #[test]
+    fn closedxml_date_groups_keep_visibility_through_json_and_excel() {
+        // ClosedXML 057f5976c788d97e8eac86d1a528bd5411d9386e,
+        // Resource/Examples/AutoFilter/DateTimeGroupAutoFilter.xlsx (MIT).
+        let bytes = include_bytes!("fixtures/closedxml-date-groups.xlsx");
+        let mut book = Spreadsheet::import_xlsx(bytes, 20_000_000).unwrap();
+        for _ in 0..2 {
+            assert_eq!(
+                book.filtered_rows(0, 1_000_000).unwrap(),
+                [1, 2, 5, 6].into()
+            );
+            book = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+            assert_eq!(
+                book.filtered_rows(0, 1_000_000).unwrap(),
+                [1, 2, 5, 6].into()
+            );
+            book = Spreadsheet::import_xlsx(&book.export_xlsx(20_000_000).unwrap(), 20_000_000)
+                .unwrap();
+        }
+    }
+    #[test]
     fn libreoffice_top_filter_keeps_excel_visibility_through_json_and_xlsx() {
         // LibreOffice sc/qa/unit/data/xlsx/tdf143068_top10filter.xlsx
         // at d79de2a2975db6b34f47b7ccfe8d18692373d6f0
@@ -564,8 +684,215 @@ mod tests {
         }
     }
 
+    fn date_filter(groups: Vec<Vec<usize>>, values: &[&str]) -> FilterField {
+        FilterField {
+            date_groups: groups,
+            top: None,
+            hidden_rows: None,
+            custom: false,
+            conjunction: false,
+            conditions: values
+                .iter()
+                .map(|value| ("equal", (*value).into()))
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn date_groups_match_all_calendar_depths_and_both_excel_epochs() {
+        for date1904 in [false, true] {
+            let mut book = Spreadsheet::new();
+            book.options.date1904 = date1904;
+            book.edit(
+                &[
+                    (0, 0, 0, "Date"),
+                    (0, 1, 0, "=DATE(2024,2,29)+TIME(12,34,56)"),
+                    (0, 2, 0, "=DATE(2024,2,29)+TIME(12,34,57)"),
+                    (0, 3, 0, "=DATE(2024,2,29)+TIME(12,35,0)"),
+                    (0, 4, 0, "=DATE(2024,2,29)+TIME(13,0,0)"),
+                    (0, 5, 0, "=DATE(2024,2,28)"),
+                    (0, 6, 0, "=DATE(2024,3,1)"),
+                    (0, 7, 0, "=DATE(2023,2,28)"),
+                    (0, 8, 0, "'2024-02-29"),
+                    (0, 9, 0, "TRUE"),
+                    (0, 10, 0, "=NA()"),
+                    (0, 11, 0, "=DATE(2024,2,29)+TIME(12,34,56)+0.9/86400"),
+                ],
+                20_000_000,
+            )
+            .unwrap();
+            book.add_table(0, "Dates", [0, 0, 12, 0], 20_000_000)
+                .unwrap();
+            for (parts, visible) in [
+                (vec![2024], vec![1, 2, 3, 4, 5, 6, 11]),
+                (vec![2024, 2], vec![1, 2, 3, 4, 5, 11]),
+                (vec![2024, 2, 29], vec![1, 2, 3, 4, 11]),
+                (vec![2024, 2, 29, 12], vec![1, 2, 3, 11]),
+                (vec![2024, 2, 29, 12, 34], vec![1, 2, 11]),
+                (vec![2024, 2, 29, 12, 34, 56], vec![1, 11]),
+            ] {
+                book.filter_table(
+                    0,
+                    0,
+                    Some(date_filter(vec![parts.clone()], &[])),
+                    20_000_000,
+                )
+                .unwrap();
+                let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+                assert_eq!(
+                    (1..=12)
+                        .filter(|row| !hidden.contains(row))
+                        .collect::<Vec<_>>(),
+                    visible,
+                    "{date1904} {parts:?}"
+                );
+                let restored = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+                assert_eq!(
+                    restored.options.tables[0]
+                        .filter
+                        .as_ref()
+                        .unwrap()
+                        .fields
+                        .as_ref()
+                        .unwrap()[&0]
+                        .date_groups,
+                    vec![parts]
+                );
+                let restored = Spreadsheet::import_xlsx(
+                    &restored.export_xlsx(20_000_000).unwrap(),
+                    20_000_000,
+                )
+                .unwrap();
+                assert_eq!(restored.filtered_rows(0, 1_000_000).unwrap(), hidden);
+            }
+        }
+    }
+
+    #[test]
+    fn closedxml_date_groups_and_regular_values_can_be_used_together() {
+        // Port of RegularFilterTests.DateTimeGrouping_and_regular_values_can_be_used_together
+        // from ClosedXML 057f5976c788d97e8eac86d1a528bd5411d9386e (MIT).
+        let mut book = Spreadsheet::new();
+        book.edit(
+            &[
+                (0, 0, 0, "Data"),
+                (0, 1, 0, "1"),
+                (0, 2, 0, "2"),
+                (0, 3, 0, "=DATE(2015,7,25)"),
+                (0, 4, 0, "=DATE(2015,8,25)"),
+            ],
+            20_000_000,
+        )
+        .unwrap();
+        book.add_table(0, "Dates", [0, 0, 4, 0], 20_000_000)
+            .unwrap();
+        book.filter_table(
+            0,
+            0,
+            Some(date_filter(vec![vec![2015, 8]], &["1"])),
+            20_000_000,
+        )
+        .unwrap();
+        book.filter_table_selection(0, 0, false, &["1".into()], &[], 20_000_000)
+            .unwrap();
+        for _ in 0..2 {
+            book.reapply_table_filter(0, 20_000_000).unwrap();
+            let hidden = book.filtered_rows(0, 1_000_000).unwrap();
+            assert_eq!(
+                (1..=4)
+                    .map(|row| !hidden.contains(&row))
+                    .collect::<Vec<_>>(),
+                [true, false, false, true]
+            );
+            book = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+            book = Spreadsheet::import_xlsx(&book.export_xlsx(20_000_000).unwrap(), 20_000_000)
+                .unwrap();
+        }
+    }
+
+    #[test]
+    fn date_groups_keep_snapshots_and_combine_blanks_and_multiple_groups() {
+        let mut book = Spreadsheet::new();
+        book.edit(
+            &[
+                (0, 0, 0, "Dates"),
+                (0, 1, 0, "60"),
+                (0, 2, 0, "61"),
+                (0, 3, 0, "-1"),
+                (0, 4, 0, "=DATE(2000,2,29)"),
+                (0, 5, 0, "=DATE(9999,12,31)"),
+                (0, 6, 0, "2958466"),
+            ],
+            20_000_000,
+        )
+        .unwrap();
+        book.add_table(0, "Dates", [0, 0, 7, 0], 20_000_000)
+            .unwrap();
+        book.filter_table(
+            0,
+            0,
+            Some(date_filter(
+                vec![vec![1900, 2, 29], vec![2000, 2], vec![9999]],
+                &[""],
+            )),
+            20_000_000,
+        )
+        .unwrap();
+        assert_eq!(book.filtered_rows(0, 1_000_000).unwrap(), [2, 3, 6].into());
+        book.edit(&[(0, 1, 0, "61")], 20_000_000).unwrap();
+        assert_eq!(book.filtered_rows(0, 1_000_000).unwrap(), [2, 3, 6].into());
+        book = Spreadsheet::from_json(&book.to_json(), 20_000_000).unwrap();
+        book.reapply_table_filter(0, 20_000_000).unwrap();
+        assert_eq!(
+            book.filtered_rows(0, 1_000_000).unwrap(),
+            [1, 2, 3, 6].into()
+        );
+    }
+
+    #[test]
+    fn date_groups_reject_invalid_calendars_and_budget_exhaustion_atomically() {
+        let mut book = Spreadsheet::new();
+        book.edit(
+            &[(0, 0, 0, "Dates"), (0, 1, 0, "=DATE(2024,2,29)")],
+            20_000_000,
+        )
+        .unwrap();
+        book.add_table(0, "Dates", [0, 0, 1, 0], 20_000_000)
+            .unwrap();
+        let before = book.to_json();
+        for parts in [
+            vec![],
+            vec![0],
+            vec![10000],
+            vec![2024, 0],
+            vec![2024, 13],
+            vec![2024, 2, 30],
+            vec![2100, 2, 29],
+            vec![2024, 1, 0],
+            vec![2024, 1, 1, 24],
+            vec![2024, 1, 1, 0, 60],
+            vec![2024, 1, 1, 0, 0, 60],
+            vec![2024, 1, 1, 0, 0, 0, 0],
+        ] {
+            assert!(
+                book.filter_table(0, 0, Some(date_filter(vec![parts], &[])), 20_000_000)
+                    .is_err()
+            );
+            assert_eq!(book.to_json(), before);
+        }
+        let mut custom = date_filter(vec![vec![2024]], &["1"]);
+        custom.custom = true;
+        assert!(book.filter_table(0, 0, Some(custom), 20_000_000).is_err());
+        assert!(
+            book.filter_table(0, 0, Some(date_filter(vec![vec![2024]; 1000], &[])), 10000)
+                .is_err()
+        );
+        assert_eq!(book.to_json(), before);
+    }
+
     fn top_filter(rank: f64, percent: bool, bottom: bool) -> FilterField {
         FilterField {
+            date_groups: Vec::new(),
             top: Some(model::TopFilter {
                 rank,
                 percent,
@@ -860,6 +1187,7 @@ mod tests {
     #[test]
     fn values_lists_use_literal_display_values_and_keep_blanks_distinct_from_zero_and_false() {
         let values = FilterField {
+            date_groups: Vec::new(),
             top: None,
             custom: false,
             conditions: vec![
@@ -886,6 +1214,7 @@ mod tests {
         assert!(condition(None, "", "equal", "", &mut 10_000).unwrap());
         assert!(!condition(Some(&Value::Bool(false)), "FALSE", "equal", "", &mut 10_000).unwrap());
         let none = FilterField {
+            date_groups: Vec::new(),
             top: None,
             conditions: vec![],
             ..values
@@ -895,6 +1224,7 @@ mod tests {
     #[test]
     fn conjunction_disjunction_and_expensive_patterns_are_bounded() {
         let mut field = FilterField {
+            date_groups: Vec::new(),
             top: None,
             custom: true,
             conditions: vec![("greaterThan", "2".into()), ("lessThan", "5".into())],

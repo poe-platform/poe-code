@@ -26,7 +26,7 @@ mod cashflow;
 #[path = "office_formula_convert.rs"]
 mod convert;
 #[path = "office_formula_date_difference.rs"]
-mod date_difference;
+pub(super) mod date_difference;
 #[path = "office_formula_date_text.rs"]
 mod date_text;
 #[path = "office_formula_dynamic_functions.rs"]

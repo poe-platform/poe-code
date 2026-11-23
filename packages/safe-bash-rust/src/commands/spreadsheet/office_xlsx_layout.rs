@@ -53,6 +53,7 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
         show_buttons &= !flag(column, "hiddenButton")
             && !matches!(attr(column, "showButton"), Some("0" | "false"));
         let mut field = FilterField {
+            date_groups: Vec::new(),
             top: None,
             hidden_rows: None,
             custom: false,
@@ -68,8 +69,30 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
                 *work = work.checked_sub(value.len() + 32).ok_or(LIMIT)?;
                 field.conditions.push(("equal", value.into()));
             }
-            if !elements(&list.children, "dateGroupItem").is_empty() {
-                return Err("Date-group Excel filters are not supported yet".into());
+            for item in elements(&list.children, "dateGroupItem") {
+                if !matches!(attr(list, "calendarType"), None | Some("gregorian")) {
+                    return Err("Non-Gregorian Excel date filters are not supported".into());
+                }
+                let depth = match attr(item, "dateTimeGrouping") {
+                    Some("year") => 1,
+                    Some("month") => 2,
+                    Some("day") => 3,
+                    Some("hour") => 4,
+                    Some("minute") => 5,
+                    Some("second") => 6,
+                    _ => return Err("Invalid XLSX date grouping".into()),
+                };
+                *work = work.checked_sub(128).ok_or(LIMIT)?;
+                let group = ["year", "month", "day", "hour", "minute", "second"]
+                    .into_iter()
+                    .take(depth)
+                    .map(|name| {
+                        attr(item, name)
+                            .and_then(|s| s.parse::<usize>().ok())
+                            .ok_or("Invalid XLSX date group")
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                field.date_groups.push(group);
             }
         } else if let Some(custom) = child(column, "customFilters") {
             field.custom = true;
@@ -630,6 +653,77 @@ pub(super) fn retain(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn date_group_attributes_roundtrip_and_invalid_dates_fail_import() {
+        for (attributes, parts) in [
+            (r#"dateTimeGrouping="year" year="2024""#, vec![2024]),
+            (
+                r#"dateTimeGrouping="month" year="2024" month="2""#,
+                vec![2024, 2],
+            ),
+            (
+                r#"dateTimeGrouping="day" year="1900" month="2" day="29""#,
+                vec![1900, 2, 29],
+            ),
+            (
+                r#"dateTimeGrouping="hour" year="2024" month="2" day="29" hour="12""#,
+                vec![2024, 2, 29, 12],
+            ),
+            (
+                r#"dateTimeGrouping="minute" year="2024" month="2" day="29" hour="12" minute="34""#,
+                vec![2024, 2, 29, 12, 34],
+            ),
+            (
+                r#"dateTimeGrouping="second" year="2024" month="2" day="29" hour="12" minute="34" second="56""#,
+                vec![2024, 2, 29, 12, 34, 56],
+            ),
+        ] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><filters blank="1"><filter val="keep"/><dateGroupItem {attributes}/></filters></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            let parsed = auto_filter(&nodes, &mut 1_000_000).unwrap().unwrap();
+            assert_eq!(parsed.fields.as_ref().unwrap()[&0].date_groups, vec![parts]);
+            let expected = parsed.fields.as_ref().unwrap()[&0].date_groups.clone();
+            let mut book = super::super::super::Spreadsheet::new();
+            book.sheets[0].filter = Some(parsed);
+            let book =
+                super::super::super::Spreadsheet::from_json(&book.to_json(), 1_000_000).unwrap();
+            let book = super::super::super::Spreadsheet::import_xlsx(
+                &book.export_xlsx(1_000_000).unwrap(),
+                1_000_000,
+            )
+            .unwrap();
+            let restored = book.sheets[0].filter.as_ref().unwrap();
+            assert_eq!(restored.fields.as_ref().unwrap()[&0].date_groups, expected);
+            assert_eq!(
+                restored.fields.as_ref().unwrap()[&0].conditions,
+                vec![("equal", "".into()), ("equal", "keep".into())]
+            );
+        }
+        for attributes in [
+            r#"year="2024""#,
+            r#"dateTimeGrouping="quarter" year="2024""#,
+            r#"dateTimeGrouping="month" year="2024""#,
+            r#"dateTimeGrouping="day" year="2023" month="2" day="29""#,
+            r#"dateTimeGrouping="day" year="2024" month="2" day="30""#,
+            r#"dateTimeGrouping="year" year="NaN""#,
+            r#"dateTimeGrouping="year" year="10000""#,
+            r#"dateTimeGrouping="hour" year="2024" month="2" day="29" hour="24""#,
+        ] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><filters><dateGroupItem {attributes}/></filters></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            if let Ok(Some(parsed)) = auto_filter(&nodes, &mut 1_000_000) {
+                assert!(
+                    !super::super::super::editor_filter::valid(&parsed),
+                    "{source}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn top_filter_attributes_roundtrip_and_invalid_ranks_fail_import() {
         for (attributes, rank, percent, bottom) in [

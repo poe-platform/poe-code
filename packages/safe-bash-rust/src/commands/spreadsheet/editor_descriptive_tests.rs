@@ -324,6 +324,7 @@ fn descriptive_table_filters_and_manual_hiding_survive_json_and_excel() {
         0,
         0,
         Some(super::model::FilterField {
+            date_groups: Vec::new(),
             top: None,
             custom: true,
             conditions: vec![("equal", "Keep".into())],

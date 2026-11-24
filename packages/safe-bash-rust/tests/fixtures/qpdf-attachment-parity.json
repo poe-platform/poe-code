@@ -1,0 +1,485 @@
+[
+  {
+    "name": "named-and-associated",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "Zmlyc3QgLT4gNiwwCnNlY29uZCAtPiA4LDAKYWYuYmluIC0+IDEwLDcKYW5ub3QuYmluIC0+IDE1LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=first",
+    "status": 0,
+    "stdout": "AAH/",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=second",
+    "status": 0,
+    "stdout": "AAL/",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=payload.bin",
+    "status": 0,
+    "stdout": "AAH/",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=af.bin",
+    "status": 0,
+    "stdout": "AAP/",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=annot.bin",
+    "status": 0,
+    "stdout": "AAX/",
+    "stderr": ""
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=page-only",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment page-only not found\n"
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--show-attachment=none",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment none not found\n"
+  },
+  {
+    "name": "named-and-associated",
+    "flags": "--list-attachments --show-attachment=second",
+    "status": 0,
+    "stdout": "AAL/",
+    "stderr": ""
+  },
+  {
+    "name": "sorted",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "sorted",
+    "flags": "--show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "sorted",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "sorted",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "duplicates",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YWxwaGEgLT4gNCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "duplicates",
+    "flags": "--show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "duplicates",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "duplicates",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "unsorted",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAKYWxwaGEgLT4gNCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "unsorted",
+    "flags": "--show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "unsorted",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "unsorted",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "empty",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "aW4ucGRmIGhhcyBubyBlbWJlZGRlZCBmaWxlcwo=",
+    "stderr": ""
+  },
+  {
+    "name": "empty",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "empty",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "empty",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "absent",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YWN0dWFsLmJpbiAtPiA0LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "absent",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "absent",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "absent",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "bad-type",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "bad-type",
+    "flags": "--show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "bad-type",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "bad-type",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "no-stream",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "no-stream",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "no-stream",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "no-stream",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "fallback-stream",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "fallback-stream",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "fallback-stream",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "fallback-stream",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "preference",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YWxwaGEgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "preference",
+    "flags": "--show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "preference",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "preference",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "invalid-value",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "invalid-value",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "invalid-value",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "invalid-value",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "invalid-key",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YXR0XzAgLT4gNCwwCmJldGEgLT4gOCwwCg==",
+    "stderr": ""
+  },
+  {
+    "name": "invalid-key",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "invalid-key",
+    "flags": "--show-attachment=actual.bin",
+    "status": 0,
+    "stdout": "QUJD",
+    "stderr": ""
+  },
+  {
+    "name": "invalid-key",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "null-value",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "null-value",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "null-value",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "null-value",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "empty-names",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "aW4ucGRmIGhhcyBubyBlbWJlZGRlZCBmaWxlcwo=",
+    "stderr": ""
+  },
+  {
+    "name": "empty-names",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "empty-names",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "empty-names",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "stream-value",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "YmV0YSAtPiA4LDAK",
+    "stderr": ""
+  },
+  {
+    "name": "stream-value",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "stream-value",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "stream-value",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "stream-root",
+    "flags": "--list-attachments",
+    "status": 0,
+    "stdout": "aW4ucGRmIGhhcyBubyBlbWJlZGRlZCBmaWxlcwo=",
+    "stderr": ""
+  },
+  {
+    "name": "stream-root",
+    "flags": "--show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  },
+  {
+    "name": "stream-root",
+    "flags": "--show-attachment=actual.bin",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment actual.bin not found\n"
+  },
+  {
+    "name": "stream-root",
+    "flags": "--list-attachments --show-attachment=alpha",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: attachment alpha not found\n"
+  }
+]

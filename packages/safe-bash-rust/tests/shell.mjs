@@ -57,6 +57,11 @@ async function test() {
     await shell.fs.writeFile("/varargs.lua", "function Str(el) if false then return ... end; return el end");
     const varargs = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/varargs.lua");
     if (varargs.exitCode !== 4 || varargs.stdout || varargs.stderr !== "E_AST: cannot use '...' outside a vararg function\n") throw new Error(JSON.stringify(varargs));
+    await shell.fs.writeFile("/attachments.pdf", Uint8Array.from(atob("JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL05hbWVzIDw8IC9FbWJlZGRlZEZpbGVzIDYgMCBSID4+ICA+PgplbmRvYmoKMiAwIG9iago8PCAvVHlwZSAvUGFnZXMgL0NvdW50IDEgL0tpZHMgWzMgMCBSXSA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDEwIDEwXSAvUmVzb3VyY2VzIDw8Pj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzID4+CnN0cmVhbQpBQkMKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9GaWxlc3BlYyAvRiAoYWN0dWFsLmJpbikgL0VGIDw8IC9VRiAzIDAgUiAvRiA0IDAgUiA+PiA+PgplbmRvYmoKNiAwIG9iago8PCAvTmFtZXMgWyhhbHBoYSkgNSAwIFIgKGJldGEpIDcgMCBSXSA+PgplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvRmlsZXNwZWMgL0YgKG90aGVyLmJpbikgL0VGIDw8IC9GIDggMCBSID4+ID4+CmVuZG9iago4IDAgb2JqCjw8IC9MZW5ndGggMyA+PgpzdHJlYW0KWFlaCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwOTMgMDAwMDAgbiAKMDAwMDAwMDE1MCAwMDAwMCBuIAowMDAwMDAwMjM1IDAwMDAwIG4gCjAwMDAwMDAyODcgMDAwMDAgbiAKMDAwMDAwMDM2OSAwMDAwMCBuIAowMDAwMDAwNDI2IDAwMDAwIG4gCjAwMDAwMDA0OTcgMDAwMDAgbiAKdHJhaWxlciA8PCAvU2l6ZSA5IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo1NDkKJSVFT0YK"), char => char.charCodeAt(0)));
+    const attachments = await shell.exec("qpdf /attachments.pdf --list-attachments");
+    if (attachments.exitCode || attachments.stderr || attachments.stdout !== "beta -> 8,0\n") throw new Error(JSON.stringify(attachments));
+    const missingAttachment = await shell.exec("qpdf /attachments.pdf --show-attachment=alpha");
+    if (missingAttachment.exitCode !== 2 || missingAttachment.stdout || missingAttachment.stderr !== "qpdf: attachment alpha not found\n") throw new Error(JSON.stringify(missingAttachment));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

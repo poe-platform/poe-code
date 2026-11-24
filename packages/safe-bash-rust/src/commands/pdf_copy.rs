@@ -433,6 +433,15 @@ impl<'a> PageSource<'a> {
         let mut seen = BTreeSet::new();
         let mut listing = String::new();
         for file in self.attachments(true)? {
+            if !self.objects.xref.contains_key(&file.stream) {
+                continue;
+            }
+            let (dict, mut cursor) = self.objects.object(file.stream)?;
+            if !matches!(dict, Value::Dict(_))
+                || !cursor.keyword(b"stream", &mut self.objects.remaining_bytes)?
+            {
+                continue;
+            }
             if !seen.insert(file.key.clone()) {
                 continue;
             }

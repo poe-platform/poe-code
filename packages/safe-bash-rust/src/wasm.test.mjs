@@ -1,3 +1,5 @@
+import "./qpdf-attachments.wasm.test.mjs";
+
 import "./jbig2-truncation.wasm.test.mjs";
 
 import "./xargs-quoting.wasm.test.mjs";

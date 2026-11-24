@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/varargs.rs"]
+mod lua_varargs;
 #[path = "../../lua-rust/tests/jumps.rs"]
 mod lua_jumps;
 #[path = "../../lua-rust/tests/environments.rs"]

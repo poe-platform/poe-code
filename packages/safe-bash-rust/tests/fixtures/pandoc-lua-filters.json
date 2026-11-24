@@ -3011,5 +3011,37 @@
     "script": "function Str(el) local function result() local f={}; local i=0; ::again:: i=i+1; local x=i; goto target; ::target:: f[i]=function() return x end; if i<2 then goto again end; return f[1](),f[2]() end return pandoc.Str(table.concat({result()},',')) end",
     "status": 0,
     "stdout": "1,2\n"
+  },
+  {
+    "id": "vararg-unreachable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) if false then return ... end; return el end",
+    "status": 4,
+    "stderr": "E_AST: cannot use '...' outside a vararg function\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: cannot use '...' outside a vararg function near '...'\n"
+  },
+  {
+    "id": "vararg-nested",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function outer(...) local function inner() return ... end; return inner end; function Str(el) return el end",
+    "status": 4,
+    "stderr": "E_AST: cannot use '...' outside a vararg function\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: cannot use '...' outside a vararg function near '...'\n"
+  },
+  {
+    "id": "vararg-valid",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function count(...) return select('#',...),... end; return pandoc.Str(table.concat({count(4,5)},',')) end",
+    "status": 0,
+    "stdout": "2,4,5\n"
   }
 ]

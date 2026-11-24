@@ -252,6 +252,7 @@ struct Parser {
     tokens: Vec<Token>,
     offset: usize,
     depth: usize,
+    vararg: bool,
 }
 impl Parser {
     fn token(&self) -> &Token {
@@ -337,7 +338,9 @@ impl Parser {
             }
         }
         self.expect(")")?;
+        let outer_vararg = std::mem::replace(&mut self.vararg, vararg);
         let body = self.block()?;
+        self.vararg = outer_vararg;
         self.expect("end")?;
         if !validate_jumps(&body, false, true)?.is_empty() {
             return Err(Error::unlocated(
@@ -444,6 +447,11 @@ impl Parser {
                 )
             }
             "..." => {
+                if !self.vararg {
+                    return Err(Error::unlocated(
+                        "cannot use '...' outside a vararg function",
+                    ));
+                }
                 self.offset += 1;
                 Expr(t.line, Node::Vararg)
             }
@@ -719,6 +727,7 @@ pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
         tokens,
         offset: 0,
         depth: 0,
+        vararg: true,
     };
     let body = parser.block()?;
     parser.expect("eof")?;

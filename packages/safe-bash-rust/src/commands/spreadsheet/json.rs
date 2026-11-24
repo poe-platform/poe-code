@@ -2,7 +2,8 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, PivotFilter, PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
+    DataBar, IconSet, IconThreshold, PivotFilter, PivotSource, PivotTable, PivotValue, Spreadsheet,
+    TextOperator, ValueOperator, model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -516,9 +517,52 @@ impl Sheet<String> {
         })
     }
 }
-structure!(PivotValue { field, aggregate, name });
+impl Codec for PivotSource {
+    fn json(&self) -> Json {
+        match self {
+            Self::Name(index) => object([("name", index.json())]),
+            Self::Table(index) => object([("table", index.json())]),
+            Self::Missing => string("missing"),
+        }
+    }
+    fn read(value: &Json) -> Result<Self> {
+        if matches!(value, Json::String(_)) && String::read(value)? == "missing" {
+            return Ok(Self::Missing);
+        }
+        if let Json::Object(fields) = value
+            && fields.len() == 1
+        {
+            if let Some(index) = value.get("name") {
+                return Ok(Self::Name(usize::read(index)?));
+            }
+            if let Some(index) = value.get("table") {
+                return Ok(Self::Table(usize::read(index)?));
+            }
+        }
+        Err("Invalid pivot source binding".into())
+    }
+}
+structure!(PivotValue {
+    field,
+    aggregate,
+    name
+});
 structure!(PivotFilter { field, selected });
-structure!(PivotTable { name, sheet, row, column, source_sheet, source, rows, columns, values, filters, row_totals, column_totals });
+structure!(PivotTable {
+    name,
+    sheet,
+    row,
+    column,
+    source_sheet,
+    source,
+    source_binding,
+    rows,
+    columns,
+    values,
+    filters,
+    row_totals,
+    column_totals
+});
 
 impl Codec for Workbook {
     fn json(&self) -> Json {
@@ -543,7 +587,14 @@ impl Codec for Workbook {
             ("name_dependencies", self.name_dependencies.json()),
             ("name_uses", self.name_uses.json()),
             ("tables", self.tables.json()),
-            ("pivots", if self.pivots.is_empty() { Json::Null } else { self.pivots.json() }),
+            (
+                "pivots",
+                if self.pivots.is_empty() {
+                    Json::Null
+                } else {
+                    self.pivots.json()
+                },
+            ),
             ("formula_origins", self.formula_origins.json()),
             ("uninterned_arrays", self.uninterned_arrays.json()),
             (
@@ -575,7 +626,11 @@ impl Codec for Workbook {
             name_dependencies: Codec::read(v.get("name_dependencies").unwrap_or(&Json::Null))?,
             name_uses: Codec::read(v.get("name_uses").unwrap_or(&Json::Null))?,
             tables: Codec::read(v.get("tables").unwrap_or(&Json::Null))?,
-            pivots: v.get("pivots").map(BTreeMap::read).transpose()?.unwrap_or_default(),
+            pivots: v
+                .get("pivots")
+                .map(BTreeMap::read)
+                .transpose()?
+                .unwrap_or_default(),
             formula_origins: Codec::read(v.get("formula_origins").unwrap_or(&Json::Null))?,
             uninterned_arrays: Codec::read(v.get("uninterned_arrays").unwrap_or(&Json::Null))?,
             explicit_formula_styles: Codec::read(

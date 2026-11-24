@@ -1,7 +1,7 @@
 //! Real OOXML pivot definitions and refreshable caches. Like XlsxWriter
 //! 238e935a (LICENSE.XlsxWriter), Excel rebuilds axis items on refresh.
 //! Calculated worksheet cells remain available to readers before that refresh.
-use super::super::{PivotTable, formulas::SpillCache};
+use super::super::{PivotSource, PivotTable, formulas::SpillCache, model::Workbook};
 use super::{REL, SS, Sheet, Value, XML, escaped, tables};
 use std::{collections::BTreeMap, fmt::Write};
 
@@ -29,14 +29,27 @@ pub(super) fn write(
     pivot: &PivotTable,
     id: usize,
     sheets: &[Sheet<String>],
+    book: &Workbook,
     spills: Option<&SpillCache>,
     work: &mut usize,
 ) -> Option<(String, String)> {
-    let [top, left, bottom, right] = pivot.source;
-    let source = sheets.get(pivot.source_sheet)?;
+    let (source_sheet, area) = if pivot.source_binding.is_some() {
+        if let Some(source) =
+            spills.and_then(|s| s.pivot_sources.get(&(pivot.sheet, pivot.row, pivot.column)))
+        {
+            *source
+        } else {
+            super::super::formulas::resolve_pivot_source(sheets, book, pivot.source_binding?, work)
+                .ok()?
+        }
+    } else {
+        (pivot.source_sheet, pivot.source)
+    };
+    let [top, left, bottom, right] = area;
+    let source = sheets.get(source_sheet)?;
     let value = |row, column| {
         spills
-            .and_then(|s| s.values.get(&(pivot.source_sheet, row, column)))
+            .and_then(|s| s.values.get(&(source_sheet, row, column)))
             .or_else(|| {
                 source
                     .cells
@@ -142,11 +155,33 @@ pub(super) fn write(
             page_count += 1;
         }
     }
+    let worksheet_source = match pivot.source_binding {
+        None => format!(
+            r#"ref="{}" sheet="{}""#,
+            tables::area(area, false),
+            escaped(&source.name)
+        ),
+        Some(PivotSource::Table(index)) => {
+            format!(r#"name="{}""#, escaped(&book.tables.get(index)?.name))
+        }
+        Some(PivotSource::Name(index)) => {
+            let name = book.names.get(index)?;
+            let scope = match name.sheet {
+                Some(s) => Some(format!(r#" sheet="{}""#, escaped(&sheets.get(s)?.name))),
+                None => None,
+            };
+            format!(
+                r#"name="{}"{}"#,
+                escaped(&name.name),
+                scope.unwrap_or_default()
+            )
+        }
+        Some(PivotSource::Missing) => return None,
+    };
+    *work = work.checked_sub(worksheet_source.len())?;
     let cache = format!(
-        r#"{XML}<pivotCacheDefinition xmlns="{SS}" xmlns:r="{REL}" saveData="0" refreshOnLoad="1" createdVersion="3" refreshedVersion="3" minRefreshableVersion="3" recordCount="{}"><cacheSource type="worksheet"><worksheetSource ref="{}" sheet="{}"/></cacheSource><cacheFields count="{field_count}">{cache_fields}</cacheFields></pivotCacheDefinition>"#,
-        bottom - top,
-        tables::area(pivot.source, false),
-        escaped(&source.name)
+        r#"{XML}<pivotCacheDefinition xmlns="{SS}" xmlns:r="{REL}" saveData="0" refreshOnLoad="1" createdVersion="3" refreshedVersion="3" minRefreshableVersion="3" recordCount="{}"><cacheSource type="worksheet"><worksheetSource {worksheet_source}/></cacheSource><cacheFields count="{field_count}">{cache_fields}</cacheFields></pivotCacheDefinition>"#,
+        bottom - top
     );
     let mut axes = String::new();
     for (fields, tag, items_tag, measures) in [

@@ -36,23 +36,35 @@ impl Spreadsheet {
         if self.sheets.len() == 1 {
             return Err("Cannot delete the only sheet".into());
         }
-        if self.options.pivots.values().any(|p| p.source_sheet == sheet && p.sheet != sheet) {
+        if self
+            .options
+            .pivots
+            .values()
+            .any(|p| p.source_binding.is_none() && p.source_sheet == sheet && p.sheet != sheet)
+        {
             return Err("Remove pivot tables using this source before deleting its sheet".into());
         }
         let mut next = self.with_sheet_references(sheet, None, limit)?;
         next.sheets.remove(sheet);
         let shift = |s: usize| (s != sheet).then(|| s - usize::from(s > sheet));
         next.options.pivots.retain(|_, pivot| {
-            let (Some(destination), Some(source)) = (shift(pivot.sheet), shift(pivot.source_sheet)) else { return false; };
+            let Some(destination) = shift(pivot.sheet) else {
+                return false;
+            };
             pivot.sheet = destination;
-            pivot.source_sheet = source;
+            pivot.source_sheet = shift(pivot.source_sheet).unwrap_or(0);
             true
         });
+        let mut retained_tables = Vec::with_capacity(next.options.tables.len());
+        let mut retained_count = 0;
         next.options.tables.retain_mut(|t| {
             if let Some(s) = shift(t.sheet) {
                 t.sheet = s;
+                retained_tables.push(Some(retained_count));
+                retained_count += 1;
                 true
             } else {
+                retained_tables.push(None);
                 false
             }
         });
@@ -77,6 +89,21 @@ impl Spreadsheet {
             n.position.0 = shift(n.position.0).unwrap_or(0);
             true
         });
+        for pivot in next.options.pivots.values_mut() {
+            pivot.source_binding = pivot.source_binding.map(|binding| match binding {
+                super::PivotSource::Name(i) => retained_names
+                    .get(i)
+                    .copied()
+                    .flatten()
+                    .map_or(super::PivotSource::Missing, super::PivotSource::Name),
+                super::PivotSource::Table(i) => retained_tables
+                    .get(i)
+                    .copied()
+                    .flatten()
+                    .map_or(super::PivotSource::Missing, super::PivotSource::Table),
+                super::PivotSource::Missing => super::PivotSource::Missing,
+            });
+        }
         for name in &mut next.options.names {
             if let Some(compiled) = &mut name.compiled {
                 for binding in compiled.bindings.values_mut() {
@@ -120,7 +147,8 @@ impl Spreadsheet {
         let mut rewrite = |expression: &str,
                            original: Option<&str>,
                            scope: usize,
-                           offset: (i64, i64), compiled: bool|
+                           offset: (i64, i64),
+                           compiled: bool|
          -> Result<String, String> {
             if original.is_some_and(|s| s.starts_with("of:=")) {
                 return Err("Sheet changes for OpenFormula documents are not supported yet".into());
@@ -247,13 +275,16 @@ impl Spreadsheet {
             )?;
             name.openformula = Some(format!("msoxl:={}", name.expression));
             if let Some(compiled) = &mut name.compiled {
-                compiled.expression = format!("msoxl:={}", rewrite(
-                    &compiled.expression,
-                    Some(&compiled.expression),
-                    name.sheet.unwrap_or(0),
-                    (0, 0),
-                    true,
-                )?);
+                compiled.expression = format!(
+                    "msoxl:={}",
+                    rewrite(
+                        &compiled.expression,
+                        Some(&compiled.expression),
+                        name.sheet.unwrap_or(0),
+                        (0, 0),
+                        true,
+                    )?
+                );
             }
         }
         for table in &mut next.options.tables {
@@ -261,7 +292,8 @@ impl Spreadsheet {
                 continue;
             }
             for definition in table.calculated_columns.values_mut() {
-                definition.formula = rewrite(&definition.formula, None, table.sheet, (0, 0), false)?;
+                definition.formula =
+                    rewrite(&definition.formula, None, table.sheet, (0, 0), false)?;
             }
         }
         for rule in &mut next.options.conditional_formats {

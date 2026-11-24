@@ -2,7 +2,9 @@
 //! Output shares dynamic-array dependency scheduling without becoming a formula
 //! or authored cells in the workbook document.
 use super::{Calculation, Coord, Expr, Value};
-use crate::commands::spreadsheet::pivot::{Key, PivotTable, aggregate, number_key, selected_key};
+use crate::commands::spreadsheet::pivot::{
+    Key, PivotSource, PivotTable, aggregate, number_key, selected_key,
+};
 use std::collections::{BTreeMap, BTreeSet};
 
 fn key(value: &Value, work: &mut usize) -> Option<Key> {
@@ -22,9 +24,51 @@ fn key(value: &Value, work: &mut usize) -> Option<Key> {
 type Groups = BTreeMap<Vec<Key>, (Vec<Value>, usize)>;
 
 impl Calculation<'_> {
+    pub(super) fn pivot_source(
+        &mut self,
+        binding: Option<PivotSource>,
+        fallback: (usize, [usize; 4]),
+        depth: usize,
+    ) -> Option<Value> {
+        let (sheet, area) = match binding {
+            None => fallback,
+            Some(PivotSource::Table(index)) => {
+                let Some(table) = self.book.tables.get(index) else {
+                    return Some(Value::Error("#REF!"));
+                };
+                if !table.header || table.area[2] < table.area[0] + usize::from(table.totals) {
+                    return Some(Value::Error("#REF!"));
+                }
+                let mut area = table.area;
+                area[2] -= usize::from(table.totals);
+                (table.sheet, area)
+            }
+            Some(PivotSource::Name(index)) => {
+                let Some(name) = self.book.names.get(index) else {
+                    return Some(Value::Error("#REF!"));
+                };
+                let (sheet, row, column) = name.position;
+                if !(0..1_048_576).contains(&row) || !(0..16_384).contains(&column) {
+                    return Some(Value::Error("#REF!"));
+                }
+                return self.eval(
+                    &Expr::Name(index),
+                    (sheet, row as usize, column as usize),
+                    depth,
+                    true,
+                );
+            }
+            Some(PivotSource::Missing) => return Some(Value::Error("#REF!")),
+        };
+        Some(Value::Range(
+            (sheet, area[0], area[1]),
+            (sheet, area[2], area[3]),
+        ))
+    }
+
     fn pivot_group(
         &mut self,
-        pivot: &PivotTable,
+        source: (usize, usize),
         row: usize,
         fields: &[usize],
         groups: &mut Groups,
@@ -34,10 +78,7 @@ impl Calculation<'_> {
         let mut labels = Vec::with_capacity(fields.len());
         let mut keys = Vec::with_capacity(fields.len());
         for &field in fields {
-            let value = self.cell(
-                (pivot.source_sheet, row, pivot.source[1] + field),
-                depth + 1,
-            )?;
+            let value = self.cell((source.0, row, source.1 + field), depth + 1)?;
             keys.push(key(&value, &mut self.work)?);
             labels.push(match value {
                 Value::Blank | Value::Empty => Value::Text("(blank)".into()),
@@ -56,18 +97,51 @@ impl Calculation<'_> {
         depth: usize,
     ) -> Option<Value> {
         self.tick(depth)?;
-        let [top, left, bottom, right] = pivot.source;
-        self.read_spill_range(
-            (pivot.source_sheet, top, left),
-            (pivot.source_sheet, bottom, right),
+        self.pivot_sources.remove(&pos);
+        let value = self.pivot_source(
+            pivot.source_binding,
+            (pivot.source_sheet, pivot.source),
+            depth + 1,
         )?;
+        let (first, last) = match value {
+            Value::Single(cell) => (cell, cell),
+            Value::Range(first, last) => (first, last),
+            Value::Error(_) | Value::LiteralError(_) => return Some(value),
+            _ => return Some(Value::Error("#REF!")),
+        };
+        if first.0 != last.0
+            || first.0 >= self.sheets.len()
+            || first.1 >= last.1
+            || first.2 > last.2
+            || last.1 >= 1_048_576
+            || last.2 >= 16_384
+        {
+            return Some(Value::Error("#REF!"));
+        }
+        let source_sheet = first.0;
+        let [top, left, bottom, right] = [first.1, first.2, last.1, last.2];
+        if pivot
+            .rows
+            .iter()
+            .chain(&pivot.columns)
+            .copied()
+            .chain(pivot.values.iter().map(|v| v.field))
+            .chain(pivot.filters.iter().map(|v| v.field))
+            .any(|field| field > right - left)
+        {
+            return Some(Value::Error("#REF!"));
+        }
+        self.work = self.work.checked_sub(128)?;
+        self.pivot_sources
+            .insert(pos, (source_sheet, [top, left, bottom, right]));
+        self.read_spill_range((source_sheet, top, left), (source_sheet, bottom, right))?;
         self.work = self
             .work
             .checked_sub((right - left + 1).checked_mul(128)?)?;
         let mut headers = Vec::new();
         let mut names = BTreeSet::new();
         for column in left..=right {
-            let value = self.cell((pivot.source_sheet, top, column), depth + 1)?;
+            let value = self.cell((source_sheet, top, column), depth + 1)?;
             let Value::Text(name) = value else {
                 return Some(Value::Error("#VALUE!"));
             };
@@ -97,7 +171,7 @@ impl Calculation<'_> {
             self.tick(depth)?;
             let mut included = true;
             for (field, selected) in &filters {
-                let value = self.cell((pivot.source_sheet, row, left + field), depth + 1)?;
+                let value = self.cell((source_sheet, row, left + field), depth + 1)?;
                 if !selected.contains(&key(&value, &mut self.work)?) {
                     included = false;
                     break;
@@ -106,8 +180,14 @@ impl Calculation<'_> {
             if !included {
                 continue;
             }
-            let r = self.pivot_group(pivot, row, &pivot.rows, &mut rows, depth)?;
-            let c = self.pivot_group(pivot, row, &pivot.columns, &mut columns, depth)?;
+            let r = self.pivot_group((source_sheet, left), row, &pivot.rows, &mut rows, depth)?;
+            let c = self.pivot_group(
+                (source_sheet, left),
+                row,
+                &pivot.columns,
+                &mut columns,
+                depth,
+            )?;
             for coordinate in [
                 (Some(r), Some(c)),
                 (Some(r), None),
@@ -198,9 +278,7 @@ impl Calculation<'_> {
                     self.work = self.work.checked_sub(source_rows.len().checked_mul(64)?)?;
                     let mut values = Vec::with_capacity(source_rows.len());
                     for &r in source_rows {
-                        values.push(
-                            self.cell((pivot.source_sheet, r, left + field.field), depth + 1)?,
-                        );
+                        values.push(self.cell((source_sheet, r, left + field.field), depth + 1)?);
                     }
                     let name = aggregate(&field.aggregate)?;
                     let value = if name == "COUNT" {

@@ -16,10 +16,10 @@ pub use comments::Comment;
 #[path = "xlsx_rich_text.rs"]
 mod rich_text;
 pub use rich_text::TextRun;
-#[path = "xlsx_tables.rs"]
-mod tables;
 #[path = "xlsx_pivots.rs"]
 mod pivots;
+#[path = "xlsx_tables.rs"]
+mod tables;
 
 pub(in crate::commands) fn error(value: &str) -> &str {
     match value {
@@ -460,11 +460,23 @@ pub(in crate::commands) fn write_cells(
     }
     for (index, pivot) in workbook.pivots.values().enumerate() {
         let id = index + 1;
-        let (definition, cache) = pivots::write(pivot, id, sheets, spills, &mut work)?;
-        add(format!("xl/pivotTables/pivotTable{id}.xml"), definition.into_bytes())?;
-        add(format!("xl/pivotCache/pivotCacheDefinition{id}.xml"), cache.into_bytes())?;
+        let (definition, cache) = pivots::write(pivot, id, sheets, workbook, spills, &mut work)?;
+        add(
+            format!("xl/pivotTables/pivotTable{id}.xml"),
+            definition.into_bytes(),
+        )?;
+        add(
+            format!("xl/pivotCache/pivotCacheDefinition{id}.xml"),
+            cache.into_bytes(),
+        )?;
         add(format!("xl/pivotTables/_rels/pivotTable{id}.xml.rels"), format!(r#"{XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{REL}/pivotCacheDefinition" Target="../pivotCache/pivotCacheDefinition{id}.xml"/></Relationships>"#).into_bytes())?;
-        for (path, kind) in [(format!("pivotTables/pivotTable{id}"), "pivotTable"), (format!("pivotCache/pivotCacheDefinition{id}"), "pivotCacheDefinition")] {
+        for (path, kind) in [
+            (format!("pivotTables/pivotTable{id}"), "pivotTable"),
+            (
+                format!("pivotCache/pivotCacheDefinition{id}"),
+                "pivotCacheDefinition",
+            ),
+        ] {
             table_types.push(format!(r#"<Override PartName="/xl/{path}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.{kind}+xml"/>"#));
         }
     }
@@ -505,10 +517,17 @@ pub(in crate::commands) fn write_cells(
         // Editor-created names use the same formula spelling as cell input.
         // Imported names retain their original namespace via openformula.
         let expression = if spills.is_some()
-            && name.compiled.as_ref().is_some_and(|c| !c.expression.starts_with("of:="))
+            && name
+                .compiled
+                .as_ref()
+                .is_some_and(|c| !c.expression.starts_with("of:="))
         {
             std::borrow::Cow::Owned(super::formulas::xlsx_bound_name(
-                name, &sheet_names, &workbook.names, &workbook.tables, &mut work,
+                name,
+                &sheet_names,
+                &workbook.names,
+                &workbook.tables,
+                &mut work,
             )?)
         } else if spills.is_some() && name.openformula.is_none() {
             super::formula_arguments::rewrite(
@@ -927,7 +946,12 @@ pub(in crate::commands) fn write_cells(
                 .count();
             table_parts = format!(r#"<tableParts count="{count}">{table_parts}</tableParts>"#);
         }
-        for (index, _) in workbook.pivots.values().enumerate().filter(|(_, pivot)| pivot.sheet == idx) {
+        for (index, _) in workbook
+            .pivots
+            .values()
+            .enumerate()
+            .filter(|(_, pivot)| pivot.sheet == idx)
+        {
             let id = index + 1;
             write!(sheet_rels, r#"<Relationship Id="pivot{id}" Type="{REL}/pivotTable" Target="../pivotTables/pivotTable{id}.xml"/>"#).ok()?;
         }
@@ -1091,9 +1115,15 @@ pub(in crate::commands) fn write_cells(
         let id = index + 1;
         let rel = rels.len() + 1;
         rels.push(format!(r#"<Relationship Id="rId{rel}" Type="{REL}/pivotCacheDefinition" Target="pivotCache/pivotCacheDefinition{id}.xml"/>"#));
-        write!(pivot_caches, r#"<pivotCache cacheId="{id}" r:id="rId{rel}"/>"#).ok()?;
+        write!(
+            pivot_caches,
+            r#"<pivotCache cacheId="{id}" r:id="rId{rel}"/>"#
+        )
+        .ok()?;
     }
-    if !pivot_caches.is_empty() { pivot_caches = format!("<pivotCaches>{pivot_caches}</pivotCaches>"); }
+    if !pivot_caches.is_empty() {
+        pivot_caches = format!("<pivotCaches>{pivot_caches}</pivotCaches>");
+    }
     add(
         "xl/workbook.xml".into(),
         format!(

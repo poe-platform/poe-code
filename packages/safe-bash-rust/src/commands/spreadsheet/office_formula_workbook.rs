@@ -3,24 +3,223 @@ use crate::commands::spreadsheet::model::{Sheet, Value as CellValue, Workbook};
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-pub(in crate::commands) fn cache(
-    sheets: &mut [Sheet<String>],
+impl crate::commands::spreadsheet::Spreadsheet {
+    /// Resolve exact name/table identities as one read-only batch. Workbook
+    /// names are not shadowed by local definitions with the same label.
+    pub fn resolve_pivot_sources(
+        &self,
+        sources: &[super::super::PivotSource],
+        limit: usize,
+    ) -> Result<Vec<(usize, [usize; 4])>, String> {
+        if sources.is_empty() {
+            return Ok(Vec::new());
+        }
+        let work = limit
+            .checked_sub(sources.len().saturating_mul(256))
+            .ok_or("Pivot source batch exceeds its limit")?;
+        let names: Vec<_> = self.sheets.iter().map(|sheet| sheet.name.clone()).collect();
+        let mut calc = reference_calculation(self, &names, work)?;
+        let mut result = Vec::with_capacity(sources.len());
+        for &source in sources {
+            let value = calc
+                .pivot_source(Some(source), (0, [0; 4]), 0)
+                .ok_or("Pivot source resolution exceeds its limit")?;
+            let Value::Range(first, last) = value else {
+                return Err(
+                    "Pivot source must be a rectangular range with headers and data".into(),
+                );
+            };
+            if first.0 != last.0
+                || first.0 >= self.sheets.len()
+                || first.1 >= last.1
+                || first.2 > last.2
+                || last.1 >= 1_048_576
+                || last.2 >= 16_384
+            {
+                return Err("Invalid pivot source range".into());
+            }
+            result.push((first.0, [first.1, first.2, last.1, last.2]));
+        }
+        Ok(result)
+    }
+
+    /// Resolve a batch of Excel reference expressions to single-sheet rectangles.
+    /// Names, structured references and reference-returning functions use the
+    /// formula AST. Existing calculated cells and spills are read without
+    /// resampling volatile cells or changing the workbook.
+    pub fn resolve_ranges(
+        &self,
+        requests: &[(&str, Coord)],
+        limit: usize,
+    ) -> Result<Vec<(usize, [usize; 4])>, String> {
+        if requests.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut work = limit;
+        for (source, (sheet, row, column)) in requests {
+            if *sheet >= self.sheets.len() || *row >= 1_048_576 || *column >= 16_384 {
+                return Err("Invalid reference origin".into());
+            }
+            work = work
+                .checked_sub(source.len().saturating_mul(8).saturating_add(256))
+                .ok_or("Reference batch exceeds its limit")?;
+        }
+        let names: Vec<_> = self.sheets.iter().map(|sheet| sheet.name.clone()).collect();
+        let mut calc = reference_calculation(self, &names, work)?;
+        let mut result = Vec::with_capacity(requests.len());
+        for &(source, position) in requests {
+            let source = format!("msoxl:={}", source.strip_prefix('=').unwrap_or(source));
+            let expression = parse(
+                &source,
+                &names,
+                &self.options,
+                (position.0, position.1 as i64, position.2 as i64),
+                Some(position.0),
+                false,
+                None,
+                calc.work,
+                true,
+            )
+            .map_err(|_| "Invalid reference expression")?
+            .ok_or("Unsupported reference expression")?;
+            if let Some(error) = expression
+                .compiled_error(&calc.names, &mut calc.work)
+                .ok_or("Reference resolution exceeds its limit")?
+            {
+                return Err(error.into());
+            }
+            let value = calc
+                .eval(&expression, position, 0, true)
+                .ok_or("Reference resolution exceeds its limit")?;
+            let (first, last) = match value {
+                Value::Single(cell) => (cell, cell),
+                Value::Range(first, last) => (first, last),
+                Value::Error(error) | Value::LiteralError(error) => return Err(error.into()),
+                Value::InvalidReference | Value::InvalidRange(..) => return Err("#REF!".into()),
+                _ => return Err("Select one rectangular reference".into()),
+            };
+            if first.0 != last.0
+                || first.0 >= self.sheets.len()
+                || first.1 > last.1
+                || first.2 > last.2
+                || last.1 >= 1_048_576
+                || last.2 >= 16_384
+            {
+                return Err("Select one rectangular reference on a single worksheet".into());
+            }
+            result.push((first.0, [first.1, first.2, last.1, last.2]));
+        }
+        Ok(result)
+    }
+}
+
+fn reference_calculation<'a>(
+    book: &'a crate::commands::spreadsheet::Spreadsheet,
+    names: &'a [String],
+    limit: usize,
+) -> Result<Calculation<'a>, String> {
+    let (mut calc, _, _) = calculation(&book.sheets, &book.options, names, false, limit, true)
+        .ok_or("Reference resolution exceeds its limit")?;
+    // The saved calculation already owns these results. A read-only query
+    // must not rebuild pivot output or recalculate volatile input cells.
+    for position in calc.pivot_anchors.keys() {
+        calc.expressions.remove(position);
+    }
+    calc.pivot_anchors.clear();
+    for (&position, value) in &book.spills.values {
+        calc.work = calc
+            .work
+            .checked_sub(128)
+            .ok_or("Reference resolution exceeds its limit")?;
+        let value = cached_value(Some(value), &mut calc.work)
+            .ok_or("Reference resolution exceeds its limit")?;
+        calc.values.insert(position, value);
+    }
+    for (&position, &range) in book.spills.ranges.iter().chain(&book.spills.pivot_ranges) {
+        calc.work = calc
+            .work
+            .checked_sub(128)
+            .ok_or("Reference resolution exceeds its limit")?;
+        calc.dynamic
+            .as_mut()
+            .expect("dynamic calculation")
+            .ranges
+            .insert(position, range);
+    }
+    calc.now_ms = book.spills.calculated_at_ms;
+    Ok(calc)
+}
+
+pub(in crate::commands) fn resolve_pivot_source(
+    sheets: &[Sheet<String>],
     book: &Workbook,
-    export_names: Option<&[String]>,
+    binding: super::super::PivotSource,
+    work: &mut usize,
+) -> Result<(usize, [usize; 4]), String> {
+    let names: Vec<_> = sheets.iter().map(|sheet| sheet.name.clone()).collect();
+    let (mut calc, _, _) = calculation(sheets, book, &names, true, *work, true)
+        .ok_or("Pivot source exceeds its calculation limit")?;
+    let value = calc
+        .pivot_source(Some(binding), (0, [0; 4]), 0)
+        .ok_or("Pivot source exceeds its calculation limit")?;
+    *work = calc.work;
+    let Value::Range(first, last) = value else {
+        return Err("Pivot source must be a rectangular range with headers and data".into());
+    };
+    if first.0 != last.0
+        || first.0 >= sheets.len()
+        || first.1 >= last.1
+        || first.2 > last.2
+        || last.1 >= 1_048_576
+        || last.2 >= 16_384
+    {
+        return Err("Invalid pivot source range".into());
+    }
+    Ok((first.0, [first.1, first.2, last.1, last.2]))
+}
+
+fn cached_value(value: Option<&CellValue<String>>, work: &mut usize) -> Option<Value> {
+    Some(match value {
+        Some(CellValue::Empty) => Value::Empty,
+        Some(CellValue::Number(n)) => Value::Number(*n),
+        Some(CellValue::Bool(b)) => Value::Bool(*b),
+        Some(CellValue::Text(s)) => {
+            *work = work.checked_sub(s.len())?;
+            Value::Text(s.clone())
+        }
+        Some(CellValue::Error(s)) => Value::Error(match s.as_str() {
+            "Err:502" => "Err:502",
+            "Err:504" => "Err:504",
+            "Err:511" => "Err:511",
+            "Err:514" => "Err:514",
+            "Err:533" => "Err:533",
+            "Err:538" => "Err:538",
+            "Err:539" => "Err:539",
+            "Err:508" => "Err:508",
+            "Err:509" => "Err:509",
+            "Err:510" => "Err:510",
+            "Err:520" => "Err:520",
+            "Err:522" => "Err:522",
+            "Err:523" => "Err:523",
+            _ => super::LITERAL_ERRORS
+                .into_iter()
+                .find(|error| s.eq_ignore_ascii_case(error))
+                .unwrap_or("#VALUE!"),
+        }),
+        None => Value::Blank,
+    })
+}
+
+fn calculation<'a>(
+    sheets: &'a [Sheet<String>],
+    book: &'a Workbook,
+    names: &'a [String],
+    recalculate: bool,
     limit: usize,
     dynamic: bool,
-) -> Option<super::SpillCache> {
-    let recalculate = book.recalculate || export_names.is_some();
-    if book.pivots.is_empty() && !sheets
-        .iter()
-        .flat_map(|s| s.cells.values())
-        .any(|c| (recalculate || c.value.is_none()) && c.formula.is_some())
-    {
-        return Some(Default::default());
-    }
-    let names: Vec<_> = sheets.iter().map(|s| s.name.clone()).collect();
+) -> Option<(Calculation<'a>, BTreeSet<Coord>, bool)> {
     let sizes = vec![(1_048_576, 16_384); sheets.len()];
-    let mut calc = Calculation::new(book, &names, sizes, limit);
+    let mut calc = Calculation::new(book, names, sizes, limit);
     if dynamic {
         let mut state = super::spill::Dynamic::default();
         for (index, sheet) in sheets.iter().enumerate() {
@@ -73,7 +272,7 @@ pub(in crate::commands) fn cache(
         calc.work = calc.work.checked_sub(source.len())?;
         let expression = parse(
             source,
-            &names,
+            names,
             book,
             name.position,
             name.sheet,
@@ -90,35 +289,7 @@ pub(in crate::commands) fn cache(
     for (index, sheet) in sheets.iter().enumerate() {
         for (&(r, c), cell) in &sheet.cells {
             calc.work = calc.work.checked_sub(128)?;
-            let value = match &cell.value {
-                Some(CellValue::Empty) => Value::Empty,
-                Some(CellValue::Number(n)) => Value::Number(*n),
-                Some(CellValue::Bool(b)) => Value::Bool(*b),
-                Some(CellValue::Text(s)) => {
-                    calc.work = calc.work.checked_sub(s.len())?;
-                    Value::Text(s.clone())
-                }
-                Some(CellValue::Error(s)) => Value::Error(match s.as_str() {
-                    "Err:502" => "Err:502",
-                    "Err:504" => "Err:504",
-                    "Err:511" => "Err:511",
-                    "Err:514" => "Err:514",
-                    "Err:533" => "Err:533",
-                    "Err:538" => "Err:538",
-                    "Err:539" => "Err:539",
-                    "Err:508" => "Err:508",
-                    "Err:509" => "Err:509",
-                    "Err:510" => "Err:510",
-                    "Err:520" => "Err:520",
-                    "Err:522" => "Err:522",
-                    "Err:523" => "Err:523",
-                    _ => super::LITERAL_ERRORS
-                        .into_iter()
-                        .find(|error| s.eq_ignore_ascii_case(error))
-                        .unwrap_or("#VALUE!"),
-                }),
-                None => Value::Blank,
-            };
+            let value = cached_value(cell.value.as_ref(), &mut calc.work)?;
             let position = (index, r, c);
             if let Some(formula) = cell.formula_display.as_deref().or(cell.formula.as_deref()) {
                 calc.formula_sources.insert(position, formula);
@@ -156,7 +327,7 @@ pub(in crate::commands) fn cache(
                     .unwrap_or(position);
                 let expression = parse(
                     source,
-                    &names,
+                    names,
                     book,
                     (origin.0, origin.1 as i64, origin.2 as i64),
                     Some(index),
@@ -203,7 +374,7 @@ pub(in crate::commands) fn cache(
             calc.work = calc.work.checked_sub(source.len())?;
             let expression = parse(
                 source,
-                &names,
+                names,
                 book,
                 (origin.0, origin.1 as i64, origin.2 as i64),
                 Some(index),
@@ -262,6 +433,28 @@ pub(in crate::commands) fn cache(
             calc.dynamic.as_mut()?.occupied.insert(position);
         }
     }
+    Some((calc, missing, unsupported))
+}
+
+pub(in crate::commands) fn cache(
+    sheets: &mut [Sheet<String>],
+    book: &Workbook,
+    export_names: Option<&[String]>,
+    limit: usize,
+    dynamic: bool,
+) -> Option<super::SpillCache> {
+    let recalculate = book.recalculate || export_names.is_some();
+    if book.pivots.is_empty()
+        && !sheets
+            .iter()
+            .flat_map(|s| s.cells.values())
+            .any(|c| (recalculate || c.value.is_none()) && c.formula.is_some())
+    {
+        return Some(Default::default());
+    }
+    let names: Vec<_> = sheets.iter().map(|s| s.name.clone()).collect();
+    let (mut calc, missing, unsupported) =
+        calculation(sheets, book, &names, recalculate, limit, dynamic)?;
     if unsupported {
         return (!recalculate).then_some(Default::default());
     }
@@ -350,6 +543,7 @@ pub(in crate::commands) fn cache(
     }
     let mut spills = super::SpillCache {
         calculated_at_ms: calc.now_ms,
+        pivot_sources: calc.pivot_sources,
         ..Default::default()
     };
     if let Some(state) = calc.dynamic {
@@ -370,7 +564,9 @@ pub(in crate::commands) fn cache(
     let pivot_anchors: BTreeSet<_> = calc.pivot_anchors.into_keys().collect();
     for ((sheet, r, c), value) in calc.results {
         if pivot_anchors.contains(&(sheet, r, c)) {
-            spills.values.insert((sheet, r, c), super::spill::cell_value(value)?);
+            spills
+                .values
+                .insert((sheet, r, c), super::spill::cell_value(value)?);
             continue;
         }
         if !missing.contains(&(sheet, r, c)) {

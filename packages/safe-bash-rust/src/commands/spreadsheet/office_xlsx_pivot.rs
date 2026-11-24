@@ -1,7 +1,7 @@
 //! Read pivot definitions through OPC relationships, including caches outside xl/.
 //! Contracts and fixtures: ClosedXML 057f5976 (LICENSE.ClosedXML) and
 //! XlsxWriter 238e935a (LICENSE.XlsxWriter).
-use super::super::{PivotFilter, PivotTable, PivotValue, model::Value};
+use super::super::{PivotFilter, PivotSource, PivotTable, PivotValue, model::Value};
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -149,16 +149,67 @@ pub(super) fn retain(
                 .first()
                 .copied()
                 .ok_or("Missing pivot worksheet source")?;
-            if attr(source, "name").is_some() {
-                return Err("Named pivot sources are not supported yet".into());
-            }
-            let source_name = attr(source, "sheet").ok_or("Missing pivot source worksheet")?;
-            let source_sheet = imported
-                .sources
-                .iter()
-                .position(|(name, _)| super::super::case_fold::same_name(name, source_name))
-                .ok_or("Missing pivot source worksheet")?;
-            let source = area(attr(source, "ref").ok_or("Missing pivot source range")?)?;
+            let scope = attr(source, "sheet")
+                .map(|source_name| {
+                    imported
+                        .sources
+                        .iter()
+                        .position(|(name, _)| super::super::case_fold::same_name(name, source_name))
+                        .ok_or("Missing pivot source worksheet")
+                })
+                .transpose()?;
+            let (source_sheet, source, source_binding) = if let Some(label) = attr(source, "name") {
+                let tables: Vec<_> = imported
+                    .book
+                    .tables
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, table)| super::super::case_fold::same_name(&table.name, label))
+                    .map(|(i, _)| PivotSource::Table(i))
+                    .collect();
+                let local: Vec<_> = imported
+                    .book
+                    .names
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, name)| {
+                        name.sheet == scope && super::super::case_fold::same_name(&name.name, label)
+                    })
+                    .map(|(i, _)| PivotSource::Name(i))
+                    .collect();
+                let candidates = if local.is_empty() && scope.is_some() {
+                    imported
+                        .book
+                        .names
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, name)| {
+                            name.sheet.is_none()
+                                && super::super::case_fold::same_name(&name.name, label)
+                        })
+                        .map(|(i, _)| PivotSource::Name(i))
+                        .collect::<Vec<_>>()
+                } else {
+                    local
+                };
+                let candidates: Vec<_> = candidates.into_iter().chain(tables).collect();
+                let [binding] = candidates.as_slice() else {
+                    return Err("Missing or ambiguous named pivot source".into());
+                };
+                let (sheet, area) = super::super::formulas::resolve_pivot_source(
+                    &imported.sheets,
+                    &imported.book,
+                    *binding,
+                    &mut imported.remaining,
+                )?;
+                (sheet, area, Some(*binding))
+            } else {
+                (
+                    scope.ok_or("Missing pivot source worksheet")?,
+                    area(attr(source, "ref").ok_or("Missing pivot source range")?)?,
+                    None,
+                )
+            };
             let location = elements(&root.children, "location")
                 .first()
                 .copied()
@@ -322,6 +373,7 @@ pub(super) fn retain(
                 sheet,
                 row: location[0],
                 column: location[1],
+                source_binding,
                 source_sheet,
                 source,
                 rows: fields(root, "rowFields")?,

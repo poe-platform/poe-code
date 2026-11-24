@@ -77,8 +77,6 @@ pub(super) use names::{name_references, xlsx_bound_name};
 pub(super) use tables::{qualify_columns, rewrite_columns};
 #[path = "office_formula_aggregate.rs"]
 mod aggregate;
-#[path = "office_formula_pivot.rs"]
-mod pivot;
 #[path = "office_formula_choose.rs"]
 mod choose;
 #[path = "office_formula_conditional.rs"]
@@ -105,6 +103,8 @@ mod lookup;
 mod order_statistics;
 #[path = "office_formula_paired_statistics.rs"]
 mod paired_statistics;
+#[path = "office_formula_pivot.rs"]
+mod pivot;
 #[path = "office_formula_reference_functions.rs"]
 mod reference_functions;
 #[path = "office_formula_regression.rs"]
@@ -131,7 +131,7 @@ mod spill;
 #[path = "office_formula_workbook.rs"]
 mod workbook;
 pub(super) use spill::SpillCache;
-pub(in crate::commands) use workbook::{cache, xlsx_recalculate};
+pub(in crate::commands) use workbook::{cache, resolve_pivot_source, xlsx_recalculate};
 
 pub(super) const LITERAL_ERRORS: [&str; 12] = [
     "#DIV/0!",
@@ -730,9 +730,7 @@ where
             }
         } else if let Some(local) = self.local_reference() {
             local
-        } else if (self.xlsx || self.editor)
-            && !self.r1c1 && !self.odf && self.take("[0]!")
-        {
+        } else if (self.xlsx || self.editor) && !self.r1c1 && !self.odf && self.take("[0]!") {
             self.space();
             let name = self.word();
             self.reference_or_name(Some("[0]"), name)
@@ -1003,7 +1001,9 @@ where
                     "DAYS" if self.csv || self.xlsx => "_XLFN.DAYS",
                     // Reference rewrites also visit the editor's unprefixed display text.
                     "let" if self.local_tokens.is_some() || self.name_tokens.is_some() => "LET",
-                    "lambda" if self.local_tokens.is_some() || self.name_tokens.is_some() => "LAMBDA",
+                    "lambda" if self.local_tokens.is_some() || self.name_tokens.is_some() => {
+                        "LAMBDA"
+                    }
                     "COM.MICROSOFT.LET" | "_XLFN.LET" => "LET",
                     _ if self.csv => &name,
                     "ISOWEEKNUM" if iso_week => "WEEKNUM",
@@ -1223,7 +1223,7 @@ where
                 left = Expr::Invoke(Box::new(left), args);
                 continue;
             }
-            if self.xlsx && self.source.starts_with('#') {
+            if (self.xlsx || self.editor && !self.odf) && self.source.starts_with('#') {
                 self.source = &self.source[1..];
                 left = Expr::Unary(b'#', Box::new(left));
                 continue;
@@ -1444,6 +1444,7 @@ struct Calculation<'a> {
     dynamic: Option<spill::Dynamic>,
     book: &'a Workbook,
     pivot_anchors: BTreeMap<Coord, &'a super::pivot::PivotTable>,
+    pivot_sources: BTreeMap<Coord, (usize, [usize; 4])>,
     sheets: &'a [String],
     array_sizes: BTreeMap<Coord, (usize, usize)>,
     sizes: Vec<(usize, usize)>,
@@ -1485,6 +1486,7 @@ impl<'a> Calculation<'a> {
             dynamic: None,
             book,
             pivot_anchors: BTreeMap::new(),
+            pivot_sources: BTreeMap::new(),
             sheets,
             array_sizes: BTreeMap::new(),
             sizes,

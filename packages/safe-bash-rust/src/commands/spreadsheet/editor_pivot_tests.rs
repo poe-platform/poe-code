@@ -85,6 +85,7 @@ fn pivot_output_is_protected_and_failed_edits_are_atomic() {
             sheet: 1,
             row: 0,
             column: 0,
+            source_binding: None,
             source_sheet: 0,
             source: [0, 0, 1, 1],
             rows: vec![0],
@@ -156,6 +157,7 @@ fn pivot_aggregates_use_records_for_totals_and_preserve_types_and_errors() {
             sheet: 1,
             row: 0,
             column: 0,
+            source_binding: None,
             source_sheet: 0,
             source: [0, 0, 3, 1],
             rows: vec![0],
@@ -367,6 +369,7 @@ fn pivot_filters_and_disabled_totals_round_trip_with_typed_selections() {
             sheet: 1,
             row: 0,
             column: 0,
+            source_binding: None,
             source_sheet: 0,
             source: [0, 0, 3, 1],
             rows: vec![0],
@@ -461,10 +464,12 @@ fn pivot_import_page_selection_uses_pivot_item_then_shared_item() {
                 && c == 3
                 && matches!(cell.value.as_ref(),Some(super::Value::Text(s)) if s=="August")
         })
-        .map(|(&(r, _), _)| match book.cell(pivot.source_sheet, r, 2).unwrap().value {
-            Some(super::Value::Number(n)) => n,
-            _ => panic!(),
-        })
+        .map(
+            |(&(r, _), _)| match book.cell(pivot.source_sheet, r, 2).unwrap().value {
+                Some(super::Value::Number(n)) => n,
+                _ => panic!(),
+            },
+        )
         .sum();
     let [_, height] = book.spills.pivot_ranges[&(pivot.sheet, pivot.row, pivot.column)];
     assert!(
@@ -496,6 +501,7 @@ fn pivot_sheet_deletion_shifts_both_bindings_and_column_deletion_shifts_fields()
             sheet: 2,
             row: 0,
             column: 0,
+            source_binding: None,
             source_sheet: 1,
             source: [0, 0, 1, 2],
             rows: vec![1],
@@ -607,6 +613,7 @@ fn pivot_typed_filter_items_survive_excel_string_escaping() {
                 sheet: 1,
                 row: 0,
                 column: 0,
+                source_binding: None,
                 source_sheet: 0,
                 source: [0, 0, 2, 1],
                 rows: vec![0],

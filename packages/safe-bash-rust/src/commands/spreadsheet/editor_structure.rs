@@ -235,7 +235,8 @@ impl Spreadsheet {
         let mut rewrite = |expression: &str,
                            original: Option<&str>,
                            position: (usize, usize, usize),
-                           offset: (i64, i64), compiled: bool|
+                           offset: (i64, i64),
+                           compiled: bool|
          -> Result<String, String> {
             if original.is_some_and(|s| s.starts_with("of:=")) {
                 return Err(
@@ -346,17 +347,20 @@ impl Spreadsheet {
             )?;
             name.openformula = Some(format!("msoxl:={}", name.expression));
             if let Some(compiled) = &mut name.compiled {
-                compiled.expression = format!("msoxl:={}", rewrite(
-                    &compiled.expression,
-                    Some(&compiled.expression),
-                    (
-                        name.sheet.unwrap_or(name.position.0),
-                        name.position.1.max(0) as usize,
-                        name.position.2.max(0) as usize,
-                    ),
-                    (0, 0),
-                    true,
-                )?);
+                compiled.expression = format!(
+                    "msoxl:={}",
+                    rewrite(
+                        &compiled.expression,
+                        Some(&compiled.expression),
+                        (
+                            name.sheet.unwrap_or(name.position.0),
+                            name.position.1.max(0) as usize,
+                            name.position.2.max(0) as usize,
+                        ),
+                        (0, 0),
+                        true,
+                    )?
+                );
             }
             if name.position.0 == sheet {
                 let p = if columns {
@@ -402,7 +406,13 @@ impl Spreadsheet {
                 original.1 as i64 - old_anchor.1 as i64,
             );
             for source in rule.rule.formulas_mut() {
-                *source = rewrite(source, None, (rule.sheet, original.0, original.1), offset, false)?;
+                *source = rewrite(
+                    source,
+                    None,
+                    (rule.sheet, original.0, original.1),
+                    offset,
+                    false,
+                )?;
             }
         }
         next.options
@@ -520,6 +530,32 @@ impl Spreadsheet {
             }
         });
         edit.filter(&mut target.filter);
+        let mut count = 0;
+        let retained_tables: Vec<_> = next
+            .options
+            .tables
+            .iter()
+            .map(|table| {
+                if table.sheet != sheet || edit.area(table.area).is_some() {
+                    let index = count;
+                    count += 1;
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        for pivot in next.options.pivots.values_mut() {
+            if let Some(super::PivotSource::Table(index)) = pivot.source_binding {
+                pivot.source_binding = Some(
+                    retained_tables
+                        .get(index)
+                        .copied()
+                        .flatten()
+                        .map_or(super::PivotSource::Missing, super::PivotSource::Table),
+                );
+            }
+        }
         next.options.tables.retain_mut(|table| {
             if table.sheet != sheet {
                 return true;

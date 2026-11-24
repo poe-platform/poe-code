@@ -126,7 +126,8 @@ impl Spreadsheet {
                            original: Option<&str>,
                            position: (usize, usize, usize),
                            offset,
-                           qualify_sheet, compiled: bool|
+                           qualify_sheet,
+                           compiled: bool|
          -> Result<Option<String>, String> {
             if let Some(source) = original.and_then(|s| s.strip_prefix("of:=")) {
                 let converted = super::table_to_range_references(
@@ -199,7 +200,9 @@ impl Spreadsheet {
                     };
                     origins.push((s, r, c));
                     if let Some(display) = &cell.formula_display {
-                        if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false, false)? {
+                        if let Some(display) =
+                            rewrite(display, None, (s, r, c), (0, 0), false, false)?
+                        {
                             cell.formula_display = Some(display);
                         }
                     }
@@ -232,7 +235,8 @@ impl Spreadsheet {
                 group.expression = expression;
                 group.openformula = Some(format!("msoxl:={}", group.expression));
                 if let Some(display) = &group.formula_display {
-                    if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false, false)? {
+                    if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false, false)?
+                    {
                         group.formula_display = Some(display);
                     }
                 }
@@ -271,7 +275,9 @@ impl Spreadsheet {
                     target.area[0] + usize::from(target.header),
                     target.area[1] + column,
                 );
-                if let Some(source) = rewrite(&definition.formula, None, position, (0, 0), false, false)? {
+                if let Some(source) =
+                    rewrite(&definition.formula, None, position, (0, 0), false, false)?
+                {
                     definition.formula = source;
                 }
             }
@@ -281,7 +287,9 @@ impl Spreadsheet {
                 .anchor()
                 .ok_or("Missing conditional formatting range")?;
             for source in rule.rule.formulas_mut() {
-                if let Some(converted) = rewrite(source, None, (rule.sheet, r, c), (0, 0), false, false)? {
+                if let Some(converted) =
+                    rewrite(source, None, (rule.sheet, r, c), (0, 0), false, false)?
+                {
                     *source = converted;
                 }
             }
@@ -299,6 +307,27 @@ impl Spreadsheet {
                     .range_mut(filter.area[0] + 1..=filter.area[2])
                 {
                     axis.hidden = false;
+                }
+            }
+        }
+        for pivot in next.options.pivots.values_mut() {
+            if let Some(super::PivotSource::Table(bound)) = pivot.source_binding {
+                if bound == index {
+                    if let Some(&(sheet, area)) =
+                        self.spills
+                            .pivot_sources
+                            .get(&(pivot.sheet, pivot.row, pivot.column))
+                    {
+                        pivot.source_sheet = sheet;
+                        pivot.source = area;
+                        pivot.source_binding = None;
+                    } else {
+                        pivot.source_binding = Some(super::PivotSource::Missing);
+                    }
+                } else {
+                    pivot.source_binding = Some(super::PivotSource::Table(
+                        bound - usize::from(bound > index),
+                    ));
                 }
             }
         }
@@ -337,7 +366,7 @@ impl Spreadsheet {
         if top >= bottom || left > right || bottom >= 1_048_576 || right >= 16_384 {
             return Err("Select a header row and at least one data row".into());
         }
-        if self.pivot_intersects(sheet, [top, left, right-left+1, bottom-top+1]) {
+        if self.pivot_intersects(sheet, [top, left, right - left + 1, bottom - top + 1]) {
             return Err("Tables cannot overlap pivot tables".into());
         }
         if self.options.tables.iter().any(|t| {

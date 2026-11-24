@@ -782,7 +782,9 @@ pub(super) fn formula_tokens<'a>(
                         let local = definition.sheet;
                         if let Some(start) = sheet_start.take() {
                             output.truncate(start);
-                            if explicit.as_deref() == Some("[0]") { output.push_str("[0]!"); }
+                            if explicit.as_deref() == Some("[0]") {
+                                output.push_str("[0]!");
+                            }
                         }
                         if let Some(local) =
                             local.filter(|local| Some(*local) != scope.1.or(Some(0)))
@@ -1936,7 +1938,6 @@ fn read(
     // early compiler error is otherwise persisted over the original formula.
     if editable {
         layout::retain(&mut imported, entries)?;
-        pivot::retain(&mut imported, entries)?;
         for (s, [r, c, w, h]) in dynamic_ranges {
             let sheet = &mut imported.sheets[s];
             let mut empty = Vec::new();
@@ -1963,6 +1964,11 @@ fn read(
                 sheet.cells.remove(&position);
             }
         }
+    }
+    // Named pivot sources may reference dynamic arrays. Their cached cells
+    // must be cleared before resolving a source, so they cannot block its spill.
+    if editable {
+        pivot::retain(&mut imported, entries)?;
     }
     // Editable workbooks calculate after shared formulas are materialized, with
     // each cell's scalar/array mode. The converter retains Calc's cache rules.

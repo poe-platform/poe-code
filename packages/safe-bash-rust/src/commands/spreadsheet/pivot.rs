@@ -47,6 +47,14 @@ pub struct PivotFilter {
     pub selected: Option<Vec<Value<String>>>,
 }
 
+/// Stable native identities. Deleting a source never captures a reused label.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PivotSource {
+    Name(usize),
+    Table(usize),
+    Missing,
+}
+
 #[derive(Clone)]
 pub struct PivotTable {
     pub name: String,
@@ -56,6 +64,7 @@ pub struct PivotTable {
     pub source_sheet: usize,
     /// Inclusive source range, including its header row.
     pub source: [usize; 4],
+    pub source_binding: Option<PivotSource>,
     pub rows: Vec<usize>,
     pub columns: Vec<usize>,
     pub values: Vec<PivotValue>,
@@ -97,6 +106,11 @@ impl Spreadsheet {
                 || !names.insert(super::case_fold::sheet_key(&pivot.name))
                 || pivot.sheet >= self.sheets.len()
                 || pivot.source_sheet >= self.sheets.len()
+                || match pivot.source_binding {
+                    Some(PivotSource::Name(i)) => i >= self.options.names.len(),
+                    Some(PivotSource::Table(i)) => i >= self.options.tables.len(),
+                    _ => false,
+                }
                 || pivot.row >= 1_048_576
                 || pivot.column >= 16_384
                 || top >= bottom
@@ -110,14 +124,20 @@ impl Spreadsheet {
             let mut fields = BTreeSet::new();
             for &field in pivot.rows.iter().chain(&pivot.columns) {
                 *work = work.checked_sub(64).ok_or("Pivot fields exceed limit")?;
-                if field > right - left || !fields.insert(field) {
+                if field >= 16_384
+                    || pivot.source_binding.is_none() && field > right - left
+                    || !fields.insert(field)
+                {
                     return Err("Invalid or duplicate pivot field".into());
                 }
             }
             fields.clear();
             for filter in &pivot.filters {
                 *work = work.checked_sub(64).ok_or("Pivot filters exceed limit")?;
-                if filter.field > right - left || !fields.insert(filter.field) {
+                if filter.field >= 16_384
+                    || pivot.source_binding.is_none() && filter.field > right - left
+                    || !fields.insert(filter.field)
+                {
                     return Err("Invalid or duplicate pivot filter".into());
                 }
             }
@@ -125,7 +145,8 @@ impl Spreadsheet {
                 *work = work
                     .checked_sub(value.name.len() + value.aggregate.len() + 64)
                     .ok_or("Pivot values exceed limit")?;
-                if value.field > right - left
+                if value.field >= 16_384
+                    || pivot.source_binding.is_none() && value.field > right - left
                     || value.name.is_empty()
                     || aggregate(&value.aggregate).is_none()
                 {
@@ -190,6 +211,17 @@ impl Spreadsheet {
     ) -> Result<(), String> {
         let mut removed = Vec::new();
         for (id, pivot) in &mut self.options.pivots {
+            let resolved = self
+                .spills
+                .pivot_sources
+                .get(&(pivot.sheet, pivot.row, pivot.column))
+                .copied();
+            if pivot.source_binding.is_some()
+                && let Some((sheet, area)) = resolved
+            {
+                pivot.source_sheet = sheet;
+                pivot.source = area;
+            }
             if pivot.sheet == edit.sheet {
                 let [width, height] = self
                     .spills
@@ -225,13 +257,22 @@ impl Spreadsheet {
                     pivot.row = position;
                 }
             }
+            if pivot.source_binding.is_some() && resolved.is_none() {
+                continue;
+            }
             if pivot.source_sheet == edit.sheet {
                 let axis = usize::from(edit.columns);
                 let before = pivot.source;
-                let (first, last) = edit
-                    .range(before[axis], before[axis + 2])
-                    .ok_or("Remove the pivot table before deleting its source")?;
+                let Some((first, last)) = edit.range(before[axis], before[axis + 2]) else {
+                    if pivot.source_binding.is_some() {
+                        continue;
+                    }
+                    return Err("Remove the pivot table before deleting its source".into());
+                };
                 if !edit.columns && (first >= last || edit.point(before[0]).is_none()) {
+                    if pivot.source_binding.is_some() {
+                        continue;
+                    }
                     return Err("A pivot source needs its header and at least one data row".into());
                 }
                 pivot.source[axis] = first;
@@ -285,6 +326,15 @@ impl Spreadsheet {
                 && column < pivot.column + w
                 && pivot.column < column.saturating_add(width)
         })
+    }
+
+    /// Current resolved source, including headers and excluding table totals.
+    pub fn pivot_source_range(&self, id: &str) -> Option<(usize, [usize; 4])> {
+        let pivot = self.options.pivots.get(id)?;
+        self.spills
+            .pivot_sources
+            .get(&(pivot.sheet, pivot.row, pivot.column))
+            .copied()
     }
 
     pub fn pivot_at(&self, sheet: usize, row: usize, column: usize) -> Option<(&str, [usize; 4])> {

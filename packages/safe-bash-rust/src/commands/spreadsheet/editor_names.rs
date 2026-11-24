@@ -235,6 +235,15 @@ impl Spreadsheet {
         }
         let mut next = Self::from_json(&self.to_json(), limit / 2)?;
         next.options.names.remove(index);
+        for pivot in next.options.pivots.values_mut() {
+            if let Some(super::PivotSource::Name(bound)) = pivot.source_binding {
+                pivot.source_binding = Some(if bound == index {
+                    super::PivotSource::Missing
+                } else {
+                    super::PivotSource::Name(bound - usize::from(bound > index))
+                });
+            }
+        }
         for name in &mut next.options.names {
             if let Some(compiled) = &mut name.compiled {
                 for bound in compiled.bindings.values_mut() {

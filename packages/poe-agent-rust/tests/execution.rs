@@ -70,3 +70,15 @@ fn iteration_limits_and_model_stop_classification_match_number_semantics() {
     );
     assert_eq!(StopFailure::classify("end_turn"), None);
 }
+
+#[test]
+fn follow_ups_are_fifo_and_close_admission_before_cleanup() {
+    let mut input = poe_agent_rust::execution::FollowUps::default();
+    assert!(input.push("first"));
+    assert!(input.push("second"));
+    assert_eq!(input.take(), Some("first"));
+    input.close();
+    assert!(!input.push("too late"));
+    assert_eq!(input.take(), Some("second"));
+    assert_eq!(input.take(), None);
+}

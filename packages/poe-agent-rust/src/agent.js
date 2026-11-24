@@ -1,3 +1,4 @@
+import { abortable } from "./cancellation.js";
 import path from "node:path";
 import { createAgentRuntime } from "@poe-code/poe-agent";
 import { native } from "./native.js";
@@ -59,7 +60,8 @@ class ImmutableAgentBuilder {
   }
   async acp(prompt, options = {}) {
     const normalizedPrompt = normalizePrompt(prompt);
-    const prepared = await this.#prepareRun(options).catch((error) => {
+    const preparing = this.#prepareRun(options);
+    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing).catch((error) => {
       throw toError(error);
     });
     const autoHandleTools = options.__legacyAutoHandleTools === true;
@@ -75,6 +77,7 @@ class ImmutableAgentBuilder {
       delegateHost,
       autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
+    const input = new native.NativeAgentInput();
     const events = runAcpCore({
       prompt: normalizedPrompt,
       runContext: prepared.runContext,
@@ -82,10 +85,21 @@ class ImmutableAgentBuilder {
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
-      onPromptSubmitted: options.onPromptSubmitted
+      onPromptSubmitted: options.onPromptSubmitted,
+      takeFollowUp: () => input.take() ?? undefined,
+      closeInput: () => input.close()
     });
     return {
       events,
+      followUp(prompt) {
+        const text = normalizePrompt(prompt);
+        if (prepared.runContext.abortController.signal.aborted) return false;
+        return input.push(text);
+      },
+      cancel() {
+        input.close();
+        prepared.runContext.abortController.abort();
+      },
       acknowledge(intentId, result) {
         host.acknowledge(intentId, result);
       },
@@ -240,7 +254,8 @@ class ImmutableAgentBuilder {
   }
   async #startRun(prompt, options) {
     const normalizedPrompt = normalizePrompt(prompt);
-    const prepared = await this.#prepareRun(options);
+    const preparing = this.#prepareRun(options);
+    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing);
     const host = new AgentHost({
       runContext: prepared.runContext,
       model: prepared.model,

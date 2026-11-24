@@ -108,3 +108,28 @@ impl NativeAgentExecution {
         Ok(())
     }
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeAgentInput {
+    state: poe_agent_rust::execution::FollowUps<Vec<u16>>,
+}
+#[napi]
+impl NativeAgentInput {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn push(&mut self, input: Utf16String) -> bool {
+        self.state.push(input.to_vec())
+    }
+    #[napi]
+    pub fn take(&mut self) -> Option<Utf16String> {
+        self.state.take().map(Utf16String::from)
+    }
+    #[napi]
+    pub fn close(&mut self) {
+        self.state.close();
+    }
+}

@@ -1784,7 +1784,7 @@ describe("AgentHost.fork", () => {
       expect(model.complete).toHaveBeenCalledTimes(1);
     });
 
-    const forkRejection = expect(forkRun).rejects.toThrow("child aborted");
+    const forkRejection = expect(forkRun).rejects.toThrow("Run aborted.");
     runContext.abortController.abort(new Error("stop parent"));
 
     await forkRejection;
@@ -3281,7 +3281,7 @@ describe("runAcpCore", () => {
       })
     );
 
-    expect(events.map((event) => event.type)).toEqual(["tool.intent", "session.error"]);
+    expect(events.map((event) => event.type)).toEqual(["tool.intent", "tool.error", "session.error"]);
     expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
 
     const terminal = events[events.length - 1];
@@ -3338,7 +3338,7 @@ describe("runAcpCore", () => {
     const events = await eventsPromise;
 
     expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
-    expect(events.map((event) => event.type)).toEqual(["tool.intent", "session.error"]);
+    expect(events.map((event) => event.type)).toEqual(["tool.intent", "tool.error", "session.error"]);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.error");

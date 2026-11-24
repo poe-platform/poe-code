@@ -1,3 +1,4 @@
+import { abortable } from "./runtime/cancellation.js";
 import { nativePath as path } from "#agent-platform";
 import { createAgentRuntime, type AgentOptions } from "./runtime/filesystem.js";
 import type { McpSpawnConfig } from "@poe-code/agent-spawn";
@@ -72,6 +73,8 @@ type InternalAgentRunOptions = AgentRunOptions & {
 export type AcpSession = {
   events: AsyncIterable<AcpEvent>;
   acknowledge(intentId: string, result: ToolAckResult): void;
+  followUp(prompt: string): boolean;
+  cancel(): void;
   dispose(): Promise<void>;
 };
 
@@ -137,7 +140,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
   async acp(prompt: string, options: AgentRunOptions = {}): Promise<AcpSession> {
     const normalizedPrompt = normalizePrompt(prompt);
-    const prepared = await this.#prepareRun(options).catch((error) => {
+    const preparing = this.#prepareRun(options);
+    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing).catch((error) => {
       throw toError(error);
     });
 
@@ -154,6 +158,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
       delegateHost,
       autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
+    const followUps: string[] = [];
+    let accepting = true;
     const events = runAcpCore({
       prompt: normalizedPrompt,
       runContext: prepared.runContext,
@@ -161,11 +167,25 @@ class ImmutableAgentBuilder implements AgentBuilder {
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
-      onPromptSubmitted: options.onPromptSubmitted
+      onPromptSubmitted: options.onPromptSubmitted,
+      takeFollowUp: () => followUps.shift(),
+      closeInput: () => {
+        accepting = false;
+      }
     });
 
     return {
       events,
+      followUp(prompt) {
+        const text = normalizePrompt(prompt);
+        if (!accepting || prepared.runContext.abortController.signal.aborted) return false;
+        followUps.push(text);
+        return true;
+      },
+      cancel() {
+        accepting = false;
+        prepared.runContext.abortController.abort();
+      },
       acknowledge(intentId, result) {
         host.acknowledge(intentId, result);
       },
@@ -348,7 +368,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
   async #startRun(prompt: string, options: AgentRunOptions): Promise<StartedRun> {
     const normalizedPrompt = normalizePrompt(prompt);
-    const prepared = await this.#prepareRun(options);
+    const preparing = this.#prepareRun(options);
+    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing);
     const host = new AgentHost({
       runContext: prepared.runContext,
       model: prepared.model,

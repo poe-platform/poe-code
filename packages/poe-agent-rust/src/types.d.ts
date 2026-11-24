@@ -91,6 +91,7 @@ export type UsageInfo = {
   cacheCreationTokens: number;
 };
 export type AcpEvent =
+  | { type: "input.accepted"; prompt: string }
   | { type: "model.attempt.start"; attempt: number }
   | { type: "model.attempt.failed"; attempt: number; error: unknown }
   | {
@@ -112,6 +113,8 @@ export type AcpEvent =
       type: "tool.error";
       intentId: string;
       error: string;
+      tool?: string;
+      args?: unknown;
     }
   | {
       type: "fork.start";

@@ -1,3 +1,4 @@
+import { abortableEvents } from "./cancellation.js";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./poe-agent-rust.node");
 
@@ -8,7 +9,7 @@ export async function collectModelResponseEvents(options) {
     try {
       return await collectAttempt(options, response, attempt);
     } catch (error) {
-      if (!response.retry) throw error;
+      if (options.signal?.aborted || !response.retry) throw error;
       response = await response.retry(error);
     }
   }
@@ -42,7 +43,10 @@ async function collectAttempt(options, response, attempt) {
   };
   const arena = { roots, store, parse, retire };
   try {
-    for await (const event of response.events) collector.consume(event, arena, options);
+    for await (const event of options.signal
+      ? abortableEvents(response.events, options.signal)
+      : response.events)
+      collector.consume(event, arena, options);
   } catch (error) {
     if (response.retry) {
       const { usage } = collector.finish(roots);

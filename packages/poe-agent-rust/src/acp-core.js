@@ -1,3 +1,4 @@
+import { abortable } from "./cancellation.js";
 import { createRequire } from "node:module";
 import { AsyncEventQueue } from "./event-queue.js";
 import { collectModelResponseEvents } from "./model-stream.js";
@@ -35,6 +36,9 @@ async function execute(options, events) {
   const signal = wireAbortSignal(options.signal, options.runContext.abortController);
   const cleanupAbortSignal = signal.cleanup;
   const toolCalls = [];
+  const seenIntents = new Set();
+  const pendingIntents = new Set();
+  let repairing = false;
   const execution = new native.NativeAgentExecution();
   const baseDisposeRun = options.disposeRun ?? (() => options.runContext.dispose());
 
@@ -46,9 +50,15 @@ async function execute(options, events) {
     execution.finishDisposal();
   };
   const emit = (event) => {
-    if (!execution.acceptsEvent()) {
+    if (!execution.acceptsEvent() || (signal.value.aborted && !repairing)) {
       return;
     }
+    if (event.type === "tool.intent") {
+      seenIntents.add(event.intentId);
+      pendingIntents.add(event.intentId);
+    }
+    if (event.type === "tool.result" || event.type === "tool.error")
+      pendingIntents.delete(event.intentId);
     events.push(event);
   };
   options.host.setEmit?.(emit);
@@ -80,6 +90,7 @@ async function execute(options, events) {
       disposeRun,
       toolCalls
     });
+    options.closeInput?.();
     await runStopHook({
       status: "completed",
       output: result.output
@@ -94,7 +105,44 @@ async function execute(options, events) {
       }
     });
   } catch (error) {
+    options.closeInput?.();
     let finalError = toError(error);
+    // Every proposed call needs a result before another user turn can resume.
+    const messages = options.runContext.messages;
+    repairing = true;
+    for (const [index, message] of [...messages].entries()) {
+      for (const call of message.tool_calls ?? []) {
+        if (
+          !messages
+            .slice(index + 1)
+            .some((item) => item.role === "tool" && item.toolCallId === call.id)
+        ) {
+          let args = call.function.arguments;
+          try {
+            args = JSON.parse(call.function.arguments);
+          } catch {
+            /* Keep malformed provider arguments for history. */
+          }
+          await emitToolExecutionError({
+            recordIntent: !seenIntents.has(call.id),
+            intentId: call.id,
+            tool: call.function.name,
+            args,
+            error: "Interrupted before the result was saved. The tool may have run.",
+            runContext: options.runContext,
+            emit,
+            toolCalls
+          });
+        }
+      }
+    }
+    for (const intentId of pendingIntents)
+      emit({
+        type: "tool.error",
+        intentId,
+        error: "Interrupted before the tool call finished streaming."
+      });
+    repairing = false;
     if (!execution.stopStarted()) {
       try {
         await runStopHook({
@@ -125,7 +173,7 @@ async function execute(options, events) {
 async function runLoop(options) {
   assertNotAborted(options.signal);
   let prompt = options.prompt;
-
+  let submitted = false;
   const sessionStartContext = createSessionStartHookContext({
     session: options.runContext.session,
     messages: options.runContext.messages,
@@ -137,49 +185,64 @@ async function runLoop(options) {
     sessionStartContext
   );
   await applyHookDecision("sessionStart", sessionStartDecision, sessionStartContext);
-  const promptMessage = {
-    role: "user",
-    content: prompt
-  };
-  options.runContext.messages.push(promptMessage);
-  const userPromptContext = createUserPromptSubmitHookContext({
-    prompt,
-    messages: options.runContext.messages,
-    signal: options.signal,
-    disposeRun: options.disposeRun
-  });
-  const userPromptDecision = await options.runContext.hooks.run(
-    "userPromptSubmit",
-    userPromptContext
-  );
-  const userPromptDispatch = await applyHookDecision(
-    "userPromptSubmit",
-    userPromptDecision,
-    userPromptContext
-  );
-  prompt = syncSubmittedUserPrompt(promptMessage, prompt, userPromptContext.prompt);
-  await options.onPromptSubmitted?.(prompt);
-  if (userPromptDispatch.type === "handled") {
-    const assistantMessage = {
-      role: "assistant",
-      content: userPromptDispatch.response
+  const submit = async (input) => {
+    prompt = input;
+    const promptMessage = {
+      role: "user",
+      content: prompt
     };
-    options.runContext.messages.push(assistantMessage);
-    if (userPromptDispatch.response.length > 0) {
-      options.emit({
-        type: "message.delta",
+    options.runContext.messages.push(promptMessage);
+    const userPromptContext = createUserPromptSubmitHookContext({
+      prompt,
+      messages: options.runContext.messages,
+      signal: options.signal,
+      disposeRun: options.disposeRun
+    });
+    const userPromptDecision = await options.runContext.hooks.run(
+      "userPromptSubmit",
+      userPromptContext
+    );
+    const userPromptDispatch = await applyHookDecision(
+      "userPromptSubmit",
+      userPromptDecision,
+      userPromptContext
+    );
+    prompt = syncSubmittedUserPrompt(promptMessage, prompt, userPromptContext.prompt);
+    await options.onPromptSubmitted?.(prompt);
+    if (submitted) options.emit({ type: "input.accepted", prompt });
+    submitted = true;
+    if (userPromptDispatch.type === "handled") {
+      const assistantMessage = {
+        role: "assistant",
         content: userPromptDispatch.response
-      });
+      };
+      options.runContext.messages.push(assistantMessage);
+      if (userPromptDispatch.response.length > 0) {
+        options.emit({
+          type: "message.delta",
+          content: userPromptDispatch.response
+        });
+      }
+      return {
+        output: userPromptDispatch.response,
+        stdout: userPromptDispatch.response,
+        summary: userPromptDispatch.response,
+        messages: [...options.runContext.messages],
+        toolCalls: [...options.toolCalls],
+        exitCode: 0,
+        stderr: ""
+      };
     }
-    return {
-      output: userPromptDispatch.response,
-      stdout: userPromptDispatch.response,
-      summary: userPromptDispatch.response,
-      messages: [...options.runContext.messages],
-      toolCalls: [...options.toolCalls],
-      exitCode: 0,
-      stderr: ""
-    };
+    return undefined;
+  };
+  let handled = await submit(prompt);
+  while (handled) {
+    const next = options.takeFollowUp?.();
+    if (next === undefined) {
+      options.closeInput?.();
+      return handled;
+    }
+    handled = await submit(next);
   }
   while (true) {
     assertNotAborted(options.signal);
@@ -235,21 +298,29 @@ async function runLoop(options) {
       prompt,
       options.baseSystemPrompt
     );
-    const response = await options.model.complete({
-      messages: toModelRequestMessages(options.runContext.messages, compiledPrompt.system),
-      tools: options.runContext.tools
-        .getActiveTools(options.runContext.activeSkills)
-        .map((tool) => ({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema
-        })),
-      signal: options.signal
-    });
-    const collectedResponse = await collectModelResponseEvents({
-      response,
-      emit: options.emit
-    });
+    const response = await abortable(
+      options.model.complete({
+        messages: toModelRequestMessages(options.runContext.messages, compiledPrompt.system),
+        tools: options.runContext.tools
+          .getActiveTools(options.runContext.activeSkills)
+          .map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            inputSchema: tool.inputSchema
+          })),
+        signal: options.signal
+      }),
+      options.signal
+    );
+    const collectedResponse = await abortable(
+      collectModelResponseEvents({
+        response,
+        signal: options.signal,
+        emit: options.emit
+      }),
+      options.signal
+    );
+    assertNotAborted(options.signal);
     options.execution.checkStop(collectedResponse);
     if (collectedResponse.usage) {
       options.emit({
@@ -258,11 +329,24 @@ async function runLoop(options) {
       });
     }
     options.runContext.messages.push(createAssistantMessage(collectedResponse));
+    let followUp = options.takeFollowUp?.();
     for (const toolOutcome of collectedResponse.toolOutcomes) {
       assertNotAborted(options.signal);
+      followUp ??= options.takeFollowUp?.();
       if (toolOutcome.type === "error") {
         await emitToolExecutionError({
           ...toolOutcome.error,
+          runContext: options.runContext,
+          emit: options.emit,
+          toolCalls: options.toolCalls
+        });
+        continue;
+      }
+      if (followUp !== undefined) {
+        await emitToolExecutionError({
+          ...toolOutcome.toolCall,
+          recordIntent: !toolOutcome.toolCall.intentEmitted,
+          error: "Skipped because the user submitted a follow-up.",
           runContext: options.runContext,
           emit: options.emit,
           toolCalls: options.toolCalls
@@ -278,6 +362,7 @@ async function runLoop(options) {
         toolCalls: options.toolCalls,
         disposeRun: options.disposeRun
       });
+      followUp = options.takeFollowUp?.();
     }
     await runPostIterationHooks({
       runContext: options.runContext,
@@ -289,7 +374,21 @@ async function runLoop(options) {
       emit: options.emit,
       disposeRun: options.disposeRun
     });
+    followUp ??= options.takeFollowUp?.();
+    if (followUp !== undefined) {
+      do {
+        assertNotAborted(options.signal);
+        const handled = await submit(followUp);
+        followUp = options.takeFollowUp?.();
+        if (handled && followUp === undefined) {
+          options.closeInput?.();
+          return handled;
+        }
+      } while (followUp !== undefined);
+      continue;
+    }
     if (collectedResponse.toolOutcomes.length === 0) {
+      options.closeInput?.();
       return {
         output: collectedResponse.content,
         stdout: collectedResponse.content,
@@ -302,6 +401,7 @@ async function runLoop(options) {
     }
   }
 }
+
 async function runSingleToolCall(options) {
   const preToolContext = createPreToolUseHookContext({
     tool: options.toolCall.tool,
@@ -492,12 +592,15 @@ function createForkRunner(options) {
 function createIterationCompleteRunner(options) {
   return async (messages) => {
     assertNotAborted(options.signal);
-    const response = await options.model.complete({
-      messages: toModelRequestMessages(messages, undefined),
-      tools: [],
-      signal: options.signal
-    });
-    return (await collectModelResponseEvents({ response })).content;
+    const response = await abortable(
+      options.model.complete({
+        messages: toModelRequestMessages(messages, undefined),
+        tools: [],
+        signal: options.signal
+      }),
+      options.signal
+    );
+    return (await collectModelResponseEvents({ response, signal: options.signal })).content;
   };
 }
 function createIterationHookRunner(options) {
@@ -592,7 +695,8 @@ async function emitToolExecutionError(options) {
   options.emit({
     type: "tool.error",
     intentId: options.intentId,
-    error: options.error
+    error: options.error,
+    ...(options.recordIntent ? { tool: options.tool, args: options.args } : {})
   });
   options.runContext.messages.push({
     role: "tool",

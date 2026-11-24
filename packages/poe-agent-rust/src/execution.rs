@@ -122,3 +122,33 @@ impl StopFailure {
         }
     }
 }
+
+/// Input admission closes at the final boundary, before async cleanup starts.
+/// Hosts retain ownership of their cancellation signals and provider streams.
+pub struct FollowUps<T> {
+    pending: VecDeque<T>,
+    closed: bool,
+}
+impl<T> Default for FollowUps<T> {
+    fn default() -> Self {
+        Self {
+            pending: VecDeque::new(),
+            closed: false,
+        }
+    }
+}
+impl<T> FollowUps<T> {
+    pub fn push(&mut self, input: T) -> bool {
+        if self.closed {
+            return false;
+        }
+        self.pending.push_back(input);
+        true
+    }
+    pub fn take(&mut self) -> Option<T> {
+        self.pending.pop_front()
+    }
+    pub fn close(&mut self) {
+        self.closed = true;
+    }
+}

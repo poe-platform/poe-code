@@ -86,103 +86,99 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
   const recordedCompactionSummaries = new Set(
     entries.filter((entry) => entry.kind === "compaction").map((entry) => entry.summary)
   );
-  return {
-    id: store.sessionId,
-    async sendMessage(prompt, sendOptions = {}) {
-      if (disposed) {
-        throw new Error("Agent session is already disposed.");
-      }
-      if (!normalizeNonEmptyString(prompt)) {
-        throw new UserError("Prompt must not be empty.");
-      }
-      const onSessionUpdate = sendOptions.onSessionUpdate;
-      let assistantContent = "";
-      let emittedAssistantChunk = false;
-      let completed;
-      let failed;
-      let userEntryRecorded = false;
-      const treeResume = buildResumeFromTree(entries, headId);
-      const recordSubmittedPrompt = async (submittedPrompt) => {
-        if (userEntryRecorded) {
-          return;
-        }
-        await appendEntry({
-          kind: "user",
-          text: submittedPrompt
-        });
-        userEntryRecorded = true;
+  const queue = [];
+  let active;
+  function enqueue(prompt, sendOptions = {}) {
+    if (disposed) return Promise.reject(new Error("Agent session is already disposed."));
+    if (!normalizeNonEmptyString(prompt))
+      return Promise.reject(new UserError("Prompt must not be empty."));
+    const mode = sendOptions.mode ?? "queue";
+    if (!["interrupt", "follow-up", "queue"].includes(mode))
+      return Promise.reject(new Error("Unknown input mode."));
+    if (sendOptions.signal?.aborted)
+      return Promise.reject(new DOMException("Message cancelled.", "AbortError"));
+    return new Promise((resolve, reject) => {
+      const item = {
+        prompt,
+        options: sendOptions,
+        resolve,
+        reject,
+        cleanup: () => sendOptions.signal?.removeEventListener("abort", abort)
       };
-      const runOptions = {
-        signal: sendOptions.signal,
-        resume: treeResume ?? previousRun,
-        apiKey: options.apiKey,
-        baseUrl: options.baseUrl,
-        fetch: options.fetch,
-        cwd: options.cwd,
-        env: options.env,
-        maxIterations: options.maxToolCallIterations,
-        fileAwareness,
-        onPromptSubmitted: recordSubmittedPrompt,
-        __legacyAutoHandleTools: true
+      const abort = () => {
+        const index = queue.indexOf(item);
+        if (index >= 0) {
+          queue.splice(index, 1);
+          item.cleanup();
+          reject(new DOMException("Message cancelled.", "AbortError"));
+        } else if (active?.request === item || active?.followers.includes(item))
+          active.controller.abort();
       };
-      const acpSession = await builder.acp(prompt, runOptions);
-      activeSession = acpSession;
-      if (disposed) {
-        await acpSession.dispose();
-        throw new Error("Agent session is already disposed.");
+      sendOptions.signal?.addEventListener("abort", abort, { once: true });
+      if (
+        mode === "follow-up" &&
+        active &&
+        !active.controller.signal.aborted &&
+        (!activeSession || activeSession.followUp(prompt))
+      ) {
+        active.followers.push(item);
+        return;
       }
+      if (mode === "interrupt") {
+        // Preserve accepted messages, with interrupts ahead of ordinary queued turns.
+        const next = queue.findIndex((entry) => entry.options.mode !== "interrupt");
+        queue.splice(next < 0 ? queue.length : next, 0, item);
+        active?.controller.abort();
+      } else {
+        queue.push(item);
+      }
+      pump();
+    });
+  }
+  function pump() {
+    if (active || disposed) return;
+    const request = queue.shift();
+    if (!request) return;
+    const current = {
+      request,
+      followers: [],
+      controller: new AbortController(),
+      done: Promise.resolve()
+    };
+    active = current;
+    current.done = (async () => {
       try {
-        for await (const event of acpSession.events) {
-          await recordSubmittedPrompt(prompt);
-          await recordSessionEvent(event);
-          handleEvent(event, onSessionUpdate, (chunk) => {
-            if (chunk.length > 0) {
-              emittedAssistantChunk = true;
-              assistantContent += chunk;
-            }
-          });
-          if (event.type === "session.complete") {
-            completed = event.result;
-            assistantContent = event.result.output;
-            continue;
-          }
-          if (event.type === "session.error") {
-            failed = event.error;
-          }
-        }
-      } finally {
-        await acpSession.dispose();
-        if (activeSession === acpSession) {
-          activeSession = undefined;
-        }
-      }
-      if (failed) {
-        throw failed;
-      }
-      if (!completed) {
-        throw new Error("Run ended without a terminal event.");
-      }
-      previousRun = completed;
-      await appendEntry({
-        kind: "assistant",
-        text: assistantContent
-      });
-      if (onSessionUpdate && !emittedAssistantChunk && assistantContent.length > 0) {
-        onSessionUpdate({
-          sessionUpdate: "agent_message_chunk",
-          content: {
-            type: "text",
-            text: assistantContent
-          }
+        const result = await runMessage(request.prompt, {
+          ...request.options,
+          signal: current.controller.signal
         });
+        for (const item of [request, ...current.followers]) item.resolve(result);
+      } catch (error) {
+        for (const item of [request, ...current.followers]) item.reject(error);
+      } finally {
+        for (const item of [request, ...current.followers]) item.cleanup();
+        active = undefined;
+        pump();
       }
-      return {
-        role: "assistant",
-        content: assistantContent
-      };
-    },
+    })();
+  }
+  async function cancel() {
+    for (const item of queue.splice(0)) {
+      item.cleanup();
+      item.reject(new DOMException("Message cancelled.", "AbortError"));
+    }
+    const current = active;
+    current?.controller.abort();
+    await activeSession?.dispose();
+    await current?.done;
+  }
+  let pendingWrite = Promise.resolve();
+  const api = {
+    id: store.sessionId,
+    sendMessage: enqueue,
+    cancel,
     getHistory() {
-      return previousRun?.messages ?? [];
+      return previousRun?.messages ?? buildResumeFromTree(entries, headId)?.messages ?? [];
     },
     tree() {
       return entries.map(cloneSessionEntry);
@@ -218,6 +214,7 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
       return await adaptAcpToLegacySession(builder, options, forkStore, forkMarker.id);
     },
     async navigateTo(entryId) {
+      if (active) throw new Error("Cannot navigate while a turn is running.");
       entries = await store.list();
       if (!entries.some((entry) => entry.id === entryId)) {
         throw new Error(`Cannot navigate to unknown session entry: ${entryId}`);
@@ -227,17 +224,130 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
     },
     async dispose() {
       disposed = true;
+      await cancel();
       previousRun = undefined;
-      await activeSession?.dispose();
       await store.dispose();
     }
   };
+  return api;
+  async function runMessage(prompt, sendOptions = {}) {
+    if (disposed) {
+      throw new Error("Agent session is already disposed.");
+    }
+    if (!normalizeNonEmptyString(prompt)) {
+      throw new UserError("Prompt must not be empty.");
+    }
+    const onSessionUpdate = (update) => {
+      sendOptions.onSessionUpdate?.(update);
+      for (const follower of active?.followers ?? []) follower.options.onSessionUpdate?.(update);
+    };
+    let assistantContent = "";
+    let emittedAssistantChunk = false;
+    let completed;
+    let failed;
+    let userEntryRecorded = false;
+    const treeResume = buildResumeFromTree(entries, headId);
+    const recordSubmittedPrompt = async (submittedPrompt) => {
+      if (userEntryRecorded) return;
+      await appendEntry({
+        kind: "user",
+        text: submittedPrompt
+      });
+      userEntryRecorded = true;
+    };
+    const runOptions = {
+      signal: sendOptions.signal,
+      resume: previousRun ?? treeResume,
+      apiKey: options.apiKey,
+      baseUrl: options.baseUrl,
+      fetch: options.fetch,
+      cwd: options.cwd,
+      env: options.env,
+      maxIterations: options.maxToolCallIterations,
+      fileAwareness,
+      onPromptSubmitted: recordSubmittedPrompt,
+      __legacyAutoHandleTools: true
+    };
+    const acpSession = await builder.acp(prompt, runOptions);
+    activeSession = acpSession;
+    for (const follower of active?.followers ?? []) {
+      if (!acpSession.followUp(follower.prompt))
+        throw new Error("Run stopped before accepting follow-up.");
+    }
+    if (disposed) {
+      await acpSession.dispose();
+      throw new Error("Agent session is already disposed.");
+    }
+    try {
+      for await (const event of acpSession.events) {
+        if (!userEntryRecorded) await recordSubmittedPrompt(prompt);
+        if (event.type === "input.accepted") {
+          if (assistantContent) await appendEntry({ kind: "assistant", text: assistantContent });
+          assistantContent = "";
+          await appendEntry({ kind: "user", text: event.prompt });
+        }
+        await recordSessionEvent(event);
+        handleEvent(event, onSessionUpdate, (chunk) => {
+          if (chunk.length > 0) {
+            emittedAssistantChunk = true;
+            assistantContent += chunk;
+          }
+        });
+        if (event.type === "session.complete") {
+          completed = event.result;
+          assistantContent = event.result.output;
+          continue;
+        }
+        if (event.type === "session.error") {
+          failed = event.error;
+        }
+      }
+    } finally {
+      await acpSession.dispose();
+      if (activeSession === acpSession) {
+        activeSession = undefined;
+      }
+    }
+    if (failed) {
+      if (assistantContent) await appendEntry({ kind: "assistant", text: assistantContent });
+      previousRun = buildResumeFromTree(entries, headId);
+      throw failed;
+    }
+    if (!completed) {
+      throw new Error("Run ended without a terminal event.");
+    }
+    previousRun = { messages: completed.messages };
+    await appendEntry({
+      kind: "assistant",
+      text: assistantContent
+    });
+    if (onSessionUpdate && !emittedAssistantChunk && assistantContent.length > 0) {
+      onSessionUpdate({
+        sessionUpdate: "agent_message_chunk",
+        content: {
+          type: "text",
+          text: assistantContent
+        }
+      });
+    }
+    return {
+      role: "assistant",
+      content: assistantContent
+    };
+  }
   async function appendEntry(entry) {
-    const persisted = createEntry(entry, headId);
-    await store.append(persisted);
-    headId = persisted.id;
-    entries = [...entries, persisted];
-    return persisted;
+    const next = pendingWrite.then(async () => {
+      const persisted = createEntry(entry, headId);
+      await store.append(persisted);
+      headId = persisted.id;
+      entries = [...entries, persisted];
+      return persisted;
+    });
+    pendingWrite = next.then(
+      () => {},
+      () => {}
+    );
+    return next;
   }
   async function recordSessionEvent(event) {
     if (event.type === "tool.intent") {
@@ -270,6 +380,14 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
       return;
     }
     if (event.type === "tool.error") {
+      if (event.tool !== undefined && !toolIntents.has(event.intentId)) {
+        await appendEntry({
+          kind: "tool_call",
+          intentId: event.intentId,
+          tool: event.tool,
+          args: event.args
+        });
+      }
       await appendEntry({
         kind: "tool_result",
         intentId: event.intentId,
@@ -296,6 +414,7 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
     }
   }
 }
+
 function cloneSessionEntry(entry) {
   return JSON.parse(JSON.stringify(entry));
 }
@@ -304,7 +423,15 @@ async function createStore(options) {
   if (!options.persist) {
     return createMemorySessionStore(sessionId);
   }
-  return await createJsonlSessionStore(sessionId, expandHome(options.persist.directory, options.homeDir ?? (options.fs ? "/" : os.homedir()), options.fs ? path.posix : path), { fs: createAgentRuntime(options, new AbortController().signal).nodeFs });
+  return await createJsonlSessionStore(
+    sessionId,
+    expandHome(
+      options.persist.directory,
+      options.homeDir ?? (options.fs ? "/" : os.homedir()),
+      options.fs ? path.posix : path
+    ),
+    { fs: createAgentRuntime(options, new AbortController().signal).nodeFs }
+  );
 }
 function createEntry(entry, parentId) {
   return {

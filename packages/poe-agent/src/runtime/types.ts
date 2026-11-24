@@ -107,12 +107,13 @@ export type UsageInfo = {
 };
 
 export type AcpEvent =
+  | { type: "input.accepted"; prompt: string }
   | { type: "model.attempt.start"; attempt: number }
   | { type: "model.attempt.failed"; attempt: number; error: unknown }
   | { type: "message.delta"; content: string }
   | { type: "tool.intent"; intentId: string; tool: string; args: unknown }
   | { type: "tool.result"; intentId: string; result: unknown }
-  | { type: "tool.error"; intentId: string; error: string }
+  | { type: "tool.error"; intentId: string; error: string; tool?: string; args?: unknown }
   | { type: "fork.start"; forkId: string; prompt: string }
   | { type: "fork.complete"; forkId: string; result: ForkResult }
   | { type: "fork.error"; forkId: string; error: string }

@@ -255,7 +255,7 @@ identity units. Small injected-model tool runs are slower than the TypeScript
 reference in the current complete-builder benchmark.
 
 `await createAgentSession({ model, plugins, persist })` creates reusable sessions
-with history, tree snapshots, navigation and forks. Without `plugins` or
+with history, tree snapshots, navigation and forks. Input controls match TypeScript: `sendMessage(text, { mode: "interrupt" | "follow-up" | "queue" })`, with queue as the default. `cancel()` stops active and queued messages. Providers receive an abort signal; cancellation also drops the stream and ignores late output. Without `plugins` or
 `pluginsConfig`, the default Responses, Chat, system-prompt, files, shell and web
 plugins are owned implementations. Omit `persist` for in-memory history or supply
 `{ directory }` for JSONL persistence. Child sessions use the embedded owned ACP

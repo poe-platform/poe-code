@@ -9,6 +9,7 @@ import type { ChatMessage } from "./types.js";
 export interface AgentSession {
   readonly id: string;
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;
+  cancel(): Promise<void>;
   getHistory(): ChatMessage[];
   tree(): SessionEntry[];
   fork(fromEntryId: string): Promise<AgentSession>;
@@ -16,6 +17,7 @@ export interface AgentSession {
   dispose(): Promise<void>;
 }
 export interface AgentSessionSendMessageOptions {
+  mode?: "interrupt" | "follow-up" | "queue";
   signal?: AbortSignal;
   onSessionUpdate?: SessionUpdateCallback;
 }

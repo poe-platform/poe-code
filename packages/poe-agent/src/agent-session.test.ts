@@ -3,7 +3,6 @@ import * as poeAgent from "./index.js";
 import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpSession } from "./agent.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
-import * as poeAgent from "./index.js";
 import { createAgentSession } from "./agent-session.js";
 
 const openaiResponsesPluginMock = vi.hoisted(() =>
@@ -193,6 +192,7 @@ describe("createAgentSession", () => {
     ]);
 
     expect(Object.keys(session).sort()).toEqual([
+      "cancel",
       "dispose",
       "fork",
       "getHistory",
@@ -488,7 +488,7 @@ describe("createAgentSession", () => {
           output: "first",
           stdout: "first",
           summary: "first",
-          messages: [{ role: "assistant", content: "first" }],
+          messages: [{ role: "user", content: "first" }, { role: "assistant", content: "first" }],
           toolCalls: [],
           exitCode: 0,
           stderr: ""
@@ -554,7 +554,7 @@ describe("createAgentSession", () => {
     expect(acpMock).toHaveBeenCalledWith(
       "hello",
       expect.objectContaining({
-        signal,
+        signal: expect.any(AbortSignal),
         apiKey: "test-key",
         cwd: "/workspace",
         baseUrl: "http://proxy.example.com",
@@ -902,7 +902,7 @@ describe("createAgentSession", () => {
       model: "Claude-Sonnet-4.5"
     });
     const sending = session.sendMessage("keep working");
-    await Promise.resolve();
+    while (!finishEvents) await Promise.resolve();
 
     await session.dispose();
 

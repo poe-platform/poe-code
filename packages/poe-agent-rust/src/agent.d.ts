@@ -27,6 +27,8 @@ export type AgentRunOptions = {
 export type AcpSession = {
   events: AsyncIterable<AcpEvent>;
   acknowledge(intentId: string, result: ToolAckResult): void;
+  followUp(prompt: string): boolean;
+  cancel(): void;
   dispose(): Promise<void>;
 };
 export type AgentBuilder = {

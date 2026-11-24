@@ -1097,7 +1097,8 @@ describe("agent builder", () => {
               }
             }
           ]
-        })
+        }),
+        expect.objectContaining({ role: "tool", toolCallId: "tool-1" })
       ],
       toolCalls: [
         {
@@ -1105,7 +1106,7 @@ describe("agent builder", () => {
           tool: "repo_search",
           args: { query: "tests" },
           status: "error",
-          error: "Run aborted."
+          error: "Interrupted before the result was saved. The tool may have run."
         }
       ],
       exitCode: 1,
@@ -1231,11 +1232,12 @@ describe("agent builder", () => {
       }
     }
 
-    expect(events).toHaveLength(2);
+    expect(events).toHaveLength(3);
     expect(events[0]?.type).toBe("tool.intent");
-    expect(events[1]?.type).toBe("session.error");
-    if (events[1]?.type === "session.error") {
-      expect(events[1].error.name).toBe("AbortError");
+    expect(events[1]?.type).toBe("tool.error");
+    expect(events[2]?.type).toBe("session.error");
+    if (events[2]?.type === "session.error") {
+      expect(events[2].error.name).toBe("AbortError");
     }
   });
 
@@ -1526,7 +1528,8 @@ describe("agent builder", () => {
               }
             }
           ]
-        })
+        }),
+        expect.objectContaining({ role: "tool", toolCallId: "tool-1" })
       ],
       toolCalls: [
         {
@@ -1534,7 +1537,7 @@ describe("agent builder", () => {
           tool: "long_task",
           args: {},
           status: "error",
-          error: "Run aborted."
+          error: "Interrupted before the result was saved. The tool may have run."
         }
       ],
       exitCode: 1,
@@ -1639,7 +1642,8 @@ describe("agent builder", () => {
               }
             }
           ]
-        })
+        }),
+        expect.objectContaining({ role: "tool", toolCallId: "tool-fork-1" })
       ],
       toolCalls: [
         {
@@ -1647,7 +1651,7 @@ describe("agent builder", () => {
           tool: "run_fork",
           args: {},
           status: "error",
-          error: "Run aborted."
+          error: "Interrupted before the result was saved. The tool may have run."
         }
       ],
       exitCode: 1,

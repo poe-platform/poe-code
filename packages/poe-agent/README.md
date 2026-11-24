@@ -119,11 +119,16 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 
 - `id: string`
 - `sendMessage(prompt, options?)`
+- `cancel(): Promise<void>`
 - `getHistory(): ChatMessage[]`
 - `tree(): SessionEntry[]`
 - `fork(fromEntryId): Promise<AgentSession>`
 - `navigateTo(entryId): Promise<void>`
 - `dispose(): Promise<void>`
+
+`sendMessage` accepts `mode: "queue"` (default), `"follow-up"`, or `"interrupt"`. Queue waits for the whole turn; follow-up enters at the next inference/tool boundary and skips unstarted tools; interrupt aborts the active work and runs the replacement before queued turns. Follow-ups resolve with the active turn’s final answer. `cancel()` stops the active turn and rejects queued messages. A queued message’s `signal` can remove that message; once it joins an active turn, aborting it cancels that turn. Providers and tools receive the abort signal; providers may simply close their stream. The runtime stops waiting and discards late output even if a provider ignores cancellation.
+
+ACP sessions expose `followUp(prompt)` (false once the turn is finishing) and `cancel()`.
 
 Completed runtime message history is available through `session.getHistory()`. Structured entry history is available through `session.tree()`. By default, SDK sessions stay in memory only; pass `persist.directory` to append entries to `<directory>/<session.id>.jsonl`.
 

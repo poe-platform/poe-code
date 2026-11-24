@@ -119,6 +119,8 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 
 - `id: string`
 - `sendMessage(prompt, options?)`
+- `delegate(prompt, { fork?: boolean }): Promise<string>`
+- `whenIdle(): Promise<void>`
 - `cancel(): Promise<void>`
 - `getHistory(): ChatMessage[]`
 - `tree(): SessionEntry[]`
@@ -126,7 +128,7 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 - `navigateTo(entryId): Promise<void>`
 - `dispose(): Promise<void>`
 
-`sendMessage` accepts `mode: "queue"` (default), `"follow-up"`, or `"interrupt"`. Queue waits for the whole turn; follow-up enters at the next inference/tool boundary and skips unstarted tools; interrupt aborts the active work and runs the replacement before queued turns. Follow-ups resolve with the active turn’s final answer. `cancel()` stops the active turn and rejects queued messages. A queued message’s `signal` can remove that message; once it joins an active turn, aborting it cancels that turn. Providers and tools receive the abort signal; providers may simply close their stream. The runtime stops waiting and discards late output even if a provider ignores cancellation.
+`sendMessage` accepts `mode: "queue"` (default), `"follow-up"`, or `"interrupt"`. Queue waits for the whole turn; follow-up enters at the next inference/tool boundary and skips unstarted tools; interrupt aborts the active work and runs the replacement before queued turns. Follow-ups resolve with the active turn’s final answer. `cancel()` stops the active turn, cancels owned delegates, and rejects queued messages. `delegate` uses the same async delivery for host callers. Normal turn completion leaves delegates running; `cancel()` and `dispose()` stop them. `whenIdle()` lets a host keep its process alive through nested delegates and their automatic follow-ups; automatic inference failures reject it. `onSessionUpdate` on session creation receives automatic turns. A queued message’s `signal` can remove that message; once it joins an active turn, aborting it cancels that turn. Providers and tools receive the abort signal; providers may simply close their stream. The runtime stops waiting and discards late output even if a provider ignores cancellation.
 
 ACP sessions expose `followUp(prompt)` (false once the turn is finishing) and `cancel()`.
 
@@ -340,7 +342,7 @@ File catalogs use Codex-style Markdown inside `<skills_instructions>`: `## Skill
 
 ### `spawnPlugin()`
 
-Adds `spawn({ task })`, which runs a fresh sub-agent and returns the child agent's `output` string.
+Adds async-only `spawn({ task })` and `fork({ task })`. Both return `{ id, status: "running" }` immediately. Spawn starts fresh; fork copies the current history. Completion or failure arrives as a follow-up and wakes an idle parent. No polling or wait tool is needed.
 
 ### `systemPromptPlugin()`
 

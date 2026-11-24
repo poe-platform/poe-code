@@ -1,3 +1,4 @@
+import { abortable } from "./cancellation.js";
 import { hostProcess } from "#agent-platform";
 import { AcpClient } from "@poe-code/poe-acp-client/client";
 import {
@@ -30,7 +31,8 @@ import type {
   ToolIntent
 } from "./types.js";
 
-type InMemorySession = Pick<AgentSession, "sendMessage" | "dispose">;
+type InMemorySession = Pick<AgentSession, "sendMessage" | "dispose"> &
+  Partial<Pick<AgentSession, "whenIdle" | "getHistory">>;
 type InMemoryCreateSession = (options: CreateAgentSessionOptions) => Promise<InMemorySession>;
 
 type InMemoryNotificationHandler = (
@@ -64,6 +66,11 @@ export type AgentHostSpawnSession = {
 };
 
 export type AgentHostOptions = {
+  delegate?(
+    prompt: string,
+    fork: boolean,
+    history: import("./types.js").ChatMessage[]
+  ): Promise<string>;
   runContext: RunContext;
   model: AcpModel;
   baseSystemPrompt?: string;
@@ -99,10 +106,14 @@ export class AgentHost implements AcpHost {
   readonly #emit?: (event: AcpEvent) => void;
   #runtimeEmit?: (event: AcpEvent) => void;
   readonly #createSpawnSession: AgentHostOptions["createSpawnSession"];
+  readonly #delegate?: AgentHostOptions["delegate"];
   #forkSequence = 0;
+  readonly #delegations = new Set<Promise<void>>();
+  readonly #followUps: string[] = [];
 
   constructor(options: AgentHostOptions) {
     this.#runContext = options.runContext;
+    this.#delegate = options.delegate;
     this.#model = options.model;
     this.#baseSystemPrompt = options.baseSystemPrompt;
     this.#maxIterations = options.maxIterations;
@@ -137,6 +148,10 @@ export class AgentHost implements AcpHost {
         });
       },
       spawn: async (prompt) => this.spawn(prompt),
+      delegate: (prompt, fork) =>
+        this.#delegate
+          ? this.#delegate(prompt, fork, this.#runContext.messages)
+          : this.#startDelegate(prompt, fork),
       signal: this.#runContext.abortController.signal,
       notify: async (notification) => this.#notify(notification)
     };
@@ -181,12 +196,61 @@ export class AgentHost implements AcpHost {
     }
   }
 
+  takeFollowUp(): string | undefined {
+    return this.#followUps.shift();
+  }
+  async nextFollowUp(): Promise<void> {
+    if (!this.#followUps.length && this.#delegations.size) await Promise.race(this.#delegations);
+  }
+  async #startDelegate(prompt: string, fork: boolean): Promise<string> {
+    const id = crypto.randomUUID(),
+      signal = this.#runContext.abortController.signal;
+    const messages = structuredClone(this.#runContext.messages);
+    if (fork)
+      for (const [index, message] of [...messages].entries()) {
+        for (const call of message.tool_calls ?? [])
+          if (!messages.slice(index + 1).some((m) => m.toolCallId === call.id)) {
+            messages.push({
+              role: "tool",
+              name: call.function.name,
+              toolCallId: call.id,
+              content: JSON.stringify({ status: "running_in_parent" })
+            });
+          }
+      }
+    const work = (async () => {
+      let result;
+      try {
+        const child = await abortable(
+          fork
+            ? this.fork({ forkId: id, prompt, context: { messages, toolCalls: [] } })
+            : this.spawn(prompt),
+          signal
+        );
+        result = { delegation: id, status: "completed", output: child.output };
+      } catch (error) {
+        result = { delegation: id, status: "failed", error: toErrorMessage(error) };
+      }
+      if (!signal.aborted) this.#followUps.push(JSON.stringify(result));
+    })().finally(() => this.#delegations.delete(work));
+    this.#delegations.add(work);
+    this.#runContext.trackChildRun(work);
+    return id;
+  }
   async spawn(prompt: string): Promise<RunOutput> {
     const spawnSession = await this.#createSpawnSession();
     const mcpServers = spawnSession.mcpServers ?? [];
     let output = "";
-
+    let disposed = false;
+    const dispose = async () => {
+      if (!disposed) {
+        disposed = true;
+        await spawnSession.client.dispose();
+      }
+    };
+    this.#runContext.registerDisposeHook(dispose);
     try {
+      if (this.#runContext.abortController.signal.aborted) throw new Error("Run aborted.");
       await spawnSession.client.initialize();
       const session = await spawnSession.client.newSession(spawnSession.cwd, mcpServers);
       const turn = spawnSession.client.prompt(session.sessionId, [{ type: "text", text: prompt }]);
@@ -219,7 +283,7 @@ export class AgentHost implements AcpHost {
         ]
       };
     } finally {
-      await spawnSession.client.dispose();
+      await dispose();
     }
   }
 
@@ -329,6 +393,8 @@ export class AgentHost implements AcpHost {
       prompt: request.prompt,
       runContext: childContext,
       host: childHost,
+      takeFollowUp: () => childHost.takeFollowUp(),
+      nextFollowUp: () => childHost.nextFollowUp(),
       model: this.#model,
       baseSystemPrompt: this.#baseSystemPrompt,
       maxIterations: this.#maxIterations
@@ -462,13 +528,17 @@ export function createInMemoryAcpTransport(
           throw new Error(`Unknown session "${request.sessionId}".`);
         }
 
-        const reply = await session.sendMessage(toPromptText(request.prompt));
+        let reply = await session.sendMessage(toPromptText(request.prompt));
+        await session.whenIdle?.();
+        reply =
+          session
+            .getHistory?.()
+            .filter((message) => message.role === "assistant")
+            .at(-1) ?? reply;
         const replyText =
           typeof reply.content === "string"
             ? reply.content
-            : reply.content
-                .map((part) => (part.type === "text" ? part.text : ""))
-                .join("");
+            : reply.content.map((part) => (part.type === "text" ? part.text : "")).join("");
         if (replyText.length > 0) {
           const handlers = notificationHandlers.get("session/update") ?? [];
           if (handlers.length > 0) {

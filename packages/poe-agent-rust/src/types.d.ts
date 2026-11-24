@@ -154,7 +154,9 @@ export type AcpHost = {
   fork(request: ForkRequest): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;
 };
-export type ToolContext = { runtime?: AgentRuntime;
+export type ToolContext = {
+  delegate?(prompt: string, fork: boolean): Promise<string>;
+  runtime?: AgentRuntime;
   fork(prompt: string): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;
   signal: AbortSignal;

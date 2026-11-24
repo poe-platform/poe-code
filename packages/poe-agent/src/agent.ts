@@ -25,10 +25,7 @@ import type { AgentPlugin, McpServerConfig } from "./runtime/plugin-types.js";
 import { runPluginSetup } from "./runtime/plugin-setup.js";
 import { collectProviders, resolveProvider } from "./runtime/resolve-provider.js";
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
-import {
-  createTranscriptWriter,
-  type TranscriptWriter
-} from "./runtime/transcript.js";
+import { createTranscriptWriter, type TranscriptWriter } from "./runtime/transcript.js";
 import { assertValidToolName } from "./runtime/tool-names.js";
 import type {
   AcpEvent,
@@ -46,6 +43,7 @@ import type {
 } from "./runtime/types.js";
 
 export type AgentRunOptions = {
+  delegate?(prompt: string, fork: boolean, history: ChatMessage[]): Promise<string>;
   signal?: AbortSignal;
   resume?: Pick<RunResult, "messages">;
   skills?: string[];
@@ -141,13 +139,16 @@ class ImmutableAgentBuilder implements AgentBuilder {
   async acp(prompt: string, options: AgentRunOptions = {}): Promise<AcpSession> {
     const normalizedPrompt = normalizePrompt(prompt);
     const preparing = this.#prepareRun(options);
-    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing).catch((error) => {
+    const prepared = await (
+      options.signal ? abortable(preparing, options.signal) : preparing
+    ).catch((error) => {
       throw toError(error);
     });
 
     const autoHandleTools = (options as InternalAgentRunOptions).__legacyAutoHandleTools === true;
     const delegateHost = new AgentHost({
       runContext: prepared.runContext,
+      delegate: options.delegate,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
@@ -159,6 +160,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
     const followUps: string[] = [];
+    let wakeFollowUp: (() => void) | undefined;
     let accepting = true;
     const events = runAcpCore({
       prompt: normalizedPrompt,
@@ -168,7 +170,16 @@ class ImmutableAgentBuilder implements AgentBuilder {
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
       onPromptSubmitted: options.onPromptSubmitted,
-      takeFollowUp: () => followUps.shift(),
+      takeFollowUp: () => followUps.shift() ?? delegateHost.takeFollowUp(),
+      nextFollowUp: () =>
+        Promise.race([
+          delegateHost.nextFollowUp(),
+          new Promise<undefined>((resolve) => {
+            wakeFollowUp = () => resolve(undefined);
+          })
+        ]).finally(() => {
+          wakeFollowUp = undefined;
+        }),
       closeInput: () => {
         accepting = false;
       }
@@ -180,6 +191,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
         const text = normalizePrompt(prompt);
         if (!accepting || prepared.runContext.abortController.signal.aborted) return false;
         followUps.push(text);
+        wakeFollowUp?.();
         return true;
       },
       cancel() {
@@ -217,14 +229,20 @@ class ImmutableAgentBuilder implements AgentBuilder {
       }
     >();
     const storageFs = options.logPath
-      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal).nodeFs
+      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal)
+          .nodeFs
       : runContext.runtime.nodeFs;
     const transcript: TranscriptWriter | undefined = options.logPath
       ? createTranscriptWriter({
-          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(runContext.runtime.cwd, options.logPath),
+          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(
+            runContext.runtime.cwd,
+            options.logPath
+          ),
           paths: runContext.runtime.customFs ? path.posix : path,
           fs: {
-            mkdir: async (dir, opts) => { await storageFs.mkdir(dir, opts); },
+            mkdir: async (dir, opts) => {
+              await storageFs.mkdir(dir, opts);
+            },
             appendFile: (file, text) => storageFs.appendFile(file, text, "utf8"),
             lstat: (file) => storageFs.lstat(file)
           }
@@ -372,6 +390,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing);
     const host = new AgentHost({
       runContext: prepared.runContext,
+      delegate: options.delegate,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
@@ -384,6 +403,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
         prompt: normalizedPrompt,
         runContext: prepared.runContext,
         host,
+        takeFollowUp: () => host.takeFollowUp(),
+        nextFollowUp: () => host.nextFollowUp(),
         model: prepared.model,
         baseSystemPrompt: prepared.baseSystemPrompt,
         maxIterations: prepared.maxIterations,
@@ -448,7 +469,9 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
             return createInMemorySpawnSession({
               model: modelName,
-              ...(runContext.runtime.customFs ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir } : {}),
+              ...(runContext.runtime.customFs
+                ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir }
+                : {}),
               cwd: runContext.runtime.cwd,
               ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
@@ -490,7 +513,9 @@ function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunO
 }
 
 export function agent(options: AgentOptions = {}): AgentBuilder {
-  return new ImmutableAgentBuilder(createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir }));
+  return new ImmutableAgentBuilder(
+    createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir })
+  );
 }
 
 type PreparedRun = {

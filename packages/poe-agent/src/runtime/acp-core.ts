@@ -81,6 +81,7 @@ export type RunAcpCoreOptions = {
   signal?: AbortSignal;
   onPromptSubmitted?(prompt: string): void | Promise<void>;
   takeFollowUp?(): string | undefined;
+  nextFollowUp?(): Promise<void>;
   closeInput?(): void;
   disposeRun?(): void | Promise<void>;
 };
@@ -609,6 +610,14 @@ async function runLoop(
     });
 
     followUp ??= options.takeFollowUp?.();
+    if (
+      followUp === undefined &&
+      collectedResponse.toolOutcomes.length === 0 &&
+      options.nextFollowUp
+    ) {
+      await abortable(options.nextFollowUp(), options.signal);
+      followUp ??= options.takeFollowUp?.();
+    }
     if (followUp !== undefined) {
       do {
         assertNotAborted(options.signal);

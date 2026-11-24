@@ -375,6 +375,14 @@ async function runLoop(options) {
       disposeRun: options.disposeRun
     });
     followUp ??= options.takeFollowUp?.();
+    if (
+      followUp === undefined &&
+      collectedResponse.toolOutcomes.length === 0 &&
+      options.nextFollowUp
+    ) {
+      await abortable(options.nextFollowUp(), options.signal);
+      followUp ??= options.takeFollowUp?.();
+    }
     if (followUp !== undefined) {
       do {
         assertNotAborted(options.signal);

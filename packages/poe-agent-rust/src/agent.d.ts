@@ -4,8 +4,9 @@ import type { AcpModel } from "./acp-model.js";
 import { type AgentHostOptions } from "./agent-host.js";
 import type { FileAwarenessTracker } from "./file-awareness.js";
 import type { AgentPlugin, McpServerConfig } from "./plugin-types.js";
-import type { AcpEvent, RunResult, Tool, ToolAckResult } from "./types.js";
+import type { AcpEvent, ChatMessage, RunResult, Tool, ToolAckResult } from "./types.js";
 export type AgentRunOptions = {
+  delegate?(prompt: string, fork: boolean, history: ChatMessage[]): Promise<string>;
   signal?: AbortSignal;
   resume?: Pick<RunResult, "messages">;
   skills?: string[];

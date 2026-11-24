@@ -12,9 +12,17 @@ export default defineConfig({
       enforce: "pre",
       transform(code, id) {
         if (
-          ["agent-controls.test.ts", "agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts", "filesystem.test.ts", "filesystem-auth.test.ts", "filesystem-platform.test.ts", "skills-catalog.test.ts"].some(
-            (name) => id === path("../poe-agent/src/" + name)
-          )
+          [
+            "agent-delegation.test.ts",
+            "agent-controls.test.ts",
+            "agent.test.ts",
+            "agent-session.test.ts",
+            "agent.mcp-spawn.test.ts",
+            "filesystem.test.ts",
+            "filesystem-auth.test.ts",
+            "filesystem-platform.test.ts",
+            "skills-catalog.test.ts"
+          ].some((name) => id === path("../poe-agent/src/" + name))
         ) {
           const replacements = new Map([
             ["./agent.js", "agent"],
@@ -63,7 +71,12 @@ export default defineConfig({
               })
           ]);
           try {
-            const name = (id.endsWith("agent-session.test.ts") || id.endsWith("agent-controls.test.ts")) ? "createAgentSession" : "agent";
+            const name =
+              id.endsWith("agent-session.test.ts") ||
+              id.endsWith("agent-controls.test.ts") ||
+              id.endsWith("agent-delegation.test.ts")
+                ? "createAgentSession"
+                : "agent";
             const module = name === "agent" ? "agent" : "agent-session";
             const guard =
               "\nimport {" +
@@ -490,6 +503,7 @@ export default defineConfig({
   test: {
     include: [
       path("../poe-agent/src/index.test.ts"),
+      path("../poe-agent/src/agent-delegation.test.ts"),
       path("../poe-agent/src/agent-controls.test.ts"),
       path("../poe-agent/src/agent.test.ts"),
       path("../poe-agent/src/filesystem.test.ts"),

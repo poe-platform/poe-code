@@ -49,6 +49,7 @@ describe("poe-agent default config filesystem", () => {
     createAgentSessionMock.mockResolvedValue({
       sendMessage: sendMessageMock,
       getHistory: getHistoryMock,
+      whenIdle: vi.fn(async () => {}),
       dispose: disposeMock
     });
   });

@@ -61,12 +61,15 @@ class ImmutableAgentBuilder {
   async acp(prompt, options = {}) {
     const normalizedPrompt = normalizePrompt(prompt);
     const preparing = this.#prepareRun(options);
-    const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing).catch((error) => {
+    const prepared = await (
+      options.signal ? abortable(preparing, options.signal) : preparing
+    ).catch((error) => {
       throw toError(error);
     });
     const autoHandleTools = options.__legacyAutoHandleTools === true;
     const delegateHost = new AgentHost({
       runContext: prepared.runContext,
+      delegate: options.delegate,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
@@ -78,6 +81,7 @@ class ImmutableAgentBuilder {
       autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
     const input = new native.NativeAgentInput();
+    let wakeFollowUp;
     const events = runAcpCore({
       prompt: normalizedPrompt,
       runContext: prepared.runContext,
@@ -86,7 +90,16 @@ class ImmutableAgentBuilder {
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
       onPromptSubmitted: options.onPromptSubmitted,
-      takeFollowUp: () => input.take() ?? undefined,
+      takeFollowUp: () => input.take() ?? delegateHost.takeFollowUp(),
+      nextFollowUp: () =>
+        Promise.race([
+          delegateHost.nextFollowUp(),
+          new Promise((resolve) => {
+            wakeFollowUp = () => resolve(undefined);
+          })
+        ]).finally(() => {
+          wakeFollowUp = undefined;
+        }),
       closeInput: () => input.close()
     });
     return {
@@ -94,7 +107,9 @@ class ImmutableAgentBuilder {
       followUp(prompt) {
         const text = normalizePrompt(prompt);
         if (prepared.runContext.abortController.signal.aborted) return false;
-        return input.push(text);
+        const accepted = input.push(text);
+        if (accepted) wakeFollowUp?.();
+        return accepted;
       },
       cancel() {
         input.close();
@@ -119,14 +134,20 @@ class ImmutableAgentBuilder {
     let streamedOutput = "";
     const streamedToolCalls = new Map();
     const storageFs = options.logPath
-      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal).nodeFs
+      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal)
+          .nodeFs
       : runContext.runtime.nodeFs;
     const transcript = options.logPath
       ? createTranscriptWriter({
-          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(runContext.runtime.cwd, options.logPath),
+          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(
+            runContext.runtime.cwd,
+            options.logPath
+          ),
           paths: runContext.runtime.customFs ? path.posix : path,
           fs: {
-            mkdir: async (dir, opts) => { await storageFs.mkdir(dir, opts); },
+            mkdir: async (dir, opts) => {
+              await storageFs.mkdir(dir, opts);
+            },
             appendFile: (file, text) => storageFs.appendFile(file, text, "utf8"),
             lstat: (file) => storageFs.lstat(file)
           }
@@ -258,6 +279,7 @@ class ImmutableAgentBuilder {
     const prepared = await (options.signal ? abortable(preparing, options.signal) : preparing);
     const host = new AgentHost({
       runContext: prepared.runContext,
+      delegate: options.delegate,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
       maxIterations: prepared.maxIterations,
@@ -269,6 +291,8 @@ class ImmutableAgentBuilder {
         prompt: normalizedPrompt,
         runContext: prepared.runContext,
         host,
+        takeFollowUp: () => host.takeFollowUp(),
+        nextFollowUp: () => host.nextFollowUp(),
         model: prepared.model,
         baseSystemPrompt: prepared.baseSystemPrompt,
         maxIterations: prepared.maxIterations,
@@ -324,7 +348,9 @@ class ImmutableAgentBuilder {
             const mode = runContext.session.get(POLICY_MODE_SESSION_KEY);
             return createInMemorySpawnSession({
               model: modelName,
-              ...(runContext.runtime.customFs ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir } : {}),
+              ...(runContext.runtime.customFs
+                ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir }
+                : {}),
               cwd: runContext.runtime.cwd,
               ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
@@ -362,7 +388,9 @@ function mergeRunProviderOptions(providerOptions, runOptions) {
   };
 }
 export function agent(options = {}) {
-  return new ImmutableAgentBuilder(createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir }));
+  return new ImmutableAgentBuilder(
+    createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir })
+  );
 }
 
 class CallerAcpHost {

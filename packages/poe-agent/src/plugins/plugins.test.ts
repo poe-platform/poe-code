@@ -22,7 +22,7 @@ import systemPromptPlugin, {
 } from "./poe-agent-plugin-system-prompt.js";
 import webPlugin from "./poe-agent-plugin-web.js";
 
-vi.mock("node:child_process", async importOriginal => {
+vi.mock("node:child_process", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:child_process")>();
   return { ...actual, spawn: vi.fn(actual.spawn) };
 });
@@ -136,9 +136,12 @@ describe("poe-agent-plugin-audit-log", () => {
   });
 
   it("does not append audit events through a symlinked log file", async () => {
-    const volume = Volume.fromJSON({
-      "/outside/audit.jsonl": "original\n"
-    }, "/");
+    const volume = Volume.fromJSON(
+      {
+        "/outside/audit.jsonl": "original\n"
+      },
+      "/"
+    );
     volume.mkdirSync("/project/logs", { recursive: true });
     volume.symlinkSync("/outside/audit.jsonl", "/project/logs/audit.jsonl");
     const fs = createFsFromVolume(volume).promises;
@@ -550,7 +553,9 @@ describe("poe-agent-plugin-scratchpad", () => {
     expect(() => writeNote?.call({ value: "missing key" }, toolContext)).toThrow(
       "write_note requires string key and value"
     );
-    expect(() => readNote?.call({ key: 123 }, toolContext)).toThrow("read_note requires a string key");
+    expect(() => readNote?.call({ key: 123 }, toolContext)).toThrow(
+      "read_note requires a string key"
+    );
   });
 });
 
@@ -1065,25 +1070,15 @@ describe("poe-agent built-in plugins", () => {
     await expect(pending).rejects.toThrow("Aborted");
   });
 
-  it("spawn plugin exposes spawn tool that calls ctx.spawn(task)", async () => {
-    const spawn = vi.fn(async () => ({ output: "spawned", messages: [] }));
-    const fork = vi.fn(async () => ({ output: "forked", messages: [] }));
+  it("spawn plugin submits asynchronous work through the session owner", async () => {
+    const delegate = vi.fn(async () => "child-id");
     const plugin = spawnPlugin();
-    const spawnContext: ToolContext = {
-      spawn,
-      fork,
-      signal: new AbortController().signal
-    };
-
-    expect(plugin.name).toBe("spawn");
-    expect(plugin.tools?.map((tool) => tool.name)).toEqual(["spawn"]);
-
-    const tool = plugin.tools?.[0];
-    await expect(tool?.call({ task: "investigate tests" }, spawnContext)).resolves.toEqual(
-      "spawned"
+    expect(plugin.tools?.map((tool) => tool.name)).toEqual(["spawn", "fork"]);
+    const context = { ...pluginsToolContext, delegate };
+    expect(JSON.parse((await plugin.tools![0]!.call({ task: "task" }, context)) as string)).toEqual(
+      { id: "child-id", status: "running" }
     );
-    expect(spawn).toHaveBeenCalledWith("investigate tests");
-    expect(fork).not.toHaveBeenCalled();
+    expect(delegate).toHaveBeenCalledWith("task", false);
   });
 
   it.each([

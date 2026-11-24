@@ -130,6 +130,7 @@ export type AcpHost = {
 };
 
 export type ToolContext = {
+  delegate?(prompt: string, fork: boolean): Promise<string>;
   runtime?: AgentRuntime;
   fork(prompt: string): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;

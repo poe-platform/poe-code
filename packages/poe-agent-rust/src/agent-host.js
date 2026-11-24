@@ -1,3 +1,4 @@
+import { abortable } from "./cancellation.js";
 import { AcpClient } from "./acp/index.js";
 import { createAgentSession } from "./agent-session.js";
 import { createRequire } from "node:module";
@@ -9,6 +10,7 @@ import { applyHookDecision, createNotificationHookContext } from "./hooks.js";
 import { createRunContext } from "./run-context.js";
 export class AgentHost {
   #runContext;
+  #delegate;
   #model;
   #baseSystemPrompt;
   #maxIterations;
@@ -16,8 +18,11 @@ export class AgentHost {
   #runtimeEmit;
   #createSpawnSession;
   #state = new native.NativeAgentHostState();
+  #delegations = new Set();
+  #followUps = [];
   constructor(options) {
     this.#runContext = options.runContext;
+    this.#delegate = options.delegate;
     this.#model = options.model;
     this.#baseSystemPrompt = options.baseSystemPrompt;
     this.#maxIterations = options.maxIterations;
@@ -49,6 +54,10 @@ export class AgentHost {
         });
       },
       spawn: async (prompt) => this.spawn(prompt),
+      delegate: (prompt, fork) =>
+        this.#delegate
+          ? this.#delegate(prompt, fork, this.#runContext.messages)
+          : this.#startDelegate(prompt, fork),
       signal: this.#runContext.abortController.signal,
       notify: async (notification) => this.#notify(notification)
     };
@@ -89,11 +98,62 @@ export class AgentHost {
       throw error;
     }
   }
+
+  takeFollowUp() {
+    return this.#followUps.shift();
+  }
+  async nextFollowUp() {
+    if (!this.#followUps.length && this.#delegations.size) await Promise.race(this.#delegations);
+  }
+  async #startDelegate(prompt, fork) {
+    const id = crypto.randomUUID(),
+      signal = this.#runContext.abortController.signal;
+    const messages = structuredClone(this.#runContext.messages);
+    if (fork)
+      for (const [index, message] of [...messages].entries()) {
+        for (const call of message.tool_calls ?? [])
+          if (!messages.slice(index + 1).some((m) => m.toolCallId === call.id)) {
+            messages.push({
+              role: "tool",
+              name: call.function.name,
+              toolCallId: call.id,
+              content: JSON.stringify({ status: "running_in_parent" })
+            });
+          }
+      }
+    const work = (async () => {
+      let result;
+      try {
+        const child = await abortable(
+          fork
+            ? this.fork({ forkId: id, prompt, context: { messages, toolCalls: [] } })
+            : this.spawn(prompt),
+          signal
+        );
+        result = { delegation: id, status: "completed", output: child.output };
+      } catch (error) {
+        result = { delegation: id, status: "failed", error: toErrorMessage(error) };
+      }
+      if (!signal.aborted) this.#followUps.push(JSON.stringify(result));
+    })().finally(() => this.#delegations.delete(work));
+    this.#delegations.add(work);
+    this.#runContext.trackChildRun(work);
+    return id;
+  }
   async spawn(prompt) {
     const spawnSession = await this.#createSpawnSession();
     const mcpServers = spawnSession.mcpServers ?? [];
     const collected = new native.NativeAgentSpawnOutput();
+    let disposed = false;
+    const dispose = async () => {
+      if (!disposed) {
+        disposed = true;
+        await spawnSession.client.dispose();
+      }
+    };
+    this.#runContext.registerDisposeHook(dispose);
     try {
+      if (this.#runContext.abortController.signal.aborted) throw new Error("Run aborted.");
       await spawnSession.client.initialize();
       const session = await spawnSession.client.newSession(spawnSession.cwd, mcpServers);
       const turn = spawnSession.client.prompt(session.sessionId, [{ type: "text", text: prompt }]);
@@ -115,7 +175,7 @@ export class AgentHost {
         ]
       };
     } finally {
-      await spawnSession.client.dispose();
+      await dispose();
     }
   }
   async #consumeToolInvocation(invocation) {
@@ -199,6 +259,8 @@ export class AgentHost {
       prompt: request.prompt,
       runContext: childContext,
       host: childHost,
+      takeFollowUp: () => childHost.takeFollowUp(),
+      nextFollowUp: () => childHost.nextFollowUp(),
       model: this.#model,
       baseSystemPrompt: this.#baseSystemPrompt,
       maxIterations: this.#maxIterations
@@ -318,7 +380,7 @@ export function createInMemoryAcpTransport(options) {
         const creation = Promise.resolve(
           createSession({
             model: options.model,
-          ...(options.fs ? { fs: options.fs, homeDir: options.homeDir } : {}),
+            ...(options.fs ? { fs: options.fs, homeDir: options.homeDir } : {}),
             cwd: request?.cwd ?? options.cwd,
             ...(options.mode === undefined ? {} : { mode: options.mode }),
             ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
@@ -346,7 +408,13 @@ export function createInMemoryAcpTransport(options) {
         if (!session) {
           throw new Error(`Unknown session "${request.sessionId}".`);
         }
-        const reply = await session.sendMessage(toPromptText(request.prompt));
+        let reply = await session.sendMessage(toPromptText(request.prompt));
+        await session.whenIdle?.();
+        reply =
+          session
+            .getHistory?.()
+            .filter((message) => message.role === "assistant")
+            .at(-1) ?? reply;
         if (lifecycle.closed) throw new Error("In-memory ACP transport is disposed.");
         const replyText =
           typeof reply.content === "string"

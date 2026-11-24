@@ -87,6 +87,89 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
     entries.filter((entry) => entry.kind === "compaction").map((entry) => entry.summary)
   );
   const queue = [];
+  const children = new Map();
+  const idleWaiters = [];
+  let backgroundFailure;
+  function notifyIdle() {
+    if (!active && !queue.length && !children.size)
+      for (const waiter of idleWaiters.splice(0)) {
+        if (backgroundFailure !== undefined) waiter.reject(backgroundFailure);
+        else waiter.resolve();
+      }
+  }
+  async function delegate(
+    prompt,
+    fork = false,
+    history = buildResumeFromTree(entries, headId)?.messages ?? previousRun?.messages ?? []
+  ) {
+    if (disposed) throw new Error("Agent session is already disposed.");
+    if (!normalizeNonEmptyString(prompt)) throw new UserError("Prompt must not be empty.");
+    const id = randomUUID();
+    const snapshot = fork ? structuredClone(history) : undefined;
+    if (snapshot)
+      for (const [index, message] of history.entries()) {
+        for (const call of message.tool_calls ?? []) {
+          if (!history.slice(index + 1).some((m) => m.toolCallId === call.id)) {
+            snapshot.push({
+              role: "tool",
+              name: call.function.name,
+              toolCallId: call.id,
+              content: JSON.stringify({ status: "running_in_parent" })
+            });
+          }
+        }
+      }
+    const callback = active?.request.options.onSessionUpdate;
+    const task = { cancelled: false, done: Promise.resolve() };
+    children.set(id, task);
+    task.done = (async () => {
+      let result;
+      try {
+        const child = await createAgentSession({
+          ...options,
+          onSessionUpdate: undefined,
+          resume: snapshot ? { messages: snapshot } : undefined
+        });
+        task.session = child;
+        if (task.cancelled) return;
+        await child.sendMessage(prompt);
+        await child.whenIdle();
+        const last = child
+          .getHistory()
+          .filter((m) => m.role === "assistant")
+          .at(-1);
+        result = { delegation: id, status: "completed", output: last?.content ?? "" };
+      } catch (error) {
+        result = {
+          delegation: id,
+          status: "failed",
+          error: error instanceof Error ? error.message : String(error)
+        };
+      } finally {
+        try {
+          await task.session?.dispose();
+        } catch (error) {
+          result = {
+            delegation: id,
+            status: "failed",
+            error: error instanceof Error ? error.message : String(error)
+          };
+        }
+      }
+      if (!task.cancelled && !disposed) {
+        await enqueue(JSON.stringify(result), { mode: "follow-up", onSessionUpdate: callback });
+      }
+    })()
+      .catch((error) => {
+        // The follow-up is recorded before inference. Its failure remains visible in history.
+        if (!task.cancelled && !disposed) backgroundFailure = error;
+      })
+      .finally(() => {
+        children.delete(id);
+        notifyIdle();
+      });
+    return id;
+  }
   let active;
   function enqueue(prompt, sendOptions = {}) {
     if (disposed) return Promise.reject(new Error("Agent session is already disposed."));
@@ -97,6 +180,7 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
       return Promise.reject(new Error("Unknown input mode."));
     if (sendOptions.signal?.aborted)
       return Promise.reject(new DOMException("Message cancelled.", "AbortError"));
+    backgroundFailure = undefined;
     return new Promise((resolve, reject) => {
       const item = {
         prompt,
@@ -138,7 +222,10 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
   function pump() {
     if (active || disposed) return;
     const request = queue.shift();
-    if (!request) return;
+    if (!request) {
+      notifyIdle();
+      return;
+    }
     const current = {
       request,
       followers: [],
@@ -163,6 +250,10 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
     })();
   }
   async function cancel() {
+    backgroundFailure = undefined;
+    const owned = [...children.values()];
+    for (const task of owned) task.cancelled = true;
+    const cancelling = Promise.allSettled(owned.map((task) => task.session?.cancel()));
     for (const item of queue.splice(0)) {
       item.cleanup();
       item.reject(new DOMException("Message cancelled.", "AbortError"));
@@ -171,11 +262,22 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
     current?.controller.abort();
     await activeSession?.dispose();
     await current?.done;
+    await cancelling;
+    await Promise.all(owned.map((task) => task.done));
+    notifyIdle();
   }
   let pendingWrite = Promise.resolve();
   const api = {
     id: store.sessionId,
     sendMessage: enqueue,
+    delegate: (prompt, options) => delegate(prompt, options?.fork),
+    whenIdle() {
+      if (!active && !queue.length && !children.size)
+        return backgroundFailure === undefined
+          ? Promise.resolve()
+          : Promise.reject(backgroundFailure);
+      return new Promise((resolve, reject) => idleWaiters.push({ resolve, reject }));
+    },
     cancel,
     getHistory() {
       return previousRun?.messages ?? buildResumeFromTree(entries, headId)?.messages ?? [];
@@ -238,6 +340,7 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
       throw new UserError("Prompt must not be empty.");
     }
     const onSessionUpdate = (update) => {
+      options.onSessionUpdate?.(update);
       sendOptions.onSessionUpdate?.(update);
       for (const follower of active?.followers ?? []) follower.options.onSessionUpdate?.(update);
     };
@@ -266,6 +369,7 @@ async function adaptAcpToLegacySession(builder, options, initialStore, initialHe
       maxIterations: options.maxToolCallIterations,
       fileAwareness,
       onPromptSubmitted: recordSubmittedPrompt,
+      delegate,
       __legacyAutoHandleTools: true
     };
     const acpSession = await builder.acp(prompt, runOptions);

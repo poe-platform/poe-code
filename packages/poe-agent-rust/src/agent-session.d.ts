@@ -9,6 +9,8 @@ import type { ChatMessage } from "./types.js";
 export interface AgentSession {
   readonly id: string;
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;
+  delegate(prompt: string, options?: { fork?: boolean }): Promise<string>;
+  whenIdle(): Promise<void>;
   cancel(): Promise<void>;
   getHistory(): ChatMessage[];
   tree(): SessionEntry[];
@@ -36,6 +38,7 @@ export interface McpHttpServerDefinition {
 }
 export type McpServerDefinition = McpStdioServerDefinition | McpHttpServerDefinition;
 export interface CreateAgentSessionOptions extends AgentOptions {
+  onSessionUpdate?: SessionUpdateCallback;
   model?: string;
   apiKey?: string;
   cwd?: string;

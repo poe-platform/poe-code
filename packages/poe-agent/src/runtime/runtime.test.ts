@@ -302,7 +302,8 @@ describe("RunContext", () => {
   it("retries only disposal hooks that failed previously", async () => {
     const context = createRunContext();
     const successfulHook = vi.fn(async () => undefined);
-    const retriedHook = vi.fn()
+    const retriedHook = vi
+      .fn()
       .mockRejectedValueOnce(new Error("cleanup temporarily failed"))
       .mockResolvedValueOnce(undefined);
 
@@ -1950,9 +1951,50 @@ describe("AgentHost.fork", () => {
 });
 
 describe("AgentHost.spawn", () => {
-  it("runs spawn via in-memory ACP client without propagating parent abort signal", async () => {
+  it("leaves child delivery queued when another input wakes the host", async () => {
     const runContext = createRunContext();
-    runContext.abortController.abort(new Error("parent aborted"));
+    let finish!: () => void;
+    const done = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    runContext.tools.register({ name: "delegate", call: (_, ctx) => ctx.delegate("child", false) });
+    const host = new AgentHost({
+      runContext,
+      model: createNeverModel(),
+      createSpawnSession: () => ({
+        cwd: "/workspace",
+        client: {
+          initialize: async () => undefined,
+          newSession: async () => ({ sessionId: "child" }),
+          prompt: () => ({
+            response: done.then(() => ({ stopReason: "completed" })),
+            async *[Symbol.asyncIterator]() {
+              await done;
+              yield {
+                params: {
+                  update: {
+                    sessionUpdate: "agent_message_chunk",
+                    content: { type: "text", text: "done" }
+                  }
+                }
+              };
+            }
+          }),
+          dispose: async () => undefined
+        }
+      })
+    });
+    await host.handle({ intentId: "delegate", tool: "delegate", args: {} });
+    const abandonedWait = host.nextFollowUp();
+    await Promise.race([abandonedWait, Promise.resolve()]);
+    finish();
+    await abandonedWait;
+    expect(JSON.parse(host.takeFollowUp()!)).toMatchObject({ status: "completed" });
+    expect(host.takeFollowUp()).toBeUndefined();
+    await runContext.dispose();
+  });
+  it("runs spawn via in-memory ACP client", async () => {
+    const runContext = createRunContext();
 
     const sendMessage = vi.fn(async (prompt: string) => ({
       role: "assistant" as const,
@@ -1993,6 +2035,27 @@ describe("AgentHost.spawn", () => {
     expect(sendMessage.mock.calls[0]?.[0]).toBe("hello child");
     expect(sendMessage.mock.calls[0]?.[1]).toBeUndefined();
     expect(disposeSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("disposes a client created after parent cancellation without starting work", async () => {
+    const runContext = createRunContext();
+    const initialize = vi.fn();
+    const dispose = vi.fn(async () => undefined);
+    const host = new AgentHost({
+      runContext,
+      model: createNeverModel(),
+      createSpawnSession: async () => {
+        runContext.abortController.abort();
+        return {
+          cwd: "/workspace",
+          client: { initialize, dispose, newSession: vi.fn(), prompt: vi.fn() }
+        };
+      }
+    });
+    await expect(host.spawn("child")).rejects.toThrow("Run aborted");
+    await runContext.dispose();
+    expect(initialize).not.toHaveBeenCalled();
+    expect(dispose).toHaveBeenCalledTimes(1);
   });
 
   it("disposes spawned client and throws when prompt stop reason is not completed", async () => {
@@ -2986,7 +3049,8 @@ describe("runAcpCore", () => {
   });
 
   it("retries transient completion disposal failures on the error path", async () => {
-    const disposeRun = vi.fn()
+    const disposeRun = vi
+      .fn()
       .mockRejectedValueOnce(new Error("transient dispose failure"))
       .mockResolvedValueOnce(undefined);
 
@@ -3281,7 +3345,11 @@ describe("runAcpCore", () => {
       })
     );
 
-    expect(events.map((event) => event.type)).toEqual(["tool.intent", "tool.error", "session.error"]);
+    expect(events.map((event) => event.type)).toEqual([
+      "tool.intent",
+      "tool.error",
+      "session.error"
+    ]);
     expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
 
     const terminal = events[events.length - 1];
@@ -3338,7 +3406,11 @@ describe("runAcpCore", () => {
     const events = await eventsPromise;
 
     expect(events.filter((event) => event.type === "session.error")).toHaveLength(1);
-    expect(events.map((event) => event.type)).toEqual(["tool.intent", "tool.error", "session.error"]);
+    expect(events.map((event) => event.type)).toEqual([
+      "tool.intent",
+      "tool.error",
+      "session.error"
+    ]);
 
     const terminal = events[events.length - 1];
     expect(terminal?.type).toBe("session.error");

@@ -37,6 +37,7 @@ interface AgentSessionRuntime {
     prompt: string,
     options?: { onSessionUpdate?: (update: LegacySessionUpdate) => void }
   ): Promise<{ content: string }>;
+  whenIdle(): Promise<void>;
   getHistory(): ChatMessage[];
   dispose(): Promise<void>;
 }
@@ -689,16 +690,20 @@ function createInMemoryAcpTransport(options: {
           }
         });
 
-        const timestamp = new Date().toISOString();
-        await options.saveSession({
-          version: 1,
-          threadId: request.sessionId,
-          model: options.model,
-          cwd: options.cwd,
-          createdAt: options.persistedSession?.createdAt ?? timestamp,
-          updatedAt: timestamp,
-          messages: session.getHistory()
-        });
+        try {
+          await session.whenIdle();
+        } finally {
+          const timestamp = new Date().toISOString();
+          await options.saveSession({
+            version: 1,
+            threadId: request.sessionId,
+            model: options.model,
+            cwd: options.cwd,
+            createdAt: options.persistedSession?.createdAt ?? timestamp,
+            updatedAt: timestamp,
+            messages: session.getHistory()
+          });
+        }
 
         const response: PromptResponse = { stopReason: "completed" };
         return response as TResult;

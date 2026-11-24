@@ -2274,6 +2274,7 @@ describe("poe-agent provider", () => {
     createAgentSessionMock.mockResolvedValue({
       sendMessage: sendMessageMock,
       getHistory: getHistoryMock,
+      whenIdle: vi.fn(async () => {}),
       dispose: disposeMock
     });
   });
@@ -2287,6 +2288,24 @@ describe("poe-agent provider", () => {
     );
     expect(poeAgentProvider.spawn).toBeUndefined();
     expect(poeAgentProvider.supportsMcpSpawn).toBeUndefined();
+  });
+
+  it("saves accepted delegate history when an automatic follow-up fails", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const history = [{role:"user",content:"accepted child result"}];
+    createAgentSessionMock.mockResolvedValueOnce({
+      sendMessage: sendMessageMock, getHistory: () => history,
+      whenIdle: async () => { throw Error("follow-up failed"); }, dispose: disposeMock
+    });
+    const { done } = spawnPoeAgentWithAcp({
+      prompt:"task", model:"test", cwd:"/workspace", homeDir, fs
+    });
+    await expect(done).rejects.toThrow("follow-up failed");
+    const directory = path.join(homeDir, ".poe-code/sessions");
+    const names = await fs.readdir(directory);
+    expect(names).toHaveLength(1);
+    const saved = JSON.parse(await fs.readFile(path.join(directory, names[0]), "utf8"));
+    expect(saved.messages).toEqual(history);
   });
 
   it("runs poe-agent via ACP host lifecycle", async () => {

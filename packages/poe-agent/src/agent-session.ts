@@ -39,6 +39,8 @@ import type { AcpEvent, ChatMessage, RunResult } from "./runtime/types.js";
 export interface AgentSession {
   readonly id: string;
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;
+  delegate(prompt: string, options?: { fork?: boolean }): Promise<string>;
+  whenIdle(): Promise<void>;
   cancel(): Promise<void>;
   getHistory(): ChatMessage[];
   tree(): SessionEntry[];
@@ -72,6 +74,7 @@ export interface McpHttpServerDefinition {
 export type McpServerDefinition = McpStdioServerDefinition | McpHttpServerDefinition;
 
 export interface CreateAgentSessionOptions extends AgentOptions {
+  onSessionUpdate?: SessionUpdateCallback;
   model?: string;
   apiKey?: string;
   cwd?: string;
@@ -192,6 +195,100 @@ async function adaptAcpToLegacySession(
     cleanup(): void;
   };
   const queue: Pending[] = [];
+  const children = new Map<
+    string,
+    { cancelled: boolean; session?: AgentSession; done: Promise<void> }
+  >();
+  const idleWaiters: Array<{ resolve(): void; reject(error: unknown): void }> = [];
+  let backgroundFailure: unknown;
+  function notifyIdle(): void {
+    if (!active && !queue.length && !children.size)
+      for (const waiter of idleWaiters.splice(0)) {
+        if (backgroundFailure !== undefined) waiter.reject(backgroundFailure);
+        else waiter.resolve();
+      }
+  }
+  async function delegate(
+    prompt: string,
+    fork = false,
+    history = buildResumeFromTree(entries, headId)?.messages ?? previousRun?.messages ?? []
+  ): Promise<string> {
+    if (disposed) throw new Error("Agent session is already disposed.");
+    if (!normalizeNonEmptyString(prompt)) throw new UserError("Prompt must not be empty.");
+    const id = crypto.randomUUID();
+    const snapshot = fork ? structuredClone(history) : undefined;
+    if (snapshot)
+      for (const [index, message] of history.entries()) {
+        for (const call of message.tool_calls ?? []) {
+          if (!history.slice(index + 1).some((m) => m.toolCallId === call.id)) {
+            snapshot.push({
+              role: "tool",
+              name: call.function.name,
+              toolCallId: call.id,
+              content: JSON.stringify({ status: "running_in_parent" })
+            });
+          }
+        }
+      }
+    const callback = active?.request.options.onSessionUpdate;
+    const task: { cancelled: boolean; session?: AgentSession; done: Promise<void> } = {
+      cancelled: false,
+      done: Promise.resolve()
+    };
+    children.set(id, task);
+    task.done = (async () => {
+      let result: {
+        delegation: string;
+        status: string;
+        output?: ChatMessage["content"];
+        error?: string;
+      };
+      try {
+        const child = await createAgentSession({
+          ...options,
+          onSessionUpdate: undefined,
+          resume: snapshot ? { messages: snapshot } : undefined
+        });
+        task.session = child;
+        if (task.cancelled) return;
+        await child.sendMessage(prompt);
+        await child.whenIdle();
+        const last = child
+          .getHistory()
+          .filter((m) => m.role === "assistant")
+          .at(-1);
+        result = { delegation: id, status: "completed", output: last?.content ?? "" };
+      } catch (error) {
+        result = {
+          delegation: id,
+          status: "failed",
+          error: error instanceof Error ? error.message : String(error)
+        };
+      } finally {
+        try {
+          await task.session?.dispose();
+        } catch (error) {
+          result = {
+            delegation: id,
+            status: "failed",
+            error: error instanceof Error ? error.message : String(error)
+          };
+        }
+      }
+      if (!task.cancelled && !disposed) {
+        await enqueue(JSON.stringify(result), { mode: "follow-up", onSessionUpdate: callback });
+      }
+    })()
+      .catch((error) => {
+        // The follow-up is recorded before inference. Its failure remains visible in history.
+        if (!task.cancelled && !disposed) backgroundFailure = error;
+      })
+      .finally(() => {
+        children.delete(id);
+        notifyIdle();
+      });
+    return id;
+  }
   let active:
     | { request: Pending; followers: Pending[]; controller: AbortController; done: Promise<void> }
     | undefined;
@@ -208,6 +305,7 @@ async function adaptAcpToLegacySession(
       return Promise.reject(new Error("Unknown input mode."));
     if (sendOptions.signal?.aborted)
       return Promise.reject(new DOMException("Message cancelled.", "AbortError"));
+    backgroundFailure = undefined;
     return new Promise((resolve, reject) => {
       const item: Pending = {
         prompt,
@@ -249,7 +347,10 @@ async function adaptAcpToLegacySession(
   function pump(): void {
     if (active || disposed) return;
     const request = queue.shift();
-    if (!request) return;
+    if (!request) {
+      notifyIdle();
+      return;
+    }
     const current = {
       request,
       followers: [] as Pending[],
@@ -274,6 +375,10 @@ async function adaptAcpToLegacySession(
     })();
   }
   async function cancel(): Promise<void> {
+    backgroundFailure = undefined;
+    const owned = [...children.values()];
+    for (const task of owned) task.cancelled = true;
+    const cancelling = Promise.allSettled(owned.map((task) => task.session?.cancel()));
     for (const item of queue.splice(0)) {
       item.cleanup();
       item.reject(new DOMException("Message cancelled.", "AbortError"));
@@ -282,6 +387,9 @@ async function adaptAcpToLegacySession(
     current?.controller.abort();
     await activeSession?.dispose();
     await current?.done;
+    await cancelling;
+    await Promise.all(owned.map((task) => task.done));
+    notifyIdle();
   }
 
   let pendingWrite = Promise.resolve();
@@ -289,6 +397,14 @@ async function adaptAcpToLegacySession(
     id: store.sessionId,
 
     sendMessage: enqueue,
+    delegate: (prompt, options) => delegate(prompt, options?.fork),
+    whenIdle() {
+      if (!active && !queue.length && !children.size)
+        return backgroundFailure === undefined
+          ? Promise.resolve()
+          : Promise.reject(backgroundFailure);
+      return new Promise((resolve, reject) => idleWaiters.push({ resolve, reject }));
+    },
     cancel,
 
     getHistory(): ChatMessage[] {
@@ -366,6 +482,7 @@ async function adaptAcpToLegacySession(
     }
 
     const onSessionUpdate: SessionUpdateCallback = (update) => {
+      options.onSessionUpdate?.(update);
       sendOptions.onSessionUpdate?.(update);
       for (const follower of active?.followers ?? []) follower.options.onSessionUpdate?.(update);
     };
@@ -395,6 +512,7 @@ async function adaptAcpToLegacySession(
       maxIterations: options.maxToolCallIterations,
       fileAwareness,
       onPromptSubmitted: recordSubmittedPrompt,
+      delegate,
       __legacyAutoHandleTools: true
     };
 

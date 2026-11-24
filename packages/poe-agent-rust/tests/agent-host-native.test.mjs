@@ -68,7 +68,6 @@ test("spawn copies UTF16 chunks with default concatenation hints and original ge
   for (const [Host, create] of implementations) {
     const reads = [],
       context = create();
-    context.abortController.abort("parent already aborted");
     let content = 0;
     const update = {
       get sessionUpdate() {

@@ -13,7 +13,8 @@ import type {
   ToolAckResult,
   ToolIntent
 } from "./types.js";
-type InMemorySession = Pick<AgentSession, "sendMessage" | "dispose">;
+type InMemorySession = Pick<AgentSession, "sendMessage" | "dispose"> &
+  Partial<Pick<AgentSession, "whenIdle" | "getHistory">>;
 type InMemoryCreateSession = (options: CreateAgentSessionOptions) => Promise<InMemorySession>;
 type InMemoryNotificationHandler = (
   params: unknown,
@@ -46,6 +47,11 @@ export type AgentHostSpawnSession = {
   mcpServers?: McpServer[];
 };
 export type AgentHostOptions = {
+  delegate?(
+    prompt: string,
+    fork: boolean,
+    history: import("./types.js").ChatMessage[]
+  ): Promise<string>;
   runContext: RunContext;
   model: AcpModel;
   baseSystemPrompt?: string;
@@ -61,7 +67,9 @@ export type CreateProcessSpawnSessionOptions = {
 };
 export type CreateInMemorySpawnSessionOptions = {
   model: string;
-  fs?: AgentRuntime["fs"]; homeDir?: string; customFs?: boolean;
+  fs?: AgentRuntime["fs"];
+  homeDir?: string;
+  customFs?: boolean;
   cwd: string;
   mode?: SpawnMode;
   baseUrl?: string;
@@ -74,6 +82,8 @@ export declare class AgentHost implements AcpHost {
   setEmit(emit: (event: AcpEvent) => void): void;
   handle(intent: ToolIntent): Promise<ToolAckResult>;
   fork(request: ForkRequest): Promise<ForkResult>;
+  takeFollowUp(): string | undefined;
+  nextFollowUp(): Promise<void>;
   spawn(prompt: string): Promise<RunOutput>;
 }
 export declare function createProcessSpawnSession(

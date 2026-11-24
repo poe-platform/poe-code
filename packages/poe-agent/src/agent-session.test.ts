@@ -193,13 +193,15 @@ describe("createAgentSession", () => {
 
     expect(Object.keys(session).sort()).toEqual([
       "cancel",
+      "delegate",
       "dispose",
       "fork",
       "getHistory",
       "id",
       "navigateTo",
       "sendMessage",
-      "tree"
+      "tree",
+      "whenIdle"
     ]);
   });
 

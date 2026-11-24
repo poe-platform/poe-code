@@ -223,22 +223,23 @@ test("shared scalar arguments and options match rejection labels and numeric/str
   }
 });
 
-test("spawn tool retains injected callback results and original rejection causes", async () => {
+test("spawn tool returns an async receipt and retains original rejection causes", async () => {
   for (const create of [referenceSpawn, ownSpawn]) {
     const tool = create().tools[0],
-      opaque = { owned: true };
+      id = "child-id";
     let seen;
     assert.equal(
       await tool.call(
         { task: " request " },
         {
-          async spawn(task) {
+          async delegate(task, fork) {
+            assert.equal(fork, false);
             seen = task;
-            return { output: opaque };
+            return id;
           }
         }
       ),
-      opaque
+      JSON.stringify({id, status:"running"})
     );
     assert.equal(seen, " request ");
     for (const cause of [null, false, 0, "", { failed: true }])
@@ -246,7 +247,7 @@ test("spawn tool retains injected callback results and original rejection causes
         tool.call(
           { task: "request" },
           {
-            spawn() {
+            delegate() {
               throw cause;
             }
           }

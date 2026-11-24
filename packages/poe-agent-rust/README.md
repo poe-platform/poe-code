@@ -12,6 +12,7 @@ Build agents and reusable conversation sessions with an independent Rust core an
 - Save/load conversation records with Rust role/content validation and injectable storage.
 - Run immutable builders, stream events and acknowledge caller-controlled tool intents.
 - Resume, navigate and fork conversations through memory or JSONL sessions.
+- Delegate fresh or forked Poe tasks asynchronously; results wake the parent through follow-ups.
 
 ```typescript
 import { collectProviders, resolveProvider } from "@poe-code/poe-agent-rust";

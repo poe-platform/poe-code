@@ -16,6 +16,9 @@ export type RunAcpCoreOptions = {
   maxIterations?: number;
   signal?: AbortSignal;
   onPromptSubmitted?(prompt: string): void | Promise<void>;
+  takeFollowUp?(): string | undefined;
+  nextFollowUp?(): Promise<void>;
+  closeInput?(): void;
   disposeRun?(): void | Promise<void>;
 };
 export declare function runAcpCore(options: RunAcpCoreOptions): AsyncIterable<AcpEvent>;

@@ -750,7 +750,18 @@ pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
     Some(secs.to_string())
 }
 
+pub fn set_shopt_option(name: &str, enabled: bool, env: &mut BTreeMap<String, String>) {
+    env.insert(format!("\0shopt_{name}"), if enabled { "1" } else { "0" }.into());
+    if let Some(value) = env.get_mut("BASHOPTS") {
+        let mut options: Vec<_> = value.split(':').filter(|option| !option.is_empty() && *option != name).collect();
+        if enabled { options.push(name); }
+        options.sort_unstable();
+        *value = options.join(":");
+    }
+}
+
 pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String, String>) -> bool {
+    if name == "GLOBIGNORE" && !value.is_empty() { set_shopt_option("dotglob", true, env); }
     if name == "BASH_ARGV0" && !env.contains_key("\0bash_argv0_disabled") {
         env.insert("0".into(), value.to_string());
     }
@@ -4571,11 +4582,10 @@ pub fn expand_globs_in_word_with_projection(
     }
     let globignore_raw = env.get("GLOBIGNORE").map(|s| s.as_str()).unwrap_or("");
     let has_globignore = !globignore_raw.is_empty();
-    let raw_dotglob = env
+    let dotglob = env
         .get("\0shopt_dotglob")
         .map(|v| v == "1")
         .unwrap_or(false);
-    let dotglob = raw_dotglob || has_globignore;
     let globskipdots = has_globignore || env.get("\0shopt_globskipdots").is_none_or(|v| v != "0");
     let nullglob = env
         .get("\0shopt_nullglob")
@@ -4610,7 +4620,6 @@ pub fn expand_globs_in_word_with_projection(
         root_prefix,
         fs,
         dotglob,
-        raw_dotglob,
         globskipdots,
         nocaseglob,
         globstar,
@@ -4653,7 +4662,6 @@ fn expand_glob_segments(
     cur_prefix: &str,
     fs: &dyn SafeBashFs,
     dotglob: bool,
-    raw_dotglob: bool,
     globskipdots: bool,
     nocaseglob: bool,
     globstar: bool,
@@ -4680,7 +4688,6 @@ fn expand_glob_segments(
                 cur_prefix,
                 fs,
                 dotglob,
-                raw_dotglob,
                 globskipdots,
                 nocaseglob,
                 globstar,
@@ -4712,7 +4719,7 @@ fn expand_glob_segments(
                 continue;
             };
             for entry in entries {
-                if entry == "." || entry == ".." || (entry.starts_with('.') && !raw_dotglob) {
+                if entry == "." || entry == ".." || (entry.starts_with('.') && !dotglob) {
                     continue;
                 }
                 let child_dir = resolve_posix_path(&directory, &entry);
@@ -4743,7 +4750,6 @@ fn expand_glob_segments(
                         &child_prefix,
                         fs,
                         dotglob,
-                        raw_dotglob,
                         globskipdots,
                         nocaseglob,
                         globstar,
@@ -4787,7 +4793,6 @@ fn expand_glob_segments(
                 &next_prefix,
                 fs,
                 dotglob,
-                raw_dotglob,
                 globskipdots,
                 nocaseglob,
                 globstar,
@@ -4839,7 +4844,6 @@ fn expand_glob_segments(
                     &child_prefix,
                     fs,
                     dotglob,
-                    raw_dotglob,
                     globskipdots,
                     nocaseglob,
                     globstar,

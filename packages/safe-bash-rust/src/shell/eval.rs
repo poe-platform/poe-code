@@ -16,7 +16,7 @@ use crate::shell::expand::{
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
     has_glob_meta_ext, indexed_array_index, is_param_operand_active, resolve_nameref_base,
-    sync_array_metadata, sync_getopts_env, try_resolve_unquoted_alternate_operand,
+    set_shopt_option, sync_array_metadata, sync_getopts_env, try_resolve_unquoted_alternate_operand,
     write_dynamic_variable,
 };
 use crate::shell::lexer::{DupOrigin, UNSUPPORTED_DOLLAR};
@@ -551,10 +551,13 @@ impl PrefixBinding {
         for (key, value) in &mut self.values {
             *value = match value.take() {
                 Some(saved) => {
-                    if key == "BASH_ARGV0" { write_dynamic_variable(key, &saved, env); }
+                    if matches!(key.as_str(), "BASH_ARGV0" | "GLOBIGNORE") { write_dynamic_variable(key, &saved, env); }
                     env.insert(key.clone(), saved)
                 },
-                None => env.remove(key),
+                None => {
+                    if key == "GLOBIGNORE" { set_shopt_option("dotglob", false, env); }
+                    env.remove(key)
+                },
             };
         }
     }
@@ -5387,10 +5390,11 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&format!("\0keys__{k}"));
                 match orig {
                     Some(v) => {
-                        if k == "BASH_ARGV0" { write_dynamic_variable(k, v, self.env); }
+                        if matches!(k.as_str(), "BASH_ARGV0" | "GLOBIGNORE") { write_dynamic_variable(k, v, self.env); }
                         self.env.insert(k.clone(), v.clone());
                     }
                     None => {
+                        if k == "GLOBIGNORE" { set_shopt_option("dotglob", false, self.env); }
                         self.env.remove(k);
                     }
                 }
@@ -8916,10 +8920,7 @@ impl<'a> EvalState<'a> {
                 if opt_mode {
                     self.apply_set_option(name, set_flag);
                 } else {
-                    self.env.insert(
-                        format!("\0shopt_{name}"),
-                        if set_flag { "1" } else { "0" }.to_string(),
-                    );
+                    set_shopt_option(name, set_flag, self.env);
                     if name == "extdebug" {
                         self.apply_set_option("errtrace", set_flag);
                         self.apply_set_option("functrace", set_flag);
@@ -10045,6 +10046,7 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             self.env.remove(&resolved);
+            if resolved == "GLOBIGNORE" { set_shopt_option("dotglob", false, self.env); }
             if self.env.get("\0set_posix").is_some_and(|v| v == "1") {
                 self.retained_prefix_vars.push(resolved.clone());
             }

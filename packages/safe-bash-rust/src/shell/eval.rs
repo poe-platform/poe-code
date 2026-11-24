@@ -5813,26 +5813,30 @@ impl<'a> EvalState<'a> {
             "source" | "." => {
                 let is_posix = self.env.get("\0set_posix").is_some_and(|v| v == "1");
                 let is_special = !bypass_functions && is_posix && cmd == ".";
-                let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
-                    &args[1..]
-                } else if let Some(first) = args.first()
-                    && first.starts_with('-')
-                    && first != "-"
-                {
+                let mut index = 0;
+                let mut search_path = None;
+                while let Some(option) = args.get(index).filter(|s| s.starts_with('-') && *s != "-") {
+                    index += 1;
+                    if option == "--" { break; }
+                    let message = if let Some(value) = option.strip_prefix("-p") {
+                        search_path = if value.is_empty() {
+                            let value = args.get(index).map(String::as_str);
+                            index += usize::from(value.is_some());
+                            value
+                        } else { Some(value) };
+                        if search_path.is_some() { continue; }
+                        "-p: option requires an argument".to_string()
+                    } else { format!("{option}: unsupported option") };
                     if is_special {
                         self.exit_requested = Some(2);
                     }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!(
-                            "{}{cmd}: {first}: unsupported option\n",
-                            self.diag_prefix()
-                        ),
+                        stderr: format!("{}{cmd}: {message}\n{cmd}: usage: {cmd} [-p path] filename [arguments]\n", self.diag_prefix()),
                         exit_code: 2,
                     });
-                } else {
-                    args
-                };
+                }
+                let src_args = &args[index..];
                 let Some(target) = src_args.first() else {
                     if is_special {
                         self.exit_requested = Some(2);
@@ -5863,8 +5867,9 @@ impl<'a> EvalState<'a> {
                     }
                     let mut effective_target = target.clone();
                     if !target.contains('/')
-                        && let Some(path_env) =
-                            self.env.get("PATH").filter(|p| !p.is_empty()).cloned()
+                        && let Some(path_env) = search_path.or_else(|| {
+                            self.get_shopt_enabled("sourcepath", false).then(|| self.env.get("PATH").map(String::as_str)).flatten()
+                        })
                     {
                         let mut found = false;
                         for seg in path_env.split(':') {
@@ -5884,7 +5889,7 @@ impl<'a> EvalState<'a> {
                                 break;
                             }
                         }
-                        if !found && is_posix {
+                        if !found && (is_posix || search_path.is_some()) {
                             self.budget.leave_substitution();
                             if is_special {
                                 self.exit_requested = Some(1);
@@ -8777,7 +8782,7 @@ impl<'a> EvalState<'a> {
             self.env
                 .get(&format!("\0shopt_{name}"))
                 .map(|v| v == "1")
-                .unwrap_or(name == "patsub_replacement")
+                .unwrap_or(matches!(name, "patsub_replacement" | "sourcepath"))
         }
     }
 
@@ -8847,6 +8852,7 @@ impl<'a> EvalState<'a> {
             "nullglob",
             "patsub_replacement",
             "shift_verbose",
+            "sourcepath",
             "xpg_echo",
             "extdebug",
         ];

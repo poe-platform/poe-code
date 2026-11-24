@@ -4593,7 +4593,7 @@ test("jq reports runtime errors at the input record and resumes at the next valu
       ["-c 'if .==2 then error({a:3}) else . end' x", 0, "1\n3\n", 'jq: error (at x:1): {"a":3}\n'],
       ["-ce 'if .==2 then error(\"bad\") else empty end' x", 4, "", "jq: error (at x:1): bad\n"],
       ["-nc '[inputs]' bad", 5, "", "jq: error (at bad:0): parse error: Invalid numeric literal at EOF at line 1, column 4\n"],
-      ["-nc 'try inputs catch .' bad", 0, '"parse error: Invalid numeric literal at EOF at line 1, column 4"\n', ""],
+      ["-nc 'try inputs catch .' bad", 0, '"Invalid numeric literal at EOF at line 1, column 4"\n', ""],
       [String.raw`-nc 'error("a\rb\u001b")'`, 5, "", "jq: error (at <unknown>): a\\rb\\033\n"],
       ["-c 'error' a missing", 2, "", "jq: error (at a:1): 1\njq: error (at a:2): 2\njq: ENOENT: no such file or directory, readStream '/workspace/missing'\n"],
     ]) {

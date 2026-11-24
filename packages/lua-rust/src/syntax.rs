@@ -194,21 +194,22 @@ impl Lexer<'_> {
         } else if b.is_ascii_digit()
             || b == b'.' && self.source.get(start + 1).is_some_and(u8::is_ascii_digit)
         {
+            let hex =
+                self.source[start..].starts_with(b"0x") || self.source[start..].starts_with(b"0X");
             self.take();
             while self.byte().is_ascii_alphanumeric()
                 || self.byte() == b'.' && self.source.get(self.offset + 1) != Some(&b'.')
                 || matches!(self.byte(), b'+' | b'-')
-                    && matches!(self.source[self.offset - 1], b'e' | b'E' | b'p' | b'P')
+                    && if hex {
+                        matches!(self.source[self.offset - 1], b'p' | b'P')
+                    } else {
+                        matches!(self.source[self.offset - 1], b'e' | b'E')
+                    }
             {
                 self.take();
             }
-            let text = String::from_utf8_lossy(&self.source[start..self.offset]);
-            let number = if text.starts_with("0x") || text.starts_with("0X") {
-                u64::from_str_radix(&text[2..], 16).ok().map(|n| n as f64)
-            } else {
-                text.parse().ok()
-            };
-            value = Value::Number(number.ok_or_else(|| Error::syntax("malformed number"))?);
+            value = crate::numbers::parse(&self.source[start..self.offset])
+                .ok_or_else(|| Error::syntax("malformed number"))?;
             "number".into()
         } else {
             let mut operator = None;

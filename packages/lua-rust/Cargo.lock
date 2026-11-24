@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "lua-rust"
 version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "mcp-protocol-rust"
+version = "0.1.0"

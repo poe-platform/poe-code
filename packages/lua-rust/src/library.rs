@@ -1,3 +1,4 @@
+use crate::numbers;
 use crate::pattern::{Iteration, Matcher};
 use crate::{Error, Result, Runtime, Value, first};
 impl Runtime {
@@ -129,13 +130,12 @@ impl Runtime {
         )
         .expect("valid internal string library installation");
         let math = self.global("math");
-        for (name, value) in [
-            ("pi", std::f64::consts::PI),
-            ("huge", f64::INFINITY),
-            ("maxinteger", i64::MAX as f64),
-            ("mininteger", i64::MIN as f64),
-        ] {
+        for (name, value) in [("pi", std::f64::consts::PI), ("huge", f64::INFINITY)] {
             self.raw_set(&math, Value::String(name.into()), Value::Number(value))
+                .unwrap();
+        }
+        for (name, value) in [("maxinteger", i32::MAX), ("mininteger", i32::MIN)] {
+            self.raw_set(&math, Value::String(name.into()), Value::Integer(value))
                 .unwrap();
         }
     }
@@ -144,7 +144,7 @@ impl Runtime {
         let n = |i: usize| a(i).number();
         let s = |i: usize| match a(i) {
             Value::String(s) => Ok(s),
-            Value::Number(n) => Ok(n.to_string().into_bytes()),
+            v @ (Value::Integer(_) | Value::Number(_)) => Ok(v.bytes()),
             _ => Err(Error::new("string expected")),
         };
         let result = match name {
@@ -177,22 +177,26 @@ impl Runtime {
                 }
             }
             "tonumber" => {
-                if args.len() > 1 {
-                    let base = n(1)? as u32;
+                if a(1) != Value::Nil {
+                    let base = numbers::integral(n(1)?)? as u32;
                     if !(2..=36).contains(&base) {
                         return Err(Error::new("base out of range"));
                     }
                     i64::from_str_radix(std::str::from_utf8(&s(0)?).unwrap_or("").trim(), base)
                         .ok()
-                        .map(|n| Value::Number(n as f64))
+                        .map(|n| Value::Integer(n as i32))
                         .unwrap_or_default()
                 } else {
-                    a(0).number().ok().map(Value::Number).unwrap_or_default()
+                    match a(0) {
+                        value @ (Value::Integer(_) | Value::Number(_)) => value,
+                        Value::String(bytes) => numbers::parse(&bytes).unwrap_or_default(),
+                        _ => Value::Nil,
+                    }
                 }
             }
             "select" => {
                 if a(0) == Value::String("#".into()) {
-                    Value::Number(args.len().saturating_sub(1) as f64)
+                    Value::Integer(args.len().saturating_sub(1) as i32)
                 } else {
                     let i = n(0)? as isize;
                     let i = if i < 0 { args.len() as isize + i } else { i };
@@ -207,7 +211,7 @@ impl Runtime {
                 self.raw_set(&a(0), a(1), a(2))?;
                 a(0)
             }
-            "rawlen" => Value::Number(self.length(&a(0))? as f64),
+            "rawlen" => Value::Integer(self.length(&a(0))? as i32),
             "rawequal" => Value::Bool(a(0) == a(1)),
             "getmetatable" => {
                 let Value::Table(t) = a(0) else {
@@ -242,14 +246,14 @@ impl Runtime {
                     Ok(vec![Value::Native("next"), a(0), Value::Nil])
                 };
             }
-            "ipairs" => return Ok(vec![Value::Native("ipairs.next"), a(0), Value::Number(0.0)]),
+            "ipairs" => return Ok(vec![Value::Native("ipairs.next"), a(0), Value::Integer(0)]),
             "ipairs.next" => {
-                let index = n(1)? + 1.0;
-                let value = self.get(&a(0), &Value::Number(index))?;
+                let index = numbers::integral(n(1)?)?.wrapping_add(1);
+                let value = self.get(&a(0), &Value::Integer(index))?;
                 return Ok(if value == Value::Nil {
                     vec![Value::Nil]
                 } else {
-                    vec![Value::Number(index), value]
+                    vec![Value::Integer(index), value]
                 });
             }
             "next" => {
@@ -270,7 +274,7 @@ impl Runtime {
             }
             "string.upper" => Value::String(s(0)?.to_ascii_uppercase()),
             "string.lower" => Value::String(s(0)?.to_ascii_lowercase()),
-            "string.len" => Value::Number(s(0)?.len() as f64),
+            "string.len" => Value::Integer(s(0)?.len() as i32),
             "string.sub" => {
                 let text = s(0)?;
                 let start = position(n(1)? as isize, text.len()).max(1) as usize;
@@ -312,7 +316,7 @@ impl Runtime {
                     .get(start - 1..end)
                     .unwrap_or_default()
                     .iter()
-                    .map(|b| Value::Number(*b as f64))
+                    .map(|b| Value::Integer(*b as i32))
                     .collect());
             }
             "string.char" => {
@@ -354,21 +358,15 @@ impl Runtime {
                 );
             }
             "string.coerce" => Value::String(s(0)?),
-            "string.integer" => {
-                let number = n(0)?;
-                if !number.is_finite() || number.fract() != 0.0 {
-                    return Err(Error::new("number has no integer representation"));
-                }
-                Value::Number(number)
-            }
+            "string.integer" => Value::Integer(numbers::integral(n(0)?)?),
             "string.join" => {
                 let mut result = Vec::new();
                 for index in 1..=n(1)? as usize {
-                    let value = self.get(&a(0), &Value::Number(index as f64))?;
+                    let value = self.get(&a(0), &Value::Integer(index as i32))?;
                     match value {
                         Value::String(text) => result.extend_from_slice(&text),
-                        Value::Number(number) => {
-                            result.extend_from_slice(number.to_string().as_bytes())
+                        value @ (Value::Integer(_) | Value::Number(_)) => {
+                            result.extend(value.bytes())
                         }
                         _ => return Err(Error::new("string expected")),
                     }
@@ -386,7 +384,7 @@ impl Runtime {
                 }
                 if end > start {
                     return Ok(vec![
-                        Value::Number(end as f64),
+                        Value::Integer(end as i32),
                         Value::String(text[start..end].into()),
                         Value::Bool(false),
                     ]);
@@ -395,14 +393,14 @@ impl Runtime {
                     .get(start + 1)
                     .ok_or_else(|| Error::new("Invalid '%' in replacement string"))?;
                 let (value, capture) = if byte.is_ascii_digit() {
-                    (Value::Number((byte - b'0') as f64), true)
+                    (Value::Integer((byte - b'0') as i32), true)
                 } else if byte == b'%' {
                     (Value::String("%".into()), false)
                 } else {
                     return Err(Error::new("Invalid '%' in replacement string"));
                 };
                 return Ok(vec![
-                    Value::Number((start + 2) as f64),
+                    Value::Integer((start + 2) as i32),
                     value,
                     Value::Bool(capture),
                 ]);
@@ -418,21 +416,21 @@ impl Runtime {
                     return Err(Error::new("position out of bounds"));
                 }
                 for i in (pos..=len).rev() {
-                    let v = self.get(&a(0), &Value::Number(i as f64))?;
-                    self.set(a(0), Value::Number((i + 1) as f64), v)?;
+                    let v = self.get(&a(0), &Value::Integer(i as i32))?;
+                    self.set(a(0), Value::Integer((i + 1) as i32), v)?;
                 }
-                self.set(a(0), Value::Number(pos as f64), value)?;
+                self.set(a(0), Value::Integer(pos as i32), value)?;
                 return Ok(Vec::new());
             }
             "table.remove" => {
                 let len = self.length(&a(0))?;
                 let pos = if args.len() > 1 { n(1)? as usize } else { len };
-                let value = self.get(&a(0), &Value::Number(pos as f64))?;
+                let value = self.get(&a(0), &Value::Integer(pos as i32))?;
                 for i in pos..len {
-                    let v = self.get(&a(0), &Value::Number((i + 1) as f64))?;
-                    self.set(a(0), Value::Number(i as f64), v)?;
+                    let v = self.get(&a(0), &Value::Integer((i + 1) as i32))?;
+                    self.set(a(0), Value::Integer(i as i32), v)?;
                 }
-                self.set(a(0), Value::Number(len as f64), Value::Nil)?;
+                self.set(a(0), Value::Integer(len as i32), Value::Nil)?;
                 value
             }
             "table.concat" => {
@@ -445,8 +443,11 @@ impl Runtime {
                 };
                 let mut text = Vec::new();
                 for i in start..=end {
-                    let value = self.get(&a(0), &Value::Number(i as f64))?;
-                    if !matches!(value, Value::String(_) | Value::Number(_)) {
+                    let value = self.get(&a(0), &Value::Integer(i as i32))?;
+                    if !matches!(
+                        value,
+                        Value::String(_) | Value::Integer(_) | Value::Number(_)
+                    ) {
                         return Err(Error::new("invalid value in table for concat"));
                     }
                     if i > start {
@@ -461,10 +462,10 @@ impl Runtime {
                 self.raw_set(
                     &table,
                     Value::String("n".into()),
-                    Value::Number(args.len() as f64),
+                    Value::Integer(args.len() as i32),
                 )?;
                 for (i, v) in args.into_iter().enumerate() {
-                    self.raw_set(&table, Value::Number((i + 1) as f64), v)?;
+                    self.raw_set(&table, Value::Integer((i + 1) as i32), v)?;
                 }
                 table
             }
@@ -477,7 +478,7 @@ impl Runtime {
                 };
                 let mut values = Vec::new();
                 for i in start..=end {
-                    values.push(self.get(&a(0), &Value::Number(i as f64))?);
+                    values.push(self.get(&a(0), &Value::Integer(i as i32))?);
                 }
                 return Ok(values);
             }
@@ -488,10 +489,14 @@ impl Runtime {
                 let target = if args.len() > 4 { a(4) } else { a(0) };
                 let mut values = Vec::new();
                 for i in from..=end {
-                    values.push(self.get(&a(0), &Value::Number(i as f64))?);
+                    values.push(self.get(&a(0), &Value::Integer(i as i32))?);
                 }
                 for (i, value) in values.into_iter().enumerate() {
-                    self.set(target.clone(), Value::Number((to + i as i64) as f64), value)?;
+                    self.set(
+                        target.clone(),
+                        Value::Integer((to + i as i64) as i32),
+                        value,
+                    )?;
                 }
                 target
             }
@@ -500,8 +505,8 @@ impl Runtime {
                 for i in 2..=len {
                     let mut j = i;
                     while j > 1 {
-                        let left = self.get(&a(0), &Value::Number(j as f64))?;
-                        let right = self.get(&a(0), &Value::Number((j - 1) as f64))?;
+                        let left = self.get(&a(0), &Value::Integer(j as i32))?;
+                        let right = self.get(&a(0), &Value::Integer((j - 1) as i32))?;
                         let less = if a(1) == Value::Nil {
                             self.binary("<", left.clone(), right.clone())?.truth()
                         } else {
@@ -510,58 +515,83 @@ impl Runtime {
                         if !less {
                             break;
                         }
-                        self.set(a(0), Value::Number(j as f64), right)?;
-                        self.set(a(0), Value::Number((j - 1) as f64), left)?;
+                        self.set(a(0), Value::Integer(j as i32), right)?;
+                        self.set(a(0), Value::Integer((j - 1) as i32), left)?;
                         j -= 1;
                     }
                 }
                 return Ok(Vec::new());
             }
             "math.min" | "math.max" => {
-                let mut best = n(0)?;
+                let mut best = args
+                    .first()
+                    .cloned()
+                    .ok_or_else(|| Error::new("Value expected"))?;
                 for value in args.iter().skip(1) {
-                    let v = value.number()?;
-                    best = if name == "math.min" {
-                        best.min(v)
+                    let (left, right) = if name == "math.min" {
+                        (value.clone(), best.clone())
                     } else {
-                        best.max(v)
+                        (best.clone(), value.clone())
+                    };
+                    if self.binary("<", left, right)?.truth() {
+                        best = value.clone();
                     }
                 }
-                Value::Number(best)
+                best
             }
             "math.modf" => {
                 let value = n(0)?;
+                let whole = value.trunc();
                 return Ok(vec![
-                    Value::Number(value.trunc()),
-                    Value::Number(value - value.trunc()),
+                    numbers::tagged(whole),
+                    Value::Number(if value == whole { 0.0 } else { value - whole }),
                 ]);
             }
-            "math.type" => {
-                if let Value::Number(v) = a(0) {
-                    Value::String(if v.fract() == 0.0 { "integer" } else { "float" }.into())
-                } else {
-                    Value::Nil
-                }
-            }
+            "math.type" => match a(0) {
+                Value::Integer(_) => Value::String("integer".into()),
+                Value::Number(_) => Value::String("float".into()),
+                _ => Value::Nil,
+            },
             "math.tointeger" => a(0)
                 .number()
                 .ok()
-                .filter(|n| n.fract() == 0.0)
-                .map(Value::Number)
+                .and_then(|n| numbers::integral(n).ok())
+                .map(Value::Integer)
                 .unwrap_or_default(),
             "math.abs" | "math.ceil" | "math.floor" | "math.sqrt" | "math.exp" | "math.log"
             | "math.sin" | "math.cos" | "math.tan" | "math.asin" | "math.acos" | "math.atan"
             | "math.deg" | "math.rad" | "math.fmod" => {
                 let x = n(0)?;
+                match name {
+                    "math.abs" => {
+                        return Ok(vec![match a(0) {
+                            Value::Integer(n) => Value::Integer(n.wrapping_abs()),
+                            _ => Value::Number(x.abs()),
+                        }]);
+                    }
+                    "math.ceil" => return Ok(vec![numbers::tagged(x.ceil())]),
+                    "math.floor" => return Ok(vec![numbers::tagged(x.floor())]),
+                    "math.fmod"
+                        if matches!((a(0), a(1)), (Value::Integer(_), Value::Integer(_))) =>
+                    {
+                        let divisor = n(1)?;
+                        if divisor == 0.0 {
+                            return Err(Error::new("Zero divisor"));
+                        }
+                        return Ok(vec![Value::Integer((x % divisor) as i32)]);
+                    }
+                    _ => (),
+                }
                 Value::Number(match name {
-                    "math.abs" => x.abs(),
-                    "math.ceil" => x.ceil(),
-                    "math.floor" => x.floor(),
                     "math.sqrt" => x.sqrt(),
                     "math.exp" => x.exp(),
                     "math.log" => {
                         if args.len() > 1 {
-                            x.log(n(1)?)
+                            match n(1)? {
+                                2.0 => x.log2(),
+                                10.0 => x.log10(),
+                                base => x.ln() / base.ln(),
+                            }
                         } else {
                             x.ln()
                         }

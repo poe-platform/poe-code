@@ -27,6 +27,9 @@ async function test() {
     ]));
     const binary = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/bytes.lua");
     if (binary.exitCode || binary.stderr || binary.stdout !== "255\n") throw new Error(JSON.stringify(binary));
+    await shell.fs.writeFile("/numbers.lua", "function Str(el) local n=2147483647; return pandoc.Str(table.concat({n+1,math.type(1.0),0x1.8p2,1e21,10000000000000.5},',')) end");
+    const numeric = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/numbers.lua");
+    if (numeric.exitCode || numeric.stderr || numeric.stdout !== "-2147483648,float,6.0,1e+21,10000000000001.0\n") throw new Error(JSON.stringify(numeric));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

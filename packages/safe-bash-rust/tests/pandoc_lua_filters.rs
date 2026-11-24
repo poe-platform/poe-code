@@ -4,6 +4,8 @@ mod lua_bytes;
 mod lua_evaluation;
 #[path = "../../lua-rust/tests/patterns.rs"]
 mod lua_patterns;
+#[path = "../../lua-rust/tests/numbers.rs"]
+mod lua_numbers;
 
 use mcp_protocol_rust::json::{self, Value};
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};

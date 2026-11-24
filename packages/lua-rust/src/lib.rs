@@ -1,16 +1,18 @@
 //! In-process Lua evaluation used by native and WebAssembly document filters.
 mod library;
+mod numbers;
 mod pattern;
 mod syntax;
 mod utf8;
 use std::collections::HashMap;
 use syntax::{Expr, Node, Stmt};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default)]
 pub enum Value {
     #[default]
     Nil,
     Bool(bool),
+    Integer(i32),
     Number(f64),
     String(Vec<u8>),
     Table(usize),
@@ -25,7 +27,7 @@ impl Value {
         match self {
             Self::Nil => "nil",
             Self::Bool(_) => "boolean",
-            Self::Number(_) => "number",
+            Self::Integer(_) | Self::Number(_) => "number",
             Self::String(_) => "string",
             Self::Table(_) => "table",
             Self::Function(_) | Self::Native(_) => "function",
@@ -35,7 +37,8 @@ impl Value {
         match self {
             Self::Nil => "nil".into(),
             Self::Bool(v) => v.to_string(),
-            Self::Number(v) => v.to_string(),
+            Self::Integer(v) => v.to_string(),
+            Self::Number(v) => numbers::text(*v),
             Self::String(v) => String::from_utf8_lossy(v).into_owned(),
             Self::Table(n) => format!("table: {n:x}"),
             Self::Function(n) => format!("function: {n:x}"),
@@ -50,12 +53,29 @@ impl Value {
     }
     fn number(&self) -> Result<f64> {
         match self {
+            Self::Integer(n) => Ok(*n as f64),
             Self::Number(n) => Ok(*n),
-            Self::String(s) => std::str::from_utf8(s)
-                .ok()
-                .and_then(|s| s.trim().parse().ok())
-                .ok_or_else(|| Error::new("number expected")),
+            Self::String(s) => numbers::parse(s)
+                .ok_or_else(|| Error::new("Expected Lua number"))?
+                .number(),
             _ => Err(Error::new("number expected")),
+        }
+    }
+}
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Nil, Self::Nil) => true,
+            (Self::Bool(a), Self::Bool(b)) => a == b,
+            (Self::Integer(a), Self::Integer(b)) => a == b,
+            (Self::Number(a), Self::Number(b)) => a == b,
+            (Self::Integer(a), Self::Number(b)) | (Self::Number(b), Self::Integer(a)) => {
+                *a as f64 == *b
+            }
+            (Self::String(a), Self::String(b)) => a == b,
+            (Self::Table(a), Self::Table(b)) | (Self::Function(a), Self::Function(b)) => a == b,
+            (Self::Native(a), Self::Native(b)) => a == b,
+            _ => false,
         }
     }
 }
@@ -410,7 +430,7 @@ impl Runtime {
                                 vec![first(values)]
                             };
                             for value in values {
-                                self.raw_set(&table, Value::Number(index as f64), value)?;
+                                self.raw_set(&table, Value::Integer(index), value)?;
                                 index += 1;
                             }
                         }
@@ -443,11 +463,14 @@ impl Runtime {
                             if method != Value::Nil {
                                 first(self.call(method, vec![value])?)
                             } else {
-                                Value::Number(self.length(&value)? as f64)
+                                Value::Integer(self.length(&value)? as i32)
                             }
                         }
-                        "-" => Value::Number(-value.number()?),
-                        "~" => Value::Number(!(value.number()? as i64) as f64),
+                        "-" => match value {
+                            Value::Integer(n) => Value::Integer(n.wrapping_neg()),
+                            _ => Value::Number(-value.number()?),
+                        },
+                        "~" => Value::Integer(!numbers::integral(value.number()?)?),
                         _ => unreachable!(),
                     }
                 }
@@ -518,9 +541,13 @@ impl Runtime {
             }
         }
         if op == ".." {
-            if !matches!(left, Value::String(_) | Value::Number(_))
-                || !matches!(right, Value::String(_) | Value::Number(_))
-            {
+            if !matches!(
+                left,
+                Value::String(_) | Value::Integer(_) | Value::Number(_)
+            ) || !matches!(
+                right,
+                Value::String(_) | Value::Integer(_) | Value::Number(_)
+            ) {
                 return Err(Error::new("attempt to concatenate a non-string value"));
             }
             let mut bytes = left.bytes();
@@ -538,7 +565,9 @@ impl Runtime {
                     };
                     Some(a.iter().flat_map(digits).cmp(b.iter().flat_map(digits)))
                 }
-                (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
+                (Value::Integer(_) | Value::Number(_), Value::Integer(_) | Value::Number(_)) => {
+                    left.number()?.partial_cmp(&right.number()?)
+                }
                 _ => return Err(Error::new("attempt to compare incompatible values")),
             };
             return Ok(Value::Bool(match op {
@@ -548,31 +577,7 @@ impl Runtime {
                 _ => ord.is_some_and(|o| o.is_ge()),
             }));
         }
-        let a = left.number()?;
-        let b = right.number()?;
-        Ok(Value::Number(match op {
-            "+" => a + b,
-            "-" => a - b,
-            "*" => a * b,
-            "/" => a / b,
-            "//" => (a / b).floor(),
-            "%" => a - b * (a / b).floor(),
-            "^" => a.powf(b),
-            "&" => ((a as i64) & (b as i64)) as f64,
-            "|" => ((a as i64) | (b as i64)) as f64,
-            "~" => ((a as i64) ^ (b as i64)) as f64,
-            "<<" | ">>" => {
-                let shift = if op == "<<" { b as i64 } else { -(b as i64) };
-                if shift.unsigned_abs() >= 64 {
-                    0.0
-                } else if shift >= 0 {
-                    ((a as u64) << shift) as f64
-                } else {
-                    ((a as u64) >> -shift) as f64
-                }
-            }
-            _ => return Err(Error::new("unknown operator")),
-        }))
+        numbers::arithmetic(op, &left, &right)
     }
     fn target(&mut self, expr: &Expr, env: usize) -> Result<Target> {
         match &expr.1 {
@@ -677,18 +682,56 @@ impl Runtime {
                     result
                 }
                 Stmt::For(name, start, limit, step, body) => {
-                    let mut n = self.one(start, env)?.number()?;
-                    let end = self.one(limit, env)?.number()?;
+                    let initial = self.one(start, env)?;
+                    let mut end = self.one(limit, env)?.number()?;
                     let step = if let Some(s) = step {
-                        self.one(s, env)?.number()?
+                        self.one(s, env)?
                     } else {
-                        1.0
+                        Value::Integer(1)
                     };
+                    let integer =
+                        matches!((&initial, &step), (Value::Integer(_), Value::Integer(_)));
+                    let step = step.number()?;
+                    let mut n = initial.number()?;
+                    if integer {
+                        let rounded = if step < 0.0 { end.ceil() } else { end.floor() };
+                        if !(i32::MIN as f64..=i32::MAX as f64).contains(&rounded) {
+                            if if end > 0.0 { step < 0.0 } else { step >= 0.0 } {
+                                n = 0.0;
+                            }
+                            end = if end > 0.0 {
+                                i32::MAX as f64
+                            } else {
+                                i32::MIN as f64
+                            };
+                        } else {
+                            end = rounded;
+                        }
+                        n = (n as i32).wrapping_sub(step as i32) as f64;
+                    } else {
+                        n -= step;
+                    }
                     let mut result = Flow::Next(env);
-                    while if step >= 0.0 { n <= end } else { n >= end } {
+                    loop {
+                        n = if integer {
+                            (n as i32).wrapping_add(step as i32) as f64
+                        } else {
+                            n + step
+                        };
+                        if !(if step > 0.0 { n <= end } else { n >= end }) {
+                            break;
+                        }
                         self.tick()?;
                         let scope = self.env(Some(env), None);
-                        self.bind(scope, name, Value::Number(n));
+                        self.bind(
+                            scope,
+                            name,
+                            if integer {
+                                Value::Integer(n as i32)
+                            } else {
+                                Value::Number(n)
+                            },
+                        );
                         match self.block(body, scope)? {
                             Flow::Next(_) => (),
                             Flow::Break => break,
@@ -697,7 +740,6 @@ impl Runtime {
                                 break;
                             }
                         }
-                        n += step;
                     }
                     result
                 }

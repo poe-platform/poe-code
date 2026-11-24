@@ -5,3 +5,6 @@ edition = "2024"
 rust-version = "1.88"
 license = "MIT"
 description = "Portable Lua evaluator for document filters"
+
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

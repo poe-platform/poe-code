@@ -44,6 +44,7 @@ fn write(vm: &Runtime, value: Value, object: bool, depth: usize) -> Result<JVal,
     Ok(match value {
         Value::Nil => JVal::Null,
         Value::Bool(v) => JVal::Bool(v),
+        Value::Integer(v) => JVal::Number(v as f64, None),
         Value::Number(v) if v.is_finite() => JVal::Number(v, None),
         Value::String(v) => {
             JVal::Str(String::from_utf8(v).map_err(|_| "Invalid UTF-8 Lua string")?)

@@ -317,7 +317,10 @@ impl<'a> Matcher<'a> {
     fn results(&self, start: isize, end: isize, find: bool, whole: bool) -> Result<Vec<Value>> {
         let mut result = Vec::new();
         if find {
-            result.extend([Value::Number((start + 1) as f64), Value::Number(end as f64)]);
+            result.extend([
+                Value::Integer((start + 1) as i32),
+                Value::Integer(end as i32),
+            ]);
         }
         if self.captures.is_empty() && (!find || whole) {
             result.push(self.slice(start, end - start));
@@ -327,7 +330,7 @@ impl<'a> Matcher<'a> {
                 return Err(Error::new("Unfinished capture"));
             }
             result.push(if capture.length == -2 {
-                Value::Number((capture.start + 1) as f64)
+                Value::Integer((capture.start + 1) as i32)
             } else {
                 self.slice(capture.start, capture.length)
             });
@@ -350,8 +353,8 @@ impl<'a> Matcher<'a> {
         if plain {
             if self.pattern.is_empty() {
                 return Ok(vec![
-                    Value::Number((start + 1) as f64),
-                    Value::Number(start as f64),
+                    Value::Integer((start + 1) as i32),
+                    Value::Integer(start as i32),
                 ]);
             }
             for position in
@@ -360,8 +363,8 @@ impl<'a> Matcher<'a> {
                 self.tick()?;
                 if self.source.get(position..position + self.pattern.len()) == Some(self.pattern) {
                     return Ok(vec![
-                        Value::Number((position + 1) as f64),
-                        Value::Number((position + self.pattern.len()) as f64),
+                        Value::Integer((position + 1) as i32),
+                        Value::Integer((position + self.pattern.len()) as i32),
                     ]);
                 }
             }

@@ -72,7 +72,7 @@ impl Runtime {
         }
         let text = match args.first() {
             Some(Value::String(bytes)) => bytes.clone(),
-            Some(Value::Number(number)) => number.to_string().into_bytes(),
+            Some(value @ (Value::Integer(_) | Value::Number(_))) => value.bytes(),
             _ => return Err(Error::new("string expected")),
         };
         let relative = |position: isize| {
@@ -86,7 +86,7 @@ impl Runtime {
             return Ok(vec![
                 Value::Native("utf8.next"),
                 Value::String(text),
-                Value::Number(0.0),
+                Value::Integer(0),
             ]);
         }
         if name == "utf8.next" {
@@ -108,8 +108,8 @@ impl Runtime {
                 return Err(Error::new("Invalid UTF-8 code"));
             }
             return Ok(vec![
-                Value::Number((position + 1) as f64),
-                Value::Number(code as f64),
+                Value::Integer((position + 1) as i32),
+                Value::Integer(code as i32),
             ]);
         }
         if name == "utf8.offset" {
@@ -159,7 +159,7 @@ impl Runtime {
                 }
             }
             return Ok(vec![if count == 0 {
-                Value::Number((position + 1) as f64)
+                Value::Integer((position + 1) as i32)
             } else {
                 Value::Nil
             }]);
@@ -182,19 +182,19 @@ impl Runtime {
             self.tick()?;
             let Some((code, next)) = decode(&text, position) else {
                 return if name == "utf8.len" {
-                    Ok(vec![Value::Nil, Value::Number((position + 1) as f64)])
+                    Ok(vec![Value::Nil, Value::Integer((position + 1) as i32)])
                 } else {
                     Err(Error::new("Invalid UTF-8 code"))
                 };
             };
             if name == "utf8.codepoint" {
-                points.push(Value::Number(code as f64));
+                points.push(Value::Integer(code as i32));
             }
             count += 1;
             position = next;
         }
         Ok(if name == "utf8.len" {
-            vec![Value::Number(count as f64)]
+            vec![Value::Integer(count)]
         } else {
             points
         })

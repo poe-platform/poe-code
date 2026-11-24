@@ -14,4 +14,6 @@ The evaluator supports functions and closures, multiple results and variadic arg
 
 Lua strings retain arbitrary bytes through character construction, slicing, reversal, concatenation, patterns and replacements. `Value::String` stores `Vec<u8>`, and `Runtime::run` accepts text or source bytes. UTF-8 helpers use byte positions and preserve the existing Lua engine's handling of surrogate code points. Pandoc validates UTF-8 when those bytes become document text.
 
-This is not yet a complete Lua 5.3 implementation. String formatting, integer/float semantics, complete scope validation and the remaining exposed library functions still need parity work. Pandoc uses its shared Lua constructors and traversal code with this evaluator.
+Numbers distinguish signed 32-bit integers from binary64 floats, matching the existing Pandoc Lua engine. Integer arithmetic wraps; shifts, decimal and hexadecimal coercion, numeric loops, and 14-digit float text retain those types. `Value::Integer` and `Value::Number` compare numerically across types.
+
+This is not yet a complete Lua 5.3 implementation. String formatting, explicit-base number conversion, complete scope validation and the remaining exposed library functions still need parity work. Pandoc uses its shared Lua constructors and traversal code with this evaluator.

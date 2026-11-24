@@ -451,6 +451,10 @@ mod editor_step_tests;
 mod editor_bessel_tests;
 
 #[cfg(test)]
+#[path = "spreadsheet/editor_combinatorial_tests.rs"]
+mod editor_combinatorial_tests;
+
+#[cfg(test)]
 #[path = "spreadsheet/editor_randarray_tests.rs"]
 mod editor_randarray_tests;
 

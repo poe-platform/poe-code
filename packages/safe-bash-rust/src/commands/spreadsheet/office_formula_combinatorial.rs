@@ -10,6 +10,55 @@
 use super::super::{rounding::approximate, summation::Sum};
 use super::Value;
 
+pub(super) fn excel(name: &str, a: f64, b: f64, work: &mut usize) -> Option<Value> {
+    if a < 0. || b < 0. {
+        return Some(Value::Error("#NUM!"));
+    }
+    let n = a.trunc();
+    let k = b.trunc();
+    if name == "PERMUTATIONA" {
+        return Some(Value::number(n.powf(k)));
+    }
+    if matches!(name, "COMBIN" | "PERMUT") && k > n || name == "FACT" && n > 170. {
+        return Some(Value::Error("#NUM!"));
+    }
+    let (base, terms) = match name {
+        "FACT" => (n, n),
+        "PERMUT" => (n, k),
+        "COMBINA" => {
+            if k == 0. {
+                return Some(Value::Number(1.));
+            }
+            if n == 0. {
+                return Some(Value::Number(0.));
+            }
+            // C(n+k-1,k) = C(n+k-1,n-1). Avoid forming n+k-1:
+            // it can lose the unit or overflow before a finite result.
+            ((n - 1.).max(k), (n - 1.).min(k))
+        }
+        _ => {
+            let terms = k.min(n - k);
+            (n - terms, terms)
+        }
+    };
+    let combination = matches!(name, "COMBIN" | "COMBINA");
+    let mut product = 1.;
+    let mut index = 0.;
+    while index < terms {
+        *work = work.checked_sub(1)?;
+        product *= if combination {
+            (base + index + 1.) / (index + 1.)
+        } else {
+            base - index
+        };
+        if !product.is_finite() {
+            return Some(Value::Error("#NUM!"));
+        }
+        index += 1.;
+    }
+    Some(Value::Number(product))
+}
+
 pub(super) fn calculate(name: &str, values: [f64; 5], work: &mut usize) -> Option<Value> {
     let [a, b, c, d, cumulative] = values;
     let n = approximate(a).floor();
@@ -312,7 +361,57 @@ fn hypergeometric(x: f64, n: f64, m: f64, population: f64, work: &mut usize) -> 
 
 #[cfg(test)]
 mod tests {
-    use super::calculate;
+    use super::{Value, calculate, excel};
+
+    #[test]
+    fn combinatorial_excel_keeps_native_calc_errors_and_work_limits() {
+        for (name, n, k, expected) in [
+            ("COMBINA", 2., 6., "Err:502"),
+            ("COMBIN", 2., 6., "Err:502"),
+            ("PERMUT", 2., 6., "Err:502"),
+            ("FACT", 171., 0., "#VALUE!"),
+        ] {
+            assert!(matches!(
+                calculate(name, [n, k, 0., 0., 0.], &mut 4096),
+                Some(Value::Error(error)) if error == expected
+            ));
+        }
+        for name in ["FACT", "COMBIN", "COMBINA", "PERMUT"] {
+            assert!(excel(name, 100., 50., &mut 10).is_none(), "{name}");
+        }
+    }
+
+    #[test]
+    fn combinatorial_excel_matches_exact_integer_counts() {
+        let factorial = |n: u32| (1..=n).map(u128::from).product::<u128>();
+        for n in 1..=20 {
+            for k in 0..=20 {
+                for name in ["COMBIN", "COMBINA", "PERMUT"] {
+                    if name != "COMBINA" && k > n {
+                        continue;
+                    }
+                    let expected = match name {
+                        "COMBIN" => factorial(n) / factorial(k) / factorial(n - k),
+                        "COMBINA" => {
+                            // Exact integer recurrence, independently of floating-point ratios.
+                            (1..=k).fold(1_u128, |value, i| {
+                                value * u128::from(n + i - 1) / u128::from(i)
+                            })
+                        }
+                        _ => factorial(n) / factorial(n - k),
+                    } as f64;
+                    let Some(Value::Number(actual)) = excel(name, n as f64, k as f64, &mut 4096)
+                    else {
+                        panic!("{name}({n},{k})");
+                    };
+                    assert!(
+                        (actual / expected - 1.).abs() < 2e-14,
+                        "{name}({n},{k}): {actual} != {expected}"
+                    );
+                }
+            }
+        }
+    }
 
     #[test]
     fn combinatorial_iterations_and_factor_storage_obey_the_work_budget() {

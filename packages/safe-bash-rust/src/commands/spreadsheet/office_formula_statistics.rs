@@ -24,6 +24,8 @@ mod math;
 // (MIT, LICENSE.IronCalc). The converter keeps its native Calc arities below.
 pub(super) fn excel_arguments(name: &str) -> Option<(usize, usize)> {
     let count = match name {
+        "FACT" => 1,
+        "COMBIN" | "COMBINA" | "PERMUT" | "PERMUTATIONA" => 2,
         "NORMDIST" | "NORM.DIST" | "LOGNORM.DIST" => 4,
         "NORMINV" | "NORM.INV" | "LOGNORMDIST" | "LOGINV" | "LOGNORM.INV" | "STANDARDIZE" => 3,
         "NORM.S.DIST" => 2,
@@ -142,6 +144,9 @@ pub(super) fn calculate(
         name,
         "FACT" | "COMBIN" | "COMBINA" | "PERMUT" | "PERMUTATIONA" | "HYPGEOMDIST" | "HYPGEOM.DIST"
     ) {
+        if excel {
+            return combinatorial::excel(name, numbers[0], numbers[1], work);
+        }
         return combinatorial::calculate(name, numbers, work);
     }
     let [x, mean, sigma, cumulative, _] = numbers;

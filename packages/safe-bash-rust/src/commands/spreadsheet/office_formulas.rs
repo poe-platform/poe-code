@@ -1044,6 +1044,7 @@ where
                     let fixed = match name {
                         "NORMSDIST" | "NORMSINV" | "GAMMA" | "GAMMALN" | "GAMMALN.PRECISE"
                         | "INT" | "LEN" | "TRIM" | "FORMULA" | "RAND" | "NOT" | "TODAY" | "NOW"
+                        | "FACT"
                             if self.editor =>
                         {
                             None
@@ -4459,6 +4460,7 @@ mod tests {
         let book = Workbook::default();
         let sheets = vec!["Sheet1".to_owned()];
         for name in [
+            "FACT",
             "NORMSDIST",
             "NORMSINV",
             "_xlfn.GAMMA",

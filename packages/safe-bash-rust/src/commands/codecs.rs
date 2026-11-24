@@ -3421,9 +3421,9 @@ fn zstd_decode_compressed_block(
 // PKZIP (.zip)
 // ---------------------------------------------------------------------------
 
-fn unix_to_dos_datetime(epoch_secs: u64) -> (u16, u16) {
-    let days = (epoch_secs / 86400) as i64;
-    let rem = epoch_secs % 86400;
+fn unix_to_dos_datetime(epoch_secs: i64) -> (u16, u16) {
+    let days = epoch_secs.div_euclid(86400);
+    let rem = epoch_secs.rem_euclid(86400);
     let hour = (rem / 3600) as u16;
     let min = ((rem % 3600) / 60) as u16;
     let sec = (rem % 60) as u16;
@@ -3626,25 +3626,28 @@ pub(super) fn encode_zip_members(
         );
         let crc = crc32_ieee(payload);
         let sz = payload.len() as u32;
-        let (dos_date, dos_time) = unix_to_dos_datetime(e.mtime as u64);
-        let mut extra = vec![0u8; 9];
-        extra[0..2].copy_from_slice(&0x5455u16.to_le_bytes());
-        extra[2..4].copy_from_slice(&5u16.to_le_bytes());
-        extra[4] = 1;
-        extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
-        let mut local_extra = extra.clone();
-        if let Some(atime) = e.atime {
-            local_extra[2..4].copy_from_slice(&9u16.to_le_bytes());
-            local_extra[4] = 3;
-            local_extra.extend_from_slice(&(atime.floor() as i64 as i32).to_le_bytes());
-        }
-        if let Some((uid, gid)) = owners.get(&e.name) {
-            extra.extend_from_slice(&[0x75, 0x78, 11, 0, 1, 4]);
-            extra.extend_from_slice(&uid.to_le_bytes());
-            extra.push(4);
-            extra.extend_from_slice(&gid.to_le_bytes());
-            local_extra.extend_from_slice(&extra[9..]);
-        }
+        let seconds = e.mtime.floor();
+        let (dos_date, dos_time) = unix_to_dos_datetime(((seconds / 2.).ceil() * 2.) as i64);
+        let [extra, local_extra] = [true, false].map(|central| {
+            let mut extra = Vec::new();
+            if (i32::MIN as f64..=i32::MAX as f64).contains(&seconds) {
+                let accessed = e.atime.map(f64::floor).filter(|time| {
+                    !central && (i32::MIN as f64..=i32::MAX as f64).contains(time)
+                });
+                extra.extend_from_slice(&[0x55, 0x54, if accessed.is_some() { 9 } else { 5 }, 0, if accessed.is_some() { 3 } else { 1 }]);
+                extra.extend_from_slice(&(seconds as i32).to_le_bytes());
+                if let Some(time) = accessed {
+                    extra.extend_from_slice(&(time as i32).to_le_bytes());
+                }
+            }
+            if let Some((uid, gid)) = owners.get(&e.name) {
+                extra.extend_from_slice(&[0x75, 0x78, 11, 0, 1, 4]);
+                extra.extend_from_slice(&uid.to_le_bytes());
+                extra.push(4);
+                extra.extend_from_slice(&gid.to_le_bytes());
+            }
+            extra
+        });
 
         let extra = if stdin_member || strip_extra {
             &[][..]
@@ -3826,10 +3829,12 @@ fn zip64_values<const N: usize>(
     Ok(values)
 }
 
-fn zip_extra(mut extra: &[u8]) -> Result<(Option<u64>, Option<ZipAes>, Option<&[u8]>), String> {
+fn zip_extra(mut extra: &[u8], central: bool) -> Result<(Option<i64>, Option<i64>, Option<ZipAes>, Option<&[u8]>), String> {
     let mut wide = None;
     let mut modified = None;
+    let mut accessed = None;
     let mut aes = None;
+    let mut seen = std::collections::BTreeSet::new();
     while !extra.is_empty() {
         let header = extra.get(..4).ok_or("ZIP truncated extra field")?;
         let id = u16::from_le_bytes([header[0], header[1]]);
@@ -3837,16 +3842,14 @@ fn zip_extra(mut extra: &[u8]) -> Result<(Option<u64>, Option<ZipAes>, Option<&[
         let field = extra
             .get(4..4 + len)
             .ok_or("ZIP truncated extra field payload")?;
+        if !seen.insert(id) {
+            return Err("ZIP duplicate extra field".into());
+        }
         match id {
             1 => {
-                if wide.replace(field).is_some() {
-                    return Err("ZIP duplicate extra field".into());
-                }
+                wide = Some(field);
             }
             0x9901 => {
-                if aes.is_some() {
-                    return Err("ZIP duplicate extra field".into());
-                }
                 if len != 7 || &field[2..4] != b"AE" {
                     return Err("ZIP invalid AES extra field".into());
                 }
@@ -3871,14 +3874,22 @@ fn zip_extra(mut extra: &[u8]) -> Result<(Option<u64>, Option<ZipAes>, Option<&[
                 });
             }
             0x0017..=0x0019 => return Err("ZIP encryption is unsupported".into()),
-            0x5455 if len >= 5 && field[0] & 1 != 0 => {
-                modified = u64::try_from(i32::from_le_bytes(field[1..5].try_into().unwrap())).ok();
+            0x5455 => {
+                let flags = *field.first().ok_or("ZIP truncated timestamp extra field")?;
+                if flags & !7 != 0 { return Err("ZIP unsupported timestamp flags".into()); }
+                let count = if central { u32::from(flags & 1) } else { flags.count_ones() };
+                if len != 1 + count as usize * 4 {
+                    return Err("ZIP truncated or inconsistent timestamp extra field".into());
+                }
+                let time = |offset| i64::from(i32::from_le_bytes(field[offset..offset + 4].try_into().unwrap()));
+                if flags & 1 != 0 { modified = Some(time(1)); }
+                if !central && flags & 2 != 0 { accessed = Some(time(1 + usize::from(flags & 1) * 4)); }
             }
             _ => {}
         }
         extra = &extra[4 + len..];
     }
-    Ok((modified, aes, wide))
+    Ok((modified, accessed, aes, wide))
 }
 
 impl ZipAes {
@@ -3939,6 +3950,7 @@ pub(super) struct ZipMember {
     pub typeflag: u8,
     pub mode: u32,
     pub mtime: f64,
+    pub atime: Option<f64>,
     pub extended_timestamp: bool,
 }
 
@@ -4084,7 +4096,7 @@ pub(super) fn read_zip_members<'a>(
             typeflag: member.typeflag,
             mode: member.mode,
             mtime: member.mtime,
-            atime: None,
+            atime: member.atime,
             uid: 0,
             gid: 0,
             linkname,
@@ -4242,7 +4254,7 @@ pub(super) fn zip_directory<'a>(
         let central_extra = &data[pos + 46 + name_len..pos + 46 + name_len + extra_len];
         pos += 46 + name_len + extra_len + entry_cmt_len;
 
-        let (modified, aes, zip64) = zip_extra(central_extra)?;
+        let (modified, _, aes, zip64) = zip_extra(central_extra, true)?;
         let version = u16::from_le_bytes(
             data[central_start + 6..central_start + 8]
                 .try_into()
@@ -4321,13 +4333,13 @@ pub(super) fn zip_directory<'a>(
         if local_fields[..l_name_len] != central[46..46 + name_len] {
             return Err("ZIP central/local filename mismatch".into());
         }
-        let (local_modified, local_aes, wide_sizes) = zip_extra(&local_fields[l_name_len..])?;
+        let (local_modified, accessed, local_aes, wide_sizes) = zip_extra(&local_fields[l_name_len..], false)?;
         if local_aes != aes {
             return Err("ZIP central/local AES metadata mismatch".into());
         }
         let mtime = modified
             .or(local_modified)
-            .unwrap_or_else(|| dos_to_unix_secs(dos_date, dos_time));
+            .unwrap_or_else(|| dos_to_unix_secs(dos_date, dos_time) as i64);
         if !matches!(method, 0 | 8 | 12 | 14 | 99) {
             return Err("ZIP unsupported compression method".into());
         }
@@ -4437,6 +4449,7 @@ pub(super) fn zip_directory<'a>(
             },
             mode,
             mtime: mtime as f64,
+            atime: accessed.map(|time| time as f64),
             extended_timestamp: modified.is_some() || local_modified.is_some(),
         });
     }

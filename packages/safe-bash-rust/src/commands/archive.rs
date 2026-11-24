@@ -9457,7 +9457,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                                 identity,
                                 stamp,
                                 mode: entry.mode & 0o777,
-                                times: (time, time),
+                                times: (Some(entry.atime.unwrap_or(entry.mtime) * 1000.), time),
                             },
                         ));
                         continue 'member;
@@ -9607,7 +9607,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             &dest,
                             &data,
                             entry.mode & 0o777,
-                            (time, time),
+                            (Some(entry.atime.unwrap_or(entry.mtime) * 1000.), time),
                             stamp.version,
                         )?;
                         if !quiet {

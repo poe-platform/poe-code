@@ -75,7 +75,41 @@ pub(super) fn values(
         .collect()
 }
 
+fn palette(
+    book: &Spreadsheet,
+    sheet: usize,
+    area: [usize; 4],
+    column: usize,
+    font: bool,
+    limit: usize,
+) -> Result<Vec<(Option<String>, usize)>, String> {
+    let mut counts = BTreeMap::new();
+    for color in values(book, sheet, area, column, font, &mut { limit })? {
+        *counts.entry(color).or_insert(0) += 1;
+    }
+    Ok(counts.into_iter().collect())
+}
+
 impl Spreadsheet {
+    /// Colors in an existing worksheet autofilter, without creating a table.
+    pub fn sheet_filter_colors(
+        &self,
+        sheet: usize,
+        column: usize,
+        font: bool,
+        limit: usize,
+    ) -> Result<Vec<(Option<String>, usize)>, String> {
+        let filter = self
+            .sheets
+            .get(sheet)
+            .and_then(|s| s.filter.as_ref())
+            .ok_or("Unknown worksheet filter")?;
+        if column > filter.area[3] - filter.area[1] {
+            return Err("Unknown filter column".into());
+        }
+        palette(self, sheet, filter.area, column, font, limit)
+    }
+
     /// Distinct effective workbook colors, including styled blanks and
     /// conditional formatting. None denotes no fill; automatic text is black.
     pub fn table_filter_colors(
@@ -94,10 +128,6 @@ impl Spreadsheet {
         }
         let mut area = table.area;
         area[2] -= usize::from(table.totals);
-        let mut counts = BTreeMap::new();
-        for color in values(self, table.sheet, area, column, font, &mut { limit })? {
-            *counts.entry(color).or_insert(0) += 1;
-        }
-        Ok(counts.into_iter().collect())
+        palette(self, table.sheet, area, column, font, limit)
     }
 }

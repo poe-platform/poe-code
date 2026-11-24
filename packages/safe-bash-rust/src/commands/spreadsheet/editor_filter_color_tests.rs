@@ -120,7 +120,7 @@ fn libreoffice_color_filter_conditional_palette_and_reapply() {
             book.filtered_rows(0, LIMIT).unwrap(),
             hidden.iter().copied().collect()
         );
-        // The editor promotes worksheet autofilters to editable tables.
+        // Exercise the same worksheet criteria through the table API.
         let filter = book.sheets[0].filter.take().unwrap();
         book.add_table(0, "Colors", filter.area, LIMIT).unwrap();
         book.options.tables[0].filter = Some(filter);
@@ -392,4 +392,66 @@ fn color_filter_differential_ids_follow_conditional_styles_and_keep_multiple_col
             .attributes
             .contains(&("Back", "FFFFCCCC".into()))
     );
+}
+
+#[test]
+fn worksheet_color_filters_edit_reapply_and_roundtrip_without_becoming_tables() {
+    let bytes = include_bytes!("fixtures/libreoffice-color-filters/tdf142579.xlsx");
+    let mut book = Spreadsheet::import_xlsx(bytes, LIMIT).unwrap();
+    assert_eq!(
+        book.sheet_filter_colors(0, 0, false, LIMIT).unwrap().len(),
+        7
+    );
+    let before = book.to_json();
+    assert!(
+        book.filter_sheet(0, 0, Some(field(false, Some("FFF8696B"))), 1)
+            .is_err()
+    );
+    assert_eq!(book.to_json(), before);
+    assert!(
+        book.filter_sheet(0, 1, Some(field(false, Some("FFF8696B"))), LIMIT)
+            .is_err()
+    );
+    assert_eq!(book.to_json(), before);
+    book.filter_sheet(0, 0, Some(field(false, Some("FFF8696B"))), LIMIT)
+        .unwrap();
+    assert!(book.options.tables.is_empty());
+    assert_eq!(
+        book.filtered_rows(0, LIMIT).unwrap(),
+        [1, 2, 3, 4, 5, 6].into()
+    );
+    for mut restored in [
+        Spreadsheet::from_json(&book.to_json(), LIMIT).unwrap(),
+        Spreadsheet::import_xlsx(&book.export_xlsx(LIMIT).unwrap(), LIMIT).unwrap(),
+    ] {
+        assert!(restored.options.tables.is_empty());
+        restored.reapply_sheet_filter(0, LIMIT).unwrap();
+        assert_eq!(
+            restored.filtered_rows(0, LIMIT).unwrap(),
+            [1, 2, 3, 4, 5, 6].into()
+        );
+        restored.filter_sheet(0, 0, None, LIMIT).unwrap();
+        assert!(restored.filtered_rows(0, LIMIT).unwrap().is_empty());
+    }
+}
+#[test]
+fn worksheet_font_filter_uses_conditional_colors_and_rejects_missing_ranges() {
+    let bytes = include_bytes!("fixtures/libreoffice-color-filters/tdf142580.xlsx");
+    let mut book = Spreadsheet::import_xlsx(bytes, LIMIT).unwrap();
+    assert_eq!(
+        book.sheet_filter_colors(0, 0, true, LIMIT).unwrap().len(),
+        3
+    );
+    book.filter_sheet(0, 0, Some(field(true, Some("FFED7D31"))), LIMIT)
+        .unwrap();
+    assert_eq!(
+        book.filtered_rows(0, LIMIT).unwrap(),
+        [1, 2, 3, 7, 8].into()
+    );
+    let mut empty = Spreadsheet::new();
+    let before = empty.to_json();
+    assert!(empty.filter_sheet(0, 0, None, LIMIT).is_err());
+    assert!(empty.reapply_sheet_filter(0, LIMIT).is_err());
+    assert!(empty.sheet_filter_colors(0, 0, false, LIMIT).is_err());
+    assert_eq!(empty.to_json(), before);
 }

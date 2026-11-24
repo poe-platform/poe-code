@@ -283,6 +283,24 @@ pub(super) fn rows<S>(
     }
     Some(hidden)
 }
+fn activate(filter: &mut Filter, rows: &mut BTreeMap<usize, model::Axis>) {
+    if !filter.column_visibility {
+        if filter.area[0] < filter.area[2]
+            && filter
+                .fields
+                .as_ref()
+                .is_some_and(|fields| !fields.is_empty())
+        {
+            // Legacy Excel stores its aggregate filter mask in row.hidden.
+            // Once reapplied, independent column snapshots own that mask.
+            for (_, axis) in rows.range_mut(filter.area[0] + 1..=filter.area[2]) {
+                axis.hidden = false;
+            }
+        }
+        filter.column_visibility = true;
+    }
+}
+
 impl Spreadsheet {
     /// Distinct display values, counts and current value-filter selection.
     pub fn table_filter_values(
@@ -632,24 +650,93 @@ impl Spreadsheet {
             fields: Some(BTreeMap::new()),
             show_buttons: true,
         });
-        if !filter.column_visibility {
-            if filter.area[0] < filter.area[2]
-                && filter
-                    .fields
-                    .as_ref()
-                    .is_some_and(|fields| !fields.is_empty())
-            {
-                // Legacy Excel stores its aggregate filter mask in row.hidden.
-                // Once reapplied, independent column snapshots own that mask.
-                for (_, axis) in self.sheets[table.sheet]
-                    .rows
-                    .range_mut(filter.area[0] + 1..=filter.area[2])
-                {
-                    axis.hidden = false;
-                }
-            }
-            filter.column_visibility = true;
+        activate(filter, &mut self.sheets[table.sheet].rows);
+        Ok(())
+    }
+    /// Edit an existing worksheet autofilter without creating an Excel table.
+    pub fn filter_sheet(
+        &mut self,
+        sheet: usize,
+        column: usize,
+        field: Option<FilterField>,
+        limit: usize,
+    ) -> Result<(), String> {
+        let filter = self
+            .sheets
+            .get(sheet)
+            .and_then(|s| s.filter.as_ref())
+            .ok_or("Unknown worksheet filter")?;
+        if column > filter.area[3] - filter.area[1] {
+            return Err("Unknown filter column".into());
         }
+        if let Some(field) = &field {
+            validate(field)?;
+        }
+        let area = filter.area;
+        let mut next = Self::from_json(&self.to_json(), limit / 2)?;
+        let target = &mut next.sheets[sheet];
+        activate(target.filter.as_mut().unwrap(), &mut target.rows);
+        let mut work = limit / 2;
+        let field = field
+            .map(|mut field| -> Result<_, String> {
+                if let Some(dynamic) = &mut field.dynamic {
+                    dynamic.value = None;
+                    dynamic.max_value = None;
+                }
+                let (hidden, dynamic) = next.filter_snapshot(
+                    sheet,
+                    area,
+                    column,
+                    &field,
+                    super::formulas::clock::now_ms(),
+                    &mut work,
+                )?;
+                field.hidden_rows = Some(hidden);
+                field.dynamic = dynamic;
+                Ok(field)
+            })
+            .transpose()?;
+        let fields = next.sheets[sheet]
+            .filter
+            .as_mut()
+            .unwrap()
+            .fields
+            .get_or_insert_with(BTreeMap::new);
+        if let Some(field) = field {
+            fields.insert(column, field);
+        } else {
+            fields.remove(&column);
+        }
+        next.spills = super::formulas::cache(&mut next.sheets, &next.options, None, work, true)
+            .ok_or(LIMIT)?;
+        *self = next;
+        Ok(())
+    }
+    pub fn reapply_sheet_filter(&mut self, sheet: usize, limit: usize) -> Result<(), String> {
+        self.sheets
+            .get(sheet)
+            .and_then(|s| s.filter.as_ref())
+            .ok_or("Unknown worksheet filter")?;
+        let mut next = Self::from_json(&self.to_json(), limit / 2)?;
+        let target = &mut next.sheets[sheet];
+        let filter = target.filter.as_mut().unwrap();
+        activate(filter, &mut target.rows);
+        for field in filter
+            .fields
+            .iter_mut()
+            .flat_map(|fields| fields.values_mut())
+        {
+            field.hidden_rows = None;
+            if let Some(dynamic) = &mut field.dynamic {
+                dynamic.value = None;
+                dynamic.max_value = None;
+            }
+        }
+        next.prepare_filter_snapshots(limit / 4)?;
+        next.spills =
+            super::formulas::cache(&mut next.sheets, &next.options, None, limit / 4, true)
+                .ok_or(LIMIT)?;
+        *self = next;
         Ok(())
     }
     pub fn filter_table(

@@ -194,14 +194,17 @@ impl Runtime {
             }
             "tonumber" => {
                 if a(1) != Value::Nil {
-                    let base = numbers::integral(n(1)?)? as u32;
+                    let base = n(1).map_err(|_| Error::unlocated("Expected Lua number"))?;
+                    let base = numbers::integral(base)
+                        .map_err(|error| Error::unlocated(error.message))?
+                        as u32;
+                    let Value::String(bytes) = a(0) else {
+                        return Err(Error::unlocated("Expected Lua string"));
+                    };
                     if !(2..=36).contains(&base) {
-                        return Err(Error::new("base out of range"));
+                        return Err(Error::unlocated("base out of range"));
                     }
-                    i64::from_str_radix(std::str::from_utf8(&s(0)?).unwrap_or("").trim(), base)
-                        .ok()
-                        .map(|n| Value::Integer(n as i32))
-                        .unwrap_or_default()
+                    numbers::radix(&bytes, base).unwrap_or_default()
                 } else {
                     match a(0) {
                         value @ (Value::Integer(_) | Value::Number(_)) => value,

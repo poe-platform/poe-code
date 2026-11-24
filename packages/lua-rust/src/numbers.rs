@@ -105,6 +105,69 @@ pub(crate) fn parse(bytes: &[u8]) -> Option<Value> {
     }
 }
 
+pub(crate) fn radix(bytes: &[u8], base: u32) -> Option<Value> {
+    let space = |byte: &u8| *byte == b' ' || (9..=13).contains(byte);
+    let start = bytes.iter().position(|b| !space(b))?;
+    let end = bytes.iter().rposition(|b| !space(b))? + 1;
+    let mut text = &bytes[start..end];
+    let negative = text.first() == Some(&b'-');
+    if matches!(text.first(), Some(b'+' | b'-')) {
+        text = &text[1..];
+    }
+    if text.is_empty() || !text.iter().all(u8::is_ascii_alphanumeric) {
+        return None;
+    }
+    // The existing Lua library removes leading zeros before JavaScript parseInt,
+    // validates the whole ASCII token, then accepts a radix-specific digit prefix.
+    let Some(start) = text.iter().position(|b| *b != b'0') else {
+        return Some(Value::Integer(0));
+    };
+    text = &text[start..];
+    let end = text
+        .iter()
+        .position(|b| (*b as char).to_digit(base).is_none())
+        .unwrap_or(text.len());
+    if end == 0 {
+        return None;
+    }
+    text = &text[..end];
+    let number = if base == 10 {
+        std::str::from_utf8(text).unwrap().parse::<f64>().unwrap()
+    } else if base.is_power_of_two() {
+        let mut integer = 0u128;
+        for byte in text {
+            let digit = (*byte as char).to_digit(base).unwrap();
+            let Some(next) = integer
+                .checked_mul(base as u128)
+                .and_then(|n| n.checked_add(digit as u128))
+            else {
+                // Above 2^128, every binary64 integer is a multiple of 2^32.
+                return Some(Value::Integer(0));
+            };
+            integer = next;
+        }
+        integer as f64
+    } else {
+        // V8 accumulates other radices in chunks whose multiplier is at most
+        // floor((2^32 - 1) / 36). Preserve its intermediate binary64 rounding.
+        let mut number = 0.0;
+        let mut part = 0u32;
+        let mut multiplier = 1u32;
+        for byte in text {
+            if multiplier * base > u32::MAX / 36 {
+                number = number * multiplier as f64 + part as f64;
+                part = 0;
+                multiplier = 1;
+            }
+            part = part * base + (*byte as char).to_digit(base).unwrap();
+            multiplier *= base;
+        }
+        number * multiplier as f64 + part as f64
+    };
+    let number = if negative { -number } else { number };
+    Some(Value::Integer((number % 4294967296.0) as i64 as i32))
+}
+
 pub(crate) fn integral(number: f64) -> Result<i32> {
     if number == number as i32 as f64 {
         Ok(number as i32)

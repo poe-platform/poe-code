@@ -89,7 +89,7 @@ impl Lexer<'_> {
             }
             self.take();
         }
-        Err(Error::syntax("unfinished long string"))
+        Err(Error::unlocated("unfinished long string"))
     }
     fn next(&mut self) -> Result<Token> {
         loop {
@@ -136,7 +136,7 @@ impl Lexer<'_> {
             let mut text = Vec::new();
             while self.byte() != b {
                 if self.offset >= self.source.len() || self.byte() == b'\n' {
-                    return Err(Error::syntax("unfinished string"));
+                    return Err(Error::unlocated("unfinished string"));
                 }
                 let c = self.take();
                 if c != b'\\' {
@@ -161,9 +161,9 @@ impl Lexer<'_> {
                         let mut n = 0;
                         for _ in 0..2 {
                             n = n * 16
-                                + (self.take() as char)
-                                    .to_digit(16)
-                                    .ok_or_else(|| Error::syntax("hexadecimal digit expected"))?;
+                                + (self.take() as char).to_digit(16).ok_or_else(|| {
+                                    Error::unlocated("hexadecimal digit expected")
+                                })?;
                         }
                         text.push(n as u8);
                     }
@@ -176,7 +176,7 @@ impl Lexer<'_> {
                             n = n * 10 + (self.take() - b'0') as u32;
                         }
                         if n > 255 {
-                            return Err(Error::syntax("decimal escape too large"));
+                            return Err(Error::unlocated("decimal escape too large"));
                         }
                         text.push(n as u8);
                     }
@@ -209,7 +209,7 @@ impl Lexer<'_> {
                 self.take();
             }
             value = crate::numbers::parse(&self.source[start..self.offset])
-                .ok_or_else(|| Error::syntax("malformed number"))?;
+                .ok_or_else(|| Error::unlocated("malformed number"))?;
             "number".into()
         } else {
             let mut operator = None;
@@ -257,7 +257,7 @@ impl Parser {
         if self.eat(kind) {
             Ok(())
         } else {
-            Err(Error::syntax(format!(
+            Err(Error::unlocated(format!(
                 "Expected '{kind}', found '{}'",
                 self.kind()
             )))
@@ -282,7 +282,7 @@ impl Parser {
     fn block(&mut self) -> Result<Vec<Stmt>> {
         self.depth += 1;
         if self.depth > 200 {
-            return Err(Error::syntax("too many syntax levels"));
+            return Err(Error::unlocated("too many syntax levels"));
         }
         let mut body = Vec::new();
         while !self.is_end() {
@@ -364,7 +364,7 @@ impl Parser {
             self.offset += 1;
             Ok(vec![Expr(t.line, Node::Literal(t.value))])
         } else {
-            Err(Error::syntax("Function arguments expected"))
+            Err(Error::unlocated("Function arguments expected"))
         }
     }
     fn suffix(&mut self) -> Result<Expr> {
@@ -403,7 +403,7 @@ impl Parser {
     fn expression(&mut self, minimum: u8) -> Result<Expr> {
         self.depth += 1;
         if self.depth > 200 {
-            return Err(Error::syntax("too many syntax levels"));
+            return Err(Error::unlocated("too many syntax levels"));
         }
         let t = self.token().clone();
         let mut left = match t.kind.as_str() {
@@ -599,14 +599,14 @@ impl Parser {
                 .iter()
                 .any(|e| !matches!(e.1, Node::Name(_) | Node::Index(..)))
             {
-                return Err(Error::syntax("Invalid assignment target"));
+                return Err(Error::unlocated("Invalid assignment target"));
             }
             self.expect("=")?;
             Ok(Stmt::Assign(targets, self.expressions()?))
         } else if matches!(expr.1, Node::Call(..) | Node::Method(..)) {
             Ok(Stmt::Call(expr))
         } else {
-            Err(Error::syntax("Unexpected statement"))
+            Err(Error::unlocated("Unexpected statement"))
         }
     }
 }

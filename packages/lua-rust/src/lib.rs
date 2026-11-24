@@ -84,19 +84,19 @@ impl PartialEq for Value {
 pub struct Error {
     pub message: String,
     pub location: Option<(String, usize)>,
-    syntax: bool,
+    unlocated: bool,
 }
 impl Error {
     fn new(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
             location: None,
-            syntax: false,
+            unlocated: false,
         }
     }
-    fn syntax(message: impl Into<String>) -> Self {
+    fn unlocated(message: impl Into<String>) -> Self {
         Self {
-            syntax: true,
+            unlocated: true,
             ..Self::new(message)
         }
     }
@@ -519,7 +519,7 @@ impl Runtime {
             Ok(vec![value])
         })();
         result.map_err(|mut error: Error| {
-            if !error.syntax && error.location.is_none() {
+            if !error.unlocated && error.location.is_none() {
                 error.location = Some((self.source.clone(), expr.0));
             }
             error

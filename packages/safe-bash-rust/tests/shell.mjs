@@ -107,6 +107,10 @@ async function test() {
     await shell.fs.writeFile("/filters/upper.lua", "function Str(el) return pandoc.Str(el.text:upper()) end");
     const relativeFilter = await shell.exec("(cd /filters && printf hello | pandoc -f markdown -t plain -L ./upper.lua)");
     if (relativeFilter.exitCode || relativeFilter.stderr || relativeFilter.stdout !== "HELLO\n") throw new Error(JSON.stringify(relativeFilter));
+    for (const path of ["missing/../filters/upper.lua", "filters/upper.lua/", "filters/upper.lua/../upper.lua"]) {
+      const error = await shell.exec(`printf hello | pandoc -f markdown -t plain -L '${path}' -o /base.saved`);
+      if (error.exitCode !== 9 || error.stdout || error.stderr !== "E_IO: Capability failed\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
+    }
     await shell.fs.writeFile("/strings.lua", "function Str(el) return pandoc.Str(string.char('65','66')..':'..tostring(string.find('abc','a',nil))..':'..string.reverse(123)) end");
     const strings = await shell.exec("printf hello | pandoc -f markdown -t plain -L /strings.lua");
     if (strings.exitCode || strings.stderr || strings.stdout !== "AB:1:321\n") throw new Error(JSON.stringify(strings));

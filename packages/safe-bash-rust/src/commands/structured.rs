@@ -37453,7 +37453,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             ("meta".into(), JVal::Object(source_metadata.clone())),
         ]);
         for path in &lua_filters {
-            let source = match fs.read_file(&resolve_posix_path(cwd, path)) {
+            let source = match fs.read_file(&crate::vfs::path::absolute_operand(cwd, path)) {
                 Ok(bytes) => bytes,
                 Err(_) => return err_out("E_IO: Capability failed\n", 9),
             };

@@ -7457,5 +7457,101 @@
     "script": "function Str(el) return pandoc.Str(tostring(math.type((math.modf(2147483648))))) end",
     "status": 0,
     "stdout": "float\n"
+  },
+  {
+    "id": "filter-path-missing-directory",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "sub/../upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "filter-path-non-directory",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "upper.lua/../upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "filter-path-trailing-slash",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "upper.lua/"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "filter-path-trailing-dot",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "upper.lua/."
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "filter-path-existing-directory",
+    "path": "/work/inner/upper.lua",
+    "cwd": "/work",
+    "flags": [
+      "-L",
+      "inner/../inner/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 0,
+    "stdout": "A\n"
+  },
+  {
+    "id": "filter-path-parent-directory",
+    "path": "/work/filter.lua",
+    "cwd": "/work/inner",
+    "flags": [
+      "-L",
+      "../filter.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 0,
+    "stdout": "A\n"
+  },
+  {
+    "id": "filter-path-absolute-missing-directory",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "/missing/../upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "filter-path-absolute-trailing-slash",
+    "path": "/upper.lua",
+    "cwd": "/",
+    "flags": [
+      "-L",
+      "/upper.lua/"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
   }
 ]

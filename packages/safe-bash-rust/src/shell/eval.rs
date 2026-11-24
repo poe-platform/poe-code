@@ -61,6 +61,27 @@ const SET_OPTIONS: &[&str] = &[
     "functrace",
 ];
 
+const SHOPT_OPTIONS: &[&str] = &[
+    "cdable_vars",
+    "checkhash",
+    "dotglob",
+    "expand_aliases",
+    "extglob",
+    "failglob",
+    "globskipdots",
+    "globstar",
+    "inherit_errexit",
+    "lastpipe",
+    "nocaseglob",
+    "nocasematch",
+    "nullglob",
+    "patsub_replacement",
+    "shift_verbose",
+    "sourcepath",
+    "xpg_echo",
+    "extdebug",
+];
+
 const INDEX_OUT_OF_RANGE: &str = "indexed array: index outside 0..2147483647";
 const STDIN_STREAM_FD: u32 = u32::MAX;
 type InputCursor = Rc<RefCell<String>>;
@@ -1025,12 +1046,6 @@ impl<'a> EvalState<'a> {
         }
         let shift_verbose = if env.contains_key("POSIXLY_CORRECT") { "1" } else { "0" };
         env.entry("\0shopt_shift_verbose".into()).or_insert_with(|| shift_verbose.into());
-        for name in ["SHELLOPTS", "BASHOPTS"] {
-            let attributes = env.entry(format!("\0attr__{name}")).or_default();
-            if !attributes.contains('r') {
-                attributes.push('r');
-            }
-        }
         let errexit = env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false);
         let nounset = env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false);
         let pipefail = env.get("\0set_pipefail").map(|v| v == "1").unwrap_or(false);
@@ -1051,7 +1066,7 @@ impl<'a> EvalState<'a> {
                 traps.insert(sig.to_string(), String::new());
             }
         }
-        Self {
+        let mut state = Self {
             cwd,
             env,
             fs,
@@ -1125,7 +1140,9 @@ impl<'a> EvalState<'a> {
             allow_unported_fallback,
             used_typescript_bridge: Arc::new(AtomicBool::new(false)),
             provided_devices: false,
-        }
+        };
+        state.sync_option_variables();
+        state
     }
 
     fn make_child<'b>(
@@ -8414,6 +8431,17 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn sync_option_variables(&mut self) {
+        for (variable, names, set_mode) in [("SHELLOPTS", SET_OPTIONS, true), ("BASHOPTS", SHOPT_OPTIONS, false)] {
+            let mut enabled: Vec<_> = names.iter().copied().filter(|name| self.get_shopt_enabled(name, set_mode)).collect();
+            enabled.sort_unstable();
+            if !self.env.contains_key(variable) { self.env.insert(format!("\0unexported__{variable}"), "1".into()); }
+            self.env.insert(variable.into(), enabled.join(":"));
+            let attributes = self.env.entry(format!("\0attr__{variable}")).or_default();
+            if !attributes.contains('r') { attributes.push('r'); }
+        }
+    }
+
     fn apply_set_option(&mut self, opt: &str, enable: bool) {
         let val = if enable { "1" } else { "0" };
         match opt {
@@ -8449,6 +8477,7 @@ impl<'a> EvalState<'a> {
                 self.env.insert(format!("\0set_{other}"), val.to_string());
             }
         }
+        self.sync_option_variables();
     }
 
     fn builtin_set(&mut self, args: &[String]) -> BuiltinOutcome {
@@ -8838,26 +8867,6 @@ impl<'a> EvalState<'a> {
             };
         }
 
-        const SHOPT_OPTIONS: &[&str] = &[
-            "cdable_vars",
-            "checkhash",
-            "dotglob",
-            "expand_aliases",
-            "extglob",
-            "failglob",
-            "globskipdots",
-            "globstar",
-            "inherit_errexit",
-            "lastpipe",
-            "nocaseglob",
-            "nocasematch",
-            "nullglob",
-            "patsub_replacement",
-            "shift_verbose",
-            "sourcepath",
-            "xpg_echo",
-            "extdebug",
-        ];
         let known = if opt_mode { SET_OPTIONS } else { SHOPT_OPTIONS };
 
         let emit = |out: &mut String, name: &str, enabled: bool| {
@@ -8925,6 +8934,7 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        self.sync_option_variables();
         BuiltinOutcome {
             stdout: out,
             stderr,
@@ -9562,7 +9572,9 @@ impl<'a> EvalState<'a> {
                     decl_status = 1;
                     break;
                 }
-                let provenance = if cmd == "readonly" && !enabled.contains(&'a') {
+                let provenance = if matches!(base_name.as_str(), "SHELLOPTS" | "BASHOPTS")
+                    || cmd == "readonly" && !enabled.contains(&'a')
+                {
                     String::new()
                 } else {
                     format!("{cmd}: ")

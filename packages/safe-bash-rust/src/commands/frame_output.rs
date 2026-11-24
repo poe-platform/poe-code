@@ -318,13 +318,13 @@ impl ImageSequence {
     pub fn render(
         &self,
         opts: super::y4m::Options<'_>,
-        emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+        emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.frames[0].width, self.frames[0].height);
         super::y4m::render_frames(
             w,
             h,
-            f64::from(super::y4m::rate_ratio(self.fps).0),
+            (f64::from(super::y4m::rate_ratio(self.fps).0), None),
             (0..self.frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
             opts,
             |i| Ok(self.frames[i].clone()),
@@ -438,14 +438,10 @@ pub(super) fn render_still(
     opts: super::y4m::Options<'_>,
     seek: super::InputTime,
     reslice: bool,
-    emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
-    if bytes.starts_with(b"qoif") {
-        return super::qoi::render(bytes, opts, seek, emit);
-    }
-    if super::netpbm::signature(bytes) {
-        return super::ffmpeg_pnm::render(bytes, opts, seek, emit);
-    }
+    if bytes.starts_with(b"qoif") {return super::qoi::render(bytes,opts,seek,emit);}
+    if super::netpbm::signature(bytes) {return super::ffmpeg_pnm::render(bytes,opts,seek,emit);}
     let im = decode_still(bytes, opts.limit)?;
     let (w, h) = (im.width, im.height);
     // A still has one 25 Hz sample. A sub-tick input cut may preserve
@@ -463,7 +459,7 @@ pub(super) fn render_still(
         return Err("frame index exceeds memory budget".into());
     }
     let times = (0..count).map(|i| (i as f64 / 25., 0.04));
-    super::y4m::render_frames(w, h, 25., times, opts, |_| Ok(im.clone()), emit)?;
+    super::y4m::render_frames(w, h, (25., None), times, opts, |_| Ok(im.clone()), emit)?;
     Ok((w, h, 30))
 }
 
@@ -480,7 +476,7 @@ pub(super) fn render(
     (pixel_format, linear, image_pipe): (Option<&str>, bool, bool),
     decode: impl FnOnce(
         bool,
-        &mut dyn FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+        &mut dyn FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String>,
 ) -> Result<Option<Vec<u8>>, String> {
     let limit = fs.max_input_bytes();
@@ -488,21 +484,23 @@ pub(super) fn render(
     let mut failure = None;
     let mut total = 0usize;
     let mut geometry = None;
-    let animation = image_format == Some("gif") && pattern.is_none();
-    let mut gif_pixels = Vec::new();
-    let mut delays = Vec::new();
-    let mut elapsed = 0.;
-    let mut previous = 0u64;
-    let raw = matches!(
-        image_format,
-        Some("rgb24" | "bgr24" | "rgba" | "bgra" | "gray" | "yuv420p")
-    );
-    let dims = decode(
-        pattern.is_some() || animation || raw || image_pipe,
-        &mut |mut im, frame| {
-            let duration = frame.duration;
-            if animation {
-                let (w, h) = *geometry.get_or_insert((im.width, im.height));
+    let animation=image_format==Some("gif") && pattern.is_none();
+    let mut gif_pixels=Vec::new();
+    let mut delays=Vec::new();
+    let mut previous=0u64;
+    let raw = matches!(image_format, Some("rgb24" | "bgr24" | "rgba" | "bgra" | "gray" | "yuv420p"));
+    let dims = decode(pattern.is_some() || animation || raw || image_pipe, &mut |im, frame| {
+        if image_format == Some("yuv420p")
+            && let super::y4m::Frame::Yuv420 { planes, .. } = &im
+        {
+            if planes.len() > limit.saturating_sub(data.len()) { return Err("output byte limit exceeded"); }
+            data.extend_from_slice(planes);
+            return Ok(());
+        }
+        let mut im = im.into_raster();
+        let duration = frame.duration;
+        if animation {
+            let (w,h)=*geometry.get_or_insert((im.width,im.height));
                 let n = w.saturating_mul(h);
                 if n == 0 {
                     return Err("GIF dimensions exceed 16-bit frame fields");
@@ -511,17 +509,15 @@ pub(super) fn render(
                     return Err("offset is out of bounds");
                 }
                 let end = gif_pixels.len().saturating_add(n);
-                if end.saturating_mul(4).saturating_add((delays.len() + 1) * 2) > limit {
-                    return Err("image exceeds memory budget");
-                }
-                gif_pixels.append(&mut im.pixels);
-                gif_pixels.resize(end, [0; 4]);
-                elapsed += duration;
-                let ticks = (elapsed * 100.).round() as u64;
-                delays.push(ticks.saturating_sub(previous) as u16);
-                previous = ticks;
-            } else if raw {
-                let format = image_format.unwrap();
+                if end.saturating_mul(4).saturating_add((delays.len()+1)*2)>limit {return Err("image exceeds memory budget");}
+            gif_pixels.append(&mut im.pixels);
+            gif_pixels.resize(end,[0;4]);
+            let ticks=(frame.pts*100.).round() as u64;
+            if let Some(delay)=delays.last_mut() { *delay=ticks.saturating_sub(previous) as u16; }
+            delays.push((((frame.pts+duration)*100.).round() as u64).saturating_sub(ticks) as u16);
+            previous=ticks;
+        } else if raw {
+            let format=image_format.unwrap();
                 if format == "gray" {
                     if !im.gray {
                         super::video_filter::Filter::new("format", "gray")
@@ -657,23 +653,12 @@ pub(super) fn render(
                     data = frame;
                 }
             } else {
-                if data.is_empty() {
-                    data = super::y4m::header(
-                        im.width,
-                        im.height,
-                        if filters
-                            .iter()
-                            .flat_map(|s| s.split(','))
-                            .any(|s| s.trim().starts_with("fps="))
-                        {
-                            1. / duration
-                        } else {
-                            (1. / duration).round().max(1.)
-                        },
-                    );
-                }
-                let (w, h) = *geometry.get_or_insert((im.width, im.height));
-                im.width = w;
+            if data.is_empty() {
+                data =
+                    super::y4m::header(im.width, im.height, frame.rate);
+            }
+            let (w, h) = *geometry.get_or_insert((im.width, im.height));
+            im.width = w;
                 im.height = h;
                 im.pixels.resize(w * h, [0; 4]);
                 data.extend_from_slice(b"FRAME\n");

@@ -1394,7 +1394,21 @@ impl<'a> Track<'a> {
             (!self.discarded_packet(s) && skipped < 1024).then_some(skipped)
         } else if self.pcm_format().is_some() {
             (s.pts + i128::from(s.tick) > i128::from(self.origin)).then_some(0)
+        } else if self.kind == "video" {
+            (!self.discarded_packet(s)).then_some(0)
         } else { Some(0) }
+    }
+    fn frame_rate(&self) -> f64 {
+        let (num, den) = self.video_rate();
+        let mut rate = num as f64 / den as f64;
+        let average = self.stats.count as f64 * f64::from(self.scale) / self.stats.ticks as f64;
+        if average > 0. && average < 70. && rate > 210. { rate = average; }
+        // Like av_guess_frame_rate, prefer codec timing when variable packet
+        // spacing makes the indexed rate much higher than the picture cadence.
+        if let Some(codec) = self.sequence.as_ref().and_then(|s| s.fps)
+            && (rate == 0. || codec < rate * 0.7 && (1. - average / rate).abs() > 0.1)
+        { rate = codec; }
+        rate
     }
     fn video_rate(&self) -> (u64, u64) {
         if self.kind != "video" { return (0, 0); }
@@ -1411,52 +1425,7 @@ impl<'a> Track<'a> {
         if (5..101).contains(&self.scale) && !matches!(self.tag, b"avc1" | b"avc3" | b"hvc1" | b"hev1" | b"mp4v" | b"gif ") {
             return (u64::from(self.scale), 1);
         }
-        let mut previous = None;
-        let (mut count, mut ticks, mut gcd) = (0usize, 0u64, 0u64);
-        for s in self.samples(usize::MAX).take(99) {
-            if let Some(last) = previous && s.dts > last {
-                let delta = s.dts - last;
-                ticks += delta;
-                count += 1;
-                if count > 3 {
-                    let mut divisor = delta;
-                    while divisor != 0 { (gcd, divisor) = (divisor, gcd % divisor); }
-                }
-            }
-            previous = Some(s.dts);
-        }
-        if count > 15 && gcd > (u64::from(self.scale) / 500).max(1) {
-            return (u64::from(self.scale), gcd);
-        }
-        let mut best = 0.01;
-        let mut rate = 0;
-        for numerator in (1..=360).map(|i| i * 1001u64)
-            .chain((31..=60).map(|i| i * 12012)).chain([80, 120, 240].map(|i| i * 12012))
-            .chain([24, 30, 60, 12, 15, 48].map(|i| i * 12000)) {
-            let fps = numerator as f64 / 12012.;
-            if count <= 1 || fps < 1. || ticks as f64 / f64::from(self.scale) / (count as f64) < 0.8 / fps { continue; }
-            let (mut sums, mut squares, mut seen, mut previous) = ([0.; 2], [0.; 2], 0usize, None);
-            for s in self.samples(usize::MAX).take(99) {
-                let last = previous.replace(s.dts);
-                if last.is_none_or(|last| s.dts <= last) { continue; }
-                seen += 1;
-                let time = s.dts as f64 / f64::from(self.scale) * fps;
-                for k in 0..2 {
-                    let value = time + k as f64 * 0.5;
-                    let error = value - value.round_ties_even();
-                    sums[k] += error; squares[k] += error * error;
-                }
-                if seen.is_multiple_of(10) && (0..2).all(|k| squares[k] / seen as f64 - (sums[k] / seen as f64).powi(2) > 0.04) {
-                    squares = [2e10; 2]; break;
-                }
-            }
-            for k in 0..2 {
-                let error = squares[k] / count as f64 - (sums[k] / count as f64).powi(2);
-                if error < best && best > 1e-9 { best = error; rate = numerator; }
-            }
-        }
-        if rate > 0 && rate as f64 / 12012. < 1.01 * f64::from(self.scale) { (rate, 12012) }
-        else { (u64::from(self.scale), 1) }
+        super::y4m::guess_rate(self.scale, || self.samples(usize::MAX).take(99).map(|s| s.dts))
     }
     fn record(&self, mut s: Sample, frame_skip: Option<u32>, optional: bool) -> Row {
         let frame = frame_skip.is_some();
@@ -1664,10 +1633,10 @@ impl<'a> Track<'a> {
             r.push(("height", Number(h.into(), None)))
         }
         if w != 0 {
-            r.push(("coded_width", Number(f64::from(w.div_ceil(16)) * 16., None)))
+            r.push(("coded_width", Number(w.into(), None)))
         }
         if h != 0 {
-            r.push(("coded_height", Number(f64::from(h.div_ceil(16)) * 16., None)))
+            r.push(("coded_height", Number(h.into(), None)))
         }
         if self.kind == "video" {
             r.extend([
@@ -1758,8 +1727,14 @@ impl<'a> Track<'a> {
             ),
             ("nb_frames", Str(self.stats.count.to_string())),
         ]);
-        if self.pcm_format().is_some() && !self.runs.is_empty() {
-            r.retain(|(key, _)| *key != "nb_frames");
+        if !self.runs.is_empty() {
+            let declared = u32_at(self.tables.sizes, 8);
+            r.retain_mut(|(key, value)| {
+                if *key != "nb_frames" { return true; }
+                if declared == 0 && !optional { return false; }
+                *value = Str(if declared == 0 { "N/A".into() } else { declared.to_string() });
+                true
+            });
         }
         if optional && self.kind == "audio" {
             let index = r.iter().position(|(key, _)| *key == "nb_frames").unwrap_or(r.len());
@@ -2166,7 +2141,7 @@ pub(super) fn render_video(
     opts: super::y4m::Options<'_>,
     maps: &[&str],
     full_size: bool,
-    emit: impl FnMut(super::png_pixels::Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let moov = movie(input)?;
     let (tracks, duration) = read_tracks(input, moov)?;
@@ -2269,13 +2244,67 @@ impl<'a> VideoDecoder<'a> {
     }
 }
 
+struct VideoFrames<'a> {
+    track: Track<'a>,
+    input: &'a [u8],
+    samples: Vec<Sample>,
+    frames: Vec<(usize, (f64, f64))>,
+}
+
+impl<'a> VideoFrames<'a> {
+    fn read(input: &'a [u8], index: usize, seek: super::InputTime, limit: usize) -> Result<Self, String> {
+        let (mut tracks, _) = read_tracks(input, movie(input)?)?;
+        // The demuxer loops the packet span, including compressed preroll.
+        // Presentation edits still decide which frames each pass emits.
+        let period = tracks.iter().map(|t| {
+            t.stats.media_end.max(i128::from(t.probe_origin.saturating_add(t.duration).saturating_sub(t.empty_ticks))) as f64 / f64::from(t.scale)
+        }).fold(0., f64::max);
+        let track = tracks.swap_remove(index);
+        let count = track.stats.count.checked_mul(seek.loops.saturating_add(1))
+            .filter(|&n| n <= limit / size_of::<Sample>()).ok_or("frame index exceeds memory budget")?;
+        let mut samples: Vec<_> = track.samples(input.len()).collect();
+        if let Some(last) = samples.last_mut() {
+            let end = track.probe_origin.saturating_add(track.duration).saturating_sub(track.empty_ticks);
+            last.tick = u32::try_from(u64::from(last.tick).max(end.saturating_sub(last.dts))).map_err(|_| "track duration exceeds limit")?;
+        }
+        let scale = f64::from(track.scale);
+        let start = (seek.start.unwrap_or(0.).max(0.) * scale).round() as i128;
+        let end = seek.end().map_or(i128::MAX, |t| (t * scale).round() as i128);
+        let mut frames = Vec::with_capacity(count);
+        for copy in 0..=seek.loops {
+            let offset = (copy as f64 * period * scale).round() as i128
+                + i128::from(track.empty_ticks) - i128::from(track.probe_origin);
+            for (i, sample) in samples.iter().enumerate() {
+                let pts = sample.pts + offset;
+                if !track.discarded_packet(sample) && pts >= start && pts < end {
+                    frames.push((i, ((pts - start) as f64 / scale, i128::from(sample.tick).min(end - pts) as f64 / scale)));
+                }
+            }
+        }
+        Ok(Self { track, input, samples, frames })
+    }
+
+    fn image(&self, index: usize, decoder: &mut VideoDecoder<'_>, limit: usize) -> Result<super::y4m::Frame, &'static str> {
+        let index = self.frames[index].0;
+        let sample = &self.samples[index];
+        let tag = sample.description.checked_sub(2).and_then(|n| self.track.other_video.get(n as usize)).map_or(self.track.tag, |(tag,_)| *tag);
+        if tag == b"png " {
+            return super::png_pixels::Raster::decode(&self.input[sample.offset..sample.offset + sample.size as usize], limit).map(Into::into);
+        }
+        decoder.picture(index, |n| {
+            let sample = &self.samples[n];
+            (sample.description, &self.input[sample.offset..sample.offset + sample.size as usize])
+        }, None)?.planes(limit)
+    }
+}
+
 fn render_track(
     input: &[u8],
     t: &Track<'_>,
     duration: Option<f64>,
     opts: super::y4m::Options<'_>,
     full_size: bool,
-    emit: impl FnMut(super::png_pixels::Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     if t.stats.count != 0 && t.original.avi().is_some_and(|a| a.width < 0) {return Err("Invalid H.264 pixel limit".into());}
     let (w, h) = (t.width as usize, t.height as usize);
@@ -2285,22 +2314,18 @@ fn render_track(
     }
     let samples: Vec<_> = t.samples(input.len()).collect();
     let scale = f64::from(t.scale);
-    let start = if opts.start == 0. && opts.end.is_none() {
-        0
-    } else {
-        t.origin.saturating_add((opts.start * scale).round() as u64)
-    };
+    let start = t.origin.saturating_add((opts.start * scale).round() as u64);
     let end = opts.end.map_or(u64::MAX, |s| {
         t.origin.saturating_add((s * scale).round() as u64)
     });
-    let range = if end <= start {
-        0..0
-    } else {
-        samples.partition_point(|s| s.dts.saturating_add(s.tick.into()) <= start)
-            ..samples.partition_point(|s| s.dts < end)
-    };
-    let first = range.start;
-    let count = range.len();
+    // Keep every packet available to the decoder, but only present samples
+    // admitted by the movie edit and requested output interval.
+    let visible: Vec<_> = samples.iter().enumerate().filter_map(|(i, s)| {
+        (end > start && !t.discarded_packet(s)
+            && s.dts.saturating_add(s.tick.into()) > start && s.dts < end).then_some(i)
+    }).collect();
+    let first = visible.first().copied().unwrap_or(0);
+    let count = visible.len();
     // Full decoded frames retain the source sample delay (including when a GIF caps the frame count).
     let sample_timing = full_size || duration.is_none() || !opts.filters.is_empty();
     let duration = duration.unwrap_or_default();
@@ -2310,7 +2335,7 @@ fn render_track(
     } else {
         1. / 30.
     };
-    let times = range.map(|i| {
+    let times = visible.iter().map(|&i| {
         let s = &samples[i];
         let tick = if sample_timing {
             s.dts
@@ -2327,7 +2352,7 @@ fn render_track(
     super::y4m::render_frames(
         w,
         h,
-        scale,
+        (scale, Some(t.frame_rate())),
         times,
         super::y4m::Options {
             start: 0.,
@@ -2335,21 +2360,21 @@ fn render_track(
             ..opts
         },
         |i| {
-            let sample = &samples[first + i];
+            let sample = &samples[visible[i]];
             let tag = sample.description.checked_sub(2).and_then(|n| t.other_video.get(n as usize)).map_or(t.tag, |(tag,_)| *tag);
             if tag == b"png " {
-                return super::png_pixels::Raster::decode(&input[sample.offset..sample.offset + sample.size as usize], limit);
+                return super::png_pixels::Raster::decode(&input[sample.offset..sample.offset + sample.size as usize], limit).map(Into::into);
             }
-            let promote = (opts.start > 0. || opts.end.is_some()).then_some(first);
+            let promote = (!sample_timing && (opts.start > 0. || opts.end.is_some())).then_some(first);
             let d = decoder.picture(
-                first + i,
+                visible[i],
                 |n| {
                     let s = &samples[n];
                     (s.description, &input[s.offset..s.offset + s.size as usize])
                 },
                 promote,
             )?;
-            d.image((w, h), sample_timing, limit)
+            if sample_timing { d.planes(limit) } else { d.image((w, h), false, limit).map(Into::into) }
         },
         emit,
     )?;

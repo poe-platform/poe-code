@@ -293,6 +293,15 @@ impl Document {
         Err("Missing APNG end chunk")
     }
 
+    pub fn frame_rate(&self) -> f64 {
+        // APNG's native demuxer reports timestamps on a 100 kHz clock.
+        // The default five-second duration probe starts after the first two
+        // packets used to establish the decoder parameters.
+        let end = self.frames.get(2).map_or(0, |f| f.pts).saturating_add(5_000_000);
+        let (num, den) = super::y4m::guess_rate(100000, || self.frames.iter().take_while(|f| f.pts < end).map(|f| (f.pts + 5) / 10));
+        num as f64 / den as f64
+    }
+
     pub fn seconds(&self, seek: InputTime) -> f64 {
         let total = self.ticks as f64 / 1000000. * seek.loops.saturating_add(1) as f64;
         (seek.end().unwrap_or(total).min(total) - seek.start.unwrap_or(0.).max(0.)).max(0.)

@@ -4820,7 +4820,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let mut fc_flag = String::new();
     let mut ar_opt: Option<u32> = None;
     let mut ac_opt: Option<u32> = None;
-    let (mut input_fps,mut output_fps)=(None,None);
+    let mut input_fps = None;
+    let mut vsync = None;
+    let mut video_sync_options = Vec::new();
     let mut ss_opt: Option<f64> = None;
     let mut to_opt: Option<f64> = None;
     let mut t_opt: Option<f64> = None;
@@ -4931,9 +4933,21 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
                 } else { ac_opt=value; }
                 i += 2;
             }
-            "-framerate" | "-r" if i + 1 < args.len() => {
-                let fps=args[i+1].parse::<f64>().ok().filter(|v|v.is_finite() && *v!=0.).unwrap_or(25.);
-                if args[i+2..].iter().any(|a|a=="-i"){input_fps=Some(fps);}else{output_fps=Some(fps);}
+            option if option == "-framerate" || option == "-r" || option.starts_with("-r:") => {
+                let Some(value) = args.get(i + 1) else { return err_out("ffmpeg: Missing frame rate value\n", 234); };
+                if args[i+2..].iter().any(|a|a=="-i") {
+                    input_fps = Some(match y4m::Sync::frame_rate(value) { Ok(rate) => rate, Err(e) => return err_out(&format!("ffmpeg: {e}\n"), 234) });
+                } else { video_sync_options.push((if option == "-framerate" { "-r" } else { option }, value.as_str())); }
+                i += 2;
+            }
+            option if option == "-fps_mode" || option.starts_with("-fps_mode:") => {
+                let Some(value) = args.get(i + 1) else { return err_out("ffmpeg: Missing fps_mode value\n", 234); };
+                video_sync_options.push((option, value.as_str()));
+                i += 2;
+            }
+            "-vsync" => {
+                let Some(value) = args.get(i + 1) else { return err_out("ffmpeg: Missing vsync value\n", 234); };
+                vsync = Some(match y4m::SyncMode::parse(value, true) { Ok(mode) => mode, Err(e) => return err_out(&format!("ffmpeg: {e}\n"), 234) });
                 i += 2;
             }
             "-ss" if i + 1 < args.len() => {
@@ -5105,7 +5119,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let end=to_opt.or_else(||t_opt.map(|t|start+t));
         let limit=fs.max_input_bytes();
         let mut remaining=limit;
-        let retain=(composition.is_some() || frame_output || !vf_flags.is_empty() || size_opt.is_some() || output_fps.is_some() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some(),audio_output || matches!(muxer,Some("wav"|"w64")) || audio_codec.is_some_and(|codec|codec.starts_with("pcm_")) || matches!(audio_codec,None|Some("aac")) && matches!(muxer,Some("mp4"|"mov"|"mkv"|"mpegts"|"flv")));
+        let retain=(composition.is_some() || frame_output || !vf_flags.is_empty() || size_opt.is_some() || !video_sync_options.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some(),audio_output || matches!(muxer,Some("wav"|"w64")) || audio_codec.is_some_and(|codec|codec.starts_with("pcm_")) || matches!(audio_codec,None|Some("aac")) && matches!(muxer,Some("mp4"|"mov"|"mkv"|"mpegts"|"flv")));
         for (i,path) in inputs.iter().enumerate(){
             input_reader.auto_convert=input_auto_convert[i];
             input_reader.safe=input_safe[i];
@@ -5244,15 +5258,18 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         }
         if (frame_output || movie_output && remux_inputs) && !video_copy {
             if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
-            if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
         }
+        let video_sync = (!video_copy && (frame_output || movie_output)
+            && (vsync.is_some() || (real_mp4 || format == Some("apng")) && !concat && composition.is_none()))
+            .then_some(y4m::Sync { mode: vsync.unwrap_or(y4m::SyncMode::Auto), rate: None });
         if concat && audio_copy && sources.iter().any(|s|matches!(s,MediaInput::Bytes("aiff",_))) {return err_out(&format!("ffmpeg: {}\n",mp4::mux::AUDIO_COPY_FILTER_ERROR),218);}
         let pixel_format=args.windows(2).rev().find(|p|p[0]=="-pix_fmt").map(|p|p[1].as_str());
         if still_input && exr::signature(bytes) && inputs.len()==1
             && (image_format==Some("exr") || muxer==Some("rawvideo") && pixel_format.is_none_or(|f|matches!(f,"grayf16le"|"grayf32le"|"gbrpf16le"|"gbrpf32le"|"gbrapf16le"|"gbrapf32le"))) {
             let single=image_format==Some("exr") && sequence.is_none() && output_format!=Some("image2pipe");
             let selected=if maps.is_empty(){true}else{match mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video"){Ok(v)=>!v.is_empty(),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}};
-            let opts=y4m::Options{filters:&vf_flags,frames:if single {Some(vframes_opt.unwrap_or(1).min(1))}else{vframes_opt},start,end,no_video:strip_video || !selected,limit};
+            let sync=match y4m::Sync::resolve(&video_sync_options,video_sync,muxer.unwrap_or(""),0,0,video_copy) {Ok(sync)=>sync,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),234)};
+            let opts=y4m::Options{sync, filters:&vf_flags,frames:if single {Some(vframes_opt.unwrap_or(1).min(1))}else{vframes_opt},start,end,no_video:strip_video || !selected,limit};
             let mut output=Vec::new();let mut total=0usize;let mut index=output_start;
             let result=exr::render_float(bytes,opts,input_times[0],if image_format==Some("exr"){Some("exr")}else{pixel_format},|data|{
                 if data.len()>limit.saturating_sub(total){return Err("output byte limit exceeded".into());}total+=data.len();
@@ -5275,7 +5292,8 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
                 let little=!pgm && pixel_format!=Some("gray16be");
                 let selected=if strip_video{false}else if maps.is_empty(){true}else{match mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video"){Ok(v)=>!v.is_empty(),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}};
                 let frames=if pgm && sequence.is_none() && output_format!=Some("image2pipe"){Some(vframes_opt.unwrap_or(1).min(1))}else{vframes_opt};
-                let opts=y4m::Options{filters:&vf_flags,frames,start,end,no_video:!selected,limit};
+                let sync=match y4m::Sync::resolve(&video_sync_options,video_sync,muxer.unwrap_or(""),0,0,video_copy) {Ok(sync)=>sync,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),234)};
+            let opts=y4m::Options{sync, filters:&vf_flags,frames,start,end,no_video:!selected,limit};
                 let mut output=Vec::new();let mut total=0usize;let mut index=output_start;
                 let result=ffmpeg_pnm::render_gray(bytes,opts,input_times[0],(pgm,wide,little),|data|{
                     if data.len()>limit.saturating_sub(total){return Err("output byte limit exceeded".into());}
@@ -5300,12 +5318,12 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let hls = (muxer == Some("hls")).then_some(Hls { fs, cwd, dir: &out_dir, time: hls_time, pattern: hls_pattern, fmp4: hls_fmp4 });
         let subtitle_decode = std::cell::RefCell::new((false, String::new()));
         if muxer==Some("aiff") {for (key,_) in &mut meta_tags {key.make_ascii_lowercase();}}
-        let mut remux=mp4::mux::Remux{block_size,trellis,mkv_crc,id3_version,write_id3,apng_plays,hls,composition,concat:concat.then_some(&mut decoded),audio_codec,video_codec,audio_bitrate,strip_metadata,chapter_input,disable_chpl,subtitle_codec,subtitle_language,bitexact,rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:&audio_filters,video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,input_seek:false,end,source_end:end,loop_duration:None,input_times:&input_times,input_paths:&inputs,audio_inputs:&audio_inputs,subtitle_rates:&subtitle_rates,subtitle_decode:Some(&subtitle_decode),frames:vframes_opt,format:output_container,fragmented,faststart,stdout,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+        let mut remux=mp4::mux::Remux{video_sync,video_sync_options:&video_sync_options, block_size,trellis,mkv_crc,id3_version,write_id3,apng_plays,hls,composition,concat:concat.then_some(&mut decoded),audio_codec,video_codec,audio_bitrate,strip_metadata,chapter_input,disable_chpl,subtitle_codec,subtitle_language,bitexact,rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:&audio_filters,video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,input_seek:false,end,source_end:end,loop_duration:None,input_times:&input_times,input_paths:&inputs,audio_inputs:&audio_inputs,subtitle_rates:&subtitle_rates,subtitle_decode:Some(&subtitle_decode),frames:vframes_opt,format:output_container,fragmented,faststart,stdout,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
         // Cutting a graph first materializes its decoded frames as AVC. Let the
         // packet slicer handle keyframes, partial samples, and edit lists.
         let graph_movie;
         let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
-            let opts=mp4::mux::Remux{hls:None,concat:remux.concat.as_deref_mut(),frames:None,audio_codec:Some("pcm_s16le"),format:"",fragmented:false,metadata:&[],audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
+            let opts=mp4::mux::Remux{video_sync:None,video_sync_options:&[],hls:None,concat:remux.concat.as_deref_mut(),frames:None,audio_codec:Some("pcm_s16le"),format:"",fragmented:false,metadata:&[],audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
             let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
             graph_movie=match mp4::mux::remux(&sources,opts,0,&mut Vec::new()){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
             remux.composition=None;
@@ -5322,10 +5340,11 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,&vf_flags,video_codec.filter(|c|*c=="png").map(|_|if format==Some("nut"){3}else{4}),gif_flags,(args.windows(2).rev().find(|p|p[0]=="-pix_fmt").map(|p|p[1].as_str()),bytes.starts_with(b"qoif") && bytes.get(13)==Some(&1),output_format==Some("image2pipe")),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && muxer!=Some("rawvideo") && !sequence{Some(vframes_opt.unwrap_or(1).min(1))}else{vframes_opt};
-                if inputs.len()>1 || muxer==Some("rawvideo") && !maps.is_empty() || sources[0].decoded().is_some() || remux.concat.is_some() || matches!(format,Some("nut"|"apng"|"ico"|"mpegts"|"avi"|"wav"|"w64"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if real_mp4 || inputs.len()>1 || muxer==Some("rawvideo") && !maps.is_empty() || sources[0].decoded().is_some() || remux.concat.is_some() || matches!(format,Some("nut"|"apng"|"ico"|"mpegts"|"avi"|"wav"|"w64"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
-                let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
+                let sync=y4m::Sync::resolve(&video_sync_options,video_sync,muxer.unwrap_or(""),0,0,video_copy)?;
+                let opts=y4m::Options {sync, filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
                 let input=&sources[0];
                 let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
                 if no_video {Ok((64,64,10))}
@@ -5346,12 +5365,12 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
                     else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
                     else{Ok((64,64,10))}
             });
-            match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),if e==lrc::NO_STREAM{234}else{1})}
+            match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),if e==lrc::NO_STREAM || e.starts_with("Invalid stream specifier") || e.starts_with("Invalid value specified for fps_mode") || e.starts_with("Invalid framerate") || e.contains("This is contradictory"){234}else{1})}
         } else if (movie_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"w64"|"ffmetadata"|"null"))) && remux_inputs {
             match mp4::mux::remux(sources,remux,0,&mut resources){Ok(b)=>Some(b),Err(e)=>{
                 let raw_copy_error=sources.iter().any(|s|matches!(s,MediaInput::Bytes("aiff",_))) && (e.contains("muxer supports only codec") || e=="QuickTime IMA stream copy requires AIFF output") && muxer.is_some_and(|f|ffmpeg_pcm::Format::parse(f).is_some());
                 if raw_copy_error && !stdout {if let Err(e)=fs.write_file(&out_full,&[]) {return err_out(&format!("ffmpeg: {e}\n"),1);}}
-                return err_out(&format!("ffmpeg: {e}\n"),if raw_copy_error {234}else if e=="Automatic encoder selection failed" || e.starts_with("Unknown encoder") {8}else if e==jacosub::HEADER_ERROR {244}else if e==sami::TIMESTAMP_ERROR {176}else if e=="Subtitle frame rate out of range" {222}else if e=="Invalid subtitle frame rate" {234}else if e=="Invalid data found when processing input" {183}else if e==mp4::mux::AUDIO_COPY_FILTER_ERROR || e==lrc::MATROSKA_CODEC_ERROR {218}else if e==ffmpeg_pcm::STREAMS_ERROR || e==lrc::NO_STREAM || e==lrc::COPY_WEBVTT || e==lrc::MUX_ERROR || e==lrc::DURATION_ERROR {234}else{1})}}
+                return err_out(&format!("ffmpeg: {e}\n"),if raw_copy_error || e.starts_with("Invalid stream specifier") || e.starts_with("Invalid value specified for fps_mode") || e.starts_with("Invalid framerate") || e.contains("This is contradictory") {234}else if e=="Automatic encoder selection failed" || e.starts_with("Unknown encoder") {8}else if e==jacosub::HEADER_ERROR {244}else if e==sami::TIMESTAMP_ERROR {176}else if e=="Subtitle frame rate out of range" {222}else if e=="Invalid subtitle frame rate" {234}else if e=="Invalid data found when processing input" {183}else if e==mp4::mux::AUDIO_COPY_FILTER_ERROR || e==lrc::MATROSKA_CODEC_ERROR {218}else if e==ffmpeg_pcm::STREAMS_ERROR || e==lrc::NO_STREAM || e==lrc::COPY_WEBVTT || e==lrc::MUX_ERROR || e==lrc::DURATION_ERROR {234}else{1})}}
         } else {None};
         if output.is_none() && sources.iter().any(|source| matches!(source, MediaInput::Bytes(format, _) if ffmpeg_pcm::Format::parse(format).is_some())) {
             return err_out("ffmpeg: Raw audio conversion to this output format is not supported\n",1);
@@ -5538,7 +5557,10 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     if let Some(ch) = ac_opt {
         doc.channels = ch;
     }
-    if let Some(fr) = output_fps {
+    let output_sync = match y4m::Sync::resolve(&video_sync_options,vsync.map(|mode|y4m::Sync{mode,rate:None}),"",0,0,false) {
+        Ok(sync)=>sync,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),234)
+    };
+    if let Some(fr) = output_sync.and_then(|sync|sync.rate) {
         doc.fps = fr.round() as u32;
         doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
     }
@@ -5811,6 +5833,11 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     let (raw_bytes, path_str) = if from_stdin {
         let bytes = match read_media_stdin(&mut stdin) { Ok(bytes) => bytes, Err(error) => return ffprobe_err(&error) };
         (bytes, "pipe:0".to_string())
+    } else if let Some(paths) = name.strip_prefix("concat:") {
+        match ffmpeg_input::concat_bytes(fs, cwd, paths, fs.max_input_bytes()) {
+            Ok(bytes) => (bytes, name.to_owned()),
+            Err(error) => return ffprobe_err(&error.message),
+        }
     } else {
         let full = resolve_posix_path(cwd, name);
         if fs.is_dir(&full) {
@@ -17016,6 +17043,200 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn apng_cadence_and_output_clocks_match_native_ffmpeg() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/apng-cadence.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}.apng"), &hex_dec(hex)).unwrap();
+        }
+        let args = |value: &JVal| match value { JVal::Array(values) => values.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect::<Vec<_>>(), _ => panic!("arguments") };
+        let probe = args(&fixture.iter().find(|(k, _)| k == "probe").unwrap().1);
+        let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+        let mut failures = Vec::new();
+        for case in cases {
+            let JVal::Object(fields) = case else { panic!("case") };
+            let field = |key| fields.iter().find(|(k, _)| k == key).map(|(_, v)| v);
+            let result = cmd_media_doc("ffmpeg", &args(field("args").unwrap()), "", "/", &fs);
+            if result.exit_code != 0 { failures.push(format!("{:?}: {}", field("name"), result.stderr)); continue; }
+            if let Some(JVal::Str(hex)) = field("hex") {
+                let actual = fs.read_file("/output.raw").unwrap();
+                if actual != hex_dec(hex) { failures.push(format!("{:?}: raw output differs ({} bytes, expected {})", field("name"), actual.len(), hex.len()/2)); }
+            } else if let Some(JVal::Str(rate)) = field("rate") {
+                let data = fs.read_file("/output.y4m").unwrap();
+                let end = data.iter().position(|b| *b == b'\n').unwrap() + 1;
+                let header = std::str::from_utf8(&data[..end]).unwrap();
+                let JVal::Number(frames, _) = field("frames").unwrap() else { panic!("frames") };
+                if header.split_ascii_whitespace().find(|s| s.starts_with('F')) != Some(rate) || data.len()-end != *frames as usize * 30 {
+                    failures.push(format!("{:?}: {}{} frames, expected {rate}, {frames} frames", field("name"), header, (data.len()-end)/30));
+                }
+            } else if let Some(JVal::Str(expected)) = field("stdout") {
+                let probe = field("probe").map_or_else(|| probe.clone(), args);
+                let actual = cmd_media_doc("ffprobe", &probe, "", "/", &fs);
+                if actual.exit_code != 0 || parse_json_stream(&actual.stdout).ok() != parse_json_stream(expected).ok() { failures.push(format!("{:?}: packet timing differs: {}", field("name"), actual.stdout)); }
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
+    #[test]
+    fn video_cadence_matches_native_modes_rates_and_output_timing() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-presentation-edits.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}"), &hex_dec(hex)).unwrap();
+        }
+        let mut failures = Vec::new();
+        for json in [include_str!("../../tests/fixtures/video-cadence.json"), include_str!("../../tests/fixtures/video-sync-options.json")] {
+            let JVal::Object(fixture) = parse_json_stream(json).unwrap().remove(0) else { panic!("fixture") };
+            let args = |value: &JVal| match value { JVal::Array(values) => values.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect::<Vec<_>>(), _ => panic!("arguments") };
+            let probe = args(&fixture.iter().find(|(k, _)| k == "probe").unwrap().1);
+            let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+            for case in cases {
+                let JVal::Object(fields) = case else { panic!("case") };
+                let field = |key| fields.iter().find(|(k, _)| k == key).map(|(_, v)| v);
+                let command = args(field("args").unwrap());
+                let result = cmd_media_doc("ffmpeg", &command, "", "/", &fs);
+                let JVal::Number(status, _) = field("exitCode").unwrap() else { panic!("status") };
+                if result.exit_code != *status as i32 { failures.push(format!("{:?}: exit {} expected {status}: {}", field("name"), result.exit_code, result.stderr)); continue; }
+                if let Some(JVal::Str(error)) = field("error") {
+                    if !result.stderr.contains(error) { failures.push(format!("{:?}: {}", field("name"), result.stderr)); }
+                } else if let Some(JVal::Str(hex)) = field("hex") {
+                    let actual = fs.read_file("/output.yuv").unwrap();
+                    let expected = hex_dec(hex);
+                    if actual != expected { failures.push(format!("{:?}: {} bytes expected {}; first difference {:?}", field("name"), actual.len(), expected.len(), actual.iter().zip(&expected).position(|(a,b)|a!=b))); }
+                } else if let Some(JVal::Str(expected)) = field("stdout") {
+                    let actual = cmd_media_doc("ffprobe", &probe, "", "/", &fs);
+                    if actual.exit_code != 0 || parse_json_stream(&actual.stdout).ok() != parse_json_stream(expected).ok() { failures.push(format!("{:?}: packet timing differs: {}", field("name"), actual.stdout)); }
+                }
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
+    #[test]
+    fn mp4_loop_encoding_preserves_native_visible_frames_and_timing() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-presentation-edits.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}"), &hex_dec(hex)).unwrap();
+        }
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-loop-encoding.json")).unwrap().remove(0) else { panic!("fixture") };
+        let args = |value: &JVal| match value { JVal::Array(values) => values.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect::<Vec<_>>(), _ => panic!("arguments") };
+        let probe = args(&fixture.iter().find(|(k, _)| k == "probe").unwrap().1);
+        let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+        for case in cases {
+            let JVal::Object(fields) = case else { panic!("case") };
+            let field = |key| &fields.iter().find(|(k, _)| k == key).unwrap().1;
+            let result = cmd_media_doc("ffmpeg", &args(field("args")), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{:?}: {}", field("name"), result.stderr);
+            let result = cmd_media_doc("ffprobe", &probe, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{:?}: {}", field("name"), result.stderr);
+            let JVal::Str(expected) = field("stdout") else { panic!("reference") };
+            assert_eq!(parse_json_stream(&result.stdout).unwrap(), parse_json_stream(expected).unwrap(), "{:?}", field("name"));
+        }
+    }
+
+    #[test]
+    fn mp4_raw_yuv_preserves_native_decoded_planes() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-presentation-edits.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}"), &hex_dec(hex)).unwrap();
+        }
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-yuv-planes.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+        for case in cases {
+            let JVal::Object(fields) = case else { panic!("case") };
+            let field = |key| &fields.iter().find(|(k, _)| k == key).unwrap().1;
+            let JVal::Array(args) = field("args") else { panic!("args") };
+            let args: Vec<_> = args.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect();
+            let JVal::Str(expected) = field("hex") else { panic!("reference") };
+            let result = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{:?}: {}", field("name"), result.stderr);
+            let actual = fs.read_file("/output.yuv").unwrap();
+            let expected = hex_dec(expected);
+            assert_eq!(actual.len(), expected.len(), "{:?}", field("name"));
+            assert!(actual == expected, "{:?}: first different byte {:?}", field("name"), actual.iter().zip(&expected).position(|(a,b)|a!=b));
+        }
+    }
+
+    #[test]
+    fn mp4_presentation_edits_exclude_preroll_from_decoding_and_frame_probes() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/mp4-presentation-edits.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}"), &hex_dec(hex)).unwrap();
+        }
+        for case in cases {
+            let JVal::Object(fields) = case else { panic!("case") };
+            let field = |key| &fields.iter().find(|(k, _)| k == key).unwrap().1;
+            let JVal::Array(args) = field("args") else { panic!("args") };
+            let args: Vec<_> = args.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect();
+            let JVal::Str(expected) = field("stdout") else { panic!("reference") };
+            let result = cmd_media_doc("ffprobe", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(parse_json_stream(&result.stdout).unwrap(), parse_json_stream(expected).unwrap());
+        }
+        for (file, frames) in [("aligned.mp4", 3), ("late.mp4", 2), ("tail.mp4", 2)] {
+            let result = cmd_media_doc("ffmpeg", &media_args(&["-y", "-i", file, "-pix_fmt", "yuv420p", "-f", "rawvideo", "decoded.yuv"]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(fs.read_file("/decoded.yuv").unwrap().len(), frames * 1152);
+            let result = cmd_media_doc("ffmpeg", &media_args(&["-y", "-i", file, "-vf", "null", "filtered.mp4"]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let probe = cmd_media_doc("ffprobe", &media_args(&["-show_entries", "stream=nb_frames", "-of", "csv=p=0", "filtered.mp4"]), "", "/", &fs);
+            assert_eq!(probe.stdout, format!("{frames}\n"));
+        }
+    }
+
+    #[test]
+    fn ffmpeg_input_seek_encodes_only_presented_video_frames() {
+        let fs = MemoryVfs::new();
+        let run = |command, args: &[&str]| {
+            let output = cmd_media_doc(command, &media_args(args), "", "/", &fs);
+            assert_eq!(output.exit_code, 0, "{}", output.stderr);
+            output.stdout
+        };
+        run("ffmpeg", &["-f", "lavfi", "-i", "testsrc=s=32x24:r=10:d=1", "-an", "full.mp4"]);
+        run("ffmpeg", &["-i", "full.mp4", "-vf", "null", "encoded.mp4"]);
+        run("ffmpeg", &["-i", "encoded.mp4", "-pix_fmt", "yuv420p", "-f", "rawvideo", "full.yuv"]);
+        let full = fs.read_file("/full.yuv").unwrap();
+        for (args, count, first) in [
+            (vec![], "3\n", 2),
+            (vec!["-frames:v", "1"], "1\n", 2),
+            (vec!["-ss", "0.1"], "2\n", 3),
+        ] {
+            let mut options = vec!["-y", "-ss", "0.2", "-t", "0.3", "-i", "full.mp4"];
+            options.extend(args);
+            options.push("trimmed.mp4");
+            run("ffmpeg", &options);
+            assert_eq!(run("ffprobe", &["-show_entries", "stream=nb_frames", "-of", "csv=p=0", "trimmed.mp4"]), count);
+            run("ffmpeg", &["-y", "-i", "trimmed.mp4", "-pix_fmt", "yuv420p", "-f", "rawvideo", "trimmed.yuv"]);
+            let frames = count.trim().parse::<usize>().unwrap();
+            let decoded = fs.read_file("/trimmed.yuv").unwrap();
+            assert_eq!(decoded.len(), frames * 1152);
+            assert!(decoded == full[first * 1152..(first + frames) * 1152], "encoded pixels for frame {first}");
+        }
+        run("ffmpeg", &["-ss", "0.2", "-t", "0.3", "-i", "full.mp4", "-c", "copy", "copied.mp4"]);
+        assert_eq!(run("ffprobe", &["-show_entries", "stream=nb_frames", "-of", "csv=p=0", "copied.mp4"]), "5\n");
+    }
+
+    #[test]
     fn ffmpeg_decodes_avc_without_configuration_and_rejects_bad_packets() {
         let fs = MemoryVfs::new();
         let original = include_bytes!("../../tests/fixtures/av.mp4");
@@ -17263,17 +17484,15 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn ffmpeg_concat_url_appends_real_sample_tables() {
+    fn ffmpeg_concat_url_demuxes_one_byte_stream() {
         let fs = MemoryVfs::new();
-        fs.write_file("/clip.mp4", include_bytes!("../../tests/fixtures/av.mp4"))
-            .unwrap();
-        let args = media_args(&["-i", "concat:clip.mp4|clip.mp4", "-c", "copy", "joined.mp4"]);
-        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        fs.write_file("/clip.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i","concat:clip.mp4|clip.mp4","-c","copy","joined.mp4"]);
+        let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "clip.mp4", "-c", "copy", "single.mp4"]), "", "/", &fs);
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
-        assert_eq!(
-            hex_enc(&sha256_bytes(&fs.read_file("/joined.mp4").unwrap())),
-            "b96c1863735f5a95b648bca022223bb2e3850cdcb44f42ecb75af9a426e4bf0b"
-        );
+        assert_eq!(fs.read_file("/joined.mp4").unwrap(), fs.read_file("/single.mp4").unwrap());
     }
 
     #[test]
@@ -17320,12 +17539,12 @@ mod media_unit_tests {
         // PCM hashes from the equivalent FFmpeg 7.0.2 concat filter graph.
         let fs = MemoryVfs::new();
         for args in [
-            media_args(&["-f", "lavfi", "-i", "sine=r=8000:d=0.2", "s.wav"]),
-            media_args(&["-f", "lavfi", "-i", "sine=r=12000:d=0.31", "t.wav"]),
-            media_args(&["-ss", ".1", "-i", "concat:s.wav|t.wav", "joined.wav"]),
+            media_args(&["-f","lavfi","-i","sine=r=8000:d=0.2","s.wav"]),
+            media_args(&["-f","lavfi","-i","sine=r=12000:d=0.31","t.wav"]),
+            media_args(&["-i","s.wav","-i","t.wav","-filter_complex","concat=n=2:v=0:a=1","-ss",".1","joined.wav"]),
         ] {
-            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
-            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
         }
         assert_eq!(
             hex_enc(&sha256_bytes(
@@ -18294,33 +18513,10 @@ mod media_unit_tests {
 
     #[test]
     fn ffmpeg_decodes_mp4_pcm_macroblocks_to_y4m() {
-        let fs = MemoryVfs::new();
-        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4"))
-            .unwrap();
-        let r = cmd_media_doc(
-            "ffmpeg",
-            &media_args(&["-i", "av.mp4", "-frames:v", "1", "-f", "y4m", "-"]),
-            "",
-            "/",
-            &fs,
-        );
-        let expected = [
-            &b"YUV4MPEG2 W6 H4 F1:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n"[..],
-            &[
-                116, 116, 116, 116, 117, 117, 116, 116, 117, 117, 118, 118, 117, 117, 118, 118,
-                119, 119, 118, 118, 119, 119, 120, 120, 86, 85, 84, 84, 84, 83, 191, 192, 194, 189,
-                190, 193,
-            ],
-        ]
-        .concat();
-        assert_eq!(
-            (
-                r.exit_code,
-                crate::vfs::stream_string_to_bytes(&r.stdout),
-                r.stderr
-            ),
-            (0, expected, String::new())
-        );
+        let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-frames:v","1","-f","y4m","-"]),"","/",&fs);
+        let expected=[&b"YUV4MPEG2 W6 H4 F4:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n"[..],&[116,116,116,116,117,117,116,116,117,117,118,118,117,117,118,118,119,119,118,118,119,119,120,120,86,85,84,84,84,83,191,192,194,189,190,193]].concat();
+        assert_eq!((r.exit_code,crate::vfs::stream_string_to_bytes(&r.stdout),r.stderr),(0,expected,String::new()));
     }
 
     #[test]
@@ -18908,56 +19104,24 @@ mod media_unit_tests {
             clip.extend(b"FRAME\n");
             clip.extend([y, 128, 128]);
         }
-        fs.write_file("/in", &clip).unwrap();
-        let args = media_args(&[
-            "-i",
-            "in",
-            "-vf",
-            "tile=2x1,hflip,tile=1x2,reverse",
-            "out.y4m",
-        ]);
-        assert_eq!(cmd_media_doc("ffmpeg", &args, "", "/", &fs).exit_code, 0);
-        let expected = [
-            b"YUV4MPEG2 W2 H2 F4:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n".as_slice(),
-            &[16, 110, 16, 16, 128, 128],
-            b"FRAME\n",
-            &[50, 30, 90, 70, 128, 128],
-        ]
-        .concat();
-        assert_eq!(fs.read_file("/out.y4m").unwrap(), expected);
+        fs.write_file("/in",&clip).unwrap();
+        let args=media_args(&["-i","in","-vf","tile=2x1,hflip,tile=1x2,reverse","out.y4m"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        let expected=[b"YUV4MPEG2 W2 H2 F1:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n".as_slice(),&[16,110,16,16,128,128],b"FRAME\n",&[50,30,90,70,128,128]].concat();
+        assert_eq!(fs.read_file("/out.y4m").unwrap(),expected);
     }
 
     #[test]
     fn ffmpeg_retains_frame_times_across_trims_and_rate_changes() {
         let fs = MemoryVfs::new();
         let mut clip = b"YUV4MPEG2 W1 H1 F4:1\n".to_vec();
-        for y in [30, 50, 70, 90, 110] {
-            clip.extend(b"FRAME\n");
-            clip.extend([y, 128, 128]);
-        }
-        fs.write_file("/in", &clip).unwrap();
-        for (args, rate, luma) in [
-            (vec!["-i", "in", "-r", "2.5"], "5:2", vec![30, 70, 90]),
-            (
-                vec!["-i", "in", "-vf", "setpts=PTS/2,fps=4"],
-                "4:1",
-                vec![50, 90],
-            ),
-            (
-                vec![
-                    "-i",
-                    "in",
-                    "-vf",
-                    "trim=start=0.2:duration=0.5,trim=start=0.47:end=0.6",
-                ],
-                "4:1",
-                vec![70],
-            ),
-            (
-                vec!["-r", "2.5", "-i", "in"],
-                "4:1",
-                vec![30, 50, 70, 90, 110],
-            ),
+        for y in [30,50,70,90,110]{ clip.extend(b"FRAME\n");clip.extend([y,128,128]); }
+        fs.write_file("/in",&clip).unwrap();
+        for (args,rate,luma) in [
+            (vec!["-i","in","-r","2.5"],"5:2",vec![30,50,70,90,110]),
+            (vec!["-i","in","-vf","setpts=PTS/2,fps=4"],"4:1",vec![50,90]),
+            (vec!["-i","in","-vf","trim=start=0.2:duration=0.5,trim=start=0.47:end=0.6"],"4:1",vec![70]),
+            (vec!["-r","2.5","-i","in"],"4:1",vec![30,50,70,90,110]),
         ] {
             let cmd = [&["-y"][..], args.as_slice(), &["o.y4m"]].concat();
             assert_eq!(
@@ -19777,49 +19941,13 @@ mod media_unit_tests {
             crate::vfs::stream_string_to_bytes(&r.stdout)
         };
         let head = b"YUV4MPEG2 W3 H1 F10:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n".as_slice();
-        assert_eq!(
-            run("color=c=red:s=3x1:r=10:d=0.2", &["-frames:v", "1"]),
-            [head, &[82, 82, 82, 90, 90, 240, 240]].concat()
-        );
-        assert_eq!(
-            run("color=c=red:s=3x1:r=10:d=0.2", &["-t", "0.1"]),
-            [head, &[82, 82, 82, 90, 90, 239, 239]].concat()
-        );
-        let sliced = run("smptebars=s=7x5:r=10:d=0.3", &["-t", "0.05"]);
-        assert_eq!(
-            sliced.strip_prefix(b"YUV4MPEG2 W7 H5 F20:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n"),
-            Some(
-                [
-                    180, 161, 131, 115, 84, 71, 35, 35, 180, 161, 131, 115, 84, 71, 35, 35, 180,
-                    161, 131, 115, 84, 71, 35, 35, 180, 161, 131, 115, 84, 71, 35, 35, 40, 40, 229,
-                    118, 108, 134, 175, 193, 118, 108, 128, 140, 212, 152, 132, 130, 73, 167, 158,
-                    137, 130, 73, 130, 203, 115, 111, 133
-                ]
-                .as_slice()
-            )
-        );
-        let head = b"YUV4MPEG2 W3 H3 F5:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n".as_slice();
-        assert_eq!(
-            run("smptebars=s=3x3:r=5:d=0.2", &[]),
-            [
-                head,
-                &[
-                    180, 131, 84, 180, 131, 84, 35, 84, 131, 142, 183, 197, 156, 86, 198, 157, 44
-                ]
-            ]
-            .concat()
-        );
-        assert_eq!(
-            run("testsrc=s=3x3:r=5:d=0.2", &["-vf", "hflip"]),
-            [
-                head,
-                &[
-                    126, 125, 125, 126, 125, 125, 126, 125, 125, 128, 128, 128, 128, 128, 128, 128,
-                    128
-                ]
-            ]
-            .concat()
-        );
+        assert_eq!(run("color=c=red:s=3x1:r=10:d=0.2",&["-frames:v","1"]),[head,&[82,82,82,90,90,240,240]].concat());
+        assert_eq!(run("color=c=red:s=3x1:r=10:d=0.2",&["-t","0.1"]),[head,&[82,82,82,90,90,239,239]].concat());
+        let sliced = run("smptebars=s=7x5:r=10:d=0.3",&["-t","0.05"]);
+        assert_eq!(sliced.strip_prefix(b"YUV4MPEG2 W7 H5 F10:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n"), Some([180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,40,40,229,118,108,134,175,193,118,108,128,140,212,152,132,130,73,167,158,137,130,73,130,203,115,111,133].as_slice()));
+        let head=b"YUV4MPEG2 W3 H3 F5:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\nFRAME\n".as_slice();
+        assert_eq!(run("smptebars=s=3x3:r=5:d=0.2",&[]),[head,&[180,131,84,180,131,84,35,84,131,142,183,197,156,86,198,157,44]].concat());
+        assert_eq!(run("testsrc=s=3x3:r=5:d=0.2",&["-vf","hflip"]),[head,&[126,125,125,126,125,125,126,125,125,128,128,128,128,128,128,128,128]].concat());
     }
 
     #[test]
@@ -20328,10 +20456,11 @@ mod media_unit_tests {
             "[out]",
             "o.mp4",
         ]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),
-            "57c3e96233829cd0dba612334c1a3667cb14e838173863f4d3aa63d19c431e65"
-        );
+        let probe = cmd_media_doc("ffprobe", &media_args(&["-show_entries", "stream=width,height,time_base,nb_frames", "-of", "csv=p=0", "o.mp4"]), "", "/", &fs);
+        assert_eq!((probe.exit_code, probe.stdout), (0, "8,6,1/16384,4\n".to_string()));
+        run(&["-i", "o.mp4", "-pix_fmt", "yuv420p", "-f", "rawvideo", "actual.yuv"]);
+        run(&["-i", "a.mp4", "-vf", "hflip", "-pix_fmt", "yuv420p", "-f", "rawvideo", "expected.yuv"]);
+        assert_eq!(fs.read_file("/actual.yuv").unwrap(), fs.read_file("/expected.yuv").unwrap());
     }
 
     #[test]
@@ -20443,23 +20572,16 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn ffmpeg_composes_raw_frames_from_a_concat_input() {
+    fn ffmpeg_composes_raw_frames_from_a_concat_manifest() {
         let fs = MemoryVfs::new();
+        fs.write_file("/list", b"ffconcat version 1.0\nfile a.y4m\nfile b.y4m\n").unwrap();
         for args in [
-            media_args(&["-f", "lavfi", "-i", "testsrc=s=6x4:r=3:d=1", "a.y4m"]),
-            media_args(&["-f", "lavfi", "-i", "color=c=red:s=6x4:r=3:d=0.7", "b.y4m"]),
-            media_args(&[
-                "-i",
-                "concat:a.y4m|b.y4m",
-                "-i",
-                "a.y4m",
-                "-filter_complex",
-                "hstack",
-                "stack.y4m",
-            ]),
+            media_args(&["-f","lavfi","-i","testsrc=s=6x4:r=3:d=1","a.y4m"]),
+            media_args(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]),
+            media_args(&["-i","list","-i","a.y4m","-filter_complex","hstack","stack.y4m"]),
         ] {
-            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
-            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
         }
         assert_eq!(
             hex_enc(&sha256_bytes(&fs.read_file("/stack.y4m").unwrap())),
@@ -20629,7 +20751,7 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn ffmpeg_reports_the_movie_tick_duration_of_a_partial_video_sample() {
+    fn ffmpeg_retains_the_output_clock_of_a_partial_video_sample() {
         let fs = MemoryVfs::new();
         let run = |args: &[&str]| {
             assert_eq!(
@@ -20656,11 +20778,7 @@ mod media_unit_tests {
             "0.05",
             "o.y4m",
         ]);
-        assert!(
-            fs.read_file("/o.y4m")
-                .unwrap()
-                .starts_with(b"YUV4MPEG2 W8 H6 F50:1 ")
-        );
+        assert!(fs.read_file("/o.y4m").unwrap().starts_with(b"YUV4MPEG2 W8 H6 F25:1 "));
     }
 
     #[test]
@@ -20717,86 +20835,29 @@ mod media_unit_tests {
             )
         };
         run(&["-f", "lavfi", "-i", "sine=r=8000:d=0.2", "s.wav"]);
-        run(&["-f", "lavfi", "-i", "sine=r=12000:d=0.31", "s2.wav"]);
-        run(&["-i", "s2.wav", "-ac", "2", "s3.wav"]);
-        run(&[
-            "-i",
-            "s.wav",
-            "-i",
-            "s3.wav",
-            "-filter_complex",
-            "concat=n=2",
-            "o.wav",
-        ]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(
-                ffmpeg_wave::Wave::read(&fs.read_file("/o.wav").unwrap())
-                    .unwrap()
-                    .data
-            )),
-            "ab980e7fcc7577872e7586c54583ad06178ab6bcfa59e0c30c0dde55b365ef19"
-        );
+        run(&["-f","lavfi","-i","sine=r=12000:d=0.31","s2.wav"]);
+        run(&["-i","s2.wav","-ac","2","s3.wav"]);
+        run(&["-i","s.wav","-i","s3.wav","-filter_complex","concat=n=2","o.wav"]);
+        assert_eq!(hex_enc(&sha256_bytes(ffmpeg_wave::Wave::read(&fs.read_file("/o.wav").unwrap()).unwrap().data)), "5d0ec38776daecae3a4268ca7e260bcb6b256008011307c8fee5f94e40de2e45");
         let source = fs.read_file("/s.wav").unwrap();
         let output = fs.read_file("/o.wav").unwrap();
         let original = ffmpeg_wave::Wave::read(&source).unwrap().data;
-        assert_eq!(
-            &ffmpeg_wave::Wave::read(&output).unwrap().data[..original.len()],
-            original
-        );
-        run(&[
-            "-i",
-            "concat:s.wav|s2.wav",
-            "-i",
-            "s.wav",
-            "-filter_complex",
-            "concat=n=2",
-            "nested.wav",
-        ]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(
-                ffmpeg_wave::Wave::read(&fs.read_file("/nested.wav").unwrap())
-                    .unwrap()
-                    .data
-            )),
-            "5ee16f2abd86349b740918b94d378ea79785db5f84f55282350baed083481d4f"
-        );
-        run(&["-i", "nested.wav", "-c:a", "copy", "nested.mp4"]);
-        run(&["-i", "nested.mp4", "-f", "s16le", "decoded"]);
+        assert_eq!(&ffmpeg_wave::Wave::read(&output).unwrap().data[..original.len()], original);
+        run(&["-i","s.wav","-i","s2.wav","-filter_complex","concat=n=2:v=0:a=1","pair.wav"]);
+        run(&["-i","pair.wav","-i","s.wav","-filter_complex","concat=n=2","nested.wav"]);
+        assert_eq!(hex_enc(&sha256_bytes(ffmpeg_wave::Wave::read(&fs.read_file("/nested.wav").unwrap()).unwrap().data)), "5ee16f2abd86349b740918b94d378ea79785db5f84f55282350baed083481d4f");
+        run(&["-i","nested.wav","-c:a","copy","nested.mp4"]);
+        run(&["-i","nested.mp4","-f","s16le","decoded"]);
         assert_eq!(
             hex_enc(&sha256_bytes(&fs.read_file("/decoded").unwrap())),
             "5ee16f2abd86349b740918b94d378ea79785db5f84f55282350baed083481d4f"
         );
-        let probe = cmd_media_doc(
-            "ffprobe",
-            &media_args(&[
-                "-show_entries",
-                "stream=sample_rate,channels,duration_ts",
-                "-of",
-                "csv=p=0",
-                "nested.mp4",
-            ]),
-            "",
-            "/",
-            &fs,
-        );
-        assert_eq!(probe.exit_code, 0, "{}", probe.stderr);
-        assert_eq!(probe.stdout, "8000,1,5680\n");
-        run(&[
-            "-i",
-            "concat:s.wav|s2.wav",
-            "-i",
-            "s.wav",
-            "-filter_complex",
-            "concat=n=2:v=0:a=1",
-            "-c:a",
-            "pcm_s16le",
-            "direct.mp4",
-        ]);
-        run(&["-y", "-i", "direct.mp4", "-f", "s16le", "decoded"]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(&fs.read_file("/decoded").unwrap())),
-            "5ee16f2abd86349b740918b94d378ea79785db5f84f55282350baed083481d4f"
-        );
+        let probe=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=sample_rate,channels,duration_ts","-of","csv=p=0","nested.mp4"]),"","/",&fs);
+        assert_eq!(probe.exit_code,0,"{}",probe.stderr);
+        assert_eq!(probe.stdout,"8000,1,5680\n");
+        run(&["-i","pair.wav","-i","s.wav","-filter_complex","concat=n=2:v=0:a=1","-c:a","pcm_s16le","direct.mp4"]);
+        run(&["-y","-i","direct.mp4","-f","s16le","decoded"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/decoded").unwrap())), "5ee16f2abd86349b740918b94d378ea79785db5f84f55282350baed083481d4f");
     }
 
     #[test]
@@ -20847,27 +20908,28 @@ mod media_unit_tests {
                 0
             )
         };
-        run(&["-f", "lavfi", "-i", "testsrc=s=8x6:r=4:d=1", "a.mp4"]);
-        run(&["-f", "lavfi", "-i", "color=c=blue:s=6x4:r=3:d=0.7", "b.mp4"]);
-        run(&[
-            "-i",
-            "a.mp4",
-            "-i",
-            "b.mp4",
-            "-filter_complex",
-            "concat=n=2",
-            "movie.mp4",
-        ]);
-        run(&["-i", "movie.mp4", "o.y4m"]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())),
-            "616b1c42f05f250f5669ecac03e2018a38a20b7c9f67413b41ce90d62cf244b4"
-        );
-        run(&["-i", "movie.mp4", "-ss", "1.1", "-t", "0.4", "o.png"]);
-        assert_eq!(
-            hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),
-            "19757f7dd1c5893afb803288081f5da8dc1e1e549b369c3a6bf6e2a08fd354fd"
-        );
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=blue:s=6x4:r=3:d=0.7","b.mp4"]);
+        run(&["-i","a.mp4","-i","b.mp4","-filter_complex","concat=n=2","movie.mp4"]);
+        // Native FFmpeg selects the 4 FPS codec clock, yielding seven CFR
+        // frames from six variable-duration packets (six in passthrough mode).
+        for (options, count, hash) in [
+            (vec![], 7, "6f9ad9a5029307c32cc99af0122d443c2cf53a3a2a0c3c7ac0fd0ef7227afb7d"),
+            (vec!["-fps_mode", "passthrough"], 6, "616b1c42f05f250f5669ecac03e2018a38a20b7c9f67413b41ce90d62cf244b4"),
+        ] {
+            run(&[&["-y", "-i", "movie.mp4"][..], &options, &["o.y4m"]].concat());
+            let bytes = fs.read_file("/o.y4m").unwrap();
+            let stream = y4m::Stream::parse(&bytes).unwrap();
+            assert_eq!((stream.fps, stream.frames().count()), (4., count));
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)), hash);
+        }
+        run(&["-i","movie.mp4","-ss","1.1","-t","0.4","o.png"]);
+        let bytes = fs.read_file("/o.png").unwrap();
+        let image = png_pixels::Raster::decode(&bytes, fs.max_input_bytes()).unwrap();
+        // Native seeking uses the second sample description's 6x4 geometry.
+        assert_eq!((image.width, image.height), (6, 4));
+        // Keep the existing portable RGB rounding (native swscale emits 254).
+        assert_eq!(image.pixels, vec![[0, 0, 255, 255]; 24]);
     }
 
     #[test]

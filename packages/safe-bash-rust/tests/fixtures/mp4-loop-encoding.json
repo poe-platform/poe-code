@@ -1,0 +1,364 @@
+{
+  "reference": "FFmpeg/FFprobe 7.0.2; inputs from mp4-presentation-edits.json; passthrough packet timing and stored frame counts",
+  "probe": [
+    "-v",
+    "error",
+    "-show_entries",
+    "packet=pts_time,duration_time:stream=duration,nb_frames",
+    "-of",
+    "json",
+    "output.mp4"
+  ],
+  "cases": [
+    {
+      "name": "aligned.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.300000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"6\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "late.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "late.mp4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.900000\"\n        },\n        {\n            \"pts_time\": \"1.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"1.100000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"1.200000\",\n            \"nb_frames\": \"4\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "tail.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "tail.mp4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.400000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.700000\",\n            \"nb_frames\": \"4\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "input seek",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-ss",
+        "0.1",
+        "-i",
+        "aligned.mp4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.300000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.700000\",\n            \"nb_frames\": \"5\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "output seek",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-ss",
+        "0.5",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.300000\",\n            \"nb_frames\": \"3\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "frame limit",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-frames:v",
+        "4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.300000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.600000\",\n            \"nb_frames\": \"4\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "flip",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-vf",
+        "hflip",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.300000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"6\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy aligned.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"10\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy fractional.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "fractional.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.150000\"\n        },\n        {\n            \"pts_time\": \"0.350000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.450000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.550000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.650000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.750000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.850000\",\n            \"duration_time\": \"0.150000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"1.000000\",\n            \"nb_frames\": \"12\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy late.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "late.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.800000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.700000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.800000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.900000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"1.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"1.100000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"1.200000\",\n            \"nb_frames\": \"20\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy tail.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "tail.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"10\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "fractional.mp4",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "fractional.mp4",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.500000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.800000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.900000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"1.000000\",\n            \"nb_frames\": \"6\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "fps",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-vf",
+        "fps=20",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.050000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.150000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.250000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.350000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.450000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.550000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.650000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.050000\"\n        },\n        {\n            \"pts_time\": \"0.750000\",\n            \"duration_time\": \"0.050000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"16\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "reverse",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "1",
+        "-i",
+        "aligned.mp4",
+        "-vf",
+        "reverse",
+        "-fps_mode",
+        "passthrough",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.300000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.800000\",\n            \"nb_frames\": \"6\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy input seek",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "2",
+        "-ss",
+        "0.1",
+        "-i",
+        "aligned.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.700000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.800000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.900000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"1.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"1.100000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"1.200000\",\n            \"nb_frames\": \"15\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy input duration",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "2",
+        "-t",
+        "0.65",
+        "-i",
+        "aligned.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.700000\",\n            \"nb_frames\": \"9\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy input seek and duration",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "2",
+        "-ss",
+        "0.1",
+        "-t",
+        "0.65",
+        "-i",
+        "aligned.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.400000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.500000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.600000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.700000\",\n            \"nb_frames\": \"10\"\n        }\n    ]\n}\n"
+    },
+    {
+      "name": "copy fractional duration",
+      "args": [
+        "-v",
+        "error",
+        "-y",
+        "-stream_loop",
+        "2",
+        "-t",
+        "0.65",
+        "-i",
+        "fractional.mp4",
+        "-c",
+        "copy",
+        "output.mp4"
+      ],
+      "stdout": "{\n    \"packets\": [\n        {\n            \"pts_time\": \"-0.300000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.200000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"-0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.000000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.100000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.200000\",\n            \"duration_time\": \"0.150000\"\n        },\n        {\n            \"pts_time\": \"0.350000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.450000\",\n            \"duration_time\": \"0.100000\"\n        },\n        {\n            \"pts_time\": \"0.550000\",\n            \"duration_time\": \"0.100000\"\n        }\n    ],\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"duration\": \"0.650000\",\n            \"nb_frames\": \"9\"\n        }\n    ]\n}\n"
+    }
+  ]
+}

@@ -18192,6 +18192,160 @@ import "./sed-output-order.wasm.test.mjs";
 import "./webdav-cd.wasm.test.mjs";
 
 
+test("APNG cadence and output clocks match native FFmpeg", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {inputs, cases, probe} = JSON.parse(await readFile(new URL("../tests/fixtures/apng-cadence.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const [name, hex] of Object.entries(inputs)) await bash.fs.writeFile("/" + name + ".apng", Buffer.from(hex, "hex"));
+    for (const entry of cases) {
+      const result = await bash.exec("ffmpeg " + entry.args.map(quote).join(" "));
+      assert.equal(result.exitCode, 0, `${entry.name}: ${result.stderr}`);
+      if (entry.hex !== undefined) assert.deepEqual(Buffer.from(await bash.fs.readFile("/output.raw")), Buffer.from(entry.hex, "hex"), entry.name);
+      else if (entry.rate) {
+        const data = Buffer.from(await bash.fs.readFile("/output.y4m"));
+        const end = data.indexOf(10) + 1;
+        assert.equal(data.subarray(0, end).toString().split(" ").find(word => word.startsWith("F")), entry.rate, entry.name);
+        assert.equal(data.length - end, entry.frames * 30, entry.name);
+      } else {
+        const actual = await bash.exec("ffprobe " + (entry.probe ?? probe).map(quote).join(" "));
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(entry.stdout), entry.name);
+      }
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("video cadence matches native modes, rates and output timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const inputs = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-presentation-edits.json", import.meta.url), "utf8")).inputs;
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const [name, hex] of Object.entries(inputs)) await bash.fs.writeFile("/" + name, Buffer.from(hex, "hex"));
+    for (const fixture of ["video-cadence.json", "video-sync-options.json"]) {
+      const {cases, probe} = JSON.parse(await readFile(new URL("../tests/fixtures/" + fixture, import.meta.url), "utf8"));
+      for (const entry of cases) {
+        const result = await bash.exec("ffmpeg " + entry.args.map(quote).join(" "));
+        assert.equal(result.exitCode, entry.exitCode, `${entry.name}: ${result.stderr}`);
+        if (entry.error) assert.ok(result.stderr.includes(entry.error), `${entry.name}: ${result.stderr}`);
+        else if (entry.hex !== undefined) {
+          const actual = Buffer.from(await bash.fs.readFile("/output.yuv"));
+          const expected = Buffer.from(entry.hex, "hex");
+          assert.equal(actual.length, expected.length, entry.name);
+          assert.ok(actual.equals(expected), `${entry.name}: first different byte ${actual.findIndex((value, i) => value !== expected[i])}`);
+        } else {
+          const actual = await bash.exec("ffprobe " + probe.map(quote).join(" "));
+          assert.equal(actual.exitCode, 0, actual.stderr);
+          assert.deepEqual(JSON.parse(actual.stdout), JSON.parse(entry.stdout), entry.name);
+        }
+      }
+    }
+    const generated = await bash.exec("ffmpeg -f lavfi -i testsrc=s=8x6:r=4:d=1 a.mp4 && ffmpeg -f lavfi -i color=c=blue:s=6x4:r=3:d=0.7 b.mp4 && ffmpeg -i a.mp4 -i b.mp4 -filter_complex concat=n=2 mixed.mp4");
+    assert.equal(generated.exitCode, 0, generated.stderr);
+    for (const [mode, frames] of [["", 7], ["-fps_mode passthrough", 6]]) {
+      const result = await bash.exec(`ffmpeg -y -i mixed.mp4 ${mode} mixed.y4m`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const bytes = Buffer.from(await bash.fs.readFile("/mixed.y4m"));
+      const end = bytes.indexOf(10) + 1;
+      assert.match(bytes.subarray(0, end).toString(), / F4:1 /);
+      assert.equal(bytes.length - end, frames * (6 + 8 * 6 * 3 / 2));
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("MP4 loops encode native visible frames and packet timing", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const inputs = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-presentation-edits.json", import.meta.url), "utf8")).inputs;
+  const {cases, probe} = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-loop-encoding.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const run = async (command, args) => {
+    const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+    const result = await bash.exec(command + " " + args.map(quote).join(" "));
+    assert.equal(result.exitCode, 0, result.stderr);
+    return result.stdout;
+  };
+  try {
+    for (const [name, hex] of Object.entries(inputs)) await bash.fs.writeFile("/" + name, Buffer.from(hex, "hex"));
+    for (const entry of cases) {
+      await run("ffmpeg", entry.args);
+      assert.deepEqual(JSON.parse(await run("ffprobe", probe)), JSON.parse(entry.stdout), entry.name);
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("MP4 raw YUV preserves native decoded planes", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const inputs = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-presentation-edits.json", import.meta.url), "utf8")).inputs;
+  const {cases} = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-yuv-planes.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  try {
+    for (const [name, hex] of Object.entries(inputs)) await bash.fs.writeFile("/" + name, Buffer.from(hex, "hex"));
+    for (const entry of cases) {
+      const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+      const result = await bash.exec("ffmpeg " + entry.args.map(quote).join(" "));
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = Buffer.from(await bash.fs.readFile("/output.yuv"));
+      const expected = Buffer.from(entry.hex, "hex");
+      assert.equal(actual.length, expected.length, entry.name);
+      assert.ok(actual.equals(expected), `${entry.name}: first different byte ${actual.findIndex((value, i) => value !== expected[i])}`);
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("MP4 presentation edits exclude preroll from decoding and frame probes", async () => {
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const run = async command => {
+    const result = await bash.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    return result.stdout;
+  };
+  try {
+    const {readFile} = await import("node:fs/promises");
+    const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/mp4-presentation-edits.json", import.meta.url), "utf8"));
+    for (const [name, hex] of Object.entries(fixture.inputs)) await bash.fs.writeFile("/" + name, Buffer.from(hex, "hex"));
+    for (const entry of fixture.cases) {
+      const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+      assert.deepEqual(JSON.parse(await run("ffprobe " + entry.args.map(quote).join(" "))), JSON.parse(entry.stdout), entry.name);
+    }
+    await run("ffmpeg -f lavfi -i testsrc=s=32x24:r=10:d=1 -an full.mp4");
+    await run("ffmpeg -i full.mp4 -pix_fmt yuv420p -f rawvideo full.yuv");
+    const full = Buffer.from(await bash.fs.readFile("/full.yuv"));
+    await run("ffmpeg -ss 0.2 -t 0.3 -i full.mp4 -c copy copied.mp4");
+    assert.equal(await run("ffprobe -count_frames -count_packets -show_entries stream=nb_frames,nb_read_frames,nb_read_packets -of csv=p=0 copied.mp4"), "5,3,5\n");
+    await run("ffmpeg -i copied.mp4 -pix_fmt yuv420p -f rawvideo decoded.yuv");
+    assert.deepEqual(Buffer.from(await bash.fs.readFile("/decoded.yuv")), full.subarray(2 * 1152, 5 * 1152));
+    await run("ffmpeg -i copied.mp4 -frames:v 1 -pix_fmt yuv420p -f rawvideo first.yuv");
+    assert.deepEqual(Buffer.from(await bash.fs.readFile("/first.yuv")), full.subarray(2 * 1152, 3 * 1152));
+    await run("ffmpeg -i copied.mp4 -vf null filtered.mp4");
+    assert.equal(await run("ffprobe -show_entries stream=nb_frames -of csv=p=0 filtered.mp4"), "3\n");
+  } finally { await bash.dispose(); }
+});
+
+test("ffmpeg input seeking discards decoded preroll when encoding video", async () => {
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const run = async command => {
+    const result = await bash.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    return result.stdout;
+  };
+  try {
+    await run("ffmpeg -f lavfi -i testsrc=s=32x24:r=10:d=1 -an full.mp4");
+    await run("ffmpeg -i full.mp4 -vf null encoded.mp4");
+    await run("ffmpeg -i encoded.mp4 -pix_fmt yuv420p -f rawvideo full.yuv");
+    const full = Buffer.from(await bash.fs.readFile("/full.yuv"));
+    for (const [options, count, first] of [["", 3, 2], ["-frames:v 1", 1, 2], ["-ss 0.1", 2, 3]]) {
+      await run(`ffmpeg -y -ss 0.2 -t 0.3 -i full.mp4 ${options} -metadata title='Trimmed Clip' trimmed.mp4`);
+      assert.equal(await run("ffprobe -show_entries stream=nb_frames -of csv=p=0 trimmed.mp4"), `${count}\n`);
+      await run("ffmpeg -y -i trimmed.mp4 -pix_fmt yuv420p -f rawvideo trimmed.yuv");
+      assert.deepEqual(Buffer.from(await bash.fs.readFile("/trimmed.yuv")), full.subarray(first * 1152, (first + count) * 1152));
+    }
+    await run("ffmpeg -ss 0.2 -t 0.3 -i full.mp4 -c copy copied.mp4");
+    assert.equal(await run("ffprobe -show_entries stream=nb_frames -of csv=p=0 copied.mp4"), "5\n");
+  } finally { await bash.dispose(); }
+});
+
 test("ssconvert document exporters and filename routing work through public Wasm", async () => {
   const bash = new RustWasmBash({cwd:"/", forceNative:true});
   try {
@@ -18357,7 +18511,6 @@ test("ssconvert text export encoding match production through public Wasm", asyn
     }
   } finally { await bash.dispose(); }
 });
-
 
 for (const [feature, fixture] of [["inference", "text"], ["decoding", "decoding"], ["selection", "importers"], ["DIF", "dif"], ["SYLK", "sylk"], ["SYLK export", "sylk-export"], ["Gnumeric XML export", "gnumeric-export"], ["Gnumeric XML import", "gnumeric-import"], ["Gnumeric styles", "gnumeric-styles"], ["ODS style regions", "ods-regions"], ["XLSX style regions", "xlsx-regions"], ["XLSX validation", "xlsx-validation"], ["XLSX conditional formatting", "xlsx-conditional"], ["XLSX page breaks", "xlsx-breaks"], ["XLSX print settings", "xlsx-print"], ["XLSX worksheet views", "xlsx-view"], ["XLSX worksheet format", "xlsx-format"], ["XLSX defined names", "xlsx-names"], ["XLSX calculation settings", "xlsx-calculation"], ["XLSX document properties", "xlsx-properties"], ["Gnumeric document properties", "gnumeric-properties"], ["numeric spellings", "numbers"], ["ODS Gnumeric print", "ods-gnumeric-print"], ["ODS print numbers", "ods-print-numbers"], ["ODS label ranges", "ods-label-ranges"], ["ODS label formulas", "ods-label-formulas"], ["ODS legacy Calc labels", "ods-legacy-labels"], ["label references", "label-references"], ["explicit label data ranges", "radical-labels"], ["live names", "live-names"], ["explicit global names", "global-names"], ["name import order", "name-import-order"], ["name scope order", "name-scope-order"], ["sheet construction", "sheet-construction"], ["name rejection groups", "name-rejection-groups"]])
 test(`ssconvert text import ${feature} matches production through public Wasm`, async () => {
@@ -19568,9 +19721,16 @@ test("Wave64 bounds chunk reads and rejects malformed headers", async () => {
     assert.equal((await bash.exec("ffmpeg -i pipe.w64 rejected.wav")).exitCode, 1);
     await bash.fs.writeFile("/short.w64", input.subarray(0, 17));
     assert.equal((await bash.exec("ffprobe short.w64")).exitCode, 1);
-    const limited = await bash.exec("ffmpeg -y -i input.w64 -ar 48000 too-large.w64", {limits: {maxInputBytes: input.length}});
+    // Native FFmpeg produces no samples when this 12-frame input cannot fill
+    // the resampler delay; its 104-byte Wave64 header fits the input budget.
+    const short = await bash.exec("ffmpeg -y -i input.w64 -ar 48000 short-resampled.w64", {limits: {maxInputBytes: input.length}});
+    assert.equal(short.exitCode, 0, short.stderr);
+    assert.equal((await bash.fs.readFile("/short-resampled.w64")).length, 104);
+    const longer = Buffer.from(fixture.cases[6].input, "hex");
+    await bash.fs.writeFile("/longer.w64", longer);
+    const limited = await bash.exec("ffmpeg -y -i longer.w64 -ar 384000 too-large.w64", {limits: {maxInputBytes: longer.length}});
     assert.equal(limited.exitCode, 1);
-    assert.match(limited.stderr, /audio output exceeds memory budget/);
+    assert.match(limited.stderr, /budget/);
     await assert.rejects(bash.fs.stat("/too-large.w64"), {code: "ENOENT"});
   } finally { bash.dispose(); }
 });
@@ -21491,7 +21651,7 @@ test("APNG native pixels and memory limits work through Wasm", async () => {
   try {
     for (const sample of fixture.nativePixels) {
       await bash.fs.writeFile("/input.apng", Buffer.from(fixture.inputs[sample.input], "hex"));
-      const result = await bash.exec("ffmpeg -y -i input.apng -c:v png frame-%03d.png");
+      const result = await bash.exec("ffmpeg -y -i input.apng -fps_mode passthrough -c:v png frame-%03d.png");
       assert.equal(result.exitCode, 0, result.stderr);
       const pixels=[];
       for(let i=1;;i++) {
@@ -25628,4 +25788,30 @@ test("Subtitle probes match native metadata packets and frames", async () => {
     assert.equal(Buffer.from(await sh.fs.readFile('/basic.srt')).toString('hex'),fixture.inputs['basic.srt']);
     assert.deepEqual(failures,[]);
   }finally{sh.dispose();}
+});
+
+test("concat byte streams and cropped video dimensions match native through public Wasm", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {createHash} = await import("node:crypto");
+  const fixture = JSON.parse(await readFile(new URL("../tests/fixtures/media-concat-protocol.json", import.meta.url), "utf8"));
+  const sh = new RustWasmBash({cwd:fixture.cwd, forceNative:true});
+  try {
+    for (const [name, hex] of Object.entries(fixture.inputs)) await sh.fs.writeFile(`${fixture.cwd}/${name}`, Buffer.from(hex, "hex"));
+    for (const c of fixture.cases) {
+      const command = [c.command, ...c.args].map(s => "'" + s.replaceAll("'", "'\\''") + "'").join(" ");
+      const result = await sh.exec(command);
+      assert.equal(result.exitCode, 0, command + ": " + result.stderr);
+      assert.equal(result.stdout, c.stdout, command);
+      if (c.sha256) assert.equal(createHash("sha256").update(await sh.fs.readFile(`${fixture.cwd}/output`)).digest("hex"), c.sha256, command);
+    }
+    for (const input of ["concat:", "concat:whole.wav|missing"]) {
+      await sh.fs.writeFile(`${fixture.cwd}/output`, "keep");
+      const result = await sh.exec(`ffmpeg -y -i '${input}' -f wav output`);
+      assert.notEqual(result.exitCode, 0, input);
+      assert.equal(sh.readText(`${fixture.cwd}/output`), "keep", input);
+      const probe = await sh.exec(`ffprobe -show_streams '${input}'`);
+      assert.notEqual(probe.exitCode, 0, input);
+      assert.equal(probe.stdout, "", input);
+    }
+  } finally { await sh.dispose(); }
 });

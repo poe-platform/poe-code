@@ -93,7 +93,7 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         ].join("\n"),
       );
       assert.equal(res.exitCode, 0, res.stderr);
-      assert.equal(res.stdout, "demux=7 proto=7\n");
+      assert.equal(res.stdout, "demux=7 proto=3\n");
     });
   });
 
@@ -114,7 +114,7 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
     });
   });
 
-  test("8. ffmpeg converts SubRip (.srt) subtitles to WebVTT and rejects unregistered ASS output", async () => {
+  test("8. ffmpeg converts SubRip (.srt) subtitles to WebVTT and ASS", async () => {
     const srt = [
       "1",
       "00:00:00,000 --> 00:00:01,500",
@@ -138,8 +138,9 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         );
         assert.equal(res.exitCode, 0, res.stderr);
         assert.equal(res.stdout, "WEBVTT\n1\n");
-        await h.expectFail("ffmpeg -i /workspace/subs.srt /workspace/subs.ass", 1, /format AST not registered/);
-        await h.expectFail("test -e /workspace/subs.ass", 1);
+        const ass = await h.exec("ffmpeg -i /workspace/subs.srt /workspace/subs.ass && ffmpeg -i /workspace/subs.ass /workspace/roundtrip.srt && grep -c Safe-Bash /workspace/roundtrip.srt");
+        assert.equal(ass.exitCode, 0, ass.stderr);
+        assert.equal(ass.stdout, "1\n");
       },
     );
   });
@@ -220,7 +221,7 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
     });
   });
 
-  test("12. ffmpeg resamples and downmixes WAV audio and rejects unregistered containers", async () => {
+  test("12. ffmpeg resamples and downmixes WAV audio and exports AIFF, AU, and CAF", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(
         [
@@ -235,8 +236,9 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         '{"sr":16000,"ch":1}\n',
       );
       for (const extension of ["aiff", "au", "caf"]) {
-        await h.expectFail(`ffmpeg -i /workspace/mono16k.wav /workspace/out.${extension}`, 1, /format AST not registered/);
-        await h.expectFail(`test -e /workspace/out.${extension}`, 1);
+        const converted = await h.exec(`ffmpeg -i /workspace/mono16k.wav /workspace/out.${extension} && ffprobe -v quiet -show_entries stream=sample_rate,channels -of csv=p=0 /workspace/out.${extension}`);
+        assert.equal(converted.exitCode, 0, converted.stderr);
+        assert.equal(converted.stdout, "16000,1\n");
       }
     });
   });
@@ -296,11 +298,11 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         [
           "ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /workspace/probe.mp4",
           "ffprobe -v quiet -of flat -show_streams /workspace/probe.mp4 | grep 'streams.stream.0.width='",
-          "ffprobe -v quiet -of csv -show_streams /workspace/probe.mp4 | head -n 1 | grep -o '80,60'",
+          "ffprobe -v quiet -of csv=p=0 -show_entries stream=width,height,coded_width,coded_height /workspace/probe.mp4",
         ].join("\n"),
       );
       assert.equal(res.exitCode, 0, res.stderr);
-      assert.equal(res.stdout, "streams.stream.0.width=80\n80,60\n");
+      assert.equal(res.stdout, "streams.stream.0.width=80\n80,60,80,60\n");
     });
   });
 

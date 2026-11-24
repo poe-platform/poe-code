@@ -17,6 +17,37 @@ async function test() {
     const input = (async function* () { yield new TextEncoder().encode("b\n"); })();
     const result = await shell.exec("{ records; cat; } | LC_ALL=C sort | uniq", { stdin: input });
     if (result.exitCode || result.stderr || result.stdout !== "a\nb\nz\n") throw new Error(JSON.stringify(result));
+    const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
+    if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
+    const clip = await shell.fs.readFile("/clip.mp4");
+    await shell.fs.writeFile("/clip.head", clip.subarray(0, 17));
+    await shell.fs.writeFile("/ clip%02d.tail ", clip.subarray(17));
+    const media = await shell.exec("ffmpeg -i 'concat:clip.head|file:/ clip%02d.tail ' -c copy /copy.mp4 && ffprobe -show_entries stream=width,height,coded_width,coded_height,nb_frames -of csv=p=0 'concat:copy.mp4|clip.mp4'");
+    if (media.exitCode || media.stderr || media.stdout !== "80,60,80,60,2\n") throw new Error(JSON.stringify(media));
+    const sought = await shell.exec("ffmpeg -ss 0.1 -i /clip.mp4 /sought.mp4 && ffprobe -show_entries stream=nb_frames -of csv=p=0 /sought.mp4");
+    if (sought.exitCode || sought.stderr || sought.stdout !== "1\n") throw new Error(JSON.stringify(sought));
+    const copiedSeek = await shell.exec("ffmpeg -ss 0.1 -i /clip.mp4 -c copy /copied-seek.mp4 && ffprobe -count_frames -show_entries stream=nb_frames,nb_read_frames -of csv=p=0 /copied-seek.mp4");
+    if (copiedSeek.exitCode || copiedSeek.stderr || copiedSeek.stdout !== "2,1\n") throw new Error(JSON.stringify(copiedSeek));
+    const rawYuv = await shell.exec("ffmpeg -i /clip.mp4 -map 0:v -vf reverse -fps_mode passthrough -pix_fmt yuv420p -f rawvideo /output.yuv");
+    if (rawYuv.exitCode || rawYuv.stderr) throw new Error(JSON.stringify(rawYuv));
+    const actualYuv = await shell.fs.readFile("/output.yuv");
+    // Native FFmpeg 7.0.2 decodes these two orange frames as Y=165/U=42/V=179.
+    if (actualYuv.length !== 14400 || actualYuv.some((byte, i) => byte !== (i % 7200 < 4800 ? 165 : i % 7200 < 6000 ? 42 : 179))) throw new Error("raw YUV differs from native FFmpeg");
+    const looped = await shell.exec("ffmpeg -stream_loop 1 -i /copied-seek.mp4 -vf hflip,vflip -fps_mode passthrough -pix_fmt yuv420p -f rawvideo /looped.yuv");
+    if (looped.exitCode || looped.stderr) throw new Error(JSON.stringify(looped));
+    const loopedYuv = await shell.fs.readFile("/looped.yuv");
+    if (loopedYuv.length !== actualYuv.length || loopedYuv.some((byte, i) => byte !== actualYuv[i])) throw new Error("looped YUV includes hidden frames or changes planes");
+    const cadence = await shell.exec("ffmpeg -i /clip.mp4 -r 20 -pix_fmt yuv420p -f rawvideo /cadence.yuv");
+    if (cadence.exitCode || cadence.stderr) throw new Error(JSON.stringify(cadence));
+    const cadenceYuv = await shell.fs.readFile("/cadence.yuv");
+    if (cadenceYuv.length !== 28800 || cadenceYuv.some((byte, i) => byte !== actualYuv[i % 7200])) throw new Error("20 FPS output differs from native FFmpeg");
+    const mappedCadence = await shell.exec("ffmpeg -i /clip.mp4 -map 0:v -map 0:v -vsync 0 -fps_mode:v:1 cfr -r:v:1 20 /mapped-cadence.mp4 && ffprobe -show_entries stream=nb_frames -of csv=p=0 /mapped-cadence.mp4");
+    if (mappedCadence.exitCode || mappedCadence.stderr || mappedCadence.stdout !== "2\n4\n") throw new Error(JSON.stringify(mappedCadence));
+    // Three APNG pictures at 0, 0.2 and 0.6 seconds yield four default frames.
+    const animationHex = "89504e470d0a1a0a0000000d4948445200000004000000040806000000a9f19e7e000000086163544c000000030000000220e3dbec0000001a6663544c00000000000000040000000400000000000000000001000500005c2e44dc0000001249444154789c63fccfc0004408c048ba00003fbd07fde53407d70000001a6663544c000000010000000400000004000000000000000000020005000080fdd4d8000000156664415400000002789c6364f80f844880917401003bc107fdd052fd500000001a6663544c00000003000000040000000400000000000000000001000500002acb7de1000000176664415400000004789c636460f8ff9f010930922e000037c507fd35df25ad0000000049454e44ae426082";
+    await shell.fs.writeFile("/animation.apng", Uint8Array.from({length: animationHex.length / 2}, (_, i) => parseInt(animationHex.slice(i * 2, i * 2 + 2), 16)));
+    const animation = await shell.exec("ffmpeg -i /animation.apng /animation.mp4 && ffprobe -show_entries stream=time_base,nb_frames -of csv=p=0 /animation.mp4");
+    if (animation.exitCode || animation.stderr || animation.stdout !== "1/10240,4\n") throw new Error(JSON.stringify(animation));
     await shell.fs.writeFile("/source sheet.csv", "Name,Value,Total\nAda,2,=B2+3\n");
     const office = await shell.exec("soffice --convert-to xlsx --outdir /exports '/source sheet.csv' >/dev/null && libreoffice --convert-to csv --outdir /reopened '/exports/source sheet.xlsx' >/dev/null && cat '/reopened/source sheet.csv'");
     if (office.exitCode || office.stderr || office.stdout !== "Name,Value,Total\nAda,2,5\n") throw new Error(JSON.stringify(office));

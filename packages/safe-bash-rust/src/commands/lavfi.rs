@@ -184,7 +184,7 @@ impl Video {
         &self,
         opts: y4m::Options<'_>,
         sliced: bool,
-        emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+        emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.width as usize, self.height as usize);
         let count = (opts.end.unwrap_or(self.duration) * self.fps)
@@ -216,7 +216,7 @@ impl Video {
         y4m::render_frames(
             w,
             h,
-            f64::from(y4m::rate_ratio(self.fps).0),
+            (f64::from(y4m::rate_ratio(self.fps).0), Some(self.fps)),
             (0..n).map(|i| (i as f64 / fps, 1. / fps)),
             y4m::Options {
                 start: 0.,

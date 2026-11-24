@@ -36,6 +36,22 @@ impl From<&str> for Error {
     fn from(message: &str) -> Self { message.to_owned().into() }
 }
 
+pub(super) fn concat_bytes(fs: &dyn SafeBashFs, cwd: &str, paths: &str, limit: usize) -> Result<Vec<u8>, Error> {
+    let mut bytes = Vec::new();
+    let mut paths = paths.split('|').filter(|s| !s.is_empty()).peekable();
+    if paths.peek().is_none() { return Err("concat: no files".into()); }
+    for path in paths {
+        let full = resolve_posix_path(cwd, path.strip_prefix("file:").unwrap_or(path));
+        let part = fs.read_file(&full).map_err(|e| Error {
+            status: 254,
+            message: format!("{}, readFile '{full}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)),
+        })?;
+        if part.len() > limit.saturating_sub(bytes.len()) { return Err("input byte limit exceeded".into()); }
+        bytes.extend_from_slice(&part);
+    }
+    Ok(bytes)
+}
+
 pub(super) struct Reader<'a, 'b> {
     pub fs: &'a dyn SafeBashFs,
     pub cwd: &'a str,
@@ -62,15 +78,8 @@ impl Reader<'_, '_> {
         if explicit == Some("lavfi") {
             return Ok((MediaInput::Bytes("lavfi", path.as_bytes().to_vec()), InputTime::default()));
         }
-        if let Some(rest) = path.strip_prefix("concat:") {
-            let parts = rest
-                .split('|')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .map(|s| concat_manifest::File {path: s.to_owned(), cut: InputTime::default(), duration: None, options: Vec::new()});
-            return self.join(parts, limit, retain, depth, false);
-        }
-        if let Some(pattern) = frame_output::sequence(path)? {
+        let concat = path.strip_prefix("concat:");
+        if concat.is_none() && let Some(pattern) = frame_output::sequence(path)? {
             return frame_output::ImageSequence::read(
                 self.fs,
                 self.cwd,
@@ -83,7 +92,9 @@ impl Reader<'_, '_> {
             .map(|seq|(MediaInput::Images(seq), InputTime::default())).map_err(Into::into);
         }
         let full = resolve_posix_path(self.cwd, path.strip_prefix("file:").unwrap_or(path));
-        let mut bytes = if media_stdin(path) {
+        let mut bytes = if let Some(paths) = concat {
+            concat_bytes(self.fs, self.cwd, paths, limit)?
+        } else if media_stdin(path) {
             read_media_stdin(self.stdin)?
         } else {
             self.fs.read_file(&full).map_err(|e| Error {
@@ -105,7 +116,7 @@ impl Reader<'_, '_> {
                 + parts.iter().map(|f| f.path.capacity() + f.options.capacity() * size_of::<(String, String)>()
                     + f.options.iter().map(|(k,v)| k.capacity() + v.capacity()).sum::<usize>()).sum::<usize>();
             let limit = limit.checked_sub(bytes.len() + retained).ok_or("concat manifest exceeds memory budget")?;
-            let (mut input, cut) = self.join(parts.into_iter(), limit, retain, depth, true)?;
+            let (mut input, cut) = self.join(parts.into_iter(), limit, retain, depth)?;
             if let MediaInput::Joined(_, decoded) = &mut input { decoded.chapters = chapters; }
             return Ok((input, cut));
         }
@@ -153,7 +164,6 @@ impl Reader<'_, '_> {
         limit: usize,
         retain: (bool, bool),
         depth: usize,
-        demuxer: bool,
     ) -> Result<(MediaInput, InputTime), Error> {
         let mut inputs = Vec::new();
         let mut cuts = Vec::new();
@@ -181,11 +191,11 @@ impl Reader<'_, '_> {
             }
             // The concat demuxer must cut MP4 packets in their shared read order.
             // Cutting tracks separately loses preroll and cross-stream outpoints.
-            cuts.push(if demuxer && matches!(input, MediaInput::Bytes("mp4" | "mov", _) | MediaInput::Joined(..)) {
+            cuts.push(if matches!(input, MediaInput::Bytes("mp4" | "mov", _) | MediaInput::Joined(..)) {
                 inner_cut
             } else {
                 let mut applied = inner_cut.then(cut);
-                if demuxer && let MediaInput::Bytes("wav" | "w64", bytes) = &input {
+                if let MediaInput::Bytes("wav" | "w64", bytes) = &input {
                     let wave = super::ffmpeg_wave::Wave::read(bytes)?;
                     let frames = wave.data.len() / wave.stride();
                     if matches!(wave.tag, 1 | 3 | 6 | 7) && applied.start.is_some_and(|s| (s * f64::from(wave.rate)).round() > frames as f64) && frames > 0 {
@@ -195,9 +205,7 @@ impl Reader<'_, '_> {
                 }
                 applied
             });
-            if demuxer {
-                timings.push((cut, duration));
-            }
+            timings.push((cut, duration));
             remaining = remaining
                 .checked_sub(input.byte_size() + size_of::<MediaInput>())
                 .ok_or("input byte limit exceeded")?;
@@ -205,11 +213,10 @@ impl Reader<'_, '_> {
         }
         match inputs.len() {
             0 => Err("concatMp4 requires at least one input MediaDocument".into()),
-            1 if !demuxer => Ok((inputs.pop().unwrap(), cuts[0])),
             _ => {
                 let mut decoded = mp4::mux::DecodedConcat::new(retain.0, retain.1);
-                decoded.timings = demuxer.then_some(timings);
-                decoded.auto_convert = demuxer && self.auto_convert;
+                decoded.timings = Some(timings);
+                decoded.auto_convert = self.auto_convert;
                 let bytes = mp4::mux::assemble_segments(&inputs, &cuts, Some(&mut decoded), limit)?;
                 Ok((MediaInput::Joined(bytes, decoded), InputTime::default()))
             }
@@ -220,6 +227,37 @@ impl Reader<'_, '_> {
 #[cfg(test)]
 mod tests {
     use crate::{commands::{archive::cmd_media_doc, structured::{JVal,parse_json_stream}}, vfs::{MemoryVfs,SafeBashFs}};
+
+    #[test]
+    fn concat_protocol_and_cropped_dimensions_match_native() {
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/media-concat-protocol.json")).unwrap().remove(0) else {panic!("fixture")};
+        let JVal::Object(inputs) = &fixture.iter().find(|(k,_)| k == "inputs").unwrap().1 else {panic!("inputs")};
+        let JVal::Array(cases) = &fixture.iter().find(|(k,_)| k == "cases").unwrap().1 else {panic!("cases")};
+        let fs = MemoryVfs::new();
+        fs.mkdir("/clips", true, 0o755).unwrap();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else {panic!("hex")};
+            fs.write_file(&format!("/clips/{name}"), &super::super::hex_dec(hex)).unwrap();
+        }
+        let mut failures = Vec::new();
+        for case in cases {
+            let JVal::Object(fields) = case else {panic!("case")};
+            let field = |key| &fields.iter().find(|(k,_)| k == key).unwrap().1;
+            let text = |key| match field(key) {JVal::Str(s) => s.as_str(), _ => panic!("text")};
+            let JVal::Array(args) = field("args") else {panic!("args")};
+            let args = args.iter().map(|v| match v {JVal::Str(s) => s.clone(), _ => panic!("arg")}).collect::<Vec<_>>();
+            let r = cmd_media_doc(text("command"), &args, "", "/clips", &fs);
+            if r.exit_code != 0 || r.stdout != text("stdout") {
+                failures.push(format!("{args:?}: {} {:?} != {:?}", r.stderr, r.stdout, text("stdout")));
+                continue;
+            }
+            if let Some((_, JVal::Str(hash))) = fields.iter().find(|(k,_)| k == "sha256") {
+                let actual = super::super::hex_enc(&super::super::sha256_bytes(&fs.read_file("/clips/output").unwrap()));
+                if &actual != hash {failures.push(format!("{args:?}: decoded PCM differs"));}
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
 
     #[test]
     fn container_chapter_preservation_matches_native() {

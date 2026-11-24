@@ -483,6 +483,26 @@ impl Pcm {
     pub(super) fn idr(&self, limit: usize) -> Result<Vec<u8>, &'static str> {
         encode_slice(&self.blocks, &[], 0, limit)
     }
+    pub(super) fn planes(&self, limit: usize) -> Result<super::super::y4m::Frame, &'static str> {
+        let (width, height) = (self.seq.width as usize, self.seq.height as usize);
+        if width.saturating_mul(height) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        let mut planes = Vec::with_capacity(width * height + 2 * width.div_ceil(2) * height.div_ceil(2));
+        for (offset, block_width, w, h, crop_x, crop_y) in [
+            (0, 16, width, height, self.seq.crop_left as usize * 2, self.seq.crop_top as usize * 2),
+            (256, 8, width.div_ceil(2), height.div_ceil(2), self.seq.crop_left as usize, self.seq.crop_top as usize),
+            (320, 8, width.div_ceil(2), height.div_ceil(2), self.seq.crop_left as usize, self.seq.crop_top as usize),
+        ] {
+            for row in crop_y..crop_y + h {
+                for col in crop_x..crop_x + w {
+                    let block = &self.blocks[row / block_width * self.seq.mb_width as usize + col / block_width];
+                    planes.push(block[offset + row % block_width * block_width + col % block_width]);
+                }
+            }
+        }
+        Ok(super::super::y4m::Frame::Yuv420 { width, height, planes })
+    }
     pub(super) fn image(
         &self,
         track: (usize, usize),

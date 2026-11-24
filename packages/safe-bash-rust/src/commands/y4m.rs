@@ -1,4 +1,34 @@
 use super::png_pixels::Raster;
+
+pub(super) enum Frame {
+    Rgb(Raster),
+    Yuv420 { width: usize, height: usize, planes: Vec<u8> },
+}
+
+impl From<Raster> for Frame {
+    fn from(image: Raster) -> Self { Self::Rgb(image) }
+}
+
+impl Frame {
+    pub fn into_raster(self) -> Raster {
+        match self {
+            Self::Rgb(image) => image,
+            Self::Yuv420 { width, height, planes } => decode(&planes, width, height, bt601),
+        }
+    }
+    pub fn pixels(&self) -> usize {
+        match self {
+            Self::Rgb(image) => image.pixels.len(),
+            Self::Yuv420 { width, height, .. } => width * height,
+        }
+    }
+    pub fn bytes(&self) -> usize {
+        match self {
+            Self::Rgb(image) => image.pixels.capacity() * 4,
+            Self::Yuv420 { planes, .. } => planes.capacity(),
+        }
+    }
+}
 pub(super) struct Stream<'a> {
     pub width: u32,
     pub height: u32,
@@ -176,7 +206,82 @@ pub(super) fn bt601(y: i32, u: i32, v: i32) -> [u8; 4] {
     ]
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum SyncMode { Auto, Cfr, Vfr, Passthrough, Drop }
+
+impl SyncMode {
+    pub(super) fn parse(value: &str, legacy: bool) -> Result<Self, &'static str> {
+        match value.to_ascii_lowercase().as_str() {
+            "auto" if !legacy => Ok(Self::Auto),
+            "cfr" => Ok(Self::Cfr),
+            "vfr" => Ok(Self::Vfr),
+            "passthrough" => Ok(Self::Passthrough),
+            "drop" => Ok(Self::Drop),
+            _ if !legacy => Err("Invalid value specified for fps_mode"),
+            _ => {
+                let number = value.parse::<f64>().ok().filter(|v| !v.is_nan()).ok_or("Expected number for vsync")?;
+                if !(-1. ..=2.).contains(&number) { return Err("Value for vsync is not within -1 - 2"); }
+                if number.fract() != 0. { return Err("Expected int for vsync"); }
+                Ok(match number as i32 { -1 => Self::Auto, 0 => Self::Passthrough, 1 => Self::Cfr, _ => Self::Vfr })
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub(super) struct Sync {
+    pub mode: SyncMode,
+    pub rate: Option<f64>,
+}
+
+impl Sync {
+    pub(super) fn frame_rate(value: &str) -> Result<f64, &'static str> {
+        let rate = if let Some((n, d)) = value.split_once('/') {
+            n.parse::<f64>().ok().zip(d.parse::<f64>().ok()).map(|(n, d)| n / d)
+        } else { value.parse::<f64>().ok() };
+        rate.filter(|v| v.is_finite() && *v > 0.).ok_or("Invalid framerate value")
+    }
+
+    // Option values are parsed only after the last matching option is known.
+    // Indices refer to output mapping order, including preceding audio streams.
+    pub(super) fn resolve(
+        options: &[(&str, &str)], fallback: Option<Self>, format: &str,
+        index: usize, ordinal: usize, copy: bool,
+    ) -> Result<Option<Self>, String> {
+        let (mut mode, mut rate) = (None, None);
+        for &(option, value) in options {
+            let (name, selector) = option.split_once(':').unwrap_or((option, ""));
+            if copy && name == "-fps_mode" { continue; }
+            let (kind, number) = match selector.split_once(':') {
+                Some((kind, number)) if matches!(kind, "v" | "V" | "a" | "s" | "d" | "t") => (kind, number),
+                _ if matches!(selector, "v" | "V" | "a" | "s" | "d" | "t" | "u") => (selector, ""),
+                _ => ("", selector),
+            };
+            let number = if number.is_empty() { None } else {
+                let (digits, radix) = if let Some(hex) = number.strip_prefix("0x").or_else(|| number.strip_prefix("0X")) { (hex, 16) }
+                    else if number.len() > 1 && number.starts_with('0') { (&number[1..], 8) }
+                    else { (number, 10) };
+                Some(usize::from_str_radix(digits, radix).ok().filter(|_| !digits.starts_with(['+', '-']))
+                    .ok_or_else(|| format!("Invalid stream specifier: {selector}"))?)
+            };
+            if !matches!(kind, "" | "v" | "V" | "u") || number.is_some_and(|n| n != if kind.is_empty() { index } else { ordinal }) { continue; }
+            if name == "-fps_mode" { mode = Some(value); } else { rate = Some(value); }
+        }
+        let rate = rate.map(Self::frame_rate).transpose()?;
+        if copy { return Ok(None); }
+        let mode = mode.map(|value| SyncMode::parse(value, false)).transpose()?;
+        if mode.is_none() && rate.is_none() && fallback.is_none() { return Ok(None); }
+        let mut mode = mode.or(fallback.map(|sync| sync.mode)).unwrap_or(SyncMode::Auto);
+        if rate.is_some() && !matches!(mode, SyncMode::Auto | SyncMode::Cfr) {
+            return Err("One of -r/-fpsmax was specified together a non-CFR -vsync/-fps_mode. This is contradictory.".into());
+        }
+        if mode == SyncMode::Auto && rate.is_none() && matches!(format, "mov" | "mkv" | "webm" | "avi" | "gif" | "apng") { mode = SyncMode::Vfr; }
+        Ok(Some(Self { mode, rate }))
+    }
+}
+
 pub(super) struct Options<'a> {
+    pub sync: Option<Sync>,
     pub filters: &'a [String],
     pub frames: Option<u32>,
     pub start: f64,
@@ -354,12 +459,12 @@ impl<'a> Clip<'a> {
     pub fn render(
         &self,
         options: Options<'_>,
-        emit: impl FnMut(Raster, TimedFrame) -> Result<(), &'static str>,
+        emit: impl FnMut(Frame, TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         render_frames(
             self.width,
             self.height,
-            f64::from(rate_ratio(self.fps).0),
+            (f64::from(rate_ratio(self.fps).0), Some(self.fps)),
             self.times(),
             options,
             |i| Ok(self.image(i)),
@@ -380,6 +485,7 @@ pub(super) struct TimedFrame {
     pub buffer: Buffer,
     pub pts: f64,
     pub duration: f64,
+    pub rate: f64,
 }
 
 struct TileStage<'a> {
@@ -404,11 +510,11 @@ fn render(
     index: usize,
     limit: usize,
     work: &mut usize,
-    image: &mut impl FnMut(usize) -> Result<Raster, &'static str>,
-) -> Result<Raster, String> {
+    image: &mut impl FnMut(usize) -> Result<Frame, &'static str>,
+) -> Result<Frame, String> {
     let Some((stage, prior)) = stages.split_last() else {
         let frame = image(index)?;
-        charge_pixels(work, frame.pixels.len())?;
+        charge_pixels(work, frame.pixels())?;
         return Ok(frame);
     };
     let per = stage.cols.saturating_mul(stage.rows);
@@ -419,9 +525,10 @@ fn render(
         let remaining = limit - canvas.as_ref().map_or(0, |c| c.pixels.len() * 4);
         let mut cell = render(prior, entry.index, remaining, work, image)?;
         for filter in &stage.filters {
-            filter.apply(&mut cell, remaining)?;
-            charge_pixels(work, cell.pixels.len())?;
+            cell = filter.apply_frame(cell, remaining)?;
+            charge_pixels(work, cell.pixels())?;
         }
+        let cell = cell.into_raster();
         let (w, h) = *cell_dimensions.get_or_insert((cell.width as i64, cell.height as i64));
         let dim = |n: usize, d: i64| -> Result<usize, &'static str> {
             let n = n as i128;
@@ -461,7 +568,62 @@ fn render(
             dst.pixels[i..i + n].copy_from_slice(&row[..n]);
         }
     }
-    canvas.ok_or_else(|| "missing tile frame".into())
+    canvas.map(Frame::Rgb).ok_or_else(|| "missing tile frame".into())
+}
+
+pub(super) fn standard_rates() -> impl Iterator<Item = u64> {
+    (1..=360).map(|i| i * 1001u64)
+        .chain((31..=60).map(|i| i * 12012)).chain([80, 120, 240].map(|i| i * 12012))
+        .chain([24, 30, 60, 12, 15, 48].map(|i| i * 12000))
+}
+
+// Fit the observed decode timestamps to the same standard clocks used by
+// FFmpeg. Callers control how many packets the demuxer probes.
+pub(super) fn guess_rate<I: Iterator<Item = u64>>(scale: u32, timestamps: impl Fn() -> I) -> (u64, u64) {
+    let mut previous = None;
+    let (mut count, mut ticks, mut gcd) = (0usize, 0u64, 0u64);
+    for timestamp in timestamps() {
+        if let Some(last) = previous && timestamp > last {
+            let delta = timestamp - last;
+            ticks += delta;
+            count += 1;
+            if count > 3 {
+                let mut divisor = delta;
+                while divisor != 0 { (gcd, divisor) = (divisor, gcd % divisor); }
+            }
+        }
+        previous = Some(timestamp);
+    }
+    if count > 15 && gcd > (u64::from(scale) / 500).max(1) {
+        return (u64::from(scale), gcd);
+    }
+    let mut best = 0.01;
+    let mut rate = 0;
+    for numerator in standard_rates() {
+        let fps = numerator as f64 / 12012.;
+        if count <= 1 || fps < 1. || ticks as f64 / f64::from(scale) / (count as f64) < 0.8 / fps { continue; }
+        let (mut sums, mut squares, mut seen, mut previous) = ([0.; 2], [0.; 2], 0usize, None);
+        for timestamp in timestamps() {
+            let last = previous.replace(timestamp);
+            if last.is_none_or(|last| timestamp <= last) { continue; }
+            seen += 1;
+            let time = timestamp as f64 / f64::from(scale) * fps;
+            for k in 0..2 {
+                let value = time + k as f64 * 0.5;
+                let error = value - value.round_ties_even();
+                sums[k] += error; squares[k] += error * error;
+            }
+            if seen.is_multiple_of(10) && (0..2).all(|k| squares[k] / seen as f64 - (sums[k] / seen as f64).powi(2) > 0.04) {
+                squares = [2e10; 2]; break;
+            }
+        }
+        for k in 0..2 {
+            let error = squares[k] / count as f64 - (sums[k] / count as f64).powi(2);
+            if error < best && best > 1e-9 { best = error; rate = numerator; }
+        }
+    }
+    if rate > 0 && rate as f64 / 12012. < 1.01 * f64::from(scale) { (rate, 12012) }
+    else { (u64::from(scale), 1) }
 }
 
 pub(super) fn rate_ratio(ratio: f64) -> (u32, u32) {
@@ -493,19 +655,21 @@ pub(super) fn header(w: usize, h: usize, fps: f64) -> Vec<u8> {
     let (n, d) = rate_ratio(fps);
     format!("YUV4MPEG2 W{w} H{h} F{n}:{d} Ip A1:1 C420jpeg XYSCSS=420JPEG\n").into_bytes()
 }
-pub(super) fn render_frames(
+pub(super) fn render_frames<F: Into<Frame>>(
     w: usize,
     h: usize,
-    mut timescale: f64,
+    (mut timescale, frame_rate): (f64, Option<f64>),
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
-    mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
-    mut emit: impl FnMut(Raster, TimedFrame) -> Result<(), &'static str>,
+    mut image: impl FnMut(usize) -> Result<F, &'static str>,
+    mut emit: impl FnMut(Frame, TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(), String> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
         if (opts.start == 0. && opts.end.is_none())
-            || ((pts + duration) * timescale).round() > (opts.start * timescale).round() && opts.end.is_none_or(|t| (pts * timescale).round() < (t * timescale).round())
+            || (if opts.sync.is_some() { (pts * timescale).round() >= (opts.start * timescale).round() }
+                else { ((pts + duration) * timescale).round() > (opts.start * timescale).round() })
+                && opts.end.is_none_or(|t| (pts * timescale).round() < (t * timescale).round())
         {
             if frames.len() >= opts.limit / size_of::<TimedFrame>() {
                 return Err("frame index exceeds memory budget".into());
@@ -513,12 +677,14 @@ pub(super) fn render_frames(
             frames.push(TimedFrame {
                 index,
                 buffer: Buffer::Input(index),
+                rate: frame_rate.unwrap_or(1. / duration),
                 pts: (pts - opts.start).max(0.),
                 duration,
             });
         }
     }
     let mut end_time = frames.last().map_or(0., |f| f.pts + f.duration);
+    let mut frame_rate = frame_rate.unwrap_or_else(|| frames.first().map_or(25., |f| 1. / f.duration));
     let mut ops = Vec::new();
     let mut stages = Vec::new();
     for stage in opts
@@ -566,6 +732,7 @@ pub(super) fn render_frames(
                     .map(|(index, group)| TimedFrame {
                         index,
                         buffer: Buffer::Filtered(index),
+                        rate: frame_rate / cols.saturating_mul(rows) as f64,
                         pts: group[0].pts,
                         duration: group.iter().map(|f| f.duration).sum(),
                     })
@@ -578,11 +745,19 @@ pub(super) fn render_frames(
                     inputs: previous,
                     filters: std::mem::take(&mut ops),
                 });
+                frame_rate /= cols.saturating_mul(rows) as f64;
             }
             "reverse" | "setpts" => {
                 let mut factor = 1.;
                 if key == "reverse" {
-                    frames.reverse();
+                    // Reverse pictures while retaining the presentation clock,
+                    // including gaps between loop iterations.
+                    for i in 0..frames.len() / 2 {
+                        let last = frames.len() - 1 - i;
+                        let (left, right) = frames.split_at_mut(last);
+                        std::mem::swap(&mut left[i].index, &mut right[0].index);
+                        std::mem::swap(&mut left[i].buffer, &mut right[0].buffer);
+                    }
                 } else {
                     let expr = arg.trim_start_matches("expr=").trim().to_ascii_uppercase();
                     if let Some(mult) = expr
@@ -597,14 +772,10 @@ pub(super) fn render_frames(
                         factor = 1. / div.trim().parse().ok().filter(|v| *v != 0.).unwrap_or(1.);
                     }
                 }
-                let mut pts = 0.;
                 for f in &mut frames {
                     if key == "setpts" {
                         f.pts = ((f.pts * timescale).round() * factor).trunc() / timescale;
                         f.duration = (f.duration * factor).max(0.001);
-                    } else {
-                        f.pts = pts;
-                        pts += f.duration;
                     }
                 }
                 if key == "setpts" {
@@ -641,6 +812,7 @@ pub(super) fn render_frames(
                     })
                     .collect();
                 timescale = rate;
+                frame_rate = rate;
                 end_time = end as f64 / rate;
             }
             "trim" => {
@@ -690,6 +862,10 @@ pub(super) fn render_frames(
             }
         }
     }
+    if let Some(sync) = opts.sync {
+        frames = synchronize(frames, sync, frame_rate, opts.frames, opts.limit)?;
+        if let Some(end) = opts.end { frames.retain(|frame| frame.pts + opts.start < end); }
+    }
     if let Some(n) = opts.frames {
         frames.truncate(n as usize);
     }
@@ -702,15 +878,84 @@ pub(super) fn render_frames(
     // As with H.264 replay, allow 32 input budgets of work. Count RGBA pixels
     // even when identical frames compress to only a few bytes.
     let mut work = (opts.limit / 4).saturating_mul(32);
-    for frame in frames {
+    let mut image = |i| image(i).map(Into::into);
+    for mut frame in frames {
+        frame.rate = opts.sync.and_then(|sync| sync.rate).unwrap_or(frame_rate);
         let mut im = render(&stages, frame.index, opts.limit, &mut work, &mut image)?;
         for op in &ops {
-            op.apply(&mut im, opts.limit)?;
-            charge_pixels(&mut work, im.pixels.len())?;
+            im = op.apply_frame(im, opts.limit)?;
+            charge_pixels(&mut work, im.pixels())?;
         }
         emit(im, frame)?;
     }
     Ok(())
+}
+
+fn synchronize(frames: Vec<TimedFrame>, sync: Sync, source_rate: f64, cap: Option<u32>, limit: usize) -> Result<Vec<TimedFrame>, &'static str> {
+    if frames.is_empty() { return Ok(frames); }
+    let rate = sync.rate.unwrap_or(source_rate);
+    if !rate.is_finite() || rate <= 0. { return Err("Invalid video frame rate"); }
+    let mut output = Vec::new();
+    let mut next = 0i64;
+    let mut previous = None;
+    let mut history = [0usize; 3];
+    let max = cap.map_or(usize::MAX, |n| n as usize);
+    for frame in frames {
+        let mut pts = frame.pts * rate;
+        let mut duration = frame.duration * rate;
+        let mut drift = pts - next as f64;
+        let mut delta = drift + duration;
+        let mut count = 1usize;
+        let mut repeat_previous = 0usize;
+        if drift < 0. && delta > 0. && !matches!(sync.mode, SyncMode::Passthrough | SyncMode::Drop) {
+            pts = next as f64;
+            duration += drift;
+            drift = 0.;
+        }
+        match sync.mode {
+            SyncMode::Auto | SyncMode::Cfr => {
+                if sync.mode == SyncMode::Auto && output.is_empty() && drift >= 0.5 {
+                    delta = duration;
+                    drift = 0.;
+                    next = pts.round() as i64;
+                }
+                if delta < -1.1 { count = 0; }
+                else if delta > 1.1 {
+                    count = (delta as f32).round_ties_even().max(0.) as usize;
+                    if drift > 1.1 { repeat_previous = ((drift - 0.6) as f32).round_ties_even().max(0.) as usize; }
+                }
+                duration = 1.;
+            }
+            SyncMode::Vfr => {
+                if delta <= -0.6 { count = 0; }
+                else if delta > 0.6 { next = pts.round() as i64; }
+                duration = duration.round();
+            }
+            SyncMode::Passthrough => { next = pts.round() as i64; duration = duration.round(); }
+            SyncMode::Drop => { duration = duration.round(); }
+        }
+        history.rotate_right(1);
+        history[0] = repeat_previous;
+        count = count.min(max.saturating_sub(output.len()));
+        if count > (limit / size_of::<TimedFrame>()).saturating_sub(output.len()) { return Err("frame index exceeds memory budget"); }
+        for i in 0..count {
+            let source = if i < repeat_previous { previous.unwrap_or(frame) } else { frame };
+            output.push(TimedFrame { pts: next as f64 / rate, duration: duration / rate, ..source });
+            next += 1;
+        }
+        previous = Some(frame);
+        if output.len() == max { break; }
+    }
+    if let Some(frame) = previous {
+        history.sort_unstable();
+        let count = history[1].min(max.saturating_sub(output.len()));
+        if count > (limit / size_of::<TimedFrame>()).saturating_sub(output.len()) { return Err("frame index exceeds memory budget"); }
+        for _ in 0..count {
+            output.push(TimedFrame { pts: next as f64 / rate, duration: 1. / rate, ..frame });
+            next += 1;
+        }
+    }
+    Ok(output)
 }
 
 #[cfg(test)]
@@ -724,9 +969,9 @@ mod tests {
         render_frames(
             2,
             2,
-            1000000.,
+            (1000000., None),
             [(0., 0.2), (0.2, 0.4), (0.6, 0.2)].into_iter(),
-            Options {
+            Options {sync: None,
                 filters: &["fps=10".into()],
                 frames: None,
                 start: 0.,
@@ -740,7 +985,7 @@ mod tests {
                 Ok(image)
             },
             |image, _| {
-                selected.push(image.pixels[0][0]);
+                selected.push(image.into_raster().pixels[0][0]);
                 Ok(())
             },
         )
@@ -754,9 +999,9 @@ mod tests {
         let result = render_frames(
             128,
             128,
-            100.,
+            (100., None),
             (0..100).map(|i| (i as f64 / 100., 0.01)),
-            Options {
+            Options {sync: None,
                 filters: &[],
                 frames: None,
                 start: 0.,

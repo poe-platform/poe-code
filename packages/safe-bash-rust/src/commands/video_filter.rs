@@ -7,6 +7,31 @@ pub(super) struct Filter<'a> {
 }
 
 impl<'a> Filter<'a> {
+    pub fn apply_frame(&self, mut frame: super::y4m::Frame, limit: usize) -> Result<super::y4m::Frame, String> {
+        // Temporal selection and no-op filters must not round-trip decoded
+        // YUV through clipped RGB values.
+        if !matches!(self.name, "hflip" | "vflip" | "negate" | "format" | "transpose" | "rotate" | "crop" | "pad" | "drawbox" | "drawtext" | "subtitles" | "scale")
+            || self.name == "format" && self.param(&["pix_fmts"], 0) == Some("yuv420p")
+        {
+            return Ok(frame);
+        }
+        if matches!(self.name, "hflip" | "vflip")
+            && let super::y4m::Frame::Yuv420 { width, height, planes } = &mut frame
+        {
+            let mut start = 0;
+            for (w, h) in [(*width, *height), (width.div_ceil(2), height.div_ceil(2)), (width.div_ceil(2), height.div_ceil(2))] {
+                let plane = &mut planes[start..start + w * h];
+                if self.name == "vflip" { plane.reverse(); }
+                for row in plane.chunks_exact_mut(w.max(1)) { row.reverse(); }
+                start += w * h;
+            }
+            return Ok(frame);
+        }
+        let mut image = frame.into_raster();
+        self.apply(&mut image, limit)?;
+        Ok(image.into())
+    }
+
     pub fn new(name: &'a str, raw: &'a str) -> Self {
         Self {
             name,

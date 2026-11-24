@@ -1,5 +1,5 @@
 {
-  "reference": "Production FFmpeg/FFprobe commands; native FFmpeg 7.0.2 RGBA decode",
+  "reference": "Production FFmpeg/FFprobe commands with marked Rust serialization snapshots after native cadence corrections; native FFmpeg 7.0.2 RGBA decode",
   "inputs": {
     "full": "89504e470d0a1a0a0000000d4948445200000004000000040806000000a9f19e7e000000086163544c000000030000000220e3dbec0000001a6663544c00000000000000040000000400000000000000000001000500005c2e44dc0000001249444154789c63fccfc0004408c048ba00003fbd07fde53407d70000001a6663544c000000010000000400000004000000000000000000020005000080fdd4d8000000156664415400000002789c6364f80f844880917401003bc107fdd052fd500000001a6663544c00000003000000040000000400000000000000000001000500002acb7de1000000176664415400000004789c636460f8ff9f010930922e000037c507fd35df25ad0000000049454e44ae426082",
     "partial": "89504e470d0a1a0a0000000d4948445200000002000000010806000000f4227f8a000000086163544c00000004000000007ccd66d00000001a6663544c0000000000000002000000010000000000000000000100050000f275f1440000000e49444154789c63f8cfc0f01f840111f703fde3c5f5ef0000001a6663544c000000010000000100000001000000010000000000010005020039e8207b000000116664415400000002789c6360f8cff01f00040101ff62e7e99c0000001a6663544c00000003000000010000000100000000000000000001000501003edd7f91000000116664415400000004789c636060f8ff1f00030201ff0db9ee610000001a6663544c0000000500000001000000010000000000000000000100050001bd0b0c3c000000116664415400000006789c63f8ffff7f0300097c037e441b3a3f0000000049454e44ae426082",
@@ -73,8 +73,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.apng  mp4",
@@ -92,8 +93,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.apng  apng",
@@ -178,8 +180,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.apng -f apng mp4",
@@ -199,8 +202,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.apng -f apng apng",
@@ -281,8 +285,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.png  mp4",
@@ -300,8 +305,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.png  apng",
@@ -386,8 +392,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.png -f apng mp4",
@@ -407,8 +414,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.png -f apng apng",
@@ -489,8 +497,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.bin  mp4",
@@ -508,8 +517,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.bin  apng",
@@ -594,8 +604,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 143,
-      "sha256": "033796a778fdbcddd14e63a4af6fc34422b534633c5aa7bafac979536c0147d4"
+      "length": 173,
+      "sha256": "ecf9022f07ce2d29e19a1f84b0a0a7d305e7c5093f8f67c7bfd6bb19cff1482d",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.bin -f apng mp4",
@@ -615,8 +626,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input.bin -f apng apng",
@@ -742,8 +754,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1477,
-      "sha256": "3995d79205c3bb7e9a72b1a3e4a7c2ac329352c6c62293b06e23f5af797cd136"
+      "length": 1486,
+      "sha256": "5fa276dac11c78f460fdb410b1a9b574633a21173cd3a603761841bf66545b36",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full input seek gif",
@@ -784,8 +797,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1477,
-      "sha256": "3995d79205c3bb7e9a72b1a3e4a7c2ac329352c6c62293b06e23f5af797cd136"
+      "length": 1486,
+      "sha256": "5fa276dac11c78f460fdb410b1a9b574633a21173cd3a603761841bf66545b36",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full output seek gif",
@@ -826,8 +840,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1477,
-      "sha256": "90a07bb2a391a865e65a23419d4f1fbdf962d773d23af9998ccc969c49a302fc"
+      "length": 1469,
+      "sha256": "f9283903f12150feebf041cf87e4d6e7f70c5543c648ab3e445070a21a8618af",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full duration gif",
@@ -868,8 +883,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 3109,
-      "sha256": "911f720de1df17a9c803662dc152e665ca06de5f832af14b2f8906838593803f"
+      "length": 3111,
+      "sha256": "fa2090812c1bc133f2f628b8e7405c229797f920b8dad7827da0e20f1e0927a3",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full loop gif",
@@ -911,7 +927,8 @@
       ],
       "exitCode": 0,
       "length": 1956,
-      "sha256": "af510823c4836b2b2694ea4a1f322e768bbe002a36ed98a09289828d8f43510f"
+      "sha256": "566e6a4ed291003c9789a188cc8458a770cb924b593189d150deaf58fe343adc",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full fps gif",
@@ -952,8 +969,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "a57bc5ffb82441b2381d5ad71611eb0fabfd4c21e3c3cd21a1d4b92b065cf7c8"
+      "length": 1888,
+      "sha256": "d1e7ea74e0d5f17cedca0617f5fb8a910bb827ffbf182aaa896bb60faf06bf3b",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "full scale gif",
@@ -1247,7 +1265,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.apng  apng",
@@ -1354,7 +1373,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.apng -f apng apng",
@@ -1455,7 +1475,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.png  apng",
@@ -1562,7 +1583,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.png -f apng apng",
@@ -1663,7 +1685,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.bin  apng",
@@ -1770,7 +1793,8 @@
       ],
       "exitCode": 0,
       "length": 2274,
-      "sha256": "f07c07df99ef8f93a5f07c5210c73528ce357b96561815f6a56302772eb10940"
+      "sha256": "032429a2eeb7e4fa8bdbcb55d9c7118c1fda3bcadbd57930efaf85d5dedbc11a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input.bin -f apng apng",
@@ -1897,7 +1921,8 @@
       ],
       "exitCode": 0,
       "length": 1872,
-      "sha256": "fe97658eadb7c89b92a54d9bfcc6de4b405708d97476f174c8ef690fc99f9b6d"
+      "sha256": "499a65163dde158ccc162ee5c7881b39cce1e7a83eeed3acd969f811d48a372e",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial input seek gif",
@@ -1939,7 +1964,8 @@
       ],
       "exitCode": 0,
       "length": 1872,
-      "sha256": "fe97658eadb7c89b92a54d9bfcc6de4b405708d97476f174c8ef690fc99f9b6d"
+      "sha256": "499a65163dde158ccc162ee5c7881b39cce1e7a83eeed3acd969f811d48a372e",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial output seek gif",
@@ -1981,7 +2007,8 @@
       ],
       "exitCode": 0,
       "length": 1470,
-      "sha256": "151d2cf51bc287632f8233ae13c9e7d3ba4705d683b476bbe46c4b165c9e41a1"
+      "sha256": "a46948be8c172b34a42cdf09e928715814e2d032d1177d346d26b4e26f546972",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial duration gif",
@@ -2023,7 +2050,8 @@
       ],
       "exitCode": 0,
       "length": 3882,
-      "sha256": "39a24e5fa6f17e168e44d3b4895f3d0f90c217ef0ebb697b5701638404814d04"
+      "sha256": "9505093236c99730488aa7964109ab88d6b236ad6a0562d8f24b87a98cbd1dfa",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial loop gif",
@@ -2065,7 +2093,8 @@
       ],
       "exitCode": 0,
       "length": 2342,
-      "sha256": "bb547f64d5a3b077f8d43f7a2134f19551b8f2fb45a001c885a80c4fad034afe"
+      "sha256": "35b7c4375852a2c3bb4de9d483ba550848c35270330822b497867b2ed59a499a",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial fps gif",
@@ -2107,7 +2136,8 @@
       ],
       "exitCode": 0,
       "length": 2273,
-      "sha256": "a066d8a5853f86965785b9362f06ee579b7d8237e14dbd3f617b76d143525c08"
+      "sha256": "8e0ed76d1ba6fcc6d4e9aadc80e70955f7edd4c9bac5bd3ffbf05817382476e2",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "partial scale gif",
@@ -2339,8 +2369,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "bcb632e4dddfce02ae9d7f48eaa4f4bbe687962e209bca373004010010ce5a01"
+      "length": 1871,
+      "sha256": "e466919d51a1e1fd35cda4f89a779a5adf3aca3f064fb7e7e331c0dccaf0736f",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "zero-delay apng",
@@ -2359,7 +2390,8 @@
       ],
       "exitCode": 0,
       "length": 277,
-      "sha256": "fef78c355f982db14804a911bee9410bead3d5e360edba078031af8b69202659"
+      "sha256": "51085b35d303dc07c86c3afa6603fdd8b54067e036cdd215adc7e095f33c6a18",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "zero-delay gif",
@@ -2378,7 +2410,8 @@
       ],
       "exitCode": 0,
       "length": 927,
-      "sha256": "1aae8abda1de8ef8baa0597f8b4a1eb8e46004b9efdbf2e75995b887247a416f"
+      "sha256": "6e4f04a99f0f94e94ef59317f0aace0ad5e93e15757763d86fee58199d387385",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "zero-delay probe",
@@ -2415,8 +2448,9 @@
         "output"
       ],
       "exitCode": 0,
-      "length": 1887,
-      "sha256": "011eb989faab1a109e5a9fe128c1d2f4ec900acb925bce486d89aef7b1a40b07"
+      "length": 1871,
+      "sha256": "e466919d51a1e1fd35cda4f89a779a5adf3aca3f064fb7e7e331c0dccaf0736f",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "default-denominator apng",
@@ -2435,7 +2469,8 @@
       ],
       "exitCode": 0,
       "length": 277,
-      "sha256": "d4d180e95584c8d8100027237880e2ae03d7bc1544bffb48c1c236e727b89537"
+      "sha256": "51085b35d303dc07c86c3afa6603fdd8b54067e036cdd215adc7e095f33c6a18",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "default-denominator gif",
@@ -2454,7 +2489,8 @@
       ],
       "exitCode": 0,
       "length": 927,
-      "sha256": "06ef95388b1d460bf1ba13a7bc441c6fb4930247da2b693cb031db4a4fc82a2d"
+      "sha256": "6e4f04a99f0f94e94ef59317f0aace0ad5e93e15757763d86fee58199d387385",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "default-denominator probe",
@@ -2488,11 +2524,14 @@
         "input.apng",
         "-f",
         "mp4",
+        "-frames:v",
+        "12",
         "output"
       ],
       "exitCode": 0,
-      "length": 1477,
-      "sha256": "3995d79205c3bb7e9a72b1a3e4a7c2ac329352c6c62293b06e23f5af797cd136"
+      "length": 1254,
+      "sha256": "0be2deb507bece6cd9ca35ef2b5071f2dff7b294a1d62f43a355d7d6fc97b52f",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "poster apng",
@@ -3032,11 +3071,14 @@
         "input.apng",
         "-f",
         "mp4",
+        "-frames:v",
+        "12",
         "output"
       ],
       "exitCode": 0,
-      "length": 1085,
-      "sha256": "1a41deb9543eab9f490c95a3dc75d1bf00c85c88ecb01cba227c6795e4598199"
+      "length": 1255,
+      "sha256": "36e00438f800341635ed923aecf196d09cdc1d8dea8be918f891c034041aad92",
+      "reference": "Rust serialization snapshot; native cadence and clocks covered separately by apng-cadence.json"
     },
     {
       "name": "palette apng",

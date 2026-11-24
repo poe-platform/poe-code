@@ -1031,7 +1031,7 @@ impl<'a> Input<'a> {
             if target_rate != rate && !resample_first { pcm = super::audio_resample::resample_f64(&pcm, rate, target_rate, opts.limit, &mut audio_work)?; }
             Some(pcm)
         } else { None };
-        let processed = if processed_double.is_none() && let Self::Wave(w) = self && (w.raw.is_some() || remix.is_some()) && filtered && tempo == 1. {
+        let processed = if processed_double.is_none() && let Self::Wave(w) = self && filtered && tempo == 1. {
             count.checked_mul(channels).filter(|&n| n <= opts.limit / 4)
                 .ok_or("audio conversion exceeds memory budget")?;
             let mut pcm = vec![vec![0f32; count]; channels];

@@ -214,7 +214,7 @@ pub(super) fn render(
     bytes: &[u8],
     opts: super::y4m::Options<'_>,
     seek: super::InputTime,
-    emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(super::y4m::Frame, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let frames = images(bytes, opts.limit)?;
     let (w, h) = (frames[0].width, frames[0].height);
@@ -233,7 +233,7 @@ pub(super) fn render(
     super::y4m::render_frames(
         w,
         h,
-        25.,
+        (25., None),
         (0..count).map(|i| (i as f64 / 25., 0.04)),
         opts,
         |i| Ok(frames[start + i % length].decode()),

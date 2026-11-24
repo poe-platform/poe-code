@@ -596,38 +596,49 @@ impl Remux<'_> {
     }
 }
 
-fn encode_video(
+fn encode_video<F: Into<y4m::Frame>>(
     track: &mut Track<'_>,
     movie_scale: u32,
     times: impl Iterator<Item = (f64, f64)>,
     opts: y4m::Options<'_>,
     encoding: VideoEncoding,
-    image: impl FnMut(usize) -> Result<Raster, &'static str>,
+    clock: Option<f64>,
+    image: impl FnMut(usize) -> Result<F, &'static str>,
 ) -> Result<(), String> {
     let limit = opts.limit;
+    // APNG supplies variable packet durations; AVC supplies a codec clock.
+    let variable_duration = track.stsd.get(12..16) == Some(b"apng");
+    let sync = opts.sync;
+    let synchronized = sync.is_some();
+    let clock = sync.and_then(|s| s.rate).or_else(|| clock.filter(|_| !opts.filters.iter().flat_map(|s| s.split(',')).any(|s| s.trim().starts_with("fps="))));
     let mut samples: Vec<Sample> = Vec::new();
     let mut last_dts = 0;
     track.first_dts = 0;
     let mut previous = Vec::new();
-    let mut ticks = 0u64;
     let mut used = 0usize;
     y4m::render_frames(
         track.width as usize,
         track.height as usize,
-        f64::from(track.scale),
+        (f64::from(track.scale), clock),
         times,
         opts,
         image,
-        |mut im, frame| {
+        |im, frame| {
+            let mut im = im.into_raster();
             let duration = frame.duration;
             if samples.is_empty() {
+                if synchronized && encoding == VideoEncoding::Mp4 {
+                    let (mut scale, _) = y4m::rate_ratio(frame.rate);
+                    while scale < 10000 { scale *= 2; }
+                    track.scale = scale;
+                }
                 track.width = im.width as u32;
                 track.height = im.height as u32;
                 if encoding != VideoEncoding::PreserveConfig {
                     track.stsd = video_entry(
                         im.width,
                         im.height,
-                        VideoCodec::Avc(if encoding == VideoEncoding::Matroska {30} else {(1. / duration).round().max(1.) as u32}),
+                        VideoCodec::Avc(if encoding == VideoEncoding::Matroska {30} else {frame.rate.round().max(1.) as u32}),
                     )?
                     .into();
                 }
@@ -647,15 +658,16 @@ fn encode_video(
             if used > limit {
                 return Err("output byte limit exceeded");
             }
-            let duration = (duration * f64::from(track.scale)).round().max(1.) as u32;
-            if matches!(encoding, VideoEncoding::PreserveConfig|VideoEncoding::Matroska) {
-                let dts = (frame.pts * f64::from(track.scale)).round() as u64;
+            let duration = (if variable_duration { duration } else { clock.map_or(duration, |rate| 1. / rate) } * f64::from(track.scale)).round().max(1.) as u32;
+            if synchronized || clock.is_some() || matches!(encoding, VideoEncoding::PreserveConfig | VideoEncoding::Matroska) {
+                let pts = clock.map_or(frame.pts, |rate| (frame.pts * rate).round() / rate);
+                let dts = if sync.is_some_and(|sync| sync.mode == y4m::SyncMode::Drop) { samples.len() as u64 }
+                    else { ((pts * f64::from(track.scale)).round() as u64).max(if samples.is_empty() { 0 } else { last_dts + 1 }) };
                 if let Some(prior) = samples.last_mut() {
                     prior.duration = dts.saturating_sub(last_dts) as u32;
                 } else { track.first_dts = dts; }
                 last_dts = dts;
             }
-            ticks += u64::from(duration);
             let key = data.get(4).is_some_and(|n| n & 31 == 5);
             samples.push(Sample {
                 data: data.into(),
@@ -667,6 +679,7 @@ fn encode_video(
             Ok(())
         },
     )?;
+    let ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
     if !samples.is_empty() {
         track.media_ticks = ticks as u32;
         // Fragmented headers retain the track duration before encoding. Packet
@@ -674,6 +687,11 @@ fn encode_video(
         if encoding != VideoEncoding::Fragmented && track.edits.is_empty() {
             track.movie_ticks =
                 (ticks as f64 * f64::from(movie_scale) / f64::from(track.scale)).round() as u32;
+            if synchronized && track.first_dts != 0 {
+                let delay = (track.first_dts as f64 * f64::from(movie_scale) / f64::from(track.scale)).round() as u32;
+                track.edits = vec![[delay, u32::MAX, 65536], [track.movie_ticks, 0, 65536]];
+                track.movie_ticks += delay;
+            }
         }
     }
     track.samples = samples;
@@ -756,7 +774,7 @@ fn still_track<'a>(
             &mut track,
             scale,
             std::iter::once((0., 0.04)),
-            y4m::Options {
+            y4m::Options {sync: opts.video_sync,
                 filters: opts.video_filters,
                 frames: opts.frames,
                 start: 0.,
@@ -765,6 +783,7 @@ fn still_track<'a>(
                 limit,
             },
             opts.video_encoding(),
+            None,
             |_| Ok(im.clone()),
         )?;
     }
@@ -839,7 +858,7 @@ fn raw_video_track(
             &mut track,
             movie_scale,
             clip.times(),
-            y4m::Options {
+            y4m::Options {sync: opts.video_sync,
                 start,
                 end,
                 frames: opts.frames,
@@ -848,6 +867,7 @@ fn raw_video_track(
                 limit,
             },
             opts.video_encoding(),
+            None,
             |i| Ok(clip.image(i)),
         )?;
     } else {
@@ -942,7 +962,7 @@ fn gif_track<'a>(
             &mut t,
             scale,
             g.times(),
-            y4m::Options {
+            y4m::Options {sync: opts.video_sync,
                 filters: opts.video_filters,
                 frames: opts.frames,
                 start,
@@ -951,6 +971,7 @@ fn gif_track<'a>(
                 limit,
             },
             opts.video_encoding(),
+            None,
             |i| Ok(g.image(i)),
         )?;
     }
@@ -964,6 +985,7 @@ fn sequence_track(
     frames: Option<u32>,
     encoding: VideoEncoding,
     limit: usize,
+    sync: Option<y4m::Sync>,
 ) -> Result<Track<'static>, String> {
     let first = &seq.frames[0];
     let mut track = video_track(
@@ -978,7 +1000,7 @@ fn sequence_track(
         &mut track,
         scale,
         (0..seq.frames.len()).map(|i| (i as f64 / seq.fps, 1. / seq.fps)),
-        y4m::Options {
+        y4m::Options {sync,
             filters,
             frames,
             start: 0.,
@@ -987,6 +1009,7 @@ fn sequence_track(
             limit,
         },
         encoding,
+        None,
         |i| Ok(seq.frames[i].clone()),
     )?;
     if track.samples.is_empty() {
@@ -1002,6 +1025,7 @@ fn generated_video(
     frames: Option<u32>,
     encoding: VideoEncoding,
     limit: usize,
+    sync: Option<y4m::Sync>,
 ) -> Result<Track<'static>, String> {
     let (w, h) = (video.width as usize, video.height as usize);
     let count = (video.duration * video.fps).round().max(1.) as usize;
@@ -1021,7 +1045,7 @@ fn generated_video(
         &mut track,
         movie_scale,
         (0..count).map(|i| (i as f64 / video.fps, 1. / video.fps)),
-        y4m::Options {
+        y4m::Options {sync,
             filters,
             frames,
             start: 0.,
@@ -1030,6 +1054,7 @@ fn generated_video(
             limit,
         },
         encoding,
+        None,
         |i| Ok(video.image(i)),
     )?;
     Ok(track)
@@ -1611,6 +1636,21 @@ fn repeat_tracks(
     let mut remaining = limit;
     let mut clip_ticks = Vec::with_capacity(tracks.len());
     for t in tracks.iter_mut() {
+        if duration.is_none() && t.kind == "video"
+            && let Some(edit) = t.edits.iter_mut().find(|e| e[1] != u32::MAX)
+        {
+            let mut dts = 0u64;
+            let origin = t.samples.iter().filter_map(|sample| {
+                let pts = i128::from(dts) + i128::from(sample.cts);
+                dts += u64::from(sample.duration);
+                (pts >= i128::from(edit[1])).then_some(pts as u64)
+            }).min().unwrap_or(u64::from(edit[1]));
+            edit[1] = u32::try_from(origin).map_err(|_| "track duration exceeds limit")?;
+            let end = origin + (f64::from(edit[0]) * f64::from(t.scale) / f64::from(movie_scale)).round() as u64;
+            if end > dts && let Some(last) = t.samples.last_mut() {
+                last.duration = u32::try_from(u64::from(last.duration) + end - dts).map_err(|_| "track duration exceeds limit")?;
+            }
+        }
         let cost = t
             .samples
             .iter()
@@ -1628,7 +1668,7 @@ fn repeat_tracks(
         t.media_ticks = ticks;
         clip_ticks.push(ticks);
         t.first_dts = 0;
-        if duration.is_none() { t.edits.clear(); }
+        if duration.is_none() && t.kind != "video" { t.edits.clear(); }
         t.movie_ticks = 0;
         let n = t.samples.len();
         if n != 0 {
@@ -1677,6 +1717,21 @@ fn repeat_tracks(
                 u32::try_from(end + u64::from(clip)).map_err(|_| "track duration exceeds limit")?;
             let last = copy * (t.samples.len() / copies) - 1;
             t.samples[last].duration += padding as u32;
+        }
+    }
+    if let Some(end) = end {
+        for t in tracks.iter_mut() {
+            let origin = t.edits.iter().find(|e| e[1] != u32::MAX).map_or(0, |e| e[1]);
+            let empty = t.edits.iter().take_while(|e| e[1] == u32::MAX).map(|e| u64::from(e[0])).sum::<u64>();
+            let until = i128::from(origin) + (end * f64::from(t.scale)).round() as i128
+                - (empty as f64 * f64::from(t.scale) / f64::from(movie_scale)).round() as i128;
+            let mut dts = 0u64;
+            if let Some(count) = t.samples.iter().position(|sample| {
+                let past_end = i128::from(dts) + i128::from(sample.cts) >= until;
+                dts += u64::from(sample.duration);
+                past_end
+            }) { t.samples.truncate(count); }
+            t.media_ticks = t.samples.iter().try_fold(0u32, |ticks, sample| ticks.checked_add(sample.duration)).ok_or("track duration exceeds limit")?;
         }
     }
     }
@@ -1953,6 +2008,8 @@ impl Composition {
 pub(in super::super) const AUDIO_COPY_FILTER_ERROR: &str = "Filtering and streamcopy cannot be used together.";
 
 pub(in super::super) struct Remux<'a> {
+    pub video_sync: Option<y4m::Sync>,
+    pub video_sync_options: &'a [(&'a str, &'a str)],
     pub apng_plays: u32,
     pub mkv_crc: bool,
     pub id3_version: u8,
@@ -2184,8 +2241,18 @@ pub(in super::super) fn input_slice(
 }
 
 impl<'a> Remux<'a> {
+    fn video_syncs(&self, sources: &[Source<'_>], selected: &[(usize, usize)]) -> Result<Vec<Option<y4m::Sync>>, String> {
+        let mut ordinal = 0;
+        selected.iter().enumerate().map(|(index, &(j, i))| {
+            if sources[j].2.kind(i) != "video" { return Ok(None); }
+            let sync = y4m::Sync::resolve(self.video_sync_options, self.video_sync, self.format, index, ordinal, self.video_codec == Some("copy"));
+            ordinal += 1;
+            sync
+        }).collect()
+    }
+
     fn passthrough(limit: usize) -> Self {
-        Remux {
+        Remux {video_sync: None,video_sync_options:&[],
             mkv_crc: true,
             apng_plays: 1,
             id3_version: 4,
@@ -2396,7 +2463,7 @@ fn materialize<'a>(
             bytes = Cow::Owned(flv_as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if sliced && let MediaInput::Images(seq) = source {
             let limit = opts.limit.saturating_sub(admitted);
-            let track = sequence_track(seq, 1000, &[], None, VideoEncoding::Mp4, limit)?;
+            let track = sequence_track(seq, 1000, &[], None, VideoEncoding::Mp4, limit, None)?;
             bytes = Cow::Owned(write(
                 &[track],
                 1000,
@@ -2414,7 +2481,7 @@ fn materialize<'a>(
         {
             video.duration = opts.source_end.unwrap_or(video.duration);
             let limit = opts.limit.saturating_sub(admitted);
-            let track = generated_video(&video, 1000, &[], None, VideoEncoding::Mp4, limit)?;
+            let track = generated_video(&video, 1000, &[], None, VideoEncoding::Mp4, limit, None)?;
             bytes = Cow::Owned(write(
                 &[track],
                 1000,
@@ -2826,7 +2893,7 @@ pub(in super::super) fn render_mapped(
     opts: &Remux<'_>,
     frames: Option<u32>,
     full_size: bool,
-    emit: impl FnMut(Raster, y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(y4m::Frame, y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let data = materialize(inputs, opts)?;
     let sources = read_sources(inputs, &data, opts)?;
@@ -2840,14 +2907,15 @@ pub(in super::super) fn render_mapped(
         &sources[..]
     };
     let (selected, shortest) = mapped_tracks(sources, opts)?;
+    let syncs = opts.video_syncs(sources, &selected)?;
     if opts.format == "rawvideo" && composed.is_none() && selected.iter().filter(|&&(j,i)| sources[j].2.kind(i)=="video").count()>1 {
         let mut buffered = Vec::new();
         let mut remaining = opts.limit;
         let mut geometry = (64,64,10);
-        for &(j,i) in selected.iter().filter(|&&(j,i)|sources[j].2.kind(i)=="video") {
-            let options = y4m::Options {start:opts.start.unwrap_or(0.),end:shortest.into_iter().chain(opts.end).reduce(f64::min),frames,filters:opts.video_filters,no_video:false,limit:remaining};
+        for (index, &(j,i)) in selected.iter().enumerate().filter(|&(_, &(j,i))|sources[j].2.kind(i)=="video") {
+            let options = y4m::Options {sync: syncs[index], start:opts.start.unwrap_or(0.),end:shortest.into_iter().chain(opts.end).reduce(f64::min),frames,filters:opts.video_filters,no_video:false,limit:remaining};
             geometry = render_source(&sources[j],i,(&inputs[j],opts.input_times[j],inputs[j].decoded().or(opts.concat.as_deref())),None,options,true,|image,time| {
-                remaining = remaining.checked_sub(image.pixels.capacity()*size_of::<[u8;4]>() + size_of::<(Raster,y4m::TimedFrame,usize)>()).ok_or("video frames exceed memory budget")?;
+                remaining = remaining.checked_sub(image.bytes() + size_of::<(y4m::Frame,y4m::TimedFrame,usize)>()).ok_or("video frames exceed memory budget")?;
                 buffered.try_reserve_exact(1).map_err(|_|"video frames exceed memory budget")?;
                 let order = buffered.len();
                 buffered.push((image,time,order));
@@ -2859,9 +2927,9 @@ pub(in super::super) fn render_mapped(
         for (image,time,_) in buffered { emit(image,time)?; }
         return Ok(geometry);
     }
-    let Some(&(j, i)) = selected
-        .iter()
-        .find(|&&(j, i)| sources[j].2.kind(i) == "video")
+    let Some((index, &(j, i))) = selected
+        .iter().enumerate()
+        .find(|&(_, &(j, i))| sources[j].2.kind(i) == "video")
     else {
         if sources.iter().any(|s| matches!(s.2, Streams::Nut(..))) { return Err(super::super::lrc::NO_STREAM.into()); }
         return Ok((64, 64, 10));
@@ -2872,7 +2940,7 @@ pub(in super::super) fn render_mapped(
         .or_else(|| durations.reduce(f64::max))
         .unwrap_or(0.);
     let cut = opts.shortest || opts.start.is_some() || opts.end.is_some();
-    let options = y4m::Options {
+    let options = y4m::Options {sync: syncs[index],
         start: opts.start.unwrap_or(0.).max(0.),
         end: cut.then(|| {
             opts.end
@@ -2890,7 +2958,7 @@ pub(in super::super) fn render_mapped(
         y4m::render_frames(
             w,
             h,
-            90000.,
+            (90000., None),
             sequence.times(),
             options,
             |i| Ok(sequence.frames[i].0.clone()),
@@ -2919,7 +2987,7 @@ fn render_source(
     duration: Option<f64>,
     options: y4m::Options<'_>,
     full_size: bool,
-    emit: impl FnMut(Raster, y4m::TimedFrame) -> Result<(), &'static str>,
+    emit: impl FnMut(y4m::Frame, y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     if let Some(seq) = decoded
         .and_then(|c| c.video.as_ref()?.get(&i))
@@ -2934,11 +3002,12 @@ fn render_source(
         y4m::render_frames(
             w,
             h,
-            f64::from(tracks[i].0.scale),
+            (f64::from(tracks[i].0.scale), None),
             show.iter().map(|f| (f.0, f.1)),
             options,
             |k| Ok(seq.images[show[k].2].clone()),
-            |mut im, frame| {
+            |im, frame| {
+                let mut im = im.into_raster();
                 if geometry {
                     if w.saturating_mul(h) > limit / 4 {
                         return Err("image exceeds memory budget");
@@ -2947,7 +3016,7 @@ fn render_source(
                     im.height = h;
                     im.pixels.resize(w * h, [0; 4]);
                 }
-                emit(im, frame)
+                emit(im.into(), frame)
             },
         )?;
         return Ok((w, h, 30));
@@ -2956,7 +3025,7 @@ fn render_source(
     match streams {
         Streams::Nut(doc, seek) => {
             let track=&doc.tracks[i];let times=track.times(*seek,options.limit)?;let limit=options.limit;
-            y4m::render_frames(track.width,track.height,f64::from(track.scale),times.iter().map(|t|(t.1,t.2)),options,|i|track.image(times[i].0,limit),emit)?;
+            y4m::render_frames(track.width,track.height,(f64::from(track.scale), None),times.iter().map(|t|(t.1,t.2)),options,|i|track.image(times[i].0,limit),emit)?;
             Ok((track.width,track.height,30))
         }
         Streams::Y4m(v) => v.render(options, emit),
@@ -2964,16 +3033,16 @@ fn render_source(
         Streams::Ico(images, seek) => {
             let im = &images[i].raster;
             let visible = seek.start.unwrap_or(0.) < 0.04 && seek.end().unwrap_or(0.04) > 0.;
-            y4m::render_frames(im.width, im.height, 25., super::super::ico::times(*seek, options.limit)?.filter(move |&(pts, _)| visible && (seek.loops == 0 || pts >= options.start)), options, |_| Ok(im.clone()), emit)?;
+            y4m::render_frames(im.width, im.height, (25., None), super::super::ico::times(*seek, options.limit)?.filter(move |&(pts, _)| visible && (seek.loops == 0 || pts >= options.start)), options, |_| Ok(im.clone()), emit)?;
             Ok((im.width, im.height, 30))
         }
         Streams::Apng(doc, seek) => {
             let times: Vec<_>=doc.times(*seek,options.limit)?.collect();
-            y4m::render_frames(doc.width,doc.height,1000000.,times.iter().map(|t|(t.1,t.2)),options,|i|Ok(doc.frames[times[i].0].image.clone()),emit)?;
+            y4m::render_frames(doc.width,doc.height,(1000000., Some(doc.frame_rate())),times.iter().map(|t|(t.1,t.2)),options,|i|Ok(doc.frames[times[i].0].image.clone()),emit)?;
             Ok((doc.width,doc.height,30))
         }
         Streams::Gif(g) => {
-            y4m::render_frames(g.width,g.height,100.,g.times(),options,|i| Ok(g.image(i)),emit)?;
+            y4m::render_frames(g.width,g.height,(100., None),g.times(),options,|i| Ok(g.image(i)),emit)?;
             Ok((g.width,g.height,30))
         }
         Streams::Still(seek) => {
@@ -2981,6 +3050,15 @@ fn render_source(
         }
         Streams::GeneratedVideo(v) => v.render(options, false, emit),
         Streams::Mp4(tracks) => {
+            if (options.sync.is_some() || seek.loops > 0) && let MediaInput::Bytes("mp4" | "mov", bytes) = source {
+                let limit = options.limit;
+                let sequence = super::VideoFrames::read(bytes, i, seek, limit)?;
+                let (w, h) = (sequence.track.width as usize, sequence.track.height as usize);
+                let mut decoder = super::VideoDecoder::new(&sequence.track, limit);
+                y4m::render_frames(w, h, (f64::from(sequence.track.scale), Some(sequence.track.frame_rate())), sequence.frames.iter().map(|(_, time)| *time), options,
+                    |k| sequence.image(k, &mut decoder, limit), emit)?;
+                return Ok((w, h, 30));
+            }
             if let MediaInput::Bytes("image2", bytes) = source
                 && tracks[i].0.tag != b"avc1"
             {
@@ -3045,7 +3123,7 @@ impl ComposedFrames {
             track,
             scale,
             times,
-            y4m::Options {
+            y4m::Options {sync: opts.video_sync,
                 filters: opts.video_filters,
                 frames: opts.frames,
                 start: 0.,
@@ -3054,6 +3132,7 @@ impl ComposedFrames {
                 limit,
             },
             opts.video_encoding(),
+            None,
             |i| Ok(self.frames[i].0.clone()),
         )?;
         *used += track.samples.len() * size_of::<Sample>()
@@ -3120,7 +3199,7 @@ fn compose_frames(
             .ok_or("Cannot read properties of undefined (reading 'decodedVideoFrames')")?;
         let mut index = 0;
         let mut last = None;
-        let options = y4m::Options {
+        let options = y4m::Options {sync: None,
             start: 0.,
             end: None,
             filters: &[],
@@ -3136,6 +3215,7 @@ fn compose_frames(
             options,
             true,
             |im, frame| {
+                let im = im.into_raster();
                 let tick = frame.duration;
                 if j == 0 || matches!(composition, Composition::Fade { .. }) {
                     remaining = remaining
@@ -3232,6 +3312,7 @@ fn cut_packets<'a>(
             .take_while(move |s| s.dts < end)
             .map(move |mut s| {
                 if (pcm_copy || whole_packets && t.kind == "video") && t.origin <= t.stats.ticks
+                    && (t.kind != "video" || s.dts.saturating_add(u64::from(s.tick)) >= t.stats.ticks)
                     && s.dts.saturating_add(u64::from(s.tick)) >= t.origin.saturating_add(t.duration.saturating_sub(t.empty_ticks)) {
                     // The demuxer caps the final duration against the stream end
                     // using the packet timestamp, including its leading empty edit.
@@ -3444,6 +3525,7 @@ pub(in super::super) fn remux(
         opts.end = None;
     }
     let (selected, shortest) = mapped_tracks(sources, &opts)?;
+    let syncs = opts.video_syncs(sources, &selected)?;
     let encode_pcm = if matches!(opts.format, "mp4" | "mov") {
         opts.audio_codec.and_then(|s| s.strip_prefix("pcm_")).map(|codec|
             super::super::ffmpeg_pcm::Format::parse(codec).ok_or("PCM codec is not supported in this container")
@@ -3564,22 +3646,22 @@ pub(in super::super) fn remux(
     if opts.format == "apng" {
         if opts.video_codec==Some("copy") {return Err("APNG output requires video encoding".into());}
         if opts.frames==Some(0) {return Ok(Vec::new());}
-        let &(j,i)=selected.iter().find(|&&(j,i)|sources[j].2.kind(i)=="video").ok_or("No video frame in the requested presentation interval")?;
+        let (index,&(j,i))=selected.iter().enumerate().find(|&(_,&(j,i))|sources[j].2.kind(i)=="video").ok_or("No video frame in the requested presentation interval")?;
         let mut frames=Vec::new();let mut remaining=opts.limit;
         render_source(&sources[j],i,(&inputs[j],opts.input_times[j],inputs[j].decoded().or(opts.concat.as_deref())),None,
-            y4m::Options {start:opts.start.unwrap_or(0.),end:opts.end,frames:opts.frames,filters:opts.video_filters,no_video:false,limit:remaining},true,
-            |image,time| {remaining=remaining.checked_sub(image.pixels.len()*4+size_of::<(Raster,y4m::TimedFrame)>()).ok_or("APNG exceeds memory budget")?;frames.push((image,time));Ok(())})?;
+            y4m::Options {sync: syncs[index], start:opts.start.unwrap_or(0.),end:opts.end,frames:opts.frames,filters:opts.video_filters,no_video:false,limit:remaining},true,
+            |image,time| {let image=image.into_raster();remaining=remaining.checked_sub(image.pixels.len()*4+size_of::<(Raster,y4m::TimedFrame)>()).ok_or("APNG exceeds memory budget")?;frames.push((image,time));Ok(())})?;
         return super::super::apng::write(&frames,opts.apng_plays,remaining).map_err(str::to_owned);
     }
     if opts.format == "ico" {
         if opts.frames == Some(0) { return Ok(Vec::new()); }
         let mut images = Vec::new();
         let mut remaining = opts.limit;
-        for &(j, i) in &selected {
+        for (index, &(j, i)) in selected.iter().enumerate() {
             if sources[j].2.kind(i) != "video" { return Err("ICO output supports only video streams".into()); }
             render_source(&sources[j], i, (&inputs[j], opts.input_times[j], inputs[j].decoded().or(opts.concat.as_deref())), None,
-                y4m::Options { start: opts.start.unwrap_or(0.), end: opts.end, frames: Some(1), filters: opts.video_filters, no_video: false, limit: remaining }, true,
-                |image, _| { remaining = remaining.checked_sub(image.pixels.len() * 4).ok_or("image exceeds memory budget")?; images.push(image); Ok(()) })?;
+                y4m::Options {sync: syncs[index],  start: opts.start.unwrap_or(0.), end: opts.end, frames: Some(1), filters: opts.video_filters, no_video: false, limit: remaining }, true,
+                |image, _| { let image=image.into_raster(); remaining = remaining.checked_sub(image.pixels.len() * 4).ok_or("image exceeds memory budget")?; images.push(image); Ok(()) })?;
         }
         if images.len() != selected.len() { return Err("No video frame in the requested presentation interval".into()); }
         return super::super::ico::write(&images, remaining).map_err(str::to_owned);
@@ -3999,6 +4081,7 @@ pub(in super::super) fn remux(
     let stream_duration = stream_seconds.iter().copied().fold(0., f64::max);
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
+        opts.video_sync = syncs[ordinal];
         let (input, _, source) = &sources[j];
         if let Some(format)=encode_pcm && source.kind(i)=="audio" {
             let available=opts.limit.saturating_sub(index_bytes);
@@ -4238,8 +4321,8 @@ pub(in super::super) fn remux(
                         track.media_ticks = (track.samples.len() as u64 * u64::from(timescale / 25)).try_into().map_err(|_| "track duration exceeds limit")?;
                         track.movie_ticks = (track.samples.len() as f64 / 25. * f64::from(scale)).round() as u32;
                     } else {
-                        encode_video(&mut track, scale, super::super::ico::times(*seek, limit)?.filter(|&(pts, _)| seek.start.unwrap_or(0.) < 0.04 && seek.end().unwrap_or(0.04) > 0. && (seek.loops == 0 || pts >= start)), y4m::Options { filters: opts.video_filters, frames: opts.frames, start, end: Some(end), no_video: false, limit }, opts.video_encoding(), |_| Ok(image.raster.clone()))?;
-                        if seek.loops > 0 && start > 0. && !track.samples.is_empty() {
+                        encode_video(&mut track, scale, super::super::ico::times(*seek, limit)?.filter(|&(pts, _)| seek.start.unwrap_or(0.) < 0.04 && seek.end().unwrap_or(0.04) > 0. && (seek.loops == 0 || pts >= start)), y4m::Options {sync: opts.video_sync,  filters: opts.video_filters, frames: opts.frames, start, end: Some(end), no_video: false, limit }, opts.video_encoding(), None, |_| Ok(image.raster.clone()))?;
+                        if opts.video_sync.is_none() && seek.loops > 0 && start > 0. && !track.samples.is_empty() {
                             let gap = (((start * 25.).ceil() / 25. - start) * f64::from(scale)).round() as u32;
                             if gap > 0 {
                                 track.edits = vec![[gap, u32::MAX, 65536], [track.movie_ticks, 0, 65536]];
@@ -4269,7 +4352,7 @@ pub(in super::super) fn remux(
                         t.media_ticks=ticks.try_into().map_err(|_|"APNG duration exceeds limit")?;
                         t.movie_ticks=(ticks as f64/f64::from(ts)*f64::from(scale)).round() as u32;
                     } else {
-                        encode_video(&mut t,scale,times.iter().map(|t|(t.1,t.2)),y4m::Options {filters:opts.video_filters,frames:opts.frames,start,end,no_video:false,limit},opts.video_encoding(),|i|Ok(doc.frames[times[i].0].image.clone()))?;
+                        encode_video(&mut t,scale,times.iter().map(|t|(t.1,t.2)),y4m::Options {sync: opts.video_sync, filters:opts.video_filters,frames:opts.frames,start,end,no_video:false,limit},opts.video_encoding(),Some(doc.frame_rate()),|i|Ok(doc.frames[times[i].0].image.clone()))?;
                     }
                     t
                 }
@@ -4282,6 +4365,7 @@ pub(in super::super) fn remux(
                     opts.frames,
                     opts.video_encoding(),
                     limit,
+                    opts.video_sync,
                 )?,
                 Streams::GeneratedVideo(v) => generated_video(
                     v,
@@ -4290,6 +4374,7 @@ pub(in super::super) fn remux(
                     opts.frames,
                     opts.video_encoding(),
                     limit,
+                    opts.video_sync,
                 )?,
                 Streams::GeneratedAudio(a) => a.track(&audio, scale, limit)?,
                 Streams::Nut(doc,seek) => {
@@ -4321,7 +4406,7 @@ pub(in super::super) fn remux(
                     let times=source.times(*seek,limit)?;
                     let mut track=video_track(source.width,source.height,VideoCodec::Still(b"raw "),source.scale,0,scale)?;
                     let (start,end)=range.unwrap_or((0.,None));
-                    encode_video(&mut track,scale,times.iter().map(|t|(t.1,t.2)),y4m::Options {filters:opts.video_filters,frames:opts.frames,start,end,no_video:false,limit},opts.video_encoding(),|i|source.image(times[i].0,limit))?;
+                    encode_video(&mut track,scale,times.iter().map(|t|(t.1,t.2)),y4m::Options {sync: opts.video_sync, filters:opts.video_filters,frames:opts.frames,start,end,no_video:false,limit},opts.video_encoding(),None,|i|source.image(times[i].0,limit))?;
                     track
                 }
                 Streams::Elementary(doc) => {
@@ -4510,6 +4595,9 @@ pub(in super::super) fn remux(
             && end.is_some_and(|end| end >= source.seconds(i)));
         let pcm = inputs[j].decoded().or(opts.concat.as_deref()).and_then(|c| c.audio.get(&i));
         let copied_video = video && opts.video_codec == Some("copy");
+        let decode_video_edit = video && !copied_video
+            && (opts.input_times.get(j).is_some_and(|seek| seek.start.is_some())
+                || t.samples(input.len()).any(|s| t.discarded_packet(&s)));
         let copied_audio = t.kind == "audio" && opts.audio_codec == Some("copy");
         let pcm_delay = if pcm_copy || copied_video {
             let input_start = if copied_video && !opts.input_seek && opts.input_times.get(j)
@@ -4644,6 +4732,7 @@ pub(in super::super) fn remux(
         if video
             && repeated_still.is_none()
             && !temporal
+            && !decode_video_edit
             && let Some(n) = opts.frames
             && samples.len() > n.max(1) as usize
         {
@@ -4795,7 +4884,7 @@ pub(in super::super) fn remux(
                 &mut track,
                 scale,
                 show.iter().map(|f| ((f.0 - from).max(0.), f.1)),
-                y4m::Options {
+                y4m::Options {sync: opts.video_sync,
                     filters: opts.video_filters,
                     frames: opts.frames,
                     start: 0.,
@@ -4804,6 +4893,7 @@ pub(in super::super) fn remux(
                     limit,
                 },
                 opts.video_encoding(),
+                None,
                 |k| Ok(seq.images[show[k].2].clone()),
             )?;
             index_bytes = index_bytes
@@ -4824,7 +4914,7 @@ pub(in super::super) fn remux(
                 &mut track,
                 scale,
                 (0..t.stats.count).map(|i| (i as f64 / 25., 0.04)),
-                y4m::Options {
+                y4m::Options {sync: opts.video_sync,
                     start,
                     end,
                     frames: opts.frames,
@@ -4833,27 +4923,67 @@ pub(in super::super) fn remux(
                     limit,
                 },
                 opts.video_encoding(),
+                None,
                 |_| Ok(im.clone()),
             )?;
             index_bytes = index_bytes
                 .saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
-        } else if video && !opts.video_filters.is_empty() && !track.samples.is_empty() {
+        } else if video && !copied_video && opts.concat.is_none() && (opts.video_sync.is_some() || opts.input_times.get(j).is_some_and(|seek| seek.loops > 0))
+            && let MediaInput::Bytes("mp4" | "mov", bytes) = &inputs[j]
+        {
+            let limit = opts.limit.saturating_sub(index_bytes);
+            let sequence = super::VideoFrames::read(bytes, i, opts.input_times[j], limit)?;
+            if !opts.video_filters.is_empty() || opts.input_times[j].start.is_some()
+                || opts.start.is_some() || opts.end.is_some()
+                || sequence.samples.iter().any(|sample| sequence.track.discarded_packet(sample))
+                || sequence.samples.windows(2).any(|s| s[0].tick != s[1].tick)
+                || opts.video_sync.is_some_and(|sync| sync.rate.is_some() || sync.mode == y4m::SyncMode::Cfr)
+                || sequence.frames.windows(2).any(|f| (f[1].1.0 - f[0].1.0 - f[0].1.1).abs() > 1. / f64::from(sequence.track.scale))
+            {
+            let mut decoder = super::VideoDecoder::new(&sequence.track, limit);
+            track.edits.clear();
+            track.media_ticks = 0;
+            if opts.video_encoding() != VideoEncoding::Fragmented { track.movie_ticks = 0; }
+            let clock = Some(sequence.track.frame_rate());
+            encode_video(&mut track, scale, sequence.frames.iter().map(|(_, time)| *time),
+                y4m::Options {sync: opts.video_sync,  filters: opts.video_filters, frames: opts.frames, start: from, end: to, no_video: false, limit },
+                opts.video_encoding(), clock, |k| sequence.image(k, &mut decoder, limit))?;
+            index_bytes = index_bytes.saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
+            }
+        } else if video && !copied_video && (!opts.video_filters.is_empty() || decode_video_edit
+            || opts.video_sync.is_some_and(|sync| sync.rate.is_some() || sync.mode == y4m::SyncMode::Cfr)
+            || opts.video_sync.is_some() && opts.concat.is_none() && track.samples.windows(2).any(|s| s[0].duration != s[1].duration)) && !track.samples.is_empty() {
             let mut decoder = super::VideoDecoder::new(t, opts.limit);
             let input_samples = std::mem::take(&mut track.samples);
-            let times = input_samples.iter().scan(0u64, |dts, s| {
+            // Movie edits preserve compressed preroll for decoding. Select
+            // presented frames only after the decoder has consumed dependencies.
+            let offset = if decode_video_edit {
+                i128::from(t.origin) - i128::from(t.empty_ticks)
+                    + (from * f64::from(t.scale)).round() as i128
+            } else { 0 };
+            let frames: Vec<_> = input_samples.iter().scan(if decode_video_edit { begin } else { 0 }, |dts, s| {
                 let at = *dts;
                 *dts += u64::from(s.duration);
                 Some((
-                    (at as f64 + s.cts as f64) / f64::from(t.scale),
+                    i128::from(at) + i128::from(s.cts),
                     f64::from(s.duration) / f64::from(t.scale),
                 ))
-            });
-            let limit = opts.limit.saturating_sub(index_bytes);
+            }).enumerate().filter(|(_, (pts, _))| !decode_video_edit || *pts >= offset
+                && (!t.runs.is_empty() || t.edit_duration
+                    .is_none_or(|duration| *pts < i128::from(t.origin) + i128::from(duration))))
+                .map(|(i, (pts, duration))| (i, ((pts - offset) as f64 / f64::from(t.scale), duration))).collect();
+            let limit = opts.limit.saturating_sub(index_bytes)
+                .saturating_sub(frames.capacity() * size_of::<(usize, (f64, f64))>());
+            if decode_video_edit {
+                track.edits.clear();
+                track.media_ticks = 0;
+                track.movie_ticks = 0;
+            }
             encode_video(
                 &mut track,
                 scale,
-                times,
-                y4m::Options {
+                frames.iter().map(|(_, time)| *time),
+                y4m::Options {sync: opts.video_sync,
                     filters: opts.video_filters,
                     frames: opts.frames,
                     start: 0.,
@@ -4862,9 +4992,10 @@ pub(in super::super) fn remux(
                     limit,
                 },
                         opts.video_encoding(),
+                Some(t.frame_rate()),
                 |i| {
                     let picture = decoder.picture(
-                        i,
+                        frames[i].0,
                         |n| {
                             let s = &input_samples[n];
                             (s.description, s.data.as_ref())

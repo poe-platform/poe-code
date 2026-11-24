@@ -76,6 +76,11 @@ async function test() {
     for (const [source, expected] of [
       ["function Str(el) error(false);return el end", "Lua filter execution failed"],
       ["function Str(el) error(42);return el end", "42"],
+      ["function Str(el) return pandoc.Str(string.upper(nil)) end", "Expected Lua string or number for concatenation"],
+      ["function Str(el) return pandoc.Str(string.char(65.5)) end", "Number has no integer representation"],
+      ["function Str(el) return pandoc.Str(string.char(-1)) end", "Value out of range"],
+      ["function Str(el) return pandoc.Str(tostring(string.find('abc','a',4294967297))) end", "Number has no integer representation"],
+      ["function Str(el) return pandoc.Str(string.gsub('a','a','b',1.5)) end", "Number has no integer representation"],
       ["function Str(el)\n local function fail()\n  error('broken',2)\n end\n fail()\n return el\nend", '[string "/errors.lua"]:5: broken'],
       ["function Str(el) local function fail() return error('broken',2) end;fail();return el end", "pandoc constructors:159: broken"],
       ["function Str(el) table.sort({2,1},function() error('broken',2) end);return el end", "table:104: broken"],
@@ -99,6 +104,9 @@ async function test() {
     await shell.fs.writeFile("/filters/upper.lua", "function Str(el) return pandoc.Str(el.text:upper()) end");
     const relativeFilter = await shell.exec("(cd /filters && printf hello | pandoc -f markdown -t plain -L ./upper.lua)");
     if (relativeFilter.exitCode || relativeFilter.stderr || relativeFilter.stdout !== "HELLO\n") throw new Error(JSON.stringify(relativeFilter));
+    await shell.fs.writeFile("/strings.lua", "function Str(el) return pandoc.Str(string.char('65','66')..':'..tostring(string.find('abc','a',nil))..':'..string.reverse(123)) end");
+    const strings = await shell.exec("printf hello | pandoc -f markdown -t plain -L /strings.lua");
+    if (strings.exitCode || strings.stderr || strings.stdout !== "AB:1:321\n") throw new Error(JSON.stringify(strings));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

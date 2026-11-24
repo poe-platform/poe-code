@@ -198,10 +198,16 @@ impl Runtime {
         }
         let a = |i: usize| args.get(i).cloned().unwrap_or_default();
         let n = |i: usize| a(i).number();
+        let integer = |i| {
+            let number = n(i).map_err(|_| Error::unlocated("Expected Lua number"))?;
+            numbers::integral(number).map_err(|error| Error::unlocated(error.message))
+        };
         let s = |i: usize| match a(i) {
             Value::String(s) => Ok(s),
             v @ (Value::Integer(_) | Value::Number(_)) => Ok(v.bytes()),
-            _ => Err(Error::new("string expected")),
+            _ => Err(Error::unlocated(
+                "Expected Lua string or number for concatenation",
+            )),
         };
         let result = match name {
             "string.pack" | "string.packsize" | "string.unpack" => {
@@ -377,22 +383,13 @@ impl Runtime {
             "string.lower" => Value::String(s(0)?.to_ascii_lowercase()),
             "string.len" => Value::Integer(s(0)?.len() as i32),
             "string.sub" | "string.byte" | "string.rep" => {
-                let string = |i| {
-                    s(i).map_err(|_| {
-                        Error::unlocated("Expected Lua string or number for concatenation")
-                    })
-                };
-                let integer = |i| {
-                    let number = n(i).map_err(|_| Error::unlocated("Expected Lua number"))?;
-                    numbers::integral(number).map_err(|error| Error::unlocated(error.message))
-                };
-                let text = string(0)?;
+                let text = s(0)?;
                 if name == "string.rep" {
                     let count = integer(1)?.max(0) as usize;
                     let sep = if a(2) == Value::Nil {
                         Vec::new()
                     } else {
-                        string(2)?
+                        s(2)?
                     };
                     if count == 0 {
                         return Ok(vec![Value::String(Vec::new())]);
@@ -437,12 +434,11 @@ impl Runtime {
             }
             "string.reverse" => Value::String(s(0)?.into_iter().rev().collect()),
             "string.char" => {
-                let bytes = args
-                    .iter()
-                    .map(|v| {
-                        let n = v.number()?;
-                        if !(0.0..=255.0).contains(&n) || n.fract() != 0.0 {
-                            return Err(Error::new("value out of range"));
+                let bytes = (0..args.len())
+                    .map(|i| {
+                        let n = integer(i)?;
+                        if !(0..=255).contains(&n) {
+                            return Err(Error::unlocated("Value out of range"));
                         }
                         Ok(n as u8)
                     })
@@ -454,17 +450,14 @@ impl Runtime {
                 let pattern = s(1)?;
                 let (start, iterator) = if name == "string.next_match" {
                     (
-                        n(2)? as isize,
+                        integer(2)? as isize,
                         Some(Iteration {
-                            last: n(3)? as isize,
+                            last: integer(3)? as isize,
                             anchor: a(4).truth(),
                         }),
                     )
                 } else {
-                    let start = if a(2) == Value::Nil { 1.0 } else { n(2)? };
-                    if !start.is_finite() || start.fract() != 0.0 {
-                        return Err(Error::new("number has no integer representation"));
-                    }
+                    let start = if a(2) == Value::Nil { 1 } else { integer(2)? };
                     (position(start as isize, text.len()).max(1) - 1, None)
                 };
                 return Matcher::new(&text, &pattern, &mut self.steps).search(
@@ -475,7 +468,7 @@ impl Runtime {
                 );
             }
             "string.coerce" => Value::String(s(0)?),
-            "string.integer" => Value::Integer(numbers::integral(n(0)?)?),
+            "string.integer" => Value::Integer(integer(0)?),
             "string.join" => {
                 let mut result = Vec::new();
                 for index in 1..=n(1)? as usize {
@@ -529,9 +522,6 @@ impl Runtime {
                     return Err(Error::unlocated("Value expected"));
                 }
                 let number = |i| n(i).map_err(|_| Error::unlocated("Expected Lua number"));
-                let integer = |i| {
-                    numbers::integral(number(i)?).map_err(|error| Error::unlocated(error.message))
-                };
                 if name == "math.ult" {
                     Value::Bool((integer(0)? as u32) < integer(1)? as u32)
                 } else if name == "math.randomseed" {

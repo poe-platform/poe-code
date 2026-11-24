@@ -6737,5 +6737,370 @@
     "script": "function Str(el) return el end",
     "status": 9,
     "stderr": "E_IO: Capability failed\n"
+  },
+  {
+    "id": "string-validation-upper-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.upper(nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'upper' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-lower-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.lower({}))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'lower' (string expected, got table)\n"
+  },
+  {
+    "id": "string-validation-len-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.len())) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'len' (string expected, got no value)\n"
+  },
+  {
+    "id": "string-validation-reverse-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.reverse(false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'reverse' (string expected, got boolean)\n"
+  },
+  {
+    "id": "string-validation-char-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(65.5))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'char' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-char-wide",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(4294967296))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'char' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-char-negative",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(-1))) end",
+    "status": 4,
+    "stderr": "E_AST: Value out of range\n",
+    "bufferedStderr": "E_AST: ' (\n"
+  },
+  {
+    "id": "string-validation-char-nonnumeric",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'char' (number expected, got boolean)\n"
+  },
+  {
+    "id": "string-validation-find-wide",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",4294967297))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'find' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-match-wide",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.match(\"abc\",\"a\",4294967297))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'match' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-find-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",1.5))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'find' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-find-nonnumeric",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'find' (number expected, got boolean)\n"
+  },
+  {
+    "id": "string-validation-find-nil-pattern",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'find' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-find-nil-text",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(nil,\"a\"))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'find' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-char-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char())) end",
+    "status": 0,
+    "stdout": "\n"
+  },
+  {
+    "id": "string-validation-number-input",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.reverse(123)..\":\"..string.lower(1.5)..\":\"..string.len(1.0))) end",
+    "status": 0,
+    "stdout": "321:1.5:3\n"
+  },
+  {
+    "id": "string-validation-gmatch-nil-text",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gmatch(nil,\"a\"))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'gmatch' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-gmatch-nil-pattern",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gmatch(\"a\",nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'gmatch' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-gsub-nil-text",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gsub(nil,\"a\",\"b\"))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'gsub' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-gsub-nil-pattern",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gsub(\"a\",nil,\"b\"))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'gsub' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-gsub-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gsub(\"a\",\"a\",\"b\",1.5))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #4 to 'gsub' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-format-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.format(nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'format' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-find-empty-pattern",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"\",4))) end",
+    "status": 0,
+    "stdout": "4\n"
+  },
+  {
+    "id": "string-validation-find-numeric-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"b\",\"2\"))) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "string-validation-char-limit",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(256))) end",
+    "status": 4,
+    "stderr": "E_AST: Value out of range\n",
+    "bufferedStderr": "E_AST: ' (\n"
+  },
+  {
+    "id": "string-validation-char-underflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(-2147483649))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'char' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-char-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(-1,false))) end",
+    "status": 4,
+    "stderr": "E_AST: Value out of range\n",
+    "bufferedStderr": "E_AST: ' (\n"
+  },
+  {
+    "id": "string-validation-char-numeric-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.char(\"65\",\"66\"))) end",
+    "status": 0,
+    "stdout": "AB\n"
+  },
+  {
+    "id": "string-validation-find-minimum",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",-2147483648))) end",
+    "status": 0,
+    "stdout": "1\n"
+  },
+  {
+    "id": "string-validation-find-maximum",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",2147483647))) end",
+    "status": 0,
+    "stdout": "nil\n"
+  },
+  {
+    "id": "string-validation-find-nil-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",\"a\",nil))) end",
+    "status": 0,
+    "stdout": "1\n"
+  },
+  {
+    "id": "string-validation-find-validation-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.find(\"abc\",nil,1.5))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'find' (string expected, got nil)\n"
+  },
+  {
+    "id": "string-validation-gsub-wide-count",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(string.gsub(\"a\",\"a\",\"b\",2147483648))) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #4 to 'gsub' (number has no integer representation)\n"
+  },
+  {
+    "id": "string-validation-byte-transform",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(table.concat({string.byte(string.reverse(string.upper(string.char(97,0,255))))},\",\"))) end",
+    "status": 0,
+    "stdout": "255\n"
   }
 ]

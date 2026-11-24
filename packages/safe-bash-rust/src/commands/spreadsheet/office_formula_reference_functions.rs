@@ -552,6 +552,7 @@ impl Calculation<'_> {
                     locals: Vec::new(),
                     lambda_depth: 0,
                     local_tokens: None,
+                    name_tokens: None,
                     export_names: None,
                     position: (pos.0, pos.1 as i64, pos.2 as i64),
                     scope: Some(pos.0),

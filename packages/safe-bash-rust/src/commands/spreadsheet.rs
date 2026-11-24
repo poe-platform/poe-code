@@ -570,3 +570,10 @@ mod editor_pivot_tests;
 #[cfg(test)]
 #[path = "spreadsheet/editor_pivot_filter_tests.rs"]
 mod editor_pivot_filter_tests;
+
+#[cfg(test)]
+#[path = "spreadsheet/editor_name_tests.rs"]
+mod editor_name_tests;
+
+#[path = "spreadsheet/editor_names.rs"]
+mod editor_names;

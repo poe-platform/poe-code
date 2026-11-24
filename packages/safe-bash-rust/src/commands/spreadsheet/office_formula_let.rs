@@ -292,6 +292,7 @@ pub(in crate::commands::spreadsheet) fn lexical_tokens(
         locals: Vec::new(),
         lambda_depth: 0,
         local_tokens: Some(Vec::new()),
+        name_tokens: None,
         export_names: None,
         position: (0, 0, 0),
         scope: None,

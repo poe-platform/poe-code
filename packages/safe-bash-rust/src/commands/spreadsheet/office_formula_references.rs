@@ -187,10 +187,14 @@ where
             column,
         })
     }
-    pub(super) fn reference_or_name(&self, sheet: Option<&str>, name: &str) -> Expr {
+    pub(super) fn reference_or_name(&mut self, sheet: Option<&str>, name: &str) -> Expr {
         if sheet.is_none()
             && let Some(index) = self.bindings.and_then(|bindings| bindings.get(name))
         {
+            let index = *index;
+            if let (Some(tokens), Some(index)) = (&mut self.name_tokens, index) {
+                tokens.push((self.source.len() + name.len(), name.len(), index));
+            }
             return index.map_or(Expr::Value(Value::Error("#NAME?")), Expr::Name);
         }
         if let Some(reference) = self.reference(sheet, name) {
@@ -250,6 +254,9 @@ where
                     })
                     .flatten()
             });
+        if let (Some(tokens), Some(index)) = (&mut self.name_tokens, index) {
+            tokens.push((self.source.len() + name.len(), name.len(), index));
+        }
         index.map_or(Expr::Value(Value::Error("#NAME?")), Expr::Name)
     }
     pub(super) fn sheet_span(&mut self, first_sheet: &str) -> Option<Expr> {

@@ -71,6 +71,9 @@ use references::Reference;
 #[path = "office_formula_tables.rs"]
 mod tables;
 pub use tables::{TableReferenceMap, map_table_references, table_to_range_references};
+#[path = "office_formula_names.rs"]
+mod names;
+pub(super) use names::name_references;
 pub(super) use tables::{qualify_columns, rewrite_columns};
 #[path = "office_formula_aggregate.rs"]
 mod aggregate;
@@ -441,6 +444,7 @@ struct Parser<'a, S> {
     locals: Vec<String>,
     lambda_depth: usize,
     local_tokens: Option<Vec<(usize, usize)>>,
+    name_tokens: Option<Vec<(usize, usize, usize)>>,
     export_names: Option<Vec<usize>>,
     position: (usize, i64, i64),
     scope: Option<usize>,
@@ -992,8 +996,8 @@ where
                 let name = match name.as_str() {
                     "DAYS" if self.csv || self.xlsx => "_XLFN.DAYS",
                     // Reference rewrites also visit the editor's unprefixed display text.
-                    "let" if self.local_tokens.is_some() => "LET",
-                    "lambda" if self.local_tokens.is_some() => "LAMBDA",
+                    "let" if self.local_tokens.is_some() || self.name_tokens.is_some() => "LET",
+                    "lambda" if self.local_tokens.is_some() || self.name_tokens.is_some() => "LAMBDA",
                     "COM.MICROSOFT.LET" | "_XLFN.LET" => "LET",
                     _ if self.csv => &name,
                     "ISOWEEKNUM" if iso_week => "WEEKNUM",
@@ -4208,6 +4212,7 @@ fn parse(
         locals: Vec::new(),
         lambda_depth: 0,
         local_tokens: None,
+        name_tokens: None,
         export_names: None,
         position,
         scope,

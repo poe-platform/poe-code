@@ -293,15 +293,30 @@ impl Runtime {
             "'__newindex' chain too long; possible loop",
         ))
     }
-    fn length(&self, value: &Value) -> Result<usize> {
+    fn length(&self, value: &Value) -> Result<i32> {
         match value {
-            Value::String(s) => Ok(s.len()),
+            Value::String(s) => Ok(s.len() as i32),
             Value::Table(_) => {
-                let mut n = 0;
-                while self.raw_get(value, &Value::Number((n + 1) as f64)) != Value::Nil {
-                    n += 1;
+                // Match the streaming heap's boundary search, including holes and
+                // numeric keys wider than the Lua integer or Wasm pointer width.
+                const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+                let (mut lower, mut upper) = (0, 1u64);
+                while self.raw_get(value, &Value::Number(upper as f64)) != Value::Nil {
+                    lower = upper;
+                    if upper == MAX_SAFE_INTEGER {
+                        return Ok(upper as i32);
+                    }
+                    upper = (upper * 2).min(MAX_SAFE_INTEGER);
                 }
-                Ok(n)
+                while upper - lower > 1 {
+                    let middle = lower + (upper - lower) / 2;
+                    if self.raw_get(value, &Value::Number(middle as f64)) == Value::Nil {
+                        upper = middle;
+                    } else {
+                        lower = middle;
+                    }
+                }
+                Ok(lower as i32)
             }
             _ => Err(Error::new("attempt to get length of a non-table value")),
         }
@@ -490,14 +505,14 @@ impl Runtime {
                     match op.as_str() {
                         "not" => Value::Bool(!value.truth()),
                         "#" if matches!(value, Value::String(_)) => {
-                            Value::Integer(self.length(&value)? as i32)
+                            Value::Integer(self.length(&value)?)
                         }
                         "#" => {
                             let method = self.meta(&value, "__len");
                             if method != Value::Nil {
                                 first(self.call(method, vec![value.clone(), value])?)
                             } else {
-                                Value::Integer(self.length(&value)? as i32)
+                                Value::Integer(self.length(&value)?)
                             }
                         }
                         "-" | "~" => {
@@ -595,7 +610,7 @@ impl Runtime {
                 (Value::Integer(_) | Value::Number(_), Value::Integer(_) | Value::Number(_)) => {
                     Ok(left.number()?.partial_cmp(&right.number()?))
                 }
-                _ => Err(Error::new("attempt to compare incompatible values")),
+                _ => Err(Error::unlocated("Cannot compare Lua values")),
             };
             order.map(|order| {
                 Value::Bool(order.is_some_and(|o| if op == "<" { o.is_lt() } else { o.is_le() }))

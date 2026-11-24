@@ -60,6 +60,9 @@ async function test() {
     await shell.fs.writeFile("/tables.lua", "function Str(el) local values={3,1,2}; local t=setmetatable({}, {__len=function() return 3 end,__index=function(_,i) return values[i] end,__newindex=function(_,i,v) values[i]=v end}); table.sort(t); table.insert(t,2,7); local x={1,2,3}; table.move(x,1,2,2,nil); return pandoc.Str(table.concat({table.unpack(values,nil,nil)},',')..':'..table.concat(x,',')) end");
     const tables = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/tables.lua");
     if (tables.exitCode || tables.stderr || tables.stdout !== "1,7,2,3:1,1,2\n") throw new Error(JSON.stringify(tables));
+    await shell.fs.writeFile("/lengths.lua", "function Str(el) local t={1,2,nil,4}; local n=rawlen(t); table.insert(t,5); local wide={}; for i=0,32 do wide[2.0^i]=true end; return pandoc.Str(n..':'..#t..':'..t[5]..':'..rawlen(wide)) end");
+    const lengths = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/lengths.lua");
+    if (lengths.exitCode || lengths.stderr || lengths.stdout !== "4:5:5:0\n") throw new Error(JSON.stringify(lengths));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

@@ -4221,5 +4221,182 @@
     "script": "local function probe() math.randomseed(17); local t={}; for i=1,31 do t[i]=(i*17)%31 end; table.sort(t); for i=2,#t do assert(t[i-1]<=t[i]) end; return #t..':'..t[1]..':'..t[#t]..':'..tostring(math.random()) end; function Str(el) return pandoc.Str(probe()) end",
     "status": 0,
     "stdout": "31:0:30:0.50513732433319\n"
+  },
+  {
+    "id": "length-hole-literal",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,nil,4}; return #t..':'..rawlen(t)..':'..tostring(table.remove(t)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "4:4:4\n"
+  },
+  {
+    "id": "length-hole-assigned",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={}; t[1]=1;t[2]=2;t[4]=4; return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "4:4\n"
+  },
+  {
+    "id": "length-hole-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={}; for i=1,8 do t[i]=i end; t[3]=nil;t[6]=nil; return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "8:8\n"
+  },
+  {
+    "id": "length-hole-deleted",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3,4}; t[3]=nil; table.insert(t,5); return #t..':'..tostring(t[4])..':'..tostring(t[5]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "5:4:5\n"
+  },
+  {
+    "id": "length-wide-30",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=0,30 do t[2.0^i]=true end;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1073741824:1073741824\n",
+    "bufferedStdout": "2:2\n"
+  },
+  {
+    "id": "length-wide-31",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=0,31 do t[2.0^i]=true end;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "-2147483648:-2147483648\n",
+    "bufferedStdout": "16:16\n"
+  },
+  {
+    "id": "length-wide-32",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=0,32 do t[2.0^i]=true end;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0:0\n",
+    "bufferedStdout": "8:8\n"
+  },
+  {
+    "id": "length-wide-52",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=0,52 do t[2.0^i]=true end;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0:0\n",
+    "bufferedStdout": "2:2\n"
+  },
+  {
+    "id": "length-max-safe",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=0,52 do t[2.0^i]=true end;t[9007199254740991]=true;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "-1:-1\n",
+    "bufferedStdout": "2:2\n"
+  },
+  {
+    "id": "length-callbacks",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local calls=0;local t=setmetatable({1,2,nil,4},{__len=function() calls=calls+1;return 7 end,__index=function() error('unexpected indexing') end});return rawlen(t)..':'..#t..':'..calls..':'..rawlen('aΩ') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "4:7:1:3\n"
+  },
+  {
+    "id": "length-dense-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[-1]=9,[0]=8,[1.5]=7,x=6};for i=1,31 do t[i]=false end;return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "31:31\n"
+  },
+  {
+    "id": "length-unrelated-keys",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[-1]=9,[0]=8,[1.5]=7,[9007199254740991]=true,x=6};return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0:0\n"
+  },
+  {
+    "id": "length-binary-search",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,nil,4,5,6};return #t..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "6:6\n"
+  },
+  {
+    "id": "length-mutated-boundary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,nil,4,5,6};local a=#t;t[6]=nil;local b=#t;t[4]=nil;return a..':'..b..':'..#t end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "6:5:2\n"
+  },
+  {
+    "id": "length-unpack-default",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,nil,4};local p=table.pack(table.unpack(t));return p.n..':'..tostring(p[3])..':'..tostring(p[4]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "4:nil:4\n"
+  },
+  {
+    "id": "length-concat-hole",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({1,2,nil,4},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid value (nil) at index 3 in table for 'concat'\n"
+  },
+  {
+    "id": "length-sort-hole",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={3,2,nil,1};table.sort(t);return table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Cannot compare Lua values\n",
+    "bufferedStderr": "E_AST: attempt to compare nil with number\n"
   }
 ]

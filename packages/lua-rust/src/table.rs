@@ -36,7 +36,6 @@ impl Runtime {
         if method == Value::Nil || matches!(value, Value::String(_)) {
             return self
                 .length(value)
-                .map(|n| n as i32)
                 .map_err(|_| Error::unlocated("Expected Lua table"));
         }
         integer(&first(

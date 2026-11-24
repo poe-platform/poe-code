@@ -239,7 +239,7 @@ impl Runtime {
                 self.raw_set(&a(0), a(1), a(2))?;
                 a(0)
             }
-            "rawlen" => Value::Integer(self.length(&a(0))? as i32),
+            "rawlen" => Value::Integer(self.length(&a(0))?),
             "rawequal" => Value::Bool(a(0) == a(1)),
             "getmetatable" => {
                 let meta = match a(0) {

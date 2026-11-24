@@ -1302,5 +1302,225 @@
     "script": "function Str(el) local function result() local r={}; local count=0; for i=2147483647,2147483647 do r[#r+1]=i; count=count+1; if count==3 then break end end for i='1','2','1' do r[#r+1]=i end return table.concat(r,',') end return pandoc.Str(result()) end",
     "status": 0,
     "stdout": "2147483647,-2147483648,-2147483647,1.0,2.0\n"
+  },
+  {
+    "id": "format-basic",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%s:%04d:%.2f','item',7,1.25) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "item:0007:1.25\n"
+  },
+  {
+    "id": "format-integers",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%s:%d:%i:%u:%x:%X:%o','ok',-7,8,-1,255,255,8) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "ok:-7:8:4294967295:ff:FF:10\n"
+  },
+  {
+    "id": "format-padding",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%+05d|%-5d|%000d|%-05d|%.3d',7,-7,12,12,1) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "+0007|-7   |12|12   |1\n"
+  },
+  {
+    "id": "format-precision",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.3f|%.2e|%.3g|%f|%e|%g',1.25,12.5,1.2345,1.25,12.5,1.2345) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1.250|1.25e+1|1.23|1.25|1.25e+1|1.2345\n"
+  },
+  {
+    "id": "format-ties",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.0f|%.0e|%.1g|%.2f|%.2f|%.13e',2.5,2.5,2.5,1.125,-1.125,10000000000000.5) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "3|3e+0|3|1.13|-1.13|1.0000000000001e+13\n"
+  },
+  {
+    "id": "format-hex",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%a|%A|%q|%a|%A',1.25,-0.0,1.25,5e-324,1.7976931348623157e308) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "0x1.4p+0|-0X0P+0|0x1.4p+0|0x1p-1074|0X1.FFFFFFFFFFFFFP+1023\n"
+  },
+  {
+    "id": "format-quoted-values",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%q|%q|%q|%q|%q|%q|%q',nil,true,math.mininteger,-2147483648,math.huge,-math.huge,0/0) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "nil|true|0x80000000|-0x1p+31|inf|-inf|nan\n"
+  },
+  {
+    "id": "format-string-coercion",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%s:%s:%s:%s',nil,false,7,7.0) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "nil:false:7:7.0\n"
+  },
+  {
+    "id": "format-utf16",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return bytes(string.format('%5s|%.2s|%.0s','é😀','é😀','abc')) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "32,32,195,169,240,159,152,128,124,195,169,237,160,189,124\n"
+  },
+  {
+    "id": "format-char",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return bytes(string.format('hello %% %3c %q %c %c',321,true,-1,0)) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "104,101,108,108,111,32,37,32,65,32,116,114,117,101,32,255,32,0\n"
+  },
+  {
+    "id": "format-metamethod",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%s',setmetatable({}, {__tostring=function() return string.format('%04d',7) end})) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "0007\n"
+  },
+  {
+    "id": "format-long-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%#q|%s|%d',17,string.sub(string.format('%#s',string.rep('x',100)),1,3),#string.format('%99s',string.rep('y',100))) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "17|xxx|100\n"
+  },
+  {
+    "id": "format-nonfinite",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%f|%g|%e|%+f|%08f',-0.0,0/0,math.huge,0/0,-math.huge) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "0|-NaN|Infinity|-NaN|-Infinity\n"
+  },
+  {
+    "id": "format-binary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return bytes(string.format('%s',string.char(0,255,128))..string.format('%q',string.char(0)..'7'..string.char(10,34,92,127,1))) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "0,255,128,34,92,48,48,48,55,92,10,92,34,92,92,92,49,50,55,92,49,34\n"
+  },
+  {
+    "id": "format-surrogates",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return bytes(string.format('%.3s',string.char(237,160,128))..string.format('%2s',string.char(224,128,128))) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "237,160,128,32,0\n"
+  },
+  {
+    "id": "format-large-fixed",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.2f|%.99f|%.99e|%.99g',1e21,0.1,1.25,0.1) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1e+21|0.100000000000000005551115123125782702118158340454101562500000000000000000000000000000000000000000000|1.250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e+0|0.1\n"
+  },
+  {
+    "id": "format-small-fixed",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.2f|%.0f|%.0e|%.1g',-0.00001,1e-21,5e-324,5e-324) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "-0.00|0|5e-324|5e-324\n"
+  },
+  {
+    "id": "format-empty-literal",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('literal %%')..':'..string.format('')..':'..string.format(7.0) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "literal %::7.0\n"
+  },
+  {
+    "id": "format-rounding-carry",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.0f|%.0e|%.1g|%.2f|%.0f|%.0f',9.5,9.5,9.5,0.125,1000000000000000100,-0.5) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "10|1e+1|10|0.13|1000000000000000128|-1\n"
+  },
+  {
+    "id": "format-shortest-exponents",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%e|%e|%e|%e|%e',1e-6,1e-7,1e20,1e21,1000000000000000100) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1e-6|1e-7|1e+20|1e+21|1.0000000000000001e+18\n"
+  },
+  {
+    "id": "format-nonfinite-zero-precision",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() return string.format('%.0g|%.0g|%.0g',0/0,math.huge,-math.huge) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "-NaN|Infinity|-Infinity\n"
+  },
+  {
+    "id": "format-long-binary-shortcut",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() local s=string.char(255)..string.rep('x',99); local a=string.format('%#s',s); return #a..':'..string.byte(a)..':'..string.byte(a,-1) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "100:255:120\n"
   }
 ]

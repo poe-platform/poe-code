@@ -126,6 +126,8 @@ impl Runtime {
                 Value::Native("string.integer"),
                 Value::Native("string.join"),
                 Value::Native("string.replacement_token"),
+                Value::Native("string.format_token"),
+                Value::Native("string.format_value"),
             ],
         )
         .expect("valid internal string library installation");
@@ -272,6 +274,7 @@ impl Runtime {
                     .map(|(k, v)| vec![k.clone(), v.clone()])
                     .unwrap_or_else(|| vec![Value::Nil]));
             }
+            "string.format_token" | "string.format_value" => return self.format(name, args),
             "string.upper" => Value::String(s(0)?.to_ascii_uppercase()),
             "string.lower" => Value::String(s(0)?.to_ascii_lowercase()),
             "string.len" => Value::Integer(s(0)?.len() as i32),

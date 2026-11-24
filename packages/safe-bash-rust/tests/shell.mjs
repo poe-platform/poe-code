@@ -30,6 +30,9 @@ async function test() {
     await shell.fs.writeFile("/numbers.lua", "function Str(el) local n=2147483647; return pandoc.Str(table.concat({n+1,math.type(1.0),0x1.8p2,1e21,10000000000000.5},',')) end");
     const numeric = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/numbers.lua");
     if (numeric.exitCode || numeric.stderr || numeric.stdout !== "-2147483648,float,6.0,1e+21,10000000000001.0\n") throw new Error(JSON.stringify(numeric));
+    await shell.fs.writeFile("/format.lua", "function Str(el) return pandoc.Str(string.format('%s:%04d:%.0f:%a','item',7,2.5,1.25)) end");
+    const formatted = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/format.lua");
+    if (formatted.exitCode || formatted.stderr || formatted.stdout !== "item:0007:3:0x1.4p+0\n") throw new Error(JSON.stringify(formatted));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

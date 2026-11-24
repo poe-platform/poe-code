@@ -1,4 +1,5 @@
 //! In-process Lua evaluation used by native and WebAssembly document filters.
+mod format;
 mod library;
 mod numbers;
 mod pattern;

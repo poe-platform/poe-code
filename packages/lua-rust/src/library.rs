@@ -84,6 +84,9 @@ impl Runtime {
                     "math.modf",
                     "math.tointeger",
                     "math.type",
+                    "math.random",
+                    "math.randomseed",
+                    "math.ult",
                 ][..],
             ),
             (
@@ -551,6 +554,47 @@ impl Runtime {
                 }
                 return Ok(Vec::new());
             }
+            "math.random" | "math.randomseed" | "math.ult" => {
+                if name != "math.random" && args.is_empty() {
+                    return Err(Error::unlocated("Value expected"));
+                }
+                let number = |i| n(i).map_err(|_| Error::unlocated("Expected Lua number"));
+                let integer = |i| {
+                    numbers::integral(number(i)?).map_err(|error| Error::unlocated(error.message))
+                };
+                if name == "math.ult" {
+                    Value::Bool((integer(0)? as u32) < integer(1)? as u32)
+                } else if name == "math.randomseed" {
+                    self.random_state = (number(0)? % 4294967296.0) as i64 as i32;
+                    if self.random_state == 0 {
+                        self.random_state = 1;
+                    }
+                    self.next_random();
+                    return Ok(Vec::new());
+                } else {
+                    // The existing library advances even when arguments are invalid.
+                    let random = self.next_random();
+                    if args.is_empty() {
+                        return Ok(vec![Value::Number(random)]);
+                    }
+                    if args.len() > 2 {
+                        return Err(Error::unlocated("Wrong number of arguments"));
+                    }
+                    let first = integer(0)?;
+                    let (low, high) = if args.len() == 1 {
+                        (1, first)
+                    } else {
+                        (first, integer(1)?)
+                    };
+                    if low > high {
+                        return Err(Error::unlocated("Interval is empty"));
+                    }
+                    if low < 0 && high > i32::MAX + low {
+                        return Err(Error::unlocated("Interval too large"));
+                    }
+                    Value::Integer((random * (high as f64 - low as f64 + 1.0)).floor() as i32 + low)
+                }
+            }
             "math.min" | "math.max" => {
                 let mut best = args
                     .first()
@@ -647,6 +691,14 @@ impl Runtime {
             _ => return Err(Error::new(format!("unsupported Lua function: {name}"))),
         };
         Ok(vec![result])
+    }
+
+    fn next_random(&mut self) -> f64 {
+        // Fengari multiplies in binary64 before truncating to 31 bits.
+        // Integer multiplication would produce a different seeded sequence.
+        self.random_state =
+            ((1103515245.0 * self.random_state as f64 + 12345.0) as i64 as i32) & 0x7fffffff;
+        self.random_state as f64 / 2147483648.0
     }
 }
 fn position(index: isize, length: usize) -> isize {

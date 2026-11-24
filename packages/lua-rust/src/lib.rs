@@ -6,7 +6,8 @@ mod pack;
 mod pattern;
 mod syntax;
 mod utf8;
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::RandomState};
+use std::hash::BuildHasher;
 use syntax::{Expr, Node, Stmt};
 
 #[derive(Clone, Debug, Default)]
@@ -151,6 +152,7 @@ pub struct Runtime {
     source: String,
     steps: usize,
     depth: usize,
+    random_state: i32,
 }
 impl Runtime {
     pub fn new(max_steps: usize) -> Self {
@@ -164,6 +166,7 @@ impl Runtime {
             source: String::new(),
             steps: usize::MAX,
             depth: 0,
+            random_state: RandomState::new().hash_one(0u8) as i32,
         };
         vm.globals = vm.table();
         vm.install();

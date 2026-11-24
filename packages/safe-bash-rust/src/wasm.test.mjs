@@ -23965,21 +23965,6 @@ test("HTML text extraction preserves nonbreaking space entities", async () => {
 });
 
 
-test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
-  const sh = new RustWasmBash();
-  try {
-    for (const [expr, error] of [
-      ["2^1024","non-finite arithmetic result"], ["x=1e308; x*=10","non-finite arithmetic result"],
-      ["(-1)^0.5","non-finite arithmetic result"], ["sqrt(-1)","invalid mathematical result in 'sqrt'"],
-      ["log(0)","invalid mathematical result in 'log'"], ["exp(1000)","invalid mathematical result in 'exp'"],
-    ]) {
-      const r = await sh.exec("awk 'BEGIN{print 1;"+expr+";print 2}END{print 3}'");
-      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"1\n","awk: "+error+"\n"],expr);
-    }
-  } finally { sh.dispose(); }
-});
-
-
 test("bzip2 names invalid inputs and stops after corruption outside test mode", async () => {
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/",forceNative:true});

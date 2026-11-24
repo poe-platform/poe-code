@@ -65,8 +65,7 @@ describe("soffice & libreoffice office document workflows e2e suite", () => {
           [
             "Architecture Spec",
             "First paragraph body.",
-            "Architecture Spec",
-            "",
+            "\uFEFFArchitecture Spec",
             "First paragraph body.",
             "",
           ].join("\n"),
@@ -98,7 +97,7 @@ describe("soffice & libreoffice office document workflows e2e suite", () => {
             "Release Notes v3.0",
             "All systems nominal.",
             "---",
-            "Release Notes v3.0",
+            "\uFEFFRelease Notes v3.0",
             "All systems nominal.",
             "---",
             "Release Notes v3.0",
@@ -165,7 +164,7 @@ describe("soffice & libreoffice office document workflows e2e suite", () => {
           ].join("\n"),
         );
         assert.equal(res.exitCode, 0, res.stderr);
-        assert.equal(res.stdout, "PNG\nExecutive Brief\n");
+        assert.equal(res.stdout, "PNG\n\uFEFFExecutive Brief\n");
       },
     );
   });

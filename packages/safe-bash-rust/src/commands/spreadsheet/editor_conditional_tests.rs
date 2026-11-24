@@ -861,6 +861,7 @@ fn conditional_xlsx_preserves_explicit_font_border_alignment_and_protection() {
             ("VAlign", "center".into()),
             ("WrapText", "1".into()),
             ("Rotation", "-30".into()),
+            ("Indent", "5".into()),
             ("Locked", "0".into()),
             ("Hidden", "1".into()),
         ],

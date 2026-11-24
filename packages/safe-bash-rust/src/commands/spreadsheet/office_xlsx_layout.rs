@@ -327,6 +327,7 @@ fn style_parts(
             ("vertical", "VAlign"),
             ("wrapText", "WrapText"),
             ("shrinkToFit", "ShrinkToFit"),
+            ("indent", "Indent"),
         ] {
             if let Some(value) = attr(alignment, name) {
                 style.attributes.push((key, value.into()));

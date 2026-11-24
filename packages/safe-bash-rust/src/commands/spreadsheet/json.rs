@@ -225,6 +225,7 @@ impl Codec for &'static str {
             "VAlign",
             "WrapText",
             "ShrinkToFit",
+            "Indent",
             "Locked",
             "Hidden",
             "bold",

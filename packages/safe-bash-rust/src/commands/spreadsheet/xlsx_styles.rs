@@ -220,11 +220,12 @@ pub(super) fn write(
             rotation
         };
         let properties = format!(
-            r#"<alignment horizontal="{}" vertical="{}" wrapText="{}" shrinkToFit="{}" textRotation="{rotation}" indent="0"/><protection locked="{}" hidden="{}"/>"#,
+            r#"<alignment horizontal="{}" vertical="{}" wrapText="{}" shrinkToFit="{}" textRotation="{rotation}" indent="{}"/><protection locked="{}" hidden="{}"/>"#,
             a("HAlign", "general"),
             a("VAlign", "bottom"),
             a("WrapText", "0"),
             a("ShrinkToFit", "0"),
+            escaped(a("Indent", "0")),
             a("Locked", "1"),
             a("Hidden", "0")
         );
@@ -361,6 +362,7 @@ fn differential(
             "VAlign" => "vertical",
             "WrapText" => "wrapText",
             "ShrinkToFit" => "shrinkToFit",
+            "Indent" => "indent",
             "Rotation" => "textRotation",
             "Locked" => "locked",
             "Hidden" => "hidden",

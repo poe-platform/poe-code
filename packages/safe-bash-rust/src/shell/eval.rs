@@ -1004,9 +1004,12 @@ impl<'a> EvalState<'a> {
         if !env.contains_key("PWD") && !env.contains_key("\0pwd_unset__") {
             env.insert("PWD".to_string(), cwd.clone());
         }
-        if !env.contains_key("OPTIND") && !env.contains_key("\0getopts_int") {
+        if !env.contains_key("\0getopts_int") {
+            let exported = env.contains_key("OPTIND") && !env.contains_key("\0unexported__OPTIND");
             env.insert("OPTIND".to_string(), "1".to_string());
-            env.insert("\0unexported__OPTIND".to_string(), "1".to_string());
+            env.insert("\0attr__OPTIND".into(), if exported { "ix" } else { "i" }.into());
+            if !exported { env.insert("\0unexported__OPTIND".to_string(), "1".to_string()); }
+            env.insert("\0getopts_int".into(), "1".into());
         }
         if !env.contains_key("OPTERR") && !env.contains_key("\0opterr_unset__") {
             env.insert("OPTERR".to_string(), "1".to_string());
@@ -4092,14 +4095,6 @@ impl<'a> EvalState<'a> {
                 s = s.to_lowercase();
             } else if attr.contains('u') {
                 s = s.to_uppercase();
-            }
-            if resolved == "OPTIND"
-                && self.env.get("\0getopts_int").map(|v| v.as_str()) != Some("0")
-            {
-                let expr = if s.is_empty() { "0" } else { s.as_str() };
-                s = eval_arith(expr, self.env)
-                    .map_err(EvalError::Syntax)?
-                    .to_string();
             }
             s
         };
@@ -7580,9 +7575,13 @@ impl<'a> EvalState<'a> {
         }
         sub_env.insert("PWD".to_string(), sub_cwd.to_string());
         sub_env.insert("\0attr__PWD".to_string(), "x".to_string());
+        let optind_exported = sub_env.contains_key("OPTIND");
+        if !optind_exported {
+            sub_env.insert("\0unexported__OPTIND".to_string(), "1".to_string());
+        }
         sub_env.insert("OPTIND".to_string(), "1".to_string());
-        sub_env.insert("\0unexported__OPTIND".to_string(), "1".to_string());
-        sub_env.remove("\0attr__OPTIND");
+        sub_env.insert("\0attr__OPTIND".into(), if optind_exported { "ix" } else { "i" }.into());
+        sub_env.insert("\0getopts_int".into(), "1".into());
         sub_env.insert("\0getopts_index".to_string(), "0".to_string());
         sub_env.insert("OPTERR".to_string(), "1".to_string());
         sub_env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
@@ -9614,7 +9613,12 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 if !inherit_prev {
+                    let exported = self.env.get(&format!("\0attr__{base_name}")).is_some_and(|a| a.contains('x'))
+                        || (self.env.contains_key(&base_name) && super::is_exported_scalar(self.env, &base_name));
                     self.env.remove(&format!("\0attr__{base_name}"));
+                    if exported {
+                        self.env.insert(format!("\0attr__{base_name}"), "x".into());
+                    }
                     self.env.remove(&format!("\0assoc__{base_name}"));
                     self.env.remove(&format!("\0nameref__{base_name}"));
                     self.env.remove(&format!("\0declared__{base_name}"));

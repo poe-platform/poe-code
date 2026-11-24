@@ -265,6 +265,13 @@ impl HybridBackend {
             return Err("Shell limit exceeded: maxExpansionBytes".into());
         }
         let exported: BTreeSet<_> = list(v.get("exported")).into_iter().collect();
+        let optind_exported = env.contains_key("OPTIND") && !env.contains_key("\0unexported__OPTIND");
+        env.insert("OPTIND".into(), "1".into());
+        if !optind_exported { env.insert("\0unexported__OPTIND".into(), "1".into()); }
+        env.insert("\0getopts_int".into(), "0".into());
+        let mut optind_attributes = if optind_exported { "x" } else { "" }.to_string();
+        if v.get("variableAttributes").is_none() { optind_attributes.push('i'); }
+        env.insert("\0attr__OPTIND".into(), optind_attributes);
         for (k, s) in string_entries(v.get("variables")).filter(|(k, _)| public_name(k)) {
             if !exported.contains(&k) {
                 env.insert(format!("\0unexported__{k}"), "1".into());

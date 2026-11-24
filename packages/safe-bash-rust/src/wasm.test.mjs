@@ -5003,21 +5003,15 @@ test("JavaScript and Rust can exchange supported cold session state", async () =
     for (const key of ["exported", "readonlyVariables", "exportedFunctions", "readonlyFunctions"]) {
       for (const s of snapshots) s[key].sort();
     }
-    // Engine-derived variables and JS-only options describe different native capabilities.
-    // Compare every remaining field, including all user state and supported options.
+    // Named descriptor cleanup remains JS-only; compare every other state field.
     const [jsState,rustState]=snapshots;
-    for(const [option,value] of Object.entries({globskipdots:true,sourcepath:true,patsub_replacement:true,varredir_close:false})) {
+    for(const [option,value] of Object.entries({varredir_close:false})) {
       assert.equal(jsState.options[option],value);
       assert.equal(Object.hasOwn(rustState.options,option),false);
       const unsupported=await rust.exec("shopt -s "+option);
       assert.equal(unsupported.exitCode,1);
       assert.match(unsupported.stderr,/unsupported shell option name/);
       delete jsState.options[option];
-    }
-    for(const [name,value] of Object.entries({BASH_ARGV0:"virtual-bash",SHELLOPTS:"braceexpand:hashall",BASHOPTS:"globskipdots:nullglob:patsub_replacement:sourcepath"})) {
-      assert.equal(jsState.variables[name],value);
-      assert.equal(Object.hasOwn(rustState.variables,name),false);
-      delete jsState.variables[name];
     }
     assert.deepEqual(rustState,jsState);
   } finally { await js.dispose(); rust.dispose(); }

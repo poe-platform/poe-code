@@ -910,6 +910,7 @@ mod pdf_repair;
 
 pub(super) const NO_PAGE_TREE: &str = "unable to find page tree";
 pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog object found";
+pub(super) const NO_ROOT: &str = "unable to find /Root dictionary";
 pub(super) fn encryption_status(bytes: &[u8], password: &str) -> Result<bool, &'static str> {
     header_version(bytes).ok_or("Invalid PDF header: missing %PDF- signature")?;
     let (objects, _) = index(bytes, password)?;
@@ -920,14 +921,16 @@ fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>)
     if let Some((mut objects, trailer)) = strict_index(bytes) {
         objects.authenticate(&trailer, password)?;
         objects.offset_repair = OffsetRepair::OnError;
-        if let Some(catalog) = trailer
-            .get(b"Root")
-            .and_then(Value::reference)
+        let root = trailer.get(b"Root").and_then(Value::reference);
+        if let Some(catalog) = root
             .and_then(|id| objects.object(id))
             .map(|(value, _)| value)
             && matches!(catalog, Value::Dict(_))
         {
             return Ok((objects, trailer));
+        }
+        if root.is_some() {
+            return Err(NO_ROOT);
         }
     }
     let (mut objects, trailer) = pdf_repair::recover(bytes, password)?;

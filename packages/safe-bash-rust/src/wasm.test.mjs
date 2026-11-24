@@ -23158,6 +23158,27 @@ test("qpdf reports native cross-reference reconstruction warnings across inspect
 });
 
 
+test("qpdf honors a dangling explicit catalog reference across inspection and output modes",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cases:{dangling:{pdf,reports}}}=JSON.parse(await readFile(new URL("../tests/fixtures/strict-catalogs.json",import.meta.url),"utf8"));
+  const input=Buffer.from(pdf,"base64"),fs=new MemoryFileSystem();
+  await fs.writeFile("/in.pdf",input);await fs.writeFile("/out.pdf",Buffer.from("original"));
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  const rust=new RustWasmBash({cwd:"/",files:{"/in.pdf":input,"/out.pdf":"original"}});
+  try {
+    for(const [flags,want]of Object.entries(reports)) {
+      const command="qpdf in.pdf "+flags;
+      const expected=await js.exec(command),actual=await rust.exec(command);
+      assert.deepEqual([expected.exitCode,expected.stderr,Buffer.from(expected.stdoutBytes)], [want.status,want.stderr,Buffer.from(want.stdout,"base64")],command);
+      assert.deepEqual([actual.exitCode,actual.stderr,actual.stdoutBytes],[expected.exitCode,expected.stderr,expected.stdoutBytes],command);
+      assert.deepEqual(await rust.fs.readFile("/in.pdf"),new Uint8Array(input));
+      assert.equal(rust.readText("/out.pdf"),"original");
+    }
+  }finally{rust.dispose();await js.dispose();}
+});
+
 test("qpdf validates the latest trailer and catalog against native results",async()=>{
   const {readFile}=await import("node:fs/promises");
   const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/strict-catalogs.json",import.meta.url),"utf8"));

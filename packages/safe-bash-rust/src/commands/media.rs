@@ -7607,7 +7607,8 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 let source =
                     pdf_reader::PageSource::open(&bytes, password.as_deref().unwrap_or(""));
                 if let Err(
-                    e @ (pdf_reader::NO_CATALOG
+                    e @ (pdf_reader::NO_ROOT
+                    | pdf_reader::NO_CATALOG
                     | pdf_reader::NO_PAGE_TREE
                     | pdf_reader::PASSWORD
                     | pdf_reader::UNSUPPORTED),
@@ -8200,7 +8201,8 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                 err_out("shell: line 1: internal error\n", 1)
                             } else if matches!(
                                 e.as_str(),
-                                pdf_reader::NO_CATALOG
+                                pdf_reader::NO_ROOT
+                                    | pdf_reader::NO_CATALOG
                                     | pdf_reader::NO_PAGE_TREE
                                     | pdf_reader::PASSWORD
                                     | pdf_reader::UNSUPPORTED

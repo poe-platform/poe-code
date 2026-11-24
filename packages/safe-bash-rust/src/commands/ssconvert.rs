@@ -1489,6 +1489,27 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn name_scope_order_matches_production() {
+        check_fixture(include_str!(
+            "../../tests/fixtures/ssconvert-name-scope-order-production.json"
+        ));
+    }
+
+    #[test]
+    fn sheet_construction_matches_production() {
+        check_fixture(include_str!(
+            "../../tests/fixtures/ssconvert-sheet-construction-production.json"
+        ));
+    }
+
+    #[test]
+    fn name_rejection_groups_match_production() {
+        check_fixture(include_str!(
+            "../../tests/fixtures/ssconvert-name-rejection-groups-production.json"
+        ));
+    }
+
     fn check_fixture(fixture: &str) {
         fn object(value: &JVal) -> &[(String, JVal)] {
             let JVal::Object(value) = value else {

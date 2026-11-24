@@ -4097,7 +4097,7 @@ impl Formula {
         sheets: &[String],
         sizes: &[(usize, usize)],
         work: &mut usize,
-    ) -> Result<Option<Vec<(Option<usize>, String, bool)>>, &'static str> {
+    ) -> Result<Option<Vec<(Option<usize>, String, bool, Option<String>)>>, &'static str> {
         let Some(expression) = self.expression.as_ref() else {
             return Ok(None);
         };
@@ -4139,10 +4139,11 @@ impl Formula {
                         if part.workbook.is_some() {
                             return Ok(None);
                         }
-                        if let Some(sheet) = part.sheet {
-                            let Some(index) = sheets.iter().position(|s| {
-                                super::super::office::case_fold::same_name(s, &sheet)
-                            }) else {
+                        if let Some(sheet) = &part.sheet {
+                            let Some(index) = sheets
+                                .iter()
+                                .position(|s| super::super::office::case_fold::same_name(s, sheet))
+                            else {
                                 return Ok(None);
                             };
                             scope = index;
@@ -4152,29 +4153,29 @@ impl Formula {
                                 return Ok(None);
                             }
                         } else if split.is_none() {
-                            names.push((Some(scope), part.cell, false));
+                            names.push((Some(scope), part.cell, false, part.sheet));
                         }
                     }
                 }
                 Expr::Name(name) => {
-                    let (scope, name) = if let Some((sheet, name)) = qualified(name, '!') {
-                        let sheet = sheet
-                            .strip_prefix('\'')
-                            .and_then(|s| s.strip_suffix('\''))
-                            .map_or_else(|| sheet.to_owned(), |s| s.replace("''", "'"));
-                        let Some(index) = sheets
-                            .iter()
-                            .position(|s| super::super::office::case_fold::same_name(s, &sheet))
-                        else {
-                            return Ok(None);
+                    let (scope, name, spelling) =
+                        if let Some((sheet, name)) = qualified(name, '!') {
+                            let sheet = sheet
+                                .strip_prefix('\'')
+                                .and_then(|s| s.strip_suffix('\''))
+                                .map_or_else(|| sheet.to_owned(), |s| s.replace("''", "'"));
+                            let Some(index) = sheets.iter().position(|s| {
+                                super::super::office::case_fold::same_name(s, &sheet)
+                            }) else {
+                                return Ok(None);
+                            };
+                            (Some(index), name.to_owned(), Some(sheet))
+                        } else {
+                            (None, name.clone(), None)
                         };
-                        (Some(index), name.to_owned())
-                    } else {
-                        (None, name.clone())
-                    };
-                    names.push((scope, name, false));
+                    names.push((scope, name, false, spelling));
                 }
-                Expr::GlobalName(name) => names.push((None, name.clone(), true)),
+                Expr::GlobalName(name) => names.push((None, name.clone(), true, None)),
                 Expr::Binary(_, left, right) => pending.extend([right.as_ref(), left.as_ref()]),
                 Expr::Call(_, args, _) => pending.extend(args.iter().rev()),
                 Expr::Array(rows) => {
@@ -4187,6 +4188,90 @@ impl Formula {
             }
         }
         Ok(Some(names))
+    }
+
+    pub(in crate::commands) fn bind_imported_names(
+        &mut self,
+        bindings: &[Option<usize>],
+        sheet: usize,
+        sheets: &[String],
+        has_local: impl Fn(usize, &str) -> bool,
+        work: &mut usize,
+    ) -> Result<Option<String>, &'static str> {
+        let Some(expression) = self.expression.as_mut() else {
+            return Ok(None);
+        };
+        let mut bindings = bindings.iter();
+        let mut pending = vec![expression];
+        let mut changed = false;
+        while let Some(node) = pending.pop() {
+            *work = work.checked_sub(1).ok_or(super::LIMIT)?;
+            let (requested, name) = match node {
+                Expr::Name(raw) => {
+                    if let Some((scope, name)) = qualified(raw, '!') {
+                        let scope = scope
+                            .strip_prefix('\'')
+                            .and_then(|s| s.strip_suffix('\''))
+                            .map_or_else(|| scope.to_owned(), |s| s.replace("''", "'"));
+                        let scope = sheets
+                            .iter()
+                            .position(|s| super::super::office::case_fold::same_name(s, &scope))
+                            .ok_or(super::LIMIT)?;
+                        (Some(scope), name.to_owned())
+                    } else {
+                        (None, raw.clone())
+                    }
+                }
+                Expr::Reference { odf, .. } if range_split(odf).is_none() => {
+                    let Some(part) = endpoint(odf, '.', true).filter(|p| p.position.is_none())
+                    else {
+                        continue;
+                    };
+                    let scope = part
+                        .sheet
+                        .as_ref()
+                        .and_then(|scope| {
+                            sheets
+                                .iter()
+                                .position(|s| super::super::office::case_fold::same_name(s, scope))
+                        })
+                        .ok_or(super::LIMIT)?;
+                    (Some(scope), part.cell)
+                }
+                Expr::GlobalName(_) => {
+                    bindings.next().ok_or(super::LIMIT)?;
+                    continue;
+                }
+                Expr::Binary(_, left, right) => {
+                    pending.extend([right.as_mut(), left.as_mut()]);
+                    continue;
+                }
+                Expr::Call(_, args, _) => {
+                    pending.extend(args.iter_mut().rev());
+                    continue;
+                }
+                Expr::Array(rows) => {
+                    pending.extend(rows.iter_mut().rev().flat_map(|row| row.iter_mut().rev()));
+                    continue;
+                }
+                Expr::Group(child) | Expr::Unary(_, child) | Expr::Spaced(_, child, _) => {
+                    pending.push(child);
+                    continue;
+                }
+                _ => continue,
+            };
+            let scope = *bindings.next().ok_or(super::LIMIT)?;
+            if scope.is_none() && has_local(requested.unwrap_or(sheet), &name) {
+                *node = Expr::GlobalName(name);
+                changed = true;
+            }
+        }
+        if changed {
+            let expression = self.expression.as_ref().unwrap();
+            self.excel = expression.render(Syntax::Excel, work)?;
+            return Ok(Some(expression.render(Syntax::Gnumeric, work)?));
+        }
+        Ok(None)
     }
 
     pub(in crate::commands) fn open_document(

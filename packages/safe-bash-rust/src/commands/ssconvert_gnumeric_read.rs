@@ -476,9 +476,11 @@ pub(in super::super) fn read(
         }
     }
     names(&root, None, &mut book);
-    let mut sheets = Vec::new();
+    let mut sheets = BTreeMap::new();
+    let mut formula_bindings = BTreeMap::new();
     let mut sheet_names = Vec::new();
-    let mut shared: BTreeMap<String, (String, usize, usize)> = BTreeMap::new();
+    let mut shared: BTreeMap<String, (String, (usize, usize, usize), Vec<Option<usize>>)> =
+        BTreeMap::new();
     let mut work = limit;
     for (i, node) in ordered.iter().enumerate() {
         let name = sheet_name(node)
@@ -535,7 +537,8 @@ pub(in super::super) fn read(
         diagnostics,
     )
     .ok_or("ssconvert: formula calculation exceeds input limit\n")?;
-    let mut visible_globals = BTreeSet::new();
+    let mut visible_names = BTreeSet::new();
+    let mut visible_sheets = BTreeSet::new();
     for node in &root.children {
         let Node::Element(node) = node else { continue };
         if !namespace(&node.namespace) {
@@ -544,17 +547,60 @@ pub(in super::super) fn read(
         if node.tag.rsplit(':').next() == Some("Sheets") {
             break;
         }
+        if node.tag.rsplit(':').next() == Some("SheetNameIndex") {
+            for entry in children(node, "SheetName") {
+                let name = text(entry);
+                if let Some(i) = sheet_names
+                    .iter()
+                    .position(|s| crate::commands::archive::office::case_fold::same_name(s, &name))
+                {
+                    visible_sheets.insert(i);
+                }
+            }
+        }
         if node.tag.rsplit(':').next() == Some("Names") {
             for entry in children(node, "Name") {
                 if let Some(name) = name_field(entry, "name")
                     && name_field(entry, "value").is_some()
                 {
-                    visible_globals.insert(name);
+                    visible_names.insert((None, name));
                 }
             }
         }
     }
-    for (i, node) in ordered.iter().enumerate() {
+    for (i, _) in ordered.iter().enumerate() {
+        for name in ["Sheet_Title", "Print_Area"] {
+            visible_names.insert((Some(i), name.to_owned()));
+        }
+    }
+    let mut import_order: Vec<_> = ordered.iter().enumerate().collect();
+    import_order.sort_by_key(|(_, node)| {
+        data.iter()
+            .position(|source| std::ptr::eq(*source, **node))
+            .unwrap_or(usize::MAX)
+    });
+    for (i, node) in import_order {
+        visible_sheets.insert(i);
+        for child in &node.children {
+            let Node::Element(child) = child else {
+                continue;
+            };
+            if !namespace(&child.namespace) {
+                continue;
+            }
+            if child.tag.rsplit(':').next() == Some("Cells") {
+                break;
+            }
+            if child.tag.rsplit(':').next() == Some("Names") {
+                for entry in children(child, "Name") {
+                    if let Some(name) = name_field(entry, "name")
+                        && name_field(entry, "value").is_some()
+                    {
+                        visible_names.insert((Some(i), name));
+                    }
+                }
+            }
+        }
         let (rows, cols) = book.sheet_sizes[i];
         let (rows, cols) = (rows as f64, cols as f64);
         let mut sheet = Sheet {
@@ -653,11 +699,40 @@ pub(in super::super) fn read(
                 let cached = attr(cell, "Value");
                 let mut formula = (text.starts_with('=') && (kind.is_none() || cached.is_some()))
                     .then(|| text[1..].to_owned());
+                let mut bindings = Vec::new();
+                let mut inherited = false;
                 if let Some(id) = attr(cell, "ExprID")
-                    && let Some((source, r, c)) = shared.get(id).filter(|_| text.is_empty())
+                    && let Some((source, (origin, r, c), original_bindings)) =
+                        shared.get(id).filter(|_| text.is_empty())
                 {
+                    inherited = true;
+                    let mut source = source.clone();
+                    if !original_bindings.is_empty()
+                        && let Some(mut parsed) =
+                            crate::commands::archive::office_ods::formula::convert(
+                                true,
+                                &format!("={source}"),
+                                false,
+                                work,
+                                true,
+                            )
+                            .map_err(invalid)?
+                        && let Some(display) = parsed
+                            .bind_imported_names(
+                                original_bindings,
+                                *origin,
+                                &sheet_names,
+                                |scope, name| {
+                                    visible_names.contains(&(Some(scope), name.to_owned()))
+                                },
+                                &mut work,
+                            )
+                            .map_err(invalid)?
+                    {
+                        source = display;
+                    }
                     formula = Some(xlsx_gnumeric::translate_formula(
-                        source,
+                        &source,
                         (row as i64 - *r as i64, col as i64 - *c as i64),
                         true,
                         &mut work,
@@ -694,6 +769,7 @@ pub(in super::super) fn read(
                     .and_then(|s| attr(s, "Format"))
                     .map(str::to_owned)
                     .or_else(|| vf.clone().filter(|_| rich_text.is_none()));
+                let mut array = false;
                 if let Some(f) = &formula {
                     if attr(cell, "Rows").is_some() && attr(cell, "Cols").is_some() {
                         let height = number(cell, "Rows", 1.);
@@ -706,6 +782,7 @@ pub(in super::super) fn read(
                             {
                                 return Err(invalid("invalid array dimensions"));
                             }
+                            array = true;
                             sheet.arrays.push(ArrayFormula {
                                 range: [row, col, width as usize, height as usize],
                                 expression: f.clone(),
@@ -736,35 +813,58 @@ pub(in super::super) fn read(
                     )
                     .map_err(invalid)?
                 {
-                    let mut missing_global = false;
-                    for (scope, name, global) in parsed
+                    let mut rejected = false;
+                    for (requested, name, global, spelling) in parsed
                         .entry_names(&sheet_names, &book.sheet_sizes, &mut work)
                         .map_err(invalid)?
                         .unwrap_or_default()
                     {
-                        if global {
-                            if !visible_globals.contains(&name) {
-                                missing_global = true;
+                        let rejection = if global && !visible_names.contains(&(None, name.clone()))
+                        {
+                            Some(format!("Name '{name}' does not exist in workbook"))
+                        } else if let Some(scope) = requested
+                            && !visible_sheets.contains(&scope)
+                        {
+                            Some(format!(
+                                "Unknown sheet '{}'",
+                                spelling.as_deref().unwrap_or(&sheet_names[scope])
+                            ))
+                        } else {
+                            None
+                        };
+                        if let Some(reason) = rejection {
+                            bindings.clear();
+                            // Only ordinary input cells recover rejected names
+                            // as strings; arrays and shared copies keep formulas.
+                            if !array && !inherited {
+                                rejected = true;
                                 diagnostics.push_str(&format!(
-                                    "Unparsable expression for {}{}: ={source} (Name '{name}' does not exist in workbook)\n",
-                                    crate::commands::structured::xlsx_idx_to_col_ref(col), row + 1
+                                    "Unparsable expression for {}{}: ={source} ({reason})\n",
+                                    crate::commands::structured::xlsx_idx_to_col_ref(col),
+                                    row + 1
                                 ));
-                                break;
                             }
+                            break;
+                        }
+                        if global {
+                            bindings.push(None);
                             continue;
                         }
-                        if scope.is_none()
-                            && !book
-                                .names
-                                .iter()
-                                .any(|n| n.name == name && n.sheet == Some(i))
+                        let scope = if visible_names
+                            .contains(&(Some(requested.unwrap_or(i)), name.clone()))
                         {
-                            visible_globals.insert(name.clone());
-                        }
-                        if !book.names.iter().any(|n| {
-                            n.name == name
-                                && (n.sheet == scope || scope.is_none() && n.sheet == Some(i))
-                        }) {
+                            Some(requested.unwrap_or(i))
+                        } else if visible_names.contains(&(None, name.clone())) {
+                            None
+                        } else {
+                            requested
+                        };
+                        visible_names.insert((scope, name.clone()));
+                        if !book
+                            .names
+                            .iter()
+                            .any(|n| n.name == name && n.sheet == scope)
+                        {
                             book.names.push(NamedExpression {
                                 name,
                                 sheet: scope,
@@ -774,8 +874,10 @@ pub(in super::super) fn read(
                                 compiled: None,
                             });
                         }
+                        bindings.push(scope);
                     }
-                    if missing_global {
+                    if rejected {
+                        bindings.clear();
                         cell.value = Some(Value::Text(source.clone()));
                         cell.formula_display = Some(format!(
                             "\"{}\"",
@@ -785,14 +887,22 @@ pub(in super::super) fn read(
                     } else if parsed.native_diagnostic.is_none() {
                         cell.formula_display = cell.formula.clone();
                         cell.formula = Some(parsed.excel);
+                    } else {
+                        bindings.clear();
                     }
                 }
                 if let Some(id) = id
                     && let Some(source) = cell.formula_display.as_ref().or(cell.formula.as_ref())
                 {
-                    shared
-                        .entry(id.into())
-                        .or_insert((source.clone(), row, col));
+                    shared.entry(id.into()).or_insert((
+                        source.clone(),
+                        (i, row, col),
+                        bindings.clone(),
+                    ));
+                }
+                formula_bindings.remove(&(i, row, col));
+                if !bindings.is_empty() {
+                    formula_bindings.insert((i, row, col), bindings);
                 }
                 sheet.cells.insert((row, col), cell);
             }
@@ -838,7 +948,53 @@ pub(in super::super) fn read(
                 runs,
             });
         }
-        sheets.push(sheet);
+        for name in book.names.iter().filter(|name| name.sheet == Some(i)) {
+            visible_names.insert((Some(i), name.name.clone()));
+        }
+        sheets.insert(i, sheet);
+    }
+    let mut sheets: Vec<_> = sheets.into_values().collect();
+    for ((i, row, col), bindings) in formula_bindings {
+        let sheet = &mut sheets[i];
+        let cell = sheet.cells.get_mut(&(row, col)).unwrap();
+        let source = cell
+            .formula_display
+            .as_ref()
+            .or(cell.formula.as_ref())
+            .unwrap();
+        if let Some(mut parsed) = crate::commands::archive::office_ods::formula::convert(
+            true,
+            &format!("={source}"),
+            false,
+            work,
+            true,
+        )
+        .map_err(invalid)?
+            && let Some(display) = parsed
+                .bind_imported_names(
+                    &bindings,
+                    i,
+                    &sheet_names,
+                    |scope, name| {
+                        book.names
+                            .iter()
+                            .any(|n| n.sheet == Some(scope) && n.name == name)
+                    },
+                    &mut work,
+                )
+                .map_err(invalid)?
+        {
+            for group in sheet
+                .arrays
+                .iter_mut()
+                .filter(|g| g.range[0] == row && g.range[1] == col)
+            {
+                group.expression.clone_from(&parsed.excel);
+                group.formula_display = Some(display.clone());
+            }
+            cell.formula_display = Some(display);
+            cell.formula = Some(parsed.excel);
+        }
     }
     book.active_sheet = children(&root, "UIData")
         .next()

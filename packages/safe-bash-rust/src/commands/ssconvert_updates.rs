@@ -407,7 +407,7 @@ pub(in super::super) fn apply(
             .map_err(|e| format!("ssconvert: {e}\n"))?
             .flatten();
         let source_formula = normalized.as_deref().filter(|_| names.is_some());
-        for (scope, name, global) in names.into_iter().flatten() {
+        for (scope, name, global, _) in names.into_iter().flatten() {
             if global {
                 continue;
             }

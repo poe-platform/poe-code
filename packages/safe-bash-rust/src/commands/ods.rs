@@ -679,7 +679,7 @@ pub(super) fn write(
                 tables.push_str("<table:table-cell");
                 tables.push_str(&spans);
                 let mut cell = value(raw, sheet.delimited);
-                let mut computed = false;
+                let mut computed = typed.is_some_and(|cell| cell.formula.is_some());
                 if let Some(typed) = typed {
                     if typed.formula.is_none()
                         && let Some(Value::Error(error)) = &typed.value
@@ -703,7 +703,6 @@ pub(super) fn write(
                         .as_ref()
                         .filter(|_| group.is_none_or(|g| g.range[0] == i && g.range[1] == j))
                     {
-                        computed = true;
                         let source =
                             if gnumeric.is_none() && book.is_some_and(|book| book.odf.is_some()) {
                                 typed.openformula.clone().unwrap_or_else(|| format!("={f}"))

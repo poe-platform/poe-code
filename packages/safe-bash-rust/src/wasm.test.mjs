@@ -1,5 +1,6 @@
 import "./qpdf-ranges.wasm.test.mjs";
 import "./qpdf-selections.wasm.test.mjs";
+import "./qpdf-catalogs.wasm.test.mjs";
 
 import "./qpdf-trailers.wasm.test.mjs";
 
@@ -23160,78 +23161,6 @@ test("qpdf honors a dangling explicit catalog reference across inspection and ou
     }
   }finally{rust.dispose();await js.dispose();}
 });
-
-test("qpdf validates the latest trailer and catalog against native results",async()=>{
-  const {readFile}=await import("node:fs/promises");
-  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/strict-catalogs.json",import.meta.url),"utf8"));
-  for(const [name,{pdf,reports}]of Object.entries(cases)) {
-    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
-    try {
-      for(const [flags,want]of Object.entries(reports)) {
-        await bash.fs.writeFile("/out.pdf",Buffer.from("original"));
-        const got=await bash.exec("qpdf in.pdf "+flags);
-        assert.deepEqual([got.exitCode,got.stderr],[want.status,want.stderr],name+"/"+flags);
-        const expected=Buffer.from(want.stdout,"base64");
-        if(flags.startsWith("--json")&&want.status!==2)assert.deepEqual(JSON.parse(got.stdout),JSON.parse(expected.toString()),name+"/"+flags);
-        else assert.deepEqual(Buffer.from(got.stdoutBytes),expected,name+"/"+flags);
-        if(want.status===2||flags==="--split-pages out.pdf")assert.equal(bash.readText("/out.pdf"),"original");
-        else if(flags==="out.pdf") {
-          const reopened=await bash.exec("qpdf out.pdf --show-npages");
-          assert.deepEqual([reopened.exitCode,reopened.stderr,reopened.stdout],[0,"","0\n"],name);
-        }
-        if(flags.startsWith("--show")||flags==="--check") {
-          const zero=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
-          assert.deepEqual([zero.exitCode,zero.stderr,zero.stdoutBytes],
-            [want.status===3?0:want.status,got.stderr,got.stdoutBytes],name+"/"+flags);
-          const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
-          if(got.stderr) {
-            const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
-            assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
-            const short=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
-            assert.equal(short.exitCode,2);assert.equal(short.stdout,"");
-          }
-        }
-        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
-      }
-    }finally{bash.dispose();}
-  }
-});
-
-
-test("qpdf recovers trailers and catalogs against native results",async()=>{
-  const {readFile}=await import("node:fs/promises");
-  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/recovered-catalogs.json",import.meta.url),"utf8"));
-  for(const [name,{pdf,reports}]of Object.entries(cases)) {
-    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes,"/out.pdf":"original"}});
-    try {
-      for(const [flags,want]of Object.entries(reports)) {
-        const got=await bash.exec("qpdf in.pdf "+flags);
-        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
-          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
-        if(want.status===2)assert.equal(bash.readText("/out.pdf"),"original");
-        else if(flags==="out.pdf") {
-          const reopened=await bash.exec("qpdf out.pdf --show-npages");
-          assert.deepEqual([reopened.exitCode,reopened.stderr,reopened.stdout],
-            [0,"",Buffer.from(reports["--show-npages"].stdout,"base64").toString()],name);
-        }
-        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
-      }
-      const want=reports["--show-npages"];
-      if(want.status===2)for(const flags of ["--replace-input","--split-pages out.pdf","--qdf out.pdf","--linearize out.pdf","--warning-exit-0 --show-npages"]) {
-        const got=await bash.exec("qpdf in.pdf "+flags);
-        assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.status,want.stderr,""],name+"/"+flags);
-        assert.equal(bash.readText("/out.pdf"),"original");
-        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
-      }
-      if(!want.stderr)continue;
-      const limit=Buffer.byteLength(want.stderr)+Buffer.from(want.stdout,"base64").length;
-      assert.deepEqual((await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:limit}})).stderr,want.stderr);
-      const short=await bash.exec("qpdf in.pdf --show-npages",{limits:{maxOutputBytes:limit-1}});
-      assert.deepEqual([short.exitCode,short.stdout,short.stderr],[2,"","qpdf: output byte limit exceeded\n"]);
-    }finally{bash.dispose();}
-  }
-});
-
 
 test("qpdf reconstructs damaged object offsets against native results",async()=>{
   const {readFile}=await import("node:fs/promises");

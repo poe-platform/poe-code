@@ -1,0 +1,4028 @@
+[
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-object=1",
+    "status": 3,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--json --json-key=qpdf",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvSW5mbyI6ICIzIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA0CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--split-pages out.pdf",
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--replace-input",
+    "replacementPages": 0,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--pages . 1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=1",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--json --json-key=qpdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--pages . 1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "dangling",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-object=1",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--json --json-key=qpdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--pages . 1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "wrong",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9Cb2d1cyA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0JvZ3VzIiwKICAgICAgICAgICIvUGFnZXMiOiAiMiAwIFIiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjIgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZXMiLAogICAgICAgICAgIi9LaWRzIjogW10sCiAgICAgICAgICAiL0NvdW50IjogMAogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajozIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1RpdGxlIjogInU6aW5mbyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJ0cmFpbGVyIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvUm9vdCI6ICIxIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA0CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9Cb2d1cyA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1BhZ2VzIjogIjIgMCBSIgogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajoyIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL1BhZ2VzIiwKICAgICAgICAgICIvS2lkcyI6IFtdLAogICAgICAgICAgIi9Db3VudCI6IDAKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MyAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UaXRsZSI6ICJ1OmluZm8iCiAgICAgICAgfQogICAgICB9LAogICAgICAidHJhaWxlciI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1Jvb3QiOiAiMSAwIFIiLAogICAgICAgICAgIi9TaXplIjogNAogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-object=1",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--json --json-key=qpdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--pages . 1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingPages",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgMTIgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvU2l6ZSI6IDQKICAgICAgICB9CiAgICAgIH0KICAgIH0KICBdCn0K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgMTIgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvSW5mbyI6ICIzIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA0CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--replace-input",
+    "replacementPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--pages . 1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9Sb290IDEgMCBSIC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgInRyYWlsZXIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9Sb290IjogIjEgMCBSIiwKICAgICAgICAgICIvSW5mbyI6ICIzIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA0CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIC9DYXRhbG9nID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9Sb290IDEgMCBSIC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-object=1",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIDQgMCBSID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNSA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--json --json-key=qpdf",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogNAogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiNCAwIFIiLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVGl0bGUiOiAidTppbmZvIgogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajo0IDAgUiI6IHsKICAgICAgICAidmFsdWUiOiAiL0NhdGFsb2ciCiAgICAgIH0sCiAgICAgICJ0cmFpbGVyIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvUm9vdCI6ICIxIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA1CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--split-pages out.pdf",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-object=1 --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1BhZ2VzIDIgMCBSIC9UeXBlIDQgMCBSID4+Cg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNSA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjM2LzI6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gOTgzCjM3LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gOTU4Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjM2LzI6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gOTgzCjM3LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gOTU4Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0CjIvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAozLzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjUvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAo2LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNy8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDE0Ngo4LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIyNQoxMC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM0MwoxMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDcxOQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0CjIvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAozLzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjUvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAo2LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNy8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDE0Ngo4LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIyNQoxMC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM0MwoxMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDcxOQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "empty",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "dangling",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIyIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiAyIDAgUgogIGNvbnRlbnQ6Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiAyIDAgUgogIGNvbnRlbnQ6Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "truncated.pdf",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTAK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--json --json-key=qpdf",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbXSwKICAgICAgICAgICIvQ291bnQiOiAwCiAgICAgICAgfQogICAgICB9LAogICAgICAib2JqOjMgMCBSIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvVHlwZSI6ICIvUGFnZSIsCiAgICAgICAgICAiL1BhcmVudCI6ICIyIDAgUiIsCiAgICAgICAgICAiL01lZGlhQm94IjogWwogICAgICAgICAgICAwLAogICAgICAgICAgICAwLAogICAgICAgICAgICAxMCwKICAgICAgICAgICAgMjAKICAgICAgICAgIF0KICAgICAgICB9CiAgICAgIH0sCiAgICAgICJ0cmFpbGVyIjogewogICAgICAgICJ2YWx1ZSI6IHsKICAgICAgICAgICIvUm9vdCI6ICIxIDAgUiIsCiAgICAgICAgICAiL1NpemUiOiA0CiAgICAgICAgfQogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "out.pdf",
+    "outputPages": 0,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgZW1wdHkK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTAK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-bad-root",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find /Root dictionary\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find /Root dictionary\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU2CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTMK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU2CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTMK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogW10sCiAgICAgICJpbWFnZXMiOiBbXSwKICAgICAgImxhYmVsIjogbnVsbCwKICAgICAgIm9iamVjdCI6ICIzIDAgUiIsCiAgICAgICJvdXRsaW5lcyI6IFtdLAogICAgICAicGFnZXBvc2Zyb20xIjogMQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0CjIvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAozLzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjUvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAo2LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNy8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDE0Ngo4LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIyNQoxMC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM0MwoxMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDcxOQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IHR5cGUgPSBkaWN0CjIvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAozLzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjUvMDogdW5jb21wcmVzc2VkOyB0eXBlID0gZGljdAo2LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKNy8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDE0Ngo4LzA6IHVuY29tcHJlc3NlZDsgdHlwZSA9IGRpY3QKOS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIyNQoxMC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM0MwoxMS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDcxOQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n",
+    "buffered": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: in.pdf: unable to find page tree\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--json --json-key=qpdf",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbCiAgICAgICAgICAgICIzIDAgUiIKICAgICAgICAgIF0sCiAgICAgICAgICAiL0NvdW50IjogMQogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajozIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL1BhZ2UiLAogICAgICAgICAgIi9QYXJlbnQiOiAiMiAwIFIiLAogICAgICAgICAgIi9NZWRpYUJveCI6IFsKICAgICAgICAgICAgMCwKICAgICAgICAgICAgMCwKICAgICAgICAgICAgMTAsCiAgICAgICAgICAgIDIwCiAgICAgICAgICBdCiAgICAgICAgfQogICAgICB9LAogICAgICAidHJhaWxlciI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1Jvb3QiOiAiMSAwIFIiLAogICAgICAgICAgIi9TaXplIjogNAogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--json --json-key=qpdf",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJxcGRmIjogWwogICAgewogICAgICAianNvbnZlcnNpb24iOiAyLAogICAgICAicGRmdmVyc2lvbiI6ICIxLjQiLAogICAgICAicHVzaGVkaW5oZXJpdGVkcGFnZXJlc291cmNlcyI6IGZhbHNlLAogICAgICAiY2FsbGVkZ2V0YWxscGFnZXMiOiBmYWxzZSwKICAgICAgIm1heG9iamVjdGlkIjogMwogICAgfSwKICAgIHsKICAgICAgIm9iajoxIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL0NhdGFsb2ciLAogICAgICAgICAgIi9QYWdlcyI6ICIyIDAgUiIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJvYmo6MiAwIFIiOiB7CiAgICAgICAgInZhbHVlIjogewogICAgICAgICAgIi9UeXBlIjogIi9QYWdlcyIsCiAgICAgICAgICAiL0tpZHMiOiBbCiAgICAgICAgICAgICIzIDAgUiIKICAgICAgICAgIF0sCiAgICAgICAgICAiL0NvdW50IjogMQogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9iajozIDAgUiI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1R5cGUiOiAiL1BhZ2UiLAogICAgICAgICAgIi9QYXJlbnQiOiAiMiAwIFIiLAogICAgICAgICAgIi9NZWRpYUJveCI6IFsKICAgICAgICAgICAgMCwKICAgICAgICAgICAgMCwKICAgICAgICAgICAgMTAsCiAgICAgICAgICAgIDIwCiAgICAgICAgICBdCiAgICAgICAgfQogICAgICB9LAogICAgICAidHJhaWxlciI6IHsKICAgICAgICAidmFsdWUiOiB7CiAgICAgICAgICAiL1Jvb3QiOiAiMSAwIFIiLAogICAgICAgICAgIi9TaXplIjogNAogICAgICAgIH0KICAgICAgfQogICAgfQogIF0KfQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "out.pdf",
+    "outputPages": 1,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjQKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDkKMi8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDU4CjMvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAxMTUK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-npages",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--check",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 0,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-xref",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-pages",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQKTm8gc3ludGF4IG9yIHN0cmVhbSBlbmNvZGluZyBlcnJvcnMgZm91bmQ7IHRoZSBmaWxlIG1heSBzdGlsbCBjb250YWluCmVycm9ycyB0aGF0IHFwZGYgY2Fubm90IGRldGVjdAo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "Mgo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDEK",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjg4LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTE4OQo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1ByZXYgOTExIC9TaXplIDg5ID4+Cg==",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "Mgo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDEK",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCjg4LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTE4OQo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgOTExIC9TaXplIDg5ID4+Cg==",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--check",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-xref",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-pages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-object=trailer",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--replace-input",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--split-pages out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--qdf out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--linearize out.pdf",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "wrong-root.pdf",
+    "flags": "--warning-exit-0 --show-npages",
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: in.pdf: unable to find page tree\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-npages",
+    "status": 3,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--check",
+    "status": 3,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--json --json-key=pages",
+    "status": 3,
+    "stdout": "ewogICJ2ZXJzaW9uIjogMiwKICAicGFyYW1ldGVycyI6IHsKICAgICJkZWNvZGVsZXZlbCI6ICJnZW5lcmFsaXplZCIKICB9LAogICJwYWdlcyI6IFsKICAgIHsKICAgICAgImNvbnRlbnRzIjogWwogICAgICAgICI0IDAgUiIKICAgICAgXSwKICAgICAgImltYWdlcyI6IFtdLAogICAgICAibGFiZWwiOiBudWxsLAogICAgICAib2JqZWN0IjogIjUgMCBSIiwKICAgICAgIm91dGxpbmVzIjogW10sCiAgICAgICJwYWdlcG9zZnJvbTEiOiAxCiAgICB9LAogICAgewogICAgICAiY29udGVudHMiOiBbCiAgICAgICAgIjcgMCBSIgogICAgICBdLAogICAgICAiaW1hZ2VzIjogW10sCiAgICAgICJsYWJlbCI6IG51bGwsCiAgICAgICJvYmplY3QiOiAiOCAwIFIiLAogICAgICAib3V0bGluZXMiOiBbXSwKICAgICAgInBhZ2Vwb3Nmcm9tMSI6IDIKICAgIH0KICBdCn0K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-xref",
+    "status": 3,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-pages",
+    "status": 3,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--pages . 2,1 -- out.pdf",
+    "outputPages": 2,
+    "status": 3,
+    "stdout": "",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-npages --warning-exit-0",
+    "status": 0,
+    "stdout": "Mgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--check --warning-exit-0",
+    "status": 0,
+    "stdout": "Y2hlY2tpbmcgaW4ucGRmClBERiBWZXJzaW9uOiAxLjcKRmlsZSBpcyBub3QgZW5jcnlwdGVkCkZpbGUgaXMgbm90IGxpbmVhcml6ZWQK",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-xref --warning-exit-0",
+    "status": 0,
+    "stdout": "MS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDIwCjIvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA3MAozLzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gMTM2CjQvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSAyNDIKNS8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDM2OAo2LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNDk3CjcvMDogdW5jb21wcmVzc2VkOyBvZmZzZXQgPSA1OTUKOC8wOiB1bmNvbXByZXNzZWQ7IG9mZnNldCA9IDY3NAo5LzA6IHVuY29tcHJlc3NlZDsgb2Zmc2V0ID0gNzkzCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-pages --warning-exit-0",
+    "status": 0,
+    "stdout": "cGFnZSAxOiA1IDAgUgogIGNvbnRlbnQ6CiAgICA0IDAgUgpwYWdlIDI6IDggMCBSCiAgY29udGVudDoKICAgIDcgMCBSCg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-object=trailer --warning-exit-0",
+    "status": 0,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 0,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  }
+]

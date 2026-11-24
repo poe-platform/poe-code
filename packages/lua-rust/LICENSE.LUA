@@ -1,4 +1,4 @@
-Pattern matching and table algorithms adapted from Fengari/Lua.
+Pattern matching, table algorithms and bytecode serialization adapted from Fengari/Lua.
 MIT License
 
 Copyright © 2017-2019 Benoit Giannangeli

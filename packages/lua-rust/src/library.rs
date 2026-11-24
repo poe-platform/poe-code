@@ -34,6 +34,7 @@ impl Runtime {
             (
                 "string",
                 &[
+                    "string.dump",
                     "string.upper",
                     "string.lower",
                     "string.len",
@@ -380,6 +381,15 @@ impl Runtime {
                     .unwrap_or_else(|| vec![Value::Nil]));
             }
             "string.format_token" | "string.format_value" => return self.format(name, args),
+            "string.dump" => match a(0) {
+                Value::Function(id) => Value::String(crate::dump::serialize(
+                    &self.functions[id].prototype,
+                    &self.functions[id].source,
+                    a(1).truth(),
+                )),
+                Value::Native(_) => return Err(Error::unlocated("Unable to dump native function")),
+                _ => return Err(Error::unlocated("Expected Lua function")),
+            },
             "string.upper" => Value::String(s(0)?.to_ascii_uppercase()),
             "string.lower" => Value::String(s(0)?.to_ascii_lowercase()),
             "string.len" => Value::Integer(s(0)?.len() as i32),

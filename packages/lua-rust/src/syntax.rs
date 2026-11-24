@@ -14,8 +14,18 @@ pub(crate) enum Node {
     Call(Box<Expr>, Vec<Expr>),
     Method(Box<Expr>, Vec<u8>, Vec<Expr>),
     Table(Vec<(Option<Expr>, Expr)>),
-    Function(Vec<Vec<u8>>, bool, Vec<Stmt>),
+    Function(
+        Vec<Vec<u8>>,
+        bool,
+        Block,
+        Option<std::sync::Arc<crate::dump::Prototype>>,
+    ),
     Paren(Box<Expr>),
+}
+#[derive(Clone, Debug)]
+pub(crate) struct Block {
+    pub line: usize,
+    pub statements: Vec<(usize, Stmt)>,
 }
 #[derive(Clone, Debug)]
 pub(crate) enum Stmt {
@@ -23,12 +33,12 @@ pub(crate) enum Stmt {
     Local(Vec<Vec<u8>>, Vec<Expr>),
     LocalFunction(Vec<u8>, Expr),
     Call(Expr),
-    Do(Vec<Stmt>),
-    While(Expr, Vec<Stmt>),
-    Repeat(Vec<Stmt>, Expr),
-    If(Vec<(Option<Expr>, Vec<Stmt>)>),
-    For(Vec<u8>, Expr, Expr, Option<Expr>, Vec<Stmt>),
-    ForIn(usize, Vec<Vec<u8>>, Vec<Expr>, Vec<Stmt>),
+    Do(Block),
+    While(Expr, Block),
+    Repeat(Block, Expr),
+    If(Vec<(Option<Expr>, Block)>),
+    For(Vec<u8>, Expr, Expr, Option<Expr>, Block),
+    ForIn(Vec<Vec<u8>>, Vec<Expr>, Block),
     Return(Vec<Expr>),
     Break,
     Goto(Vec<u8>),
@@ -298,25 +308,30 @@ impl Parser {
         }
         Ok(xs)
     }
-    fn block(&mut self) -> Result<Vec<Stmt>> {
+    fn block(&mut self) -> Result<Block> {
         self.depth += 1;
         if self.depth > 200 {
             return Err(Error::unlocated("too many syntax levels"));
         }
+        let line = self.token().line;
         let mut body = Vec::new();
         while !self.is_end() {
             if self.eat(";") {
                 continue;
             }
+            let statement_line = self.token().line;
             let s = self.statement()?;
             let ret = matches!(s, Stmt::Return(_));
-            body.push(s);
+            body.push((statement_line, s));
             if ret {
                 break;
             }
         }
         self.depth -= 1;
-        Ok(body)
+        Ok(Block {
+            line,
+            statements: body,
+        })
     }
     fn function(&mut self, line: usize, method: bool) -> Result<Expr> {
         self.expect("(")?;
@@ -347,7 +362,7 @@ impl Parser {
                 "no visible label for goto or break outside loop",
             ));
         }
-        Ok(Expr(line, Node::Function(names, vararg, body)))
+        Ok(Expr(line, Node::Function(names, vararg, body, None)))
     }
     fn table(&mut self) -> Result<Expr> {
         let line = self.token().line;
@@ -481,9 +496,13 @@ impl Parser {
             if priority <= minimum {
                 break;
             }
+            let operator_line = self.token().line;
             self.offset += 1;
             let right = self.expression(priority - u8::from(op == "^" || op == ".."))?;
-            left = Expr(t.line, Node::Binary(op, Box::new(left), Box::new(right)));
+            left = Expr(
+                operator_line,
+                Node::Binary(op, Box::new(left), Box::new(right)),
+            );
         }
         self.depth -= 1;
         Ok(left)
@@ -548,7 +567,7 @@ impl Parser {
             self.expect("do")?;
             let body = self.block()?;
             self.expect("end")?;
-            return Ok(Stmt::ForIn(line, names, values, body));
+            return Ok(Stmt::ForIn(names, values, body));
         }
         if self.eat("local") {
             if self.eat("function") {
@@ -635,18 +654,19 @@ impl Parser {
 }
 // Unresolved jumps leave a block at its entry scope. Each function validates
 // independently, so labels and loop exits never cross function boundaries.
-fn validate_jumps(body: &[Stmt], in_loop: bool, trailing: bool) -> Result<Vec<Vec<u8>>> {
+fn validate_jumps(body: &Block, in_loop: bool, trailing: bool) -> Result<Vec<Vec<u8>>> {
+    let body = &body.statements;
     let mut labels = HashMap::new();
     let mut pending: Vec<(Vec<u8>, usize)> = Vec::new();
     let mut active = 0;
     let last = if trailing {
         body.iter()
-            .rposition(|s| !matches!(s, Stmt::Label(_)))
+            .rposition(|(_, s)| !matches!(s, Stmt::Label(_)))
             .map_or(0, |i| i + 1)
     } else {
         body.len()
     };
-    for (i, stmt) in body.iter().enumerate() {
+    for (i, (_, stmt)) in body.iter().enumerate() {
         let outgoing = match stmt {
             Stmt::Local(names, _) => {
                 active += names.len();
@@ -679,7 +699,7 @@ fn validate_jumps(body: &[Stmt], in_loop: bool, trailing: bool) -> Result<Vec<Ve
                 ));
             }
             Stmt::Do(body) => validate_jumps(body, in_loop, true)?,
-            Stmt::While(_, body) | Stmt::For(_, _, _, _, body) | Stmt::ForIn(_, _, _, body) => {
+            Stmt::While(_, body) | Stmt::For(_, _, _, _, body) | Stmt::ForIn(_, _, body) => {
                 validate_jumps(body, true, true)?
             }
             // Repeat conditions can still read body locals after the last label.
@@ -707,7 +727,7 @@ fn validate_jumps(body: &[Stmt], in_loop: bool, trailing: bool) -> Result<Vec<Ve
     }
     Ok(pending.into_iter().map(|(name, _)| name).collect())
 }
-pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
+pub(crate) fn parse(source: &[u8]) -> Result<Block> {
     let mut lexer = Lexer {
         source,
         interned: HashMap::new(),

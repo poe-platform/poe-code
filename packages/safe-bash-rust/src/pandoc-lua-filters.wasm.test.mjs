@@ -3,6 +3,7 @@ import {readFileSync} from "node:fs";
 import {dirname} from "node:path";
 import test from "node:test";
 import {createRustWasmBash} from "./index.js";
+import lua from "../../safe-bash-command-pandoc/dist/fengari.generated.js";
 
 const cases = JSON.parse(readFileSync(new URL("../tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8"));
 for (const fixture of cases) {
@@ -26,6 +27,21 @@ for (const fixture of cases) {
         assert.equal(result.stdout, fixture.status === 0 && output === "" ? (fixture.stdout ?? "A\n") : "");
         assert.equal(result.stderr, fixture.stderr ?? "");
         assert.deepEqual(await fs.readFile("/saved"), new TextEncoder().encode(fixture.status === 0 && output !== "" ? (fixture.stdout ?? "A\n") : "KEEP"));
+        if (Object.hasOwn(fixture, "dumpResult")) {
+          const hex = output === "" ? result.stdout : new TextDecoder().decode(await fs.readFile("/saved"));
+          const bytes = Uint8Array.from(Buffer.from(hex.trim(), "hex"));
+          const state = lua.lauxlib.luaL_newstate();
+          try {
+            lua.lauxlib.luaL_requiref(state, new TextEncoder().encode("_G"), lua.lualib.luaopen_base, true);
+            lua.lua.lua_pop(state, 1);
+            assert.equal(lua.lauxlib.luaL_loadbuffer(state, bytes, bytes.length, new TextEncoder().encode("dump")), lua.lua.LUA_OK);
+            lua.lua.lua_pushinteger(state, 7);
+            lua.lua.lua_pushinteger(state, 9);
+            assert.equal(lua.lua.lua_pcall(state, 2, 1, 0), lua.lua.LUA_OK);
+            const value = lua.lua.lua_isnil(state, -1) ? null : lua.lua.lua_isnumber(state, -1) ? lua.lua.lua_tonumber(state, -1) : new TextDecoder().decode(lua.lua.lua_tolstring(state, -1));
+            assert.equal(value, fixture.dumpResult);
+          } finally { lua.lua.lua_close(state); }
+        }
       }
     } finally { await bash.dispose(); }
   });

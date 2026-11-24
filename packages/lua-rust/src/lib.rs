@@ -1,4 +1,5 @@
 //! In-process Lua evaluation used by native and WebAssembly document filters.
+mod dump;
 mod format;
 mod library;
 mod numbers;
@@ -9,7 +10,7 @@ mod table;
 mod utf8;
 use std::collections::{HashMap, hash_map::RandomState};
 use std::hash::BuildHasher;
-use syntax::{Expr, Node, Stmt};
+use syntax::{Block, Expr, Node, Stmt};
 
 #[derive(Clone, Debug, Default)]
 pub enum Value {
@@ -159,7 +160,8 @@ struct Environment {
 struct Function {
     names: Vec<Vec<u8>>,
     vararg: bool,
-    body: Vec<Stmt>,
+    body: Block,
+    prototype: std::sync::Arc<dump::Prototype>,
     env: usize,
     source: String,
 }
@@ -396,7 +398,8 @@ impl Runtime {
         self.get(&environment, &Value::String(name.to_vec()))
     }
     pub fn run(&mut self, source: impl AsRef<[u8]>, path: &str) -> Result<Vec<Value>> {
-        let body = syntax::parse(source.as_ref())?;
+        let mut body = syntax::parse(source.as_ref())?;
+        dump::compile(&mut body)?;
         let old = std::mem::replace(&mut self.source, path.into());
         self.frames.push(Frame {
             source: Some(path.into()),
@@ -515,12 +518,13 @@ impl Runtime {
                     }
                 }
                 Node::Paren(e) => self.one(e, env)?,
-                Node::Function(names, vararg, body) => {
+                Node::Function(names, vararg, body, prototype) => {
                     let n = self.functions.len();
                     self.functions.push(Function {
                         names: names.clone(),
                         vararg: *vararg,
                         body: body.clone(),
+                        prototype: prototype.as_ref().unwrap().clone(),
                         env,
                         source: self.source.clone(),
                     });
@@ -752,12 +756,13 @@ impl Runtime {
             _ => Err(Error::new("Invalid assignment target")),
         }
     }
-    fn block(&mut self, body: &[Stmt], mut env: usize) -> Result<Flow> {
+    fn block(&mut self, body: &Block, mut env: usize) -> Result<Flow> {
+        let body = &body.statements;
         let mut pc = 0;
         let mut label_environments = HashMap::new();
         while pc < body.len() {
             self.tick()?;
-            let stmt = &body[pc];
+            let (line, stmt) = &body[pc];
             pc += 1;
             let flow = match stmt {
                 Stmt::Assign(targets, expressions) => {
@@ -907,7 +912,7 @@ impl Runtime {
                     }
                     result
                 }
-                Stmt::ForIn(line, names, expressions, body) => {
+                Stmt::ForIn(names, expressions, body) => {
                     let values = self.eval_list(expressions, env)?;
                     let iter = values.first().cloned().unwrap_or_default();
                     let state = values.get(1).cloned().unwrap_or_default();
@@ -952,7 +957,7 @@ impl Runtime {
                 Flow::Goto(ref name) => {
                     if let Some(index) = body
                         .iter()
-                        .position(|s| matches!(s,Stmt::Label(n) if n==name))
+                        .position(|(_, s)| matches!(s,Stmt::Label(n) if n==name))
                     {
                         if index < pc
                             && let Some(target) = label_environments.get(&index)

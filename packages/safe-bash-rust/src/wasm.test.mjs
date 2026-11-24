@@ -7324,8 +7324,8 @@ test("suspended host filesystem calls isolate concurrent forks and share the sel
   const entered=Promise.withResolvers(), resume=Promise.withResolvers();
   await first.writeFile("/input",new TextEncoder().encode("first"));
   await second.writeFile("/input",new TextEncoder().encode("second"));
-  const read=first.readFile.bind(first);
-  first.readFile=async(...args)=>{entered.resolve();await resume.promise;return read(...args);};
+  const read=first.readStream.bind(first);
+  first.readStream=async function*(...args){entered.resolve();await resume.promise;yield* read(...args);};
   bash.register({name:"record",async execute(ctx){
     await ctx.fs.writeFile("/marked",new TextEncoder().encode(ctx.args[0]));return {exitCode:0};
   }});

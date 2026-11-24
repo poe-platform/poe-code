@@ -245,6 +245,7 @@ fn compact_values_on_rows_do_not_overwrite_group_or_grand_total_labels() {
         field.compact = true;
     }
     pivot.values.push(PivotValue {
+        calculation: None,
         field: 2,
         aggregate: "count".into(),
         name: "Count of field3".into(),

@@ -178,6 +178,7 @@ fn values_on_either_axis_keep_subtotals_with_each_group() {
             };
             let mut pivot = book.options.pivots["sales"].clone();
             pivot.values.push(PivotValue {
+                calculation: None,
                 field: 3,
                 aggregate: "sum".into(),
                 name: "Sum".into(),

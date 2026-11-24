@@ -8,6 +8,10 @@ use super::super::{
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
 
+#[cfg(test)]
+#[path = "office_xlsx_pivot_tests.rs"]
+mod tests;
+
 fn load(
     entries: &BTreeMap<String, Vec<u8>>,
     path: &str,
@@ -156,13 +160,78 @@ fn axes(root: &xml::Element) -> Result<(Vec<usize>, Vec<usize>, Option<PivotData
     }
     Ok((rows, columns, data))
 }
-fn shared_value(node: &xml::Element) -> Result<Value<String>, String> {
+fn cached_date(value: &str, date1904: bool) -> Result<f64, String> {
+    let invalid = "Invalid pivot item date";
+    let bytes = value.as_bytes();
+    if bytes.len() < 10
+        || !bytes[..10].iter().enumerate().all(|(i, b)| {
+            if i == 4 || i == 7 {
+                *b == b'-'
+            } else {
+                b.is_ascii_digit()
+            }
+        })
+        || &value[..4] == "0000"
+    {
+        return Err(invalid.into());
+    }
+    if bytes.len() != 10 {
+        if bytes.len() < 19
+            || bytes[10] != b'T'
+            || !bytes[11..19].iter().enumerate().all(|(i, b)| {
+                if i == 2 || i == 5 {
+                    *b == b':'
+                } else {
+                    b.is_ascii_digit()
+                }
+            })
+        {
+            return Err(invalid.into());
+        }
+        let mut suffix = &value[19..];
+        if let Some(fraction) = suffix.strip_prefix('.') {
+            let digits = fraction.bytes().take_while(u8::is_ascii_digit).count();
+            if digits == 0 {
+                return Err(invalid.into());
+            }
+            suffix = &fraction[digits..];
+        }
+        if !suffix.is_empty() && suffix != "Z" {
+            let zone = suffix.as_bytes();
+            if zone.len() != 6
+                || !matches!(zone[0], b'+' | b'-')
+                || zone[3] != b':'
+                || ![zone[1], zone[2], zone[4], zone[5]]
+                    .iter()
+                    .all(u8::is_ascii_digit)
+                || &suffix[1..3] > "14"
+                || &suffix[4..6] > "59"
+                || (&suffix[1..3] == "14" && &suffix[4..6] != "00")
+            {
+                return Err(invalid.into());
+            }
+        }
+    }
+    let (seconds, nanos, _) = crate::commands::coreutils::parse_absolute_date_spec(value, 0)
+        .map_err(|_| invalid.to_owned())?;
+    // XML pivot cache dates use the workbook null date, including before March
+    // 1900. Worksheet DATEVALUE's fictitious leap day correction does not apply.
+    let epoch = if date1904 { 24107 } else { 25569 };
+    Ok((seconds.div_euclid(86400) + epoch) as f64
+        + (seconds.rem_euclid(86400) as f64 + f64::from(nanos) / 1e9) / 86400.)
+}
+
+fn shared_value(node: &xml::Element, date1904: bool) -> Result<Value<String>, String> {
     Ok(match node.tag.rsplit(':').next() {
         Some("m") => Value::Empty,
         Some("s") => Value::Text(super::super::xlsx_string::decode(
             attr(node, "v").ok_or("Missing pivot item text")?,
         )),
         Some("e") => Value::Error(attr(node, "v").ok_or("Missing pivot item error")?.into()),
+        Some("d") => Value::Number(cached_date(
+            attr(node, "v").ok_or("Missing pivot item date")?,
+            date1904,
+        )?),
         Some("n") => Value::Number(
             attr(node, "v")
                 .and_then(|v| v.parse::<f64>().ok())
@@ -345,7 +414,7 @@ pub(super) fn retain(
                                     })
                                     .nth(item)
                                     .ok_or("Invalid pivot base item")?;
-                                PivotItem::Value(shared_value(item)?)
+                                PivotItem::Value(shared_value(item, imported.book.date1904)?)
                             }
                         });
                     }
@@ -566,6 +635,7 @@ pub(super) fn retain(
                                         .get(item)
                                         .copied()
                                         .ok_or("Missing selected pivot value")?,
+                                    imported.book.date1904,
                                 )
                             })
                             .collect::<Result<Vec<_>, String>>()

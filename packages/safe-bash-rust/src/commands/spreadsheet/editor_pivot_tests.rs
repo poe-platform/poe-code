@@ -456,13 +456,12 @@ fn pivot_import_page_selection_uses_pivot_item_then_shared_item() {
     let expected: f64 = book.sheets[pivot.source_sheet]
         .cells
         .iter()
-        .filter_map(|(&(r, c), cell)| {
-            (r > 0
+        .filter(|&(&(r, c), cell)| {
+            r > 0
                 && c == 3
-                && matches!(cell.value.as_ref(),Some(super::Value::Text(s)) if s=="August"))
-            .then(|| book.cell(pivot.source_sheet, r, 2).unwrap())
+                && matches!(cell.value.as_ref(),Some(super::Value::Text(s)) if s=="August")
         })
-        .map(|cell| match cell.value {
+        .map(|(&(r, _), _)| match book.cell(pivot.source_sheet, r, 2).unwrap().value {
             Some(super::Value::Number(n)) => n,
             _ => panic!(),
         })

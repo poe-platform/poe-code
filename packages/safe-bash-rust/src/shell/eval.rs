@@ -5417,6 +5417,7 @@ impl<'a> EvalState<'a> {
         }
 
         match cmd.as_str() {
+            _ if mode == DispatchMode::External => {}
             "exit" => {
                 let offset = if args.first().map(String::as_str) == Some("--") {
                     1
@@ -6374,7 +6375,8 @@ impl<'a> EvalState<'a> {
         let effective_cmd = virtual_name.as_deref().unwrap_or(cmd.as_str());
 
         if let Some(custom) = self.custom_commands.get(effective_cmd)
-            && (virtual_name.is_some()
+            && (mode == DispatchMode::External
+                || virtual_name.is_some()
                 || !Self::is_implemented_builtin_name(effective_cmd)
                 || matches!(effective_cmd, "true" | "false" | "pwd"))
         {
@@ -6411,7 +6413,7 @@ impl<'a> EvalState<'a> {
             ));
         }
 
-        if virtual_name.is_some() {
+        if virtual_name.is_some() || mode == DispatchMode::External {
             match effective_cmd {
                 "true" => {
                     return Ok(BuiltinOutcome {
@@ -6444,7 +6446,9 @@ impl<'a> EvalState<'a> {
             ));
         }
 
-        if let Some(b_out) = self.run_shell_builtin(effective_cmd, args, stdin) {
+        if (mode != DispatchMode::External || matches!(effective_cmd, "echo" | "printf" | "test" | "["))
+            && let Some(b_out) = self.run_shell_builtin(effective_cmd, args, stdin)
+        {
             return Ok(b_out);
         }
 
@@ -7273,7 +7277,7 @@ impl<'a> EvalState<'a> {
 
     fn is_registered_command_name(&self, target: &str) -> bool {
         matches!(target, "echo" | "printf" | "test" | "[")
-            || crate::commands::search::is_known_command(target)
+            || crate::commands::search::is_external_command(target)
             || self.custom_commands.contains_key(target)
     }
 

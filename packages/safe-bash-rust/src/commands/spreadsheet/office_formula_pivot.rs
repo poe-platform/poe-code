@@ -23,6 +23,9 @@ fn key(value: &Value, work: &mut usize) -> Option<Key> {
     })
 }
 
+#[path = "office_formula_pivot_calculation.rs"]
+mod calculation;
+
 type Groups = BTreeMap<Vec<Key>, (Vec<Value>, usize)>;
 
 struct AxisGroup<'a> {
@@ -413,6 +416,12 @@ impl Calculation<'_> {
             {
                 for length in 0..=fields.len() {
                     if length == fields.len()
+                        || length > 0
+                            && pivot.values.iter().any(|v| {
+                                v.calculation
+                                    .as_ref()
+                                    .is_some_and(|c| c.kind.starts_with("percentOfParent"))
+                            })
                         || length > 0 && subtotals.contains_key(&fields[length - 1])
                     {
                         ids.push(Some(self.pivot_group(
@@ -570,6 +579,27 @@ impl Calculation<'_> {
                 result[column_header_offset + position][column] = Value::Text(name.clone());
             }
         }
+        let mut keys = [vec![&[][..]; rows.len()], vec![&[][..]; columns.len()]];
+        self.work = self
+            .work
+            .checked_sub((rows.len() + columns.len()).checked_mul(32)?)?;
+        for (groups, keys) in [&rows, &columns].into_iter().zip(&mut keys) {
+            for (key, (_, id)) in groups {
+                keys[*id] = key.as_slice();
+            }
+        }
+        let mut values = calculation::Values {
+            groups: &groups,
+            axes: [&rows, &columns],
+            keys,
+            source: (source_sheet, left),
+            pos,
+            depth,
+            empty: empty.clone(),
+            pivot,
+            original: BTreeMap::new(),
+            relative: BTreeMap::new(),
+        };
         for (index, row_group) in row_groups.iter().enumerate() {
             let row = header_rows + index;
             if row_group.blank {
@@ -669,43 +699,12 @@ impl Calculation<'_> {
                 {
                     continue;
                 }
-                let source_rows = groups
-                    .get(&(row_group.id, column_group.id))
-                    .map_or(&[][..], Vec::as_slice);
-                self.work = self.work.checked_sub(source_rows.len().checked_mul(64)?)?;
-                let mut values = Vec::with_capacity(source_rows.len());
-                for &r in source_rows {
-                    values.push(self.cell((source_sheet, r, left + field.field), depth + 1)?);
-                }
                 let name = aggregate(
                     row_aggregate
                         .or(column_aggregate)
                         .unwrap_or(&field.aggregate),
                 )?;
-                let value = if name == "COUNT" {
-                    Value::Number(
-                        values
-                            .iter()
-                            .filter(|v| matches!(v, Value::Number(_)))
-                            .count() as f64,
-                    )
-                } else if name == "COUNTA" {
-                    Value::Number(
-                        values
-                            .iter()
-                            .filter(|v| !matches!(v, Value::Blank | Value::Empty))
-                            .count() as f64,
-                    )
-                } else if values.is_empty() {
-                    empty.clone()
-                } else {
-                    self.aggregate_excel(
-                        name,
-                        &[Expr::Value(Value::Matrix(vec![values]))],
-                        pos,
-                        depth + 1,
-                    )?
-                };
+                let value = values.get(self, (row_group.id, column_group.id), measure, name)?;
                 result[row][label_columns + column] = value;
             }
         }

@@ -34,10 +34,65 @@ pub(super) fn selected_key(value: &Value<String>, work: &mut usize) -> Option<Ke
 }
 
 #[derive(Clone)]
+pub enum PivotItem {
+    Previous,
+    Next,
+    Value(Value<String>),
+}
+
+#[derive(Clone)]
+pub struct PivotCalculation {
+    /// OOXML showDataAs or Office 2010 pivotShowAs name.
+    pub kind: String,
+    /// None also represents a deleted base field; evaluation returns #REF!.
+    pub base_field: Option<usize>,
+    pub base_item: Option<PivotItem>,
+}
+
+impl PivotCalculation {
+    pub fn needs_field(&self) -> bool {
+        matches!(
+            self.kind.as_str(),
+            "difference"
+                | "percent"
+                | "percentDiff"
+                | "runTotal"
+                | "percentOfParent"
+                | "percentOfRunningTotal"
+                | "rankAscending"
+                | "rankDescending"
+        )
+    }
+    pub fn needs_item(&self) -> bool {
+        matches!(self.kind.as_str(), "difference" | "percent" | "percentDiff")
+    }
+    pub(super) fn extended(&self) -> bool {
+        matches!(
+            self.kind.as_str(),
+            "percentOfParent"
+                | "percentOfParentRow"
+                | "percentOfParentCol"
+                | "percentOfRunningTotal"
+                | "rankAscending"
+                | "rankDescending"
+        )
+    }
+    pub(super) fn valid(&self) -> bool {
+        self.needs_field()
+            || self.extended()
+            || matches!(
+                self.kind.as_str(),
+                "rowPercent" | "colPercent" | "totalPercent" | "index"
+            )
+    }
+}
+
+#[derive(Clone)]
 pub struct PivotValue {
     pub field: usize,
     pub aggregate: String,
     pub name: String,
+    pub calculation: Option<PivotCalculation>,
 }
 
 #[derive(Clone)]
@@ -320,6 +375,25 @@ impl Spreadsheet {
                 }
             }
             for value in &pivot.values {
+                if let Some(calculation) = &value.calculation {
+                    *work = work
+                        .checked_sub(calculation.kind.len() + 128)
+                        .ok_or("Pivot calculation exceeds limit")?;
+                    if !calculation.valid()
+                        || calculation.base_field.is_some_and(|f| {
+                            f >= 16_384 || pivot.source_binding.is_none() && f > right - left
+                        })
+                        || calculation.needs_item()
+                            && calculation.base_field.is_some()
+                            && calculation.base_item.is_none()
+                    {
+                        return Err("Invalid pivot calculation".into());
+                    }
+                    if let Some(PivotItem::Value(value)) = &calculation.base_item {
+                        selected_key(value, work)
+                            .ok_or("Invalid pivot base item or limit exceeded")?;
+                    }
+                }
                 *work = work
                     .checked_sub(value.name.len() + value.aggregate.len() + 64)
                     .ok_or("Pivot values exceed limit")?;
@@ -473,6 +547,12 @@ impl Spreadsheet {
                     pivot.values.retain_mut(|value| {
                         if let Some(f) = field(value.field) {
                             value.field = f;
+                            if let Some(calculation) = &mut value.calculation {
+                                calculation.base_field = calculation.base_field.and_then(field);
+                                if calculation.base_field.is_none() {
+                                    calculation.base_item = None;
+                                }
+                            }
                             true
                         } else {
                             false

@@ -1,7 +1,7 @@
 //! Real OOXML pivot definitions and refreshable caches. Like XlsxWriter
 //! 238e935a (LICENSE.XlsxWriter), Excel rebuilds axis items on refresh.
 //! Calculated worksheet cells remain available to readers before that refresh.
-use super::super::{PivotSource, PivotTable, formulas::SpillCache, model::Workbook};
+use super::super::{PivotItem, PivotSource, PivotTable, formulas::SpillCache, model::Workbook};
 use super::{REL, SS, Sheet, Value, XML, escaped, tables};
 use std::{collections::BTreeMap, fmt::Write};
 
@@ -64,6 +64,7 @@ pub(super) fn write(
     let mut pivot_fields = String::new();
     let mut pages = String::new();
     let mut page_count = 0;
+    let mut base_indexes = BTreeMap::new();
     for field in 0..field_count {
         let Value::Text(name) = value(top, left + field) else {
             return None;
@@ -97,6 +98,58 @@ pub(super) fn write(
             for xml in selected_items {
                 let index = shared.len();
                 shared.entry(xml).or_insert((index, true));
+            }
+        }
+        let base_items: Vec<_> = pivot
+            .values
+            .iter()
+            .enumerate()
+            .filter_map(|(index, value)| {
+                let calculation = value.calculation.as_ref()?;
+                if calculation.base_field != Some(field) {
+                    return None;
+                }
+                let PivotItem::Value(value) = calculation.base_item.as_ref()? else {
+                    return None;
+                };
+                Some((index, value))
+            })
+            .collect();
+        if !base_items.is_empty() {
+            let selected = filter.and_then(|f| f.selected.as_ref());
+            let selected = match selected {
+                Some(values) => Some(
+                    values
+                        .iter()
+                        .map(|v| super::super::pivot::selected_key(v, work))
+                        .collect::<Option<std::collections::BTreeSet<_>>>()?,
+                ),
+                None => None,
+            };
+            let mut keys = BTreeMap::new();
+            for row in top + 1..=bottom {
+                let v = value(row, left + field);
+                let key = super::super::pivot::selected_key(v, work)?;
+                let visible = selected.as_ref().is_none_or(|s| s.contains(&key));
+                let index = shared.len();
+                let index = shared.entry(item(v, work)?).or_insert((index, visible)).0;
+                keys.entry(key).or_insert(index);
+            }
+            for (measure, value) in base_items {
+                let key = super::super::pivot::selected_key(value, work)?;
+                let visible = selected.as_ref().is_none_or(|s| s.contains(&key));
+                let index = if let Some(index) = keys.get(&key) {
+                    *index
+                } else {
+                    let index = shared.len();
+                    let index = shared
+                        .entry(item(value, work)?)
+                        .or_insert((index, visible))
+                        .0;
+                    keys.insert(key, index);
+                    index
+                };
+                base_indexes.insert(measure, index);
             }
         }
         let mut ordered: Vec<_> = shared
@@ -268,16 +321,43 @@ pub(super) fn write(
         .ok()?;
     }
     let mut values = String::new();
-    for value in &pivot.values {
-        *work = work.checked_sub(value.name.len().checked_mul(8)?.checked_add(256)?)?;
+    for (measure, value) in pivot.values.iter().enumerate() {
+        *work = work.checked_sub(value.name.len().checked_mul(8)?.checked_add(512)?)?;
         write!(
             values,
-            r#"<dataField name="{}" fld="{}" subtotal="{}" baseField="0" baseItem="0"/>"#,
+            r#"<dataField name="{}" fld="{}" subtotal="{}""#,
             escaped(&value.name),
             value.field,
             escaped(&value.aggregate)
         )
         .ok()?;
+        if let Some(show) = &value.calculation {
+            if show.extended() && show.needs_field() && show.base_field.is_none() {
+                return None;
+            }
+            if !show.extended() {
+                write!(values, r#" showDataAs="{}""#, escaped(&show.kind)).ok()?;
+            }
+            if show.needs_field() {
+                match show.base_field {
+                    Some(field) => write!(values, r#" baseField="{field}""#).ok()?,
+                    None => write!(values, r#" baseField="-1""#).ok()?,
+                }
+            }
+            if show.needs_item() && show.base_field.is_some() {
+                let index = match show.base_item.as_ref()? {
+                    PivotItem::Previous => 1048828,
+                    PivotItem::Next => 1048829,
+                    PivotItem::Value(_) => *base_indexes.get(&measure)?,
+                };
+                write!(values, r#" baseItem="{index}""#).ok()?;
+            }
+            if show.extended() {
+                write!(values, r#"><extLst><ext uri="{{E15A36E0-9728-4e99-A89B-3F7291B0FE68}}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:dataField pivotShowAs="{}"/></ext></extLst></dataField>"#, escaped(&show.kind)).ok()?;
+                continue;
+            }
+        }
+        values.push_str("/>");
     }
     if !values.is_empty() {
         write!(

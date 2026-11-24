@@ -94,6 +94,7 @@ fn pivot_output_is_protected_and_failed_edits_are_atomic() {
             rows: vec![0],
             columns: vec![],
             values: vec![PivotValue {
+                calculation: None,
                 field: 1,
                 aggregate: "sum".into(),
                 name: "Total".into(),
@@ -171,6 +172,7 @@ fn pivot_aggregates_use_records_for_totals_and_preserve_types_and_errors() {
             values: aggregates
                 .iter()
                 .map(|name| PivotValue {
+                    calculation: None,
                     field: 1,
                     aggregate: (*name).into(),
                     name: (*name).into(),
@@ -389,6 +391,7 @@ fn pivot_filters_and_disabled_totals_round_trip_with_typed_selections() {
             rows: vec![0],
             columns: vec![],
             values: vec![PivotValue {
+                calculation: None,
                 field: 1,
                 aggregate: "sum".into(),
                 name: "Total".into(),
@@ -524,6 +527,7 @@ fn pivot_sheet_deletion_shifts_both_bindings_and_column_deletion_shifts_fields()
             rows: vec![1],
             columns: vec![],
             values: vec![super::PivotValue {
+                calculation: None,
                 field: 2,
                 aggregate: "sum".into(),
                 name: "Total".into(),
@@ -639,6 +643,7 @@ fn pivot_typed_filter_items_survive_excel_string_escaping() {
                 rows: vec![0],
                 columns: vec![],
                 values: vec![PivotValue {
+                    calculation: None,
                     field: 1,
                     aggregate: "sum".into(),
                     name: "Total".into(),

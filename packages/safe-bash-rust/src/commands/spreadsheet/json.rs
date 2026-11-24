@@ -2,9 +2,9 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFieldLayout, PivotFilter, PivotLayout,
-    PivotSource, PivotSubtotal, PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator,
-    model::*,
+    DataBar, IconSet, IconThreshold, PivotCalculation, PivotDataAxis, PivotFieldLayout,
+    PivotFilter, PivotItem, PivotLayout, PivotSource, PivotSubtotal, PivotTable, PivotValue,
+    Spreadsheet, TextOperator, ValueOperator, model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -547,8 +547,33 @@ impl Codec for PivotSource {
 structure!(PivotValue {
     field,
     aggregate,
-    name
+    name,
+    calculation
 });
+structure!(PivotCalculation {
+    kind,
+    base_field,
+    base_item
+});
+impl Codec for PivotItem {
+    fn json(&self) -> Json {
+        match self {
+            Self::Previous => string("previous"),
+            Self::Next => string("next"),
+            Self::Value(value) => object([("value", value.json())]),
+        }
+    }
+    fn read(value: &Json) -> Result<Self> {
+        if let Json::String(_) = value {
+            return match String::read(value)?.as_str() {
+                "previous" => Ok(Self::Previous),
+                "next" => Ok(Self::Next),
+                _ => Err("Invalid pivot base item".into()),
+            };
+        }
+        Ok(Self::Value(Codec::read(field(value, "value")?)?))
+    }
+}
 structure!(PivotDataAxis { rows, position });
 structure!(PivotSubtotal {
     field,
@@ -1061,6 +1086,14 @@ impl TypedCell<String> {
 impl Style {
     pub fn to_json(&self) -> Json {
         self.json()
+    }
+}
+impl PivotCalculation {
+    pub fn to_json(&self) -> Json {
+        self.json()
+    }
+    pub fn from_json(value: &Json) -> Result<Self> {
+        Self::read(value)
     }
 }
 impl PivotLayout {

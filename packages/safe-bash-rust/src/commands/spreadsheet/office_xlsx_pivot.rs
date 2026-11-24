@@ -2,8 +2,8 @@
 //! Contracts and fixtures: ClosedXML 057f5976 (LICENSE.ClosedXML) and
 //! XlsxWriter 238e935a (LICENSE.XlsxWriter).
 use super::super::{
-    PivotDataAxis, PivotFieldLayout, PivotFilter, PivotLayout, PivotSource, PivotSubtotal,
-    PivotTable, PivotValue, model::Value,
+    PivotCalculation, PivotDataAxis, PivotFieldLayout, PivotFilter, PivotItem, PivotLayout,
+    PivotSource, PivotSubtotal, PivotTable, PivotValue, model::Value,
 };
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
@@ -287,10 +287,70 @@ pub(super) fn retain(
                 return Err("Calculated or grouped pivot fields are not supported yet".into());
             }
             let mut values = Vec::new();
-            for field in elements(&root.children, "dataField") {
-                if attr(field, "showDataAs").is_some_and(|v| v != "normal") {
-                    return Err("Relative pivot aggregates are not supported yet".into());
+            let data_fields = elements(&root.children, "dataFields");
+            let data_fields = data_fields
+                .first()
+                .map_or(&[][..], |f| f.children.as_slice());
+            for field in data_fields.iter().filter_map(|node| match node {
+                xml::Node::Element(field) if field.tag.rsplit(':').next() == Some("dataField") => {
+                    Some(field)
                 }
+                _ => None,
+            }) {
+                let extension = elements(&field.children, "dataField")
+                    .into_iter()
+                    .find(|e| attr(e, "pivotShowAs").is_some());
+                let kind = extension
+                    .and_then(|e| attr(e, "pivotShowAs"))
+                    .or_else(|| attr(field, "showDataAs"))
+                    .unwrap_or("normal");
+                let calculation = if kind == "normal" {
+                    None
+                } else {
+                    let mut show = PivotCalculation {
+                        kind: kind.into(),
+                        base_field: None,
+                        base_item: None,
+                    };
+                    if !show.valid() {
+                        return Err("Invalid relative pivot calculation".into());
+                    }
+                    if show.needs_field() {
+                        let base = match attr(field, "baseField") {
+                            Some("-1") | None => None,
+                            _ => Some(index(field, "baseField")?),
+                        };
+                        if base.is_some_and(|i| i >= cache_fields.len()) {
+                            return Err("Invalid pivot base field".into());
+                        }
+                        show.base_field = base;
+                    }
+                    if show.extended() && show.needs_field() && show.base_field.is_none() {
+                        return Err("Missing base field for extended pivot calculation".into());
+                    }
+                    if show.needs_item() && show.base_field.is_some() {
+                        show.base_item = Some(match index(field, "baseItem")? {
+                            1048828 => PivotItem::Previous,
+                            1048829 => PivotItem::Next,
+                            item => {
+                                let base = show.base_field.ok_or("Missing pivot base field")?;
+                                let shared = elements(&cache_fields[base].children, "sharedItems");
+                                let shared = shared.first().ok_or("Missing pivot base items")?;
+                                let item = shared
+                                    .children
+                                    .iter()
+                                    .filter_map(|node| match node {
+                                        xml::Node::Element(e) => Some(e),
+                                        _ => None,
+                                    })
+                                    .nth(item)
+                                    .ok_or("Invalid pivot base item")?;
+                                PivotItem::Value(shared_value(item)?)
+                            }
+                        });
+                    }
+                    Some(show)
+                };
                 let aggregate = attr(field, "subtotal").unwrap_or("sum");
                 if super::super::pivot::aggregate(aggregate).is_none() {
                     return Err("Invalid pivot aggregate".into());
@@ -307,6 +367,7 @@ pub(super) fn retain(
                     .checked_sub(name.len() + 128)
                     .ok_or("Pivot values exceed limit")?;
                 values.push(PivotValue {
+                    calculation,
                     field: field_index,
                     aggregate: aggregate.into(),
                     name: name.into(),

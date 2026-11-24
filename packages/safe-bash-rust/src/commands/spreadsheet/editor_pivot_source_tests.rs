@@ -200,6 +200,7 @@ fn deleting_an_unrelated_sheet_remaps_pivot_table_and_name_sources() {
             rows: vec![0],
             columns: vec![],
             values: vec![super::PivotValue {
+                calculation: None,
                 field: 1,
                 aggregate: "sum".into(),
                 name: "Total".into(),

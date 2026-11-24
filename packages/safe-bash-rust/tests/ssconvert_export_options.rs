@@ -66,11 +66,15 @@ fn csv_export_options_preserve_exact_filesystem_effects() {
 
 #[test]
 fn invalid_csv_options_do_not_publish_single_split_or_merged_outputs() {
-    for options in [
-        "-O unknown=raw",
-        "-Ounknown=raw",
-        "--export-options=unknown=raw",
-        "-O unknown=raw -O format=raw",
+    let invalid = "ssconvert: Invalid export option \"unknown\" for format Gnumeric_stf:stf_csv\n";
+    for (options, error) in [
+        ("-O unknown=raw", invalid),
+        (
+            "-Ounknown=raw",
+            "Unknown option -Ounknown=raw\nRun 'ssconvert --help' to see a full list of available command line options.\n",
+        ),
+        ("--export-options=unknown=raw", invalid),
+        ("-O format=raw -O unknown=raw", invalid),
     ] {
         for operands in [
             "/input.csv /output.csv",
@@ -94,10 +98,7 @@ fn invalid_csv_options_do_not_publish_single_split_or_merged_outputs() {
                 .unwrap();
             assert_eq!(result.exit_code, 1, "{options} {operands}");
             assert_eq!(result.stdout, "");
-            assert_eq!(
-                result.stderr,
-                "ssconvert: Invalid export option \"unknown\" for format Gnumeric_stf:stf_csv\n"
-            );
+            assert_eq!(result.stderr, error);
             assert_eq!(fs.export_entries().unwrap(), before, "{options} {operands}");
         }
     }

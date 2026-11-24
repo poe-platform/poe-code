@@ -312,11 +312,13 @@ impl<'a> Movie<'a> {
                             continue;
                         }
                         let (mut block, mut ticks) = (v, 0.);
+                        let mut referenced = false;
                         if k == 0xa0 {
                             for (field, value) in elements(v, false) {
                                 match field {
                                     0xa1 => block = value,
                                     0x9b => ticks = uint(value) as f64,
+                                    0xfb => referenced = true,
                                     _ => (),
                                 }
                             }
@@ -350,7 +352,7 @@ impl<'a> Movie<'a> {
                                 cluster: time,
                                 ticks,
                                 data,
-                                key: k == 0xa0 || flags & 128 != 0,
+                                key: if k == 0xa0 { !referenced } else { flags & 128 != 0 },
                             });
                         }
                     }

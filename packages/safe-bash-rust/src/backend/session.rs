@@ -29,6 +29,7 @@ const SHOPT: &[&str] = &[
     "nullglob",
     "patsub_replacement",
     "sourcepath",
+    "varredir_close",
     "failglob",
     "lastpipe",
     "inherit_errexit",

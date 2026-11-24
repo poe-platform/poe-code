@@ -5003,17 +5003,7 @@ test("JavaScript and Rust can exchange supported cold session state", async () =
     for (const key of ["exported", "readonlyVariables", "exportedFunctions", "readonlyFunctions"]) {
       for (const s of snapshots) s[key].sort();
     }
-    // Named descriptor cleanup remains JS-only; compare every other state field.
-    const [jsState,rustState]=snapshots;
-    for(const [option,value] of Object.entries({varredir_close:false})) {
-      assert.equal(jsState.options[option],value);
-      assert.equal(Object.hasOwn(rustState.options,option),false);
-      const unsupported=await rust.exec("shopt -s "+option);
-      assert.equal(unsupported.exitCode,1);
-      assert.match(unsupported.stderr,/unsupported shell option name/);
-      delete jsState.options[option];
-    }
-    assert.deepEqual(rustState,jsState);
+    assert.deepEqual(snapshots[1],snapshots[0]);
   } finally { await js.dispose(); rust.dispose(); }
 });
 

@@ -78,6 +78,7 @@ const SHOPT_OPTIONS: &[&str] = &[
     "patsub_replacement",
     "shift_verbose",
     "sourcepath",
+    "varredir_close",
     "xpg_echo",
     "extdebug",
 ];
@@ -2667,7 +2668,7 @@ impl<'a> EvalState<'a> {
             let prev_async = std::mem::replace(&mut self.async_default_stdin, false);
             let redirects = command_redirects(node);
             let redirects_fd0 = redirects.iter().any(|r| {
-                matches!(
+                r.variable.is_none() && matches!(
                     r.kind,
                     RedirectKind::In(0)
                         | RedirectKind::ReadWrite(0)
@@ -4260,7 +4261,7 @@ impl<'a> EvalState<'a> {
         let [redirect] = simple.redirects.as_slice() else {
             return Ok(false);
         };
-        if !matches!(redirect.kind, RedirectKind::HereString(0))
+        if redirect.variable.is_some() || !matches!(redirect.kind, RedirectKind::HereString(0))
             || self.env.get("\0set_allexport").is_some_and(|v| v == "1")
         {
             return Ok(false);
@@ -4408,6 +4409,7 @@ impl<'a> EvalState<'a> {
                 simple.redirects.as_slice(),
                 [Redirect {
                     kind: RedirectKind::HereString(_),
+                    variable: None,
                     ..
                 }]
             )
@@ -11951,6 +11953,20 @@ impl<'a> EvalState<'a> {
             };
 
         for r in redirects {
+            let mut named_fd = r.variable.as_ref()
+                .map(|_| (10..=255).find(|fd| !self.is_fd_open(*fd)).unwrap_or(256));
+            let mut named_redirect;
+            let r = if let Some(number) = named_fd {
+                named_redirect = r.clone();
+                match &mut named_redirect.kind {
+                    RedirectKind::Out(fd) | RedirectKind::Append(fd) | RedirectKind::Clobber(fd)
+                    | RedirectKind::In(fd) | RedirectKind::ReadWrite(fd) | RedirectKind::HereString(fd)
+                    | RedirectKind::HereDoc { fd, .. } | RedirectKind::DupOut { fd, .. }
+                    | RedirectKind::DupIn { fd, .. } => *fd = number,
+                    RedirectKind::BothOut | RedirectKind::BothAppend => unreachable!(),
+                }
+                &named_redirect
+            } else { r };
             let expand_redir_target =
                 |this: &mut Self, raw: &str| -> Result<Result<String, BuiltinOutcome>, EvalError> {
                     let fields = this.expand_word_to_fields(raw)?;
@@ -12177,6 +12193,25 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     if target == "-" {
+                        let number;
+                        let fd = if let Some(name) = &r.variable {
+                            let value = self.env.get(resolve_nameref_base(name, self.env));
+                            number = match value.filter(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+                                .and_then(|s| s.parse::<u32>().ok()).filter(|n| *n <= 255) {
+                                Some(number) => number,
+                                None => {
+                                    let mut error = BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!("{}{name}: ambiguous redirect\n", self.diag_prefix()),
+                                        exit_code: 1,
+                                    };
+                                    self.route_outcome(&mut error);
+                                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(error)));
+                                }
+                            };
+                            named_fd = None;
+                            &number
+                        } else { fd };
                         self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                         record_saved_fd(self, &mut saved_fd_table, *fd);
                         record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
@@ -12531,6 +12566,32 @@ impl<'a> EvalState<'a> {
                     record_saved_fd(self, &mut saved_fd_table, 2);
                     self.fd_table.insert(1, opened.clone());
                     self.fd_table.insert(2, opened);
+                }
+            }
+            if let (Some(name), Some(fd)) = (&r.variable, named_fd) {
+                let assignment = if fd > 255 {
+                    Ok(Some("Too many open file descriptors".to_string()))
+                } else {
+                    self.assign_value(name, &fd.to_string(), false)
+                };
+                let message = match assignment {
+                    Ok(message) => message,
+                    Err(EvalError::Syntax(message)) => Some(message),
+                    Err(error) => return Err(error),
+                };
+                if let Some(message) = message {
+                    let mut error = BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{}{message}\n", self.diag_prefix()),
+                        exit_code: 1,
+                    };
+                    self.route_outcome(&mut error);
+                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(error)));
+                }
+                if !self.get_shopt_enabled("varredir_close", false) {
+                    saved_fd_table.retain(|(saved, _, _)| *saved != fd);
+                    saved_aliases.retain(|(saved, _)| *saved != fd);
+                    saved_in.retain(|(saved, _)| *saved != fd);
                 }
             }
         }
@@ -17857,7 +17918,9 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
             RedirectKind::BothAppend => (1, "&>>", &r.target),
         };
         text.push(' ');
-        if fd != u32::from(!operator.starts_with('<')) {
+        if let Some(name) = &r.variable {
+            write!(text, "{{{name}}}").unwrap();
+        } else if fd != u32::from(!operator.starts_with('<')) {
             write!(text, "{fd}").unwrap();
         }
         write!(text, "{operator} {target}").unwrap();

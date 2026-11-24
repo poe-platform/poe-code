@@ -2010,5 +2010,417 @@
     "status": 0,
     "stdout": "true\n",
     "bufferedStdout": "false\n"
+  },
+  {
+    "id": "pack-sizes",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.packsize('bBhHlLjJTfdn'),string.packsize('!8 bXd c3'),string.packsize('!16 i16Xi16'),string.packsize('c2147483639') end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "46,11,16,2147483639\n"
+  },
+  {
+    "id": "pack-integers",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.byte(string.pack('<bBhHi4I4',-7,250,-1024,65000,-2147483648,-1),1,-1) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "249,250,0,252,232,253,0,0,0,128,255,255,255,255\n"
+  },
+  {
+    "id": "pack-wide",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.byte(string.pack('>i8I8',-1,-1),1,-1) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255\n"
+  },
+  {
+    "id": "pack-floats",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('>i2I2fd',string.pack('>i2I2fd',-123,50000,1.25,-2.5)) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "-123,50000,1.25,-2.5,17\n"
+  },
+  {
+    "id": "pack-alignment",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('!8 bXd d',string.pack('!8 bXd d',7,2.5)) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "7,2.5,17\n"
+  },
+  {
+    "id": "pack-absolute-alignment",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('!4 I4','abcd'..string.pack('I4',123),2) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "123,9\n"
+  },
+  {
+    "id": "pack-strings",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.byte(string.pack('c5s1z','ab','xyz','ok'),1,-1) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "97,98,0,0,0,3,120,121,122,111,107,0\n"
+  },
+  {
+    "id": "pack-binary-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local s,p=string.unpack('s2',string.pack('s2',string.char(255,0,128))); return #s,p,string.byte(s,1,-1) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "3,6,255,0,128\n"
+  },
+  {
+    "id": "pack-relative",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('b','abc',-1),string.unpack('','abc',4) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "99,4\n"
+  },
+  {
+    "id": "pack-unterminated",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local a,p=string.unpack('z','abc',2); local b,q=string.unpack('z','abc',4); return a,p,#b,q end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "b,4,0,2\n"
+  },
+  {
+    "id": "pack-negative-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local s,p=string.unpack('s4',string.pack('i4',-1)); return #s,p end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "0,4\n"
+  },
+  {
+    "id": "pack-coercion",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('bds1',string.pack('bds1','7','1.25',42)) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "7,1.25,42,13\n"
+  },
+  {
+    "id": "pack-many-fields",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return select('#',string.unpack(string.rep('B',300),string.rep('a',300))) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "301\n"
+  },
+  {
+    "id": "pack-wide-boundary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.unpack('i8',string.pack('i8',-2147483648)) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "-2147483648,9\n"
+  },
+  {
+    "id": "pack-large-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local s=string.rep('a',17003); local a,b,p=string.unpack('s4z',string.pack('s4z',s,s)); return #a,#b,p end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "17003,17003,34012\n"
+  },
+  {
+    "id": "pack-float-kinds",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local f,d=string.unpack('fd',string.pack('fd',1,2)); return math.type(f),math.type(d) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "float,float\n"
+  },
+  {
+    "id": "pack-endian-switch",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return string.byte(string.pack('>H<H=H',0x1234,0x1234,0x1234),1,-1) end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "18,52,52,18,52,18\n"
+  },
+  {
+    "id": "pack-error-variable-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('z'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Variable-length format\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (variable-length format)\n"
+  },
+  {
+    "id": "pack-error-variable-prefix",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('s'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Variable-length format\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (variable-length format)\n"
+  },
+  {
+    "id": "pack-error-size-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('i0'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Integral size out of limits [1,16]\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: integral size (0) out of limits [1,16]\n"
+  },
+  {
+    "id": "pack-error-size-large",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('i17'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Integral size out of limits [1,16]\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: integral size (17) out of limits [1,16]\n"
+  },
+  {
+    "id": "pack-error-align-power",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('!3i3'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Format alignment is not a power of two\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (format asks for alignment not power of 2)\n"
+  },
+  {
+    "id": "pack-error-align-char",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('Xc2'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Invalid option after 'X'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (invalid next option for option 'X')\n"
+  },
+  {
+    "id": "pack-error-align-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('X'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Invalid option after 'X'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (invalid next option for option 'X')\n"
+  },
+  {
+    "id": "pack-error-char-size",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('c'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Missing size for format option 'c'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: missing size for format option 'c'\n"
+  },
+  {
+    "id": "pack-error-unknown",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('q'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Invalid binary format option\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid format option 'q'\n"
+  },
+  {
+    "id": "pack-error-size-digits",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('c2147483647'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Invalid binary format option\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid format option '7'\n"
+  },
+  {
+    "id": "pack-error-size-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.packsize('c2147483639c9'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Format result too large\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'packsize' (format result too large)\n"
+  },
+  {
+    "id": "pack-error-signed-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('b',128); return el end",
+    "status": 4,
+    "stderr": "E_AST: Integer overflow\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (integer overflow)\n"
+  },
+  {
+    "id": "pack-error-unsigned-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('B',-1); return el end",
+    "status": 4,
+    "stderr": "E_AST: Integer overflow\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (unsigned overflow)\n"
+  },
+  {
+    "id": "pack-error-char-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('c2','abc'); return el end",
+    "status": 4,
+    "stderr": "E_AST: String longer than given size\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (string longer than given size)\n"
+  },
+  {
+    "id": "pack-error-string-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('s1',string.rep('a',256)); return el end",
+    "status": 4,
+    "stderr": "E_AST: String length does not fit in given size\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (string length does not fit in given size)\n"
+  },
+  {
+    "id": "pack-error-zero-byte",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('z','a'..string.char(0)); return el end",
+    "status": 4,
+    "stderr": "E_AST: String contains zeros\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (strings contains zeros)\n"
+  },
+  {
+    "id": "pack-error-short-data",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.unpack('i4','a'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Data string too short\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'unpack' (data string too short)\n"
+  },
+  {
+    "id": "pack-error-initial-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.unpack('','a',0); return el end",
+    "status": 4,
+    "stderr": "E_AST: Initial position out of string\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'unpack' (initial position out of string)\n"
+  },
+  {
+    "id": "pack-error-wide-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.unpack('I8',string.pack('I8',-1)); return el end",
+    "status": 4,
+    "stderr": "E_AST: Integer does not fit into Lua integer\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: 8-byte integer does not fit into Lua Integer\n"
+  },
+  {
+    "id": "pack-error-fractional",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('b',1.5); return el end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (number has no integer representation)\n"
+  },
+  {
+    "id": "pack-error-missing-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('b'); return el end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (number expected, got nil)\n"
+  },
+  {
+    "id": "pack-error-boolean-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) string.pack('z',false); return el end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'pack' (string expected, got boolean)\n"
   }
 ]

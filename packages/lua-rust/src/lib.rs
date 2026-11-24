@@ -2,6 +2,7 @@
 mod format;
 mod library;
 mod numbers;
+mod pack;
 mod pattern;
 mod syntax;
 mod utf8;

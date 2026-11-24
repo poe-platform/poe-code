@@ -42,6 +42,9 @@ async function test() {
     await shell.fs.writeFile("/intern.lua", "function Str(el) local prefix='\\6\\246\\1'; oa=8; return pandoc.Str(tostring(_G[string.char(6,246,1)])) end");
     const interned = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/intern.lua");
     if (interned.exitCode || interned.stderr || interned.stdout !== "8\n") throw new Error(JSON.stringify(interned));
+    await shell.fs.writeFile("/pack.lua", "function Str(el) local s=string.pack('>i2I2fd',-123,50000,1.25,-2.5); return pandoc.Str(table.concat({string.unpack('>i2I2fd',s)},',')) end");
+    const luaPacked = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/pack.lua");
+    if (luaPacked.exitCode || luaPacked.stderr || luaPacked.stdout !== "-123,50000,1.25,-2.5,17\n") throw new Error(JSON.stringify(luaPacked));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

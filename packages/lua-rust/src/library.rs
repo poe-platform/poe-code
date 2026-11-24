@@ -44,6 +44,9 @@ impl Runtime {
                     "string.char",
                     "string.find",
                     "string.match",
+                    "string.pack",
+                    "string.packsize",
+                    "string.unpack",
                 ][..],
             ),
             (
@@ -157,6 +160,9 @@ impl Runtime {
             _ => Err(Error::new("string expected")),
         };
         let result = match name {
+            "string.pack" | "string.packsize" | "string.unpack" => {
+                return crate::pack::invoke(name, &args);
+            }
             "__pandoc_depth" | "__pandoc_reference" | "__pandoc_string" => return Ok(Vec::new()),
             "__pandoc_ast_error" => {
                 return Err(Error::new(

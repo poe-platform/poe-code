@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/packing.rs"]
+mod lua_packing;
 #[path = "../../lua-rust/tests/bytes.rs"]
 mod lua_bytes;
 #[path = "../../lua-rust/tests/evaluation.rs"]

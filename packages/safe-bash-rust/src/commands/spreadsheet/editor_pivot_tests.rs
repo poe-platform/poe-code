@@ -88,6 +88,7 @@ fn pivot_output_is_protected_and_failed_edits_are_atomic() {
             source_binding: None,
             data_axis: None,
             subtotals: Vec::new(),
+            layout: None,
             source_sheet: 0,
             source: [0, 0, 1, 1],
             rows: vec![0],
@@ -162,6 +163,7 @@ fn pivot_aggregates_use_records_for_totals_and_preserve_types_and_errors() {
             source_binding: None,
             data_axis: None,
             subtotals: Vec::new(),
+            layout: None,
             source_sheet: 0,
             source: [0, 0, 3, 1],
             rows: vec![0],
@@ -256,11 +258,11 @@ fn pivot_xlsx_export_keeps_real_definitions_and_recalculates_after_import() {
     );
     let mut restored = Spreadsheet::import_xlsx(&bytes, LIMIT).unwrap();
     assert_eq!(restored.options.pivots.len(), 1);
-    assert_eq!(restored.display(1, 1, 1, LIMIT).unwrap(), "2");
+    assert_eq!(restored.display(1, 2, 1, LIMIT).unwrap(), "2");
     restored.edit(&[(0, 1, 1, "7")], LIMIT).unwrap();
-    assert_eq!(restored.display(1, 1, 1, LIMIT).unwrap(), "7");
+    assert_eq!(restored.display(1, 2, 1, LIMIT).unwrap(), "7");
     let restored = Spreadsheet::from_json(&restored.to_json(), LIMIT).unwrap();
-    assert_eq!(restored.display(1, 1, 1, LIMIT).unwrap(), "7");
+    assert_eq!(restored.display(1, 2, 1, LIMIT).unwrap(), "7");
 }
 
 #[test]
@@ -275,14 +277,14 @@ fn pivot_structural_edits_follow_sources_and_protect_results() {
         book.options.pivots.values().next().unwrap().source,
         [2, 0, 3, 1]
     );
-    assert_eq!(book.display(1, 1, 1, LIMIT).unwrap(), "2");
+    assert_eq!(book.display(1, 2, 1, LIMIT).unwrap(), "2");
     book.edit_axis(0, true, 0, 1, LIMIT).unwrap();
     assert_eq!(
         book.options.pivots.values().next().unwrap().source,
         [2, 1, 3, 2]
     );
     book.edit_axis(1, false, 0, 2, LIMIT).unwrap();
-    assert_eq!(book.display(1, 3, 1, LIMIT).unwrap(), "2");
+    assert_eq!(book.display(1, 4, 1, LIMIT).unwrap(), "2");
     let before = book.to_json();
     assert!(
         book.edit_axis(1, false, 3, 1, LIMIT).is_err(),
@@ -291,7 +293,7 @@ fn pivot_structural_edits_follow_sources_and_protect_results() {
     assert_eq!(book.to_json(), before);
     book.rename_sheet(0, "Renamed", LIMIT).unwrap();
     book.edit(&[(0, 3, 2, "9")], LIMIT).unwrap();
-    assert_eq!(book.display(1, 3, 1, LIMIT).unwrap(), "9");
+    assert_eq!(book.display(1, 4, 1, LIMIT).unwrap(), "9");
     book.add_sheet("Survivor").unwrap();
     let before = book.to_json();
     assert!(
@@ -335,8 +337,13 @@ fn xlsxwriter_pivots_import_grouping_filters_and_multiple_aggregates() {
         assert_eq!(pivot.filters.len(), filters);
         assert_eq!(pivot.values.len(), measures);
         assert_eq!(
-            book.display(pivot.sheet, pivot.row + 1, pivot.column, LIMIT)
-                .unwrap(),
+            book.display(
+                pivot.sheet,
+                pivot.row + if columns > 0 || measures > 1 { 2 } else { 1 },
+                pivot.column,
+                LIMIT
+            )
+            .unwrap(),
             "East"
         );
         assert!(
@@ -376,6 +383,7 @@ fn pivot_filters_and_disabled_totals_round_trip_with_typed_selections() {
             source_binding: None,
             data_axis: None,
             subtotals: Vec::new(),
+            layout: None,
             source_sheet: 0,
             source: [0, 0, 3, 1],
             rows: vec![0],
@@ -419,10 +427,10 @@ fn pivot_outputs_reject_typed_paste_clear_merge_and_tables_but_allow_formats() {
     let before = book.to_json();
     let cell = book.cell(0, 1, 1).unwrap().into_owned();
     assert!(
-        book.replace_cells(vec![(1, 1, 1, Some(cell))], LIMIT)
+        book.replace_cells(vec![(1, 2, 1, Some(cell))], LIMIT)
             .is_err()
     );
-    assert!(book.replace_cells(vec![(1, 1, 1, None)], LIMIT).is_err());
+    assert!(book.replace_cells(vec![(1, 2, 1, None)], LIMIT).is_err());
     assert!(book.merge_cells(1, &[[0, 0, 2, 2]], false, LIMIT).is_err());
     assert!(book.add_table(1, "OverPivot", [0, 0, 1, 2], LIMIT).is_err());
     assert_eq!(book.to_json(), before);
@@ -430,9 +438,9 @@ fn pivot_outputs_reject_typed_paste_clear_merge_and_tables_but_allow_formats() {
     style.value = None;
     style.formula = None;
     style.format = Some("0.00".into());
-    book.replace_cells(vec![(1, 1, 1, Some(style))], LIMIT)
+    book.replace_cells(vec![(1, 2, 1, Some(style))], LIMIT)
         .unwrap();
-    assert_eq!(book.display(1, 1, 1, LIMIT).unwrap(), "2.00");
+    assert_eq!(book.display(1, 2, 1, LIMIT).unwrap(), "2.00");
 }
 
 #[test]
@@ -510,6 +518,7 @@ fn pivot_sheet_deletion_shifts_both_bindings_and_column_deletion_shifts_fields()
             source_binding: None,
             data_axis: None,
             subtotals: Vec::new(),
+            layout: None,
             source_sheet: 1,
             source: [0, 0, 1, 2],
             rows: vec![1],
@@ -561,12 +570,12 @@ fn pivot_failed_definition_change_is_atomic_and_collisions_preserve_cells() {
     assert_eq!(book.to_json(), before);
     let mut shifted = pivot.clone();
     shifted.column = 5;
-    book.edit(&[(1, 1, 6, "Protected")], LIMIT).unwrap();
+    book.edit(&[(1, 2, 6, "Protected")], LIMIT).unwrap();
     book.set_pivot(&id, Some(shifted), LIMIT).unwrap();
     assert_eq!(book.display(1, 0, 5, LIMIT).unwrap(), "#SPILL!");
-    assert_eq!(book.display(1, 1, 6, LIMIT).unwrap(), "Protected");
-    book.edit(&[(1, 1, 6, "")], LIMIT).unwrap();
-    assert_eq!(book.display(1, 1, 6, LIMIT).unwrap(), "2");
+    assert_eq!(book.display(1, 2, 6, LIMIT).unwrap(), "Protected");
+    book.edit(&[(1, 2, 6, "")], LIMIT).unwrap();
+    assert_eq!(book.display(1, 2, 6, LIMIT).unwrap(), "2");
 }
 
 #[test]
@@ -585,8 +594,8 @@ fn pivot_formula_headers_and_formula_results_preserve_dynamic_dependencies() {
         LIMIT,
     )
     .unwrap();
-    assert_eq!(book.display(1, 1, 1, LIMIT).unwrap(), "5");
-    book.edit(&[(0, 1, 1, "=Sheet2!B2")], LIMIT).unwrap();
+    assert_eq!(book.display(1, 2, 1, LIMIT).unwrap(), "5");
+    book.edit(&[(0, 1, 1, "=Sheet2!B3")], LIMIT).unwrap();
     assert_eq!(book.display(1, 0, 0, LIMIT).unwrap(), "#CIRC!");
 }
 
@@ -624,6 +633,7 @@ fn pivot_typed_filter_items_survive_excel_string_escaping() {
                 source_binding: None,
                 data_axis: None,
                 subtotals: Vec::new(),
+                layout: None,
                 source_sheet: 0,
                 source: [0, 0, 2, 1],
                 rows: vec![0],
@@ -675,7 +685,7 @@ fn pivot_worksheet_relationships_can_live_at_the_package_root() {
     );
     let book = Spreadsheet::import_xlsx(&bytes, LIMIT).unwrap();
     assert_eq!(book.options.pivots.len(), 1);
-    assert_eq!(book.display(1, 3, 0, LIMIT).unwrap(), "East");
+    assert_eq!(book.display(1, 4, 0, LIMIT).unwrap(), "East");
 }
 
 #[test]

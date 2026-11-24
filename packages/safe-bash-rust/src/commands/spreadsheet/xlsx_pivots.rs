@@ -127,9 +127,16 @@ pub(super) fn write(
         };
         let data = pivot.values.iter().any(|v| v.field == field);
         let subtotal = pivot.subtotals.iter().find(|s| s.field == field);
+        let layout = pivot.layout.as_ref().map(|l| l.field(field));
         let mut attributes = format!(
-            r#" compact="0" outline="{}" defaultSubtotal="{}" showAll="0" dataField="{}""#,
-            u8::from(subtotal.is_some_and(|s| s.at_top)),
+            r#" compact="{}" outline="{}" insertBlankRow="{}" defaultSubtotal="{}" showAll="0" dataField="{}""#,
+            u8::from(layout.as_ref().is_some_and(|l| l.compact)),
+            u8::from(
+                layout
+                    .as_ref()
+                    .map_or(subtotal.is_some_and(|s| s.at_top), |l| l.outline)
+            ),
+            u8::from(layout.as_ref().is_some_and(|l| l.blank_row)),
             u8::from(subtotal.is_some_and(|s| s.aggregates.iter().any(|a| a == "automatic"))),
             u8::from(data)
         );
@@ -158,18 +165,25 @@ pub(super) fn write(
         if filter.is_some() {
             attributes.push_str(r#" multipleItemSelectionAllowed="1""#);
         }
-        if axis.is_empty() {
-            write!(pivot_fields, "<pivotField{attributes}/>").ok()?;
-        } else if ordered.is_empty() && subtotal_count == 0 {
-            write!(pivot_fields, "<pivotField{attributes}><items count=\"1\"><item t=\"default\"/></items></pivotField>").ok()?;
+        let extension = if layout.as_ref().is_none_or(|l| l.repeat_labels) {
+            r#"<extLst><ext uri="{2946ED86-A175-432a-8AC1-64E0C546D7DE}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:pivotField fillDownLabels="1"/></ext></extLst>"#
         } else {
-            write!(
-                pivot_fields,
-                "<pivotField{attributes}><items count=\"{}\">{items}</items></pivotField>",
-                ordered.len() + subtotal_count
-            )
-            .ok()?;
+            ""
+        };
+        write!(pivot_fields, "<pivotField{attributes}>").ok()?;
+        if !axis.is_empty() {
+            if ordered.is_empty() && subtotal_count == 0 {
+                pivot_fields.push_str("<items count=\"1\"><item t=\"default\"/></items>");
+            } else {
+                write!(
+                    pivot_fields,
+                    "<items count=\"{}\">{items}</items>",
+                    ordered.len() + subtotal_count
+                )
+                .ok()?;
+            }
         }
+        write!(pivot_fields, "{extension}</pivotField>").ok()?;
     }
     for filter in &pivot.filters {
         if !pivot.rows.contains(&filter.field) && !pivot.columns.contains(&filter.field) {
@@ -287,6 +301,7 @@ pub(super) fn write(
         false,
     );
     let (header_rows, label_columns) = pivot.header_size();
+    let first_header_row = usize::from(pivot.layout.is_some() && header_rows > 1);
     let data_attributes = pivot
         .data_axis
         .or(data_axis)
@@ -298,11 +313,25 @@ pub(super) fn write(
             )
         })
         .unwrap_or_default();
+    let layout_attributes = if let Some(layout) = &pivot.layout {
+        format!(
+            r#"compact="{}" outline="{}" compactData="{}" outlineData="{}" indent="{}""#,
+            u8::from(layout.compact),
+            u8::from(layout.outline),
+            u8::from(layout.compact_data),
+            u8::from(layout.outline_data),
+            layout.indent
+        )
+    } else {
+        // Keep the old JSON grid stable across our own round trips. Excel can
+        // ignore this attribute and use the explicit per-field flags above.
+        r#"compact="0" compactData="0" outline="0" outlineData="0" xmlns:ssc="urn:poe-code:spreadsheet:pivots:1" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="ssc" ssc:legacyLayout="1""#.into()
+    };
     let definition = format!(
-        r#"{XML}<pivotTableDefinition xmlns="{SS}" name="{}" cacheId="{id}" dataCaption="Values"{data_attributes} compact="0" compactData="0" outline="0" outlineData="0" rowGrandTotals="{}" colGrandTotals="{}" updatedVersion="3" minRefreshableVersion="3" createdVersion="3"><location ref="{location}" firstHeaderRow="0" firstDataRow="{header_rows}" firstDataCol="{}"/><pivotFields count="{field_count}">{pivot_fields}</pivotFields>{axes}<pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>"#,
+        r#"{XML}<pivotTableDefinition xmlns="{SS}" name="{}" cacheId="{id}" dataCaption="Values"{data_attributes} {layout_attributes} rowGrandTotals="{}" colGrandTotals="{}" updatedVersion="3" minRefreshableVersion="3" createdVersion="3"><location ref="{location}" firstHeaderRow="{first_header_row}" firstDataRow="{header_rows}" firstDataCol="{}"/><pivotFields count="{field_count}">{pivot_fields}</pivotFields>{axes}<pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>"#,
         escaped(&pivot.name),
-        u8::from(pivot.row_totals),
         u8::from(pivot.column_totals),
+        u8::from(pivot.row_totals),
         label_columns
     );
     *work = work.checked_sub(cache.len().checked_add(definition.len())?)?;

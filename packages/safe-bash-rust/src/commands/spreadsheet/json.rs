@@ -2,8 +2,9 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFilter, PivotSource, PivotSubtotal,
-    PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
+    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFieldLayout, PivotFilter, PivotLayout,
+    PivotSource, PivotSubtotal, PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator,
+    model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -555,6 +556,21 @@ structure!(PivotSubtotal {
     at_top
 });
 structure!(PivotFilter { field, selected });
+structure!(PivotFieldLayout {
+    field,
+    compact,
+    outline,
+    repeat_labels,
+    blank_row
+});
+structure!(PivotLayout {
+    compact,
+    outline,
+    compact_data,
+    outline_data,
+    indent,
+    fields
+});
 structure!(PivotTable {
     name,
     sheet,
@@ -570,7 +586,8 @@ structure!(PivotTable {
     filters,
     row_totals,
     column_totals;
-    subtotals = Vec::new()
+    subtotals = Vec::new(),
+    layout = None
 });
 
 impl Codec for Workbook {
@@ -1044,6 +1061,15 @@ impl TypedCell<String> {
 impl Style {
     pub fn to_json(&self) -> Json {
         self.json()
+    }
+}
+impl PivotLayout {
+    pub fn to_json(&self) -> Json {
+        self.json()
+    }
+    /// Decode layout settings; `set_pivot` validates field identities.
+    pub fn from_json(value: &Json) -> Result<Self> {
+        Self::read(value)
     }
 }
 impl ConditionalFormat {

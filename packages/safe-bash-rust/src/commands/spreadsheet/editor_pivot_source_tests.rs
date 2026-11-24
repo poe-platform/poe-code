@@ -185,6 +185,7 @@ fn deleting_an_unrelated_sheet_remaps_pivot_table_and_name_sources() {
         let definition = super::PivotTable {
             data_axis: None,
             subtotals: Vec::new(),
+            layout: None,
             name: "Summary".into(),
             sheet: 2,
             row: 0,

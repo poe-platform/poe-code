@@ -70,6 +70,43 @@ pub struct PivotSubtotal {
     pub at_top: bool,
 }
 
+/// Excel stores layout on every cache field, including fields not on an axis.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PivotFieldLayout {
+    pub field: usize,
+    pub compact: bool,
+    pub outline: bool,
+    pub repeat_labels: bool,
+    pub blank_row: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PivotLayout {
+    pub compact: bool,
+    pub outline: bool,
+    pub compact_data: bool,
+    pub outline_data: bool,
+    pub indent: u8,
+    pub fields: Vec<PivotFieldLayout>,
+}
+
+impl PivotLayout {
+    pub fn field(&self, field: usize) -> PivotFieldLayout {
+        self.fields
+            .get(field)
+            .filter(|f| f.field == field)
+            .or_else(|| self.fields.iter().find(|f| f.field == field))
+            .cloned()
+            .unwrap_or(PivotFieldLayout {
+                field,
+                compact: self.compact,
+                outline: self.outline,
+                repeat_labels: false,
+                blank_row: false,
+            })
+    }
+}
+
 #[derive(Clone)]
 pub struct PivotTable {
     pub name: String,
@@ -85,6 +122,8 @@ pub struct PivotTable {
     pub values: Vec<PivotValue>,
     pub data_axis: Option<PivotDataAxis>,
     pub subtotals: Vec<PivotSubtotal>,
+    /// None preserves the coordinates and repeating labels of older JSON files.
+    pub layout: Option<PivotLayout>,
     pub filters: Vec<PivotFilter>,
     pub row_totals: bool,
     pub column_totals: bool,
@@ -104,11 +143,44 @@ impl PivotTable {
         })
     }
 
+    /// Column and indentation for each row-axis field, including Values.
+    pub(super) fn row_slots(&self) -> Vec<(usize, u8)> {
+        let position = self.data_axis().filter(|a| a.rows).map(|a| a.position);
+        let mut slots = Vec::new();
+        let mut column = 0;
+        let mut indent = 0u8;
+        let mut compact = false;
+        for index in 0..self.rows.len() + usize::from(position.is_some()) {
+            if index > 0 {
+                if compact {
+                    indent = indent.saturating_add(self.layout.as_ref().map_or(0, |l| l.indent));
+                } else {
+                    column += 1;
+                    indent = 0;
+                }
+            }
+            slots.push((column, indent));
+            compact = self.layout.as_ref().is_some_and(|layout| {
+                if position == Some(index) {
+                    layout.outline_data && layout.compact_data
+                } else {
+                    let field = self.rows[index - usize::from(position.is_some_and(|p| p < index))];
+                    let field = layout.field(field);
+                    field.outline && field.compact
+                }
+            });
+        }
+        slots
+    }
+
     pub(super) fn header_size(&self) -> (usize, usize) {
         let axis = self.data_axis();
         (
-            (self.columns.len() + usize::from(axis.is_some_and(|a| !a.rows))).max(1),
-            (self.rows.len() + usize::from(axis.is_some_and(|a| a.rows))).max(1),
+            (self.columns.len()
+                + usize::from(axis.is_some_and(|a| !a.rows))
+                + usize::from(self.layout.is_some()))
+            .max(1),
+            self.row_slots().last().map_or(1, |&(column, _)| column + 1),
         )
     }
 }
@@ -186,6 +258,18 @@ impl Spreadsheet {
                     }
             }) {
                 return Err("Invalid pivot values position".into());
+            }
+            if let Some(layout) = &pivot.layout {
+                let mut seen = BTreeSet::new();
+                for field in &layout.fields {
+                    *work = work.checked_sub(128).ok_or("Pivot layout exceeds limit")?;
+                    if field.field >= 16_384
+                        || pivot.source_binding.is_none() && field.field > right - left
+                        || !seen.insert(field.field)
+                    {
+                        return Err("Invalid or duplicate pivot layout field".into());
+                    }
+                }
             }
             let mut fields = BTreeSet::new();
             for &field in pivot.rows.iter().chain(&pivot.columns) {
@@ -402,6 +486,16 @@ impl Spreadsheet {
                             false
                         }
                     });
+                    if let Some(layout) = &mut pivot.layout {
+                        layout.fields.retain_mut(|item| {
+                            if let Some(f) = field(item.field) {
+                                item.field = f;
+                                true
+                            } else {
+                                false
+                            }
+                        });
+                    }
                     pivot.subtotals.retain_mut(|subtotal| {
                         if let Some(f) = field(subtotal.field) {
                             subtotal.field = f;

@@ -559,6 +559,42 @@ pub(in crate::commands) fn cache(
             }
         }
     }
+    for (anchor, indents) in calc.pivot_indents {
+        let Some(&[width, height]) = spills.pivot_ranges.get(&anchor) else {
+            continue;
+        };
+        for ((sheet, row, column), indent) in indents {
+            if row < anchor.1
+                || row >= anchor.1 + height
+                || column < anchor.2
+                || column >= anchor.2 + width
+            {
+                continue;
+            }
+            let source = sheets.get(sheet)?;
+            let style = source
+                .cells
+                .get(&(row, column))
+                .and_then(|c| c.style.as_deref())
+                .or_else(|| source.rows.get(&row).and_then(|a| a.style.as_deref()))
+                .or_else(|| source.columns.get(&column).and_then(|a| a.style.as_deref()))
+                .or(book.default_style.as_deref());
+            calc.work = calc
+                .work
+                .checked_sub(style.map_or(256, |s| s.retained_bytes() + 256))?;
+            let mut style = style.cloned().unwrap_or_default();
+            style
+                .attributes
+                .retain(|(key, _)| *key != "Indent" && (indent == 0 || *key != "HAlign"));
+            style.attributes.push(("Indent", indent.to_string()));
+            if indent != 0 {
+                style.attributes.push(("HAlign", "left".into()));
+            }
+            spills
+                .styles
+                .insert((sheet, row, column), std::sync::Arc::new(style));
+        }
+    }
     let array_sizes = calc.array_sizes;
     let legacy_formulas = calc.legacy_formulas;
     let pivot_anchors: BTreeSet<_> = calc.pivot_anchors.into_keys().collect();

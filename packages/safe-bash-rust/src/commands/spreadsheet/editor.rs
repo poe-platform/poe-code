@@ -315,7 +315,9 @@ impl Spreadsheet {
     ) -> Result<(), String> {
         for (s, r, c, cell) in &edits {
             if self.pivot_at(*s, *r, *c).is_some()
-                && !cell.as_ref().is_some_and(|cell| cell.value.is_none() && cell.formula.is_none())
+                && !cell
+                    .as_ref()
+                    .is_some_and(|cell| cell.value.is_none() && cell.formula.is_none())
             {
                 return Err("Cannot edit calculated pivot cells".into());
             }
@@ -419,6 +421,9 @@ impl Spreadsheet {
         if row >= 1_048_576 || column >= 16_384 {
             return None;
         }
+        if let Some(style) = self.spills.styles.get(&(sheet, row, column)) {
+            return Some(style);
+        }
         let sheet = self.sheets.get(sheet)?;
         sheet
             .cells
@@ -455,6 +460,9 @@ impl Spreadsheet {
                 rich_text: None,
             });
             cell.value = Some(value.clone());
+            if let Some(style) = self.spills.styles.get(&(sheet, row, column)) {
+                cell.style = Some(style.clone());
+            }
             Some(std::borrow::Cow::Owned(cell))
         } else {
             source.map(std::borrow::Cow::Borrowed)

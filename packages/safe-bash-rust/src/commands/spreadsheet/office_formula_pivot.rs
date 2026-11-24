@@ -1,4 +1,6 @@
 //! Grouping uses typed, case-insensitive keys, then the existing Rust aggregates.
+//! Layout contracts: ClosedXML 057f5976 (MIT) and LibreOffice abf91474804c
+//! dpoutput.cxx / dptabres.cxx (MPL-2.0, LICENSE.LibreOffice, NOTICE.OpenOffice).
 //! Output shares dynamic-array dependency scheduling without becoming a formula
 //! or authored cells in the workbook document.
 use super::{Calculation, Coord, Expr, Value};
@@ -28,19 +30,35 @@ struct AxisGroup<'a> {
     labels: &'a [Value],
     measure: usize,
     subtotal: Option<&'a str>,
+    header: bool,
+    data_header: bool,
+    top: bool,
+    blank: bool,
 }
 
 // Walk grouping fields and the values pseudo-field. The explicit stack avoids
 // recursion on the native/WASM stack for deeply nested imported pivots.
 fn axis_groups<'a>(
     groups: &'a Groups,
-    fields: &[usize],
+    pivot: &'a PivotTable,
+    rows: bool,
     subtotals: &BTreeMap<usize, &'a PivotSubtotal>,
-    total: bool,
-    count: usize,
-    position: Option<usize>,
     work: &mut usize,
 ) -> Option<Vec<AxisGroup<'a>>> {
+    let fields = if rows { &pivot.rows } else { &pivot.columns };
+    let axis = pivot.data_axis();
+    let position = axis.filter(|a| a.rows == rows).map(|a| a.position);
+    let count = if axis.is_some_and(|a| a.rows) == rows {
+        pivot.values.len()
+    } else {
+        1
+    };
+    let total = !fields.is_empty()
+        && if rows {
+            pivot.column_totals
+        } else {
+            pivot.row_totals
+        };
     if count == 0 {
         return Some(Vec::new());
     }
@@ -49,16 +67,46 @@ fn axis_groups<'a>(
         .iter()
         .filter(|(key, _)| key.len() == fields.len())
         .collect();
-    let mut result = Vec::new();
+    let mut result: Vec<AxisGroup<'a>> = Vec::new();
     enum Frame {
         Walk(usize, usize, usize, Option<usize>),
-        Subtotal(usize, usize, Option<usize>),
+        Subtotal(usize, usize, Option<usize>, bool),
+        Header(usize, usize, Option<usize>, bool),
+        Blank,
     }
     let mut stack = vec![Frame::Walk(0, entries.len(), 0, None)];
     while let Some(frame) = stack.pop() {
-        *work = work.checked_sub(64)?;
+        *work = work.checked_sub(96)?;
         match frame {
-            Frame::Subtotal(first, depth, measure) => {
+            Frame::Blank => {
+                if result.last().is_some_and(|g| g.blank) {
+                    continue;
+                }
+                result.push(AxisGroup {
+                    id: None,
+                    labels: &[],
+                    measure: 0,
+                    subtotal: None,
+                    header: false,
+                    data_header: false,
+                    top: false,
+                    blank: true,
+                });
+            }
+            Frame::Header(first, depth, measure, data_header) => {
+                let (_, (labels, id)) = entries[first];
+                result.push(AxisGroup {
+                    id: Some(*id),
+                    labels: &labels[..depth],
+                    measure: measure.unwrap_or(0),
+                    subtotal: None,
+                    header: true,
+                    data_header,
+                    top: false,
+                    blank: false,
+                });
+            }
+            Frame::Subtotal(first, depth, measure, top) => {
                 let (labels, id) = groups.get(&entries[first].0[..depth])?;
                 let subtotal = subtotals.get(&fields[depth - 1])?;
                 // Excel stores these as flags, so its fixed function order is
@@ -68,12 +116,16 @@ fn axis_groups<'a>(
                         continue;
                     }
                     for measure in measure.map_or(0..count, |m| m..m + 1) {
-                        *work = work.checked_sub(64)?;
+                        *work = work.checked_sub(96)?;
                         result.push(AxisGroup {
                             id: Some(*id),
                             labels,
                             measure,
                             subtotal: Some(aggregate),
+                            header: false,
+                            data_header: false,
+                            top,
+                            blank: false,
                         });
                     }
                 }
@@ -83,9 +135,15 @@ fn axis_groups<'a>(
                     continue;
                 }
                 if position == Some(depth) && measure.is_none() {
-                    *work = work.checked_sub(count.checked_mul(64)?)?;
+                    *work = work.checked_sub(count.checked_mul(128)?)?;
                     for measure in (0..count).rev() {
                         stack.push(Frame::Walk(first, end, depth, Some(measure)));
+                        if rows
+                            && depth < fields.len()
+                            && pivot.layout.as_ref().is_some_and(|l| l.outline_data)
+                        {
+                            stack.push(Frame::Header(first, depth, Some(measure), true));
+                        }
                     }
                 } else if depth == fields.len() {
                     let (_, (labels, id)) = entries[first];
@@ -94,6 +152,10 @@ fn axis_groups<'a>(
                         labels,
                         measure: measure.unwrap_or(0),
                         subtotal: None,
+                        header: false,
+                        data_header: false,
+                        top: false,
+                        blank: false,
                     });
                 } else {
                     let mut last = end;
@@ -105,16 +167,34 @@ fn axis_groups<'a>(
                             *work = work.checked_sub(1)?;
                             start -= 1;
                         }
-                        *work = work.checked_sub(192)?;
+                        *work = work.checked_sub(320)?;
+                        let layout = pivot.layout.as_ref().map(|l| l.field(fields[depth]));
                         let subtotal = subtotals
                             .get(&fields[depth])
                             .filter(|_| depth + 1 < fields.len());
-                        if subtotal.is_some_and(|s| !s.at_top) {
-                            stack.push(Frame::Subtotal(start, depth + 1, measure));
+                        let top = subtotal.is_some_and(|s| {
+                            s.at_top
+                                && layout.as_ref().is_none_or(|l| {
+                                    rows && l.outline
+                                        && s.aggregates.len() == 1
+                                        && (measure.is_some() || count == 1)
+                                })
+                        });
+                        if depth + 1 < fields.len() && layout.as_ref().is_some_and(|l| l.blank_row)
+                        {
+                            stack.push(Frame::Blank);
+                        }
+                        if subtotal.is_some() && !top {
+                            stack.push(Frame::Subtotal(start, depth + 1, measure, false));
                         }
                         stack.push(Frame::Walk(start, last, depth + 1, measure));
-                        if subtotal.is_some_and(|s| s.at_top) {
-                            stack.push(Frame::Subtotal(start, depth + 1, measure));
+                        if top {
+                            stack.push(Frame::Subtotal(start, depth + 1, measure, true));
+                        } else if rows
+                            && layout.as_ref().is_some_and(|l| l.outline)
+                            && (depth + 1 < fields.len() || position == Some(depth + 1))
+                        {
+                            stack.push(Frame::Header(start, depth + 1, measure, false));
                         }
                         last = start;
                     }
@@ -124,23 +204,43 @@ fn axis_groups<'a>(
     }
     if total {
         for measure in 0..count {
-            *work = work.checked_sub(64)?;
+            *work = work.checked_sub(96)?;
             result.push(AxisGroup {
                 id: None,
                 labels: &[],
                 measure,
                 subtotal: None,
+                header: false,
+                data_header: false,
+                top: false,
+                blank: false,
             });
         }
     }
     Some(result)
 }
 
-fn subtotal_label(group: &AxisGroup<'_>, work: &mut usize) -> Option<Value> {
+fn subtotal_label(group: &AxisGroup<'_>, measure: Option<&str>, work: &mut usize) -> Option<Value> {
     let suffix = SUBTOTALS.iter().find(|s| Some(s.0) == group.subtotal)?.3;
+    let suffix = measure.unwrap_or(suffix);
     let label = super::strings::string(group.labels.last()?);
     *work = work.checked_sub(label.len().checked_add(suffix.len() + 1)?)?;
     Some(Value::Text(format!("{label} {suffix}")))
+}
+
+// A label belongs to the whole prefix (including Values when it precedes it),
+// so identical child captions under different parents are never suppressed.
+fn repeated_label(
+    group: &AxisGroup<'_>,
+    previous: Option<&AxisGroup<'_>>,
+    depth: usize,
+    position: Option<usize>,
+) -> bool {
+    previous.is_some_and(|previous| {
+        !previous.blank
+            && group.labels.get(..=depth) == previous.labels.get(..=depth)
+            && (position.is_none_or(|p| p > depth) || group.measure == previous.measure)
+    })
 }
 
 impl Calculation<'_> {
@@ -218,6 +318,7 @@ impl Calculation<'_> {
     ) -> Option<Value> {
         self.tick(depth)?;
         self.pivot_sources.remove(&pos);
+        self.pivot_indents.remove(&pos);
         let value = self.pivot_source(
             pivot.source_binding,
             (pivot.source_sheet, pivot.source),
@@ -339,34 +440,26 @@ impl Calculation<'_> {
         if pivot.columns.is_empty() && columns.is_empty() {
             columns.insert(Vec::new(), (Vec::new(), 0));
         }
-        let row_total = pivot.column_totals && !pivot.rows.is_empty();
-        let column_total = pivot.row_totals && !pivot.columns.is_empty();
         let axis = pivot.data_axis();
         let row_position = axis.filter(|a| a.rows).map(|a| a.position);
         let column_position = axis.filter(|a| !a.rows).map(|a| a.position);
         let on_rows = row_position.is_some();
         let (header_rows, label_columns) = pivot.header_size();
-        let row_measures = if on_rows { pivot.values.len() } else { 1 };
-        let column_measures = if on_rows { 1 } else { pivot.values.len() };
-        let row_groups = axis_groups(
-            &rows,
-            &pivot.rows,
-            &subtotals,
-            row_total,
-            row_measures,
-            row_position,
-            &mut self.work,
-        )?;
-        let column_groups = axis_groups(
-            &columns,
-            &pivot.columns,
-            &subtotals,
-            column_total,
-            column_measures,
-            column_position,
-            &mut self.work,
-        )?;
-        let width = label_columns.checked_add(column_groups.len())?;
+        let column_header_offset = usize::from(
+            pivot.layout.is_some() && (!pivot.columns.is_empty() || column_position.is_some()),
+        );
+        let row_groups = axis_groups(&rows, pivot, true, &subtotals, &mut self.work)?;
+        let column_groups = axis_groups(&columns, pivot, false, &subtotals, &mut self.work)?;
+        let grouped_headers = pivot
+            .layout
+            .as_ref()
+            .is_some_and(|layout| (0..headers.len()).any(|field| layout.field(field).compact));
+        let caption_columns = if pivot.layout.is_some() && !grouped_headers {
+            pivot.columns.len() + usize::from(column_position.is_some())
+        } else {
+            0
+        };
+        let width = label_columns.checked_add(column_groups.len().max(caption_columns))?;
         let height = header_rows.checked_add(row_groups.len())?;
         if width > 16_384 - pos.2 || height > 1_048_576 - pos.1 {
             return Some(Value::Error("#SPILL!"));
@@ -374,14 +467,21 @@ impl Calculation<'_> {
         self.work = self
             .work
             .checked_sub(width.checked_mul(height)?.checked_mul(160)?)?;
-        let mut result = vec![vec![Value::Text(String::new()); width]; height];
+        let slots = pivot.row_slots();
+        let mut indents = BTreeMap::new();
+        let empty = if pivot.layout.is_some() {
+            Value::Empty
+        } else {
+            Value::Text(String::new())
+        };
+        let mut result = vec![vec![empty.clone(); width]; height];
         for (column, &field) in pivot.rows.iter().enumerate() {
             self.work = self.work.checked_sub(headers[field].len())?;
             let column = column + usize::from(row_position.is_some_and(|p| p <= column));
-            result[header_rows - 1][column] = Value::Text(headers[field].clone());
+            result[header_rows - 1][slots[column].0] = Value::Text(headers[field].clone());
         }
         if let Some(position) = row_position {
-            result[header_rows - 1][position] = Value::Text("Values".into());
+            result[header_rows - 1][slots[position].0] = Value::Text("Values".into());
         } else if pivot.rows.is_empty() {
             result[header_rows - 1][0] = Value::Text(
                 pivot
@@ -391,20 +491,75 @@ impl Calculation<'_> {
                     .into(),
             );
         }
+        if grouped_headers && !pivot.rows.is_empty() {
+            result[header_rows - 1][..label_columns].fill(empty.clone());
+            result[header_rows - 1][0] = Value::Text("Row Labels".into());
+        }
+        if column_header_offset != 0 {
+            if !on_rows && pivot.values.len() == 1 {
+                self.work = self.work.checked_sub(pivot.values[0].name.len())?;
+                result[0][0] = Value::Text(pivot.values[0].name.clone());
+            }
+            let grouped = grouped_headers;
+            for index in 0..pivot.columns.len() + usize::from(column_position.is_some()) {
+                if label_columns + index >= width {
+                    break;
+                }
+                let name = if grouped {
+                    "Column Labels"
+                } else if column_position == Some(index) {
+                    "Values"
+                } else {
+                    &headers[pivot.columns
+                        [index - usize::from(column_position.is_some_and(|p| p < index))]]
+                };
+                self.work = self.work.checked_sub(name.len())?;
+                result[0][label_columns + index] = Value::Text(name.into());
+                if grouped {
+                    break;
+                }
+            }
+        }
         for (index, group) in column_groups.iter().enumerate() {
             let column = label_columns + index;
+            if group.blank {
+                continue;
+            }
             for (r, label) in group.labels.iter().enumerate() {
+                if pivot.layout.as_ref().is_some_and(|l| {
+                    let f = l.field(pivot.columns[r]);
+                    !f.repeat_labels || f.compact && f.outline
+                }) && repeated_label(
+                    group,
+                    index.checked_sub(1).map(|i| &column_groups[i]),
+                    r,
+                    column_position,
+                ) {
+                    continue;
+                }
                 self.charge_value(label)?;
                 let r = r + usize::from(column_position.is_some_and(|p| p <= r));
-                result[r][column] = label.clone();
+                result[column_header_offset + r][column] = label.clone();
             }
             if group.subtotal.is_some() {
                 let r = group.labels.len() - 1;
-                result[r + usize::from(column_position.is_some_and(|p| p <= r))][column] =
-                    subtotal_label(group, &mut self.work)?;
+                result[column_header_offset
+                    + r
+                    + usize::from(column_position.is_some_and(|p| p <= r))][column] =
+                    subtotal_label(
+                        group,
+                        pivot
+                            .layout
+                            .as_ref()
+                            .and_then(|_| {
+                                column_position.map(|_| pivot.values[group.measure].name.as_str())
+                            })
+                            .filter(|_| pivot.values.len() > 1),
+                        &mut self.work,
+                    )?;
             }
             if group.id.is_none() {
-                result[usize::from(column_position == Some(0))][column] =
+                result[column_header_offset + usize::from(column_position == Some(0))][column] =
                     Value::Text("Grand Total".into());
             }
             if let Some(position) =
@@ -412,31 +567,94 @@ impl Calculation<'_> {
             {
                 let name = &pivot.values[group.measure].name;
                 self.work = self.work.checked_sub(name.len())?;
-                result[position][column] = Value::Text(name.clone());
+                result[column_header_offset + position][column] = Value::Text(name.clone());
             }
         }
         for (index, row_group) in row_groups.iter().enumerate() {
             let row = header_rows + index;
-            for (c, label) in row_group.labels.iter().enumerate() {
-                self.charge_value(label)?;
-                let c = c + usize::from(row_position.is_some_and(|p| p <= c));
-                result[row][c] = label.clone();
+            if row_group.blank {
+                continue;
             }
-            if row_group.subtotal.is_some() {
+            for (c, label) in row_group.labels.iter().enumerate() {
+                let slot = slots[c + usize::from(row_position.is_some_and(|p| p <= c))];
+                if let Some(layout) = &pivot.layout {
+                    let field = layout.field(pivot.rows[c]);
+                    let repeated = repeated_label(
+                        row_group,
+                        index.checked_sub(1).map(|i| &row_groups[i]),
+                        c,
+                        row_position,
+                    );
+                    if repeated
+                        && (!field.repeat_labels || field.outline && field.compact)
+                        && !(c + 1 == row_group.labels.len() && row_group.subtotal.is_some())
+                    {
+                        continue;
+                    }
+                    self.work = self.work.checked_sub(96)?;
+                    indents.insert((pos.0, pos.1 + row, pos.2 + slot.0), slot.1);
+                }
+                self.charge_value(label)?;
+                result[row][slot.0] = label.clone();
+            }
+            if row_group.subtotal.is_some() && !(row_group.top && pivot.layout.is_some()) {
                 let c = row_group.labels.len() - 1;
-                result[row][c + usize::from(row_position.is_some_and(|p| p <= c))] =
-                    subtotal_label(row_group, &mut self.work)?;
+                result[row][slots[c + usize::from(row_position.is_some_and(|p| p <= c))].0] =
+                    subtotal_label(
+                        row_group,
+                        pivot
+                            .layout
+                            .as_ref()
+                            .and_then(|_| {
+                                row_position.map(|_| pivot.values[row_group.measure].name.as_str())
+                            })
+                            .filter(|_| pivot.values.len() > 1),
+                        &mut self.work,
+                    )?;
             }
             if row_group.id.is_none() {
-                result[row][usize::from(row_position == Some(0))] =
-                    Value::Text("Grand Total".into());
+                let slot = slots
+                    .get(usize::from(row_position == Some(0)))
+                    .map_or(0, |s| s.0);
+                let label = if pivot.layout.is_some() && on_rows && pivot.values.len() > 1 {
+                    format!("Total {}", pivot.values[row_group.measure].name)
+                } else {
+                    "Grand Total".into()
+                };
+                self.work = self.work.checked_sub(label.len())?;
+                result[row][slot] = Value::Text(label);
+                if pivot.layout.is_some() {
+                    self.work = self.work.checked_sub(96)?;
+                    indents.insert((pos.0, pos.1 + row, pos.2 + slot), 0);
+                }
             }
             if let Some(position) = row_position {
-                let name = &pivot.values[row_group.measure].name;
-                self.work = self.work.checked_sub(name.len())?;
-                result[row][position] = Value::Text(name.clone());
+                let show = (!row_group.header || row_group.data_header)
+                    && (pivot.layout.is_none()
+                        || row_group.id.is_some() && row_group.subtotal.is_none());
+                let repeated = index.checked_sub(1).is_some_and(|i| {
+                    let previous = &row_groups[i];
+                    !previous.blank
+                        && previous.measure == row_group.measure
+                        && previous.labels.get(..position) == row_group.labels.get(..position)
+                });
+                if show && (pivot.layout.is_none() || !repeated || position == pivot.rows.len()) {
+                    let name = &pivot.values[row_group.measure].name;
+                    self.work = self.work.checked_sub(name.len() + 96)?;
+                    let slot = slots[position];
+                    result[row][slot.0] = Value::Text(name.clone());
+                    if pivot.layout.is_some() {
+                        indents.insert((pos.0, pos.1 + row, pos.2 + slot.0), slot.1);
+                    }
+                }
+            }
+            if row_group.header {
+                continue;
             }
             for (column, column_group) in column_groups.iter().enumerate() {
+                if column_group.blank {
+                    continue;
+                }
                 let measure = if on_rows {
                     row_group.measure
                 } else {
@@ -479,7 +697,7 @@ impl Calculation<'_> {
                             .count() as f64,
                     )
                 } else if values.is_empty() {
-                    Value::Text(String::new())
+                    empty.clone()
                 } else {
                     self.aggregate_excel(
                         name,
@@ -491,6 +709,7 @@ impl Calculation<'_> {
                 result[row][label_columns + column] = value;
             }
         }
+        self.pivot_indents.insert(pos, indents);
         Some(Value::Matrix(result))
     }
 }

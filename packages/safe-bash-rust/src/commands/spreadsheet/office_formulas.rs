@@ -1445,6 +1445,7 @@ struct Calculation<'a> {
     book: &'a Workbook,
     pivot_anchors: BTreeMap<Coord, &'a super::pivot::PivotTable>,
     pivot_sources: BTreeMap<Coord, (usize, [usize; 4])>,
+    pivot_indents: BTreeMap<Coord, BTreeMap<Coord, u8>>,
     sheets: &'a [String],
     array_sizes: BTreeMap<Coord, (usize, usize)>,
     sizes: Vec<(usize, usize)>,
@@ -1487,6 +1488,7 @@ impl<'a> Calculation<'a> {
             book,
             pivot_anchors: BTreeMap::new(),
             pivot_sources: BTreeMap::new(),
+            pivot_indents: BTreeMap::new(),
             sheets,
             array_sizes: BTreeMap::new(),
             sizes,
@@ -1710,7 +1712,9 @@ impl<'a> Calculation<'a> {
         if let Value::Text(text) | Value::UninternedText(text) = &value {
             self.work = self.work.checked_sub(text.len())?;
         }
-        Some(if matches!(value, Value::Empty) {
+        Some(if matches!(value, Value::Empty)
+            && !self.dynamic.as_ref().is_some_and(|state| state.cells.contains(&coord))
+        {
             Value::Number(0.)
         } else {
             value

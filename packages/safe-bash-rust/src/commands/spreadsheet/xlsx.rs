@@ -383,6 +383,9 @@ pub(in crate::commands) fn write_cells(
                     rich_text: None,
                 });
                 cell.value = Some(value.clone());
+                if let Some(style) = spills.styles.get(&(sheet, r, c)) {
+                    cell.style = Some(style.clone());
+                }
                 cells.insert((r, c), std::borrow::Cow::Owned(cell));
             }
         }

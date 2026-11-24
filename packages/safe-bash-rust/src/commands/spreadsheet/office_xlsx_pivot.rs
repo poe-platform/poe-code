@@ -2,7 +2,8 @@
 //! Contracts and fixtures: ClosedXML 057f5976 (LICENSE.ClosedXML) and
 //! XlsxWriter 238e935a (LICENSE.XlsxWriter).
 use super::super::{
-    PivotDataAxis, PivotFilter, PivotSource, PivotSubtotal, PivotTable, PivotValue, model::Value,
+    PivotDataAxis, PivotFieldLayout, PivotFilter, PivotLayout, PivotSource, PivotSubtotal,
+    PivotTable, PivotValue, model::Value,
 };
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
@@ -69,6 +70,15 @@ fn index(element: &xml::Element, name: &str) -> Result<usize, String> {
         .and_then(|v| v.parse().ok())
         .ok_or_else(|| format!("Invalid XLSX pivot {name}"))
 }
+fn flag(element: &xml::Element, name: &str, default: bool) -> Result<bool, String> {
+    match attr(element, name) {
+        Some("1" | "true") => Ok(true),
+        Some("0" | "false") => Ok(false),
+        None => Ok(default),
+        _ => Err(format!("Invalid XLSX pivot {name}")),
+    }
+}
+
 fn area(source: &str) -> Result<[usize; 4], String> {
     if source.len() > 128 {
         return Err("Invalid XLSX pivot range".into());
@@ -306,10 +316,67 @@ pub(super) fn retain(
                 .first()
                 .copied()
                 .ok_or("Missing pivot fields")?;
-            let pivot_fields = elements(&pivot_fields.children, "pivotField");
+            let pivot_fields: Vec<_> = pivot_fields
+                .children
+                .iter()
+                .filter_map(|node| match node {
+                    xml::Node::Element(element)
+                        if element.tag.rsplit(':').next() == Some("pivotField") =>
+                    {
+                        Some(element)
+                    }
+                    _ => None,
+                })
+                .collect();
             if pivot_fields.len() != cache_fields.len() {
                 return Err("Invalid pivot field count".into());
             }
+            let layout_fields = pivot_fields
+                .iter()
+                .enumerate()
+                .map(|(field, definition)| {
+                    imported.remaining = imported
+                        .remaining
+                        .checked_sub(128)
+                        .ok_or("Pivot layout exceeds limit")?;
+                    let repeat_labels = elements(&definition.children, "pivotField")
+                        .into_iter()
+                        .map(|extension| flag(extension, "fillDownLabels", false))
+                        .collect::<Result<Vec<_>, _>>()?
+                        .into_iter()
+                        .any(|value| value);
+                    Ok(PivotFieldLayout {
+                        field,
+                        compact: flag(definition, "compact", true)?,
+                        outline: flag(definition, "outline", true)?,
+                        repeat_labels,
+                        blank_row: flag(definition, "insertBlankRow", false)?,
+                    })
+                })
+                .collect::<Result<Vec<_>, String>>()?;
+            let legacy_layout = root.attrs.iter().any(|(key, value)| {
+                let Some((prefix, local)) = key.split_once(':') else {
+                    return false;
+                };
+                local == "legacyLayout"
+                    && value == "1"
+                    && root.attrs.iter().any(|(key, value)| {
+                        key == &format!("xmlns:{prefix}")
+                            && value == "urn:poe-code:spreadsheet:pivots:1"
+                    })
+            });
+            let layout = (!legacy_layout).then_some(PivotLayout {
+                compact: flag(root, "compact", true)?,
+                outline: flag(root, "outline", false)?,
+                compact_data: flag(root, "compactData", true)?,
+                outline_data: flag(root, "outlineData", false)?,
+                indent: attr(root, "indent")
+                    .map(|value| value.parse::<u8>())
+                    .transpose()
+                    .map_err(|_| "Invalid XLSX pivot indent")?
+                    .unwrap_or(1),
+                fields: layout_fields,
+            });
             let mut subtotals = Vec::new();
             for &field in rows.iter().chain(&columns) {
                 let definition = pivot_fields
@@ -335,9 +402,7 @@ pub(super) fn retain(
                     subtotals.push(PivotSubtotal {
                         field,
                         aggregates,
-                        // In Excel's tabular form, subtotals follow their details.
-                        at_top: flag("subtotalTop", true)?
-                            && (flag("outline", true)? || flag("compact", true)?),
+                        at_top: flag("subtotalTop", true)?,
                     });
                 }
             }
@@ -463,10 +528,11 @@ pub(super) fn retain(
                 columns,
                 data_axis,
                 subtotals,
+                layout,
                 values,
                 filters,
-                row_totals: !matches!(attr(root, "rowGrandTotals"), Some("0" | "false")),
-                column_totals: !matches!(attr(root, "colGrandTotals"), Some("0" | "false")),
+                row_totals: !matches!(attr(root, "colGrandTotals"), Some("0" | "false")),
+                column_totals: !matches!(attr(root, "rowGrandTotals"), Some("0" | "false")),
             };
             if sheet == source_sheet
                 && source[0] <= location[2]

@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 pub(in super::super) struct SpillCache {
     pub calculated_at_ms: f64,
+    pub styles: BTreeMap<Coord, std::sync::Arc<super::super::model::Style>>,
     pub values: BTreeMap<Coord, CellValue<String>>,
     pub ranges: BTreeMap<Coord, [usize; 2]>,
     pub pivot_ranges: BTreeMap<Coord, [usize; 2]>,
@@ -18,6 +19,7 @@ impl Default for SpillCache {
     fn default() -> Self {
         Self {
             calculated_at_ms: super::clock::now_ms(),
+            styles: BTreeMap::new(),
             values: BTreeMap::new(),
             ranges: BTreeMap::new(),
             pivot_ranges: BTreeMap::new(),
@@ -170,9 +172,12 @@ impl Calculation<'_> {
         self.work = self.work.checked_sub(64)?;
         dynamic.ranges.insert(anchor, [width, height]);
         let mut first = Value::Blank;
+        let pivot = self.pivot_anchors.contains_key(&anchor);
         for (r, row) in rows.into_iter().enumerate() {
             for (c, value) in row.into_iter().enumerate() {
                 let value = match value {
+                    // Pivot label gaps are real empty cells, not array-formula blanks.
+                    Value::Empty if pivot => Value::Empty,
                     Value::Blank | Value::Empty => Value::Number(0.),
                     Value::LiteralError(e) => Value::Error(e),
                     value => value,

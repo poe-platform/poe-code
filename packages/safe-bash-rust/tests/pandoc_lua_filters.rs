@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/math_validation.rs"]
+mod lua_math_validation;
 #[path = "../../lua-rust/tests/string_validation.rs"]
 mod lua_string_validation;
 #[path = "../../lua-rust/tests/source_names.rs"]

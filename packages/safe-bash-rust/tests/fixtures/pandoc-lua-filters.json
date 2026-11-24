@@ -7102,5 +7102,360 @@
     "script": "function Str(el) return pandoc.Str(tostring(table.concat({string.byte(string.reverse(string.upper(string.char(97,0,255))))},\",\"))) end",
     "status": 0,
     "stdout": "255\n"
+  },
+  {
+    "id": "math-validation-log-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(1,nil))) end",
+    "status": 0,
+    "stdout": "0.0\n"
+  },
+  {
+    "id": "math-validation-atan-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.atan(0,nil))) end",
+    "status": 0,
+    "stdout": "0.0\n"
+  },
+  {
+    "id": "math-validation-type-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'type' (value expected)\n"
+  },
+  {
+    "id": "math-validation-integer-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.tointeger())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'tointeger' (value expected)\n"
+  },
+  {
+    "id": "math-validation-abs-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.abs())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'abs' (number expected, got no value)\n"
+  },
+  {
+    "id": "math-validation-min-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.min())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'min' (value expected)\n"
+  },
+  {
+    "id": "math-validation-max-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.max())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'max' (value expected)\n"
+  },
+  {
+    "id": "math-validation-modf-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.modf())) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'modf' (number expected, got no value)\n"
+  },
+  {
+    "id": "math-validation-sqrt-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.sqrt(nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'sqrt' (number expected, got nil)\n"
+  },
+  {
+    "id": "math-validation-fmod-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.fmod(1,0))) end",
+    "status": 4,
+    "stderr": "E_AST: Zero divisor\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'fmod' (zero)\n"
+  },
+  {
+    "id": "math-validation-fmod-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.fmod(1,nil))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'fmod' (number expected, got nil)\n"
+  },
+  {
+    "id": "math-validation-min-invalid",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.min(false,true))) end",
+    "status": 4,
+    "stderr": "E_AST: Cannot compare Lua values\n",
+    "bufferedStderr": "E_AST: attempt to compare two boolean values\n"
+  },
+  {
+    "id": "math-validation-max-invalid",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.max(false,true))) end",
+    "status": 4,
+    "stderr": "E_AST: Cannot compare Lua values\n",
+    "bufferedStderr": "E_AST: attempt to compare two boolean values\n"
+  },
+  {
+    "id": "math-validation-ceil-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.ceil(false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'ceil' (number expected, got boolean)\n"
+  },
+  {
+    "id": "math-validation-log-invalid-base",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(1,false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'log' (number expected, got boolean)\n"
+  },
+  {
+    "id": "math-validation-atan-invalid-x",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.atan(0,false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'atan' (number expected, got boolean)\n"
+  },
+  {
+    "id": "math-validation-type-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type(nil))) end",
+    "status": 0,
+    "stdout": "nil\n"
+  },
+  {
+    "id": "math-validation-integer-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.tointeger(nil))) end",
+    "status": 0,
+    "stdout": "nil\n"
+  },
+  {
+    "id": "math-validation-min-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.min(nil))) end",
+    "status": 0,
+    "stdout": "nil\n"
+  },
+  {
+    "id": "math-validation-abs-numeric-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type(math.abs(\"1\")))) end",
+    "status": 0,
+    "stdout": "float\n"
+  },
+  {
+    "id": "math-validation-floor-numeric-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type(math.floor(\"1\")))) end",
+    "status": 0,
+    "stdout": "integer\n"
+  },
+  {
+    "id": "math-validation-fmod-float-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.fmod(1.0,0.0))) end",
+    "status": 0,
+    "stdout": "NaN\n"
+  },
+  {
+    "id": "math-validation-modf-negative",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(table.concat({math.modf(-1.5)},\",\"))) end",
+    "status": 0,
+    "stdout": "-1,-0.5\n"
+  },
+  {
+    "id": "math-validation-min-metamethod",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.min(setmetatable({n=2},{__lt=function(a,b) return a.n<b.n end}),setmetatable({n=1},{__lt=function(a,b) return a.n<b.n end})).n)) end",
+    "status": 0,
+    "stdout": "1\n"
+  },
+  {
+    "id": "math-validation-modf-invalid",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.modf(false))) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'modf' (number expected, got boolean)\n"
+  },
+  {
+    "id": "math-validation-log-nil-value",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(8,nil))) end",
+    "status": 0,
+    "stdout": "2.0794415416798\n"
+  },
+  {
+    "id": "math-validation-atan-nil-value",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.atan(1,nil))) end",
+    "status": 0,
+    "stdout": "0.78539816339745\n"
+  },
+  {
+    "id": "math-validation-log-binary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(8,2))) end",
+    "status": 0,
+    "stdout": "3.0\n"
+  },
+  {
+    "id": "math-validation-log-decimal",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(100,10))) end",
+    "status": 0,
+    "stdout": "2.0\n"
+  },
+  {
+    "id": "math-validation-atan-zero-x",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.atan(0,0))) end",
+    "status": 0,
+    "stdout": "0.0\n"
+  },
+  {
+    "id": "math-validation-log-zero-base",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.log(2,0))) end",
+    "status": 0,
+    "stdout": "0.0\n"
+  },
+  {
+    "id": "math-validation-fmod-string-type",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type(math.fmod(\"4\",3)))) end",
+    "status": 0,
+    "stdout": "float\n"
+  },
+  {
+    "id": "math-validation-fmod-string-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.fmod(1,\"0\"))) end",
+    "status": 0,
+    "stdout": "NaN\n"
+  },
+  {
+    "id": "math-validation-modf-wide-type",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(tostring(math.type((math.modf(2147483648))))) end",
+    "status": 0,
+    "stdout": "float\n"
   }
 ]

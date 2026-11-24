@@ -76,6 +76,9 @@ async function test() {
     for (const [source, expected] of [
       ["function Str(el) error(false);return el end", "Lua filter execution failed"],
       ["function Str(el) error(42);return el end", "42"],
+      ["function Str(el) return pandoc.Str(tostring(math.type())) end", "Value expected"],
+      ["function Str(el) return pandoc.Str(tostring(math.sqrt(nil))) end", "Expected Lua number"],
+      ["function Str(el) return pandoc.Str(tostring(math.fmod(1,0))) end", "Zero divisor"],
       ["function Str(el) return pandoc.Str(string.upper(nil)) end", "Expected Lua string or number for concatenation"],
       ["function Str(el) return pandoc.Str(string.char(65.5)) end", "Number has no integer representation"],
       ["function Str(el) return pandoc.Str(string.char(-1)) end", "Value out of range"],
@@ -107,6 +110,9 @@ async function test() {
     await shell.fs.writeFile("/strings.lua", "function Str(el) return pandoc.Str(string.char('65','66')..':'..tostring(string.find('abc','a',nil))..':'..string.reverse(123)) end");
     const strings = await shell.exec("printf hello | pandoc -f markdown -t plain -L /strings.lua");
     if (strings.exitCode || strings.stderr || strings.stdout !== "AB:1:321\n") throw new Error(JSON.stringify(strings));
+    await shell.fs.writeFile("/math-defaults.lua", "function Str(el) return pandoc.Str(tostring(math.log(1,nil))..':'..tostring(math.atan(0,nil))..':'..tostring(math.type(nil))..':'..math.type(math.abs('1'))) end");
+    const mathDefaults = await shell.exec("printf hello | pandoc -f markdown -t plain -L /math-defaults.lua");
+    if (mathDefaults.exitCode || mathDefaults.stderr || mathDefaults.stdout !== "0.0:0.0:nil:float\n") throw new Error(JSON.stringify(mathDefaults));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

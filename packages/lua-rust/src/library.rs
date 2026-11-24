@@ -191,6 +191,7 @@ impl Runtime {
             "setmetatable" | "rawget" | "rawequal" | "ipairs.next" => 2,
             "getmetatable" | "rawlen" | "type" | "next" | "tostring" | "pairs" | "ipairs"
             | "select" | "assert" | "tonumber" => 1,
+            name if name.starts_with("math.") && name != "math.random" => 1,
             _ => 0,
         };
         if args.len() < required {
@@ -518,9 +519,6 @@ impl Runtime {
             "table.pack" | "table.integer" | "table.string" | "table.finish" | "table.values"
             | "table.random" | "table.check" => return self.table_library(name, args),
             "math.random" | "math.randomseed" | "math.ult" => {
-                if name != "math.random" && args.is_empty() {
-                    return Err(Error::unlocated("Value expected"));
-                }
                 let number = |i| n(i).map_err(|_| Error::unlocated("Expected Lua number"));
                 if name == "math.ult" {
                     Value::Bool((integer(0)? as u32) < integer(1)? as u32)
@@ -556,10 +554,7 @@ impl Runtime {
                 }
             }
             "math.min" | "math.max" => {
-                let mut best = args
-                    .first()
-                    .cloned()
-                    .ok_or_else(|| Error::new("Value expected"))?;
+                let mut best = a(0);
                 for value in args.iter().skip(1) {
                     let (left, right) = if name == "math.min" {
                         (value.clone(), best.clone())
@@ -573,7 +568,7 @@ impl Runtime {
                 best
             }
             "math.modf" => {
-                let value = n(0)?;
+                let value = n(0).map_err(|_| Error::unlocated("Expected Lua number"))?;
                 let whole = value.trunc();
                 return Ok(vec![
                     numbers::tagged(whole),
@@ -594,7 +589,8 @@ impl Runtime {
             "math.abs" | "math.ceil" | "math.floor" | "math.sqrt" | "math.exp" | "math.log"
             | "math.sin" | "math.cos" | "math.tan" | "math.asin" | "math.acos" | "math.atan"
             | "math.deg" | "math.rad" | "math.fmod" => {
-                let x = n(0)?;
+                let number = |i| n(i).map_err(|_| Error::unlocated("Expected Lua number"));
+                let x = number(0)?;
                 match name {
                     "math.abs" => {
                         return Ok(vec![match a(0) {
@@ -607,9 +603,9 @@ impl Runtime {
                     "math.fmod"
                         if matches!((a(0), a(1)), (Value::Integer(_), Value::Integer(_))) =>
                     {
-                        let divisor = n(1)?;
+                        let divisor = number(1)?;
                         if divisor == 0.0 {
-                            return Err(Error::new("Zero divisor"));
+                            return Err(Error::unlocated("Zero divisor"));
                         }
                         return Ok(vec![Value::Integer((x % divisor) as i32)]);
                     }
@@ -619,8 +615,8 @@ impl Runtime {
                     "math.sqrt" => x.sqrt(),
                     "math.exp" => x.exp(),
                     "math.log" => {
-                        if args.len() > 1 {
-                            match n(1)? {
+                        if a(1) != Value::Nil {
+                            match number(1)? {
                                 2.0 => x.log2(),
                                 10.0 => x.log10(),
                                 base => x.ln() / base.ln(),
@@ -635,15 +631,15 @@ impl Runtime {
                     "math.asin" => x.asin(),
                     "math.acos" => x.acos(),
                     "math.atan" => {
-                        if args.len() > 1 {
-                            x.atan2(n(1)?)
+                        if a(1) != Value::Nil {
+                            x.atan2(number(1)?)
                         } else {
                             x.atan()
                         }
                     }
                     "math.deg" => x.to_degrees(),
                     "math.rad" => x.to_radians(),
-                    _ => x % n(1)?,
+                    _ => x % number(1)?,
                 })
             }
             "utf8.len" | "utf8.char" | "utf8.codepoint" | "utf8.codes" | "utf8.next"

@@ -1090,7 +1090,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
         && let Value::Dict(info) = objects.object(r)?.0
     {
         for (k, v) in info {
-            if let Value::String { bytes: b, .. } = v {
+            if let Some((_, Value::String { bytes: b, .. })) = objects.lookup_value(&v) {
                 let value = pdf_string::decode(&b);
                 match k.as_ref() {
                     b"Title" => doc.title.clone_from(&value),

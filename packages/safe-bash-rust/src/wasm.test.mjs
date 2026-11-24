@@ -4,6 +4,7 @@ import "./qpdf-catalogs.wasm.test.mjs";
 import "./qpdf-labels.wasm.test.mjs";
 import "./pdfinfo-zero.wasm.test.mjs";
 import "./pdfinfo-meta.wasm.test.mjs";
+import "./pdfinfo-custom.wasm.test.mjs";
 import "./pdfinfo-ranges.wasm.test.mjs";
 
 import "./qpdf-trailers.wasm.test.mjs";

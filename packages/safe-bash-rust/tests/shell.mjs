@@ -141,6 +141,9 @@ async function test() {
     if (xmlInfo.exitCode || xmlInfo.stderr || xmlInfo.stdout !== "<root>Zażółć 😀</root>\n") throw new Error(JSON.stringify(xmlInfo));
     const metadataInfo = await shell.exec("pdfinfo /metadata.pdf");
     if (metadataInfo.exitCode || metadataInfo.stderr || !metadataInfo.stdout.includes("Metadata Stream: yes\n")) throw new Error(JSON.stringify(metadataInfo));
+    await shell.fs.writeFile("/custom.pdf", Uint8Array.from(atob("JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNSAwIFIgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL3plYnJhIChsYXN0KQovVGl0bGUgKFByaW50KQovQWxwaGEgKGZpcnN0KQovWm9vIChiZWZvcmUgbG93ZXJjYXNlKQovTnVtYmVyIDQyCi9OYW1lIC9WYWx1ZQo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA4Cj4+CnN0cmVhbQp4nAMAAAAAAQplbmRzdHJlYW0KZW5kb2JqCgo1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMiAwIFIKL01lZGlhQm94IFsgMCAwIDEwMCAyMDAgXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Cj4+Cj4+Ci9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAyMCAwMDAwMCBuIAowMDAwMDAwMDcwIDAwMDAwIG4gCjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDI0NCAwMDAwMCBuIAowMDAwMDAwMzIzIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjQ0MgolJUVPRg=="), char => char.charCodeAt(0)));
+    const customInfo = await shell.exec("pdfinfo -custom /custom.pdf");
+    if (customInfo.exitCode || customInfo.stderr || customInfo.stdout !== "Alpha:           first\nTitle:           Print\nZoo:             before lowercase\nzebra:           last\n") throw new Error(JSON.stringify(customInfo));
     const ordinaryInfo = await shell.exec("pdfinfo /attachments.pdf");
     const rangedInfo = await shell.exec("pdfinfo -f 1tail -l 0 /attachments.pdf");
     if (ordinaryInfo.exitCode || rangedInfo.exitCode || rangedInfo.stderr || rangedInfo.stdout !== ordinaryInfo.stdout) throw new Error(JSON.stringify(rangedInfo));

@@ -9823,90 +9823,53 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         return ok_out(&u_out);
     }
-    let get_info_val = |key: &str| -> Option<String> {
-        doc.exif.get(key).cloned().or_else(|| {
-            doc.info
-                .iter()
-                .find(|(k, _)| k.eq_ignore_ascii_case(key))
-                .map(|(_, v)| v.clone())
-        })
-    };
     let mut out = String::new();
-    if !doc.title.is_empty() {
-        out.push_str(&format!("{:<17}{}\n", "Title:", doc.title));
-    }
-    if let Some(v) = get_info_val("Subject")
-        && !v.is_empty()
-    {
-        out.push_str(&format!("{:<17}{v}\n", "Subject:"));
-    }
-    if let Some(v) = get_info_val("Keywords")
-        && !v.is_empty()
-    {
-        out.push_str(&format!("{:<17}{v}\n", "Keywords:"));
-    }
-    if !doc.author.is_empty() {
-        out.push_str(&format!("{:<17}{}\n", "Author:", doc.author));
-    }
-    if let Some(v) = get_info_val("Creator")
-        && !v.is_empty()
-    {
-        out.push_str(&format!("{:<17}{v}\n", "Creator:"));
-    }
-    if let Some(v) = get_info_val("Producer")
-        && !v.is_empty()
-    {
-        out.push_str(&format!("{:<17}{v}\n", "Producer:"));
-    }
-    if let Some(v) = get_info_val("CreationDate")
-        && !v.is_empty()
-    {
-        out.push_str(&format!(
-            "{:<17}{}\n",
-            "CreationDate:",
-            format_pdf_date(&v, date_mode)
-        ));
-    }
-    if let Some(v) = get_info_val("ModDate")
-        && !v.is_empty()
-    {
-        out.push_str(&format!(
-            "{:<17}{}\n",
-            "ModDate:",
-            format_pdf_date(&v, date_mode)
-        ));
+    let mut field = |key: &str, value: &str| {
+        let value = if matches!(key, "CreationDate" | "ModDate") {
+            format_pdf_date(value, date_mode)
+        } else {
+            value.to_string()
+        };
+        let value: String = value.chars().map(|ch| match ch {
+            '\u{7}' | '\u{8}' | '\n' | '\u{b}' | '\u{c}' | '\r' | '\u{e}' | '\u{f}'
+            | '\u{1b}' | '\u{7f}' => '?',
+            _ => ch,
+        }).collect();
+        let label = format!("{key}:");
+        let width = 17.max(label.chars().count() + 1);
+        out.push_str(&format!("{label:<width$}{value}\n"));
+    };
+    if show_custom {
+        let mut entries: Vec<_> = doc.info.iter().map(|(k, v)| (k.as_str(), v.as_str()))
+            .chain(doc.exif.iter().map(|(k, v)| (k.as_str(), v.as_str()))).collect();
+        entries.sort_by(|a, b| a.0.encode_utf16().cmp(b.0.encode_utf16()));
+        for (key, value) in entries {
+            field(key, value);
+        }
+        return ok_out(&out);
     }
     let std_keys = [
-        "title",
-        "author",
-        "subject",
-        "keywords",
-        "creator",
-        "producer",
-        "creationdate",
-        "moddate",
-        "trapped",
+        "Title", "Subject", "Keywords", "Author", "Creator", "Producer", "CreationDate", "ModDate",
+        "Trapped",
     ];
-    let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
-    for (k, v) in &doc.info {
-        if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-            custom_map.insert(k.clone(), v.clone());
+    for key in &std_keys[..8] {
+        let value = doc.exif.get(*key).or_else(|| doc.info.iter().rev()
+            .find(|(k, _)| k == key).map(|(_, v)| v))
+            .or(match *key {
+                "Title" if !doc.title.is_empty() => Some(&doc.title),
+                "Author" if !doc.author.is_empty() => Some(&doc.author),
+                _ => None,
+            });
+        if let Some(value) = value {
+            field(key, value);
         }
     }
-    for (k, v) in &doc.exif {
-        if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-            custom_map.insert(k.clone(), v.clone());
-        }
-    }
-    if show_custom {
-        for (k, v) in &custom_map {
-            out.push_str(&format!("{:<17}{v}\n", format!("{k}:")));
-        }
-    }
+    let custom = doc.info.iter().map(|(k, _)| k).chain(doc.exif.keys())
+        .any(|key| !std_keys.contains(&key.as_str()));
     out.push_str(&format!(
         "{:<17}{}\n",
         "Custom Metadata:",
-        if custom_map.is_empty() { "no" } else { "yes" }
+        if custom { "yes" } else { "no" }
     ));
     out.push_str(&format!(
         "{:<17}{}\n",

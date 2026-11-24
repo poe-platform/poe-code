@@ -2806,3 +2806,97 @@ fn cell_xfs_without_xf_id_preserve_alignment_and_wrapping() {
         assert!(style.attributes.contains(&("WrapText", "1".into())));
     }
 }
+
+#[test]
+fn copied_dates_convert_epochs_without_changing_times_numbers_or_formulas() {
+    use crate::commands::spreadsheet::Value;
+    for (format, number, calendar) in [
+        ("yyyy-mm-dd", 46348., true),
+        ("yyyy-mm-dd hh:mm:ss", 46348.75, true),
+        ("mmm-yy", 46348., true),
+        ("[$-409]m/d/yy", 46348., true),
+        ("[>=40000]yyyy-mm-dd;0", 46348., true),
+        ("[>=50000]yyyy-mm-dd;0", 46348., false),
+        ("General", 46348., false),
+        ("0.00", 2.5, false),
+        (r#"0 "days""#, 2., false),
+        (r"0\d", 2., false),
+        ("[h]:mm:ss", 2.5, false),
+        ("hh:mm:ss", 0.75, false),
+        ("mm:ss", 0.75, false),
+    ] {
+        let mut book = Spreadsheet::new();
+        book.edit(&[(0, 0, 0, &number.to_string())], 1_000_000)
+            .unwrap();
+        let cell = book.sheets[0].cells.get_mut(&(0, 0)).unwrap();
+        cell.format = Some(format.into());
+        let original = cell.to_json();
+        cell.convert_date_system(false, false, &mut 1_000_000)
+            .unwrap();
+        assert_eq!(cell.to_json(), original);
+        cell.convert_date_system(false, true, &mut 1_000_000)
+            .unwrap();
+        let Some(Value::Number(actual)) = cell.value else {
+            panic!("number")
+        };
+        assert_eq!(
+            actual,
+            number - if calendar { 1462. } else { 0. },
+            "{format}"
+        );
+        cell.convert_date_system(true, false, &mut 1_000_000)
+            .unwrap();
+        assert_eq!(cell.to_json(), original, "{format}");
+    }
+    let mut book = Spreadsheet::new();
+    book.edit(
+        &[(0, 0, 0, "=DATE(2026,11,22)"), (0, 0, 1, "'2026-11-22")],
+        1_000_000,
+    )
+    .unwrap();
+    for cell in book.sheets[0].cells.values_mut() {
+        cell.format = Some("yyyy-mm-dd".into());
+        let original = cell.to_json();
+        cell.convert_date_system(false, true, &mut 1_000_000)
+            .unwrap();
+        assert_eq!(cell.to_json(), original);
+    }
+}
+
+#[test]
+fn date_epoch_conversion_handles_early_dates_and_rejects_unrepresentable_days() {
+    let mut book = Spreadsheet::new();
+    for (serial, expected) in [(1., -1460.), (59.5, -1401.5), (61., -1401.), (1462., 0.)] {
+        book.edit(&[(0, 0, 0, &serial.to_string())], 1_000_000)
+            .unwrap();
+        let cell = book.sheets[0].cells.get_mut(&(0, 0)).unwrap();
+        cell.format = Some("yyyy-mm-dd hh:mm:ss".into());
+        let original = cell.to_json();
+        cell.convert_date_system(false, true, &mut 1_000_000)
+            .unwrap();
+        assert!(
+            matches!(cell.value, Some(crate::commands::spreadsheet::Value::Number(n)) if n == expected)
+        );
+        cell.convert_date_system(true, false, &mut 1_000_000)
+            .unwrap();
+        assert_eq!(cell.to_json(), original);
+    }
+    for serial in [0., 60., 60.5] {
+        book.edit(&[(0, 0, 0, &serial.to_string())], 1_000_000)
+            .unwrap();
+        let cell = book.sheets[0].cells.get_mut(&(0, 0)).unwrap();
+        cell.format = Some("yyyy-mm-dd".into());
+        let original = cell.to_json();
+        assert!(
+            cell.convert_date_system(false, true, &mut 1_000_000)
+                .is_err()
+        );
+        assert_eq!(cell.to_json(), original);
+    }
+    book.edit(&[(0, 0, 0, "46348")], 1_000_000).unwrap();
+    let cell = book.sheets[0].cells.get_mut(&(0, 0)).unwrap();
+    cell.format = Some("yyyy-mm-dd".into());
+    let original = cell.to_json();
+    assert!(cell.convert_date_system(false, true, &mut 0).is_err());
+    assert_eq!(cell.to_json(), original);
+}

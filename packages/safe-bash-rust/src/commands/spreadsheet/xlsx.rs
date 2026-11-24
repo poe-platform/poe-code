@@ -93,6 +93,58 @@ pub struct TypedCell<S> {
     pub rich_text: Option<Arc<Vec<TextRun>>>,
 }
 impl<S: AsRef<str>> TypedCell<S> {
+    /// Preserve calendar values when moving literal cells between Excel epochs.
+    /// Formula caches, times, durations and ordinary numbers are unchanged.
+    pub fn convert_date_system(
+        &mut self,
+        from1904: bool,
+        to1904: bool,
+        work: &mut usize,
+    ) -> Result<(), String> {
+        use super::{
+            dates,
+            number_format::{FormatKind, format_kind},
+        };
+        if from1904 == to1904 || self.formula.is_some() {
+            return Ok(());
+        }
+        let Some(Value::Number(number)) = self.value else {
+            return Ok(());
+        };
+        let Some(format) = self.format() else {
+            return Ok(());
+        };
+        *work = work
+            .checked_sub(format.len().saturating_mul(32).saturating_add(512))
+            .ok_or("Date conversion exceeds its limit")?;
+        let sections = dates::sections(format, true)?;
+        let Some((pattern, _)) = dates::select(&sections, number) else {
+            return Ok(());
+        };
+        let tokens = dates::tokens(pattern, work)?;
+        if !matches!(
+            format_kind(&tokens, sections[0].currency),
+            FormatKind::Date | FormatKind::DateTime
+        ) {
+            return Ok(());
+        }
+        // Excel's 1900 calendar includes January 0 and the fictitious February 29.
+        // Neither has a corresponding day in the 1904 calendar.
+        if !number.is_finite() || !from1904 && matches!(number.floor(), 0. | 60.) {
+            return Err("Date cannot be represented in the destination date system".into());
+        }
+        let converted = if from1904 {
+            number + if number < -1401. { 1461. } else { 1462. }
+        } else {
+            number - if number < 60. { 1461. } else { 1462. }
+        };
+        if !to1904 && converted.floor() == 0. {
+            return Err("Date cannot be represented in the destination date system".into());
+        }
+        self.value = Some(Value::Number(converted));
+        Ok(())
+    }
+
     fn format(&self) -> Option<&str> {
         let declared = self.format.as_ref().map(AsRef::as_ref);
         if declared.is_some_and(|f| f != "General") {

@@ -24403,6 +24403,7 @@ test("XML commands detect UTF-16 byte order and validate encoded input and decla
           for (const cmd of ["xq -c . doc", "xmllint doc", "xmllint --encode UTF-8 --format doc", "xmllint --c14n doc", "xmllint --xpath 'string(/r)' <doc", "xmllint --noout doc", "xmllint --recover --c14n doc"]) {
             const a = await js.exec(cmd), b = await rs.exec(cmd);
             assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+            assert.deepEqual(b.stdoutBytes, a.stdoutBytes, cmd + ": output bytes");
           }
         });
       }

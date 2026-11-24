@@ -16586,7 +16586,7 @@ pub(super) fn cmd_xmllint(
             decl.push_str("?>\n");
             let mut out = xml::EncodedOutput {
                 bytes: Vec::new(),
-                encoding: encoding.as_deref(),
+                encoding: eff_encoding.map(String::as_str),
                 limit: available,
             };
             let escaping = match eff_encoding.map(String::as_str) {

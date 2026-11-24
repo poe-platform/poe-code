@@ -1,0 +1,1334 @@
+[
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--show-npages"
+    ],
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Recovered stream length at byte offset 249\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--show-npages",
+      "--warning-exit-0"
+    ],
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Recovered stream length at byte offset 249\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "short",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--show-npages"
+    ],
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--show-npages",
+      "--warning-exit-0"
+    ],
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "stream-recovery",
+    "name": "declared",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--show-npages"
+    ],
+    "status": 3,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--show-npages",
+      "--warning-exit-0"
+    ],
+    "status": 0,
+    "stdout": "MQo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 2 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range 1-z,*x99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay \"to\" pages: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--show-npages"
+    ],
+    "status": 3,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--show-npages",
+      "--warning-exit-0"
+    ],
+    "status": 0,
+    "stdout": "MAo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *0: number 0 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "r0",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *r0: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-99: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-z,x99: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "1-z,x99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *1-z,x99: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--pages",
+      ".",
+      "2,1",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for in.pdf: error at * in numeric range *2,1: number 2 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *1-z: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--to=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *1-z: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *1-z: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--overlay",
+      "in.pdf",
+      "--repeat=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for overlay file in.pdf: error at * in numeric range *1-z: number 1 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "args": [
+      "in.pdf",
+      "--underlay",
+      "in.pdf",
+      "--from=99",
+      "--",
+      "out.pdf",
+      "--warning-exit-0"
+    ],
+    "status": 2,
+    "stdout": "",
+    "stderr": "qpdf: parsing numeric range for underlay file in.pdf: error at * in numeric range *99: number 99 out of range\n"
+  }
+]

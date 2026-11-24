@@ -139,6 +139,9 @@ async function test() {
     await shell.fs.writeFile("/recovered.pdf", "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\n3 0 obj << /Title (Recovered) >> endobj\n");
     const trailer = await shell.exec("qpdf /recovered.pdf --show-object=trailer");
     if (trailer.exitCode !== 3 || trailer.stdout !== "<<  >>\n" || trailer.stderr !== "WARNING: /recovered.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n") throw new Error(JSON.stringify(trailer));
+    await shell.fs.writeFile("/range.saved", "KEEP");
+    const rangeError = await shell.exec("qpdf /recovered.pdf --pages . 1 -- /range.saved");
+    if (rangeError.exitCode !== 2 || rangeError.stdout || rangeError.stderr !== "qpdf: parsing numeric range for /recovered.pdf: error at * in numeric range *1: number 1 out of range\n" || new TextDecoder().decode(await shell.fs.readFile("/range.saved")) !== "KEEP") throw new Error(JSON.stringify(rangeError));
     const attachments = await shell.exec("qpdf /attachments.pdf --list-attachments");
     if (attachments.exitCode || attachments.stderr || attachments.stdout !== "beta -> 8,0\n") throw new Error(JSON.stringify(attachments));
     const missingAttachment = await shell.exec("qpdf /attachments.pdf --show-attachment=alpha");

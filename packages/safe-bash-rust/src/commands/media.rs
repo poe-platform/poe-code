@@ -8665,7 +8665,11 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             publish(&dst_arg, &serialized).map_or_else(|e| e, |()| ok_out(""))
         }
     })();
-    if !warnings.is_empty() {
+    // JavaScript page-range exceptions bypass recovery-warning finalization.
+    if !warnings.is_empty()
+        && !(result.exit_code == 2
+            && result.stderr.starts_with("qpdf: parsing numeric range for "))
+    {
         let input = primary_arg.as_deref().unwrap_or("empty");
         let mut diagnostics = warnings
             .iter()

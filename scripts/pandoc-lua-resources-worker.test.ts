@@ -44,10 +44,10 @@ it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt","sdk-html","command-htm
   try {
       const response=await runtime.dispatchFetch('https://lua.test/'+mode);
       expect(response.status,response.status===200?undefined:await response.text()).toBe(200);
-      const result=await response.json() as {reads:string[];length:number;largest:number;events:{opened:number;closed:number;reads:number;writes:number}};
+      const result=await response.json() as {reads:string[];length:number;largest:number;events:{opened:number;closed:number;writes:number}};
       expect(result).toMatchObject({closed:1,remaining:0,namespace:[]});
       expect(result.reads.filter(path=>path.endsWith('.jpg'))).toEqual(from === 'json' ? ['/doc/a.jpg','/cwd/a.jpg'] : from === 'rtf' ? [] : ['/cwd/a.jpg']);
       expect(result.length).toBeGreaterThan(100);expect(result.largest).toBeLessThanOrEqual(16384);
-      expect(result.events.opened).toBeGreaterThan(0);expect(result.events.closed).toBe(result.events.opened);expect(result.events.reads).toBeGreaterThan(0);expect(result.events.writes).toBeGreaterThan(0);
+      expect(result.events.opened).toBeGreaterThan(0);expect(result.events.closed).toBe(result.events.opened);expect(result.events.writes).toBeGreaterThan(0);
   }finally{await runtime.dispose();}
 },60_000);

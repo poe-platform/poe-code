@@ -7,6 +7,8 @@ use super::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 const LIMIT: &str = "Table filter exceeds its limit";
+#[path = "editor_filter_color.rs"]
+mod color;
 #[path = "editor_filter_dynamic.rs"]
 mod dynamic;
 
@@ -148,6 +150,24 @@ fn date_matches(
 }
 
 fn validate(field: &FilterField) -> Result<(), String> {
+    if let Some(color) = &field.color {
+        return if color
+            .color
+            .as_ref()
+            .is_none_or(|value| value.len() == 8 && value.bytes().all(|b| b.is_ascii_hexdigit()))
+            && (!color.font || color.color.is_some())
+            && field.dynamic.is_none()
+            && field.top.is_none()
+            && field.date_groups.is_empty()
+            && !field.custom
+            && !field.conjunction
+            && field.conditions.is_empty()
+        {
+            Ok(())
+        } else {
+            Err("Invalid color filter".into())
+        };
+    }
     if let Some(dynamic) = &field.dynamic {
         return if dynamic::valid(dynamic)
             && field.top.is_none()
@@ -280,7 +300,12 @@ impl Spreadsheet {
             .as_ref()
             .and_then(|f| f.fields.as_ref())
             .and_then(|fields| fields.get(&column))
-            .filter(|field| !field.custom && field.top.is_none() && field.dynamic.is_none());
+            .filter(|field| {
+                !field.custom
+                    && field.top.is_none()
+                    && field.dynamic.is_none()
+                    && field.color.is_none()
+            });
         let mut work = limit;
         let selected = field
             .map(|field| {
@@ -360,6 +385,7 @@ impl Spreadsheet {
             index,
             column,
             Some(FilterField {
+                color: None,
                 dynamic: None,
                 date_groups,
                 top: None,
@@ -412,6 +438,11 @@ impl Spreadsheet {
             .as_ref()
             .map(|filter| dynamic::prepare(self, sheet, area, column, filter, now, work))
             .transpose()?;
+        let colors = field
+            .color
+            .as_ref()
+            .map(|filter| color::values(self, sheet, area, column, filter.font, work))
+            .transpose()?;
         let threshold = if let Some(top) = &field.top {
             let mut numbers = Vec::new();
             for row in area[0] + 1..=area[2] {
@@ -443,7 +474,11 @@ impl Spreadsheet {
         } else {
             None
         };
-        let accepted = if field.custom || field.top.is_some() || field.dynamic.is_some() {
+        let accepted = if field.custom
+            || field.top.is_some()
+            || field.dynamic.is_some()
+            || field.color.is_some()
+        {
             None
         } else {
             Some(
@@ -461,6 +496,18 @@ impl Spreadsheet {
             *work = work.checked_sub(128).ok_or(LIMIT)?;
             let cell = self.cell(sheet, row, area[1] + column);
             let cell = cell.as_deref();
+            if let Some(filter) = &field.color {
+                let color = &colors.as_ref().unwrap()[row - area[0] - 1];
+                let matched = match (color.as_deref(), filter.color.as_deref()) {
+                    (Some(a), Some(b)) => a[2..].eq_ignore_ascii_case(&b[2..]),
+                    (None, None) => true,
+                    _ => false,
+                };
+                if !matched {
+                    hidden.push(row);
+                }
+                continue;
+            }
             if let Some(dynamic) = &dynamic {
                 if !dynamic::matches(
                     dynamic,
@@ -727,6 +774,7 @@ mod tests {
 
     fn date_filter(groups: Vec<Vec<usize>>, values: &[&str]) -> FilterField {
         FilterField {
+            color: None,
             dynamic: None,
             date_groups: groups,
             top: None,
@@ -934,6 +982,7 @@ mod tests {
 
     fn top_filter(rank: f64, percent: bool, bottom: bool) -> FilterField {
         FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: Some(model::TopFilter {
@@ -1230,6 +1279,7 @@ mod tests {
     #[test]
     fn values_lists_use_literal_display_values_and_keep_blanks_distinct_from_zero_and_false() {
         let values = FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -1258,6 +1308,7 @@ mod tests {
         assert!(condition(None, "", "equal", "", &mut 10_000).unwrap());
         assert!(!condition(Some(&Value::Bool(false)), "FALSE", "equal", "", &mut 10_000).unwrap());
         let none = FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -1269,6 +1320,7 @@ mod tests {
     #[test]
     fn conjunction_disjunction_and_expensive_patterns_are_bounded() {
         let mut field = FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,

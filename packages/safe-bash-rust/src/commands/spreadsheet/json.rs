@@ -356,6 +356,7 @@ impl Codec for Filter {
         })
     }
 }
+structure!(ColorFilter { font, color });
 structure!(DynamicFilter {
     kind,
     value,
@@ -369,6 +370,7 @@ structure!(TopFilter {
 impl Codec for FilterField {
     fn json(&self) -> Json {
         object([
+            ("color", self.color.json()),
             ("dynamic", self.dynamic.json()),
             ("top", self.top.json()),
             (
@@ -387,6 +389,7 @@ impl Codec for FilterField {
     }
     fn read(v: &Json) -> Result<Self> {
         Ok(Self {
+            color: Codec::read(v.get("color").unwrap_or(&Json::Null))?,
             dynamic: Codec::read(v.get("dynamic").unwrap_or(&Json::Null))?,
             top: Codec::read(v.get("top").unwrap_or(&Json::Null))?,
             date_groups: v
@@ -1398,6 +1401,7 @@ mod tests {
                 fields: Some(BTreeMap::from([(
                     0,
                     FilterField {
+                        color: None,
                         dynamic: None,
                         date_groups: Vec::new(),
                         top: None,

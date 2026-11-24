@@ -1562,6 +1562,7 @@ fn imported_filters_preserve_subtotal_visibility_and_criteria() {
             [(
                 0,
                 FilterField {
+                    color: None,
                     dynamic: None,
                     date_groups: Vec::new(),
                     top: None,
@@ -1609,6 +1610,7 @@ fn imported_filters_preserve_subtotal_visibility_and_criteria() {
             [(
                 1,
                 FilterField {
+                    color: None,
                     dynamic: None,
                     date_groups: Vec::new(),
                     top: None,
@@ -2157,6 +2159,7 @@ fn table_filters_keep_column_snapshots_manual_hiding_and_subtotals() {
         },
     );
     let field = |operator, value: &str| FilterField {
+        color: None,
         dynamic: None,
         date_groups: Vec::new(),
         top: None,
@@ -2260,6 +2263,7 @@ fn empty_value_filter_and_sort_preserve_visibility_across_excel() {
         0,
         0,
         Some(FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -2284,6 +2288,7 @@ fn empty_value_filter_and_sort_preserve_visibility_across_excel() {
         0,
         0,
         Some(FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -2435,6 +2440,7 @@ fn converting_a_filtered_table_reveals_records_and_preserves_manual_hiding_atomi
         0,
         0,
         Some(FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,

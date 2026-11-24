@@ -66,6 +66,7 @@ impl Style {
 pub(super) fn write(
     styles: &[(&str, Option<&Style>)],
     conditional: &[super::super::ConditionalFormat],
+    colors: &BTreeMap<&super::ColorFilter, usize>,
     limit: usize,
 ) -> Option<String> {
     let default = Style::default();
@@ -264,8 +265,8 @@ pub(super) fn write(
         write!(out, "</{name}>").ok()?;
     }
     write!(out,r#"<cellStyleXfs count="1">{default_xf}</cellStyleXfs><cellXfs count="{}">{xfs}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>"#,styles.len()).ok()?;
-    if !conditional.is_empty() {
-        write!(out, "<dxfs count=\"{}\">", conditional.len()).ok()?;
+    if !conditional.is_empty() || !colors.is_empty() {
+        write!(out, "<dxfs count=\"{}\">", conditional.len() + colors.len()).ok()?;
         for (i, rule) in conditional.iter().enumerate() {
             out.push_str(&differential(
                 &rule.style,
@@ -273,6 +274,21 @@ pub(super) fn write(
                 (100 + custom.len()).max(164) + i,
                 limit.checked_sub(out.len())?,
             )?);
+        }
+        let mut filters = colors.iter().collect::<Vec<_>>();
+        filters.sort_unstable_by_key(|(_, index)| **index);
+        for (color, _) in filters {
+            if let Some(value) = &color.color {
+                if value.len() != 8 || !value.bytes().all(|b| b.is_ascii_hexdigit()) {
+                    return None;
+                }
+                write!(out, r#"<dxf><fill><patternFill patternType="solid"><fgColor rgb="{value}"/><bgColor rgb="{value}"/></patternFill></fill></dxf>"#).ok()?;
+            } else {
+                out.push_str(r#"<dxf><fill><patternFill patternType="none"/></fill></dxf>"#);
+            }
+            if out.len() > limit {
+                return None;
+            }
         }
         out.push_str("</dxfs>");
     }
@@ -344,7 +360,11 @@ fn differential(
         write!(
             out,
             "<fill><patternFill patternType=\"{}\">",
-            style.fill_pattern()?
+            if style.attributes.iter().any(|(key, _)| *key == "Shade") {
+                style.fill_pattern()?
+            } else {
+                "solid"
+            }
         )
         .ok()?;
         for (key, tag) in [("Back", "fgColor"), ("PatternColor", "bgColor")] {
@@ -450,14 +470,14 @@ mod tests {
             vec![("General", None), ("General", Some(&style))],
             vec![("General", None), (format.as_str(), None)],
         ] {
-            let xml = write(&styles, &[], 32_768).unwrap();
+            let xml = write(&styles, &[], &BTreeMap::new(), 32_768).unwrap();
             assert!(xml.contains("&amp;") || xml.contains("&lt;"));
-            assert!(write(&styles, &[], xml.len() - 1).is_none());
+            assert!(write(&styles, &[], &BTreeMap::new(), xml.len() - 1).is_none());
             assert_eq!(
-                write(&styles, &[], xml.len()).as_deref(),
+                write(&styles, &[], &BTreeMap::new(), xml.len()).as_deref(),
                 Some(xml.as_str())
             );
-            assert!(write(&styles, &[], 4096).is_none());
+            assert!(write(&styles, &[], &BTreeMap::new(), 4096).is_none());
         }
     }
 }

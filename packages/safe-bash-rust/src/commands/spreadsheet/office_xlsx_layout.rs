@@ -1,6 +1,7 @@
 //! Appearance and worksheet metadata for editable XLSX workbooks.
 use super::super::model::{
-    Axis, CalculatedColumn, DynamicFilter, Filter, FilterField, Style, Table, TopFilter,
+    Axis, CalculatedColumn, ColorFilter, DynamicFilter, Filter, FilterField, Style, Table,
+    TopFilter,
 };
 use super::{Imported, LIMIT, attr, coordinate, elements, xml};
 use std::{
@@ -36,7 +37,11 @@ fn area(source: &str) -> Option<[usize; 4]> {
     let (end_r, end_c) = coordinate(b)?;
     (end_r >= r && end_c >= c).then_some([r, c, end_r, end_c])
 }
-fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, String> {
+fn auto_filter(
+    nodes: &[xml::Node],
+    differential: &[(Style, Option<String>)],
+    work: &mut usize,
+) -> Result<Option<Filter>, String> {
     let Some(filter) = elements(nodes, "autoFilter").first().copied() else {
         return Ok(None);
     };
@@ -55,6 +60,7 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
         show_buttons &= !flag(column, "hiddenButton")
             && !matches!(attr(column, "showButton"), Some("0" | "false"));
         let mut field = FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -63,7 +69,48 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
             conditions: Vec::new(),
             conjunction: false,
         };
-        if let Some(list) = child(column, "filters") {
+        if child(column, "colorFilter").is_some()
+            && [
+                "filters",
+                "customFilters",
+                "dynamicFilter",
+                "top10",
+                "iconFilter",
+            ]
+            .iter()
+            .any(|name| child(column, name).is_some())
+        {
+            return Err("Conflicting XLSX color filter criteria".into());
+        }
+        if let Some(color) = child(column, "colorFilter") {
+            let id = attr(color, "dxfId")
+                .and_then(|id| id.parse::<usize>().ok())
+                .ok_or("Invalid XLSX color filter style")?;
+            let (style, _) = differential
+                .get(id)
+                .ok_or("Missing XLSX color filter style")?;
+            let font = match attr(color, "cellColor") {
+                None | Some("1" | "true") => false,
+                Some("0" | "false") => true,
+                _ => return Err("Invalid XLSX color filter type".into()),
+            };
+            // Excel/LibreOffice filter dxfs store the criterion in the fill,
+            // including font filters (LibreOffice ColorFilter::finalizeImport).
+            // Also accept producers using the dxf font color directly.
+            let no_fill = !font
+                && style
+                    .attributes
+                    .iter()
+                    .any(|(key, value)| *key == "Shade" && value == "0");
+            let value = style
+                .attributes
+                .iter()
+                .find(|(key, _)| *key == "Back" && !no_fill)
+                .or_else(|| style.attributes.iter().find(|(key, _)| font && *key == "Fore"))
+                .map(|(_, value)| value.clone())
+                .or_else(|| font.then(|| "FF000000".into()));
+            field.color = Some(ColorFilter { font, color: value });
+        } else if let Some(list) = child(column, "filters") {
             if flag(list, "blank") {
                 field.conditions.push(("equal", String::new()));
             }
@@ -171,6 +218,7 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
             || !field.conditions.is_empty()
             || field.top.is_some()
             || field.dynamic.is_some()
+            || field.color.is_some()
         {
             fields.insert(index, field);
         }
@@ -464,7 +512,7 @@ pub(super) fn retain(
                 &mut imported.remaining,
             )?);
         let sheet = &mut imported.sheets[index];
-        sheet.filter = auto_filter(&nodes, &mut imported.remaining)?;
+        sheet.filter = auto_filter(&nodes, &differential, &mut imported.remaining)?;
         if let Some(format) = elements(&nodes, "sheetFormatPr").first() {
             sheet.default_row_height = number(format, "defaultRowHeight").filter(|n| *n > 0.);
             sheet.default_column_width = number(format, "defaultColWidth")
@@ -644,7 +692,7 @@ pub(super) fn retain(
                 sheet: index,
                 area,
                 header: attr(table, "headerRowCount") != Some("0"),
-                filter: auto_filter(&table.children, &mut imported.remaining)?,
+                filter: auto_filter(&table.children, &differential, &mut imported.remaining)?,
             });
         }
         // The standard row flag remains readable by Excel. Our ignorable
@@ -708,7 +756,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><filters blank="1"><filter val="keep"/><dateGroupItem {attributes}/></filters></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            let parsed = auto_filter(&nodes, &mut 1_000_000).unwrap().unwrap();
+            let parsed = auto_filter(&nodes, &[], &mut 1_000_000).unwrap().unwrap();
             assert_eq!(parsed.fields.as_ref().unwrap()[&0].date_groups, vec![parts]);
             let expected = parsed.fields.as_ref().unwrap()[&0].date_groups.clone();
             let mut book = super::super::super::Spreadsheet::new();
@@ -741,7 +789,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><filters><dateGroupItem {attributes}/></filters></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            if let Ok(Some(parsed)) = auto_filter(&nodes, &mut 1_000_000) {
+            if let Ok(Some(parsed)) = auto_filter(&nodes, &[], &mut 1_000_000) {
                 assert!(
                     !super::super::super::editor_filter::valid(&parsed),
                     "{source}"
@@ -761,7 +809,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><top10 {attributes}/></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+            let filter = auto_filter(&nodes, &[], &mut 100_000).unwrap().unwrap();
             let mut book = super::super::super::Spreadsheet::new();
             book.sheets[0].filter = Some(filter);
             let book =
@@ -788,7 +836,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><top10 val="{rank}"/></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            if let Ok(Some(filter)) = auto_filter(&nodes, &mut 100_000) {
+            if let Ok(Some(filter)) = auto_filter(&nodes, &[], &mut 100_000) {
                 assert!(
                     !super::super::super::editor_filter::valid(&filter),
                     "{rank}"
@@ -810,7 +858,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><dynamicFilter {attributes}/></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+            let filter = auto_filter(&nodes, &[], &mut 100_000).unwrap().unwrap();
             assert!(
                 super::super::super::editor_filter::valid(&filter),
                 "{attributes}"
@@ -830,7 +878,7 @@ mod tests {
                 r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><dynamicFilter {attributes}/></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            if let Ok(Some(filter)) = auto_filter(&nodes, &mut 100_000) {
+            if let Ok(Some(filter)) = auto_filter(&nodes, &[], &mut 100_000) {
                 assert!(
                     !super::super::super::editor_filter::valid(&filter),
                     "{attributes}"
@@ -841,7 +889,7 @@ mod tests {
     #[test]
     fn custom_equal_filter_keeps_wildcards_and_conjunction() {
         let nodes=xml::parse(r#"<autoFilter ref="B1:B5"><filterColumn colId="0"><customFilters><customFilter operator="equal" val="a*"/></customFilters></filterColumn></autoFilter>"#,None,None).unwrap().nodes;
-        let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+        let filter = auto_filter(&nodes, &[], &mut 100_000).unwrap().unwrap();
         let mut book = super::super::super::Spreadsheet::new();
         book.sheets[0].filter = Some(filter);
         let source = book.to_json();
@@ -859,15 +907,56 @@ mod tests {
                 r#"<autoFilter ref="A1:A5" xmlns:ssc="urn:poe-code:spreadsheet:filters:1" ssc:columnVisibility="1"><filterColumn colId="0" ssc:hiddenRows="{rows}"><filters/></filterColumn></autoFilter>"#
             );
             let nodes = xml::parse(&source, None, None).unwrap().nodes;
-            assert!(auto_filter(&nodes, &mut 100_000).is_err(), "{rows}");
+            assert!(auto_filter(&nodes, &[], &mut 100_000).is_err(), "{rows}");
         }
         let nodes = xml::parse(r#"<autoFilter ref="A1:A5" xmlns:ssc="urn:poe-code:spreadsheet:filters:1" ssc:columnVisibility="1"><filterColumn colId="0" ssc:hiddenRows="1,3"><filters/></filterColumn></autoFilter>"#, None, None).unwrap().nodes;
-        assert!(auto_filter(&nodes, &mut 280).is_err());
-        let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+        assert!(auto_filter(&nodes, &[], &mut 280).is_err());
+        let filter = auto_filter(&nodes, &[], &mut 100_000).unwrap().unwrap();
         assert!(filter.column_visibility);
         assert_eq!(
             filter.fields.unwrap()[&0].hidden_rows.as_deref(),
             Some([1, 3].as_slice())
         );
+    }
+    #[test]
+    fn color_filters_resolve_differential_colors_and_reject_invalid_references() {
+        let styles = xml::parse(r#"<styleSheet><dxfs>
+            <dxf><fill><patternFill><bgColor rgb="FF81D41A"/></patternFill></fill></dxf>
+            <dxf><font><color theme="9"/></font></dxf>
+            <dxf><fill><patternFill patternType="none"><fgColor rgb="FFFF0000"/></patternFill></fill></dxf>
+        </dxfs></styleSheet>"#, None, None).unwrap().nodes;
+        let colors = super::super::colors::Palette::read(&[], &[], &mut 100_000).unwrap();
+        let differential = differential_styles(&styles, &colors, &mut 100_000).unwrap();
+        for (attributes, font, expected) in [
+            (r#"dxfId="0""#, false, Some("FF81D41A")),
+            (r#"dxfId="0" cellColor="0""#, true, Some("FF81D41A")),
+            (r#"dxfId="1" cellColor="false""#, true, Some("FF70AD47")),
+            (r#"dxfId="2" cellColor="true""#, false, None),
+        ] {
+            let nodes = xml::parse(&format!(r#"<autoFilter ref="A1:A3"><filterColumn colId="0"><colorFilter {attributes}/></filterColumn></autoFilter>"#),None,None).unwrap().nodes;
+            let filter = auto_filter(&nodes, &differential, &mut 100_000)
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                filter.fields.unwrap()[&0].color,
+                Some(ColorFilter {
+                    font,
+                    color: expected.map(str::to_owned)
+                })
+            );
+        }
+        for criteria in [
+            r#"<colorFilter/>"#,
+            r#"<colorFilter dxfId="-1"/>"#,
+            r#"<colorFilter dxfId="3"/>"#,
+            r#"<colorFilter dxfId="0" cellColor="yes"/>"#,
+            r#"<colorFilter dxfId="0"/><filters/>"#,
+        ] {
+            let nodes=xml::parse(&format!(r#"<autoFilter ref="A1:A3"><filterColumn colId="0">{criteria}</filterColumn></autoFilter>"#),None,None).unwrap().nodes;
+            assert!(
+                auto_filter(&nodes, &differential, &mut 100_000).is_err(),
+                "{criteria}"
+            );
+        }
     }
 }

@@ -212,7 +212,7 @@ mod editor_tables;
 #[path = "spreadsheet/office_wildcard.rs"]
 mod wildcard;
 pub use model::{
-    ArrayFormula, Axis, CalculatedColumn, DynamicFilter, Filter, FilterField, NamedExpression,
+    ArrayFormula, Axis, CalculatedColumn, ColorFilter, DynamicFilter, Filter, FilterField, NamedExpression,
     Sheet, Style, Table, TopFilter, TypedCell, Value, Workbook as WorkbookOptions,
 };
 
@@ -600,3 +600,7 @@ mod editor_pivot_layout_tests;
 #[cfg(test)]
 #[path = "spreadsheet/editor_pivot_calculation_tests.rs"]
 mod editor_pivot_calculation_tests;
+
+#[cfg(test)]
+#[path = "spreadsheet/editor_filter_color_tests.rs"]
+mod editor_filter_color_tests;

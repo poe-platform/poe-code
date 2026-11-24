@@ -30,7 +30,11 @@ fn attribute(source: &str, remaining: &mut usize) -> Option<String> {
     Some(escaped(source).replace('\t', "&#9;").replace('\n', "&#10;"))
 }
 
-pub(super) fn filter(source: &Filter, limit: usize) -> Option<String> {
+pub(super) fn filter(
+    source: &Filter,
+    colors: &std::collections::BTreeMap<&super::ColorFilter, usize>,
+    limit: usize,
+) -> Option<String> {
     let Some(fields) = &source.fields else {
         return Some(String::new());
     };
@@ -85,7 +89,15 @@ pub(super) fn filter(source: &Filter, limit: usize) -> Option<String> {
         )
         .ok()?;
         if let Some(field) = field {
-            if let Some(dynamic) = &field.dynamic {
+            if let Some(color) = &field.color {
+                write!(
+                    output,
+                    r#"<colorFilter dxfId="{}" cellColor="{}"/>"#,
+                    colors.get(color)?,
+                    u8::from(!color.font)
+                )
+                .ok()?;
+            } else if let Some(dynamic) = &field.dynamic {
                 write!(
                     output,
                     r#"<dynamicFilter type="{}""#,
@@ -178,6 +190,7 @@ pub(super) fn write<S: AsRef<str>>(
     table: &Table,
     sheets: &[Sheet<S>],
     workbook: &super::Workbook,
+    colors: &std::collections::BTreeMap<&super::ColorFilter, usize>,
     id: usize,
     limit: usize,
 ) -> Option<String> {
@@ -192,7 +205,7 @@ pub(super) fn write<S: AsRef<str>>(
         u8::from(table.totals)
     );
     if let Some(source) = &table.filter {
-        let filter = filter(source, remaining)?;
+        let filter = filter(source, colors, remaining)?;
         remaining = remaining.checked_sub(filter.len())?;
         output.push_str(&filter);
     }

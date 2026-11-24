@@ -198,8 +198,15 @@ pub struct DynamicFilter {
     pub value: Option<f64>,
     pub max_value: Option<f64>,
 }
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct ColorFilter {
+    pub font: bool,
+    /// Resolved ARGB, or None for no fill. Automatic font color is black.
+    pub color: Option<String>,
+}
 #[derive(Clone)]
 pub struct FilterField {
+    pub color: Option<ColorFilter>,
     pub dynamic: Option<DynamicFilter>,
     /// Calendar prefixes: [year], [year, month], through [year, month, day, hour, minute, second].
     /// Combined with ordinary selected values using OR.
@@ -360,6 +367,25 @@ pub(in crate::commands) fn write_cells(
     // Borrow authored cells. Only derived output needs a temporary export cell;
     // the workbook and its strings/styles are otherwise never cloned.
     let mut work = limit;
+    let mut filter_colors = BTreeMap::new();
+    for filter in sheets
+        .iter()
+        .filter_map(|sheet| sheet.filter.as_ref())
+        .chain(
+            workbook
+                .tables
+                .iter()
+                .filter_map(|table| table.filter.as_ref()),
+        )
+    {
+        for field in filter.fields.iter().flat_map(|fields| fields.values()) {
+            work = work.checked_sub(128)?;
+            if let Some(color) = &field.color {
+                let index = workbook.conditional_formats.len() + filter_colors.len();
+                filter_colors.entry(color).or_insert(index);
+            }
+        }
+    }
     let mut exported = Vec::new();
     for (sheet, source) in sheets.iter().enumerate() {
         work = work.checked_sub(source.cells.len().checked_mul(64)?)?;
@@ -465,7 +491,7 @@ pub(in crate::commands) fn write_cells(
         let n = index + 1;
         add(
             format!("xl/tables/table{n}.xml"),
-            tables::write(table, sheets, workbook, n, limit)?.into_bytes(),
+            tables::write(table, sheets, workbook, &filter_colors, n, limit)?.into_bytes(),
         )?;
         table_types.push(format!(r#"<Override PartName="/xl/tables/table{n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>"#));
     }
@@ -921,7 +947,7 @@ pub(in crate::commands) fn write_cells(
             merges.push_str("</mergeCells>");
         }
         let filter = if let Some(source) = &sh.filter {
-            tables::filter(source, limit)?
+            tables::filter(source, &filter_colors, limit)?
         } else {
             String::new()
         };
@@ -1105,7 +1131,13 @@ pub(in crate::commands) fn write_cells(
     ));
     add(
         "xl/styles.xml".into(),
-        styles::write(&formats, &workbook.conditional_formats, limit)?.into_bytes(),
+        styles::write(
+            &formats,
+            &workbook.conditional_formats,
+            &filter_colors,
+            limit,
+        )?
+        .into_bytes(),
     )?;
     for (name, data) in [
         (

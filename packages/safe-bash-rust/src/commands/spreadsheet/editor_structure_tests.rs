@@ -454,6 +454,7 @@ fn structural_table_columns_filters_and_exports_follow_the_data() {
         0,
         1,
         Some(super::FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,
@@ -570,6 +571,7 @@ fn structural_deleted_filter_header_leaves_valid_metadata() {
         0,
         0,
         Some(super::FilterField {
+            color: None,
             dynamic: None,
             date_groups: Vec::new(),
             top: None,

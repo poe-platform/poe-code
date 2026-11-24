@@ -161,6 +161,7 @@ mod tests {
 
     fn field(kind: &str) -> FilterField {
         FilterField {
+            color: None,
             dynamic: Some(DynamicFilter {
                 kind: kind.into(),
                 value: None,

@@ -80,7 +80,7 @@ impl Ebml {
 }
 
 struct Block<'a> {
-    ms: u64,
+    ms: i64,
     duration: u64,
     track: usize,
     key: bool,
@@ -90,6 +90,7 @@ struct Block<'a> {
 pub(super) fn write(
     tracks: &[Track<'_>],
     seconds: f64,
+    movie_scale: u32,
     webm: bool,
     write_crc: bool,
     metadata: &BTreeMap<String, String>,
@@ -105,6 +106,7 @@ pub(super) fn write(
     let mut blocks = Vec::new();
     let mut packet_bytes = 0usize;
     let mut duration = (seconds * 1000.).round() as u64;
+    let mut packet_end = i64::MIN;
     let mut entries = Ebml {
         bytes: Vec::new(),
         limit: audio.limit,
@@ -288,6 +290,20 @@ pub(super) fn write(
             }
             Ok(())
         })?;
+        // MP4 materialization represents seek preroll with edit offsets. Keep
+        // the relative presentation times until all streams can be shifted
+        // together to nonnegative Matroska timestamps.
+        let mut offset_ms = 0.;
+        if matches!(source_tags[i], super::Original::None) {
+            for edit in &t.edits {
+                if edit[1] == u32::MAX {
+                    offset_ms += f64::from(edit[0]) / f64::from(movie_scale) * 1000.;
+                } else {
+                    offset_ms -= f64::from(edit[1]) / f64::from(t.scale) * 1000.;
+                    break;
+                }
+            }
+        }
         let mut sample = |pts: f64, ticks: f64, data, key| -> Result<()> {
             let data = if fourcc == b"wvpk" && original.is_none() {
                 let packet = super::super::super::wavpack::pack_matroska(data, audio.limit.saturating_sub(packet_bytes))?;
@@ -298,8 +314,8 @@ pub(super) fn write(
                 return Err("sample index exceeds memory budget");
             }
             let scale = f64::from(timescale.max(1));
-            let ms = (pts / scale * 1000.).round() as u64;
-            duration = duration.max(((pts + ticks) / scale * 1000.).round() as u64);
+            let ms = (pts / scale * 1000. + offset_ms).round() as i64;
+            packet_end = packet_end.max(((pts + ticks) / scale * 1000. + offset_ms).round() as i64);
             blocks.push(Block {
                 ms,
                 duration: ((ticks / scale * 1000.).round() as u64)
@@ -338,6 +354,11 @@ pub(super) fn write(
     }
     out.limit = out.limit.checked_sub(packet_bytes).ok_or("WavPack packets exceed memory budget")?;
     blocks.sort_by_key(|b| (b.ms, b.track));
+    let shift = blocks.first().map_or(0, |b| b.ms.min(0).saturating_neg());
+    for block in &mut blocks {
+        block.ms = block.ms.saturating_add(shift);
+    }
+    duration = duration.max(packet_end.saturating_add(shift).max(0) as u64);
     out.group(0x1a45dfa3, |w| {
         for (id, n) in [(0x4286, 1), (0x42f7, 1), (0x42f2, 4), (0x42f3, 8)] {
             w.uint(id, n)?;
@@ -437,7 +458,7 @@ pub(super) fn write(
             let cluster_position = w.bytes.len() - segment_start;
             w.group(0x1f43b675, |w| {
                 let cluster_start = w.bytes.len() - if w.crc { 6 } else { 0 };
-                w.uint(0xe7, start)?;
+                w.uint(0xe7, start as u64)?;
                 while let Some(b) = blocks.next_if(|b| b.ms - start <= 5000) {
                     if b.key && tracks[b.track].kind == "video" {
                         cues.push((
@@ -491,7 +512,7 @@ pub(super) fn write(
             w.group(0x1c53bb6b, |w| {
                 for (time, track, position, relative) in cues {
                     w.group(0xbb, |w| {
-                        w.uint(0xb3, time)?;
+                        w.uint(0xb3, time as u64)?;
                         w.group(0xb7, |w| {
                             w.uint(0xf7, track as u64)?;
                             w.uint(0xf1, position as u64)?;

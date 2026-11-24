@@ -5266,7 +5266,7 @@ pub(in super::super) fn remux(
             }
         }
         if opts.audio_codec==Some("wavpack") {audio.clear_samples=false;audio.limit=opts.limit.saturating_sub(index_bytes);}
-        return mkv::write(&tracks,duration,opts.format=="webm",opts.mkv_crc,&metadata,&audio,&source_tags,&output_chapters).map_err(str::to_owned);
+        return mkv::write(&tracks,duration,scale,opts.format=="webm",opts.mkv_crc,&metadata,&audio,&source_tags,&output_chapters).map_err(str::to_owned);
     }
     if matches!(opts.format,"amr"|"latm") {
         if tracks.len()!=1 || tracks[0].kind!="audio" {return Err("Elementary audio output requires one audio stream".into());}

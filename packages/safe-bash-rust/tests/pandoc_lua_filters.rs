@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/base.rs"]
+mod lua_base;
 #[path = "../../lua-rust/tests/iteration.rs"]
 mod lua_iteration;
 #[path = "../../lua-rust/tests/lengths.rs"]

@@ -155,6 +155,16 @@ impl Runtime {
         }
     }
     pub(crate) fn native(&mut self, name: &str, args: Vec<Value>) -> Result<Vec<Value>> {
+        let required = match name {
+            "rawset" => 3,
+            "setmetatable" | "rawget" | "rawequal" | "ipairs.next" => 2,
+            "getmetatable" | "rawlen" | "type" | "next" | "tostring" | "pairs" | "ipairs"
+            | "select" | "assert" | "tonumber" => 1,
+            _ => 0,
+        };
+        if args.len() < required {
+            return Err(Error::unlocated("Value expected"));
+        }
         let a = |i: usize| args.get(i).cloned().unwrap_or_default();
         let n = |i: usize| a(i).number();
         let s = |i: usize| match a(i) {
@@ -196,7 +206,7 @@ impl Runtime {
                         result,
                         Value::String(_) | Value::Integer(_) | Value::Number(_)
                     ) {
-                        return Err(Error::new("'__tostring' must return a string"));
+                        return Err(Error::unlocated("'__tostring' must return a string"));
                     }
                     Value::String(result.bytes())
                 }
@@ -223,23 +233,35 @@ impl Runtime {
                 }
             }
             "select" => {
-                if a(0) == Value::String("#".into()) {
+                if matches!(a(0), Value::String(bytes) if bytes.first() == Some(&b'#')) {
                     Value::Integer(args.len().saturating_sub(1) as i32)
                 } else {
-                    let i = n(0)? as isize;
+                    let i = numbers::integral(
+                        n(0).map_err(|_| Error::unlocated("Expected Lua number"))?,
+                    )
+                    .map_err(|error| Error::unlocated(error.message))?
+                        as isize;
                     let i = if i < 0 { args.len() as isize + i } else { i };
                     if i < 1 {
-                        return Err(Error::new("index out of range"));
+                        return Err(Error::unlocated("index out of range"));
                     }
                     return Ok(args.get(i as usize..).unwrap_or_default().to_vec());
                 }
             }
-            "rawget" => self.raw_get(&a(0), &a(1)),
+            "rawget" => {
+                if !matches!(a(0), Value::Table(_)) {
+                    return Err(Error::unlocated("Expected Lua table"));
+                }
+                self.raw_get(&a(0), &a(1))
+            }
             "rawset" => {
                 self.raw_set(&a(0), a(1), a(2))?;
                 a(0)
             }
-            "rawlen" => Value::Integer(self.length(&a(0))?),
+            "rawlen" => Value::Integer(
+                self.length(&a(0))
+                    .map_err(|_| Error::unlocated("Expected Lua table"))?,
+            ),
             "rawequal" => Value::Bool(a(0) == a(1)),
             "getmetatable" => {
                 let meta = match a(0) {
@@ -256,13 +278,13 @@ impl Runtime {
             }
             "setmetatable" => {
                 let Value::Table(t) = a(0) else {
-                    return Err(Error::new("table expected"));
+                    return Err(Error::unlocated("Expected Lua table"));
                 };
-                if self.meta(&a(0), "__metatable") != Value::Nil {
-                    return Err(Error::new("cannot change a protected metatable"));
-                }
                 if !matches!(a(1), Value::Nil | Value::Table(_)) {
-                    return Err(Error::new("nil or table expected"));
+                    return Err(Error::unlocated("Expected Lua table"));
+                }
+                if self.meta(&a(0), "__metatable") != Value::Nil {
+                    return Err(Error::unlocated("Cannot change a protected metatable"));
                 }
                 self.tables[t].meta = a(1);
                 a(0)
@@ -279,7 +301,10 @@ impl Runtime {
             }
             "ipairs" => return Ok(vec![Value::Native("ipairs.next"), a(0), Value::Integer(0)]),
             "ipairs.next" => {
-                let index = numbers::integral(n(1)?)?.wrapping_add(1);
+                let index =
+                    numbers::integral(n(1).map_err(|_| Error::unlocated("Expected Lua number"))?)
+                        .map_err(|error| Error::unlocated(error.message))?
+                        .wrapping_add(1);
                 let value = self.get(&a(0), &Value::Integer(index))?;
                 return Ok(if value == Value::Nil {
                     vec![Value::Nil]
@@ -288,9 +313,6 @@ impl Runtime {
                 });
             }
             "next" => {
-                if args.is_empty() {
-                    return Err(Error::unlocated("Value expected"));
-                }
                 let Value::Table(table) = a(0) else {
                     return Err(Error::unlocated("Expected Lua table"));
                 };

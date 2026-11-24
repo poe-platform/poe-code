@@ -66,6 +66,13 @@ async function test() {
     await shell.fs.writeFile("/iteration.lua", "function Str(el) local t={a=1,b=2,c=3}; local sum=0; for k,v in pairs(t) do t[k]=nil; sum=sum+v end; local done=next(t); t.a=4; local key,value=next(t); local array={10,[1]=20}; return pandoc.Str(sum..':'..tostring(done)..':'..key..':'..value..':'..array[1]) end");
     const iteration = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/iteration.lua");
     if (iteration.exitCode || iteration.stderr || iteration.stdout !== "6:nil:a:4:10\n") throw new Error(JSON.stringify(iteration));
+    await shell.fs.writeFile("/base.lua", "function Str(el) local t={a='KEEP'}; rawset(t,'a',nil); return pandoc.Str(type(nil)..':'..select('#more',1,nil,3)..':'..tostring(rawget(t,'a'))) end");
+    const base = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/base.lua");
+    if (base.exitCode || base.stderr || base.stdout !== "nil:3:nil\n") throw new Error(JSON.stringify(base));
+    await shell.fs.writeFile("/base.lua", "function Str(el) local t={a='KEEP'}; rawset(t,'a'); return el end");
+    await shell.fs.writeFile("/base.saved", "KEEP");
+    const missingBaseValue = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/base.lua -o /base.saved");
+    if (missingBaseValue.exitCode !== 4 || missingBaseValue.stdout || missingBaseValue.stderr !== "E_AST: Value expected\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(missingBaseValue));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

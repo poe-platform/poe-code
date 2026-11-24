@@ -206,10 +206,13 @@ impl Runtime {
     }
     pub fn raw_set(&mut self, table: &Value, key: Value, value: Value) -> Result<()> {
         let Value::Table(n) = table else {
-            return Err(Error::new("table expected"));
+            return Err(Error::unlocated("Expected Lua table"));
         };
-        if key == Value::Nil || matches!(key,Value::Number(n) if n.is_nan()) {
-            return Err(Error::new("table index is nil or NaN"));
+        if key == Value::Nil {
+            return Err(Error::unlocated("Table index is nil"));
+        }
+        if matches!(key,Value::Number(n) if n.is_nan()) {
+            return Err(Error::unlocated("Table index is NaN"));
         }
         let entries = &mut self.tables[*n].entries;
         if let Some(i) = entries.iter().position(|(k, _)| k == &key) {

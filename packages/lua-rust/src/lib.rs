@@ -5,6 +5,7 @@ mod numbers;
 mod pack;
 mod pattern;
 mod syntax;
+mod table;
 mod utf8;
 use std::collections::{HashMap, hash_map::RandomState};
 use std::hash::BuildHasher;

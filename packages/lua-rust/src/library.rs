@@ -453,86 +453,8 @@ impl Runtime {
                     Value::Bool(capture),
                 ]);
             }
-            "table.insert" => {
-                let len = self.length(&a(0))?;
-                let (pos, value) = if args.len() > 2 {
-                    (n(1)? as usize, a(2))
-                } else {
-                    (len + 1, a(1))
-                };
-                if pos < 1 || pos > len + 1 {
-                    return Err(Error::new("position out of bounds"));
-                }
-                for i in (pos..=len).rev() {
-                    let v = self.get(&a(0), &Value::Integer(i as i32))?;
-                    self.set(a(0), Value::Integer((i + 1) as i32), v)?;
-                }
-                self.set(a(0), Value::Integer(pos as i32), value)?;
-                return Ok(Vec::new());
-            }
-            "table.remove" => {
-                let table = a(0);
-                if !matches!(table, Value::Table(_))
-                    && ["__index", "__newindex", "__len"]
-                        .iter()
-                        .any(|name| self.meta(&table, name) == Value::Nil)
-                {
-                    return Err(Error::unlocated("Expected Lua table"));
-                }
-                let integer = |value: Value| {
-                    let number = value
-                        .number()
-                        .map_err(|_| Error::unlocated("Expected Lua number"))?;
-                    numbers::integral(number).map_err(|error| Error::unlocated(error.message))
-                };
-                let method = self.meta(&table, "__len");
-                let len = if method == Value::Nil || matches!(table, Value::String(_)) {
-                    self.length(&table)? as i32
-                } else {
-                    integer(first(
-                        self.call(method, vec![table.clone(), table.clone()])?,
-                    ))?
-                };
-                let pos = if a(1) == Value::Nil {
-                    len
-                } else {
-                    integer(a(1))?
-                };
-                if pos != len && (pos < 1 || i64::from(pos) > i64::from(len) + 1) {
-                    return Err(Error::unlocated("table:30: Position out of bounds"));
-                }
-                let value = self.get(&table, &Value::Integer(pos))?;
-                for i in pos..len {
-                    let v = self.get(&table, &Value::Integer(i + 1))?;
-                    self.set(table.clone(), Value::Integer(i), v)?;
-                }
-                self.set(table, Value::Integer(pos.max(len)), Value::Nil)?;
-                value
-            }
-            "table.concat" => {
-                let sep = if args.len() > 1 { s(1)? } else { Vec::new() };
-                let start = if args.len() > 2 { n(2)? as i64 } else { 1 };
-                let end = if args.len() > 3 {
-                    n(3)? as i64
-                } else {
-                    self.length(&a(0))? as i64
-                };
-                let mut text = Vec::new();
-                for i in start..=end {
-                    let value = self.get(&a(0), &Value::Integer(i as i32))?;
-                    if !matches!(
-                        value,
-                        Value::String(_) | Value::Integer(_) | Value::Number(_)
-                    ) {
-                        return Err(Error::new("invalid value in table for concat"));
-                    }
-                    if i > start {
-                        text.extend_from_slice(&sep)
-                    }
-                    text.extend(value.bytes());
-                }
-                Value::String(text)
-            }
+            "table.insert" | "table.remove" | "table.concat" | "table.unpack" | "table.move"
+            | "table.sort" => return self.table_library(name, args),
             "table.pack" => {
                 let table = self.table();
                 self.raw_set(
@@ -544,59 +466,6 @@ impl Runtime {
                     self.raw_set(&table, Value::Integer((i + 1) as i32), v)?;
                 }
                 table
-            }
-            "table.unpack" => {
-                let start = if args.len() > 1 { n(1)? as i64 } else { 1 };
-                let end = if args.len() > 2 {
-                    n(2)? as i64
-                } else {
-                    self.length(&a(0))? as i64
-                };
-                let mut values = Vec::new();
-                for i in start..=end {
-                    values.push(self.get(&a(0), &Value::Integer(i as i32))?);
-                }
-                return Ok(values);
-            }
-            "table.move" => {
-                let from = n(1)? as i64;
-                let end = n(2)? as i64;
-                let to = n(3)? as i64;
-                let target = if args.len() > 4 { a(4) } else { a(0) };
-                let mut values = Vec::new();
-                for i in from..=end {
-                    values.push(self.get(&a(0), &Value::Integer(i as i32))?);
-                }
-                for (i, value) in values.into_iter().enumerate() {
-                    self.set(
-                        target.clone(),
-                        Value::Integer((to + i as i64) as i32),
-                        value,
-                    )?;
-                }
-                target
-            }
-            "table.sort" => {
-                let len = self.length(&a(0))?;
-                for i in 2..=len {
-                    let mut j = i;
-                    while j > 1 {
-                        let left = self.get(&a(0), &Value::Integer(j as i32))?;
-                        let right = self.get(&a(0), &Value::Integer((j - 1) as i32))?;
-                        let less = if a(1) == Value::Nil {
-                            self.binary("<", left.clone(), right.clone())?.truth()
-                        } else {
-                            first(self.call(a(1), vec![left.clone(), right.clone()])?).truth()
-                        };
-                        if !less {
-                            break;
-                        }
-                        self.set(a(0), Value::Integer(j as i32), right)?;
-                        self.set(a(0), Value::Integer((j - 1) as i32), left)?;
-                        j -= 1;
-                    }
-                }
-                return Ok(Vec::new());
             }
             "math.random" | "math.randomseed" | "math.ult" => {
                 if name != "math.random" && args.is_empty() {

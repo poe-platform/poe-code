@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/tables.rs"]
+mod lua_tables;
 #[path = "../../lua-rust/tests/table_remove.rs"]
 mod lua_table_remove;
 #[path = "../../lua-rust/tests/varargs.rs"]

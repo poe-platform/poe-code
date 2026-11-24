@@ -3742,5 +3742,484 @@
     "status": 4,
     "stderr": "E_AST: Number has no integer representation\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'rep' (number has no integer representation)\n"
+  },
+  {
+    "id": "insert-arity-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.insert({}); return 'unexpected' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:24: Wrong number of arguments to insert\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: wrong number of arguments to 'insert'\n"
+  },
+  {
+    "id": "insert-arity-extra",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.insert({},1,2,3); return 'unexpected' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:24: Wrong number of arguments to insert\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: wrong number of arguments to 'insert'\n"
+  },
+  {
+    "id": "insert-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.insert({1,2},1.5,3); return 'unexpected' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'insert' (number has no integer representation)\n"
+  },
+  {
+    "id": "insert-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={3,1,2}; local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 3 end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}); table.insert(t,2,7); return events..':'..table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "LR3W4R2W3W2:3,7,1,2\n"
+  },
+  {
+    "id": "concat-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({1,2},nil,nil,nil) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "12\n"
+  },
+  {
+    "id": "concat-explicit-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 7 end,__index=function(_,i) events=events..'R'..i; return i end}); local x=table.concat(t,':',2,3); return x..':'..events end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:3:LR2R3\n"
+  },
+  {
+    "id": "unpack-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({table.unpack({1,2},nil,nil)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1,2\n"
+  },
+  {
+    "id": "unpack-explicit-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 7 end,__index=function(_,i) events=events..'R'..i; return i end}); local a,b=table.unpack(t,2,3); return events..':'..a..','..b end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "LR2R3:2,3\n"
+  },
+  {
+    "id": "move-nil-destination",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3}; table.move(t,1,2,2,nil); return table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1,1,2\n"
+  },
+  {
+    "id": "move-callback-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={1,2,3,4}; local events=''; local mt={__eq=function() events=events..'E'; return true end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}; local a=setmetatable({},mt); local b=setmetatable({},mt); table.move(a,1,3,2,b); return events..':'..table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "ER3W4R2W3R1W2:1,1,2,3\n"
+  },
+  {
+    "id": "move-empty-invalid-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.move(false,2,1,1); return 'unexpected' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'move' (table expected, got boolean)\n"
+  },
+  {
+    "id": "sort-callback-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={4,1,5,2,3}; local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 5 end,__index=function(_,i) events=events..'R'..i..';'; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i..';'; values[i]=v end}); table.sort(t,function(a,b) events=events..'C'..a..','..b..';'; return a<b end); return events..':'..table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "LR1;R5;C3,4;W1;W5;R3;R1;C5,3;R5;C4,5;W3;W5;R3;R4;W3;W4;R2;C1,4;R3;C2,4;R4;C4,4;R3;C4,2;W4;W4;R1;R3;C2,3;W1;W3;R2;R1;C1,2;W2;W1;:1,2,3,4,5\n"
+  },
+  {
+    "id": "insert-position-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.insert({},0,1); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:21: Position out of bounds\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'insert' (position out of bounds)\n"
+  },
+  {
+    "id": "insert-at-maximum",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local key,value; local t=setmetatable({}, {__len=function() return 2147483646 end,__index=function() error('unexpected read') end,__newindex=function(_,k,v) key=k;value=v end}); table.insert(t,2147483647,9); return key..':'..value end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2147483647:9\n"
+  },
+  {
+    "id": "insert-length-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.insert(setmetatable({}, {__len=function() return 2147483647 end}),7); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: 7\n"
+  },
+  {
+    "id": "insert-negative-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t=setmetatable({}, {__len=function() return -2 end}); table.insert(t,7); return tostring(t[-1]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "insert-nil-value",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2}; table.insert(t,2,nil); return tostring(t[1])..','..tostring(t[2])..','..tostring(t[3]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1,nil,2\n"
+  },
+  {
+    "id": "concat-binary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte(table.concat({string.char(0,255),string.char(128)},string.char(1)),1,-1)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0,255,1,128\n"
+  },
+  {
+    "id": "concat-numeric-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({1,2.0,3},7,2,3) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2.073\n"
+  },
+  {
+    "id": "concat-invalid-element",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({true}) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid value (boolean) at index 1 in table for 'concat'\n"
+  },
+  {
+    "id": "concat-fractional-start",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({1,2},'',1.5) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'concat' (number has no integer representation)\n"
+  },
+  {
+    "id": "concat-fractional-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat(setmetatable({}, {__len=function() return 1.5 end}),':',2,1) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: object length is not an integer\n"
+  },
+  {
+    "id": "concat-max-range",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({[2147483647]=7},'',2147483647,2147483647) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "unpack-max-range",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(table.unpack({[2147483647]=7},2147483647,2147483647)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "unpack-string-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',table.unpack('abc',2,1))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "unpack-argument-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.unpack(false,false); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'unpack' (number expected, got boolean)\n"
+  },
+  {
+    "id": "unpack-invalid-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.unpack(false,2,1); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: attempt to get length of a boolean value\n"
+  },
+  {
+    "id": "unpack-retains-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local p=table.pack(table.unpack({1,nil,3},1,3)); return p.n..':'..tostring(p[1])..','..tostring(p[2])..','..tostring(p[3]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "3:1,nil,3\n"
+  },
+  {
+    "id": "move-forward-overlap",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3,4}; return tostring(rawequal(table.move(t,2,4,1),t))..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "true:2,3,4,4\n"
+  },
+  {
+    "id": "move-negative-keys",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[-2]=8,[-1]=9}; local u={}; table.move(t,-2,-1,1,u); return table.concat(u,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "8,9\n"
+  },
+  {
+    "id": "move-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.move({},1.5,2,1); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'move' (number has no integer representation)\n"
+  },
+  {
+    "id": "move-too-many",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.move({},-2147483648,0,1); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:41: Too many elements to move\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'move' (too many elements to move)\n"
+  },
+  {
+    "id": "move-destination-wrap",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.move({},1,2,2147483647); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:43: Destination wrap around\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #4 to 'move' (destination wrap around)\n"
+  },
+  {
+    "id": "move-empty-destination",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.move({},2,1,1,false); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #5 to 'move' (table expected, got boolean)\n"
+  },
+  {
+    "id": "move-empty-maximum",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={}; return tostring(rawequal(table.move(t,2,1,2147483647),t)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "true\n"
+  },
+  {
+    "id": "sort-empty-compare",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={}; table.sort(t,false); return tostring(select('#',table.sort(t))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "sort-invalid-compare",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.sort({1,2},false); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:135: Expected comparison function\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sort' (function expected, got boolean)\n"
+  },
+  {
+    "id": "sort-callable-compare",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.sort({1,2},setmetatable({}, {__call=function(a,b) return false end})); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:135: Expected comparison function\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sort' (function expected, got table)\n"
+  },
+  {
+    "id": "sort-inconsistent",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.sort({1,2,3,4,5},function() return true end); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:88: Invalid order function for sorting\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid order function for sorting\n"
+  },
+  {
+    "id": "sort-too-big",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.sort(setmetatable({}, {__len=function() return 2147483647 end})); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:134: Array too big\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'sort' (array too big)\n"
+  },
+  {
+    "id": "sort-descending",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={5,3,1,4,2,2}; table.sort(t,function(a,b) return a>b end); return table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "5,4,3,2,2,1\n"
+  },
+  {
+    "id": "sort-reentrant",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={4,1,3,2}; table.sort(t,function(a,b) local u={b,a}; table.sort(u); return a<b end); return table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1,2,3,4\n"
+  },
+  {
+    "id": "sort-string-metatable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={3,1,2}; local mt=getmetatable(''); mt.__len=true; mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.sort('abc'); return table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1,2,3\n"
+  },
+  {
+    "id": "concat-string-metatable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local mt=getmetatable(''); mt.__len=function() return 99 end; mt.__index=function(_,i) return i*2 end; return table.concat('abc',':') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:4:6\n"
+  },
+  {
+    "id": "move-string-metatable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={1,2}; local mt=getmetatable(''); mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.move('ab',1,2,2); return table.concat(values,':') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1:1:2\n"
+  },
+  {
+    "id": "sort-large-keeps-random-sequence",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() math.randomseed(17); local t={}; for i=1,31 do t[i]=(i*17)%31 end; table.sort(t); for i=2,#t do assert(t[i-1]<=t[i]) end; return #t..':'..t[1]..':'..t[#t]..':'..tostring(math.random()) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "31:0:30:0.50513732433319\n"
   }
 ]

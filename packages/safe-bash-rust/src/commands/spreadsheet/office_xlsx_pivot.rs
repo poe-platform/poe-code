@@ -1,7 +1,9 @@
 //! Read pivot definitions through OPC relationships, including caches outside xl/.
 //! Contracts and fixtures: ClosedXML 057f5976 (LICENSE.ClosedXML) and
 //! XlsxWriter 238e935a (LICENSE.XlsxWriter).
-use super::super::{PivotDataAxis, PivotFilter, PivotSource, PivotTable, PivotValue, model::Value};
+use super::super::{
+    PivotDataAxis, PivotFilter, PivotSource, PivotSubtotal, PivotTable, PivotValue, model::Value,
+};
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -308,6 +310,37 @@ pub(super) fn retain(
             if pivot_fields.len() != cache_fields.len() {
                 return Err("Invalid pivot field count".into());
             }
+            let mut subtotals = Vec::new();
+            for &field in rows.iter().chain(&columns) {
+                let definition = pivot_fields
+                    .get(field)
+                    .ok_or("Invalid pivot subtotal field")?;
+                let flag = |name, default| match attr(definition, name) {
+                    Some("1" | "true") => Ok(true),
+                    Some("0" | "false") => Ok(false),
+                    None => Ok(default),
+                    _ => Err("Invalid XLSX pivot subtotal flag"),
+                };
+                let mut aggregates = Vec::new();
+                for (name, attribute, _, _) in super::super::pivot::SUBTOTALS {
+                    if flag(attribute, name == "automatic")? {
+                        aggregates.push(name.into());
+                    }
+                }
+                if !aggregates.is_empty() {
+                    imported.remaining = imported
+                        .remaining
+                        .checked_sub(512)
+                        .ok_or("Pivot subtotals exceed limit")?;
+                    subtotals.push(PivotSubtotal {
+                        field,
+                        aggregates,
+                        // In Excel's tabular form, subtotals follow their details.
+                        at_top: flag("subtotalTop", true)?
+                            && (flag("outline", true)? || flag("compact", true)?),
+                    });
+                }
+            }
             let mut selections = BTreeMap::<usize, Option<BTreeSet<usize>>>::new();
             for (field, definition) in pivot_fields.iter().enumerate() {
                 let items = elements(&definition.children, "item");
@@ -429,6 +462,7 @@ pub(super) fn retain(
                 rows,
                 columns,
                 data_axis,
+                subtotals,
                 values,
                 filters,
                 row_totals: !matches!(attr(root, "rowGrandTotals"), Some("0" | "false")),
@@ -447,6 +481,22 @@ pub(super) fn retain(
             }
             // Existing Excel result cells are caches. Keep their appearance,
             // but recalculate their values from the persisted definition.
+            // Merged pivot labels are cached layout too. Retaining them as
+            // authored merges would obstruct the recalculated result.
+            imported.remaining = imported
+                .remaining
+                .checked_sub(imported.sheets[sheet].merges.len().saturating_mul(32))
+                .ok_or("Pivot result area exceeds limit")?;
+            imported.sheets[sheet]
+                .merges
+                .retain(|&[r, c, width, height]| {
+                    !(r >= location[0]
+                        && c >= location[1]
+                        && r <= location[2]
+                        && c <= location[3]
+                        && height <= location[2] - r + 1
+                        && width <= location[3] - c + 1)
+                });
             for (&(r, c), cell) in imported.sheets[sheet]
                 .cells
                 .range_mut((location[0], location[1])..=(location[2], location[3]))

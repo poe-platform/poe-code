@@ -63,6 +63,14 @@ pub struct PivotDataAxis {
 }
 
 #[derive(Clone)]
+pub struct PivotSubtotal {
+    pub field: usize,
+    /// "automatic" uses each value field's aggregate; otherwise use explicit aggregates.
+    pub aggregates: Vec<String>,
+    pub at_top: bool,
+}
+
+#[derive(Clone)]
 pub struct PivotTable {
     pub name: String,
     pub sheet: usize,
@@ -76,6 +84,7 @@ pub struct PivotTable {
     pub columns: Vec<usize>,
     pub values: Vec<PivotValue>,
     pub data_axis: Option<PivotDataAxis>,
+    pub subtotals: Vec<PivotSubtotal>,
     pub filters: Vec<PivotFilter>,
     pub row_totals: bool,
     pub column_totals: bool,
@@ -120,6 +129,22 @@ pub(super) fn aggregate(name: &str) -> Option<&'static str> {
         _ => return None,
     })
 }
+
+// OOXML field flags, item types, and captions. Count is COUNTA; countNums is COUNT.
+pub(super) const SUBTOTALS: [(&str, &str, &str, &str); 12] = [
+    ("automatic", "defaultSubtotal", "default", "Total"),
+    ("sum", "sumSubtotal", "sum", "Sum"),
+    ("count", "countASubtotal", "countA", "Count"),
+    ("average", "avgSubtotal", "avg", "Average"),
+    ("max", "maxSubtotal", "max", "Max"),
+    ("min", "minSubtotal", "min", "Min"),
+    ("product", "productSubtotal", "product", "Product"),
+    ("countNums", "countSubtotal", "count", "Count"),
+    ("stdDev", "stdDevSubtotal", "stdDev", "StdDev"),
+    ("stdDevp", "stdDevPSubtotal", "stdDevP", "StdDevp"),
+    ("var", "varSubtotal", "var", "Var"),
+    ("varp", "varPSubtotal", "varP", "Varp"),
+];
 
 impl Spreadsheet {
     pub(super) fn validate_pivots(&self, work: &mut usize) -> Result<(), String> {
@@ -170,6 +195,34 @@ impl Spreadsheet {
                     || !fields.insert(field)
                 {
                     return Err("Invalid or duplicate pivot field".into());
+                }
+            }
+            fields.clear();
+            for subtotal in &pivot.subtotals {
+                *work = work
+                    .checked_sub(128)
+                    .ok_or("Pivot subtotals exceed limit")?;
+                if !pivot.rows.contains(&subtotal.field) && !pivot.columns.contains(&subtotal.field)
+                    || !fields.insert(subtotal.field)
+                    || subtotal.aggregates.is_empty()
+                    || subtotal.aggregates.len() > 11
+                {
+                    return Err("Invalid pivot subtotal field".into());
+                }
+                let mut aggregates = BTreeSet::new();
+                for name in &subtotal.aggregates {
+                    *work = work
+                        .checked_sub(name.len() + 64)
+                        .ok_or("Pivot subtotals exceed limit")?;
+                    if !aggregates.insert(name)
+                        || if name == "automatic" {
+                            subtotal.aggregates.len() != 1
+                        } else {
+                            aggregate(name).is_none()
+                        }
+                    {
+                        return Err("Invalid pivot subtotal aggregate".into());
+                    }
                 }
             }
             fields.clear();
@@ -344,6 +397,14 @@ impl Spreadsheet {
                     pivot.filters.retain_mut(|filter| {
                         if let Some(f) = field(filter.field) {
                             filter.field = f;
+                            true
+                        } else {
+                            false
+                        }
+                    });
+                    pivot.subtotals.retain_mut(|subtotal| {
+                        if let Some(f) = field(subtotal.field) {
+                            subtotal.field = f;
                             true
                         } else {
                             false

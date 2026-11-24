@@ -184,6 +184,7 @@ fn deleting_an_unrelated_sheet_remaps_pivot_table_and_name_sources() {
         // Move the fixture's destination to Summary and its saved source to DataSheet.
         let definition = super::PivotTable {
             data_axis: None,
+            subtotals: Vec::new(),
             name: "Summary".into(),
             sheet: 2,
             row: 0,

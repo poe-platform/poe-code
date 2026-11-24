@@ -561,7 +561,7 @@ mod editor_database_tests;
 
 #[path = "spreadsheet/pivot.rs"]
 mod pivot;
-pub use pivot::{PivotDataAxis, PivotFilter, PivotSource, PivotTable, PivotValue};
+pub use pivot::{PivotDataAxis, PivotFilter, PivotSource, PivotSubtotal, PivotTable, PivotValue};
 
 #[cfg(test)]
 #[path = "spreadsheet/editor_pivot_tests.rs"]

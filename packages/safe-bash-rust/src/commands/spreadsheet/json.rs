@@ -2,8 +2,8 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFilter, PivotSource, PivotTable,
-    PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
+    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFilter, PivotSource, PivotSubtotal,
+    PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -261,9 +261,9 @@ impl Codec for &'static str {
             .ok_or_else(|| format!("Unknown workbook property: {key}"))
     }
 }
-macro_rules! structure {($t:ty {$($f:ident),*})=>{impl Codec for $t {
-    fn json(&self)->Json {object([$( (stringify!($f),self.$f.json()) ),*])}
-    fn read(v:&Json)->Result<Self>{if !matches!(v,Json::Object(_)){return Err("Expected workbook object".into())} Ok(Self {$($f:Codec::read(v.get(stringify!($f)).unwrap_or(&Json::Null))?),*})}
+macro_rules! structure {($t:ty {$($f:ident),* $(; $($d:ident = $default:expr),*)?})=>{impl Codec for $t {
+    fn json(&self)->Json {object([$( (stringify!($f),self.$f.json()) ),* $(,$((stringify!($d),self.$d.json())),*)?])}
+    fn read(v:&Json)->Result<Self>{if !matches!(v,Json::Object(_)){return Err("Expected workbook object".into())} Ok(Self {$($f:Codec::read(v.get(stringify!($f)).unwrap_or(&Json::Null))?),* $(,$($d:match v.get(stringify!($d)) {Some(value) => Codec::read(value)?, None => $default}),*)?})}
 }};}
 structure!(Style {
     attributes,
@@ -548,6 +548,11 @@ structure!(PivotValue {
     name
 });
 structure!(PivotDataAxis { rows, position });
+structure!(PivotSubtotal {
+    field,
+    aggregates,
+    at_top
+});
 structure!(PivotFilter { field, selected });
 structure!(PivotTable {
     name,
@@ -563,7 +568,8 @@ structure!(PivotTable {
     values,
     filters,
     row_totals,
-    column_totals
+    column_totals;
+    subtotals = Vec::new()
 });
 
 impl Codec for Workbook {

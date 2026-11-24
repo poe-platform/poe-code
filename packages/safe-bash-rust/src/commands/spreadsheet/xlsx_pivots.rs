@@ -126,10 +126,32 @@ pub(super) fn write(
             ""
         };
         let data = pivot.values.iter().any(|v| v.field == field);
+        let subtotal = pivot.subtotals.iter().find(|s| s.field == field);
         let mut attributes = format!(
-            r#" compact="0" outline="0" defaultSubtotal="0" showAll="0" dataField="{}""#,
+            r#" compact="0" outline="{}" defaultSubtotal="{}" showAll="0" dataField="{}""#,
+            u8::from(subtotal.is_some_and(|s| s.at_top)),
+            u8::from(subtotal.is_some_and(|s| s.aggregates.iter().any(|a| a == "automatic"))),
             u8::from(data)
         );
+        let mut subtotal_count = 0;
+        if let Some(subtotal) = subtotal {
+            write!(
+                attributes,
+                r#" subtotalTop="{}""#,
+                u8::from(subtotal.at_top)
+            )
+            .ok()?;
+            for aggregate in &subtotal.aggregates {
+                let (_, attribute, item, _) = super::super::pivot::SUBTOTALS
+                    .iter()
+                    .find(|s| s.0 == aggregate)?;
+                if aggregate != "automatic" {
+                    write!(attributes, r#" {attribute}="1""#).ok()?;
+                }
+                write!(items, r#"<item t="{item}"/>"#).ok()?;
+                subtotal_count += 1;
+            }
+        }
         if !axis.is_empty() {
             write!(attributes, r#" axis="{axis}""#).ok()?;
         }
@@ -138,13 +160,13 @@ pub(super) fn write(
         }
         if axis.is_empty() {
             write!(pivot_fields, "<pivotField{attributes}/>").ok()?;
-        } else if ordered.is_empty() {
+        } else if ordered.is_empty() && subtotal_count == 0 {
             write!(pivot_fields, "<pivotField{attributes}><items count=\"1\"><item t=\"default\"/></items></pivotField>").ok()?;
         } else {
             write!(
                 pivot_fields,
                 "<pivotField{attributes}><items count=\"{}\">{items}</items></pivotField>",
-                ordered.len()
+                ordered.len() + subtotal_count
             )
             .ok()?;
         }

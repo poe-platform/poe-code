@@ -1,3 +1,5 @@
+import "./qpdf-stream-recovery.wasm.test.mjs";
+
 import "./qpdf-attachments.wasm.test.mjs";
 
 import "./jbig2-truncation.wasm.test.mjs";
@@ -22666,33 +22668,6 @@ test("qpdf rejects malformed hint tables in show and check modes without changin
 });
 
 
-test("qpdf stream recovery matches native diagnostics, boundaries, and lazy inspection", async () => {
-  const {readFile}=await import("node:fs/promises");
-  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/stream-recovery.json",import.meta.url),"utf8"));
-  for(const [name,{pdf,reports,rewritten}] of Object.entries(cases)) {
-    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
-    try {
-      for(const [flags,want] of Object.entries(reports)) for(const zero of [false,true]) {
-        const result=await bash.exec(`qpdf in.pdf ${flags}${zero?" --warning-exit-0":""}`);
-        assert.deepEqual([result.exitCode,Buffer.from(result.stdoutBytes),result.stderr],
-          [zero&&want.status===3?0:want.status,Buffer.from(want.stdout,"base64"),want.stderr],`${name}/${flags}/${zero}`);
-      }
-      const measured=await bash.exec("qpdf in.pdf --show-object=4");
-      const limit=measured.stdoutBytes.length+Buffer.byteLength(measured.stderr);
-      assert.deepEqual(await bash.exec("qpdf in.pdf --show-object=4",{limits:{maxOutputBytes:limit}}),measured,name);
-      assert.equal((await bash.exec("qpdf in.pdf --show-object=4",{limits:{maxOutputBytes:limit-1}})).exitCode,2,name);
-      const written=await bash.exec("qpdf in.pdf --stream-data=uncompress out.pdf");
-      const page=await bash.exec("qpdf out.pdf --show-pages");
-      const stream=page.stdout.split("content:\n")[1].trim().split(" ")[0];
-      const output=await bash.exec(`qpdf out.pdf --show-object=${stream} --raw-stream-data`);
-      assert.deepEqual([output.exitCode,output.stderr,Buffer.from(output.stdoutBytes)],
-        [0,"",Buffer.from(rewritten.stream,"base64")],name);
-      assert.equal((await bash.exec(`qpdf out.pdf --show-object=${stream}`)).stdout,rewritten.dictionary,name);
-      assert.equal(written.exitCode,reports["--stream-data=uncompress out.pdf"].status);
-      assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
-    }finally{bash.dispose();}
-  }
-});
 
 
 async function qpdfDecodedObjects(bash, path) {

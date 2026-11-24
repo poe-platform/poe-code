@@ -51,6 +51,9 @@ async function test() {
     await shell.fs.writeFile("/environment.lua", "function Str(el) local function read(_ENV) return answer end; local env=setmetatable({}, {__index=function(t,k) return k=='answer' and 42 end}); return pandoc.Str(tostring(read(env))) end");
     const environment = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/environment.lua");
     if (environment.exitCode || environment.stderr || environment.stdout !== "42\n") throw new Error(JSON.stringify(environment));
+    await shell.fs.writeFile("/jumps.lua", "function Str(el) local seen={}; local i=0; ::again:: i=i+1; local x=(x or 0)+1; seen[i]=x; if i<2 then goto again end; return pandoc.Str(table.concat(seen,',')) end");
+    const jumps = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/jumps.lua");
+    if (jumps.exitCode || jumps.stderr || jumps.stdout !== "1,1\n") throw new Error(JSON.stringify(jumps));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

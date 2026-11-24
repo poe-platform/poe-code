@@ -339,6 +339,11 @@ impl Parser {
         self.expect(")")?;
         let body = self.block()?;
         self.expect("end")?;
+        if !validate_jumps(&body, false, true)?.is_empty() {
+            return Err(Error::unlocated(
+                "no visible label for goto or break outside loop",
+            ));
+        }
         Ok(Expr(line, Node::Function(names, vararg, body)))
     }
     fn table(&mut self) -> Result<Expr> {
@@ -620,6 +625,80 @@ impl Parser {
         }
     }
 }
+// Unresolved jumps leave a block at its entry scope. Each function validates
+// independently, so labels and loop exits never cross function boundaries.
+fn validate_jumps(body: &[Stmt], in_loop: bool, trailing: bool) -> Result<Vec<Vec<u8>>> {
+    let mut labels = HashMap::new();
+    let mut pending: Vec<(Vec<u8>, usize)> = Vec::new();
+    let mut active = 0;
+    let last = if trailing {
+        body.iter()
+            .rposition(|s| !matches!(s, Stmt::Label(_)))
+            .map_or(0, |i| i + 1)
+    } else {
+        body.len()
+    };
+    for (i, stmt) in body.iter().enumerate() {
+        let outgoing = match stmt {
+            Stmt::Local(names, _) => {
+                active += names.len();
+                Vec::new()
+            }
+            Stmt::LocalFunction(..) => {
+                active += 1;
+                Vec::new()
+            }
+            Stmt::Label(name) => {
+                let target = if i >= last { 0 } else { active };
+                if labels.insert(name.clone(), target).is_some() {
+                    return Err(Error::unlocated("label already defined in this block"));
+                }
+                if pending
+                    .iter()
+                    .any(|(n, count)| n == name && *count < target)
+                {
+                    return Err(Error::unlocated(
+                        "goto jumps into the scope of a local variable",
+                    ));
+                }
+                pending.retain(|(n, _)| n != name);
+                Vec::new()
+            }
+            Stmt::Goto(name) => vec![name.clone()],
+            Stmt::Break if !in_loop => {
+                return Err(Error::unlocated(
+                    "no visible label for goto or break outside loop",
+                ));
+            }
+            Stmt::Do(body) => validate_jumps(body, in_loop, true)?,
+            Stmt::While(_, body) | Stmt::For(_, _, _, _, body) | Stmt::ForIn(_, _, body) => {
+                validate_jumps(body, true, true)?
+            }
+            // Repeat conditions can still read body locals after the last label.
+            Stmt::Repeat(body, _) => validate_jumps(body, true, false)?,
+            Stmt::If(clauses) => {
+                let mut outgoing = Vec::new();
+                for (_, body) in clauses {
+                    outgoing.extend(validate_jumps(body, in_loop, true)?);
+                }
+                outgoing
+            }
+            _ => Vec::new(),
+        };
+        for name in outgoing {
+            if let Some(target) = labels.get(&name) {
+                if active < *target {
+                    return Err(Error::unlocated(
+                        "goto jumps into the scope of a local variable",
+                    ));
+                }
+            } else {
+                pending.push((name, active));
+            }
+        }
+    }
+    Ok(pending.into_iter().map(|(name, _)| name).collect())
+}
 pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
     let mut lexer = Lexer {
         source,
@@ -643,5 +722,10 @@ pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
     };
     let body = parser.block()?;
     parser.expect("eof")?;
+    if !validate_jumps(&body, false, true)?.is_empty() {
+        return Err(Error::unlocated(
+            "no visible label for goto or break outside loop",
+        ));
+    }
     Ok(body)
 }

@@ -662,6 +662,7 @@ impl Runtime {
     }
     fn block(&mut self, body: &[Stmt], mut env: usize) -> Result<Flow> {
         let mut pc = 0;
+        let mut label_environments = HashMap::new();
         while pc < body.len() {
             self.tick()?;
             let stmt = &body[pc];
@@ -842,7 +843,10 @@ impl Runtime {
                 Stmt::Return(values) => Flow::Return(self.eval_list(values, env)?),
                 Stmt::Break => Flow::Break,
                 Stmt::Goto(n) => Flow::Goto(n.clone()),
-                Stmt::Label(_) => Flow::Next(env),
+                Stmt::Label(_) => {
+                    label_environments.insert(pc - 1, env);
+                    Flow::Next(env)
+                }
             };
             match flow {
                 Flow::Next(_) => (),
@@ -851,7 +855,12 @@ impl Runtime {
                         .iter()
                         .position(|s| matches!(s,Stmt::Label(n) if n==name))
                     {
-                        pc = index + 1;
+                        if index < pc
+                            && let Some(target) = label_environments.get(&index)
+                        {
+                            env = *target;
+                        }
+                        pc = index;
                     } else {
                         return Ok(flow);
                     }

@@ -2781,5 +2781,235 @@
     "status": 4,
     "stderr": "E_AST: Expected Lua function\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to call a nil value (global 'absent')\n"
+  },
+  {
+    "id": "goto-backward-scope",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local seen={}; local i=0; ::again:: i=i+1; local x=(x or 0)+1; seen[i]=x; if i<2 then goto again end; return table.concat(seen,',') end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "1,1\n"
+  },
+  {
+    "id": "goto-forward-local",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() goto done; local x=7; ::done:: return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: goto jumps into the scope of a local variable\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <goto done> at line 1 jumps into the scope of local 'x'\n"
+  },
+  {
+    "id": "goto-unreachable-missing",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() if false then goto missing end; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: no visible label for goto or break outside loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: no visible label 'missing' for <goto> at line 1\n"
+  },
+  {
+    "id": "goto-unreachable-break",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() if false then break end; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: no visible label for goto or break outside loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <break> at line 1 not inside a loop\n"
+  },
+  {
+    "id": "goto-duplicate",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() ::same:: ::same:: return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: label already defined in this block\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: label 'same' already defined on line 1\n"
+  },
+  {
+    "id": "goto-inner-shadow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local x=1; ::same:: do goto same; ::same:: x=2 end; return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "goto-closed-upvalues",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local f={}; local i=0; ::again:: i=i+1; local x=i; f[i]=function() return x end; if i<2 then goto again end; return f[1](),f[2]() end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "1,2\n"
+  },
+  {
+    "id": "goto-trailing-label",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() goto done; local x=7; ::done:: end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "\n"
+  },
+  {
+    "id": "goto-nested-function",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() ::outer:: local function f() if false then goto outer end end; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: no visible label for goto or break outside loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: no visible label 'outer' for <goto> at line 1\n"
+  },
+  {
+    "id": "goto-repeat-local",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() repeat goto done; local x=1; ::done:: until true; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: goto jumps into the scope of a local variable\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <goto done> at line 1 jumps into the scope of local 'x'\n"
+  },
+  {
+    "id": "goto-repeat-visible",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local i=0; repeat i=i+1; local x=i; ::done:: until x==2; return i end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "goto-outer-local",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() do goto done end; local x=7; ::done:: return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: goto jumps into the scope of a local variable\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <goto done> at line 1 jumps into the scope of local 'x'\n"
+  },
+  {
+    "id": "goto-outer-exit",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local x=3; do local x=7; goto done end; ::done:: return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "3\n"
+  },
+  {
+    "id": "goto-sibling-label",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() do goto done end; do ::done:: end; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: no visible label for goto or break outside loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: no visible label 'done' for <goto> at line 1\n"
+  },
+  {
+    "id": "goto-function-break",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() while false do local f=function() break end end; return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: no visible label for goto or break outside loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <break> at line 1 not inside a loop\n"
+  },
+  {
+    "id": "goto-for-break",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local x=0; for i=1,3 do x=x+i; if i==2 then break end end; return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "3\n"
+  },
+  {
+    "id": "goto-while-break",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local i=0; while true do i=i+1; if i==2 then break end end; return i end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "goto-repeat-break",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local i=0; repeat i=i+1; if i==2 then break end until false; return i end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "goto-local-function-scope",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() goto done; local function f() end; ::done:: return 7 end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: goto jumps into the scope of a local variable\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <goto done> at line 1 jumps into the scope of local 'f'\n"
+  },
+  {
+    "id": "goto-forward-closures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local f={}; local i=0; ::again:: i=i+1; goto target; ::target:: local x=i; f[i]=function() return x end; if i<2 then goto again end; return f[1](),f[2]() end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "1,2\n"
+  },
+  {
+    "id": "goto-environment-scope",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local saved=_ENV; local i=0; ::again:: i=i+1; local _ENV={x=(_ENV==saved and 1 or 2)}; if i<2 then goto again end; return x end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "1\n"
+  },
+  {
+    "id": "goto-revisited-forward-label",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local f={}; local i=0; ::again:: i=i+1; local x=i; goto target; ::target:: f[i]=function() return x end; if i<2 then goto again end; return f[1](),f[2]() end return pandoc.Str(table.concat({result()},',')) end",
+    "status": 0,
+    "stdout": "1,2\n"
   }
 ]

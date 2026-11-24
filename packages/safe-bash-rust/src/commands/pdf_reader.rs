@@ -1057,7 +1057,7 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
 
 #[path = "pdf_metadata.rs"]
 mod pdf_metadata;
-pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
+pub(super) use pdf_metadata::{INFO_TAGS, edit_info, xml_metadata};
 
 pub(super) fn read(
     bytes: &[u8],
@@ -1072,6 +1072,10 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
     doc.version = header_version(bytes)?;
+    doc.metadata_stream = catalog
+        .get(b"Metadata")
+        .and_then(|node| objects.lookup_object(node))
+        .is_some_and(|(_, _, stream)| stream.is_some());
     if let Some(id_array @ Value::Array(ids)) = trailer.get(b"ID") {
         let mut encoded = Vec::new();
         pdf_rewrite::encode(id_array, &mut encoded).ok()?;

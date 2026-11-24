@@ -1,6 +1,33 @@
 use super::{Value, strict_index, last_xref, pdf_copy::literal, pdf_string::decode, uint};
 use std::io::Write;
 
+pub(in super::super) fn xml_metadata(bytes: &[u8], password: &str) -> Option<String> {
+    let (mut objects, trailer) = super::index(bytes, password, false).ok()?;
+    let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
+    let Some((Some(id), mut dict, Some(cursor))) = catalog
+        .get(b"Metadata")
+        .and_then(|node| objects.lookup_object(node))
+    else {
+        return Some(String::new());
+    };
+    let raw = objects.raw_stream(id, &mut dict, cursor)?;
+    let data = objects.decode(&dict, raw)?;
+    let end = data.iter().position(|&byte| byte == 0).unwrap_or(data.len());
+    let text = String::from_utf8_lossy(&data[..end]);
+    let mut out: String = text
+        .strip_prefix('\u{feff}')
+        .unwrap_or(&text)
+        .chars()
+        .map(|ch| match ch {
+            '\u{7}' | '\u{8}' | '\u{b}' | '\u{c}' | '\r' | '\u{e}' | '\u{f}'
+            | '\u{1b}' | '\u{7f}' => '?',
+            _ => ch,
+        })
+        .collect();
+    out.push('\n');
+    Some(out)
+}
+
 pub(in super::super) const INFO_TAGS: &[&str] = &[
     "Title",
     "Author",

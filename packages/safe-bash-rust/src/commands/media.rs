@@ -572,6 +572,7 @@ struct PdfDoc {
     pdf_id1: String,
     encrypted: Option<String>,
     linearized: bool,
+    metadata_stream: bool,
     page_w: f64,
     page_h: f64,
     direct_media: BTreeMap<usize, [f64; 4]>,
@@ -703,6 +704,7 @@ impl PdfDoc {
             pdf_id1: "00000000000000000000000000000000".to_string(),
             encrypted: None,
             linearized: false,
+            metadata_stream: false,
             page_w: 612.0,
             page_h: 792.0,
             direct_media: BTreeMap::new(),
@@ -9790,6 +9792,12 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         );
     }
     let fp = fp as usize;
+    if show_meta {
+        return match pdf_reader::xml_metadata(&b, supplied) {
+            Some(text) => ok_out(&text),
+            None => err_out("shell: line 1: internal error\n", 1),
+        };
+    }
     if show_url {
         let mut u_out = String::from("Page  Type          URL\n");
         let last = if last_p.is_none() { page_count } else { lp };
@@ -9900,7 +9908,11 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         "Custom Metadata:",
         if custom_map.is_empty() { "no" } else { "yes" }
     ));
-    out.push_str(&format!("{:<17}no\n", "Metadata Stream:"));
+    out.push_str(&format!(
+        "{:<17}{}\n",
+        "Metadata Stream:",
+        if doc.metadata_stream { "yes" } else { "no" }
+    ));
     out.push_str(&format!("{:<17}no\n", "Tagged:"));
     out.push_str(&format!("{:<17}no\n", "UserProperties:"));
     out.push_str(&format!("{:<17}no\n", "Suspects:"));
@@ -9984,7 +9996,6 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     ));
     out.push_str(&format!("{:<17}{}\n", "PDF version:", doc.version));
     let _ = (
-        show_meta,
         show_js,
         show_struct,
         show_struct_text,

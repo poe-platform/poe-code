@@ -8,6 +8,100 @@ fn numbers(values: &[u8]) -> Vec<Value> {
 }
 
 #[test]
+fn byte_default_end_uses_the_unclamped_start() {
+    for position in ["0", "-4", "-5", "-99", "4", "2147483647", "-2147483648"] {
+        assert!(run(&format!("return string.byte('abc',{position})")).is_empty());
+    }
+    assert_eq!(run("return string.byte('abc',0,2)"), numbers(b"ab"));
+    assert_eq!(run("return string.byte('abc',-99,-1)"), numbers(b"abc"));
+    assert_eq!(run("return string.byte('abc',-1)"), numbers(b"c"));
+}
+
+#[test]
+fn optional_string_arguments_accept_explicit_nil() {
+    assert_eq!(run("return string.byte('abc',nil)"), numbers(b"a"));
+    assert_eq!(run("return string.byte('abc',2,nil)"), numbers(b"b"));
+    assert_eq!(
+        run("return string.sub('abc',2,nil),string.rep('ab',2,nil)"),
+        vec![Value::String("bc".into()), Value::String("abab".into())]
+    );
+}
+
+#[test]
+fn string_positions_and_repetition_counts_require_32_bit_integers() {
+    for call in [
+        "string.sub('abc',1.5)",
+        "string.sub('abc',1,1.5)",
+        "string.byte('abc',1.5)",
+        "string.byte('abc',1,1.5)",
+        "string.rep('abc',1.5)",
+        "string.byte('abc',2147483648)",
+        "string.sub('abc',-2147483649)",
+        "string.rep('abc',0/0)",
+    ] {
+        assert_eq!(
+            Runtime::new(100_000)
+                .run(call, "bytes.lua")
+                .unwrap_err()
+                .to_string(),
+            "Number has no integer representation",
+            "{call}"
+        );
+    }
+    assert_eq!(
+        run("return string.sub(1234,'2','3'),string.rep(12,'2',7),string.byte(1234,'2')"),
+        vec![
+            Value::String("23".into()),
+            Value::String("12712".into()),
+            Value::Integer(50)
+        ]
+    );
+}
+
+#[test]
+fn string_arguments_are_validated_before_empty_results() {
+    for (call, error) in [
+        ("string.sub('abc')", "Expected Lua number"),
+        ("string.byte('abc',false)", "Expected Lua number"),
+        ("string.rep('abc',false)", "Expected Lua number"),
+        (
+            "string.rep('abc',-1,true)",
+            "Expected Lua string or number for concatenation",
+        ),
+        (
+            "string.sub(false,2,1)",
+            "Expected Lua string or number for concatenation",
+        ),
+    ] {
+        assert_eq!(
+            Runtime::new(100_000)
+                .run(call, "bytes.lua")
+                .unwrap_err()
+                .to_string(),
+            error,
+            "{call}"
+        );
+    }
+}
+
+#[test]
+fn repetition_checks_combined_length_and_shortcuts_empty_output() {
+    for source in [
+        "return string.rep('ab',1073741824)",
+        "return string.rep('x',2147483647,':')",
+    ] {
+        assert_eq!(
+            Runtime::new(100_000)
+                .run(source, "bytes.lua")
+                .unwrap_err()
+                .to_string(),
+            "Resulting string too large"
+        );
+    }
+    assert_eq!(Runtime::new(100_000).run("return string.rep('',2147483647),string.rep('',1,':'),string.rep('x',-2147483648,':')", "bytes.lua").unwrap(), vec![Value::String(Vec::new());3]);
+}
+
+#[test]
 fn characters_and_escapes_preserve_every_byte() {
     assert_eq!(
         run("local s=string.char(0,128,255,65); return #s,s:byte(1,-1)"),

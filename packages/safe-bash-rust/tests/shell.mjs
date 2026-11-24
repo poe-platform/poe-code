@@ -54,6 +54,9 @@ async function test() {
     await shell.fs.writeFile("/jumps.lua", "function Str(el) local seen={}; local i=0; ::again:: i=i+1; local x=(x or 0)+1; seen[i]=x; if i<2 then goto again end; return pandoc.Str(table.concat(seen,',')) end");
     const jumps = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/jumps.lua");
     if (jumps.exitCode || jumps.stderr || jumps.stdout !== "1,1\n") throw new Error(JSON.stringify(jumps));
+    await shell.fs.writeFile("/string-positions.lua", "function Str(el) return pandoc.Str(table.concat({select('#',string.byte('abc',0)),string.byte('abc',nil),string.sub('abc',2,nil),string.rep('ab',2,nil)},':')) end");
+    const positions = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/string-positions.lua");
+    if (positions.exitCode || positions.stderr || positions.stdout !== "0:97:bc:abab\n") throw new Error(JSON.stringify(positions));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

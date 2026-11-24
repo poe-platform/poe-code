@@ -3282,5 +3282,465 @@
     "script": "local function probe() local t={1,2,3,4}; return table.remove(t,2)..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
     "status": 0,
     "stdout": "2:1,3,4\n"
+  },
+  {
+    "id": "byte-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',string.byte('abc',0))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "byte-negative-past-start",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',string.byte('abc',-99))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "byte-nil-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',nil)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "97\n"
+  },
+  {
+    "id": "byte-nil-ending",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',2,nil)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "98\n"
+  },
+  {
+    "id": "sub-nil-ending",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',2,nil) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "bc\n"
+  },
+  {
+    "id": "rep-nil-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('ab',2,nil) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "abab\n"
+  },
+  {
+    "id": "sub-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',1.5) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sub' (number has no integer representation)\n"
+  },
+  {
+    "id": "byte-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',1.5)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'byte' (number has no integer representation)\n"
+  },
+  {
+    "id": "rep-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('abc',1.5) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'rep' (number has no integer representation)\n"
+  },
+  {
+    "id": "rep-negative-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('abc',-1,true) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'rep' (string expected, got boolean)\n"
+  },
+  {
+    "id": "byte-integer-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',string.byte('abc',2147483648))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'byte' (number has no integer representation)\n"
+  },
+  {
+    "id": "byte-near-before-start",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',string.byte('abc',-5))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "byte-zero-through-two",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte('abc',0,2)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "97,98\n"
+  },
+  {
+    "id": "byte-whole-negative",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte('abc',-99,-1)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "97,98,99\n"
+  },
+  {
+    "id": "byte-last",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',-1)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "99\n"
+  },
+  {
+    "id": "byte-minimum-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(select('#',string.byte('abc',-2147483648))) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "byte-nil-through-two",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte('abc',nil,2)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "97,98\n"
+  },
+  {
+    "id": "byte-number-subject",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte(1234,'2')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50\n"
+  },
+  {
+    "id": "byte-binary-range",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte(string.char(0,128,255),0,-1)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0,128,255\n"
+  },
+  {
+    "id": "byte-end-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',1,1.5)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'byte' (number has no integer representation)\n"
+  },
+  {
+    "id": "byte-bool-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',false)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'byte' (number expected, got boolean)\n"
+  },
+  {
+    "id": "byte-invalid-subject",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte(false,3,1)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'byte' (string expected, got boolean)\n"
+  },
+  {
+    "id": "byte-end-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(string.byte('abc',1,2147483648)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'byte' (number has no integer representation)\n"
+  },
+  {
+    "id": "sub-nil-start",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',nil) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sub' (number expected, got nil)\n"
+  },
+  {
+    "id": "sub-no-start",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sub' (number expected, got no value)\n"
+  },
+  {
+    "id": "sub-number-subject",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub(1234,'2','3') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "23\n"
+  },
+  {
+    "id": "sub-end-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',1,1.5) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'sub' (number has no integer representation)\n"
+  },
+  {
+    "id": "sub-minimum-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',-2147483648) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "abc\n"
+  },
+  {
+    "id": "sub-overflow-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub('abc',-2147483649) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'sub' (number has no integer representation)\n"
+  },
+  {
+    "id": "sub-binary-range",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte(string.sub(string.char(0,128,255),2,nil),1,-1)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "128,255\n"
+  },
+  {
+    "id": "sub-empty-range",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(#string.sub('abc',3,1)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "sub-invalid-subject",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.sub(false,3,1) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'sub' (string expected, got boolean)\n"
+  },
+  {
+    "id": "rep-zero-invalid-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('abc',0,true) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #3 to 'rep' (string expected, got boolean)\n"
+  },
+  {
+    "id": "rep-invalid-count",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('abc',false) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'rep' (number expected, got boolean)\n"
+  },
+  {
+    "id": "rep-invalid-subject",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep(false,0) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua string or number for concatenation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'rep' (string expected, got boolean)\n"
+  },
+  {
+    "id": "rep-empty-large-count",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(#string.rep('',100001)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "rep-empty-once-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(#string.rep('',1,':')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "rep-empty-with-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('',3,':') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "::\n"
+  },
+  {
+    "id": "rep-negative-with-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(#string.rep('a',-2147483648,':')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0\n"
+  },
+  {
+    "id": "rep-numeric-values",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep(12,'2',7) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "12712\n"
+  },
+  {
+    "id": "rep-binary-values",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return table.concat({string.byte(string.rep(string.char(0,255),2,string.char(128)),1,-1)},',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0,255,128,0,255\n"
+  },
+  {
+    "id": "rep-overflow-size",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('ab',1073741824) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Resulting string too large\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: resulting string too large\n"
+  },
+  {
+    "id": "rep-overflow-with-separator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('x',2147483647,':') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Resulting string too large\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: resulting string too large\n"
+  },
+  {
+    "id": "rep-nan-count",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return string.rep('x',0/0) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'rep' (number has no integer representation)\n"
   }
 ]

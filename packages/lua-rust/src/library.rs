@@ -307,50 +307,66 @@ impl Runtime {
             "string.upper" => Value::String(s(0)?.to_ascii_uppercase()),
             "string.lower" => Value::String(s(0)?.to_ascii_lowercase()),
             "string.len" => Value::Integer(s(0)?.len() as i32),
-            "string.sub" => {
-                let text = s(0)?;
-                let start = position(n(1)? as isize, text.len()).max(1) as usize;
-                let end = position(if args.len() > 2 { n(2)? as isize } else { -1 }, text.len())
-                    .min(text.len() as isize)
-                    .max(0) as usize;
-                Value::String(text.get(start - 1..end).unwrap_or_default().to_vec())
-            }
-            "string.rep" => {
-                let text = s(0)?;
-                let count = n(1)?.max(0.0) as usize;
-                let sep = if args.len() > 2 { s(2)? } else { Vec::new() };
-                let mut result = Vec::new();
-                for i in 0..count {
-                    self.tick()?;
-                    if i > 0 {
-                        result.extend_from_slice(&sep)
+            "string.sub" | "string.byte" | "string.rep" => {
+                let string = |i| {
+                    s(i).map_err(|_| {
+                        Error::unlocated("Expected Lua string or number for concatenation")
+                    })
+                };
+                let integer = |i| {
+                    let number = n(i).map_err(|_| Error::unlocated("Expected Lua number"))?;
+                    numbers::integral(number).map_err(|error| Error::unlocated(error.message))
+                };
+                let text = string(0)?;
+                if name == "string.rep" {
+                    let count = integer(1)?.max(0) as usize;
+                    let sep = if a(2) == Value::Nil {
+                        Vec::new()
+                    } else {
+                        string(2)?
+                    };
+                    if count == 0 {
+                        return Ok(vec![Value::String(Vec::new())]);
                     }
-                    result.extend_from_slice(&text);
+                    if (text.len() as u64 + sep.len() as u64) * count as u64 > i32::MAX as u64 {
+                        return Err(Error::unlocated("Resulting string too large"));
+                    }
+                    if text.is_empty() && (sep.is_empty() || count == 1) {
+                        return Ok(vec![Value::String(Vec::new())]);
+                    }
+                    let mut result = Vec::new();
+                    for i in 0..count {
+                        self.tick()?;
+                        if i > 0 {
+                            result.extend_from_slice(&sep);
+                        }
+                        result.extend_from_slice(&text);
+                    }
+                    Value::String(result)
+                } else {
+                    let start = if name == "string.byte" && a(1) == Value::Nil {
+                        1
+                    } else {
+                        integer(1)?
+                    };
+                    let requested = position(start as isize, text.len()).max(0);
+                    let end = if a(2) != Value::Nil {
+                        integer(2)? as isize
+                    } else if name == "string.byte" {
+                        requested
+                    } else {
+                        -1
+                    };
+                    let end = position(end, text.len()).clamp(0, text.len() as isize) as usize;
+                    let start = requested.max(1) as usize - 1;
+                    let bytes = text.get(start..end).unwrap_or_default();
+                    if name == "string.byte" {
+                        return Ok(bytes.iter().map(|b| Value::Integer(*b as i32)).collect());
+                    }
+                    Value::String(bytes.to_vec())
                 }
-                Value::String(result)
             }
             "string.reverse" => Value::String(s(0)?.into_iter().rev().collect()),
-            "string.byte" => {
-                let text = s(0)?;
-                let start = position(if args.len() > 1 { n(1)? as isize } else { 1 }, text.len())
-                    .max(1) as usize;
-                let end = position(
-                    if args.len() > 2 {
-                        n(2)? as isize
-                    } else {
-                        start as isize
-                    },
-                    text.len(),
-                )
-                .min(text.len() as isize)
-                .max(0) as usize;
-                return Ok(text
-                    .get(start - 1..end)
-                    .unwrap_or_default()
-                    .iter()
-                    .map(|b| Value::Integer(*b as i32))
-                    .collect());
-            }
             "string.char" => {
                 let bytes = args
                     .iter()

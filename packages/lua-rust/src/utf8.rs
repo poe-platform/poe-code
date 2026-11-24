@@ -1,4 +1,4 @@
-use crate::{Error, Result, Runtime, Value};
+use crate::{Error, Result, Runtime, Value, numbers};
 
 fn continuation(bytes: &[u8], position: usize) -> bool {
     bytes.get(position).is_some_and(|byte| byte & 0xc0 == 0x80)
@@ -54,11 +54,12 @@ impl Runtime {
             {
                 return Ok(default);
             }
-            let number = value.number()?;
-            if !number.is_finite() || number.fract() != 0.0 {
-                return Err(Error::new("number has no integer representation"));
-            }
-            Ok(number as isize)
+            let number = value
+                .number()
+                .map_err(|_| Error::unlocated("Expected Lua number"))?;
+            numbers::integral(number)
+                .map(|value| value as isize)
+                .map_err(|error| Error::unlocated(error.message))
         };
         if name == "utf8.char" {
             let mut bytes = Vec::new();
@@ -66,7 +67,7 @@ impl Runtime {
                 self.tick()?;
                 let code = argument(index, None)?;
                 if !(0..=0x10ffff).contains(&code) {
-                    return Err(Error::new("Value out of range"));
+                    return Err(Error::unlocated("Value out of range"));
                 }
                 let code = code as u32;
                 encode(code, &mut bytes);
@@ -76,7 +77,11 @@ impl Runtime {
         let text = match args.first() {
             Some(Value::String(bytes)) => bytes.clone(),
             Some(value @ (Value::Integer(_) | Value::Number(_))) => value.bytes(),
-            _ => return Err(Error::new("string expected")),
+            _ => {
+                return Err(Error::unlocated(
+                    "Expected Lua string or number for concatenation",
+                ));
+            }
         };
         let relative = |position: isize| {
             if position < 0 {
@@ -106,9 +111,9 @@ impl Runtime {
                 return Ok(Vec::new());
             }
             let (code, next) =
-                decode(&text, position).ok_or_else(|| Error::new("Invalid UTF-8 code"))?;
+                decode(&text, position).ok_or_else(|| Error::unlocated("Invalid UTF-8 code"))?;
             if continuation(&text, next) {
-                return Err(Error::new("Invalid UTF-8 code"));
+                return Err(Error::unlocated("Invalid UTF-8 code"));
             }
             return Ok(vec![
                 Value::Integer((position + 1) as i32),
@@ -126,7 +131,7 @@ impl Runtime {
                 }),
             )?) - 1;
             if start < 0 || start > text.len() as isize {
-                return Err(Error::new("Position out of range"));
+                return Err(Error::unlocated("Position out of range"));
             }
             let mut position = start as usize;
             if count == 0 {
@@ -136,7 +141,7 @@ impl Runtime {
                 }
             } else {
                 if continuation(&text, position) {
-                    return Err(Error::new("Initial position is a continuation byte"));
+                    return Err(Error::unlocated("Initial position is a continuation byte"));
                 }
                 if count < 0 {
                     while count < 0 && position > 0 {
@@ -173,10 +178,10 @@ impl Runtime {
             Some(if name == "utf8.len" { -1 } else { start + 1 }),
         )?);
         if start < 0 || name == "utf8.len" && start > text.len() as isize {
-            return Err(Error::new("Initial position out of string"));
+            return Err(Error::unlocated("Initial position out of string"));
         }
         if end > text.len() as isize {
-            return Err(Error::new("Final position out of string"));
+            return Err(Error::unlocated("Final position out of string"));
         }
         let mut position = start as usize;
         let mut count = 0;
@@ -187,7 +192,7 @@ impl Runtime {
                 return if name == "utf8.len" {
                     Ok(vec![Value::Nil, Value::Integer((position + 1) as i32)])
                 } else {
-                    Err(Error::new("Invalid UTF-8 code"))
+                    Err(Error::unlocated("Invalid UTF-8 code"))
                 };
             };
             if name == "utf8.codepoint" {

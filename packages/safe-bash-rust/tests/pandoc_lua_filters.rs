@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/utf8_validation.rs"]
+mod lua_utf8_validation;
 #[path = "../../lua-rust/tests/lexer.rs"]
 mod lua_lexer;
 #[path = "../../lua-rust/tests/dump.rs"]

@@ -111,6 +111,12 @@ async function test() {
       const error = await shell.exec(`printf hello | pandoc -f markdown -t plain -L '${path}' -o /base.saved`);
       if (error.exitCode !== 9 || error.stdout || error.stderr !== "E_IO: Capability failed\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
     }
+    await shell.fs.writeFile("/utf8.lua", "function Str(el) local f,s=utf8.codes('abc');local k,v=f(s,2147483648);return pandoc.Str(k..':'..v..':'..utf8.len(123)) end");
+    const utf8 = await shell.exec("printf a | pandoc -f markdown -t plain -L /utf8.lua");
+    if (utf8.exitCode || utf8.stderr || utf8.stdout !== "1:97:3\n") throw new Error(JSON.stringify(utf8));
+    await shell.fs.writeFile("/utf8.lua", "function Str(el) return pandoc.Str(utf8.char(2147483648)) end");
+    const utf8Error = await shell.exec("printf a | pandoc -f markdown -t plain -L /utf8.lua -o /base.saved");
+    if (utf8Error.exitCode !== 4 || utf8Error.stdout || utf8Error.stderr !== "E_AST: Number has no integer representation\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(utf8Error));
     await shell.fs.writeFile("/lexer.lua", "--comment\rfunction Str(el) local s='\\u{41}'..[[\r\nx\r\ny]]..'a\\z\u000bb';return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end");
     const lexed = await shell.exec("printf a | pandoc -f markdown -t plain -L /lexer.lua");
     if (lexed.exitCode || lexed.stderr || lexed.stdout !== "41780a796162\n") throw new Error(JSON.stringify(lexed));

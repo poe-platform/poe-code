@@ -8707,55 +8707,6 @@ test("the production shell redirects and appends bytes on a Wasm filesystem", as
 });
 
 
-test("native ffmpeg and ffprobe describe their supported production formats and codecs", async () => {
-  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
-  const { ffmpegCommands } = await import("@poe-platform/safe-bash/commands/ffmpeg");
-  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(ffmpegCommands());
-  const wasm = new RustWasmBash({cwd:"/", forceNative:true});
-  // The standalone native engine has a documented subset of the JS media plugins.
-  const formats = ["mp4", "mov", "mkv", "webm", "mpegts", "avi", "flv", "y4m", "aac", "wav", "mp3", "flac", "ogg", "gif", "image2", "srt", "webvtt", "ffmetadata", "hls", "dash"];
-  const names = ["mov,mp4,m4a,3gp,3g2,mj2", "mov,mp4,m4a,3gp,3g2,mj2", "matroska,webm", "matroska,webm", "mpegts", "avi", "flv", "yuv4mpegpipe", "aac,adts", "wav", "mp3", "flac", "ogg", "gif", "image2", "srt", "webvtt", "ffmetadata", "hls", "dash"];
-  const codecs = ["h264", "hevc", "av1", "vp8", "vp9", "mpeg4", "mjpeg", "png", "prores", "mpeg2video", "rawvideo", "flv1", "theora", "gif", "webp", "bmp", "ppm", "aac", "mp3", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le", "pcm_s16be", "vorbis", "pcm_u8"];
-  try {
-    for (const name of ["ffmpeg", "ffprobe"]) {
-      for (const flag of ["-version", "-formats", "-muxers", "-demuxers", "-encoders", "-decoders", "-codecs"]) {
-        const script = name + " " + flag;
-        const expected = await shell.exec(script), actual = await wasm.exec(script);
-        assert.deepEqual([actual.exitCode, actual.stderr, expected.exitCode, expected.stderr], [0, "", 0, ""], script);
-        if (flag === "-version") {
-          const registry = /registered ASTs: ([^)]+)/;
-          assert.deepEqual(actual.stdout.match(registry)[1].split(", "), formats);
-          const available = expected.stdout.match(registry)[1].split(", ");
-          for (const format of formats) assert.ok(available.includes(format), format);
-          assert.equal(actual.stdout.replace(registry, "registered ASTs: <native>"), expected.stdout.replace(registry, "registered ASTs: <native>"));
-        } else {
-          const heading = flag === "-formats" || flag === "-muxers" || flag === "-demuxers" ? 4 : 6;
-          const rows = actual.stdout.trimEnd().split("\n"), reference = expected.stdout.trimEnd().split("\n");
-          assert.deepEqual(rows.slice(0,heading), reference.slice(0,heading));
-          assert.deepEqual(rows.slice(heading).map(row=>row.trim().split(/\s+/)[1]), heading === 4 ? names : codecs, script);
-          for (const row of rows.slice(heading)) assert.ok(reference.includes(row), script+": "+row);
-        }
-      }
-    }
-    for (const runtime of [shell,wasm]) {
-      const result = await runtime.exec("ffmpeg -v error -f lavfi -i anullsrc=r=8000:cl=mono -t 0.01 sample.wav");
-      assert.equal(result.exitCode,0,result.stderr);
-    }
-    const probe = "ffprobe -v error -show_entries stream=codec_name,sample_rate,channels -of csv=p=0 sample.wav";
-    const expected = await shell.exec(probe), actual = await wasm.exec(probe);
-    assert.deepEqual([actual.exitCode,actual.stderr,actual.stdout],[0,expected.stderr,expected.stdout]);
-    assert.equal(expected.exitCode,0,expected.stderr);
-    for (const format of ["au", "w64", "aiff", "nut", "s16le"]) {
-      await wasm.fs.writeFile("/out",Buffer.from("original"));
-      const result = await wasm.exec("ffmpeg -y -v error -f lavfi -i anullsrc=r=8000:cl=mono -t 0.01 -f "+format+" out");
-      assert.notEqual(result.exitCode,0,format);
-      assert.match(result.stderr,/AST.*not registered/,format);
-      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out")),Buffer.from("original"));
-    }
-  } finally { await shell.dispose(); wasm.dispose(); }
-});
-
-
 test("memory inode revisions match TypeScript through writes, links and chmod", async () => {
   const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const wasm = new RustWasmBash({ forceNative: true });

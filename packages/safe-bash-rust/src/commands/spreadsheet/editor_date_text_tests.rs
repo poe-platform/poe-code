@@ -259,3 +259,67 @@ fn separator_space_scanning_and_date_text_spills_are_bounded() {
         assert_eq!(book.to_json(), saved);
     }
 }
+
+#[test]
+fn editor_datetime_input_preserves_calendar_values_and_literal_text() {
+    use super::model::Value;
+    for date1904 in [false, true] {
+        let mut book = Spreadsheet::new();
+        book.options.date1904 = date1904;
+        for (row, (input, display, seconds)) in [
+            ("2026-12-31 23:30", "2026-12-31 23:30", 84600.),
+            ("2026-12-31T23:30:15", "2026-12-31 23:30:15", 84615.),
+            (
+                "2026-12-31 23:30:15.125",
+                "2026-12-31 23:30:15.125",
+                84615.125,
+            ),
+            ("2026-12-31 00:00", "2026-12-31 00:00", 0.),
+        ]
+        .iter()
+        .enumerate()
+        {
+            book.edit(&[(0, row, 0, input)], 1_000_000).unwrap();
+            let cell = book.cell(0, row, 0).unwrap();
+            let Some(Value::Number(n)) = &cell.value else {
+                panic!("{input} must be numeric");
+            };
+            assert!(
+                (n - (46387. - if date1904 { 1462. } else { 0. } + seconds / 86400.)).abs() < 1e-10
+            );
+            assert_eq!(book.display(0, row, 0, 1_000_000).unwrap(), *display);
+            let literal = format!("'{input}");
+            book.edit(&[(0, row, 2, &literal)], 1_000_000).unwrap();
+            assert_eq!(book.input(0, row, 2), literal);
+            let replay = book.input(0, row, 2);
+            book.edit(&[(0, row, 2, &replay)], 1_000_000).unwrap();
+            assert!(
+                matches!(&book.cell(0, row, 2).unwrap().value, Some(Value::Text(text)) if text == input)
+            );
+        }
+        book.edit(
+            &[(0, 0, 1, r#"=TEXT(A1+1.5/24,"yyyy-mm-dd hh:mm")"#)],
+            1_000_000,
+        )
+        .unwrap();
+        assert_eq!(
+            book.display(0, 0, 1, 1_000_000).unwrap(),
+            "2027-01-01 01:00"
+        );
+        for input in [
+            "2026-02-30 23:30",
+            "2026-12-31 23:70",
+            "2026-12-31T23:30Z",
+            "2026-12-31",
+            "23:30",
+            "2",
+        ] {
+            book.edit(&[(0, 5, 0, input)], 1_000_000).unwrap();
+            if input.contains(' ') || input.ends_with('Z') || input == "23:30" {
+                assert!(
+                    matches!(&book.cell(0, 5, 0).unwrap().value, Some(Value::Text(text)) if text == input)
+                );
+            }
+        }
+    }
+}

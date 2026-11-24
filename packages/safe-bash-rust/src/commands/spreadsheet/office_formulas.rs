@@ -28,7 +28,7 @@ mod convert;
 #[path = "office_formula_date_difference.rs"]
 pub(super) mod date_difference;
 #[path = "office_formula_date_text.rs"]
-mod date_text;
+pub(super) mod date_text;
 #[path = "office_formula_dynamic_functions.rs"]
 mod dynamic_functions;
 #[path = "office_formula_expand.rs"]

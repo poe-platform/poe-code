@@ -30,7 +30,7 @@ pub(super) fn calculate(
 
 // Callers charge two input lengths before this scan and its normalization buffer.
 // Keep the time separate from the day so TIMEVALUE retains fractional precision.
-pub(super) fn parse(source: &str, date1904: bool) -> Option<(i64, f64)> {
+pub(in crate::commands::spreadsheet) fn parse(source: &str, date1904: bool) -> Option<(i64, f64)> {
     let mut text = String::with_capacity(source.len());
     let mut space = false;
     for c in source.trim().chars() {

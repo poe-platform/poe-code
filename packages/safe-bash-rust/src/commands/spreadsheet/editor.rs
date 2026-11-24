@@ -1,6 +1,17 @@
 use super::{csv, date_serial, decimal, formulas, model, valid_sheet_name};
 use std::collections::BTreeMap;
 
+// Restrict automatic input conversion to the ISO dates already accepted by
+// the editor. Reuse DATEVALUE/TIMEVALUE parsing for the attached clock and epoch.
+fn datetime_input(text: &str, date1904: bool) -> Option<f64> {
+    date_serial(text.get(..10)?)?;
+    if !matches!(text.as_bytes().get(10), Some(b' ' | b'T' | b't')) {
+        return None;
+    }
+    let (day, time) = formulas::date_text::parse(text, date1904)?;
+    Some(day as f64 + time)
+}
+
 // IronCalc model::formula_without_prefix (f936620, MIT; LICENSE.IronCalc).
 // Use the editor's supported numeric forms. Share classification with input()
 // so editing a stored text cell cannot silently turn it into a formula.
@@ -13,6 +24,7 @@ fn formula_source(text: &str) -> Option<&str> {
         || decimal(rest).is_some()
         || rest.strip_suffix('%').and_then(decimal).is_some()
         || date_serial(rest).is_some()
+        || datetime_input(rest, false).is_some()
     {
         None
     } else {
@@ -235,7 +247,24 @@ impl Spreadsheet {
                             n as f64 - if self.options.date1904 { 1462. } else { 0. },
                         )
                     } else {
-                        model::Value::Text(text.into())
+                        remaining = remaining
+                            .checked_sub(trimmed.len().saturating_mul(2))
+                            .ok_or("Edit exceeds calculation limit")?;
+                        if let Some(n) = datetime_input(trimmed, self.options.date1904) {
+                            cell.format = Some(
+                                if trimmed.contains('.') {
+                                    "yyyy-mm-dd hh:mm:ss.000"
+                                } else if trimmed.bytes().filter(|&b| b == b':').count() > 1 {
+                                    "yyyy-mm-dd hh:mm:ss"
+                                } else {
+                                    "yyyy-mm-dd hh:mm"
+                                }
+                                .into(),
+                            );
+                            model::Value::Number(n)
+                        } else {
+                            model::Value::Text(text.into())
+                        }
                     },
                 );
             }
@@ -482,6 +511,7 @@ impl Spreadsheet {
                     || decimal(trimmed).is_some()
                     || trimmed.strip_suffix('%').and_then(decimal).is_some()
                     || date_serial(trimmed).is_some()
+                    || datetime_input(trimmed, self.options.date1904).is_some()
                 {
                     format!("'{text}")
                 } else {

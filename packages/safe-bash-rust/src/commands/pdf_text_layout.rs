@@ -282,7 +282,10 @@ impl<'a> Resources<'a> {
                     }
                 }
                 let encoding = dict.get(b"Encoding").and_then(|v| objects.resolve(v));
-                let extractable = dict.get(b"ToUnicode").is_none()
+                let unicode = dict.get(b"ToUnicode").and_then(Value::reference)
+                    .and_then(|id| objects.decoded_stream(id))
+                    .and_then(|bytes| pdf_unicode::read(&bytes, &mut objects.tokens, &mut objects.remaining_bytes));
+                let extractable = unicode.is_some() || dict.get(b"ToUnicode").is_none()
                     && encoding.as_ref().is_none_or(|v| v.word() == Some(b"/WinAnsiEncoding"))
                     && !matches!(family, b"Symbol" | b"ZapfDingbats");
                 let name = Rc::from(String::from_utf8_lossy(family).as_ref());
@@ -294,7 +297,7 @@ impl<'a> Resources<'a> {
                         start,
                         widths,
                         cid_widths: None,
-                        unicode: None,
+                        unicode,
                     });
                 if let Some(id)=id {fonts.insert(id,Rc::clone(&font));}
                 self.fonts.insert(key,font);

@@ -304,14 +304,8 @@ for (const runtime of ["TypeScript", "Rust"])
       dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: font }) }));
       page.setRawContentStream("BT /F1 12 Tf 20 100 Td (A) Tj ET");
       const result = await run(runtime, doc.save(), "-bbox");
-      if (runtime === "TypeScript") {
-        assert.equal(result.exitCode, 0, result.stderr);
-        assert.equal(boxes(result.stdout).find((row) => row.tag === "word").text, "Ω");
-      } else {
-        assert.notEqual(result.exitCode, 0);
-        assert.equal(result.stdout, "");
-        assert.match(result.stderr, /unsupported font encoding/);
-      }
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(boxes(result.stdout).find((row) => row.tag === "word").text, "Ω");
     }
   );
 

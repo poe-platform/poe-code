@@ -149,6 +149,7 @@ pub(super) fn recover<'a>(
     }
     let trailer = selected.unwrap_or_else(|| Value::Dict(Vec::new()));
     objects.authenticate(&trailer, password)?;
+    objects.recovered_trailer = Some(trailer.clone());
     let Value::Dict(mut trailer) = trailer else { return Err(INVALID); };
     for container in packed {
         let Some(stream) = objects.object_stream(container) else {

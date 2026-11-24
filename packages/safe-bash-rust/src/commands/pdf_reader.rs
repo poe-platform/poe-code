@@ -507,7 +507,7 @@ struct Objects<'a> {
     tokens: usize,
     remaining_bytes: usize,
     preserve_hex: bool,
-    recovered_xref: bool,
+    recovered_trailer: Option<Value<'a>>,
     recovered_objects: BTreeSet<usize>,
     recovered_streams: BTreeSet<usize>,
 }
@@ -524,7 +524,7 @@ impl<'a> Objects<'a> {
             tokens: 1_000_000,
             remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
             preserve_hex: false,
-            recovered_xref: false,
+            recovered_trailer: None,
             recovered_objects: BTreeSet::new(),
             recovered_streams: BTreeSet::new(),
         }
@@ -933,8 +933,7 @@ fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>)
             return Err(NO_ROOT);
         }
     }
-    let (mut objects, trailer) = pdf_repair::recover(bytes, password)?;
-    objects.recovered_xref = true;
+    let (objects, trailer) = pdf_repair::recover(bytes, password)?;
     trailer
         .get(b"Root")
         .and_then(Value::reference)
@@ -968,7 +967,7 @@ pub(super) fn recovery_warnings(bytes: &[u8], password: &str) -> Vec<String> {
         }
     }
     let mut warnings = Vec::new();
-    if objects.recovered_xref {
+    if objects.recovered_trailer.is_some() {
         warnings.push("Damaged cross-reference data; reconstructing cross-reference table".into());
     }
     warnings.extend(

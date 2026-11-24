@@ -1,0 +1,266 @@
+[
+  {
+    "corpus": "strict-catalogs",
+    "name": "missing",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "invalidType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "missingType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "size",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgMTIgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementMissing",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "incrementRoot",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1ByZXYgMTQ1IC9Sb290IDEgMCBSIC9TaXplIDQgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "strict-catalogs",
+    "name": "indirectType",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNSA+Pgo=",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "revised.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "packed.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "inline",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "zero-pages",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-no-root",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "latest-trailer-empty-root",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "invalid-root-type",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "catalog-without-trailer",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "xref-stream",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0ZpbHRlciAvRmxhdGVEZWNvZGUgL0luZm8gMyAwIFIgL0xlbmd0aCA1NCAvUm9vdCAxIDAgUiAvU2l6ZSAxMiAvVHlwZSAvWFJlZiAvVyBbIDEgNCAyIF0gPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "no-trailer-valid-pages",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "same-line-header",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1Jvb3QgMSAwIFIgL1NpemUgNCA+Pgo=",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "prefixed.pdf",
+    "flags": "--show-object=trailer",
+    "status": 0,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": ""
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "partial.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL1ByZXYgOTExIC9TaXplIDg5ID4+Cg==",
+    "stderr": "WARNING: in.pdf: Recovered object 8 from damaged cross-reference data\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "missing-root.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgID4+Cg==",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  },
+  {
+    "corpus": "recovered-catalogs",
+    "name": "bad-pointer.pdf",
+    "flags": "--show-object=trailer",
+    "status": 3,
+    "stdout": "PDwgL0luZm8gMyAwIFIgL1Jvb3QgMSAwIFIgL1NpemUgMTAgPj4K",
+    "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n",
+    "buffered": {
+      "status": 3,
+      "stdout": "bnVsbAo=",
+      "stderr": "WARNING: in.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"
+    }
+  }
+]

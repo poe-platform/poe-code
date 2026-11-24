@@ -140,7 +140,7 @@ impl<'a> PageSource<'a> {
             } else {
                 "not linearized"
             };
-            let clean = if self.objects.recovered_xref || !self.objects.recovered_objects.is_empty() || !self.objects.recovered_streams.is_empty() { "" }
+            let clean = if self.objects.recovered_trailer.is_some() || !self.objects.recovered_objects.is_empty() || !self.objects.recovered_streams.is_empty() { "" }
                 else { "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n" };
             return Some(format!(
                 "checking {input}\nPDF Version: {version}\n{}File is {state}\n{clean}", self.encryption_description()
@@ -159,12 +159,12 @@ impl<'a> PageSource<'a> {
             // The merged security/catalog trailer omits xref-stream fields.
             // Inspection exposes the actual latest revision dictionary.
             let bytes = self.objects.bytes;
-            let original = if self.objects.recovered_xref { None } else {
+            let original = self.objects.recovered_trailer.clone().or_else(|| {
                 super::super::last_xref(bytes).and_then(|offset| {
                     let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
                     self.objects.xref_revision(offset.checked_add(header)?, &mut |_, _| {})
                 })
-            };
+            });
             let mut text = String::new();
             display(original.as_ref().unwrap_or(&self.trailer), &mut text);
             text.push('\n');
@@ -218,7 +218,7 @@ impl<'a> PageSource<'a> {
             match self.objects.xref[&id].0 {
                 super::super::Location::File(offset) => writeln!(out,
                     "{}/{}: uncompressed; offset = {}", id.0, id.1, offset.checked_sub(header)?).ok()?,
-                super::super::Location::Member { .. } if self.objects.recovered_xref => {
+                super::super::Location::Member { .. } if self.objects.recovered_trailer.is_some() => {
                     let kind = match &node {
                         Value::Dict(_) => "dict", Value::Array(_) => "array",
                         Value::String { .. } => "string", Value::Ref(_) => "ref",

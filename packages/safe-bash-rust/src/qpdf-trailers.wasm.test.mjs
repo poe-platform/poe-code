@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import test from "node:test";
+import {createRustWasmBash} from "./index.js";
+
+const fixtures = JSON.parse(readFileSync(new URL("../tests/fixtures/qpdf-trailer-parity.json", import.meta.url), "utf8"));
+for (const fixture of fixtures) test(`qpdf trailer inspection matches JavaScript: ${fixture.corpus}/${fixture.name}`, async () => {
+  const {cases} = JSON.parse(readFileSync(new URL(`../tests/fixtures/${fixture.corpus}.json`, import.meta.url), "utf8"));
+  const bytes = Buffer.from(cases[fixture.name].pdf, "base64");
+  const shell = await createRustWasmBash({forceNative: true, cwd: "/", files: {"/in.pdf": bytes}});
+  try {
+    const result = await shell.exec(`qpdf in.pdf ${fixture.flags}`);
+    assert.deepEqual([result.exitCode, result.stderr, Buffer.from(result.stdoutBytes)],
+      [fixture.status, fixture.stderr, Buffer.from(fixture.stdout, "base64")]);
+    assert.deepEqual(await shell.fs.readFile("/in.pdf"), new Uint8Array(bytes));
+  } finally {await shell.dispose();}
+});

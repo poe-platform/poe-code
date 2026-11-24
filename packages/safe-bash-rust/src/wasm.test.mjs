@@ -1,3 +1,5 @@
+import "./qpdf-trailers.wasm.test.mjs";
+
 import "./qpdf-stream-recovery.wasm.test.mjs";
 
 import "./qpdf-attachments.wasm.test.mjs";

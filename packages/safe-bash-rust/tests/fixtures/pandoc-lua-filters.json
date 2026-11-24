@@ -4398,5 +4398,420 @@
     "status": 4,
     "stderr": "E_AST: Cannot compare Lua values\n",
     "bufferedStderr": "E_AST: attempt to compare nil with number\n"
+  },
+  {
+    "id": "next-deleted-cursor",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=2};local k=next(t);t[k]=nil;local n,v=next(t,k);return tostring(n)..':'..tostring(v) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "b:2\n"
+  },
+  {
+    "id": "next-delete-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=2,c=3};local n=0;for k in pairs(t) do t[k]=nil;n=n+1 end;return n..':'..tostring(next(t)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "3:nil\n"
+  },
+  {
+    "id": "next-reinsert-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=2};t.a=nil;t.a=3;local k,v=next(t);return k..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "a:3\n",
+    "bufferedStdout": "b:2\n"
+  },
+  {
+    "id": "next-unknown-key",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next({a=1},'missing')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Invalid key to next\n",
+    "bufferedStderr": "E_AST: invalid key to 'next'\n"
+  },
+  {
+    "id": "next-nil-assignment",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1};t.b=nil;return tostring(next(t,'b')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Invalid key to next\n",
+    "bufferedStderr": "E_AST: invalid key to 'next'\n"
+  },
+  {
+    "id": "key-float-tag",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[1.0]='a'};local k=next(t);return math.type(k)..':'..t[k] end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "float:a\n",
+    "bufferedStdout": "integer:a\n"
+  },
+  {
+    "id": "key-float-overwrite",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[1.0]='a'};t[1]='b';local k=next(t);return math.type(k)..':'..t[k] end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "float:b\n",
+    "bufferedStdout": "integer:b\n"
+  },
+  {
+    "id": "key-negative-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[-0.0]='a'};local k=next(t);return math.type(k)..':'..tostring(k)..':'..t[0] end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "float:0.0:a\n",
+    "bufferedStdout": "integer:0:a\n"
+  },
+  {
+    "id": "next-skips-deleted-successors",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=2,c=3,d=4};t.a=nil;t.b=nil;t.c=nil;local k,v=next(t,'a');return k..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "d:4\n"
+  },
+  {
+    "id": "next-deleted-end",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1};t.a=nil;return tostring(next(t,'a'))..':'..select('#',next(t,'a')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "nil:1\n"
+  },
+  {
+    "id": "next-removed-end",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3};table.remove(t);return tostring(next(t,3)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2\n"
+  },
+  {
+    "id": "next-raw-delete-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=false};rawset(t,'a',nil);local k,v=next(t,'a');return k..':'..tostring(v) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "b:false\n"
+  },
+  {
+    "id": "next-reinsert-float-key",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[1.0]='a',b=2};t[1]=nil;t[1]='c';local k,v=next(t);return math.type(k)..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "float:c\n",
+    "bufferedStatus": 4,
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to concatenate a nil value\n"
+  },
+  {
+    "id": "next-reinsert-and-append",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={a=1,b=2};t.a=nil;t.c=3;t.a=4;local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "a,b,c\n",
+    "bufferedStdout": "b,c,a\n"
+  },
+  {
+    "id": "next-missing-argument",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next()) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Value expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'next' (table expected, got no value)\n"
+  },
+  {
+    "id": "next-nil-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next(nil)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'next' (table expected, got nil)\n"
+  },
+  {
+    "id": "next-false-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next(false)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'next' (table expected, got boolean)\n"
+  },
+  {
+    "id": "next-string-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next('x')) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'next' (table expected, got string)\n"
+  },
+  {
+    "id": "next-nan-cursor",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() return tostring(next({},0/0)) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Invalid key to next\n",
+    "bufferedStderr": "E_AST: table index is NaN\n"
+  },
+  {
+    "id": "next-custom-pairs",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t=setmetatable({a=1,b=2},{__index=function() error('unexpected indexing') end,__pairs=function(t) return next,t,'a' end});t.a=nil;local k,v;for key,value in pairs(t) do k,v=key,value end;return k..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "b:2\n"
+  },
+  {
+    "id": "next-numeric-delete-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={};for i=1,15 do t[i]=i end;local count,sum=0,0;for k,v in pairs(t) do t[k]=nil;count=count+1;sum=sum+v end;return count..':'..sum..':'..tostring(next(t))..':'..rawlen(t) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "15:120:nil:0\n"
+  },
+  {
+    "id": "next-integer-float-cursor",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[1.0]='a',b=2};t[1]=nil;local k,v=next(t,1);return k..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "b:2\n"
+  },
+  {
+    "id": "next-deleted-table-key",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local k={};local t={[k]=1,b=2};t[k]=nil;local n,v=next(t,k);return n..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "b:2\n"
+  },
+  {
+    "id": "next-deleted-cursor-newindex",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local calls=0;local t=setmetatable({a=1},{__newindex=function(t,k,v) calls=calls+1;rawset(t,k,v) end});t.a=nil;t.a=2;return calls..':'..t.a end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1:2\n"
+  },
+  {
+    "id": "next-delete-pandoc-attributes",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local attrs={a='1',b='2',c='3'};for key in pairs(attrs) do attrs[key]=nil end;return pandoc.Span({el},pandoc.Attr('',{},attrs)) end",
+    "status": 0,
+    "stdout": "a\n"
+  },
+  {
+    "id": "next-delete-pandoc-metadata",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Meta(meta) meta.a=pandoc.MetaString('x');meta.b=pandoc.MetaString('y');for key in pairs(meta) do meta[key]=nil end;return meta end;function Pandoc(doc) return pandoc.Pandoc({pandoc.Para({pandoc.Str(tostring(next(doc.meta)))})},doc.meta) end",
+    "status": 0,
+    "stdout": "nil\n"
+  },
+  {
+    "id": "next-constructor-overwrite",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={10,[1]=20};return tostring(t[1]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "10\n"
+  },
+  {
+    "id": "next-constructor-nil-overwrite",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={10,[1]=nil};return tostring(t[1]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "10\n"
+  },
+  {
+    "id": "next-constructor-mixed-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={10,a=1,20,b=2};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "a,b,2,1\n"
+  },
+  {
+    "id": "next-constructor-key-type",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[1.0]=20,10};local k,v=next(t);return math.type(k)..':'..v end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "float:10\n",
+    "bufferedStdout": "integer:10\n"
+  },
+  {
+    "id": "next-constructor-evaluation-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local calls={};local function mark(x) calls[#calls+1]=x;return x end;local t={mark('first'),[mark('key')]=mark('value'),mark('last')};return table.concat(calls,',')..':'..t[1]..':'..t[2] end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "first,key,value,last:first:last\n"
+  },
+  {
+    "id": "next-constructor-batch-49-tail",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,tail()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "52,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1\n"
+  },
+  {
+    "id": "next-constructor-batch-49-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,empty()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1\n"
+  },
+  {
+    "id": "next-constructor-batch-49-marker",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,marker='x'};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "marker,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1\n"
+  },
+  {
+    "id": "next-constructor-batch-50-tail",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,tail()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,53,51\n"
+  },
+  {
+    "id": "next-constructor-batch-50-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,empty()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1\n"
+  },
+  {
+    "id": "next-constructor-batch-50-marker",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,marker='x'};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,marker\n"
+  },
+  {
+    "id": "next-constructor-batch-51-tail",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,tail()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,54,52,51\n"
+  },
+  {
+    "id": "next-constructor-batch-51-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,empty()};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,51\n"
+  },
+  {
+    "id": "next-constructor-batch-51-marker",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local function tail() return 7,nil,9 end;local function empty() end;local t={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,marker='x'};local keys={};for k in pairs(t) do keys[#keys+1]=k end;return table.concat(keys,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,marker,51\n"
   }
 ]

@@ -63,6 +63,9 @@ async function test() {
     await shell.fs.writeFile("/lengths.lua", "function Str(el) local t={1,2,nil,4}; local n=rawlen(t); table.insert(t,5); local wide={}; for i=0,32 do wide[2.0^i]=true end; return pandoc.Str(n..':'..#t..':'..t[5]..':'..rawlen(wide)) end");
     const lengths = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/lengths.lua");
     if (lengths.exitCode || lengths.stderr || lengths.stdout !== "4:5:5:0\n") throw new Error(JSON.stringify(lengths));
+    await shell.fs.writeFile("/iteration.lua", "function Str(el) local t={a=1,b=2,c=3}; local sum=0; for k,v in pairs(t) do t[k]=nil; sum=sum+v end; local done=next(t); t.a=4; local key,value=next(t); local array={10,[1]=20}; return pandoc.Str(sum..':'..tostring(done)..':'..key..':'..value..':'..array[1]) end");
+    const iteration = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/iteration.lua");
+    if (iteration.exitCode || iteration.stderr || iteration.stdout !== "6:nil:a:4:10\n") throw new Error(JSON.stringify(iteration));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

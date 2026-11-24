@@ -213,11 +213,9 @@ impl Runtime {
         }
         let entries = &mut self.tables[*n].entries;
         if let Some(i) = entries.iter().position(|(k, _)| k == &key) {
-            if value == Value::Nil {
-                entries.remove(i);
-            } else {
-                entries[i].1 = value;
-            }
+            // Keep deleted keys so next can resume after them and reinsertion
+            // retains the streaming heap's original key and iteration order.
+            entries[i].1 = value;
         } else if value != Value::Nil {
             entries.push((key, value));
         }
@@ -225,7 +223,12 @@ impl Runtime {
     }
     pub fn entries(&self, table: &Value) -> Result<Vec<(Value, Value)>> {
         if let Value::Table(n) = table {
-            Ok(self.tables[*n].entries.clone())
+            Ok(self.tables[*n]
+                .entries
+                .iter()
+                .filter(|(_, value)| *value != Value::Nil)
+                .cloned()
+                .collect())
         } else {
             Err(Error::new("table expected"))
         }
@@ -463,6 +466,7 @@ impl Runtime {
                 Node::Table(fields) => {
                     let table = self.table();
                     let mut index = 1;
+                    let mut pending = Vec::new();
                     for (i, (key, e)) in fields.iter().enumerate() {
                         if let Some(key) = key {
                             let key = self.one(key, env)?;
@@ -470,15 +474,20 @@ impl Runtime {
                             self.raw_set(&table, key, value)?;
                         } else {
                             let values = self.eval(e, env)?;
-                            let values = if i + 1 == fields.len() {
-                                values
+                            if i + 1 == fields.len() {
+                                pending.extend(values);
                             } else {
-                                vec![first(values)]
-                            };
-                            for value in values {
-                                self.raw_set(&table, Value::Integer(index), value)?;
-                                index += 1;
+                                pending.push(first(values));
                             }
+                        }
+                        // SETLIST writes each batch backwards, after intervening
+                        // keyed fields. A final call can supply an open batch.
+                        if pending.len() == 50 || i + 1 == fields.len() {
+                            let count = pending.len();
+                            for (offset, value) in pending.drain(..).enumerate().rev() {
+                                self.raw_set(&table, Value::Integer(index + offset as i32), value)?;
+                            }
+                            index += count as i32;
                         }
                     }
                     table

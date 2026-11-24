@@ -288,18 +288,27 @@ impl Runtime {
                 });
             }
             "next" => {
-                let entries = self.entries(&a(0))?;
-                let offset = if a(1) == Value::Nil {
+                if args.is_empty() {
+                    return Err(Error::unlocated("Value expected"));
+                }
+                let Value::Table(table) = a(0) else {
+                    return Err(Error::unlocated("Expected Lua table"));
+                };
+                let entries = &self.tables[table].entries;
+                let after = a(1);
+                let offset = if after == Value::Nil {
                     0
                 } else {
                     entries
                         .iter()
-                        .position(|(k, _)| k == &a(1))
-                        .ok_or_else(|| Error::new("invalid key to 'next'"))?
+                        .position(|(k, _)| k == &after)
+                        .ok_or_else(|| Error::unlocated("Invalid key to next"))?
                         + 1
                 };
                 return Ok(entries
-                    .get(offset)
+                    .iter()
+                    .skip(offset)
+                    .find(|(_, value)| *value != Value::Nil)
                     .map(|(k, v)| vec![k.clone(), v.clone()])
                     .unwrap_or_else(|| vec![Value::Nil]));
             }

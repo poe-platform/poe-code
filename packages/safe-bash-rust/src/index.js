@@ -556,6 +556,9 @@ function bindExternalFs(shell,fs,options) {
           return;
         }
         const h=handles.get(flags);
+        if(op==="nextInput"){
+          result=await h.next(mode);return;
+        }
         if(op==="close"){
           handles.delete(flags);
           try{await h.close();}catch(e){closeErrors.push(e);if(mode)throw e;}
@@ -612,6 +615,44 @@ function bindExternalFs(shell,fs,options) {
         if(op==="canLink"){
           const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
           result=Uint8Array.of(Number(caps?.hardlinks===true && typeof fs.link==="function"));return;
+        }
+        if(op==="openInput"){
+          const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
+          const source=(async function*(){
+            if(typeof fs.readStream==="function" && caps?.streamingRead!==false){
+              yield* fs.readStream(path,{...settings,chunkSize:mode});
+            }else if(typeof fs.openReadFile==="function" && caps?.retainedRead===true){
+              const file=await fs.openReadFile(path,settings);
+              try{
+                let position=0;
+                for(;;){
+                  const chunk=await file.read(position,mode,settings);
+                  if(!(chunk instanceof Uint8Array) || chunk.length>mode)throw fsOperationError("EIO","read",path);
+                  if(!chunk.length)return;
+                  position+=chunk.length;yield chunk;
+                }
+              }finally{await file.close();}
+            }else yield await fs.readFile(path,{...settings,maxBytes:flags});
+          })();
+          let chunk=new Uint8Array(),at=0;
+          const id=nextHandle++;
+          handles.set(id,{
+            async next(maximum){
+              let empty=0;
+              while(at===chunk.length){
+                settings.signal?.throwIfAborted();
+                const item=await source.next();
+                if(item.done)return new Uint8Array();
+                if(!(item.value instanceof Uint8Array))throw fsOperationError("EIO","readStream",path);
+                chunk=item.value;at=0;
+                if(!chunk.length && ++empty===1024){await new Promise(resolve=>setTimeout(resolve,0));empty=0;}
+              }
+              const end=Math.min(chunk.length,at+maximum),part=chunk.subarray(at,end);
+              at=end;return part;
+            },
+            close:source.return.bind(source),
+          });
+          result=new Uint8Array(4);new DataView(result.buffer).setUint32(0,id,true);return;
         }
         if(op==="canOpen" || op==="open" || op==="openReadFile"){
           const creation=flags===4?"exclusive":flags===0||mode===0xffffffff?"never":"ifMissing";

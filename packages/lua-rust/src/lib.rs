@@ -139,7 +139,6 @@ enum Flow {
 }
 enum Target {
     Cell(usize),
-    Global(Vec<u8>),
     Index(Value, Value),
 }
 pub struct Runtime {
@@ -148,6 +147,7 @@ pub struct Runtime {
     environments: Vec<Environment>,
     cells: Vec<Value>,
     globals: Value,
+    environment_cell: usize,
     string_meta: Value,
     source: String,
     steps: usize,
@@ -162,6 +162,7 @@ impl Runtime {
             environments: Vec::new(),
             cells: Vec::new(),
             globals: Value::Nil,
+            environment_cell: 0,
             string_meta: Value::Nil,
             source: String::new(),
             steps: usize::MAX,
@@ -169,7 +170,12 @@ impl Runtime {
             random_state: RandomState::new().hash_one(0u8) as i32,
         };
         vm.globals = vm.table();
+        vm.cells.push(vm.globals.clone());
         vm.install();
+        // Installed libraries keep their environment; user/bootstrap chunks
+        // share a separate cell, as in the existing streaming Lua engine.
+        vm.environment_cell = vm.cells.len();
+        vm.cells.push(vm.globals.clone());
         vm.steps = max_steps;
         vm
     }
@@ -253,10 +259,7 @@ impl Runtime {
                     return if matches!(table, Value::Table(_)) {
                         Ok(Value::Nil)
                     } else {
-                        Err(Error::new(format!(
-                            "attempt to index a {} value",
-                            table.kind()
-                        )))
+                        Err(Error::unlocated("Expected Lua table for indexing"))
                     };
                 }
                 Value::Function(_) | Value::Native(_) => {
@@ -265,7 +268,7 @@ impl Runtime {
                 _ => table = index,
             }
         }
-        Err(Error::new("'__index' chain too long; possible loop"))
+        Err(Error::unlocated("'__index' chain too long; possible loop"))
     }
     fn set(&mut self, mut table: Value, key: Value, value: Value) -> Result<()> {
         for _ in 0..2000 {
@@ -277,7 +280,7 @@ impl Runtime {
                 return self.raw_set(&table, key, value);
             }
             match setter {
-                Value::Nil => return Err(Error::new("Expected Lua table for assignment")),
+                Value::Nil => return Err(Error::unlocated("Expected Lua table for assignment")),
                 Value::Function(_) | Value::Native(_) => {
                     self.call(setter, vec![table, key, value])?;
                     return Ok(());
@@ -285,7 +288,9 @@ impl Runtime {
                 _ => table = setter,
             }
         }
-        Err(Error::new("'__newindex' chain too long; possible loop"))
+        Err(Error::unlocated(
+            "'__newindex' chain too long; possible loop",
+        ))
     }
     fn length(&self, value: &Value) -> Result<usize> {
         match value {
@@ -323,15 +328,20 @@ impl Runtime {
             env = e.parent?;
         }
     }
-    fn variable(&self, env: usize, name: &[u8]) -> Value {
-        self.lookup(env, name)
-            .map(|c| self.cells[c].clone())
-            .unwrap_or_else(|| self.raw_get(&self.globals, &Value::String(name.to_vec())))
+    fn variable(&mut self, env: usize, name: &[u8]) -> Result<Value> {
+        if let Some(cell) = self.lookup(env, name) {
+            return Ok(self.cells[cell].clone());
+        }
+        let environment = self.variable(env, b"_ENV")?;
+        self.get(&environment, &Value::String(name.to_vec()))
     }
     pub fn run(&mut self, source: impl AsRef<[u8]>, path: &str) -> Result<Vec<Value>> {
         let body = syntax::parse(source.as_ref())?;
         let old = std::mem::replace(&mut self.source, path.into());
         let env = self.env(None, Some(Vec::new()));
+        self.environments[env]
+            .bindings
+            .insert(b"_ENV".to_vec(), self.environment_cell);
         let result = self.block(&body, env).and_then(|flow| match flow {
             Flow::Return(v) => Ok(v),
             Flow::Next(_) => Ok(Vec::new()),
@@ -380,10 +390,7 @@ impl Runtime {
             _ => {
                 let callback = self.meta(&function, "__call");
                 if !matches!(callback, Value::Function(_) | Value::Native(_)) {
-                    return Err(Error::new(format!(
-                        "attempt to call a {} value",
-                        function.kind()
-                    )));
+                    return Err(Error::unlocated("Expected Lua function"));
                 }
                 args.insert(0, function);
                 self.call(callback, args)
@@ -412,7 +419,7 @@ impl Runtime {
         let result = (|| {
             let value = match &expr.1 {
                 Node::Literal(v) => v.clone(),
-                Node::Name(n) => self.variable(env, n),
+                Node::Name(n) => self.variable(env, n)?,
                 Node::Vararg => {
                     let mut e = env;
                     loop {
@@ -647,7 +654,7 @@ impl Runtime {
             Node::Name(n) => Ok(if let Some(c) = self.lookup(env, n) {
                 Target::Cell(c)
             } else {
-                Target::Global(n.clone())
+                Target::Index(self.variable(env, b"_ENV")?, Value::String(n.clone()))
             }),
             Node::Index(base, key) => Ok(Target::Index(self.one(base, env)?, self.one(key, env)?)),
             _ => Err(Error::new("Invalid assignment target")),
@@ -670,9 +677,6 @@ impl Runtime {
                         let value = values.get(i).cloned().unwrap_or_default();
                         match t {
                             Target::Cell(c) => self.cells[c] = value,
-                            Target::Global(n) => {
-                                self.raw_set(&self.globals.clone(), Value::String(n), value)?
-                            }
                             Target::Index(t, k) => self.set(t, k, value)?,
                         }
                     }

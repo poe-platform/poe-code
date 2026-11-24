@@ -3,7 +3,7 @@ import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {createPandocCommand} from "./command.js";
 
-const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string | number[]; status: number; stdout?: string; bufferedStdout?: string; stderr?: string; bufferedStderr?: string}[];
+const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string | number[]; status: number; bufferedStatus?: number; stdout?: string; bufferedStdout?: string; stderr?: string; bufferedStderr?: string}[];
 
 it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
   const fs = new MemoryFileSystem();
@@ -20,9 +20,10 @@ it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
       stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}},
       stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
     });
-    expect(result.exitCode, stderr).toBe(fixture.status);
+    const status = (output.length > 0 ? fixture.bufferedStatus : undefined) ?? fixture.status;
+    expect(result.exitCode, stderr).toBe(status);
     expect(stderr).toBe((output.length > 0 ? fixture.bufferedStderr : undefined) ?? fixture.stderr ?? "");
-    expect(stdout).toBe(fixture.status === 0 && output.length === 0 ? (fixture.stdout ?? "A\n") : "");
-    expect(new TextDecoder().decode(await fs.readFile("/saved"))).toBe(fixture.status === 0 && output.length > 0 ? (fixture.bufferedStdout ?? fixture.stdout ?? "A\n") : "KEEP");
+    expect(stdout).toBe(status === 0 && output.length === 0 ? (fixture.stdout ?? "A\n") : "");
+    expect(new TextDecoder().decode(await fs.readFile("/saved"))).toBe(status === 0 && output.length > 0 ? (fixture.bufferedStdout ?? fixture.stdout ?? "A\n") : "KEEP");
   }
 });

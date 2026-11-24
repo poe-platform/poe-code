@@ -2610,5 +2610,176 @@
     "status": 4,
     "stderr": "E_AST: Expected Lua number\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'random' (number expected, got nil)\n"
+  },
+  {
+    "id": "env-root",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() return tostring(_ENV==_G) end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "true\n"
+  },
+  {
+    "id": "env-read",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local _ENV={x=7}; return x end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "env-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local t={}; do local _ENV=t; x=9 end; return t.x end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "9\n"
+  },
+  {
+    "id": "env-closure",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local original=_ENV; local f=function() return x end; local _ENV={x=12}; local g=function() return x end; original.x=4; return f(),g() end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "4,12\n"
+  },
+  {
+    "id": "env-replace",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() _ENV={x=8}; return x end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua function\n",
+    "bufferedStatus": 0,
+    "bufferedStderr": "",
+    "bufferedStdout": "8\n"
+  },
+  {
+    "id": "env-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local env={}; setmetatable(env,{__index=function(t,k) return k==\"x\" and 42 end}); local _ENV=env; return x end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "42\n"
+  },
+  {
+    "id": "env-global-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() setmetatable(_G,{__index=function(t,k) return k==\"missing\" and 42 end}); return missing end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "42\n"
+  },
+  {
+    "id": "env-global-newindex",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local t={}; setmetatable(_G,{__newindex=function(_,k,v) t[k]=v*2 end}); missing=7; return t.missing,tostring(rawget(_G,\"missing\")==nil) end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "14,true\n"
+  },
+  {
+    "id": "env-parameter",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local function f(_ENV) return x end; return f({x=9}) end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "9\n"
+  },
+  {
+    "id": "env-target-capture",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local first,second={},{}; local _ENV=first; _ENV,x=second,7; return first.x,second.x==nil and \"nil\" end return makeStr(concat({result()},',')) end",
+    "status": 0,
+    "stdout": "7,nil\n"
+  },
+  {
+    "id": "env-string-library",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local format=string.format; _ENV={}; return format(\"%s\",42) end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua function\n",
+    "bufferedStatus": 0,
+    "bufferedStderr": "",
+    "bufferedStdout": "42\n"
+  },
+  {
+    "id": "env-nil-read",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local _ENV=nil; return missing end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table for indexing\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to index a nil value (local '_ENV')\n"
+  },
+  {
+    "id": "env-nil-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local _ENV=nil; missing=7 end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table for assignment\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to index a nil value (local '_ENV')\n"
+  },
+  {
+    "id": "env-index-cycle",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local e={}; setmetatable(e,{__index=e}); local _ENV=e; return missing end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: '__index' chain too long; possible loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: '__index' chain too long; possible loop\n"
+  },
+  {
+    "id": "env-newindex-cycle",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local e={}; setmetatable(e,{__newindex=e}); local _ENV=e; missing=7 end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: '__newindex' chain too long; possible loop\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: '__newindex' chain too long; possible loop\n"
+  },
+  {
+    "id": "env-missing-call",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local concat,makeStr=table.concat,pandoc.Str; function Str(el) local function result() local _ENV={}; absent() end return makeStr(concat({result()},',')) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua function\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to call a nil value (global 'absent')\n"
   }
 ]

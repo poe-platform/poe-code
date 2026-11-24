@@ -146,6 +146,7 @@ pub struct Runtime {
     environments: Vec<Environment>,
     cells: Vec<Value>,
     globals: Value,
+    string_meta: Value,
     source: String,
     steps: usize,
     depth: usize,
@@ -158,6 +159,7 @@ impl Runtime {
             environments: Vec::new(),
             cells: Vec::new(),
             globals: Value::Nil,
+            string_meta: Value::Nil,
             source: String::new(),
             steps: usize::MAX,
             depth: 0,
@@ -226,50 +228,60 @@ impl Runtime {
         self.raw_get(&self.globals, &Value::String(name.into()))
     }
     fn meta(&self, value: &Value, name: &str) -> Value {
-        if let Value::Table(n) = value {
-            self.raw_get(&self.tables[*n].meta, &Value::String(name.into()))
-        } else {
-            Value::Nil
-        }
+        let table = match value {
+            Value::Table(n) => &self.tables[*n].meta,
+            Value::String(_) => &self.string_meta,
+            _ => return Value::Nil,
+        };
+        self.raw_get(table, &Value::String(name.into()))
     }
     pub fn get(&mut self, table: &Value, key: &Value) -> Result<Value> {
-        self.tick()?;
-        let value = self.raw_get(table, key);
-        if value != Value::Nil {
-            return Ok(value);
-        }
-        let index = if matches!(table, Value::String(_)) {
-            self.global("string")
-        } else {
-            self.meta(table, "__index")
-        };
-        match index {
-            Value::Table(_) => self.get(&index, key),
-            Value::Nil => {
-                if matches!(table, Value::Table(_)) {
-                    Ok(Value::Nil)
-                } else {
-                    Err(Error::new(format!(
-                        "attempt to index a {} value",
-                        table.kind()
-                    )))
-                }
+        let mut table = table.clone();
+        for _ in 0..2000 {
+            self.tick()?;
+            let value = self.raw_get(&table, key);
+            if value != Value::Nil {
+                return Ok(value);
             }
-            _ => Ok(first(self.call(index, vec![table.clone(), key.clone()])?)),
+            let index = self.meta(&table, "__index");
+            match index {
+                Value::Nil => {
+                    return if matches!(table, Value::Table(_)) {
+                        Ok(Value::Nil)
+                    } else {
+                        Err(Error::new(format!(
+                            "attempt to index a {} value",
+                            table.kind()
+                        )))
+                    };
+                }
+                Value::Function(_) | Value::Native(_) => {
+                    return Ok(first(self.call(index, vec![table, key.clone()])?));
+                }
+                _ => table = index,
+            }
         }
+        Err(Error::new("'__index' chain too long; possible loop"))
     }
-    fn set(&mut self, table: Value, key: Value, value: Value) -> Result<()> {
-        self.tick()?;
-        let setter = self.meta(&table, "__newindex");
-        if self.raw_get(&table, &key) != Value::Nil || setter == Value::Nil {
-            return self.raw_set(&table, key, value);
+    fn set(&mut self, mut table: Value, key: Value, value: Value) -> Result<()> {
+        for _ in 0..2000 {
+            self.tick()?;
+            let setter = self.meta(&table, "__newindex");
+            if matches!(table, Value::Table(_))
+                && (self.raw_get(&table, &key) != Value::Nil || setter == Value::Nil)
+            {
+                return self.raw_set(&table, key, value);
+            }
+            match setter {
+                Value::Nil => return Err(Error::new("Expected Lua table for assignment")),
+                Value::Function(_) | Value::Native(_) => {
+                    self.call(setter, vec![table, key, value])?;
+                    return Ok(());
+                }
+                _ => table = setter,
+            }
         }
-        if matches!(setter, Value::Table(_)) {
-            self.set(setter, key, value)
-        } else {
-            self.call(setter, vec![table, key, value])?;
-            Ok(())
-        }
+        Err(Error::new("'__newindex' chain too long; possible loop"))
     }
     fn length(&self, value: &Value) -> Result<usize> {
         match value {
@@ -357,7 +369,7 @@ impl Runtime {
             }
             _ => {
                 let callback = self.meta(&function, "__call");
-                if callback == Value::Nil {
+                if !matches!(callback, Value::Function(_) | Value::Native(_)) {
                     return Err(Error::new(format!(
                         "attempt to call a {} value",
                         function.kind()
@@ -459,19 +471,38 @@ impl Runtime {
                     let value = self.one(e, env)?;
                     match op.as_str() {
                         "not" => Value::Bool(!value.truth()),
+                        "#" if matches!(value, Value::String(_)) => {
+                            Value::Integer(self.length(&value)? as i32)
+                        }
                         "#" => {
                             let method = self.meta(&value, "__len");
                             if method != Value::Nil {
-                                first(self.call(method, vec![value])?)
+                                first(self.call(method, vec![value.clone(), value])?)
                             } else {
                                 Value::Integer(self.length(&value)? as i32)
                             }
                         }
-                        "-" => match value {
-                            Value::Integer(n) => Value::Integer(n.wrapping_neg()),
-                            _ => Value::Number(-value.number()?),
-                        },
-                        "~" => Value::Integer(!numbers::integral(value.number()?)?),
+                        "-" | "~" => {
+                            let result = match (&value, op.as_str()) {
+                                (Value::Integer(n), "-") => Ok(Value::Integer(n.wrapping_neg())),
+                                (_, "-") => value.number().map(|n| Value::Number(-n)),
+                                _ => value
+                                    .number()
+                                    .and_then(numbers::integral)
+                                    .map(|n| Value::Integer(!n)),
+                            };
+                            match result {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    let method = self
+                                        .meta(&value, if op == "-" { "__unm" } else { "__bnot" });
+                                    if method == Value::Nil {
+                                        return Err(error);
+                                    }
+                                    first(self.call(method, vec![value.clone(), value])?)
+                                }
+                            }
+                        }
                         _ => unreachable!(),
                     }
                 }
@@ -498,20 +529,66 @@ impl Runtime {
         if matches!(op, "and" | "or") {
             return Ok(right);
         }
+        let (op, left, right) = match op {
+            ">" => ("<", right, left),
+            ">=" => ("<=", right, left),
+            _ => (op, left, right),
+        };
         if matches!(op, "==" | "~=") {
-            let equal =
-                if left != right && matches!((&left, &right), (Value::Table(_), Value::Table(_))) {
-                    let method = self.meta(&left, "__eq");
-                    if method != Value::Nil {
-                        first(self.call(method, vec![left.clone(), right.clone()])?).truth()
-                    } else {
-                        false
-                    }
-                } else {
-                    left == right
-                };
+            let mut equal = left == right;
+            if !equal && matches!((&left, &right), (Value::Table(_), Value::Table(_))) {
+                let mut method = self.meta(&left, "__eq");
+                if method == Value::Nil {
+                    method = self.meta(&right, "__eq");
+                }
+                if method != Value::Nil {
+                    equal = first(self.call(method, vec![left, right])?).truth();
+                }
+            }
             return Ok(Value::Bool(if op == "==" { equal } else { !equal }));
         }
+        let result = if op == ".." {
+            if matches!(
+                left,
+                Value::String(_) | Value::Integer(_) | Value::Number(_)
+            ) && matches!(
+                right,
+                Value::String(_) | Value::Integer(_) | Value::Number(_)
+            ) {
+                let mut bytes = left.bytes();
+                bytes.extend(right.bytes());
+                Ok(Value::String(bytes))
+            } else {
+                Err(Error::new("attempt to concatenate a non-string value"))
+            }
+        } else if matches!(op, "<" | "<=") {
+            let order = match (&left, &right) {
+                (Value::String(a), Value::String(b)) => {
+                    // The existing Lua engine compares unpadded hexadecimal bytes.
+                    let digits = |byte: &u8| {
+                        [(*byte >= 16).then_some(*byte >> 4), Some(*byte & 15)]
+                            .into_iter()
+                            .flatten()
+                    };
+                    Ok(Some(
+                        a.iter().flat_map(digits).cmp(b.iter().flat_map(digits)),
+                    ))
+                }
+                (Value::Integer(_) | Value::Number(_), Value::Integer(_) | Value::Number(_)) => {
+                    Ok(left.number()?.partial_cmp(&right.number()?))
+                }
+                _ => Err(Error::new("attempt to compare incompatible values")),
+            };
+            order.map(|order| {
+                Value::Bool(order.is_some_and(|o| if op == "<" { o.is_lt() } else { o.is_le() }))
+            })
+        } else {
+            numbers::arithmetic(op, &left, &right)
+        };
+        let error = match result {
+            Ok(value) => return Ok(value),
+            Err(error) => error,
+        };
         let method = match op {
             "+" => "__add",
             "-" => "__sub",
@@ -520,65 +597,40 @@ impl Runtime {
             "//" => "__idiv",
             "%" => "__mod",
             "^" => "__pow",
+            "&" => "__band",
+            "|" => "__bor",
+            "~" => "__bxor",
+            "<<" => "__shl",
+            ">>" => "__shr",
             ".." => "__concat",
-            "<" | ">" => "__lt",
-            "<=" | ">=" => "__le",
-            _ => "",
+            "<" => "__lt",
+            "<=" => "__le",
+            _ => return Err(error),
         };
-        if matches!(left, Value::Table(_)) || matches!(right, Value::Table(_)) {
-            let mut callback = self.meta(&left, method);
+        let mut callback = self.meta(&left, method);
+        if callback == Value::Nil {
+            callback = self.meta(&right, method);
+        }
+        if callback != Value::Nil {
+            let value = first(self.call(callback, vec![left, right])?);
+            return Ok(if matches!(op, "<" | "<=") {
+                Value::Bool(value.truth())
+            } else {
+                value
+            });
+        }
+        if op == "<=" {
+            let mut callback = self.meta(&right, "__lt");
             if callback == Value::Nil {
-                callback = self.meta(&right, method)
+                callback = self.meta(&left, "__lt");
             }
             if callback != Value::Nil {
-                return Ok(first(self.call(
-                    callback,
-                    if matches!(op, ">" | ">=") {
-                        vec![right, left]
-                    } else {
-                        vec![left, right]
-                    },
-                )?));
+                return Ok(Value::Bool(
+                    !first(self.call(callback, vec![right, left])?).truth(),
+                ));
             }
         }
-        if op == ".." {
-            if !matches!(
-                left,
-                Value::String(_) | Value::Integer(_) | Value::Number(_)
-            ) || !matches!(
-                right,
-                Value::String(_) | Value::Integer(_) | Value::Number(_)
-            ) {
-                return Err(Error::new("attempt to concatenate a non-string value"));
-            }
-            let mut bytes = left.bytes();
-            bytes.extend(right.bytes());
-            return Ok(Value::String(bytes));
-        }
-        if matches!(op, "<" | ">" | "<=" | ">=") {
-            let ord = match (&left, &right) {
-                (Value::String(a), Value::String(b)) => {
-                    // The existing Lua engine compares unpadded hexadecimal bytes.
-                    let digits = |byte: &u8| {
-                        [(*byte >= 16).then_some(*byte >> 4), Some(*byte & 15)]
-                            .into_iter()
-                            .flatten()
-                    };
-                    Some(a.iter().flat_map(digits).cmp(b.iter().flat_map(digits)))
-                }
-                (Value::Integer(_) | Value::Number(_), Value::Integer(_) | Value::Number(_)) => {
-                    left.number()?.partial_cmp(&right.number()?)
-                }
-                _ => return Err(Error::new("attempt to compare incompatible values")),
-            };
-            return Ok(Value::Bool(match op {
-                "<" => ord.is_some_and(|o| o.is_lt()),
-                ">" => ord.is_some_and(|o| o.is_gt()),
-                "<=" => ord.is_some_and(|o| o.is_le()),
-                _ => ord.is_some_and(|o| o.is_ge()),
-            }));
-        }
-        numbers::arithmetic(op, &left, &right)
+        Err(error)
     }
     fn target(&mut self, expr: &Expr, env: usize) -> Result<Target> {
         match &expr.1 {

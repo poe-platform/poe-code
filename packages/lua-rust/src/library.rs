@@ -105,6 +105,13 @@ impl Runtime {
             }
             self.set_global(name, table);
         }
+        self.string_meta = self.table();
+        self.raw_set(
+            &self.string_meta.clone(),
+            Value::String("__index".into()),
+            self.global("string"),
+        )
+        .unwrap();
         self.raw_set(
             &self.global("utf8"),
             Value::String("charpattern".into()),
@@ -175,7 +182,14 @@ impl Runtime {
                 if method == Value::Nil {
                     Value::String(a(0).bytes())
                 } else {
-                    first(self.call(method, vec![a(0)])?)
+                    let result = first(self.call(method, vec![a(0)])?);
+                    if !matches!(
+                        result,
+                        Value::String(_) | Value::Integer(_) | Value::Number(_)
+                    ) {
+                        return Err(Error::new("'__tostring' must return a string"));
+                    }
+                    Value::String(result.bytes())
                 }
             }
             "tonumber" => {
@@ -216,10 +230,11 @@ impl Runtime {
             "rawlen" => Value::Integer(self.length(&a(0))? as i32),
             "rawequal" => Value::Bool(a(0) == a(1)),
             "getmetatable" => {
-                let Value::Table(t) = a(0) else {
-                    return Ok(vec![Value::Nil]);
+                let meta = match a(0) {
+                    Value::Table(t) => self.tables[t].meta.clone(),
+                    Value::String(_) => self.string_meta.clone(),
+                    _ => Value::Nil,
                 };
-                let meta = self.tables[t].meta.clone();
                 let protected = self.raw_get(&meta, &Value::String("__metatable".into()));
                 if protected == Value::Nil {
                     meta
@@ -243,7 +258,9 @@ impl Runtime {
             "pairs" => {
                 let method = self.meta(&a(0), "__pairs");
                 return if method != Value::Nil {
-                    self.call(method, vec![a(0)])
+                    let mut values = self.call(method, vec![a(0)])?;
+                    values.resize(3, Value::Nil);
+                    Ok(values)
                 } else {
                     Ok(vec![Value::Native("next"), a(0), Value::Nil])
                 };

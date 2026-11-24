@@ -33,6 +33,9 @@ async function test() {
     await shell.fs.writeFile("/format.lua", "function Str(el) return pandoc.Str(string.format('%s:%04d:%.0f:%a','item',7,2.5,1.25)) end");
     const formatted = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/format.lua");
     if (formatted.exitCode || formatted.stderr || formatted.stdout !== "item:0007:3:0x1.4p+0\n") throw new Error(JSON.stringify(formatted));
+    await shell.fs.writeFile("/metatable.lua", "function Str(el) getmetatable('').__tostring=function(s) return '['..s..']' end; local t=setmetatable({}, {__unm=function(a,b) return rawequal(a,b) and 7 end}); return pandoc.Str(string.format('%s:%d:%q','item',-t,'item')) end");
+    const metatable = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/metatable.lua");
+    if (metatable.exitCode || metatable.stderr || metatable.stdout !== '[item]:7:"item"\n') throw new Error(JSON.stringify(metatable));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

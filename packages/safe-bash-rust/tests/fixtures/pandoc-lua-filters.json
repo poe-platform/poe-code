@@ -1522,5 +1522,226 @@
     "script": "function Str(el) local function bytes(s) local t={} for i=1,#s do t[i]=string.byte(s,i) end return table.concat(t,',') end local function result() local s=string.char(255)..string.rep('x',99); local a=string.format('%#s',s); return #a..':'..string.byte(a)..':'..string.byte(a,-1) end return pandoc.Str(result()) end",
     "status": 0,
     "stdout": "100:255:120\n"
+  },
+  {
+    "id": "metatable-string-library",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); local old=string; string={}; local r=('abc'):upper(); string=old; return tostring(m==getmetatable('other'))..':'..tostring(m.__index==old)..':'..r end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true:true:ABC\n"
+  },
+  {
+    "id": "metatable-string-tostring",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() getmetatable('').__tostring=function(s) return '['..s..']' end return string.format('%s|%q','a','a') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "[a]|\"a\"\n"
+  },
+  {
+    "id": "metatable-tostring-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local t=setmetatable({}, {__tostring=function() return 7.0 end}); return type(tostring(t))..':'..string.format('%s',t) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "string:7.0\n"
+  },
+  {
+    "id": "metatable-string-index-call",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); local seen; m.__index=function(s,k) return s..':'..k end; m.__newindex=function(s,k,v) seen=s..':'..k..':'..v end; m.__call=function(s,v) return s..v end; m.__len=function() return 99 end; local s='abc'; s.x='v'; return s.y..'|'..seen..'|'..s('!')..'|'..#s end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc:y|abc:x:v|abc!|3\n"
+  },
+  {
+    "id": "metatable-unary-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local t=setmetatable({}, {__unm=function(a,b) return rawequal(a,b) and 11 end,__bnot=function(a,b) return rawequal(a,b) and 12 end,__len=function(a,b) return rawequal(a,b) and 13 end}); return table.concat({-t,~t,#t},',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "11,12,13\n"
+  },
+  {
+    "id": "metatable-bitwise",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local t=setmetatable({}, {__band=function() return 1 end,__bor=function() return 2 end,__bxor=function() return 3 end,__shl=function() return 4 end,__shr=function() return 5 end}); return table.concat({t&1,1|t,t~1,1<<t,t>>1},',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1,2,3,4,5\n"
+  },
+  {
+    "id": "metatable-comparison-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local a=setmetatable({}, {__lt=function() return nil end}); local b=setmetatable({}, {__lt=function() return 'yes' end,__eq=function() return true end}); return table.concat({tostring(a>b),tostring(a<=b),tostring(b<a),tostring(a==b)},',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true,false,true,true\n"
+  },
+  {
+    "id": "metatable-index-string-chain",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); local seen; m.__index=function(s,k) return s..':'..k end; m.__newindex=function(s,k,v) seen=s..':'..k..':'..v end; local t=setmetatable({}, {__index='proxy',__newindex='proxy'}); t.x=7; return t.y..'|'..seen end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "proxy:y|proxy:x:7\n"
+  },
+  {
+    "id": "metatable-primitive-precedence",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); m.__add=function() return 99 end; m.__lt=function() return false end; m.__concat=function() return 'wrong' end; m.__len=function() return 99 end; return table.concat({'2'+1,'a'..2,tostring('a'<'b'),#'abc'},',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "3.0,a2,true,3\n"
+  },
+  {
+    "id": "metatable-string-arithmetic",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); local r={}; for _,name in ipairs({'__add','__sub','__mul','__div','__idiv','__mod','__pow','__band','__bor','__bxor','__shl','__shr'}) do m[name]=function(a,b) return name..':'..tostring(a)..':'..tostring(b) end end local s='x'; return table.concat({s+2,2-s,s*2,2/s,s//2,2%s,s^2,s&2,2|s,s~2,2<<s,s>>2},'|') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "__add:x:2|__sub:2:x|__mul:x:2|__div:2:x|__idiv:x:2|__mod:2:x|__pow:x:2|__band:x:2|__bor:2:x|__bxor:x:2|__shl:2:x|__shr:x:2\n"
+  },
+  {
+    "id": "metatable-string-unary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); m.__unm=function(a,b) return a==b and 'minus' end; m.__bnot=function(a,b) return a==b and 'bits' end; local s='bad'; return table.concat({-s,~s,-'2',~'2'},',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "minus,bits,-2.0,-3\n",
+    "bufferedStdout": "minus,bits,-2.0,bits\n"
+  },
+  {
+    "id": "metatable-string-concat",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() getmetatable('').__concat=function(a,b) return type(a)..':'..type(b) end return ('s'..false)..'|'..(true..'s') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "string:boolean|boolean:string\n"
+  },
+  {
+    "id": "metatable-string-iterations",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); local lib=m.__index; m.__index=function(s,k) if type(k)=='number' then if k<=#s then return lib.sub(s,k,k) end else return lib[k] end end; m.__pairs=function(s) return next,{key=s},nil end; local r={}; for i,c in ipairs('ab') do r[#r+1]=i..':'..c end for k,v in pairs('xy') do r[#r+1]=k..':'..v end return table.concat(r,',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1:a,2:b,key:xy\n"
+  },
+  {
+    "id": "metatable-string-protection",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local m=getmetatable(''); m.__metatable=false; m.__tostring=function(s) return '['..s..']' end; return tostring(getmetatable('a'))..':'..tostring('x') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "false:[x]\n"
+  },
+  {
+    "id": "metatable-comparison-booleans",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local t=setmetatable({}, {__lt=function() return {} end,__le=function() return 'yes' end}); return type(t<{})..':'..tostring(t<{})..':'..type(t<={})..':'..tostring(t<={}) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "boolean:true:boolean:true\n"
+  },
+  {
+    "id": "metatable-callable-methods",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local f=setmetatable({}, {__call=function(self,a,b) return a.value+b end}); local t=setmetatable({value=7},{__add=f}); return tostring(t+2) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "9\n"
+  },
+  {
+    "id": "metatable-index-table-not-call",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local proxy=setmetatable({x='found'}, {__call=function() return 'wrong' end}); local t=setmetatable({}, {__index=proxy,__newindex=proxy}); t.y='saved'; return t.x..':'..proxy.y end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "found:saved\n"
+  },
+  {
+    "id": "metatable-equality-priority",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local a=setmetatable({}, {__eq=function() return nil end}); local b=setmetatable({}, {__eq=function() return true end}); return tostring(a==b)..':'..tostring(b==a)..':'..tostring(a==a)..':'..tostring(rawequal(a,b)) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "false:true:true:false\n"
+  },
+  {
+    "id": "metatable-pairs-results",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({}, {__pairs=function() return next,{},nil,'extra' end}); local a=select('#',pairs(t)); getmetatable(t).__pairs=function() end; local b=select('#',pairs(t)); return pandoc.Str(a..':'..b) end",
+    "status": 0,
+    "stdout": "3:3\n"
+  },
+  {
+    "id": "metatable-table-read-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local mt=getmetatable(''); mt.__len=function() return 99 end; mt.__index=function(_,i) return i*2 end; local a,b,c=table.unpack('abc'); return table.concat('abc',':')..'|'..a..':'..b..':'..c end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "2:4:6|2:4:6\n"
+  },
+  {
+    "id": "metatable-table-sort-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local values={3,1,2}; local mt=getmetatable(''); mt.__len=true; mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.sort('abc'); return table.concat(values,':') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1:2:3\n"
+  },
+  {
+    "id": "metatable-table-move-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local values={1,2}; local mt=getmetatable(''); mt.__len=true; mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.move('ab',1,2,2); return table.concat(values,':') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1:1:2\n"
   }
 ]

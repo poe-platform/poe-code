@@ -1,6 +1,7 @@
 import "./qpdf-ranges.wasm.test.mjs";
 import "./qpdf-selections.wasm.test.mjs";
 import "./qpdf-catalogs.wasm.test.mjs";
+import "./qpdf-labels.wasm.test.mjs";
 import "./pdfinfo-zero.wasm.test.mjs";
 import "./pdfinfo-ranges.wasm.test.mjs";
 
@@ -23770,34 +23771,6 @@ test("pdfunite omits source document metadata while separate pages retain it", a
   } finally { bash.dispose(); }
 });
 
-
-test("qpdf rejects invalid page labels before publishing or replacing files", async () => {
-  const {PdfDocument} = await import("@poe-code/pdf-ast");
-  const doc = PdfDocument.create(); for (let i=0; i<3; i++) doc.addPage();
-  const bytes = doc.save(), syntax = "page label spec must be n:[D|a|A|r|R][/start[/prefix]]";
-  // Diagnostics verified with native qpdf 12.4.2.
-  const cases = [
-    ["bad", syntax], ["1:n", syntax], ["1:Q", syntax], ["1x:D", syntax], ["1:D/2x", syntax],
-    ["1:D/title", syntax], ["1:D/-2", syntax], ["1:D/0", "starting page number must be >= 1"],
-    ...["0:D", "2:D", "r0:D", "r4:D", "z:D"].map(spec => [spec, "the first page label specification must start with page 1"]),
-    ...["1:D 1:r", "1:r 3:D 2:A", "1:D r0:R", "1:D r4:R"].map(spec => [spec, "page label specifications must be in order by first page"]),
-    ["1:D 4:r", "page label spec: page 4 is more than the total number of pages (3)"],
-    ...["1:D/2147483648", "2147483648:D"].map(spec => [spec, "integer out of range converting 2147483648 from a 8-byte signed type to a 4-byte signed type"]),
-    ...["1:D/9223372036854775808", "9223372036854775808:D"].map(spec => [spec, "overflow/underflow converting 9223372036854775808 to 64-bit integer"]),
-  ];
-  const bash = new RustWasmBash({cwd:"/", files:{"/in.pdf":bytes,"/out.pdf":"original"}});
-  try {
-    const originalNames = (await bash.fs.readdir("/")).map(entry => entry.name).sort();
-    for (const [specs, diagnostic] of cases) for (const output of ["out.pdf", "--replace-input", "--split-pages part.pdf"]) {
-      const command = "qpdf in.pdf --set-page-labels "+specs+" -- "+output;
-      const result = await bash.exec(command);
-      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [2, "", "qpdf: "+diagnostic+"\n"], command);
-      assert.deepEqual(await bash.fs.readFile("/in.pdf"), bytes);
-      assert.equal(bash.readText("/out.pdf"), "original");
-      assert.deepEqual((await bash.fs.readdir("/")).map(entry => entry.name).sort(), originalNames);
-    }
-  } finally { bash.dispose(); }
-});
 
 
 test("qpdf JSON page reports include externalized images in direct and inherited resources",async()=>{

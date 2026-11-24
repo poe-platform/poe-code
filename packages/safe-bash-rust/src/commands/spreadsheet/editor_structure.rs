@@ -235,7 +235,7 @@ impl Spreadsheet {
         let mut rewrite = |expression: &str,
                            original: Option<&str>,
                            position: (usize, usize, usize),
-                           offset: (i64, i64)|
+                           offset: (i64, i64), compiled: bool|
          -> Result<String, String> {
             if original.is_some_and(|s| s.starts_with("of:=")) {
                 return Err(
@@ -245,17 +245,23 @@ impl Spreadsheet {
             let source = original
                 .and_then(|s| s.strip_prefix("msoxl:="))
                 .unwrap_or(expression);
-            let source = xlsx_import::formula_tokens(
-                source,
-                &self.options.names,
-                &sources,
-                (Some(position.0), Some(position.0)),
-                offset,
-                Syntax::Editor,
-                &mut work,
-            )
-            .ok_or("Row or column edit exceeds its formula limit")?
-            .text;
+            // Imported symbols may intentionally bind a different name with the
+            // same spelling. Token normalization would erase that distinction.
+            let source = if compiled {
+                std::borrow::Cow::Borrowed(source)
+            } else {
+                xlsx_import::formula_tokens(
+                    source,
+                    &self.options.names,
+                    &sources,
+                    (Some(position.0), Some(position.0)),
+                    offset,
+                    Syntax::Editor,
+                    &mut work,
+                )
+                .ok_or("Row or column edit exceeds its formula limit")?
+                .text
+            };
             let source =
                 xlsx_references::map_axis_references(&source, &names, position.0, edit, &mut work)?;
             for (table, mapping) in self
@@ -292,9 +298,10 @@ impl Spreadsheet {
                     cell.openformula.as_deref(),
                     (s, r, c),
                     (r as i64 - or as i64, c as i64 - oc as i64),
+                    false,
                 )?;
                 if let Some(display) = &cell.formula_display {
-                    cell.formula_display = Some(rewrite(display, None, (s, r, c), (0, 0))?);
+                    cell.formula_display = Some(rewrite(display, None, (s, r, c), (0, 0), false)?);
                 }
                 cell.openformula = Some(format!("msoxl:={formula}"));
                 cell.formula = Some(formula);
@@ -317,10 +324,11 @@ impl Spreadsheet {
                     group.openformula.as_deref(),
                     (s, r, c),
                     (r as i64 - or as i64, c as i64 - oc as i64),
+                    false,
                 )?;
                 group.openformula = Some(format!("msoxl:={}", group.expression));
                 if let Some(display) = &group.formula_display {
-                    group.formula_display = Some(rewrite(display, None, (s, r, c), (0, 0))?);
+                    group.formula_display = Some(rewrite(display, None, (s, r, c), (0, 0), false)?);
                 }
             }
         }
@@ -334,9 +342,22 @@ impl Spreadsheet {
                     name.position.2.max(0) as usize,
                 ),
                 (0, 0),
+                false,
             )?;
             name.openformula = Some(format!("msoxl:={}", name.expression));
-            name.compiled = None;
+            if let Some(compiled) = &mut name.compiled {
+                compiled.expression = format!("msoxl:={}", rewrite(
+                    &compiled.expression,
+                    Some(&compiled.expression),
+                    (
+                        name.sheet.unwrap_or(name.position.0),
+                        name.position.1.max(0) as usize,
+                        name.position.2.max(0) as usize,
+                    ),
+                    (0, 0),
+                    true,
+                )?);
+            }
             if name.position.0 == sheet {
                 let p = if columns {
                     &mut name.position.2
@@ -381,7 +402,7 @@ impl Spreadsheet {
                 original.1 as i64 - old_anchor.1 as i64,
             );
             for source in rule.rule.formulas_mut() {
-                *source = rewrite(source, None, (rule.sheet, original.0, original.1), offset)?;
+                *source = rewrite(source, None, (rule.sheet, original.0, original.1), offset, false)?;
             }
         }
         next.options
@@ -413,6 +434,7 @@ impl Spreadsheet {
                     None,
                     (table.sheet, base, table.area[1] + column),
                     (origin as i64 - base as i64, 0),
+                    false,
                 )?;
                 if offset != 0 {
                     template_offsets.push((table_index, column, offset));

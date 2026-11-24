@@ -73,7 +73,7 @@ mod tables;
 pub use tables::{TableReferenceMap, map_table_references, table_to_range_references};
 #[path = "office_formula_names.rs"]
 mod names;
-pub(super) use names::name_references;
+pub(super) use names::{name_references, xlsx_bound_name};
 pub(super) use tables::{qualify_columns, rewrite_columns};
 #[path = "office_formula_aggregate.rs"]
 mod aggregate;
@@ -444,7 +444,7 @@ struct Parser<'a, S> {
     locals: Vec<String>,
     lambda_depth: usize,
     local_tokens: Option<Vec<(usize, usize)>>,
-    name_tokens: Option<Vec<(usize, usize, usize)>>,
+    name_tokens: Option<Vec<(usize, usize, Option<usize>)>>,
     export_names: Option<Vec<usize>>,
     position: (usize, i64, i64),
     scope: Option<usize>,
@@ -730,6 +730,12 @@ where
             }
         } else if let Some(local) = self.local_reference() {
             local
+        } else if (self.xlsx || self.editor)
+            && !self.r1c1 && !self.odf && self.take("[0]!")
+        {
+            self.space();
+            let name = self.word();
+            self.reference_or_name(Some("[0]"), name)
         } else if (self.editor || self.local_tokens.is_some())
             && !self.r1c1
             && !self.odf

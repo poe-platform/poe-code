@@ -372,3 +372,173 @@ fn rename_rejects_capturing_a_local_variable_or_a_scoped_name() {
         assert_eq!(book.to_json(), before);
     }
 }
+
+fn imported_binding_book() -> Spreadsheet {
+    use super::model::CompiledName;
+    let mut book = Spreadsheet::new();
+    book.add_sheet("Unused").unwrap();
+    book.options.names = vec![
+        definition("unused", "1", Some(1)),
+        definition("shared", "42", None),
+        definition("shared", "7", Some(0)),
+        definition("bound", "shared+Sheet1!$A$1", Some(0)),
+    ];
+    book.options.names[3].compiled = Some(CompiledName {
+        expression: "msoxl:=shared+Sheet1!$A$1".into(),
+        bindings: std::collections::BTreeMap::from([("shared".into(), Some(1))]),
+    });
+    book.edit(&[(0, 0, 0, "3"), (0, 0, 1, "=bound")], LIMIT)
+        .unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "45");
+    book
+}
+
+#[test]
+fn imported_bindings_survive_structural_sheet_changes() {
+    let mut book = imported_binding_book();
+    book.rename_sheet(0, "Renamed", LIMIT).unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "45");
+    book.delete_sheet(1, LIMIT).unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "45");
+    assert_eq!(
+        book.options.names[2].compiled.as_ref().unwrap().bindings["shared"],
+        Some(0)
+    );
+    for restored in [
+        Spreadsheet::from_json(&book.to_json(), LIMIT).unwrap(),
+        Spreadsheet::import_xlsx(&book.export_xlsx(LIMIT).unwrap(), LIMIT).unwrap(),
+    ] {
+        assert_eq!(restored.display(0, 0, 1, LIMIT).unwrap(), "45");
+    }
+}
+
+#[test]
+fn imported_bindings_survive_structural_axis_changes() {
+    for columns in [false, true] {
+        let mut book = imported_binding_book();
+        book.edit_axis(0, columns, 0, 1, LIMIT).unwrap();
+        let (r, c) = if columns { (0, 2) } else { (1, 1) };
+        assert_eq!(book.display(0, r, c, LIMIT).unwrap(), "45");
+        book.edit_axis(0, columns, 0, -1, LIMIT).unwrap();
+        assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "45");
+    }
+}
+
+#[test]
+fn deleted_scoped_bindings_do_not_capture_other_names() {
+    let mut book = imported_binding_book();
+    book.options.names[0] = definition("shared", "100", Some(1));
+    book.options.names[3]
+        .compiled
+        .as_mut()
+        .unwrap()
+        .bindings
+        .insert("shared".into(), Some(0));
+    book.edit(&[(0, 0, 0, "3")], LIMIT).unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "103");
+    book.delete_sheet(1, LIMIT).unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "#NAME?");
+    assert_eq!(
+        book.options.names[2].compiled.as_ref().unwrap().bindings["shared"],
+        None
+    );
+}
+
+#[test]
+fn imported_bindings_survive_table_changes() {
+    for action in ["rename", "header", "convert", "resize"] {
+        let mut book = imported_binding_book();
+        book.edit(&[(0, 0, 3, "Value"), (0, 1, 3, "3"), (0, 2, 3, "4")], LIMIT)
+            .unwrap();
+        book.add_table(0, "Data", [0, 3, 2, 3], LIMIT).unwrap();
+        let bound = &mut book.options.names[3];
+        bound.expression = "shared+SUM(Data[Value])".into();
+        bound.position = (0, 2, 3);
+        bound.openformula = Some(format!("msoxl:={}", bound.expression));
+        bound.compiled.as_mut().unwrap().expression = bound.openformula.clone().unwrap();
+        book.edit(&[(0, 0, 1, "=bound")], LIMIT).unwrap();
+        assert_eq!(
+            book.display(0, 0, 1, LIMIT).unwrap(),
+            "49",
+            "{action} before"
+        );
+        match action {
+            "rename" => book.rename_table(0, "Records", LIMIT).unwrap(),
+            "header" => book.edit(&[(0, 0, 3, "Renamed")], LIMIT).unwrap(),
+            "convert" => book.convert_table_to_range(0, LIMIT).unwrap(),
+            "resize" => book.resize_table(0, 1, 3, LIMIT).unwrap(),
+            _ => unreachable!(),
+        }
+        assert_eq!(
+            book.display(0, 0, 1, LIMIT).unwrap(),
+            if action == "resize" { "45" } else { "49" },
+            "{action} after"
+        );
+        assert_eq!(
+            book.options.names[3].compiled.as_ref().unwrap().bindings["shared"],
+            Some(1)
+        );
+    }
+}
+
+#[test]
+fn compiled_bindings_export_global_local_missing_and_lexical_names() {
+    let mut book = imported_binding_book();
+    let bound = &mut book.options.names[3];
+    bound.compiled.as_mut().unwrap().expression =
+        "msoxl:=_xlfn.LET(shared,3,shared)+shared+Sheet1!shared".into();
+    bound.compiled.as_mut().unwrap().bindings =
+        std::collections::BTreeMap::from([("shared".into(), Some(1))]);
+    book.edit(
+        &[
+            (0, 0, 1, "=bound"),
+            (0, 1, 1, "=[0]!shared"),
+            (0, 2, 1, "='[0]'!shared"),
+        ],
+        LIMIT,
+    )
+    .unwrap();
+    assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "52");
+    let exported = book.export_xlsx(LIMIT).unwrap();
+    let restored = Spreadsheet::import_xlsx(&exported, LIMIT).unwrap();
+    assert_eq!(restored.display(0, 0, 1, LIMIT).unwrap(), "52");
+    assert_eq!(restored.display(0, 1, 1, LIMIT).unwrap(), "42");
+    assert_eq!(restored.display(0, 2, 1, LIMIT).unwrap(), "42");
+    book.options.names[3]
+        .compiled
+        .as_mut()
+        .unwrap()
+        .bindings
+        .insert("shared".into(), None);
+    book.edit(&[(0, 0, 1, "=bound")], LIMIT).unwrap();
+    let restored = Spreadsheet::import_xlsx(&book.export_xlsx(LIMIT).unwrap(), LIMIT).unwrap();
+    assert_eq!(restored.display(0, 0, 1, LIMIT).unwrap(), "#NAME?");
+}
+
+#[test]
+fn structural_changes_preserve_compiled_symbol_spelling() {
+    for action in ["sheet", "row", "convert"] {
+        let mut book = imported_binding_book();
+        book.edit(&[(0, 0, 3, "Value"), (0, 1, 3, "3")], LIMIT)
+            .unwrap();
+        book.add_table(0, "Data", [0, 3, 1, 3], LIMIT).unwrap();
+        book.options.names[3].compiled.as_mut().unwrap().expression =
+            "msoxl:=SHARED+SUM(Data[Value])".into();
+        book.options.names[3].compiled.as_mut().unwrap().bindings =
+            std::collections::BTreeMap::from([("SHARED".into(), Some(1))]);
+        book.edit(&[(0, 0, 1, "=bound")], LIMIT).unwrap();
+        assert_eq!(book.display(0, 0, 1, LIMIT).unwrap(), "45");
+        match action {
+            "sheet" => book.rename_sheet(0, "Renamed", LIMIT).unwrap(),
+            "row" => book.edit_axis(0, false, 0, 1, LIMIT).unwrap(),
+            "convert" => book.convert_table_to_range(0, LIMIT).unwrap(),
+            _ => unreachable!(),
+        }
+        assert_eq!(
+            book.display(0, usize::from(action == "row"), 1, LIMIT)
+                .unwrap(),
+            "45",
+            "{action}"
+        );
+    }
+}

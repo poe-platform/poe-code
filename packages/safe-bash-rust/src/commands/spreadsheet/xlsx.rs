@@ -471,6 +471,7 @@ pub(in crate::commands) fn write_cells(
     let mut rels = vec![];
     let mut nodes = String::new();
     let mut names = String::new();
+    let sheet_names: Vec<_> = sheets.iter().map(|s| s.name.clone()).collect();
     for name in &workbook.names {
         write!(
             names,
@@ -503,7 +504,13 @@ pub(in crate::commands) fn write_cells(
             .unwrap_or(&name.expression);
         // Editor-created names use the same formula spelling as cell input.
         // Imported names retain their original namespace via openformula.
-        let expression = if spills.is_some() && name.openformula.is_none() {
+        let expression = if spills.is_some()
+            && name.compiled.as_ref().is_some_and(|c| !c.expression.starts_with("of:="))
+        {
+            std::borrow::Cow::Owned(super::formulas::xlsx_bound_name(
+                name, &sheet_names, &workbook.names, &workbook.tables, &mut work,
+            )?)
+        } else if spills.is_some() && name.openformula.is_none() {
             super::formula_arguments::rewrite(
                 expression.strip_prefix('=').unwrap_or(expression),
                 super::formula_arguments::Syntax::Editor,

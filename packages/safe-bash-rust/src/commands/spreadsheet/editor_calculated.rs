@@ -356,7 +356,9 @@ impl Spreadsheet {
                 if let Some(source) = &mut name.openformula {
                     qualify(source)?;
                 }
-                name.compiled = None;
+                if let Some(compiled) = &mut name.compiled {
+                    qualify(&mut compiled.expression)?;
+                }
             }
         }
         let mut columns = table

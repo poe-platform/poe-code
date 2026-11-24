@@ -12,7 +12,7 @@ pub(in crate::commands::spreadsheet) fn name_references(
     scope: Option<usize>,
     bindings: Option<&std::collections::BTreeMap<String, Option<usize>>>,
     work: &mut usize,
-) -> Result<(Vec<(usize, usize, usize)>, bool), String> {
+) -> Result<(Vec<(usize, usize, Option<usize>)>, bool), String> {
     *work = work
         .checked_sub(source.len().saturating_mul(names.len().saturating_add(2)))
         .ok_or("Named expression exceeds its formula limit")?;
@@ -74,4 +74,62 @@ pub(in crate::commands::spreadsheet) fn name_references(
     tokens.sort_unstable();
     tokens.dedup();
     Ok((tokens, valid))
+}
+
+// OOXML uses [0]!Name for an explicitly workbook-scoped name (also emitted
+// by LibreOffice's ScCompiler::CreateStringFromIndex for chart OOXML). Emit
+// explicit scopes for imported bindings so sheet-local names cannot capture
+// them when Excel or another reader recalculates the exported workbook.
+pub(in crate::commands::spreadsheet) fn xlsx_bound_name(
+    name: &NamedExpression,
+    sheets: &[String],
+    names: &[NamedExpression],
+    tables: &[Table],
+    work: &mut usize,
+) -> Option<String> {
+    let compiled = name.compiled.as_ref()?;
+    let (tokens, valid) = name_references(
+        &compiled.expression,
+        sheets,
+        names,
+        tables,
+        name.position,
+        name.sheet,
+        Some(&compiled.bindings),
+        work,
+    )
+    .ok()?;
+    if !valid {
+        return None;
+    }
+    let mut source = compiled.expression.clone();
+    for (start, length, resolved) in tokens.into_iter().rev() {
+        if source.get(..start)?.trim_end().ends_with('!')
+            || !compiled
+                .bindings
+                .contains_key(source.get(start..start + length)?)
+        {
+            continue;
+        }
+        let replacement = if let Some(index) = resolved {
+            let target = names.get(index)?;
+            let prefix = if let Some(sheet) = target.sheet {
+                crate::commands::spreadsheet::sheet_name::quote_sheet(sheets.get(sheet)?)
+            } else {
+                "[0]".into()
+            };
+            format!("{prefix}!{}", target.name)
+        } else {
+            "#NAME?".into()
+        };
+        *work = work.checked_sub(source.len().checked_add(replacement.len())?)?;
+        source.replace_range(start..start + length, &replacement);
+    }
+    Some(
+        source
+            .strip_prefix("msoxl:=")
+            .unwrap_or(&source)
+            .trim_start_matches('=')
+            .to_owned(),
+    )
 }

@@ -89,7 +89,9 @@ impl Spreadsheet {
             if let Some(source) = &mut named.openformula {
                 rewrite(source)?;
             }
-            named.compiled = None;
+            if let Some(compiled) = &mut named.compiled {
+                rewrite(&mut compiled.expression)?;
+            }
         }
         for table in &mut next.options.tables {
             for column in table.calculated_columns.values_mut() {
@@ -124,7 +126,7 @@ impl Spreadsheet {
                            original: Option<&str>,
                            position: (usize, usize, usize),
                            offset,
-                           qualify_sheet|
+                           qualify_sheet, compiled: bool|
          -> Result<Option<String>, String> {
             if let Some(source) = original.and_then(|s| s.strip_prefix("of:=")) {
                 let converted = super::table_to_range_references(
@@ -146,17 +148,23 @@ impl Spreadsheet {
             let source = original
                 .and_then(|s| s.strip_prefix("msoxl:="))
                 .unwrap_or(expression);
-            let source = super::xlsx_import::formula_tokens(
-                source,
-                &self.options.names,
-                &sheets,
-                (Some(position.0), Some(position.0)),
-                offset,
-                super::formula_arguments::Syntax::Editor,
-                &mut work,
-            )
-            .ok_or("Table conversion exceeds its formula limit")?
-            .text;
+            // Imported symbols may intentionally bind a different name with the
+            // same spelling. Token normalization would erase that distinction.
+            let source = if compiled {
+                std::borrow::Cow::Borrowed(source)
+            } else {
+                super::xlsx_import::formula_tokens(
+                    source,
+                    &self.options.names,
+                    &sheets,
+                    (Some(position.0), Some(position.0)),
+                    offset,
+                    super::formula_arguments::Syntax::Editor,
+                    &mut work,
+                )
+                .ok_or("Table conversion exceeds its formula limit")?
+                .text
+            };
             let converted = super::table_to_range_references(
                 &source,
                 table,
@@ -184,13 +192,14 @@ impl Spreadsheet {
                         (s, r, c),
                         (r as i64 - origin_r as i64, c as i64 - origin_c as i64),
                         false,
+                        false,
                     )?
                     else {
                         continue;
                     };
                     origins.push((s, r, c));
                     if let Some(display) = &cell.formula_display {
-                        if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false)? {
+                        if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false, false)? {
                             cell.formula_display = Some(display);
                         }
                     }
@@ -214,6 +223,7 @@ impl Spreadsheet {
                     (s, r, c),
                     (r as i64 - origin_r as i64, c as i64 - origin_c as i64),
                     false,
+                    false,
                 )?
                 else {
                     continue;
@@ -222,7 +232,7 @@ impl Spreadsheet {
                 group.expression = expression;
                 group.openformula = Some(format!("msoxl:={}", group.expression));
                 if let Some(display) = &group.formula_display {
-                    if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false)? {
+                    if let Some(display) = rewrite(display, None, (s, r, c), (0, 0), false, false)? {
                         group.formula_display = Some(display);
                     }
                 }
@@ -230,19 +240,29 @@ impl Spreadsheet {
         }
         for name in &mut next.options.names {
             let (s, r, c) = name.position;
-            let Some(expression) = rewrite(
+            if let Some(expression) = rewrite(
                 &name.expression,
                 name.openformula.as_deref(),
                 (s, r.max(0) as usize, c.max(0) as usize),
                 (0, 0),
                 true,
-            )?
-            else {
-                continue;
-            };
-            name.expression = expression;
-            name.openformula = Some(format!("msoxl:={}", name.expression));
-            name.compiled = None;
+                false,
+            )? {
+                name.expression = expression;
+                name.openformula = Some(format!("msoxl:={}", name.expression));
+            }
+            if let Some(compiled) = &mut name.compiled
+                && let Some(expression) = rewrite(
+                    &compiled.expression,
+                    Some(&compiled.expression),
+                    (s, r.max(0) as usize, c.max(0) as usize),
+                    (0, 0),
+                    true,
+                    true,
+                )?
+            {
+                compiled.expression = format!("msoxl:={expression}");
+            }
         }
         for target in &mut next.options.tables {
             for (&column, definition) in &mut target.calculated_columns {
@@ -251,7 +271,7 @@ impl Spreadsheet {
                     target.area[0] + usize::from(target.header),
                     target.area[1] + column,
                 );
-                if let Some(source) = rewrite(&definition.formula, None, position, (0, 0), false)? {
+                if let Some(source) = rewrite(&definition.formula, None, position, (0, 0), false, false)? {
                     definition.formula = source;
                 }
             }
@@ -261,7 +281,7 @@ impl Spreadsheet {
                 .anchor()
                 .ok_or("Missing conditional formatting range")?;
             for source in rule.rule.formulas_mut() {
-                if let Some(converted) = rewrite(source, None, (rule.sheet, r, c), (0, 0), false)? {
+                if let Some(converted) = rewrite(source, None, (rule.sheet, r, c), (0, 0), false, false)? {
                     *source = converted;
                 }
             }
@@ -560,7 +580,9 @@ impl Spreadsheet {
                 if let Some(source) = &mut name.openformula {
                     rewrite(source, pos)?;
                 }
-                name.compiled = None;
+                if let Some(compiled) = &mut name.compiled {
+                    rewrite(&mut compiled.expression, pos)?;
+                }
             }
         }
         let edits = edits

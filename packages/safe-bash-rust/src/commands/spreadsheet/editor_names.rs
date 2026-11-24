@@ -104,7 +104,7 @@ impl Spreadsheet {
                     bindings,
                     &mut work,
                 )?;
-                if !tokens.iter().any(|t| t.2 == index) {
+                if !tokens.iter().any(|t| t.2 == Some(index)) {
                     return Ok(());
                 }
                 let mut expected = Vec::with_capacity(tokens.len());
@@ -113,14 +113,14 @@ impl Spreadsheet {
                     let offset = start
                         .checked_add_signed(shift)
                         .ok_or("Invalid named expression token")?;
-                    if resolved == index {
+                    if resolved == Some(index) {
                         expected.push((offset, replacement.len(), resolved));
                         shift += replacement.len() as isize - length as isize;
                     } else {
                         expected.push((offset, length, resolved));
                     }
                 }
-                for (start, length, _) in tokens.into_iter().rev().filter(|t| t.2 == index) {
+                for (start, length, _) in tokens.into_iter().rev().filter(|t| t.2 == Some(index)) {
                     work = work
                         .checked_sub(replacement.len())
                         .ok_or("Name rename exceeds its limit")?;

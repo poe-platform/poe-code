@@ -64,14 +64,26 @@ impl Spreadsheet {
                 false
             }
         });
+        let mut retained_names = Vec::with_capacity(next.options.names.len());
+        let mut retained_count = 0;
         next.options.names.retain_mut(|n| {
             if n.sheet == Some(sheet) {
+                retained_names.push(None);
                 return false;
             }
+            retained_names.push(Some(retained_count));
+            retained_count += 1;
             n.sheet = n.sheet.and_then(shift);
             n.position.0 = shift(n.position.0).unwrap_or(0);
             true
         });
+        for name in &mut next.options.names {
+            if let Some(compiled) = &mut name.compiled {
+                for binding in compiled.bindings.values_mut() {
+                    *binding = binding.and_then(|i| retained_names.get(i).copied().flatten());
+                }
+            }
+        }
         next.options.name_dependencies.clear();
         next.options.name_uses.clear();
         next.options.uninterned_arrays = next
@@ -108,7 +120,7 @@ impl Spreadsheet {
         let mut rewrite = |expression: &str,
                            original: Option<&str>,
                            scope: usize,
-                           offset: (i64, i64)|
+                           offset: (i64, i64), compiled: bool|
          -> Result<String, String> {
             if original.is_some_and(|s| s.starts_with("of:=")) {
                 return Err("Sheet changes for OpenFormula documents are not supported yet".into());
@@ -116,17 +128,23 @@ impl Spreadsheet {
             let source = original
                 .and_then(|s| s.strip_prefix("msoxl:="))
                 .unwrap_or(expression);
-            let source = xlsx_import::formula_tokens(
-                source,
-                &self.options.names,
-                &sources,
-                (Some(scope), Some(scope)),
-                offset,
-                Syntax::Editor,
-                &mut work,
-            )
-            .ok_or("Sheet change exceeds its formula limit")?
-            .text;
+            // Imported symbols may intentionally bind a different name with the
+            // same spelling. Token normalization would erase that distinction.
+            let source = if compiled {
+                std::borrow::Cow::Borrowed(source)
+            } else {
+                xlsx_import::formula_tokens(
+                    source,
+                    &self.options.names,
+                    &sources,
+                    (Some(scope), Some(scope)),
+                    offset,
+                    Syntax::Editor,
+                    &mut work,
+                )
+                .ok_or("Sheet change exceeds its formula limit")?
+                .text
+            };
             let (formula, _) = xlsx_references::map_sheet_references(
                 &source,
                 &names
@@ -185,9 +203,10 @@ impl Spreadsheet {
                     cell.openformula.as_deref(),
                     s,
                     (r as i64 - or as i64, c as i64 - oc as i64),
+                    false,
                 )?;
                 if let Some(display) = &cell.formula_display {
-                    cell.formula_display = Some(rewrite(display, None, s, (0, 0))?);
+                    cell.formula_display = Some(rewrite(display, None, s, (0, 0), false)?);
                 }
                 cell.openformula = Some(format!("msoxl:={formula}"));
                 cell.formula = Some(formula);
@@ -207,10 +226,11 @@ impl Spreadsheet {
                     group.openformula.as_deref(),
                     s,
                     (r as i64 - or as i64, c as i64 - oc as i64),
+                    false,
                 )?;
                 group.openformula = Some(format!("msoxl:={}", group.expression));
                 if let Some(display) = &group.formula_display {
-                    group.formula_display = Some(rewrite(display, None, s, (0, 0))?);
+                    group.formula_display = Some(rewrite(display, None, s, (0, 0), false)?);
                 }
             }
         }
@@ -223,16 +243,25 @@ impl Spreadsheet {
                 name.openformula.as_deref(),
                 name.sheet.unwrap_or(0),
                 (0, 0),
+                false,
             )?;
             name.openformula = Some(format!("msoxl:={}", name.expression));
-            name.compiled = None;
+            if let Some(compiled) = &mut name.compiled {
+                compiled.expression = format!("msoxl:={}", rewrite(
+                    &compiled.expression,
+                    Some(&compiled.expression),
+                    name.sheet.unwrap_or(0),
+                    (0, 0),
+                    true,
+                )?);
+            }
         }
         for table in &mut next.options.tables {
             if replacement.is_none() && table.sheet == changed {
                 continue;
             }
             for definition in table.calculated_columns.values_mut() {
-                definition.formula = rewrite(&definition.formula, None, table.sheet, (0, 0))?;
+                definition.formula = rewrite(&definition.formula, None, table.sheet, (0, 0), false)?;
             }
         }
         for rule in &mut next.options.conditional_formats {
@@ -240,7 +269,7 @@ impl Spreadsheet {
                 continue;
             }
             for source in rule.rule.formulas_mut() {
-                *source = rewrite(source, None, rule.sheet, (0, 0))?;
+                *source = rewrite(source, None, rule.sheet, (0, 0), false)?;
             }
         }
         next.options.formula_origins.clear();

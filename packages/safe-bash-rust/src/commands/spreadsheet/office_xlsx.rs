@@ -501,6 +501,7 @@ pub(super) fn formula_tokens<'a>(
             }
         } else if first == '[' {
             end = rest.find(']').map_or(rest.len(), |i| i + 1);
+            sheet_token = &rest[..end] == "[0]" && rest[end..].trim_ascii_start().starts_with('!');
         } else if first == '#' {
             let token = error_token(rest);
             end = token.len();
@@ -767,8 +768,7 @@ pub(super) fn formula_tokens<'a>(
                                 && super::case_fold::same_name(&name.name, word)
                         })
                         .or_else(|| {
-                            explicit
-                                .is_none()
+                            (explicit.is_none() || explicit.as_deref() == Some("[0]"))
                                 .then(|| {
                                     names.iter().find(|name| {
                                         name.sheet.is_none()
@@ -782,6 +782,7 @@ pub(super) fn formula_tokens<'a>(
                         let local = definition.sheet;
                         if let Some(start) = sheet_start.take() {
                             output.truncate(start);
+                            if explicit.as_deref() == Some("[0]") { output.push_str("[0]!"); }
                         }
                         if let Some(local) =
                             local.filter(|local| Some(*local) != scope.1.or(Some(0)))

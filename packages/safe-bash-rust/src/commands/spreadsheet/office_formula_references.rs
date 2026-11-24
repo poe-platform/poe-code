@@ -192,12 +192,12 @@ where
             && let Some(index) = self.bindings.and_then(|bindings| bindings.get(name))
         {
             let index = *index;
-            if let (Some(tokens), Some(index)) = (&mut self.name_tokens, index) {
+            if let Some(tokens) = &mut self.name_tokens {
                 tokens.push((self.source.len() + name.len(), name.len(), index));
             }
             return index.map_or(Expr::Value(Value::Error("#NAME?")), Expr::Name);
         }
-        if let Some(reference) = self.reference(sheet, name) {
+        if sheet != Some("[0]") && let Some(reference) = self.reference(sheet, name) {
             if self.r1c1 {
                 let sizes = self.sizes;
                 let (row, column) = r1c1(name, self.position).unwrap();
@@ -236,6 +236,7 @@ where
         }
         let scope = match sheet {
             None => self.scope.or_else(|| self.xlsx.then_some(self.position.0)),
+            Some("[0]") => None,
             Some(name) => match self.sheet(name) {
                 Some(index) => Some(index),
                 None => return Expr::Value(Value::Error("#NAME?")),
@@ -255,7 +256,7 @@ where
                     .flatten()
             });
         if let (Some(tokens), Some(index)) = (&mut self.name_tokens, index) {
-            tokens.push((self.source.len() + name.len(), name.len(), index));
+            tokens.push((self.source.len() + name.len(), name.len(), Some(index)));
         }
         index.map_or(Expr::Value(Value::Error("#NAME?")), Expr::Name)
     }

@@ -1177,14 +1177,17 @@ pub(super) fn hash_order_insert(
         .get("\0hash_order")
         .map(|s| {
             s.split('\n')
-                .filter(|x| !x.is_empty() && *x != name)
+                .filter(|x| !x.is_empty())
                 .map(|x| x.to_string())
                 .collect()
         })
         .unwrap_or_default();
-    order.push(name.to_string());
+    if !env.contains_key(&format!("\0hash__{name}")) {
+        order.push(name.to_string());
+    }
     env.insert("\0hash_order".to_string(), order.join("\n"));
     env.insert(format!("\0hash__{name}"), target);
+    env.insert(format!("\0hash_hits__{name}"), "0".into());
     env.insert(
         format!("\0hash_dot__{name}"),
         if check_dot { "1" } else { "0" }.into(),
@@ -1194,6 +1197,7 @@ pub(super) fn hash_order_insert(
 pub(super) fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
     let removed = env.remove(&format!("\0hash__{name}"));
     env.remove(&format!("\0hash_dot__{name}"));
+    env.remove(&format!("\0hash_hits__{name}"));
     if let Some(s) = env.get("\0hash_order").cloned() {
         let order: Vec<&str> = s
             .split('\n')
@@ -1210,7 +1214,10 @@ pub(super) fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) 
 
 pub(super) fn clear_command_hashes(env: &mut BTreeMap<String, String>) {
     env.retain(|key, _| {
-        !key.starts_with("\0hash__") && !key.starts_with("\0hash_dot__") && key != "\0hash_order"
+        !key.starts_with("\0hash__")
+            && !key.starts_with("\0hash_dot__")
+            && !key.starts_with("\0hash_hits__")
+            && key != "\0hash_order"
     });
 }
 
@@ -1381,11 +1388,20 @@ fn builtin_hash(
     if hash_args.is_empty() {
         let mut stdout = String::new();
         if !reset {
-            for (name, target) in hash_ordered_entries(env) {
+            let entries = hash_ordered_entries(env);
+            if !list_mode && !entries.is_empty() {
+                stdout.push_str("hits\tcommand\n");
+            }
+            for (name, target) in entries {
                 if list_mode {
-                    stdout.push_str(&format!("builtin hash -p {target} {name}\n"));
+                    stdout.push_str(&format!(
+                        "builtin hash -p '{}' '{}'\n",
+                        target.replace('\'', "'\\''"),
+                        name.replace('\'', "'\\''")
+                    ));
                 } else {
-                    stdout.push_str(&format!("0\t{target}\n"));
+                    let hits = env.get(&format!("\0hash_hits__{name}")).map_or("0", String::as_str);
+                    stdout.push_str(&format!("{hits:>4}\t{target}\n"));
                 }
             }
         }

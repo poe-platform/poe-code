@@ -18985,6 +18985,7 @@ test("command execution uses and updates hash entries with isolated subshells",a
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   for(const source of [
     'hash -t tool; tool; tool; hash; hash -l; hash -t tool',
+    'tool <<< ignored; tool <<< ignored; hash',
     'hash -p /b/tool tool; tool; command -v tool; type -p tool; type -a tool; hash',
     'hash -p /b/tool tool; hash -p /a/other other; hash -p /a/tool tool; hash -l',
     'tool; rm /a/tool; tool; echo status:$?; hash -t tool',

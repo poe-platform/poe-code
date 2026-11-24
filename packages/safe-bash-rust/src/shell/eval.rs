@@ -4162,7 +4162,6 @@ impl<'a> EvalState<'a> {
             self.env.remove("\0pwd_unset__");
         }
         if resolved == "PATH" {
-            clear_command_hashes(self.env);
             self.env.remove("\0path_unset__");
         }
         self.env.insert(resolved, final_val);
@@ -4773,6 +4772,10 @@ impl<'a> EvalState<'a> {
                         .get(&format!("\0hash_dot__{name}"))
                         .is_some_and(|v| v == "1");
                     hash_order_insert(&mut env, &name, path, check_dot);
+                    let hits_key = format!("\0hash_hits__{name}");
+                    if let Some(hits) = self.env.get(&hits_key) {
+                        env.insert(hits_key, hits.clone());
+                    }
                 } else {
                     hash_order_remove(&mut env, &name);
                 }
@@ -5281,6 +5284,16 @@ impl<'a> EvalState<'a> {
         if (name == "cd" || name == "pwd" && out.exit_code == 2) && !out.stderr.is_empty() {
             out.stderr.insert_str(0, &self.diag_prefix());
         }
+        if name == "hash" && !out.stderr.is_empty() {
+            let prefix = self.diag_prefix();
+            out.stderr = out.stderr.split_inclusive('\n').map(|line| {
+                if line.starts_with("hash:") && !line.starts_with("hash: usage:") {
+                    format!("{prefix}{line}")
+                } else {
+                    line.to_string()
+                }
+            }).collect();
+        }
         Some(out)
     }
 
@@ -5373,6 +5386,7 @@ impl<'a> EvalState<'a> {
                 if k.starts_with('\0') || k.contains('[') {
                     continue;
                 }
+                if k == "PATH" { clear_command_hashes(self.env); }
                 let prefix = format!("{k}[");
                 let arr_keys: Vec<String> = self
                     .env
@@ -7003,7 +7017,7 @@ impl<'a> EvalState<'a> {
                 && self.env.contains_key("\0path_unset__"))
         {
             return self.run_vfs_script(
-                cmd, args, stdin, true, false, None, false, false, false, false, false, false,
+                cmd, args, stdin, true, false, None, true, false, false, false, false, false, false,
                 false, cmd, None,
             );
         }
@@ -7040,8 +7054,15 @@ impl<'a> EvalState<'a> {
                     let check_dot = path_search_checks_cwd(cmd, &target, self.cwd, self.env);
                     hash_order_insert(self.env, cmd, target.clone(), check_dot);
                 }
+                if !default_path && self.get_shopt_enabled("hashall", true)
+                    && self.env.contains_key(&format!("\0hash__{cmd}"))
+                {
+                    let key = format!("\0hash_hits__{cmd}");
+                    let hits = self.env.get(&key).and_then(|value| value.parse::<u64>().ok()).unwrap_or(0);
+                    self.env.insert(key, hits.saturating_add(1).to_string());
+                }
                 return self.run_vfs_script(
-                    &target, args, stdin, true, false, None, false, false, false, false, false,
+                    &target, args, stdin, true, false, None, true, false, false, false, false, false,
                     false, false, cmd, None,
                 );
             }
@@ -7630,6 +7651,7 @@ impl<'a> EvalState<'a> {
         let mut noexec = false;
         let mut noglob = false;
         let mut braceexpand: Option<bool> = None;
+        let mut hashall = true;
         let mut command_string = false;
         let mut standard_input = false;
 
@@ -7667,6 +7689,7 @@ impl<'a> EvalState<'a> {
                     opt_name.as_str(),
                     "allexport"
                         | "braceexpand"
+                        | "hashall"
                         | "errexit"
                         | "noclobber"
                         | "noexec"
@@ -7679,6 +7702,7 @@ impl<'a> EvalState<'a> {
                 match opt_name.as_str() {
                     "allexport" => allexport = on,
                     "braceexpand" => braceexpand = Some(on),
+                    "hashall" => hashall = on,
                     "errexit" => errexit = on,
                     "noclobber" => noclobber = on,
                     "noexec" => noexec = on,
@@ -7694,14 +7718,14 @@ impl<'a> EvalState<'a> {
             let flags = &a[1..];
             let valid_flags = !flags.is_empty()
                 && flags.chars().all(|ch| {
-                    matches!(ch, 'a' | 'B' | 'e' | 'C' | 'n' | 'f' | 'u' | 'P')
+                    matches!(ch, 'a' | 'B' | 'e' | 'C' | 'n' | 'f' | 'h' | 'u' | 'P')
                         || (on && matches!(ch, 'c' | 's' | 'l' | 'i'))
                 });
             if !valid_flags {
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: format!(
-                        "{invoked_cmd}: {a}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C, +/-P and +/-o allexport, braceexpand, errexit, noclobber, noexec, noglob, nounset, physical, pipefail\n"
+                        "{invoked_cmd}: {a}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-h, +/-C, +/-P and +/-o allexport, braceexpand, errexit, hashall, noclobber, noexec, noglob, nounset, physical, pipefail\n"
                     ),
                     exit_code: 2,
                 });
@@ -7712,6 +7736,7 @@ impl<'a> EvalState<'a> {
                     's' => standard_input = true,
                     'a' => allexport = on,
                     'B' => braceexpand = Some(on),
+                    'h' => hashall = on,
                     'e' => errexit = on,
                     'C' => noclobber = on,
                     'P' => physical = on,
@@ -7733,6 +7758,7 @@ impl<'a> EvalState<'a> {
                 false,
                 errexit,
                 braceexpand,
+                hashall,
                 noexec,
                 nounset,
                 pipefail,
@@ -7815,6 +7841,7 @@ impl<'a> EvalState<'a> {
         }
         sub.apply_set_option("allexport", allexport);
         sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
+        sub.apply_set_option("hashall", hashall);
         sub.apply_set_option("errexit", errexit);
         sub.apply_set_option("noclobber", noclobber);
         sub.apply_set_option("physical", physical);
@@ -8037,6 +8064,7 @@ impl<'a> EvalState<'a> {
         direct: bool,
         mut errexit: bool,
         braceexpand: Option<bool>,
+        hashall: bool,
         noexec: bool,
         nounset: bool,
         pipefail: bool,
@@ -8344,6 +8372,7 @@ impl<'a> EvalState<'a> {
         }
         sub.apply_set_option("allexport", allexport);
         sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
+        sub.apply_set_option("hashall", hashall);
         sub.apply_set_option("errexit", errexit);
         sub.apply_set_option("noclobber", noclobber);
         sub.apply_set_option("physical", physical);
@@ -18813,7 +18842,7 @@ hash -l
         assert_eq!(s1.exit_code, 0);
         assert_eq!(
             s1.stdout,
-            "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
+            "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p '/tmp/bin/fail_sh' 'z_cmd'\nbuiltin hash -p '/bin/echo' 'a_cmd'\n"
         );
     }
 

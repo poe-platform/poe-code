@@ -761,6 +761,7 @@ pub fn set_shopt_option(name: &str, enabled: bool, env: &mut BTreeMap<String, St
 }
 
 pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String, String>) -> bool {
+    if name == "PATH" { super::builtins::clear_command_hashes(env); }
     if name == "GLOBIGNORE" && !value.is_empty() { set_shopt_option("dotglob", true, env); }
     if name == "BASH_ARGV0" && !env.contains_key("\0bash_argv0_disabled") {
         env.insert("0".into(), value.to_string());

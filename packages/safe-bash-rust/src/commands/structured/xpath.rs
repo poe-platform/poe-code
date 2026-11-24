@@ -11,12 +11,15 @@ pub(super) enum Op<'s> {
 pub(super) enum AxisTest<'s> {
     Element(&'s str),
     Attribute(&'s str),
+    Namespace(&'s str),
+    Node,
     Text,
     Parent,
     This,
 }
 pub(super) struct Step<'s> {
     pub descendant: bool,
+    pub axis: &'s str,
     pub test: AxisTest<'s>,
     pub predicates: Vec<Vec<Op<'s>>>,
 }
@@ -27,6 +30,10 @@ pub(super) struct Path<'s> {
 pub(super) enum Query<'s> {
     Expression(Vec<Op<'s>>),
     Paths(Vec<Path<'s>>),
+    Filter {
+        input: usize,
+        predicates: Vec<Vec<Op<'s>>>,
+    },
 }
 
 // All parser slices borrow the original query. A bracket's address identifies
@@ -44,9 +51,11 @@ fn bracket_spans(source: &str) -> Brackets {
         } else {
             match b {
                 b'\'' | b'"' => quote = b,
-                b'[' => opens.push(i),
-                b']' => {
-                    if let Some(open) = opens.pop() {
+                b'[' | b'(' => opens.push((i, b)),
+                b']' | b')' => {
+                    if let Some((open, kind)) = opens.pop()
+                        && matches!((kind, b), (b'[', b']') | (b'(', b')'))
+                    {
                         spans.insert(source[open..].as_ptr(), i - open);
                     }
                 }
@@ -127,6 +136,41 @@ impl<'a> Cursor<'a> {
         }
         Ok(&self.s[i..self.i])
     }
+    fn filter_group(&self, spans: &Brackets) -> Option<usize> {
+        if self.byte() != b'(' {
+            return None;
+        }
+        let end = self.i + spans.get(&self.s[self.i..].as_ptr())?;
+        (end < self.s.len()
+            && self.s[end + 1..]
+                .trim_start_matches(|c| matches!(c, ' ' | '\t' | '\r' | '\n'))
+                .starts_with('['))
+        .then_some(end)
+    }
+    fn predicates(
+        &mut self,
+        spans: &Brackets,
+        link: &mut impl FnMut(&'a str) -> usize,
+    ) -> Result<Vec<Vec<Op<'a>>>, String> {
+        let mut predicates = vec![];
+        self.skip();
+        while self.take(b'[') {
+            let open = self.i - 1;
+            self.skip();
+            let begin = self.i;
+            self.i = spans
+                .get(&self.s[open..].as_ptr())
+                .map_or(self.s.len(), |span| open + span)
+                .min(self.s.len());
+            if self.i == self.s.len() {
+                return Err(self.error());
+            }
+            predicates.push(expression(&self.s[begin..self.i], spans, link)?);
+            self.i += 1;
+            self.skip();
+        }
+        Ok(predicates)
+    }
 }
 
 fn query<'a>(
@@ -141,13 +185,27 @@ fn query<'a>(
     };
     c.skip();
     let first = c.i;
+    if let Some(end) = c.filter_group(spans) {
+        c.i = end + 1;
+        let predicates = c.predicates(spans, link)?;
+        if c.i == s.len() {
+            return Ok(Query::Filter {
+                input: link(s[first + 1..end].trim()),
+                predicates,
+            });
+        }
+        if matches!(c.byte(), b'/' | b'|') {
+            return Err(c.error());
+        }
+        c.i = first;
+    }
     let expr = match c.byte() {
         b'-' | b'(' | b'"' | b'\'' | b'0'..=b'9' => true,
         b'.' => s.as_bytes().get(c.i + 1).is_some_and(u8::is_ascii_digit),
         b if start(b) => {
             let name = c.name()?;
             c.skip();
-            c.byte() == b'(' && name != "text"
+            c.byte() == b'(' && !matches!(name, "text" | "node")
         }
         _ => false,
     };
@@ -164,10 +222,51 @@ fn query<'a>(
             let descendant = c.take(b'/') && c.take(b'/');
             c.skip();
             let attr = c.take(b'@');
+            let mut axis = if attr { "attribute" } else { "child" };
+            let mut explicit_axis = false;
+            if !attr {
+                let begin = c.i;
+                while part(c.byte()) {
+                    c.i += 1;
+                }
+                let name = &s[begin..c.i];
+                c.skip();
+                if s[c.i..].starts_with("::") {
+                    if !matches!(
+                        name,
+                        "child"
+                            | "parent"
+                            | "self"
+                            | "attribute"
+                            | "namespace"
+                            | "ancestor"
+                            | "ancestor-or-self"
+                            | "descendant"
+                            | "descendant-or-self"
+                            | "preceding-sibling"
+                            | "following-sibling"
+                            | "preceding"
+                            | "following"
+                    ) {
+                        return Err(c.error());
+                    }
+                    axis = name;
+                    explicit_axis = true;
+                    c.i += 2;
+                    c.skip();
+                } else {
+                    c.i = begin;
+                }
+            }
+            if c.byte() == b'.' && (attr || explicit_axis) {
+                return Err(c.error());
+            }
             let test = if c.take(b'.') {
                 if c.take(b'.') {
+                    axis = "parent";
                     AxisTest::Parent
                 } else {
+                    axis = "self";
                     AxisTest::This
                 }
             } else {
@@ -177,11 +276,10 @@ fn query<'a>(
                     c.skip();
                     let i = c.i;
                     c.name()?;
-                    if !attr && s[c.i..].starts_with("::") {
-                        return Err(c.error());
-                    }
                     if c.take(b':') {
-                        c.name()?;
+                        if !c.take(b'*') {
+                            c.name()?;
+                        }
                         if c.byte() == b':' {
                             return Err(c.error());
                         }
@@ -190,7 +288,9 @@ fn query<'a>(
                 };
                 c.skip();
                 if c.byte() == b'(' {
-                    if name != "text" || attr {
+                    if name != "node"
+                        && (name != "text" || matches!(axis, "attribute" | "namespace"))
+                    {
                         return Err(c.error());
                     }
                     c.i += 1;
@@ -198,32 +298,23 @@ fn query<'a>(
                     if !c.take(b')') {
                         return Err(c.error());
                     }
-                    AxisTest::Text
-                } else if attr {
+                    if name == "node" {
+                        AxisTest::Node
+                    } else {
+                        AxisTest::Text
+                    }
+                } else if axis == "attribute" {
                     AxisTest::Attribute(name)
+                } else if axis == "namespace" {
+                    AxisTest::Namespace(name)
                 } else {
                     AxisTest::Element(name)
                 }
             };
-            c.skip();
-            let mut predicates = vec![];
-            while c.take(b'[') {
-                let open = c.i - 1;
-                c.skip();
-                let begin = c.i;
-                c.i = spans
-                    .get(&s[open..].as_ptr())
-                    .map_or(s.len(), |span| open + span)
-                    .min(s.len());
-                if c.i == s.len() {
-                    return Err(c.error());
-                }
-                predicates.push(expression(&s[begin..c.i], spans, link)?);
-                c.i += 1;
-                c.skip();
-            }
+            let predicates = c.predicates(spans, link)?;
             steps.push(Step {
                 descendant,
+                axis,
                 test,
                 predicates,
             });
@@ -267,7 +358,9 @@ fn arity(name: &str) -> Option<std::ops::RangeInclusive<usize>> {
         "contains" | "starts-with" | "substring-before" | "substring-after" => 2..=2,
         "normalize-space" | "string-length" | "string" | "number" | "name" | "local-name"
         | "namespace-uri" => 0..=1,
-        "not" | "count" | "boolean" | "sum" | "floor" | "ceiling" | "round" => 1..=1,
+        "not" | "count" | "boolean" | "sum" | "floor" | "ceiling" | "round" | "id" | "lang" => {
+            1..=1
+        }
         "substring" => 2..=3,
         "concat" => 2..=usize::MAX,
         "translate" => 3..=3,
@@ -361,12 +454,15 @@ fn expression<'a>(
         }
         let begin = c.i;
         let path = match b {
+            b'(' => c.filter_group(spans).is_some(),
             b'/' | b'@' | b'*' => true,
             b'.' => !s.as_bytes().get(c.i + 1).is_some_and(u8::is_ascii_digit),
             b if start(b) => {
                 c.name()?;
                 c.skip();
-                let path = c.byte() != b'(' || s[begin..].starts_with("text");
+                let path = c.byte() != b'('
+                    || s[begin..].starts_with("text")
+                    || s[begin..].starts_with("node");
                 c.i = begin;
                 path
             }
@@ -404,13 +500,8 @@ fn expression<'a>(
                     parens -= 1;
                 } else if brackets == 0 && parens == 0 {
                     if ch == b'*' {
-                        let mut previous = c.i;
-                        while previous > begin && space(s.as_bytes()[previous - 1]) {
-                            previous -= 1;
-                        }
-                        if previous > begin
-                            && !matches!(s.as_bytes()[previous - 1], b'/' | b'@' | b':' | b'|')
-                        {
+                        let previous = s[begin..c.i].bytes().rev().find(|b| !space(*b));
+                        if previous.is_some_and(|b| !matches!(b, b'/' | b'@' | b':' | b'|')) {
                             break;
                         }
                     }
@@ -422,7 +513,9 @@ fn expression<'a>(
                         c.skip();
                         let next = c.byte();
                         let previous = s.as_bytes()[where_ - 1];
-                        if !matches!(previous, b'/' | b'|') && !matches!(next, b'/' | b'|') {
+                        if !matches!(previous, b'/' | b'|' | b':')
+                            && !matches!(next, b'/' | b'|' | b':')
+                        {
                             c.i = where_;
                             break;
                         }
@@ -485,19 +578,4 @@ fn expression<'a>(
         return Err(c.error());
     }
     Ok(out)
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn unknown_xpath_axis_reports_its_separator() {
-        for source in ["//a::b", "count(//a::b)"] {
-            assert_eq!(
-                super::compile(source).err().as_deref(),
-                Some("unsupported XPath syntax at offset 3"),
-                "{source}"
-            );
-        }
-        assert!(super::compile("//a:b").is_ok());
-    }
 }

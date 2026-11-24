@@ -17043,6 +17043,35 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn apng_source_probing_matches_native_metadata() {
+        use super::super::structured::{JVal, parse_json_stream};
+        let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/apng-probe.json")).unwrap().remove(0) else { panic!("fixture") };
+        let JVal::Object(inputs) = &fixture.iter().find(|(k, _)| k == "inputs").unwrap().1 else { panic!("inputs") };
+        let JVal::Array(cases) = &fixture.iter().find(|(k, _)| k == "cases").unwrap().1 else { panic!("cases") };
+        let fs = MemoryVfs::new();
+        for (name, value) in inputs {
+            let JVal::Str(hex) = value else { panic!("input") };
+            fs.write_file(&format!("/{name}.apng"), &hex_dec(hex)).unwrap();
+        }
+        let mut failures = Vec::new();
+        for case in cases {
+            let JVal::Object(fields) = case else { panic!("case") };
+            let field = |key| &fields.iter().find(|(k, _)| k == key).unwrap().1;
+            let string = |key| match field(key) { JVal::Str(s) => s.as_str(), _ => panic!("string") };
+            let JVal::Array(args) = field("args") else { panic!("args") };
+            let args: Vec<_> = args.iter().map(|v| match v { JVal::Str(s) => s.clone(), _ => panic!("argument") }).collect();
+            let stdin = crate::vfs::bytes_to_stream_string(&fs.read_file(&format!("/{}.apng", string("input"))).unwrap());
+            let result = cmd_media_doc("ffprobe", &args, &stdin, "/", &fs);
+            if result.exit_code != 0 { failures.push(format!("{}: {}", string("name"), result.stderr)); continue; }
+            let matches = if args.iter().any(|s| s == "json") {
+                parse_json_stream(&result.stdout).unwrap() == parse_json_stream(string("stdout")).unwrap()
+            } else { result.stdout == string("stdout") };
+            if !matches { failures.push(format!("{}: {}", string("name"), result.stdout.replace('\n', "\\n"))); }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
+    #[test]
     fn apng_cadence_and_output_clocks_match_native_ffmpeg() {
         use super::super::structured::{JVal, parse_json_stream};
         let JVal::Object(fixture) = parse_json_stream(include_str!("../../tests/fixtures/apng-cadence.json")).unwrap().remove(0) else { panic!("fixture") };

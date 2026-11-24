@@ -18192,6 +18192,22 @@ import "./sed-output-order.wasm.test.mjs";
 import "./webdav-cd.wasm.test.mjs";
 
 
+test("APNG source probing matches native stream, packet and frame metadata", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {inputs, cases} = JSON.parse(await readFile(new URL("../tests/fixtures/apng-probe.json", import.meta.url), "utf8"));
+  const bash = new RustWasmBash({cwd:"/", forceNative:true});
+  const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+  try {
+    for (const [name, hex] of Object.entries(inputs)) await bash.fs.writeFile("/" + name + ".apng", Buffer.from(hex, "hex"));
+    for (const entry of cases) {
+      const result = await bash.exec((entry.stdin ? `cat '${entry.input}.apng' | ` : "") + "ffprobe " + entry.args.map(quote).join(" "));
+      assert.equal(result.exitCode, 0, `${entry.name}: ${result.stderr}`);
+      if (entry.args.includes("json")) assert.deepEqual(JSON.parse(result.stdout), JSON.parse(entry.stdout), entry.name);
+      else assert.equal(result.stdout, entry.stdout, entry.name);
+    }
+  } finally { await bash.dispose(); }
+});
+
 test("APNG cadence and output clocks match native FFmpeg", async () => {
   const {readFile} = await import("node:fs/promises");
   const {inputs, cases, probe} = JSON.parse(await readFile(new URL("../tests/fixtures/apng-cadence.json", import.meta.url), "utf8"));

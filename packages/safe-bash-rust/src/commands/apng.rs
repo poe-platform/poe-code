@@ -46,6 +46,7 @@ fn chunk(
 pub(super) struct Frame {
     pub pts: u64,
     pub duration: u64,
+    source: std::ops::Range<usize>,
     pub packet: Vec<u8>,
     pub image: Raster,
 }
@@ -83,6 +84,7 @@ impl Document {
         let mut shared: Vec<([u8; 4], Vec<u8>)> = Vec::new();
         let mut control: Option<Control> = None;
         let mut packet = Vec::new();
+        let mut frame_start = 0;
         let mut pages = 0;
         let mut sequence = 0u32;
         let mut data = false;
@@ -173,6 +175,7 @@ impl Document {
                         doc.frames.push(Frame {
                             pts: doc.ticks,
                             duration: c.duration,
+                            source: frame_start..p,
                             packet: std::mem::take(&mut packet),
                             image: Raster {
                                 width: doc.width,
@@ -250,6 +253,7 @@ impl Document {
                     packet.extend_from_slice(SIGNATURE);
                     chunk(&mut packet, b"IHDR", &ihdr, *remaining)?;
                     control = Some(c);
+                    frame_start = p;
                     data = false;
                 }
                 b"IDAT" | b"fdAT" => {
@@ -422,139 +426,175 @@ pub(super) fn write(
     Ok(output)
 }
 
+fn average_rate(packets: &[super::media_probe::Packet]) -> String {
+    let count = packets.len().saturating_sub(2) as u64;
+    let ticks = packets.iter().skip(2).map(|p| p.ticks as u64).sum::<u64>();
+    if count == 0 || ticks == 0 { return "0/0".into(); }
+    // Reduce the observed average with FFmpeg's 60,000 numerator/denominator
+    // bound, then choose a standard rate when it is within one percent.
+    let (mut num, mut den) = (count * 100000, ticks);
+    let (mut prior, mut rate) = ((0u64, 1u64), (1u64, 0u64));
+    while den != 0 {
+        let mut whole = num / den;
+        let next = (whole * rate.0 + prior.0, whole * rate.1 + prior.1);
+        if next.0 > 60000 || next.1 > 60000 {
+            if rate.0 != 0 { whole = (60000 - prior.0) / rate.0; }
+            if rate.1 != 0 { whole = whole.min((60000 - prior.1) / rate.1); }
+            if u128::from(den) * u128::from(2 * whole * rate.1 + prior.1) > u128::from(num) * u128::from(rate.1) {
+                rate = (whole * rate.0 + prior.0, whole * rate.1 + prior.1);
+            }
+            break;
+        }
+        (prior, rate) = (rate, next);
+        (num, den) = (den, num % den);
+    }
+    let mut best = 0.01;
+    let fps = rate.0 as f64 / rate.1 as f64;
+    for numerator in super::y4m::standard_rates() {
+        let error = (fps / (numerator as f64 / 12012.) - 1.).abs();
+        if error < best { best = error; rate = (numerator, 12012); }
+    }
+    super::media_probe::ratio(rate.0, rate.1, '/')
+}
+
 pub(super) fn report(
     bytes: &[u8],
     filename: &str,
     limit: usize,
     mut opts: super::media_probe::ProbeOptions<'_>,
 ) -> Result<String, &'static str> {
-    use super::media_probe::{self, Codec, Packet, StreamInfo};
+    use super::media_probe::{self, Codec, Packet};
     use crate::commands::structured::JVal::{Number, Object, Str};
     let doc = Document::read(bytes, &mut { limit })?;
-    let counts = (
-        opts.counts.0 || opts.show.contains("frame"),
-        opts.counts.1 || opts.show.contains("packet"),
-    );
-    if opts.writer == "json" && opts.show.contains("frame") && opts.show.contains("packet") {
-        opts.show.remove("frame");
-        opts.show.remove("packet");
-        opts.show.insert("packet_frame");
+    let extra_end = doc.frames[0].source.start;
+    let (mut aspect, mut transparent) = (None, false);
+    let mut offset = 8;
+    while offset < extra_end {
+        let size = u32::from_be_bytes(bytes[offset..offset + 4].try_into().unwrap()) as usize;
+        let data = &bytes[offset + 8..offset + 8 + size];
+        match &bytes[offset + 4..offset + 8] {
+            b"tRNS" => transparent = true,
+            b"pHYs" if size == 9 => {
+                let x = u32::from_be_bytes(data[..4].try_into().unwrap());
+                let y = u32::from_be_bytes(data[4..8].try_into().unwrap());
+                aspect = (x != 0 && y != 0).then_some((u64::from(x), u64::from(y)));
+            }
+            _ => (),
+        }
+        offset += size + 12;
     }
-    let select = opts.select;
-    let codec = Codec::Video {
-        tag: b"apng",
-        width: Some(doc.width as i64),
-        height: Some(doc.height as u32),
+    let depth = bytes[24];
+    let pixel = match (bytes[25], depth, transparent) {
+        (0, 16, false) => "gray16be", (0, 1, false) => "monob", (0, _, false) => "gray",
+        (0 | 4, 16, _) => "ya16be", (0 | 4, _, _) => "ya8",
+        (2, 16, false) => "rgb48be", (2, _, false) => "rgb24",
+        (2 | 6, 16, _) => "rgba64be", _ => "rgba",
     };
-    media_probe::report(opts, |section| {
-        if section == "format" {
-            let mut row = media_probe::format_row(
-                filename,
-                bytes.len(),
-                ("apng", "Animated Portable Network Graphics"),
-                1,
-                doc.ticks as f64 / 1000000.,
-                vec![],
-            );
-            row.insert(3, ("nb_stream_groups", Number(0., None)));
-            return Box::new(std::iter::once(row));
+    let packets: Vec<_> = doc.frames.iter().scan(0i64, |pts, frame| {
+        let data = &bytes[frame.source.start + 8..frame.source.start + 34];
+        let mut num = u64::from(u16::from_be_bytes(data[20..22].try_into().unwrap()));
+        let mut den = u64::from(u16::from_be_bytes(data[22..24].try_into().unwrap()));
+        if den == 0 { den = 100; }
+        if num == 0 { num = 1; den = 15; }
+        let ticks = (num * 100000 + den / 2) / den;
+        let word = |i| u32::from_be_bytes(data[i..i + 4].try_into().unwrap()) as usize;
+        let key = word(4) == doc.width && word(8) == doc.height && word(12) == 0 && word(16) == 0
+            && (data[24] == 1 || data[25] == 0 || word(0) == 0 && data[24] == 2);
+        let packet = Packet { pts: *pts, dts: *pts, ticks: ticks as f64, size: frame.source.len() as u64, pos: frame.source.start as u64, key };
+        *pts += ticks as i64;
+        Some(packet)
+    }).collect();
+    let probe_end = packets.get(2).map_or(0, |p| p.pts) + 500000;
+    let probed = packets.partition_point(|p| p.pts < probe_end);
+    let rate = super::y4m::guess_rate(100000, || packets[..probed].iter().map(|p| p.dts as u64));
+    let rate = media_probe::ratio(rate.0, rate.1, '/');
+    let average = average_rate(&packets[..probed]);
+    let optional = !matches!(opts.writer, "json" | "xml");
+    let counts = (opts.counts.0 || opts.show.contains("frame"), opts.counts.1 || opts.show.contains("packet"));
+    if opts.show.contains("frame") && opts.show.contains("packet") {
+        opts.show.remove("frame"); opts.show.remove("packet"); opts.show.insert("packet_frame");
+    }
+    let enabled = media_probe::selected(opts.select, "video", 0, 0);
+    let codec = Codec::Video { tag: b"apng", width: Some(doc.width as i64), height: Some(doc.height as u32) };
+    media_probe::report(opts, |section| match section {
+        "stream" if enabled => {
+            let mut row = vec![
+                ("index", Number(0., None)), ("codec_name", Str("apng".into())),
+                ("codec_long_name", Str("APNG (Animated Portable Network Graphics) image".into())),
+            ];
+            if optional { row.push(("profile", Str("unknown".into()))); }
+            row.extend([
+                ("codec_type", Str("video".into())), ("codec_tag_string", Str("[0][0][0][0]".into())), ("codec_tag", Str("0x0000".into())),
+                ("width", Number(doc.width as f64, None)), ("height", Number(doc.height as f64, None)),
+                ("coded_width", Number(doc.width as f64, None)), ("coded_height", Number(doc.height as f64, None)),
+                ("closed_captions", Number(0., None)), ("film_grain", Number(0., None)), ("has_b_frames", Number(0., None)),
+            ]);
+            if let Some((n, d)) = aspect {
+                row.extend([("sample_aspect_ratio", Str(media_probe::ratio(n, d, ':'))), ("display_aspect_ratio", Str(media_probe::ratio(n * doc.width as u64, d * doc.height as u64, ':')))]);
+            } else if optional { row.extend([("sample_aspect_ratio", Str("N/A".into())), ("display_aspect_ratio", Str("N/A".into()))]); }
+            row.extend([("pix_fmt", Str(pixel.into())), ("level", Number(-99., None)), ("color_range", Str("pc".into())), ("color_space", Str("gbr".into()))]);
+            if optional { row.extend([("color_transfer", Str("unknown".into())), ("color_primaries", Str("unknown".into())), ("chroma_location", Str("unspecified".into())), ("field_order", Str("unknown".into()))]); }
+            row.push(("refs", Number(1., None)));
+            if optional { row.push(("id", Str("N/A".into()))); }
+            row.extend([("r_frame_rate", Str(rate.clone())), ("avg_frame_rate", Str(average.clone())), ("time_base", Str("1/100000".into()))]);
+            if optional {
+                for key in ["start_pts", "start_time", "duration_ts", "duration", "bit_rate", "max_bit_rate", "bits_per_raw_sample", "nb_frames"] { row.push((key, Str("N/A".into()))); }
+            }
+            for (key, known) in [("nb_read_frames", counts.0), ("nb_read_packets", counts.1)] {
+                if known { row.push((key, Str(packets.len().to_string()))); }
+                else if optional { row.push((key, Str("N/A".into()))); }
+            }
+            row.push(("extradata_size", Number((extra_end - 8) as f64, None)));
+            let mut disposition = media_probe::disposition(false);
+            disposition.extend(["non_diegetic", "captions", "descriptions", "metadata", "dependent", "still_image"].map(|key| (key.into(), Number(0., None))));
+            row.push(("disposition", Object(disposition)));
+            Box::new(std::iter::once(row))
         }
-        if !media_probe::selected(select, "video", 0, 0) {
-            return Box::new(std::iter::empty());
+        "format" => {
+            let pipe = matches!(filename, "-" | "pipe:" | "pipe:0");
+            let mut row = vec![
+                ("filename", Str(if filename == "-" { "fd:" } else { filename }.into())), ("nb_streams", Number(1., None)), ("nb_programs", Number(0., None)), ("nb_stream_groups", Number(0., None)),
+                ("format_name", Str("apng".into())), ("format_long_name", Str("Animated Portable Network Graphics".into())),
+            ];
+            if optional { row.extend([("start_time", Str("N/A".into())), ("duration", Str("N/A".into()))]); }
+            if filename == "-" { row.push(("size", Str("0".into()))); }
+            else if !pipe { row.push(("size", Str(bytes.len().to_string()))); }
+            else if optional { row.push(("size", Str("N/A".into()))); }
+            if optional { row.push(("bit_rate", Str("N/A".into()))); }
+            row.push(("probe_score", Number(100., None)));
+            Box::new(std::iter::once(row))
         }
-        let rows: Box<dyn Iterator<Item = _>> = if section == "stream" {
-            Box::new(std::iter::once(
-                StreamInfo {
-                    codec,
-                    scale: 1000000,
-                    start: 0,
-                    ticks: doc.ticks as f64,
-                    sample_ticks: doc.ticks as f64,
-                    id: 1,
-                    language: "und".into(),
-                    profile: None,
-                    count: doc.frames.len(),
-                    payload_bytes: doc.frames.iter().map(|f| f.packet.len() as u64).sum(),
-                    has_cts: false,
-                }
-                .stream(0, counts),
-            ))
-        } else if matches!(section, "frame" | "packet" | "packet_frame") {
+        "packet" | "frame" | "packet_frame" if enabled => {
             let both = section == "packet_frame";
-            let want_frame = section == "frame";
-            Box::new(
-                doc.frames
-                    .iter()
-                    .scan(0u64, move |pos, f| {
-                        let packet = Packet {
-                            pts: f.pts as i64,
-                            dts: f.pts as i64,
-                            ticks: f.duration as f64,
-                            size: f.packet.len() as u64,
-                            pos: *pos,
-                            key: true,
-                        };
-                        *pos += f.packet.len() as u64;
-                        Some(packet)
-                    })
-                    .flat_map(move |packet| {
-                        [false, true]
-                            .into_iter()
-                            .filter(move |&frame| both || frame == want_frame)
-                            .map(move |frame| {
-                                let mut row = codec.record(0, 1000000, packet, frame);
-                                if both {
-                                    row.insert(
-                                        0,
-                                        (
-                                            "type",
-                                            Str(if frame { "frame" } else { "packet" }.into()),
-                                        ),
-                                    );
-                                }
-                                row
-                            })
-                    }),
-            )
-        } else {
-            Box::new(std::iter::empty())
-        };
-        Box::new(rows.map(|mut row| {
-            row.retain(|(key, _)| {
-                !matches!(
-                    *key,
-                    "sample_aspect_ratio"
-                        | "display_aspect_ratio"
-                        | "color_range"
-                        | "color_space"
-                        | "pict_type"
-                )
-            });
-            for (key, value) in &mut row {
-                match *key {
-                    "pix_fmt" => *value = Str("rgba".into()),
-                    "codec_tag" => *value = Str("0x676e7061".into()),
-                    "flags" => *value = Str("K__".into()),
-                    "disposition" => {
-                        if let Object(values) = value {
-                            values.extend(
-                                [
-                                    "non_diegetic",
-                                    "captions",
-                                    "descriptions",
-                                    "metadata",
-                                    "dependent",
-                                    "still_image",
-                                    "multilayer",
-                                ]
-                                .map(|key| (key.into(), Number(0., None))),
-                            );
+            Box::new(packets.iter().flat_map(move |packet| (0..if both { 2 } else { 1 }).map(move |part| {
+                let frame = section == "frame" || both && part == 1;
+                let mut row = codec.record(0, 100000, *packet, frame);
+                if frame {
+                    row.retain(|(key, _)| !matches!(*key, "pix_fmt" | "pict_type"));
+                    for (key, value) in &mut row {
+                        match *key {
+                            "pkt_duration" => *key = "duration",
+                            "pkt_duration_time" => *key = "duration_time",
+                            "key_frame" => *value = Number(1., None),
+                            _ => (),
                         }
                     }
-                    _ => (),
+                    let pos = row.iter().position(|(key, _)| *key == "pkt_size").unwrap();
+                    row.insert(pos, ("pkt_pos", Str(packet.pos.to_string())));
+                    row.extend(["crop_top", "crop_bottom", "crop_left", "crop_right"].map(|key| (key, Number(0., None))));
+                    row.push(("pix_fmt", Str(pixel.into())));
+                    if let Some((n, d)) = aspect { row.push(("sample_aspect_ratio", Str(media_probe::ratio(n, d, ':')))); }
+                    else if optional { row.push(("sample_aspect_ratio", Str("N/A".into()))); }
+                    row.extend([
+                        ("pict_type", Str("I".into())), ("interlaced_frame", Number(0., None)), ("top_field_first", Number(0., None)), ("repeat_pict", Number(0., None)),
+                        ("color_range", Str("pc".into())), ("color_space", Str("gbr".into())),
+                    ]);
+                    if optional { row.extend([("color_primaries", Str("unknown".into())), ("color_transfer", Str("unknown".into())), ("chroma_location", Str("unspecified".into()))]); }
                 }
-            }
-            row
-        }))
+                if both { row.insert(0, ("type", Str(if frame { "frame" } else { "packet" }.into()))); }
+                row
+            })))
+        }
+        _ => Box::new(std::iter::empty()),
     })
 }

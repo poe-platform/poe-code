@@ -46,6 +46,8 @@ async function test() {
     // Three APNG pictures at 0, 0.2 and 0.6 seconds yield four default frames.
     const animationHex = "89504e470d0a1a0a0000000d4948445200000004000000040806000000a9f19e7e000000086163544c000000030000000220e3dbec0000001a6663544c00000000000000040000000400000000000000000001000500005c2e44dc0000001249444154789c63fccfc0004408c048ba00003fbd07fde53407d70000001a6663544c000000010000000400000004000000000000000000020005000080fdd4d8000000156664415400000002789c6364f80f844880917401003bc107fdd052fd500000001a6663544c00000003000000040000000400000000000000000001000500002acb7de1000000176664415400000004789c636460f8ff9f010930922e000037c507fd35df25ad0000000049454e44ae426082";
     await shell.fs.writeFile("/animation.apng", Uint8Array.from({length: animationHex.length / 2}, (_, i) => parseInt(animationHex.slice(i * 2, i * 2 + 2), 16)));
+    const animationSource = await shell.exec("ffprobe -show_entries stream=r_frame_rate,avg_frame_rate,time_base -of csv=p=0 /animation.apng");
+    if (animationSource.exitCode || animationSource.stderr || animationSource.stdout !== "5/1,5/1,1/100000\n") throw new Error(JSON.stringify(animationSource));
     const animation = await shell.exec("ffmpeg -i /animation.apng /animation.mp4 && ffprobe -show_entries stream=time_base,nb_frames -of csv=p=0 /animation.mp4");
     if (animation.exitCode || animation.stderr || animation.stdout !== "1/10240,4\n") throw new Error(JSON.stringify(animation));
     await shell.fs.writeFile("/source sheet.csv", "Name,Value,Total\nAda,2,=B2+3\n");

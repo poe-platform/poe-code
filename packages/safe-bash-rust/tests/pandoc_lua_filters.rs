@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/lexer.rs"]
+mod lua_lexer;
 #[path = "../../lua-rust/tests/dump.rs"]
 mod lua_dump;
 #[path = "../../lua-rust/tests/math_validation.rs"]

@@ -25,6 +25,26 @@ fn decode(bytes: &[u8], position: usize) -> Option<(u32, usize)> {
     (code >= [0, 128, 2048, 65536][count] && code <= 0x10ffff)
         .then_some((code, position + count + 1))
 }
+pub(crate) fn encode(code: u32, bytes: &mut Vec<u8>) {
+    if code < 128 {
+        bytes.push(code as u8);
+    } else if code < 2048 {
+        bytes.extend([(0xc0 | (code >> 6)) as u8, (0x80 | (code & 63)) as u8]);
+    } else if code < 65536 {
+        bytes.extend([
+            (0xe0 | (code >> 12)) as u8,
+            (0x80 | ((code >> 6) & 63)) as u8,
+            (0x80 | (code & 63)) as u8,
+        ]);
+    } else {
+        bytes.extend([
+            (0xf0 | (code >> 18)) as u8,
+            (0x80 | ((code >> 12) & 63)) as u8,
+            (0x80 | ((code >> 6) & 63)) as u8,
+            (0x80 | (code & 63)) as u8,
+        ]);
+    }
+}
 impl Runtime {
     pub(crate) fn utf8(&mut self, name: &str, args: Vec<Value>) -> Result<Vec<Value>> {
         let argument = |index: usize, default: Option<isize>| -> Result<isize> {
@@ -49,24 +69,7 @@ impl Runtime {
                     return Err(Error::new("Value out of range"));
                 }
                 let code = code as u32;
-                if code < 128 {
-                    bytes.push(code as u8);
-                } else if code < 2048 {
-                    bytes.extend([(0xc0 | (code >> 6)) as u8, (0x80 | (code & 63)) as u8]);
-                } else if code < 65536 {
-                    bytes.extend([
-                        (0xe0 | (code >> 12)) as u8,
-                        (0x80 | ((code >> 6) & 63)) as u8,
-                        (0x80 | (code & 63)) as u8,
-                    ]);
-                } else {
-                    bytes.extend([
-                        (0xf0 | (code >> 18)) as u8,
-                        (0x80 | ((code >> 12) & 63)) as u8,
-                        (0x80 | ((code >> 6) & 63)) as u8,
-                        (0x80 | (code & 63)) as u8,
-                    ]);
-                }
+                encode(code, &mut bytes);
             }
             return Ok(vec![Value::String(bytes)]);
         }

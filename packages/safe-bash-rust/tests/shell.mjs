@@ -111,6 +111,9 @@ async function test() {
       const error = await shell.exec(`printf hello | pandoc -f markdown -t plain -L '${path}' -o /base.saved`);
       if (error.exitCode !== 9 || error.stdout || error.stderr !== "E_IO: Capability failed\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
     }
+    await shell.fs.writeFile("/lexer.lua", "--comment\rfunction Str(el) local s='\\u{41}'..[[\r\nx\r\ny]]..'a\\z\u000bb';return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end");
+    const lexed = await shell.exec("printf a | pandoc -f markdown -t plain -L /lexer.lua");
+    if (lexed.exitCode || lexed.stderr || lexed.stdout !== "41780a796162\n") throw new Error(JSON.stringify(lexed));
     await shell.fs.writeFile("/dump.lua", "function Str(el) local x=7;local f=function(y)return x+y end;local b=string.dump(f,true);return pandoc.Str(type(b)..':'..string.byte(b,1)..':'..#b..':'..tostring(#b<#string.dump(f))) end");
     const dumped = await shell.exec("printf hello | pandoc -f markdown -t plain -L /dump.lua");
     if (dumped.exitCode || dumped.stderr || dumped.stdout !== "string:27:88:true\n") throw new Error(JSON.stringify(dumped));

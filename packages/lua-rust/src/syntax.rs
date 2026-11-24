@@ -63,10 +63,15 @@ impl Lexer<'_> {
     fn take(&mut self) -> u8 {
         let b = self.byte();
         self.offset += 1;
-        if b == b'\n' {
+        if matches!(b, b'\n' | b'\r') {
+            if matches!(self.byte(), b'\n' | b'\r') && self.byte() != b {
+                self.offset += 1;
+            }
             self.line += 1;
+            b'\n'
+        } else {
+            b
         }
-        b
     }
     fn long(&mut self) -> Result<Option<Vec<u8>>> {
         let start = self.offset;
@@ -83,10 +88,10 @@ impl Lexer<'_> {
         }
         let equals = self.offset - start - 1;
         self.offset += 1;
-        if self.byte() == b'\n' {
+        if matches!(self.byte(), b'\n' | b'\r') {
             self.take();
         }
-        let content = self.offset;
+        let mut text = Vec::new();
         while self.offset < self.source.len() {
             if self.byte() == b']'
                 && self
@@ -95,23 +100,22 @@ impl Lexer<'_> {
                     .is_some_and(|s| s.iter().all(|b| *b == b'='))
                 && self.source.get(self.offset + 1 + equals) == Some(&b']')
             {
-                let text = self.source[content..self.offset].to_vec();
                 self.offset += equals + 2;
                 return Ok(Some(text));
             }
-            self.take();
+            text.push(self.take());
         }
         Err(Error::unlocated("unfinished long string"))
     }
     fn next(&mut self) -> Result<Token> {
         loop {
-            while self.byte().is_ascii_whitespace() {
+            while matches!(self.byte(), b' ' | b'\t'..=b'\r') {
                 self.take();
             }
             if self.source.get(self.offset..self.offset + 2) == Some(b"--") {
                 self.offset += 2;
                 if self.long()?.is_none() {
-                    while self.offset < self.source.len() && self.byte() != b'\n' {
+                    while self.offset < self.source.len() && !matches!(self.byte(), b'\n' | b'\r') {
                         self.take();
                     }
                 }
@@ -147,13 +151,16 @@ impl Lexer<'_> {
             self.take();
             let mut text = Vec::new();
             while self.byte() != b {
-                if self.offset >= self.source.len() || self.byte() == b'\n' {
+                if self.offset >= self.source.len() || matches!(self.byte(), b'\n' | b'\r') {
                     return Err(Error::unlocated("unfinished string"));
                 }
                 let c = self.take();
                 if c != b'\\' {
                     text.push(c);
                     continue;
+                }
+                if self.offset >= self.source.len() {
+                    return Err(Error::unlocated("unfinished string"));
                 }
                 let c = self.take();
                 match c {
@@ -164,8 +171,28 @@ impl Lexer<'_> {
                     b'r' => text.push(13),
                     b't' => text.push(9),
                     b'v' => text.push(11),
+                    b'\\' | b'\'' | b'"' | b'\n' => text.push(c),
+                    b'u' => {
+                        if self.take() != b'{' {
+                            return Err(Error::unlocated("missing '{'"));
+                        }
+                        if !self.byte().is_ascii_hexdigit() {
+                            return Err(Error::unlocated("hexadecimal digit expected"));
+                        }
+                        let mut code = 0;
+                        while self.byte().is_ascii_hexdigit() {
+                            code = code * 16 + (self.take() as char).to_digit(16).unwrap();
+                            if code > 0x10ffff {
+                                return Err(Error::unlocated("UTF-8 value too large"));
+                            }
+                        }
+                        if self.take() != b'}' {
+                            return Err(Error::unlocated("missing '}'"));
+                        }
+                        crate::utf8::encode(code, &mut text);
+                    }
                     b'z' => {
-                        while self.byte().is_ascii_whitespace() {
+                        while matches!(self.byte(), b' ' | b'\t'..=b'\r') {
                             self.take();
                         }
                     }
@@ -192,7 +219,7 @@ impl Lexer<'_> {
                         }
                         text.push(n as u8);
                     }
-                    _ => text.push(c),
+                    _ => return Err(Error::unlocated("invalid escape sequence")),
                 }
             }
             self.take();
@@ -210,7 +237,7 @@ impl Lexer<'_> {
                 self.source[start..].starts_with(b"0x") || self.source[start..].starts_with(b"0X");
             self.take();
             while self.byte().is_ascii_alphanumeric()
-                || self.byte() == b'.' && self.source.get(self.offset + 1) != Some(&b'.')
+                || self.byte() == b'.'
                 || matches!(self.byte(), b'+' | b'-')
                     && if hex {
                         matches!(self.source[self.offset - 1], b'p' | b'P')

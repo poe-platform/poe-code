@@ -8375,5 +8375,299 @@
     "stdout": "1b4c7561530019930d0a1a0a0404040408785600000000000000287740000b2f75707065722e6c75610000000000000000000002040000000400000040000000660000012600800000000000000000000000000004000000020000000300000003000000020000000000000000000000\n",
     "bufferedStdout": "1b4c7561530019930d0a1a0a0404040408785600000000000000287740000b2f75707065722e6c756101000000040000000000020300000004000000260000012600800000000000000000000000000003000000020000000300000004000000010000000278010000000300000000000000\n",
     "dumpResult": null
+  },
+  {
+    "id": "lua-lexer-unicode-ascii",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{41}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "41\n"
+  },
+  {
+    "id": "lua-lexer-unicode-nul",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{0}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "00\n"
+  },
+  {
+    "id": "lua-lexer-unicode-two",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{7ff}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "dfbf\n"
+  },
+  {
+    "id": "lua-lexer-unicode-three",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{800}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "e0a080\n"
+  },
+  {
+    "id": "lua-lexer-unicode-surrogate",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{d800}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "eda080\n"
+  },
+  {
+    "id": "lua-lexer-unicode-four",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{1f600}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "f09f9880\n"
+  },
+  {
+    "id": "lua-lexer-unicode-max",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{10ffff}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "f48fbfbf\n"
+  },
+  {
+    "id": "lua-lexer-unicode-large",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{110000}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: UTF-8 value too large\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: UTF-8 value too large near ''\\u{110000'\n"
+  },
+  {
+    "id": "lua-lexer-unicode-no-open",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u41'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: missing '{'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: missing '{' near ''\\u4'\n"
+  },
+  {
+    "id": "lua-lexer-unicode-no-close",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{41'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: missing '}'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: missing '}' near ''\\u{41''\n"
+  },
+  {
+    "id": "lua-lexer-unicode-empty",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: hexadecimal digit expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: hexadecimal digit expected near ''\\u{}'\n"
+  },
+  {
+    "id": "lua-lexer-unicode-invalid",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\u{gg}'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: hexadecimal digit expected\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: hexadecimal digit expected near ''\\u{g'\n"
+  },
+  {
+    "id": "lua-lexer-invalid-escape",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='\\q'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: invalid escape sequence\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: invalid escape sequence near ''\\q'\n"
+  },
+  {
+    "id": "lua-lexer-quoted-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='a\rb'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: unfinished string\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: unfinished string near ''a'\n"
+  },
+  {
+    "id": "lua-lexer-escaped-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='a\\\rb'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-escaped-crlf",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='a\\\r\nb'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-escaped-lfcr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='a\\\n\rb'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-z-vtab",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s='a\\z\u000bb'; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "6162\n"
+  },
+  {
+    "id": "lua-lexer-long-crlf",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=[[\r\na\r\nb]]; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-long-lfcr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=[[\n\ra\n\rb]]; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-long-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=[[\ra\rb]]; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a62\n"
+  },
+  {
+    "id": "lua-lexer-long-cr-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=[[a\r\rb]]; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 0,
+    "stdout": "610a0a62\n"
+  },
+  {
+    "id": "lua-lexer-number-dots",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=1..2; return pandoc.Str((s:gsub('.',function(c)return string.format('%02x',string.byte(c)) end))) end",
+    "status": 4,
+    "stderr": "E_AST: malformed number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: malformed number near '1..2'\n"
+  },
+  {
+    "id": "lua-lexer-comment-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "--comment\rfunction Str(el) return pandoc.Str(\"A\") end",
+    "status": 0,
+    "stdout": "A\n"
+  },
+  {
+    "id": "lua-lexer-error-cr",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\rlocal x=1\rerror(\"oops\")\rend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: oops\n"
+  },
+  {
+    "id": "lua-lexer-error-crlf",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\r\nlocal x=1\r\nerror(\"oops\")\r\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: oops\n"
   }
 ]

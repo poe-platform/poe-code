@@ -108,7 +108,7 @@ mod pivot;
 #[path = "office_formula_reference_functions.rs"]
 mod reference_functions;
 #[path = "office_formula_regression.rs"]
-mod regression;
+pub(super) mod regression;
 #[path = "office_formula_format.rs"]
 mod result_format;
 #[path = "office_formula_round.rs"]

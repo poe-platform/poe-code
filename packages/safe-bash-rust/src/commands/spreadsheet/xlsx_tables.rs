@@ -85,7 +85,21 @@ pub(super) fn filter(source: &Filter, limit: usize) -> Option<String> {
         )
         .ok()?;
         if let Some(field) = field {
-            if let Some(top) = &field.top {
+            if let Some(dynamic) = &field.dynamic {
+                write!(
+                    output,
+                    r#"<dynamicFilter type="{}""#,
+                    attribute(&dynamic.kind, &mut remaining)?
+                )
+                .ok()?;
+                if let Some(value) = dynamic.value {
+                    write!(output, r#" val="{value}""#).ok()?;
+                }
+                if let Some(value) = dynamic.max_value {
+                    write!(output, r#" maxVal="{value}""#).ok()?;
+                }
+                output.push_str("/>");
+            } else if let Some(top) = &field.top {
                 write!(
                     output,
                     r#"<top10 top="{}" percent="{}" val="{}"/>"#,

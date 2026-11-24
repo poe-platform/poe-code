@@ -6,7 +6,7 @@
 // the centered coordinates, including exponential fits, before rescaling.
 use super::{Calculation, Coord, Expr, Value, lookup, matrix_functions::shape};
 
-pub(super) fn sum(values: impl Iterator<Item = f64>) -> f64 {
+pub(in super::super) fn sum(values: impl Iterator<Item = f64>) -> f64 {
     let (mut total, mut correction) = (0_f64, 0_f64);
     for value in values {
         let next = total + value;

@@ -28,7 +28,11 @@ pub(super) fn serial(milliseconds: f64, date1904: bool) -> Option<f64> {
     Some(days - epoch as f64 + leap + milliseconds.rem_euclid(86_400_000.) / 86_400_000.)
 }
 
-pub(super) fn period_bounds(period: &str, milliseconds: f64, date1904: bool) -> Option<(f64, f64)> {
+pub(in super::super) fn period_bounds(
+    period: &str,
+    milliseconds: f64,
+    date1904: bool,
+) -> Option<(f64, f64)> {
     let today = serial(milliseconds, date1904)?.floor();
     let bounds = match period {
         "yesterday" => (today - 1., today),
@@ -46,12 +50,21 @@ pub(super) fn period_bounds(period: &str, milliseconds: f64, date1904: bool) -> 
                 };
             (start, start + 7.)
         }
-        "lastMonth" | "thisMonth" | "nextMonth" => {
+        "lastMonth" | "thisMonth" | "nextMonth" | "lastQuarter" | "thisQuarter" | "nextQuarter"
+        | "lastYear" | "thisYear" | "nextYear" | "yearToDate" => {
             let (year, month, _) = civil_from_days((milliseconds / 86_400_000.).floor() as i64);
-            let month = year * 12 + month as i64 - 1
+            let width = if period.ends_with("Quarter") {
+                3
+            } else if period.ends_with("Year") || period == "yearToDate" {
+                12
+            } else {
+                1
+            };
+            let month = year * 12
+                + ((month as i64 - 1) / width) * width
                 + match period {
-                    "lastMonth" => -1,
-                    "nextMonth" => 1,
+                    "lastMonth" | "lastQuarter" | "lastYear" => -width,
+                    "nextMonth" | "nextQuarter" | "nextYear" => width,
                     _ => 0,
                 };
             let first = |month: i64| {
@@ -64,7 +77,14 @@ pub(super) fn period_bounds(period: &str, milliseconds: f64, date1904: bool) -> 
                     }) as f64
                     + f64::from(!date1904 && days >= days_from_civil(1900, 3, 1))
             };
-            (first(month), first(month + 1))
+            (
+                first(month),
+                if period == "yearToDate" {
+                    today + 1.
+                } else {
+                    first(month + width)
+                },
+            )
         }
         _ => return None,
     };

@@ -356,6 +356,11 @@ impl Codec for Filter {
         })
     }
 }
+structure!(DynamicFilter {
+    kind,
+    value,
+    max_value
+});
 structure!(TopFilter {
     rank,
     percent,
@@ -364,6 +369,7 @@ structure!(TopFilter {
 impl Codec for FilterField {
     fn json(&self) -> Json {
         object([
+            ("dynamic", self.dynamic.json()),
             ("top", self.top.json()),
             (
                 "date_groups",
@@ -381,6 +387,7 @@ impl Codec for FilterField {
     }
     fn read(v: &Json) -> Result<Self> {
         Ok(Self {
+            dynamic: Codec::read(v.get("dynamic").unwrap_or(&Json::Null))?,
             top: Codec::read(v.get("top").unwrap_or(&Json::Null))?,
             date_groups: v
                 .get("date_groups")
@@ -1391,6 +1398,7 @@ mod tests {
                 fields: Some(BTreeMap::from([(
                     0,
                     FilterField {
+                        dynamic: None,
                         date_groups: Vec::new(),
                         top: None,
                         hidden_rows: None,

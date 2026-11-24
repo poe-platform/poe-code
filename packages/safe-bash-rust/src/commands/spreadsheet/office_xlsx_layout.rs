@@ -1,5 +1,7 @@
 //! Appearance and worksheet metadata for editable XLSX workbooks.
-use super::super::model::{Axis, CalculatedColumn, Filter, FilterField, Style, Table, TopFilter};
+use super::super::model::{
+    Axis, CalculatedColumn, DynamicFilter, Filter, FilterField, Style, Table, TopFilter,
+};
 use super::{Imported, LIMIT, attr, coordinate, elements, xml};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -53,6 +55,7 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
         show_buttons &= !flag(column, "hiddenButton")
             && !matches!(attr(column, "showButton"), Some("0" | "false"));
         let mut field = FilterField {
+            dynamic: None,
             date_groups: Vec::new(),
             top: None,
             hidden_rows: None,
@@ -111,6 +114,25 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
                 *work = work.checked_sub(value.len() + 32).ok_or(LIMIT)?;
                 field.conditions.push((operator, value.into()));
             }
+        } else if let Some(dynamic) = child(column, "dynamicFilter") {
+            let cached = |name| {
+                attr(dynamic, name)
+                    .map(|source| {
+                        source
+                            .parse::<f64>()
+                            .ok()
+                            .filter(|n| n.is_finite())
+                            .ok_or("Invalid XLSX dynamic filter threshold")
+                    })
+                    .transpose()
+            };
+            field.dynamic = Some(DynamicFilter {
+                kind: attr(dynamic, "type")
+                    .ok_or("Missing XLSX dynamic filter type")?
+                    .into(),
+                value: cached("val")?,
+                max_value: cached("maxVal")?,
+            });
         } else if let Some(top) = child(column, "top10") {
             field.top = Some(TopFilter {
                 rank: attr(top, "val")
@@ -145,7 +167,10 @@ fn auto_filter(nodes: &[xml::Node], work: &mut usize) -> Result<Option<Filter>, 
                 field.hidden_rows = Some(hidden);
             }
         }
-        if child(column, "filters").is_some() || !field.conditions.is_empty() || field.top.is_some()
+        if child(column, "filters").is_some()
+            || !field.conditions.is_empty()
+            || field.top.is_some()
+            || field.dynamic.is_some()
         {
             fields.insert(index, field);
         }
@@ -767,6 +792,48 @@ mod tests {
                 assert!(
                     !super::super::super::editor_filter::valid(&filter),
                     "{rank}"
+                );
+            }
+        }
+    }
+    #[test]
+    fn dynamic_filter_import_validates_types_and_numeric_thresholds() {
+        for attributes in [
+            r#"type="today""#,
+            r#"type="aboveAverage" val="2.5""#,
+            r#"type="thisMonth" val="46000" maxVal="46031""#,
+            r#"type="M12""#,
+            r#"type="Q4""#,
+            r#"type="null""#,
+        ] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><dynamicFilter {attributes}/></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            let filter = auto_filter(&nodes, &mut 100_000).unwrap().unwrap();
+            assert!(
+                super::super::super::editor_filter::valid(&filter),
+                "{attributes}"
+            );
+            assert!(filter.fields.as_ref().unwrap()[&0].dynamic.is_some());
+        }
+        for attributes in [
+            "",
+            r#"type="missing""#,
+            r#"type="M13""#,
+            r#"type="Q0""#,
+            r#"type="today" val="NaN""#,
+            r#"type="today" maxVal="inf""#,
+            r#"type="aboveAverage" val="text""#,
+        ] {
+            let source = format!(
+                r#"<autoFilter ref="A1:A5"><filterColumn colId="0"><dynamicFilter {attributes}/></filterColumn></autoFilter>"#
+            );
+            let nodes = xml::parse(&source, None, None).unwrap().nodes;
+            if let Ok(Some(filter)) = auto_filter(&nodes, &mut 100_000) {
+                assert!(
+                    !super::super::super::editor_filter::valid(&filter),
+                    "{attributes}"
                 );
             }
         }

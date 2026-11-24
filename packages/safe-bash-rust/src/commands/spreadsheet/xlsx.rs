@@ -192,7 +192,15 @@ pub struct TopFilter {
     pub bottom: bool,
 }
 #[derive(Clone)]
+pub struct DynamicFilter {
+    pub kind: String,
+    /// Cached thresholds from the last filter application, retained in XLSX.
+    pub value: Option<f64>,
+    pub max_value: Option<f64>,
+}
+#[derive(Clone)]
 pub struct FilterField {
+    pub dynamic: Option<DynamicFilter>,
     /// Calendar prefixes: [year], [year, month], through [year, month, day, hour, minute, second].
     /// Combined with ordinary selected values using OR.
     pub date_groups: Vec<Vec<usize>>,

@@ -212,8 +212,8 @@ mod editor_tables;
 #[path = "spreadsheet/office_wildcard.rs"]
 mod wildcard;
 pub use model::{
-    ArrayFormula, Axis, CalculatedColumn, Filter, FilterField, NamedExpression, Sheet, Style,
-    Table, TopFilter, TypedCell, Value, Workbook as WorkbookOptions,
+    ArrayFormula, Axis, CalculatedColumn, DynamicFilter, Filter, FilterField, NamedExpression,
+    Sheet, Style, Table, TopFilter, TypedCell, Value, Workbook as WorkbookOptions,
 };
 
 #[path = "spreadsheet/json.rs"]

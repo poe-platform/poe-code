@@ -7,6 +7,8 @@ use super::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 const LIMIT: &str = "Table filter exceeds its limit";
+#[path = "editor_filter_dynamic.rs"]
+mod dynamic;
 
 fn condition(
     value: Option<&Value<String>>,
@@ -146,6 +148,19 @@ fn date_matches(
 }
 
 fn validate(field: &FilterField) -> Result<(), String> {
+    if let Some(dynamic) = &field.dynamic {
+        return if dynamic::valid(dynamic)
+            && field.top.is_none()
+            && field.date_groups.is_empty()
+            && !field.custom
+            && !field.conjunction
+            && field.conditions.is_empty()
+        {
+            Ok(())
+        } else {
+            Err("Invalid dynamic filter".into())
+        };
+    }
     if let Some(top) = &field.top {
         return if field.date_groups.is_empty()
             && !field.custom
@@ -265,7 +280,7 @@ impl Spreadsheet {
             .as_ref()
             .and_then(|f| f.fields.as_ref())
             .and_then(|fields| fields.get(&column))
-            .filter(|field| !field.custom && field.top.is_none());
+            .filter(|field| !field.custom && field.top.is_none() && field.dynamic.is_none());
         let mut work = limit;
         let selected = field
             .map(|field| {
@@ -345,6 +360,7 @@ impl Spreadsheet {
             index,
             column,
             Some(FilterField {
+                dynamic: None,
                 date_groups,
                 top: None,
                 custom: false,
@@ -373,8 +389,9 @@ impl Spreadsheet {
         area: [usize; 4],
         column: usize,
         field: &FilterField,
+        now: f64,
         work: &mut usize,
-    ) -> Result<Vec<usize>, String> {
+    ) -> Result<(Vec<usize>, Option<model::DynamicFilter>), String> {
         validate(field)?;
         if area[0] > area[2] || area[1] > area[3] || area[2] >= 1_048_576 || area[3] >= 16_384 {
             return Err("Invalid filter range".into());
@@ -390,6 +407,11 @@ impl Spreadsheet {
             .iter()
             .map(Vec::as_slice)
             .collect::<BTreeSet<_>>();
+        let dynamic = field
+            .dynamic
+            .as_ref()
+            .map(|filter| dynamic::prepare(self, sheet, area, column, filter, now, work))
+            .transpose()?;
         let threshold = if let Some(top) = &field.top {
             let mut numbers = Vec::new();
             for row in area[0] + 1..=area[2] {
@@ -421,7 +443,7 @@ impl Spreadsheet {
         } else {
             None
         };
-        let accepted = if field.custom || field.top.is_some() {
+        let accepted = if field.custom || field.top.is_some() || field.dynamic.is_some() {
             None
         } else {
             Some(
@@ -439,6 +461,16 @@ impl Spreadsheet {
             *work = work.checked_sub(128).ok_or(LIMIT)?;
             let cell = self.cell(sheet, row, area[1] + column);
             let cell = cell.as_deref();
+            if let Some(dynamic) = &dynamic {
+                if !dynamic::matches(
+                    dynamic,
+                    cell.and_then(|cell| cell.value.as_ref()),
+                    self.options.date1904,
+                ) {
+                    hidden.push(row);
+                }
+                continue;
+            }
             if let Some(top) = &field.top {
                 let accepted = threshold.is_some_and(|threshold| {
                     matches!(cell.and_then(|cell| cell.value.as_ref()), Some(Value::Number(value))
@@ -477,11 +509,12 @@ impl Spreadsheet {
                 hidden.push(row);
             }
         }
-        Ok(hidden)
+        Ok((hidden, dynamic))
     }
     pub(super) fn prepare_filter_snapshots(&mut self, limit: usize) -> Result<(), String> {
         let mut work = limit;
         let mut updates = Vec::new();
+        let now = super::formulas::clock::now_ms();
         for (i, table) in self.options.tables.iter().enumerate() {
             if let Some(filter) = &table.filter {
                 for (&column, field) in filter.fields.iter().flat_map(|fields| fields.iter()) {
@@ -495,6 +528,7 @@ impl Spreadsheet {
                                 filter.area,
                                 column,
                                 field,
+                                now,
                                 &mut work,
                             )?,
                         ));
@@ -510,14 +544,14 @@ impl Spreadsheet {
                             false,
                             i,
                             column,
-                            self.filter_snapshot(i, filter.area, column, field, &mut work)?,
+                            self.filter_snapshot(i, filter.area, column, field, now, &mut work)?,
                         ));
                     }
                 }
             }
         }
         let mut changed_visibility = false;
-        for (table, i, column, hidden) in updates {
+        for (table, i, column, (hidden, dynamic)) in updates {
             let filter = if table {
                 self.options.tables[i].filter.as_mut()
             } else {
@@ -525,13 +559,9 @@ impl Spreadsheet {
             }
             .unwrap();
             changed_visibility |= filter.column_visibility;
-            filter
-                .fields
-                .as_mut()
-                .unwrap()
-                .get_mut(&column)
-                .unwrap()
-                .hidden_rows = Some(hidden);
+            let field = filter.fields.as_mut().unwrap().get_mut(&column).unwrap();
+            field.hidden_rows = Some(hidden);
+            field.dynamic = dynamic;
         }
         if changed_visibility {
             self.spills = super::formulas::cache(&mut self.sheets, &self.options, None, work, true)
@@ -595,13 +625,20 @@ impl Spreadsheet {
         let mut work = limit / 2;
         let field = field
             .map(|mut field| -> Result<_, String> {
-                field.hidden_rows = Some(next.filter_snapshot(
+                if let Some(dynamic) = &mut field.dynamic {
+                    dynamic.value = None;
+                    dynamic.max_value = None;
+                }
+                let (hidden, dynamic) = next.filter_snapshot(
                     table.sheet,
                     table.filter.as_ref().unwrap().area,
                     column,
                     &field,
+                    super::formulas::clock::now_ms(),
                     &mut work,
-                )?);
+                )?;
+                field.hidden_rows = Some(hidden);
+                field.dynamic = dynamic;
                 Ok(field)
             })
             .transpose()?;
@@ -634,6 +671,10 @@ impl Spreadsheet {
             .flat_map(|fields| fields.values_mut())
         {
             field.hidden_rows = None;
+            if let Some(dynamic) = &mut field.dynamic {
+                dynamic.value = None;
+                dynamic.max_value = None;
+            }
         }
         next.prepare_filter_snapshots(limit / 4)?;
         next.spills =
@@ -686,6 +727,7 @@ mod tests {
 
     fn date_filter(groups: Vec<Vec<usize>>, values: &[&str]) -> FilterField {
         FilterField {
+            dynamic: None,
             date_groups: groups,
             top: None,
             hidden_rows: None,
@@ -892,6 +934,7 @@ mod tests {
 
     fn top_filter(rank: f64, percent: bool, bottom: bool) -> FilterField {
         FilterField {
+            dynamic: None,
             date_groups: Vec::new(),
             top: Some(model::TopFilter {
                 rank,
@@ -1187,6 +1230,7 @@ mod tests {
     #[test]
     fn values_lists_use_literal_display_values_and_keep_blanks_distinct_from_zero_and_false() {
         let values = FilterField {
+            dynamic: None,
             date_groups: Vec::new(),
             top: None,
             custom: false,
@@ -1214,6 +1258,7 @@ mod tests {
         assert!(condition(None, "", "equal", "", &mut 10_000).unwrap());
         assert!(!condition(Some(&Value::Bool(false)), "FALSE", "equal", "", &mut 10_000).unwrap());
         let none = FilterField {
+            dynamic: None,
             date_groups: Vec::new(),
             top: None,
             conditions: vec![],
@@ -1224,6 +1269,7 @@ mod tests {
     #[test]
     fn conjunction_disjunction_and_expensive_patterns_are_bounded() {
         let mut field = FilterField {
+            dynamic: None,
             date_groups: Vec::new(),
             top: None,
             custom: true,

@@ -5440,5 +5440,464 @@
     "status": 4,
     "stderr": "E_AST: '__tostring' must return a string\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: '__tostring' must return a string\n"
+  },
+  {
+    "id": "error-no-value",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error();return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(nil);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(false);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(42);return el end",
+    "status": 4,
+    "stderr": "E_AST: 42\n"
+  },
+  {
+    "id": "error-float",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(1.5);return el end",
+    "status": 4,
+    "stderr": "E_AST: 1.5\n"
+  },
+  {
+    "id": "error-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(setmetatable({}, {__tostring=function() return 'custom' end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "assert-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,nil);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "assert-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,false);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "assert-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,42);return el end",
+    "status": 4,
+    "stderr": "E_AST: 42\n"
+  },
+  {
+    "id": "error-zero-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',0);return el end",
+    "status": 4,
+    "stderr": "E_AST: broken\n"
+  },
+  {
+    "id": "error-negative-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',-1);return el end",
+    "status": 4,
+    "stderr": "E_AST: broken\n"
+  },
+  {
+    "id": "error-high-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',99);return el end",
+    "status": 4,
+    "stderr": "E_AST: broken\n"
+  },
+  {
+    "id": "error-fractional-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',1.5);return el end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'error' (number has no integer representation)\n"
+  },
+  {
+    "id": "error-nonnumeric-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',false);return el end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'error' (number expected, got boolean)\n"
+  },
+  {
+    "id": "error-default-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',nil);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "error-second-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function fail() error('broken',2) end;fail();return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "error-tail-second-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function fail() return error('broken',2) end;fail();return el end",
+    "status": 4,
+    "stderr": "E_AST: pandoc constructors:159: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "error-caller-line",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail()\n  error('broken',2)\n end\n fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:5: broken\n"
+  },
+  {
+    "id": "error-current-line",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail()\n  error('broken',1)\n end\n fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n"
+  },
+  {
+    "id": "error-tail-caller-line",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail()\n  return error('broken',2)\n end\n fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: pandoc constructors:159: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:5: broken\n"
+  },
+  {
+    "id": "error-function",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(function() end);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-true",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error(true);return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-binary",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('a\\0b');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: a\u0000b\n"
+  },
+  {
+    "id": "error-large-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken',2147483648);return el end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'error' (number has no integer representation)\n"
+  },
+  {
+    "id": "error-numeric-string-level",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error('broken','1');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "error-invalid-level-before-value",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) error({},false);return el end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'error' (number expected, got boolean)\n"
+  },
+  {
+    "id": "assert-default",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: assertion failed!\n"
+  },
+  {
+    "id": "assert-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,'');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: \n"
+  },
+  {
+    "id": "assert-float",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,1.5);return el end",
+    "status": 4,
+    "stderr": "E_AST: 1.5\n"
+  },
+  {
+    "id": "assert-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(false,{});return el end",
+    "status": 4,
+    "stderr": "E_AST: Lua filter execution failed\n"
+  },
+  {
+    "id": "error-tail-method",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t={};function t:fail() return error('broken',1) end;t:fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-tail-callable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t=setmetatable({},{__call=function() error('broken',2) end});t()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-tail-parenthesized",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail() return (error('broken',1)) end;fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-tail-multiple-results",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail() return 1,error('broken',1) end;fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-tail-argument",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function fail() return tostring(error('broken',1)) end;fail()\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-assignment-caller",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t=setmetatable({},{__newindex=function() error('broken',2) end})\n t.x=1\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n"
+  },
+  {
+    "id": "error-global-assignment-caller",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local _ENV=setmetatable({},{__newindex=function() error('broken',2) end})\n x=1\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n"
+  },
+  {
+    "id": "error-iterator-caller",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function iter() error('broken',2) end\n for x in iter do\n  local y=x\n end\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n"
+  },
+  {
+    "id": "error-tostring-callback-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) tostring(setmetatable({},{__tostring=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: broken\n"
+  },
+  {
+    "id": "error-tostring-callback-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) tostring(setmetatable({},{__tostring=function() error('broken',3) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "error-multiline-call",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n error(\n 'broken',1\n )\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:2: broken\n"
+  },
+  {
+    "id": "error-multiline-method",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t={fail=function() error('broken',2) end}\n t:fail(\n  1\n )\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n"
+  },
+  {
+    "id": "error-multiline-assignment",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t=setmetatable({},{__newindex=function() error('broken',2) end})\n t.x=\n  1\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:4: broken\n"
+  },
+  {
+    "id": "error-multiline-iterator",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local function iter() error('broken',2) end\n for x in\n  iter\n do end\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:3: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:4: broken\n"
+  },
+  {
+    "id": "error-multi-target-assignment",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el)\n local t=setmetatable({},{__newindex=function() error('broken',2) end})\n local a\n a,\n t.x = 1,2\n return el\nend",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:4: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:5: broken\n"
   }
 ]

@@ -73,6 +73,16 @@ async function test() {
     await shell.fs.writeFile("/base.saved", "KEEP");
     const missingBaseValue = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/base.lua -o /base.saved");
     if (missingBaseValue.exitCode !== 4 || missingBaseValue.stdout || missingBaseValue.stderr !== "E_AST: Value expected\n" || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(missingBaseValue));
+    for (const [source, expected] of [
+      ["function Str(el) error(false);return el end", "Lua filter execution failed"],
+      ["function Str(el) error(42);return el end", "42"],
+      ["function Str(el)\n local function fail()\n  error('broken',2)\n end\n fail()\n return el\nend", '[string "/errors.lua"]:5: broken'],
+      ["function Str(el) local function fail() return error('broken',2) end;fail();return el end", "pandoc constructors:159: broken"],
+    ]) {
+      await shell.fs.writeFile("/errors.lua", source);
+      const error = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/errors.lua -o /base.saved");
+      if (error.exitCode !== 4 || error.stdout || error.stderr !== `E_AST: ${expected}\n` || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
+    }
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

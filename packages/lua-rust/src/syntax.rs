@@ -28,7 +28,7 @@ pub(crate) enum Stmt {
     Repeat(Vec<Stmt>, Expr),
     If(Vec<(Option<Expr>, Vec<Stmt>)>),
     For(Vec<u8>, Expr, Expr, Option<Expr>, Vec<Stmt>),
-    ForIn(Vec<Vec<u8>>, Vec<Expr>, Vec<Stmt>),
+    ForIn(usize, Vec<Vec<u8>>, Vec<Expr>, Vec<Stmt>),
     Return(Vec<Expr>),
     Break,
     Goto(Vec<u8>),
@@ -548,7 +548,7 @@ impl Parser {
             self.expect("do")?;
             let body = self.block()?;
             self.expect("end")?;
-            return Ok(Stmt::ForIn(names, values, body));
+            return Ok(Stmt::ForIn(line, names, values, body));
         }
         if self.eat("local") {
             if self.eat("function") {
@@ -679,7 +679,7 @@ fn validate_jumps(body: &[Stmt], in_loop: bool, trailing: bool) -> Result<Vec<Ve
                 ));
             }
             Stmt::Do(body) => validate_jumps(body, in_loop, true)?,
-            Stmt::While(_, body) | Stmt::For(_, _, _, _, body) | Stmt::ForIn(_, _, body) => {
+            Stmt::While(_, body) | Stmt::For(_, _, _, _, body) | Stmt::ForIn(_, _, _, body) => {
                 validate_jumps(body, true, true)?
             }
             // Repeat conditions can still read body locals after the last label.

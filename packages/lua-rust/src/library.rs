@@ -154,6 +154,29 @@ impl Runtime {
                 .unwrap();
         }
     }
+    fn lua_error(&self, value: Value, level: i32) -> Error {
+        let mut error = Error::unlocated(match &value {
+            Value::String(_) | Value::Integer(_) | Value::Number(_) => value.text(),
+            _ => "Lua filter execution failed".into(),
+        });
+        if level > 0 && matches!(value, Value::String(_)) {
+            // Native callbacks count as frames but have no Lua source location.
+            // A tail call replaces its caller in the streaming engine.
+            if let Some(frame) = self
+                .frames
+                .iter()
+                .rev()
+                .filter(|frame| !frame.tail)
+                .nth(level as usize)
+            {
+                error.location = frame
+                    .source
+                    .as_ref()
+                    .map(|source| (source.clone(), frame.line));
+            }
+        }
+        error
+    }
     pub(crate) fn native(&mut self, name: &str, args: Vec<Value>) -> Result<Vec<Value>> {
         let required = match name {
             "rawset" => 3,
@@ -182,15 +205,25 @@ impl Runtime {
                     "Lua callback must return an element, list or nil",
                 ));
             }
-            "__pandoc_unsupported" | "__pandoc_invalid" | "error" => {
+            "__pandoc_unsupported" | "__pandoc_invalid" => {
                 return Err(Error::new(a(0).text()));
+            }
+            "error" => {
+                let level = if a(1) == Value::Nil {
+                    1
+                } else {
+                    numbers::integral(n(1).map_err(|_| Error::unlocated("Expected Lua number"))?)
+                        .map_err(|error| Error::unlocated(error.message))?
+                };
+                return Err(self.lua_error(a(0), level));
             }
             "assert" => {
                 if !a(0).truth() {
-                    return Err(Error::new(
+                    return Err(self.lua_error(
                         args.get(1)
-                            .map(Value::text)
-                            .unwrap_or_else(|| "assertion failed!".into()),
+                            .cloned()
+                            .unwrap_or_else(|| Value::String("assertion failed!".into())),
+                        1,
                     ));
                 }
                 return Ok(args);

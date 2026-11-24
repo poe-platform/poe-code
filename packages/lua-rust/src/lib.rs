@@ -107,7 +107,11 @@ impl Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some((path, line)) = &self.location {
-            write!(f, "[string \"{path}\"]:{line}: ")?;
+            if let Some(path) = path.strip_prefix('@').or_else(|| path.strip_prefix('=')) {
+                write!(f, "{path}:{line}: ")?;
+            } else {
+                write!(f, "[string \"{path}\"]:{line}: ")?;
+            }
         }
         write!(f, "{}", self.message)
     }
@@ -142,6 +146,11 @@ enum Target {
     Cell(usize),
     Index(Value, Value),
 }
+struct Frame {
+    source: Option<String>,
+    line: usize,
+    tail: bool,
+}
 pub struct Runtime {
     tables: Vec<Table>,
     functions: Vec<Function>,
@@ -153,6 +162,7 @@ pub struct Runtime {
     source: String,
     steps: usize,
     depth: usize,
+    frames: Vec<Frame>,
     random_state: i32,
 }
 impl Runtime {
@@ -168,6 +178,7 @@ impl Runtime {
             source: String::new(),
             steps: usize::MAX,
             depth: 0,
+            frames: Vec::new(),
             random_state: RandomState::new().hash_one(0u8) as i32,
         };
         vm.globals = vm.table();
@@ -360,6 +371,11 @@ impl Runtime {
     pub fn run(&mut self, source: impl AsRef<[u8]>, path: &str) -> Result<Vec<Value>> {
         let body = syntax::parse(source.as_ref())?;
         let old = std::mem::replace(&mut self.source, path.into());
+        self.frames.push(Frame {
+            source: Some(path.into()),
+            line: 1,
+            tail: false,
+        });
         let env = self.env(None, Some(Vec::new()));
         self.environments[env]
             .bindings
@@ -374,6 +390,7 @@ impl Runtime {
             ))),
         });
         self.source = old;
+        self.frames.pop();
         result
     }
     pub fn call(&mut self, function: Value, mut args: Vec<Value>) -> Result<Vec<Value>> {
@@ -382,6 +399,17 @@ impl Runtime {
         if self.depth > 200 {
             self.depth -= 1;
             return Err(Error::new("Lua call depth exceeded"));
+        }
+        let tracked = matches!(function, Value::Native(_) | Value::Function(_));
+        if tracked {
+            self.frames.push(Frame {
+                source: match &function {
+                    Value::Function(n) => Some(self.functions[*n].source.clone()),
+                    _ => None,
+                },
+                line: 1,
+                tail: false,
+            });
         }
         let result = (|| match function {
             Value::Native(name) => self.native(name, args),
@@ -418,13 +446,16 @@ impl Runtime {
                 self.call(callback, args)
             }
         })();
+        if tracked {
+            self.frames.pop();
+        }
         self.depth -= 1;
         result
     }
     fn eval_list(&mut self, expressions: &[Expr], env: usize) -> Result<Vec<Value>> {
         let mut values = Vec::new();
         for (i, e) in expressions.iter().enumerate() {
-            let v = self.eval(e, env)?;
+            let v = self.eval(e, env, false)?;
             if i + 1 == expressions.len() {
                 values.extend(v);
             } else {
@@ -434,10 +465,12 @@ impl Runtime {
         Ok(values)
     }
     fn one(&mut self, expr: &Expr, env: usize) -> Result<Value> {
-        Ok(first(self.eval(expr, env)?))
+        Ok(first(self.eval(expr, env, false)?))
     }
-    fn eval(&mut self, expr: &Expr, env: usize) -> Result<Vec<Value>> {
+    fn eval(&mut self, expr: &Expr, env: usize, tail: bool) -> Result<Vec<Value>> {
         self.tick()?;
+        let frame = self.frames.len() - 1;
+        let old_line = std::mem::replace(&mut self.frames[frame].line, expr.0);
         let result = (|| {
             let value = match &expr.1 {
                 Node::Literal(v) => v.clone(),
@@ -476,7 +509,7 @@ impl Runtime {
                             let value = self.one(e, env)?;
                             self.raw_set(&table, key, value)?;
                         } else {
-                            let values = self.eval(e, env)?;
+                            let values = self.eval(e, env, false)?;
                             if i + 1 == fields.len() {
                                 pending.extend(values);
                             } else {
@@ -503,6 +536,7 @@ impl Runtime {
                 Node::Call(callee, args) => {
                     let function = self.one(callee, env)?;
                     let args = self.eval_list(args, env)?;
+                    self.frames[frame].tail = tail;
                     return self.call(function, args);
                 }
                 Node::Method(base, name, args) => {
@@ -510,6 +544,7 @@ impl Runtime {
                     let function = self.get(&base, &Value::String(name.clone()))?;
                     let mut values = vec![base];
                     values.extend(self.eval_list(args, env)?);
+                    self.frames[frame].tail = tail;
                     return self.call(function, values);
                 }
                 Node::Unary(op, e) => {
@@ -563,6 +598,8 @@ impl Runtime {
             };
             Ok(vec![value])
         })();
+        self.frames[frame].line = old_line;
+        self.frames[frame].tail = false;
         result.map_err(|mut error: Error| {
             if !error.unlocated && error.location.is_none() {
                 error.location = Some((self.source.clone(), expr.0));
@@ -697,6 +734,8 @@ impl Runtime {
             pc += 1;
             let flow = match stmt {
                 Stmt::Assign(targets, expressions) => {
+                    let line = targets[0].0;
+                    self.frames.last_mut().unwrap().line = line;
                     let targets = targets
                         .iter()
                         .map(|e| self.target(e, env))
@@ -728,7 +767,7 @@ impl Runtime {
                     Flow::Next(env)
                 }
                 Stmt::Call(e) => {
-                    self.eval(e, env)?;
+                    self.eval(e, env, false)?;
                     Flow::Next(env)
                 }
                 Stmt::Do(body) => self.block(body, env)?,
@@ -841,13 +880,14 @@ impl Runtime {
                     }
                     result
                 }
-                Stmt::ForIn(names, expressions, body) => {
+                Stmt::ForIn(line, names, expressions, body) => {
                     let values = self.eval_list(expressions, env)?;
                     let iter = values.first().cloned().unwrap_or_default();
                     let state = values.get(1).cloned().unwrap_or_default();
                     let mut control = values.get(2).cloned().unwrap_or_default();
                     let mut result = Flow::Next(env);
                     loop {
+                        self.frames.last_mut().unwrap().line = *line;
                         let row = self.call(iter.clone(), vec![state.clone(), control])?;
                         control = row.first().cloned().unwrap_or_default();
                         if control == Value::Nil {
@@ -868,7 +908,11 @@ impl Runtime {
                     }
                     result
                 }
-                Stmt::Return(values) => Flow::Return(self.eval_list(values, env)?),
+                Stmt::Return(values) => Flow::Return(if let [value] = values.as_slice() {
+                    self.eval(value, env, true)?
+                } else {
+                    self.eval_list(values, env)?
+                }),
                 Stmt::Break => Flow::Break,
                 Stmt::Goto(n) => Flow::Goto(n.clone()),
                 Stmt::Label(_) => {

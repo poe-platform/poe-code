@@ -2,25 +2,8 @@
 //! Output shares dynamic-array dependency scheduling without becoming a formula
 //! or authored cells in the workbook document.
 use super::{Calculation, Coord, Expr, Value};
-use crate::commands::spreadsheet::{
-    model,
-    pivot::{PivotTable, aggregate},
-};
+use crate::commands::spreadsheet::pivot::{Key, PivotTable, aggregate, number_key, selected_key};
 use std::collections::{BTreeMap, BTreeSet};
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-enum Key {
-    Number(u64),
-    Text((Vec<u8>, Vec<u8>, Vec<u8>)),
-    Bool(bool),
-    Error(String),
-    Blank,
-}
-
-fn number_key(n: f64) -> u64 {
-    let bits = if n == 0. { 0. } else { n }.to_bits();
-    if n < 0. { !bits } else { bits ^ (1 << 63) }
-}
 
 fn key(value: &Value, work: &mut usize) -> Option<Key> {
     *work = work.checked_sub(64)?;
@@ -33,20 +16,6 @@ fn key(value: &Value, work: &mut usize) -> Option<Key> {
         Value::Error(e) | Value::LiteralError(e) => Key::Error((*e).into()),
         Value::Blank | Value::Empty => Key::Blank,
         _ => return None,
-    })
-}
-
-fn selected_key(value: &model::Value<String>, work: &mut usize) -> Option<Key> {
-    *work = work.checked_sub(64)?;
-    Some(match value {
-        model::Value::Number(n) => Key::Number(number_key(*n)),
-        model::Value::Bool(b) => Key::Bool(*b),
-        model::Value::Text(s) => Key::Text(super::super::collation::key(s, false, work)?),
-        model::Value::Error(s) => {
-            *work = work.checked_sub(s.len())?;
-            Key::Error(s.clone())
-        }
-        model::Value::Empty => Key::Blank,
     })
 }
 

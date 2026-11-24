@@ -566,3 +566,7 @@ pub use pivot::{PivotFilter, PivotTable, PivotValue};
 #[cfg(test)]
 #[path = "spreadsheet/editor_pivot_tests.rs"]
 mod editor_pivot_tests;
+
+#[cfg(test)]
+#[path = "spreadsheet/editor_pivot_filter_tests.rs"]
+mod editor_pivot_filter_tests;

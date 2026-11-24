@@ -2,7 +2,36 @@
 //! Field/aggregate contracts follow XlsxWriter 238e935a (LICENSE.XlsxWriter)
 //! and ClosedXML 057f5976 (LICENSE.ClosedXML).
 use super::{Spreadsheet, Value, formulas};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub(super) enum Key {
+    Number(u64),
+    Text((Vec<u8>, Vec<u8>, Vec<u8>)),
+    Bool(bool),
+    Error(String),
+    Blank,
+}
+
+pub(super) fn number_key(n: f64) -> u64 {
+    let bits = if n == 0. { 0. } else { n }.to_bits();
+    if n < 0. { !bits } else { bits ^ (1 << 63) }
+}
+
+pub(super) fn selected_key(value: &Value<String>, work: &mut usize) -> Option<Key> {
+    *work = work.checked_sub(64)?;
+    Some(match value {
+        Value::Number(n) if n.is_finite() => Key::Number(number_key(*n)),
+        Value::Number(_) => return None,
+        Value::Bool(b) => Key::Bool(*b),
+        Value::Text(s) => Key::Text(super::collation::key(s, false, work)?),
+        Value::Error(s) => {
+            *work = work.checked_sub(s.len())?;
+            Key::Error(s.clone())
+        }
+        Value::Empty => Key::Blank,
+    })
+}
 
 #[derive(Clone)]
 pub struct PivotValue {
@@ -274,6 +303,154 @@ impl Spreadsheet {
                 && column >= pivot.column
                 && column - pivot.column < width)
                 .then_some((id.as_str(), [pivot.row, pivot.column, width, height]))
+        })
+    }
+}
+
+fn filter_source(
+    book: &Spreadsheet,
+    sheet: usize,
+    source: [usize; 4],
+    field: usize,
+) -> Result<(), String> {
+    let [top, left, bottom, right] = source;
+    if sheet >= book.sheets.len()
+        || top >= bottom
+        || left > right
+        || bottom >= 1_048_576
+        || right >= 16_384
+        || field > right - left
+    {
+        return Err("Invalid pivot filter source".into());
+    }
+    Ok(())
+}
+
+impl Spreadsheet {
+    /// Typed distinct source values, formatted labels, row counts and selection.
+    /// Saved selections absent from the current source remain visible with count 0.
+    /// Comparison and ordering are identical to pivot calculation.
+    pub fn pivot_filter_values(
+        &self,
+        sheet: usize,
+        source: [usize; 4],
+        filter: &PivotFilter,
+        limit: usize,
+    ) -> Result<Vec<(Value<String>, String, usize, bool)>, String> {
+        filter_source(self, sheet, source, filter.field)?;
+        let mut work = limit;
+        let mut selected = BTreeMap::new();
+        for value in filter.selected.iter().flatten() {
+            work = work.checked_sub(128).ok_or("Pivot filter exceeds limit")?;
+            let key = selected_key(value, &mut work)
+                .ok_or("Invalid pivot selection or limit exceeded")?;
+            selected.insert(key, value);
+        }
+        let mut values = BTreeMap::new();
+        let column = source[1] + filter.field;
+        for row in source[0] + 1..=source[2] {
+            work = work.checked_sub(128).ok_or("Pivot filter exceeds limit")?;
+            let cell = self.cell(sheet, row, column);
+            let value = cell
+                .as_ref()
+                .and_then(|c| c.value.as_ref())
+                .unwrap_or(&Value::Empty);
+            let key =
+                selected_key(value, &mut work).ok_or("Invalid pivot value or limit exceeded")?;
+            let included = filter.selected.is_none() || selected.contains_key(&key);
+            if let Some((_, _, count, _)) = values.get_mut(&key) {
+                *count += 1;
+            } else {
+                let label = if matches!(value, Value::Empty) {
+                    "(blank)".into()
+                } else {
+                    super::csv::cell_text(
+                        cell.as_deref().ok_or("Missing pivot value")?,
+                        None,
+                        self.options.date1904,
+                        super::number_format::Mode::ExcelDisplay,
+                        &mut work,
+                    )
+                    .map(|(label, _)| label)
+                    .ok_or("Pivot filter formatting exceeds limit")?
+                };
+                work = work
+                    .checked_sub(label.len().saturating_mul(2))
+                    .ok_or("Pivot filter exceeds limit")?;
+                values.insert(key, (value.clone(), label, 1, included));
+            }
+        }
+        for (key, value) in selected {
+            if let std::collections::btree_map::Entry::Vacant(entry) = values.entry(key) {
+                let label = match value {
+                    Value::Empty => "(blank)".into(),
+                    Value::Text(s) | Value::Error(s) => s.clone(),
+                    Value::Bool(b) => if *b { "TRUE" } else { "FALSE" }.into(),
+                    Value::Number(n) => super::number_format::number(*n, false),
+                };
+                work = work
+                    .checked_sub(label.len().saturating_mul(2))
+                    .ok_or("Pivot filter exceeds limit")?;
+                entry.insert((value.clone(), label, 0, true));
+            }
+        }
+        Ok(values.into_values().collect())
+    }
+
+    /// Resolve checklist edits as one batch, leaving the workbook unchanged.
+    /// None retains all current and future values; explicit selections retain
+    /// their absent items. Repeated edits use the last decision for each typed key.
+    pub fn pivot_filter_selection(
+        &self,
+        sheet: usize,
+        source: [usize; 4],
+        filter: &PivotFilter,
+        changes: &[(Value<String>, bool)],
+        limit: usize,
+    ) -> Result<PivotFilter, String> {
+        filter_source(self, sheet, source, filter.field)?;
+        let mut work = limit / 2;
+        let mut edits = BTreeMap::new();
+        for (value, included) in changes {
+            work = work.checked_sub(128).ok_or("Pivot filter exceeds limit")?;
+            edits.insert(
+                selected_key(value, &mut work)
+                    .ok_or("Invalid pivot selection or limit exceeded")?,
+                (value, *included),
+            );
+        }
+        if filter.selected.is_none() && edits.values().all(|(_, included)| *included) {
+            return Ok(filter.clone());
+        }
+        let mut selected = BTreeMap::new();
+        if let Some(values) = &filter.selected {
+            for value in values {
+                work = work.checked_sub(128).ok_or("Pivot filter exceeds limit")?;
+                selected.insert(
+                    selected_key(value, &mut work)
+                        .ok_or("Invalid pivot selection or limit exceeded")?,
+                    value.clone(),
+                );
+            }
+        } else {
+            for (value, _, _, _) in self.pivot_filter_values(sheet, source, filter, limit / 2)? {
+                work = work.checked_sub(128).ok_or("Pivot filter exceeds limit")?;
+                selected.insert(
+                    selected_key(&value, &mut work).ok_or("Pivot filter exceeds limit")?,
+                    value,
+                );
+            }
+        }
+        for (key, (value, included)) in edits {
+            if included {
+                selected.insert(key, value.clone());
+            } else {
+                selected.remove(&key);
+            }
+        }
+        Ok(PivotFilter {
+            field: filter.field,
+            selected: Some(selected.into_values().collect()),
         })
     }
 }

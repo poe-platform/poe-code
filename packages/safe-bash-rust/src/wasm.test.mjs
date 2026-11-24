@@ -1,3 +1,4 @@
+import "./pdftk-stamps.wasm.test.mjs";
 import "./qpdf-ranges.wasm.test.mjs";
 import "./qpdf-selections.wasm.test.mjs";
 import "./qpdf-catalogs.wasm.test.mjs";
@@ -23621,76 +23622,6 @@ test("qpdf linearizes shared page resources and outlines with real hint tables",
     assert.match(empty.stderr,/Cannot linearize a PDF with no pages/);
     assert.deepEqual(await rust.fs.readFile("/out.pdf"),before);
   } finally {rust.dispose();}
-});
-
-
-test("pdftk fits and clips stamps using native crop boxes and rotation matrices", async () => {
-  const {PdfDocument,cosArray,cosNumber,dictSet,dictGet,dictDelete}=await import("@poe-code/pdf-ast");
-  // Matrices independently captured from pdftk-java 3.3.3 output.
-  const sources=[
-    ["2 0 0 2 -50 -60", "0 -1 1 0 45 90", "-2 0 0 -2 150 40", "0 1 -1 0 95 -10"],
-    ["1 0 0 1 -10 45", "0 -2 2 0 -60 150", "-1 0 0 -1 90 95", "0 2 -2 0 40 -50"],
-  ];
-  const targetMatrices=["", "0 1 -1 0 210 0 cm\n", "-1 0 0 -1 210 120 cm\n", "0 -1 1 0 0 120 cm\n"];
-  const cases=[];
-  for(const target of [0,90,180,270])for(const source of [0,90,180,270])cases.push({target,source,width:100,height:50,matrix:sources[(target/90)%2][source/90]});
-  cases.push(
-    {target:0,source:0,width:400,height:200,matrix:"0.5 0 0 0.5 -5 0"},
-    {target:0,source:0,width:199.8,height:99.8,matrix:"1 0 0 1 -20.03 -19.99"},
-    {target:90,source:270,width:100,height:50,crop:true,matrix:"0 2 -2 0 20 -40"},
-    {target:0,source:0,width:100,height:50,crop:true,matrix:"2 0 0 2 -40 -60"},
-    {target:0,source:0,width:100,height:50,inherit:true,matrix:"2 0 0 2 -50 -60"},
-    {target:0,source:0,width:1000,height:600,matrix:"0.16667 0 0 0.16667 21.67 13.33"},
-    {target:0,source:0,width:400000,height:200000,matrix:"0.0005 0 0 0.0005 9.98 19.98"},
-    {target:0,source:0,width:40000000,height:20000000,right:40000032,matrix:"0 0 0 0 10 20"},
-  );
-  for(const [index,c] of cases.entries()) {
-    const base=PdfDocument.create(),stamp=PdfDocument.create();
-    const page=base.addPage([200,100]),other=stamp.addPage([c.width,c.height]);
-    const box=values=>cosArray(values.map(n=>cosNumber(n)));
-    dictSet(page.pageDict,"MediaBox",box([10,20,210,120]));
-    dictSet(other.pageDict,"MediaBox",box([30,40,30+c.width,40+c.height]));
-    if(c.crop) {dictSet(page.pageDict,"CropBox",box([20,30,180,110]));dictSet(other.pageDict,"CropBox",box([40,45,100,85]));}
-    page.setRotation(c.target);other.setRotation(c.source);
-    page.setRawContentStream(Buffer.from("1 0 0 rg 80 60 30 20 re f"));
-    other.setRawContentStream(Buffer.from("0 0 1 rg -200 -200 1000 1000 re f 0 1 0 rg 40 50 20 10 re f"));
-    if(c.inherit)for(const [doc,p] of [[base,page],[stamp,other]])for(const key of ["MediaBox","Rotate"]) {
-      dictSet(doc.cos.resolveDict(dictGet(p.pageDict,"Parent")),key,dictGet(p.pageDict,key));dictDelete(p.pageDict,key);
-    }
-    const bash=new RustWasmBash({cwd:"/",files:{"/in":base.save(),"/stamp":stamp.save()}});
-    try {
-      for(const mode of ["stamp","background"]) {
-        const cmd="pdftk in "+mode+" stamp output out"+[""," compress"," uncompress"][index%3];
-        const result=await bash.exec(cmd);assert.equal(result.exitCode,0,result.stderr);
-        const content=Buffer.from(PdfDocument.load(await bash.fs.readFile("/out")).getPage(0).getRawContentStream()).toString();
-        assert.ok(content.includes(targetMatrices[c.target/90]+c.matrix+" cm\n"),JSON.stringify(c)+"\n"+content);
-        assert.ok(content.includes("30 40 m\n"+(c.right??30+c.width)+" 40 l\n"+(c.right??30+c.width)+" "+(40+c.height)+" l\n30 "+(40+c.height)+" l\nh W n\n"),"source MediaBox clipping: "+content);
-      }
-    } finally {bash.dispose();}
-  }
-});
-
-
-test("pdftk writes native numeric values when stamp geometry overflows single precision", async () => {
-  const {PdfDocument,cosArray,cosNumber,dictSet}=await import("@poe-code/pdf-ast");
-  const base=PdfDocument.create(),stamp=PdfDocument.create();
-  base.addPage([200,100]).setRawContentStream(Buffer.from("1 0 0 rg 80 60 30 20 re f"));
-  const page=stamp.addPage();page.setRawContentStream(Buffer.from("0 0 1 rg 40 50 20 10 re f"));
-  // Decimal PDF numbers, not exponent notation. Native pdftk-java 3.3.3
-  // writes zero for NaN arithmetic and saturates infinite box coordinates.
-  dictSet(page.pageDict,"MediaBox",cosArray([cosNumber(30),cosNumber(40),
-    cosNumber(2e40,"20000000000000000000000000000000000000000"),
-    cosNumber(1e40,"10000000000000000000000000000000000000000")]));
-  const bash=new RustWasmBash({cwd:"/",files:{"/in":base.save(),"/stamp":stamp.save()}});
-  try {
-    for(const mode of ["stamp","background"]) {
-      const result=await bash.exec("pdftk in "+mode+" stamp output out");assert.equal(result.exitCode,0,result.stderr);
-      const content=Buffer.from(PdfDocument.load(await bash.fs.readFile("/out")).getPage(0).getRawContentStream()).toString();
-      assert.ok(content.includes("0 0 0 0 0 0 cm\n"),content);
-      assert.ok(content.includes("9223372036854775807 9223372036854775807 l"),content);
-      assert.equal(content.includes("NaN"),false);
-    }
-  } finally {bash.dispose();}
 });
 
 

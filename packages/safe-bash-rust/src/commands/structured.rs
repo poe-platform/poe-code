@@ -1420,6 +1420,10 @@ fn cmd_jq_core(
                         }
                     }
                 }
+                stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
+                if terminal.is_empty() && inputs.borrow().file_input_failed() {
+                    status = 2;
+                }
                 break;
             }
             first_null_done = true;
@@ -1429,7 +1433,12 @@ fn cmd_jq_core(
             stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
             match next {
                 Ok(Some(v)) => v,
-                Ok(None) => break,
+                Ok(None) => {
+                    if inputs.borrow().file_input_failed() {
+                        status = 2;
+                    }
+                    break;
+                }
                 Err((code, msg)) => {
                     terminal = diagnostic(&msg);
                     status = code;
@@ -1541,9 +1550,6 @@ fn cmd_jq_core(
                 }
                 status = code;
             }
-        }
-        if inputs.borrow().file_input_failed {
-            status = 2;
         }
         if inputs
             .borrow_mut()
@@ -2593,7 +2599,7 @@ fn try_eval_jq_builtin(
         "input" => {
             if let Some(v) = vars
                 .pop_input()
-                .map_err(|(code, e)| JqFault::Error(code, JVal::Str(e)))?
+                .map_err(|(code, e)| JqFault::Input(code, JVal::Str(e)))?
             {
                 return Ok(Some(vec![v]));
             }

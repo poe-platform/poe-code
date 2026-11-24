@@ -36833,14 +36833,23 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             raw_content = Some(args[i + 1].as_str());
             i += 2;
         } else if a == "--lua-filter" || a.starts_with("--lua-filter=") || a.starts_with("-L") {
+            let name = if a.starts_with("--") {
+                "--lua-filter"
+            } else {
+                "-L"
+            };
             let path = if a == "--lua-filter" || a == "-L" {
                 i += 1;
-                let Some(path) = args.get(i) else {
-                    return err_out("E_OPTION: Missing Lua filter path\n", 2);
-                };
-                path.as_str()
+                args.get(i).map(String::as_str)
             } else {
-                a.strip_prefix("--lua-filter=").unwrap_or(&a[2..])
+                Some(
+                    a.strip_prefix("--lua-filter=")
+                        .or_else(|| a.strip_prefix("-L="))
+                        .unwrap_or(&a[2..]),
+                )
+            };
+            let Some(path) = path.filter(|path| !path.is_empty() && !path.starts_with('-')) else {
+                return err_out(&format!("E_OPTION: Missing value: {name}\n"), 2);
             };
             lua_filters.push(resolve_posix_path(cwd, path));
             i += 1;

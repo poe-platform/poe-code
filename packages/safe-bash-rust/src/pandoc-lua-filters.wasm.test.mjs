@@ -16,7 +16,8 @@ for (const fixture of cases) {
       assert.equal(control.exitCode, 0, control.stderr);
       assert.equal(control.stdout, "a\n");
       for (const output of ["", "-o /saved"]) {
-        const result = await bash.exec(`pandoc -f markdown -t plain /a.md ${output} ${fixture.flags.join(" ")}`);
+        const flags = fixture.flags.map(flag => `'${flag.replaceAll("'", "'\\''")}'`).join(" ");
+        const result = await bash.exec(`pandoc -f markdown -t plain /a.md ${output} ${flags}`);
         assert.equal(result.exitCode, fixture.status, result.stderr);
         assert.equal(result.stdout, fixture.status === 0 && output === "" ? (fixture.stdout ?? "A\n") : "");
         assert.equal(result.stderr, fixture.stderr ?? "");

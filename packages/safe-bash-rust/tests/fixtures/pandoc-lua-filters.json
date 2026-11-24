@@ -634,5 +634,116 @@
     "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','x','%q') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
     "status": 0,
     "stdout": "abc|0\n"
+  },
+  {
+    "id": "operand-long-missing",
+    "flags": [
+      "--lua-filter"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: --lua-filter\n"
+  },
+  {
+    "id": "operand-short-missing",
+    "flags": [
+      "-L"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-long-equals-empty",
+    "flags": [
+      "--lua-filter="
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: --lua-filter\n"
+  },
+  {
+    "id": "operand-short-equals-empty",
+    "flags": [
+      "-L="
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-long-empty",
+    "flags": [
+      "--lua-filter",
+      ""
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: --lua-filter\n"
+  },
+  {
+    "id": "operand-short-empty",
+    "flags": [
+      "-L",
+      ""
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-long-option-operand",
+    "flags": [
+      "--lua-filter",
+      "-x"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: --lua-filter\n"
+  },
+  {
+    "id": "operand-short-option-operand",
+    "flags": [
+      "-L",
+      "-x"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-long-equals-option",
+    "flags": [
+      "--lua-filter=-x"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: --lua-filter\n"
+  },
+  {
+    "id": "operand-short-equals-option",
+    "flags": [
+      "-L=-x"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-short-attached-option",
+    "flags": [
+      "-L-x"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 2,
+    "stderr": "E_OPTION: Missing value: -L\n"
+  },
+  {
+    "id": "operand-short-equals-path",
+    "flags": [
+      "-L=/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text:upper()) end",
+    "status": 0
   }
 ]

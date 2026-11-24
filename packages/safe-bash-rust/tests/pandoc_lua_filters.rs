@@ -42,7 +42,11 @@ fn lua_filters_match_javascript() {
         let Value::Array(flags) = case.get("flags").unwrap() else {
             panic!()
         };
-        let flags = flags.iter().map(text).collect::<Vec<_>>().join(" ");
+        let flags = flags
+            .iter()
+            .map(|value| format!("'{}'", text(value).replace('\'', "'\\''")))
+            .collect::<Vec<_>>()
+            .join(" ");
         for output in ["", "-o /saved"] {
             let result = shell
                 .exec(&format!(

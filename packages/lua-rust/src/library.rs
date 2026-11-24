@@ -455,14 +455,42 @@ impl Runtime {
                 return Ok(Vec::new());
             }
             "table.remove" => {
-                let len = self.length(&a(0))?;
-                let pos = if args.len() > 1 { n(1)? as usize } else { len };
-                let value = self.get(&a(0), &Value::Integer(pos as i32))?;
-                for i in pos..len {
-                    let v = self.get(&a(0), &Value::Integer((i + 1) as i32))?;
-                    self.set(a(0), Value::Integer(i as i32), v)?;
+                let table = a(0);
+                if !matches!(table, Value::Table(_))
+                    && ["__index", "__newindex", "__len"]
+                        .iter()
+                        .any(|name| self.meta(&table, name) == Value::Nil)
+                {
+                    return Err(Error::unlocated("Expected Lua table"));
                 }
-                self.set(a(0), Value::Integer(len as i32), Value::Nil)?;
+                let integer = |value: Value| {
+                    let number = value
+                        .number()
+                        .map_err(|_| Error::unlocated("Expected Lua number"))?;
+                    numbers::integral(number).map_err(|error| Error::unlocated(error.message))
+                };
+                let method = self.meta(&table, "__len");
+                let len = if method == Value::Nil || matches!(table, Value::String(_)) {
+                    self.length(&table)? as i32
+                } else {
+                    integer(first(
+                        self.call(method, vec![table.clone(), table.clone()])?,
+                    ))?
+                };
+                let pos = if a(1) == Value::Nil {
+                    len
+                } else {
+                    integer(a(1))?
+                };
+                if pos != len && (pos < 1 || i64::from(pos) > i64::from(len) + 1) {
+                    return Err(Error::unlocated("table:30: Position out of bounds"));
+                }
+                let value = self.get(&table, &Value::Integer(pos))?;
+                for i in pos..len {
+                    let v = self.get(&table, &Value::Integer(i + 1))?;
+                    self.set(table.clone(), Value::Integer(i), v)?;
+                }
+                self.set(table, Value::Integer(pos.max(len)), Value::Nil)?;
                 value
             }
             "table.concat" => {

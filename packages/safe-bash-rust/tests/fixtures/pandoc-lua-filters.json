@@ -3043,5 +3043,244 @@
     "script": "function Str(el) local function count(...) return select('#',...),... end; return pandoc.Str(table.concat({count(4,5)},',')) end",
     "status": 0,
     "stdout": "2,4,5\n"
+  },
+  {
+    "id": "remove-after-end",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2}; return tostring(table.remove(t,3))..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "nil:1,2\n"
+  },
+  {
+    "id": "remove-default-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2}; return table.remove(t,nil)..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:1\n"
+  },
+  {
+    "id": "remove-zero",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[0]=7}; return tostring(table.remove(t))..':'..tostring(t[0]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "7:nil\n"
+  },
+  {
+    "id": "remove-absent-one",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={[0]=7}; return tostring(table.remove(t,1))..':'..tostring(t[0]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "nil:7\n"
+  },
+  {
+    "id": "remove-meta",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local values={3,1,2}; local events=''; local t=setmetatable({}, {__len=function(a,b) events=events..'L'..tostring(rawequal(a,b)); return 3 end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}); local v=table.remove(t,2); return v..':'..events..':'..table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1:LtrueR2R3W2W3:3,2\n"
+  },
+  {
+    "id": "remove-meta-after-end",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 2 end,__index=function(_,i) events=events..'R'..i; return 9 end,__newindex=function(_,i,v) events=events..'W'..i..tostring(v) end}); return table.remove(t,3)..':'..events end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "9:LR3W3nil\n"
+  },
+  {
+    "id": "remove-negative-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t=setmetatable({[-2]=7},{__len=function() return -2 end}); return tostring(table.remove(t))..':'..tostring(t[-2]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "7:nil\n"
+  },
+  {
+    "id": "remove-string",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local mt=getmetatable(''); local values={3,1,2}; mt.__len=true; mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; return table.remove('abc',2)..':'..table.concat(values,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "1:3,2\n"
+  },
+  {
+    "id": "remove-string-position",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3}; return table.remove(t,'2')..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:1,3\n"
+  },
+  {
+    "id": "remove-low",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove({1,2},0); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:30: Position out of bounds\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'remove' (position out of bounds)\n"
+  },
+  {
+    "id": "remove-high",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove({1,2},4); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: table:30: Position out of bounds\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'remove' (position out of bounds)\n"
+  },
+  {
+    "id": "remove-fraction",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove({1,2},1.5); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'remove' (number has no integer representation)\n"
+  },
+  {
+    "id": "remove-bool",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove({},false); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'remove' (number expected, got boolean)\n"
+  },
+  {
+    "id": "remove-overflow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove({},2147483648); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #2 to 'remove' (number has no integer representation)\n"
+  },
+  {
+    "id": "remove-no-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove(); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'remove' (table expected, got no value)\n"
+  },
+  {
+    "id": "remove-missing-capability",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove('abc',1); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: bad argument #1 to 'remove' (table expected, got string)\n"
+  },
+  {
+    "id": "remove-invalid-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove(setmetatable({},{__len=function() return 1.5 end})); return \"bad\" end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Number has no integer representation\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: object length is not an integer\n"
+  },
+  {
+    "id": "remove-maximum-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 2147483647 end,__index=function(_,i) events=events..'R'..i; return 8 end,__newindex=function(_,i,v) events=events..'W'..i end}); return table.remove(t)..':'..events end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "8:LR2147483647W2147483647\n"
+  },
+  {
+    "id": "remove-length-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t=setmetatable({}, {__len=function() error('length first') end}); table.remove(t,1.5); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: length first\n"
+  },
+  {
+    "id": "remove-protected-length",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t=setmetatable({1,2}, {__metatable='hidden',__len=function() return '2' end}); return table.remove(t)..':'..t[1] end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:1\n"
+  },
+  {
+    "id": "remove-binary-values",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={string.char(0,255),string.char(254)}; local r=table.remove(t,1); return table.concat({string.byte(r,1,-1)},',')..':'..string.byte(t[1]) end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "0,255:254\n"
+  },
+  {
+    "id": "remove-length-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() table.remove(setmetatable({}, {__len=function() return false end})); return 'bad' end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua number\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: object length is not an integer\n"
+  },
+  {
+    "id": "remove-middle",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function probe() local t={1,2,3,4}; return table.remove(t,2)..':'..table.concat(t,',') end; function Str(el) return pandoc.Str(probe()) end",
+    "status": 0,
+    "stdout": "2:1,3,4\n"
   }
 ]

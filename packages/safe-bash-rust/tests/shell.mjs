@@ -54,6 +54,9 @@ async function test() {
     await shell.fs.writeFile("/jumps.lua", "function Str(el) local seen={}; local i=0; ::again:: i=i+1; local x=(x or 0)+1; seen[i]=x; if i<2 then goto again end; return pandoc.Str(table.concat(seen,',')) end");
     const jumps = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/jumps.lua");
     if (jumps.exitCode || jumps.stderr || jumps.stdout !== "1,1\n") throw new Error(JSON.stringify(jumps));
+    await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
+    const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
+    if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));
     await shell.fs.writeFile("/varargs.lua", "function Str(el) if false then return ... end; return el end");
     const varargs = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/varargs.lua");
     if (varargs.exitCode !== 4 || varargs.stdout || varargs.stderr !== "E_AST: cannot use '...' outside a vararg function\n") throw new Error(JSON.stringify(varargs));

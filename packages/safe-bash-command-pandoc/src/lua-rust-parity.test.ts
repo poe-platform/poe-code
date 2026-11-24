@@ -3,7 +3,7 @@ import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {createPandocCommand} from "./command.js";
 
-const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string; status: number}[];
+const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string; status: number; stdout?: string; stderr?: string; bufferedStderr?: string}[];
 
 it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
   const fs = new MemoryFileSystem();
@@ -21,7 +21,8 @@ it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
       stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
     });
     expect(result.exitCode, stderr).toBe(fixture.status);
-    expect(stdout).toBe(fixture.status === 0 && output.length === 0 ? "A\n" : "");
-    expect(new TextDecoder().decode(await fs.readFile("/saved"))).toBe(fixture.status === 0 && output.length > 0 ? "A\n" : "KEEP");
+    expect(stderr).toBe((output.length > 0 ? fixture.bufferedStderr : undefined) ?? fixture.stderr ?? "");
+    expect(stdout).toBe(fixture.status === 0 && output.length === 0 ? (fixture.stdout ?? "A\n") : "");
+    expect(new TextDecoder().decode(await fs.readFile("/saved"))).toBe(fixture.status === 0 && output.length > 0 ? (fixture.stdout ?? "A\n") : "KEEP");
   }
 });

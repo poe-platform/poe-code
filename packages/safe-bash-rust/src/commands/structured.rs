@@ -40,6 +40,7 @@ mod pandoc_epub;
 mod pandoc_headings;
 mod pandoc_inlines;
 mod pandoc_list;
+mod pandoc_lua;
 mod pandoc_metadata;
 mod pandoc_notes;
 mod pandoc_plain_table;
@@ -35086,7 +35087,10 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Result<Vec<PandocInline>, String> {
     Ok(out)
 }
 
-fn parse_pandoc_json(input: &str) -> Result<Vec<PandocBlock>, String> {
+fn parse_pandoc_json(
+    input: &str,
+    metadata: &mut Vec<(String, JVal)>,
+) -> Result<Vec<PandocBlock>, String> {
     let chars: Vec<_> = input.chars().collect();
     let mut i = 0;
     let root = parse_json_value(&chars, &mut i, 256)?;
@@ -35099,7 +35103,17 @@ fn parse_pandoc_json(input: &str) -> Result<Vec<PandocBlock>, String> {
     let Some(JVal::Array(blocks)) = jval_obj_get(&root, "blocks") else {
         return Err("missing blocks".into());
     };
-    parse_pandoc_json_blocks(blocks)
+    let blocks = parse_pandoc_json_blocks(blocks)?;
+    if let Some(JVal::Object(values)) = jval_obj_get(&root, "meta") {
+        for (key, value) in values {
+            if let Some((_, previous)) = metadata.iter_mut().find(|(name, _)| name == key) {
+                *previous = value.clone();
+            } else {
+                metadata.push((key.clone(), value.clone()));
+            }
+        }
+    }
+    Ok(blocks)
 }
 
 fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Result<Vec<PandocBlock>, String> {
@@ -36454,6 +36468,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if args.iter().any(|a| a.contains('\0')) {
         return err_out("E_OPTION: Arguments must be valid UTF-8 without NUL\n", 2);
     }
+    let mut lua_filters = Vec::new();
     let extension = |format: Option<&str>, base: &str, name: &str| {
         let mut enabled = if matches!(
             name,
@@ -36818,10 +36833,17 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             raw_content = Some(args[i + 1].as_str());
             i += 2;
         } else if a == "--lua-filter" || a.starts_with("--lua-filter=") || a.starts_with("-L") {
-            return err_out(
-                "E_CAPABILITY: Lua filters are not supported by native Pandoc\n",
-                3,
-            );
+            let path = if a == "--lua-filter" || a == "-L" {
+                i += 1;
+                let Some(path) = args.get(i) else {
+                    return err_out("E_OPTION: Missing Lua filter path\n", 2);
+                };
+                path.as_str()
+            } else {
+                a.strip_prefix("--lua-filter=").unwrap_or(&a[2..])
+            };
+            lua_filters.push(resolve_posix_path(cwd, path));
+            i += 1;
         } else if a == "--file-scope" {
             file_scope = true;
             i += 1;
@@ -37026,7 +37048,8 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             | "commonmark_x"
             | "gfm"
     ) && matches!(out_fmt.as_str(), "docx" | "pdf");
-    let canonical_binary = in_fmt == "json" && matches!(out_fmt.as_str(), "docx" | "pdf");
+    let canonical_binary =
+        lua_filters.is_empty() && in_fmt == "json" && matches!(out_fmt.as_str(), "docx" | "pdf");
     let join_text = matches!(
         in_fmt.as_str(),
         "markdown"
@@ -37082,7 +37105,8 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
 
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
-    let html_binary = input_from_html && matches!(out_fmt.as_str(), "docx" | "pdf");
+    let html_binary =
+        lua_filters.is_empty() && input_from_html && matches!(out_fmt.as_str(), "docx" | "pdf");
     if input_from_html
         && raw_inputs
             .iter()
@@ -37176,10 +37200,13 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
             "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
-            "json" => match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)) {
-                Ok(blocks) => Some(blocks),
-                Err(error) => return err_out(&format!("JSON parse error: {error}\n"), 64),
-            },
+            "json" => {
+                match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes), &mut source_metadata)
+                {
+                    Ok(blocks) => Some(blocks),
+                    Err(error) => return err_out(&format!("JSON parse error: {error}\n"), 64),
+                }
+            }
             "csv" | "tsv" => {
                 let delim = if in_fmt == "tsv" { '\t' } else { ',' };
                 let recs = parse_csv_rows(&String::from_utf8_lossy(&raw_bytes), delim);
@@ -37401,6 +37428,55 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         blocks.extend(input_blocks);
     }
 
+    pandoc_metadata::overrides(&mut source_metadata, &meta);
+    if !lua_filters.is_empty() {
+        let mut document = JVal::Object(vec![
+            (
+                "pandoc-api-version".into(),
+                JVal::Array(vec![
+                    JVal::Number(1.0, None),
+                    JVal::Number(23.0, None),
+                    JVal::Number(1.0, None),
+                    JVal::Number(2.0, None),
+                ]),
+            ),
+            ("blocks".into(), pandoc_blocks_to_json(&blocks)),
+            ("meta".into(), JVal::Object(source_metadata.clone())),
+        ]);
+        for path in &lua_filters {
+            let source = match fs.read_file(path) {
+                Ok(bytes) => bytes,
+                Err(_) => return err_out("E_IO: Capability failed\n", 9),
+            };
+            document = match pandoc_lua::filter(
+                &document,
+                &String::from_utf8_lossy(&source),
+                path,
+                &out_fmt,
+                fs.shell_limits().max_parse_units,
+            ) {
+                Ok(document) => document,
+                Err(message) => return err_out(&format!("E_AST: {message}\n"), 4),
+            };
+        }
+        let JVal::Object(fields) = &document else {
+            return err_out("E_AST: Invalid Lua document result\n", 4);
+        };
+        let Some(JVal::Array(filtered)) = jval_obj_get(fields, "blocks") else {
+            return err_out("E_AST: Invalid Lua document blocks\n", 4);
+        };
+        blocks = match parse_pandoc_json_blocks(filtered) {
+            Ok(blocks) => blocks,
+            Err(message) => return err_out(&format!("E_AST: {message}\n"), 4),
+        };
+        let Some(JVal::Object(metadata)) = jval_obj_get(fields, "meta") else {
+            return err_out("E_AST: Invalid Lua document metadata\n", 4);
+        };
+        source_metadata = metadata.clone();
+        // CLI metadata was applied before filtering; do not overwrite callback edits.
+        meta.clear();
+    }
+
     if matches!(
         out_fmt.as_str(),
         "markdown" | "md" | "commonmark" | "commonmark_x" | "gfm"
@@ -37415,7 +37491,6 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if let Err(message) = pandoc_blocks::check_writer(&blocks, &out_fmt, bracketed_spans) {
         return err_out(message, 1);
     }
-    pandoc_metadata::overrides(&mut source_metadata, &meta);
     let has_notes = pandoc_notes::contains(&blocks);
     if has_notes && !matches!(out_fmt.as_str(), "json" | "docx" | "pdf") {
         return err_out(
@@ -37445,6 +37520,27 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let title = meta
         .get("title")
         .cloned()
+        .or_else(|| {
+            if lua_filters.is_empty() {
+                return None;
+            }
+            let (_, JVal::Object(value)) =
+                source_metadata.iter().find(|(name, _)| name == "title")?
+            else {
+                return None;
+            };
+            match (jval_obj_get(value, "t"), jval_obj_get(value, "c")) {
+                (Some(JVal::Str(kind)), Some(JVal::Str(text))) if kind == "MetaString" => {
+                    Some(text.clone())
+                }
+                (Some(JVal::Str(kind)), Some(content)) if kind == "MetaInlines" => {
+                    parse_pandoc_json_inlines(content)
+                        .ok()
+                        .map(|inlines| inlines_plain_text(&inlines))
+                }
+                _ => None,
+            }
+        })
         .unwrap_or_else(|| "Document".to_string());
     let plain_limit = fs.remaining_output_bytes();
     let output_limit_error = || {
@@ -37514,7 +37610,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     Ok(bytes) => bytes,
                     Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
                 }
-            } else if markdown_binary {
+            } else if markdown_binary || !lua_filters.is_empty() {
                 match pandoc_binary_json::write_document(
                     pandoc_binary_json::binary_document(&blocks, &source_metadata),
                     &out_fmt,

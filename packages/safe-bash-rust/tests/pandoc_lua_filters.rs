@@ -1,9 +1,12 @@
+#[path = "../../lua-rust/tests/evaluation.rs"]
+mod lua_evaluation;
+
 use mcp_protocol_rust::json::{self, Value};
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};
 use std::sync::Arc;
 
 #[test]
-fn unsupported_lua_filters_fail_without_publishing() {
+fn lua_filters_match_javascript() {
     let Value::Array(cases) = json::parse(
         include_bytes!("fixtures/pandoc-lua-filters.json"),
         Default::default(),
@@ -44,18 +47,117 @@ fn unsupported_lua_filters_fail_without_publishing() {
                     "pandoc -f markdown -t plain /a.md {output} {flags}"
                 ))
                 .unwrap();
+            let expected = case.get("stdout").map(text).unwrap_or_else(|| "A\n".into());
+            let status = match case.get("status").unwrap() {
+                Value::Number(n) => *n as i32,
+                _ => panic!(),
+            };
             assert_eq!(
                 result.exit_code,
-                3,
+                status,
                 "{}: {result:?}",
                 text(case.get("id").unwrap())
             );
-            assert_eq!(result.stdout, "");
+            assert_eq!(
+                result.stdout,
+                if status == 0 && output.is_empty() {
+                    &expected
+                } else {
+                    ""
+                }
+            );
             assert_eq!(
                 result.stderr,
-                "E_CAPABILITY: Lua filters are not supported by native Pandoc\n"
+                case.get("stderr").map(text).unwrap_or_default()
             );
-            assert_eq!(fs.read_file("/saved").unwrap(), b"KEEP");
+            assert_eq!(
+                fs.read_file("/saved").unwrap(),
+                if status == 0 && !output.is_empty() {
+                    expected.as_bytes()
+                } else {
+                    b"KEEP".as_slice()
+                }
+            );
         }
     }
+}
+
+#[test]
+fn filters_reach_text_and_binary_writers() {
+    let fs = Arc::new(MemoryVfs::new());
+    fs.write_file("/a.md", b"hello").unwrap();
+    fs.write_file(
+        "/filter.lua",
+        b"function Str(el) return pandoc.Str(el.text:upper()) end",
+    )
+    .unwrap();
+    let mut shell = Shell::new(
+        fs.clone(),
+        ShellOptions {
+            cwd: Some("/".into()),
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+    for format in ["plain", "html", "markdown", "json", "docx", "pdf"] {
+        let result = shell
+            .exec(&format!(
+                "pandoc /a.md -t {format} -L /filter.lua -o /result.{format}"
+            ))
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{format}: {result:?}");
+        let bytes = fs.read_file(&format!("/result.{format}")).unwrap();
+        if matches!(format, "docx" | "pdf") {
+            let command = if format == "pdf" {
+                "pdftotext /result.pdf -"
+            } else {
+                "pandoc /result.docx -t plain"
+            };
+            let result = shell.exec(command).unwrap();
+            assert_eq!(result.exit_code, 0, "{format}: {result:?}");
+            assert!(result.stdout.contains("HELLO"), "{format}: {result:?}");
+        } else {
+            assert!(
+                String::from_utf8(bytes).unwrap().contains("HELLO"),
+                "{format}"
+            );
+        }
+    }
+}
+
+#[test]
+fn filters_receive_and_update_json_metadata() {
+    let fs = Arc::new(MemoryVfs::new());
+    fs.write_file("/a.json", br#"{"pandoc-api-version":[1,23,1,2],"meta":{"title":{"t":"MetaString","c":"Before"}},"blocks":[{"t":"Para","c":[{"t":"Str","c":"a"}]}]}"#).unwrap();
+    fs.write_file("/filter.lua", b"function Meta(meta) assert(meta.title=='Before'); meta.title='After'; meta.empty=pandoc.MetaMap({}); return meta end").unwrap();
+    let mut shell = Shell::new(
+        fs,
+        ShellOptions {
+            cwd: Some("/".into()),
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+    let result = shell.exec("pandoc /a.json -t json -L /filter.lua").unwrap();
+    assert_eq!(result.exit_code, 0, "{result:?}");
+    let pdf = shell
+        .exec("pandoc /a.json -t pdf -M title=Before -L /filter.lua -o /filtered.pdf")
+        .unwrap();
+    assert_eq!(pdf.exit_code, 0, "{pdf:?}");
+    let info = shell.exec("pdfinfo /filtered.pdf").unwrap();
+    assert!(
+        info.stdout
+            .lines()
+            .any(|line| line.starts_with("Title:") && line.ends_with("After")),
+        "{info:?}"
+    );
+    let document = json::parse(result.stdout.as_bytes(), Default::default()).unwrap();
+    assert_eq!(
+        document.get("meta").unwrap().get("title").unwrap().get("c"),
+        Some(&Value::String("After".encode_utf16().collect()))
+    );
+    assert_eq!(
+        document.get("meta").unwrap().get("empty").unwrap().get("c"),
+        Some(&Value::Object(Vec::new()))
+    );
 }

@@ -17,6 +17,9 @@ async function test() {
     const input = (async function* () { yield new TextEncoder().encode("b\n"); })();
     const result = await shell.exec("{ records; cat; } | LC_ALL=C sort | uniq", { stdin: input });
     if (result.exitCode || result.stderr || result.stdout !== "a\nb\nz\n") throw new Error(JSON.stringify(result));
+    await shell.fs.writeFile("/upper.lua", "function Str(el) return pandoc.Str(el.text:upper()) end");
+    const filtered = await shell.exec("printf hello | pandoc -f markdown -t plain -L /upper.lua");
+    if (filtered.exitCode || filtered.stderr || filtered.stdout !== "HELLO\n") throw new Error(JSON.stringify(filtered));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

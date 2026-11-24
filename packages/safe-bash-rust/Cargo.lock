@@ -49,6 +49,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "lua-rust"
+version = "0.1.0"
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -83,6 +87,7 @@ dependencies = [
  "document-ast-rust",
  "document-converter-rust",
  "docx-ast-rust",
+ "lua-rust",
  "mcp-protocol-rust",
  "office-package-rust",
  "pdf-ast-rust",

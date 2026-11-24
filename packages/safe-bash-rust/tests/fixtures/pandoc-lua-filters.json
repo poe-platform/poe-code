@@ -49,7 +49,8 @@
       "/missing.lua"
     ],
     "script": "function Str(el) return pandoc.Str(string.upper(el.text)) end",
-    "status": 9
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
   },
   {
     "id": "malformed",
@@ -58,7 +59,9 @@
       "/upper.lua"
     ],
     "script": "function Str(",
-    "status": 4
+    "status": 4,
+    "stderr": "E_AST: Expected 'name', found 'eof'\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: <name> or '...' expected near <eof>\n"
   },
   {
     "id": "runtime-error",
@@ -67,6 +70,219 @@
       "/upper.lua"
     ],
     "script": "function Str(el) error('broken') end",
-    "status": 4
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "closure",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function make(s) return function(el) return pandoc.Str(s .. string.upper(el.text)) end end return {Str=make(\"\")}",
+    "status": 0
+  },
+  {
+    "id": "numeric-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local s=\"\" for i=1,#el.text do s=s..string.upper(el.text:sub(i,i)) end return pandoc.Str(s) end",
+    "status": 0
+  },
+  {
+    "id": "generic-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local xs={el.text}; for i,v in ipairs(xs) do xs[i]=string.upper(v) end return pandoc.Str(table.concat(xs)) end",
+    "status": 0
+  },
+  {
+    "id": "while-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local i=0; while i<1 do el.text=string.upper(el.text); i=i+1 end return el end",
+    "status": 0
+  },
+  {
+    "id": "repeat-loop",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) repeat el.text=string.upper(el.text) until el.text==\"A\" return el end",
+    "status": 0
+  },
+  {
+    "id": "local-recursion",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function upper(s,n) if n==0 then return s end return upper(s:upper(),n-1) end function Str(el) return pandoc.Str(upper(el.text,3)) end",
+    "status": 0
+  },
+  {
+    "id": "multiple-results",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function pair() return \"A\", \"unused\" end function Str(el) local a,b=pair(); assert(b==\"unused\"); return pandoc.Str(a) end",
+    "status": 0
+  },
+  {
+    "id": "varargs",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local function first(...) local t={...}; return t[1] end function Str(el) return pandoc.Str(first(\"A\", \"B\")) end",
+    "status": 0
+  },
+  {
+    "id": "lexical-shadow",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local a=\"A\"; local function get() return a end; local a=\"wrong\"; function Str(el) return pandoc.Str(get()) end",
+    "status": 0
+  },
+  {
+    "id": "metatable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local t=setmetatable({}, {__index=function(t,k) return k:upper() end}); function Str(el) return pandoc.Str(t[el.text]) end",
+    "status": 0
+  },
+  {
+    "id": "newindex",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local t=setmetatable({}, {__newindex=function(t,k,v) rawset(t,k,v:upper()) end}); t.text=\"a\"; function Str(el) return pandoc.Str(t.text) end",
+    "status": 0
+  },
+  {
+    "id": "callable-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "local t=setmetatable({}, {__call=function(t,s) return s:upper() end}); function Str(el) return pandoc.Str(t(el.text)) end",
+    "status": 0
+  },
+  {
+    "id": "returned-filter-list",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "return {{Str=function(el) el.text=el.text:upper(); return el end}, {Str=function(el) assert(el.text==\"A\"); return el end}}",
+    "status": 0
+  },
+  {
+    "id": "inline-fallback",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "return {Inline=function(el) if el.t==\"Str\" then el.text=el.text:upper() end return el end}",
+    "status": 0
+  },
+  {
+    "id": "list-callback",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Inlines(xs) return xs:map(function(el) if el.t==\"Str\" then el.text=el.text:upper() end return el end) end",
+    "status": 0
+  },
+  {
+    "id": "block-callback",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Para(el) return pandoc.Plain({pandoc.Str(pandoc.utils.stringify(el):upper())}) end",
+    "status": 0
+  },
+  {
+    "id": "pandoc-callback",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Pandoc(doc) return pandoc.Pandoc({pandoc.Para({pandoc.Str(\"A\")})}, doc.meta) end",
+    "status": 0
+  },
+  {
+    "id": "walk",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Para(el) return el:walk({Str=function(s) return pandoc.Str(s.text:upper()) end}) end",
+    "status": 0
+  },
+  {
+    "id": "format",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) assert(FORMAT==\"plain\"); return pandoc.Str(el.text:upper()) end",
+    "status": 0
+  },
+  {
+    "id": "list-splice",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return {pandoc.Str(\"A\"),pandoc.Str(\"B\")} end",
+    "status": 0,
+    "stdout": "AB\n"
+  },
+  {
+    "id": "nil-keeps-original",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) el.text=\"changed\" end",
+    "status": 0,
+    "stdout": "a\n"
+  },
+  {
+    "id": "empty-removes",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) return {} end",
+    "status": 0,
+    "stdout": "\n"
+  },
+  {
+    "id": "ordered-paths",
+    "flags": [
+      "-L",
+      "/upper.lua",
+      "--lua-filter=/upper.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str(el.text..\"A\") end",
+    "status": 0,
+    "stdout": "aAA\n"
   }
 ]

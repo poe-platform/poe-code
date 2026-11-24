@@ -1015,6 +1015,8 @@ impl<'a> EvalState<'a> {
             env.insert("OPTERR".to_string(), "1".to_string());
             env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
         }
+        let shift_verbose = if env.contains_key("POSIXLY_CORRECT") { "1" } else { "0" };
+        env.entry("\0shopt_shift_verbose".into()).or_insert_with(|| shift_verbose.into());
         for name in ["SHELLOPTS", "BASHOPTS"] {
             let attributes = env.entry(format!("\0attr__{name}")).or_default();
             if !attributes.contains('r') {
@@ -5546,6 +5548,13 @@ impl<'a> EvalState<'a> {
                 });
             }
             "shift" => {
+                if args.first().map(String::as_str) == Some("--help") {
+                    return Ok(BuiltinOutcome {
+                        stdout: "shift: shift [n]\n    Shift positional parameters.\n    \n    Rename the positional parameters $N+1,$N+2 ... to $1,$2 ...  If N is\n    not given, it is assumed to be 1.\n    \n    Exit Status:\n    Returns success unless N is negative or greater than $#.\n".into(),
+                        stderr: String::new(),
+                        exit_code: 2,
+                    });
+                }
                 let offset = if args.first().map(String::as_str) == Some("--") {
                     1
                 } else {
@@ -5555,12 +5564,13 @@ impl<'a> EvalState<'a> {
                     match s.trim().parse::<i64>() {
                         Ok(v) => v,
                         Err(_) => {
+                            if !bypass_functions && !self.in_condition && (self.env.contains_key("POSIXLY_CORRECT")
+                                || self.env.get("\0set_posix").is_some_and(|v| v == "1")) {
+                                self.exit_requested = Some(2);
+                            }
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!(
-                                    "{}shift: {s}: numeric argument required\n",
-                                    self.diag_prefix()
-                                ),
+                                stderr: format!("{}shift: {s}: numeric argument required\n", self.diag_prefix()),
                                 exit_code: 2,
                             });
                         }
@@ -5576,43 +5586,19 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     });
                 }
-                if n_signed < 0 {
+                let Some(n) = usize::try_from(n_signed).ok().filter(|&n| n <= self.pos_args.len()) else {
+                    let stderr = if n_signed < 0 || self.get_shopt_enabled("shift_verbose", false) {
+                        let operand = args.get(offset).map_or(String::new(), |s| format!("{s}: "));
+                        format!("{}shift: {operand}shift count out of range\n", self.diag_prefix())
+                    } else { String::new() };
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!(
-                            "{}shift: {}: shift count out of range\n",
-                            self.diag_prefix(),
-                            args[offset]
-                        ),
+                        stderr,
                         exit_code: 1,
                     });
-                }
-                let n = n_signed as usize;
-                if n <= self.pos_args.len() {
-                    self.pos_args.drain(0..n);
-                    return Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    });
-                } else {
-                    return Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: if self.get_shopt_enabled("shift_verbose", false) {
-                            let operand = args
-                                .get(offset)
-                                .map(|s| format!("{s}: "))
-                                .unwrap_or_default();
-                            format!(
-                                "{}shift: {operand}shift count out of range\n",
-                                self.diag_prefix()
-                            )
-                        } else {
-                            String::new()
-                        },
-                        exit_code: 1,
-                    });
-                }
+                };
+                self.pos_args.drain(0..n);
+                return Ok(BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 });
             }
             "set" => {
                 return Ok(self.builtin_set(args));

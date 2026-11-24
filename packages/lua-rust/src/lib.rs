@@ -2,6 +2,7 @@
 mod library;
 mod pattern;
 mod syntax;
+mod utf8;
 use std::collections::HashMap;
 use syntax::{Expr, Node, Stmt};
 
@@ -11,7 +12,7 @@ pub enum Value {
     Nil,
     Bool(bool),
     Number(f64),
-    String(String),
+    String(Vec<u8>),
     Table(usize),
     Function(usize),
     Native(&'static str),
@@ -35,16 +36,25 @@ impl Value {
             Self::Nil => "nil".into(),
             Self::Bool(v) => v.to_string(),
             Self::Number(v) => v.to_string(),
-            Self::String(v) => v.clone(),
+            Self::String(v) => String::from_utf8_lossy(v).into_owned(),
             Self::Table(n) => format!("table: {n:x}"),
             Self::Function(n) => format!("function: {n:x}"),
             Self::Native(n) => format!("function: {n}"),
         }
     }
+    fn bytes(&self) -> Vec<u8> {
+        match self {
+            Self::String(v) => v.clone(),
+            _ => self.text().into_bytes(),
+        }
+    }
     fn number(&self) -> Result<f64> {
         match self {
             Self::Number(n) => Ok(*n),
-            Self::String(s) => s.trim().parse().map_err(|_| Error::new("number expected")),
+            Self::String(s) => std::str::from_utf8(s)
+                .ok()
+                .and_then(|s| s.trim().parse().ok())
+                .ok_or_else(|| Error::new("number expected")),
             _ => Err(Error::new("number expected")),
         }
     }
@@ -281,8 +291,8 @@ impl Runtime {
             .map(|c| self.cells[c].clone())
             .unwrap_or_else(|| self.global(name))
     }
-    pub fn run(&mut self, source: &str, path: &str) -> Result<Vec<Value>> {
-        let body = syntax::parse(source)?;
+    pub fn run(&mut self, source: impl AsRef<[u8]>, path: &str) -> Result<Vec<Value>> {
+        let body = syntax::parse(source.as_ref())?;
         let old = std::mem::replace(&mut self.source, path.into());
         let env = self.env(None, Some(Vec::new()));
         let result = self.block(&body, env).and_then(|flow| match flow {
@@ -419,7 +429,7 @@ impl Runtime {
                 }
                 Node::Method(base, name, args) => {
                     let base = self.one(base, env)?;
-                    let function = self.get(&base, &Value::String(name.clone()))?;
+                    let function = self.get(&base, &Value::String(name.clone().into_bytes()))?;
                     let mut values = vec![base];
                     values.extend(self.eval_list(args, env)?);
                     return self.call(function, values);
@@ -513,11 +523,21 @@ impl Runtime {
             {
                 return Err(Error::new("attempt to concatenate a non-string value"));
             }
-            return Ok(Value::String(left.text() + &right.text()));
+            let mut bytes = left.bytes();
+            bytes.extend(right.bytes());
+            return Ok(Value::String(bytes));
         }
         if matches!(op, "<" | ">" | "<=" | ">=") {
             let ord = match (&left, &right) {
-                (Value::String(a), Value::String(b)) => a.partial_cmp(b),
+                (Value::String(a), Value::String(b)) => {
+                    // The existing Lua engine compares unpadded hexadecimal bytes.
+                    let digits = |byte: &u8| {
+                        [(*byte >= 16).then_some(*byte >> 4), Some(*byte & 15)]
+                            .into_iter()
+                            .flatten()
+                    };
+                    Some(a.iter().flat_map(digits).cmp(b.iter().flat_map(digits)))
+                }
                 (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
                 _ => return Err(Error::new("attempt to compare incompatible values")),
             };

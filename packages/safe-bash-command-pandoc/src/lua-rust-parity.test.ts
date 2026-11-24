@@ -3,13 +3,13 @@ import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {createPandocCommand} from "./command.js";
 
-const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string; status: number; stdout?: string; stderr?: string; bufferedStderr?: string}[];
+const fixtures = JSON.parse(readFileSync(new URL("../../safe-bash-rust/tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8")) as {id: string; flags: string[]; script: string | number[]; status: number; stdout?: string; stderr?: string; bufferedStderr?: string}[];
 
 it.each(fixtures)("preserves TypeScript Lua behavior: $id", async fixture => {
   const fs = new MemoryFileSystem();
   const encode = (text: string) => new TextEncoder().encode(text);
   await fs.writeFile("/a.md", encode("a"));
-  await fs.writeFile("/upper.lua", encode(fixture.script));
+  await fs.writeFile("/upper.lua", typeof fixture.script === "string" ? encode(fixture.script) : Uint8Array.from(fixture.script));
   for (const output of [[], ["-o", "/saved"]]) {
     await fs.writeFile("/saved", encode("KEEP"));
     let stdout = "", stderr = "";

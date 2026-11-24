@@ -20,6 +20,13 @@ async function test() {
     await shell.fs.writeFile("/upper.lua", "function Str(el) return pandoc.Str(el.text:gsub('%l', string.upper)) end");
     const filtered = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/upper.lua");
     if (filtered.exitCode || filtered.stderr || filtered.stdout !== "HELLO\n") throw new Error(JSON.stringify(filtered));
+    await shell.fs.writeFile("/bytes.lua", Uint8Array.from([
+      ...new TextEncoder().encode("function Str(el) return pandoc.Str(tostring(string.byte('"),
+      255,
+      ...new TextEncoder().encode("'))) end"),
+    ]));
+    const binary = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/bytes.lua");
+    if (binary.exitCode || binary.stderr || binary.stdout !== "255\n") throw new Error(JSON.stringify(binary));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

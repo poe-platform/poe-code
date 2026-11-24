@@ -12,4 +12,6 @@ assert_eq!(values, vec![Value::String("HELLO".into())]);
 
 The evaluator supports functions and closures, multiple results and variadic arguments, tables and metatables, conditional statements, loops, and string, table, math and UTF-8 helpers. String patterns support `find`, `match`, independent `gmatch` iterators, and `gsub` with capture templates, callbacks or lookup tables. Character classes, captures, backreferences, balanced pairs and frontier patterns follow the existing Pandoc Lua engine. Each runtime owns its tables, captured variables and functions; dropping it releases those values together.
 
-This is not yet a complete Lua 5.3 implementation. String formatting, binary strings, exact 64-bit integer arithmetic, complete scope validation and the remaining standard-library functions still need parity work. Pandoc uses its shared Lua constructors and traversal code with this evaluator.
+Lua strings retain arbitrary bytes through character construction, slicing, reversal, concatenation, patterns and replacements. `Value::String` stores `Vec<u8>`, and `Runtime::run` accepts text or source bytes. UTF-8 helpers use byte positions and preserve the existing Lua engine's handling of surrogate code points. Pandoc validates UTF-8 when those bytes become document text.
+
+This is not yet a complete Lua 5.3 implementation. String formatting, integer/float semantics, complete scope validation and the remaining exposed library functions still need parity work. Pandoc uses its shared Lua constructors and traversal code with this evaluator.

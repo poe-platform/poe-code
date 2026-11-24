@@ -56,7 +56,7 @@ impl Lexer<'_> {
         }
         b
     }
-    fn long(&mut self) -> Result<Option<String>> {
+    fn long(&mut self) -> Result<Option<Vec<u8>>> {
         let start = self.offset;
         if self.byte() != b'[' {
             return Ok(None);
@@ -83,7 +83,7 @@ impl Lexer<'_> {
                     .is_some_and(|s| s.iter().all(|b| *b == b'='))
                 && self.source.get(self.offset + 1 + equals) == Some(&b']')
             {
-                let text = String::from_utf8_lossy(&self.source[content..self.offset]).into_owned();
+                let text = self.source[content..self.offset].to_vec();
                 self.offset += equals + 2;
                 return Ok(Some(text));
             }
@@ -128,7 +128,7 @@ impl Lexer<'_> {
             {
                 word
             } else {
-                value = Value::String(word);
+                value = Value::String(word.into_bytes());
                 "name".into()
             }
         } else if b == b'\'' || b == b'"' {
@@ -184,7 +184,7 @@ impl Lexer<'_> {
                 }
             }
             self.take();
-            value = Value::String(String::from_utf8_lossy(&text).into_owned());
+            value = Value::String(text);
             "string".into()
         } else if b == b'['
             && let Some(text) = self.long()?
@@ -266,7 +266,7 @@ impl Parser {
         let value = self.token().value.clone();
         self.expect("name")?;
         if let Value::String(s) = value {
-            Ok(s)
+            Ok(String::from_utf8(s).expect("ASCII identifier"))
         } else {
             unreachable!()
         }
@@ -377,7 +377,10 @@ impl Parser {
         };
         loop {
             expr = if self.eat(".") {
-                let key = Expr(line, Node::Literal(Value::String(self.name()?)));
+                let key = Expr(
+                    line,
+                    Node::Literal(Value::String(self.name()?.into_bytes())),
+                );
                 Expr(line, Node::Index(Box::new(expr), Box::new(key)))
             } else if self.eat("[") {
                 let key = self.expression(0)?;
@@ -540,7 +543,10 @@ impl Parser {
                     line,
                     Node::Index(
                         Box::new(target),
-                        Box::new(Expr(line, Node::Literal(Value::String(self.name()?)))),
+                        Box::new(Expr(
+                            line,
+                            Node::Literal(Value::String(self.name()?.into_bytes())),
+                        )),
                     ),
                 );
             }
@@ -550,7 +556,10 @@ impl Parser {
                     line,
                     Node::Index(
                         Box::new(target),
-                        Box::new(Expr(line, Node::Literal(Value::String(self.name()?)))),
+                        Box::new(Expr(
+                            line,
+                            Node::Literal(Value::String(self.name()?.into_bytes())),
+                        )),
                     ),
                 );
             }
@@ -600,9 +609,9 @@ impl Parser {
         }
     }
 }
-pub(crate) fn parse(source: &str) -> Result<Vec<Stmt>> {
+pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
     let mut lexer = Lexer {
-        source: source.as_bytes(),
+        source,
         offset: 0,
         line: 1,
     };

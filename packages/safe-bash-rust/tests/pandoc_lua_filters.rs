@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/bytes.rs"]
+mod lua_bytes;
 #[path = "../../lua-rust/tests/evaluation.rs"]
 mod lua_evaluation;
 #[path = "../../lua-rust/tests/patterns.rs"]
@@ -6,6 +8,42 @@ mod lua_patterns;
 use mcp_protocol_rust::json::{self, Value};
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};
 use std::sync::Arc;
+
+#[test]
+fn invalid_utf8_document_values_match_javascript_output_errors() {
+    let fs = Arc::new(MemoryVfs::new());
+    fs.write_file("/a.md", b"a").unwrap();
+    let mut shell = Shell::new(
+        fs.clone(),
+        ShellOptions {
+            cwd: Some("/".into()),
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+    for source in [
+        "function Str(el) return pandoc.Str(string.char(255)) end",
+        "function Meta(m) m[string.char(255)]=pandoc.MetaString('value'); return m end",
+    ] {
+        fs.write_file("/filter.lua", source.as_bytes()).unwrap();
+        for (output, status, error) in [
+            ("", 4, "E_AST: Invalid UTF-8 Lua string\n"),
+            ("-o -", 4, "E_AST: Invalid UTF-8 Lua string\n"),
+            ("-o /saved", 9, "E_IO: Capability failed\n"),
+        ] {
+            fs.write_file("/saved", b"KEEP").unwrap();
+            let result = shell
+                .exec(&format!(
+                    "pandoc -f markdown -t plain /a.md -L /filter.lua {output}"
+                ))
+                .unwrap();
+            assert_eq!(result.exit_code, status, "{source}: {result:?}");
+            assert_eq!(result.stderr, error);
+            assert!(result.stdout.is_empty());
+            assert_eq!(fs.read_file("/saved").unwrap(), b"KEEP");
+        }
+    }
+}
 
 #[test]
 fn lua_filters_match_javascript() {
@@ -25,8 +63,17 @@ fn lua_filters_match_javascript() {
     for case in cases {
         let fs = Arc::new(MemoryVfs::new());
         fs.write_file("/a.md", b"a").unwrap();
-        fs.write_file("/upper.lua", text(case.get("script").unwrap()).as_bytes())
-            .unwrap();
+        let script = match case.get("script").unwrap() {
+            Value::Array(bytes) => bytes
+                .iter()
+                .map(|value| match value {
+                    Value::Number(n) => *n as u8,
+                    _ => panic!("script byte expected"),
+                })
+                .collect(),
+            value => text(value).into_bytes(),
+        };
+        fs.write_file("/upper.lua", &script).unwrap();
         fs.write_file("/saved", b"KEEP").unwrap();
         let mut shell = Shell::new(
             fs.clone(),

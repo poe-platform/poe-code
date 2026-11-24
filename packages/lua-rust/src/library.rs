@@ -104,6 +104,14 @@ impl Runtime {
             }
             self.set_global(name, table);
         }
+        self.raw_set(
+            &self.global("utf8"),
+            Value::String("charpattern".into()),
+            Value::String(vec![
+                91, 0, 45, 127, 194, 45, 244, 93, 91, 128, 45, 191, 93, 42,
+            ]),
+        )
+        .unwrap();
         let factory = self
             .run(include_str!("string.lua"), "@string")
             .expect("valid internal string library")
@@ -136,7 +144,7 @@ impl Runtime {
         let n = |i: usize| a(i).number();
         let s = |i: usize| match a(i) {
             Value::String(s) => Ok(s),
-            Value::Number(n) => Ok(n.to_string()),
+            Value::Number(n) => Ok(n.to_string().into_bytes()),
             _ => Err(Error::new("string expected")),
         };
         let result = match name {
@@ -163,7 +171,7 @@ impl Runtime {
             "tostring" => {
                 let method = self.meta(&a(0), "__tostring");
                 if method == Value::Nil {
-                    Value::String(a(0).text())
+                    Value::String(a(0).bytes())
                 } else {
                     first(self.call(method, vec![a(0)])?)
                 }
@@ -174,7 +182,7 @@ impl Runtime {
                     if !(2..=36).contains(&base) {
                         return Err(Error::new("base out of range"));
                     }
-                    i64::from_str_radix(s(0)?.trim(), base)
+                    i64::from_str_radix(std::str::from_utf8(&s(0)?).unwrap_or("").trim(), base)
                         .ok()
                         .map(|n| Value::Number(n as f64))
                         .unwrap_or_default()
@@ -269,30 +277,23 @@ impl Runtime {
                 let end = position(if args.len() > 2 { n(2)? as isize } else { -1 }, text.len())
                     .min(text.len() as isize)
                     .max(0) as usize;
-                Value::String(
-                    String::from_utf8_lossy(
-                        text.as_bytes().get(start - 1..end).unwrap_or_default(),
-                    )
-                    .into_owned(),
-                )
+                Value::String(text.get(start - 1..end).unwrap_or_default().to_vec())
             }
             "string.rep" => {
                 let text = s(0)?;
                 let count = n(1)?.max(0.0) as usize;
-                let sep = if args.len() > 2 { s(2)? } else { String::new() };
-                let mut result = String::new();
+                let sep = if args.len() > 2 { s(2)? } else { Vec::new() };
+                let mut result = Vec::new();
                 for i in 0..count {
                     self.tick()?;
                     if i > 0 {
-                        result.push_str(&sep)
+                        result.extend_from_slice(&sep)
                     }
-                    result.push_str(&text);
+                    result.extend_from_slice(&text);
                 }
                 Value::String(result)
             }
-            "string.reverse" => Value::String(
-                String::from_utf8_lossy(&s(0)?.bytes().rev().collect::<Vec<_>>()).into_owned(),
-            ),
+            "string.reverse" => Value::String(s(0)?.into_iter().rev().collect()),
             "string.byte" => {
                 let text = s(0)?;
                 let start = position(if args.len() > 1 { n(1)? as isize } else { 1 }, text.len())
@@ -308,7 +309,6 @@ impl Runtime {
                 .min(text.len() as isize)
                 .max(0) as usize;
                 return Ok(text
-                    .as_bytes()
                     .get(start - 1..end)
                     .unwrap_or_default()
                     .iter()
@@ -326,7 +326,7 @@ impl Runtime {
                         Ok(n as u8)
                     })
                     .collect::<Result<Vec<_>>>()?;
-                Value::String(String::from_utf8_lossy(&bytes).into_owned())
+                Value::String(bytes)
             }
             "string.find" | "string.match" | "string.next_match" => {
                 let text = s(0)?;
@@ -346,7 +346,7 @@ impl Runtime {
                     }
                     (position(start as isize, text.len()).max(1) - 1, None)
                 };
-                return Matcher::new(text.as_bytes(), pattern.as_bytes(), &mut self.steps).search(
+                return Matcher::new(&text, &pattern, &mut self.steps).search(
                     start,
                     name != "string.match",
                     a(3).truth(),
@@ -362,12 +362,14 @@ impl Runtime {
                 Value::Number(number)
             }
             "string.join" => {
-                let mut result = String::new();
+                let mut result = Vec::new();
                 for index in 1..=n(1)? as usize {
                     let value = self.get(&a(0), &Value::Number(index as f64))?;
                     match value {
-                        Value::String(text) => result.push_str(&text),
-                        Value::Number(number) => result.push_str(&number.to_string()),
+                        Value::String(text) => result.extend_from_slice(&text),
+                        Value::Number(number) => {
+                            result.extend_from_slice(number.to_string().as_bytes())
+                        }
                         _ => return Err(Error::new("string expected")),
                     }
                 }
@@ -376,7 +378,7 @@ impl Runtime {
             "string.replacement_token" => {
                 let text = s(0)?;
                 let start = n(1)? as usize;
-                let bytes = text.as_bytes();
+                let bytes = &text;
                 let mut end = start;
                 while end < bytes.len() && bytes[end] != b'%' {
                     self.tick()?;
@@ -434,23 +436,23 @@ impl Runtime {
                 value
             }
             "table.concat" => {
-                let sep = if args.len() > 1 { s(1)? } else { String::new() };
+                let sep = if args.len() > 1 { s(1)? } else { Vec::new() };
                 let start = if args.len() > 2 { n(2)? as i64 } else { 1 };
                 let end = if args.len() > 3 {
                     n(3)? as i64
                 } else {
                     self.length(&a(0))? as i64
                 };
-                let mut text = String::new();
+                let mut text = Vec::new();
                 for i in start..=end {
                     let value = self.get(&a(0), &Value::Number(i as f64))?;
                     if !matches!(value, Value::String(_) | Value::Number(_)) {
                         return Err(Error::new("invalid value in table for concat"));
                     }
                     if i > start {
-                        text.push_str(&sep)
+                        text.extend_from_slice(&sep)
                     }
-                    text.push_str(&value.text());
+                    text.extend(value.bytes());
                 }
                 Value::String(text)
             }
@@ -581,79 +583,8 @@ impl Runtime {
                     _ => x % n(1)?,
                 })
             }
-            "utf8.len" => Value::Number(s(0)?.chars().count() as f64),
-            "utf8.char" => Value::String(
-                args.iter()
-                    .map(|v| {
-                        char::from_u32(v.number()? as u32)
-                            .ok_or_else(|| Error::new("value out of range"))
-                    })
-                    .collect::<Result<String>>()?,
-            ),
-            "utf8.codepoint" => {
-                let text = s(0)?;
-                let start = position(if args.len() > 1 { n(1)? as isize } else { 1 }, text.len())
-                    .max(1) as usize
-                    - 1;
-                let end = if args.len() > 2 {
-                    position(n(2)? as isize, text.len()).max(0) as usize
-                } else {
-                    start + 1
-                };
-                return Ok(text
-                    .get(start..)
-                    .ok_or_else(|| Error::new("invalid UTF-8 code"))?
-                    .char_indices()
-                    .take_while(|(i, _)| start + i < end)
-                    .map(|(_, c)| Value::Number(c as u32 as f64))
-                    .collect());
-            }
-            "utf8.codes" => return Ok(vec![Value::Native("utf8.next"), a(0), Value::Number(0.0)]),
-            "utf8.next" => {
-                let text = s(0)?;
-                let previous = n(1)? as usize;
-                return Ok(text
-                    .char_indices()
-                    .find(|(i, _)| *i + 1 > previous)
-                    .map(|(i, c)| {
-                        vec![
-                            Value::Number((i + 1) as f64),
-                            Value::Number(c as u32 as f64),
-                        ]
-                    })
-                    .unwrap_or_else(|| vec![Value::Nil]));
-            }
-            "utf8.offset" => {
-                let text = s(0)?;
-                let count = n(1)? as isize;
-                let start = position(
-                    if args.len() > 2 {
-                        n(2)? as isize
-                    } else if count >= 0 {
-                        1
-                    } else {
-                        text.len() as isize + 1
-                    },
-                    text.len(),
-                )
-                .max(1) as usize
-                    - 1;
-                let mut positions = text.char_indices().map(|(i, _)| i).collect::<Vec<_>>();
-                positions.push(text.len());
-                let base = positions
-                    .iter()
-                    .position(|p| *p >= start)
-                    .unwrap_or(positions.len());
-                let target = base as isize + if count > 0 { count - 1 } else { count };
-                if target < 0 {
-                    Value::Nil
-                } else {
-                    positions
-                        .get(target as usize)
-                        .map(|p| Value::Number((p + 1) as f64))
-                        .unwrap_or_default()
-                }
-            }
+            "utf8.len" | "utf8.char" | "utf8.codepoint" | "utf8.codes" | "utf8.next"
+            | "utf8.offset" => return self.utf8(name, args),
             _ => return Err(Error::new(format!("unsupported Lua function: {name}"))),
         };
         Ok(vec![result])

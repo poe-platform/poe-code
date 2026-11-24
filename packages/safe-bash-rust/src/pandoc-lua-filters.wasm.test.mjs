@@ -10,7 +10,7 @@ for (const fixture of cases) {
     const fs = bash.fs;
     try {
       await fs.writeFile("/a.md", new TextEncoder().encode("a"));
-      await fs.writeFile("/upper.lua", new TextEncoder().encode(fixture.script));
+      await fs.writeFile("/upper.lua", typeof fixture.script === "string" ? new TextEncoder().encode(fixture.script) : Uint8Array.from(fixture.script));
       await fs.writeFile("/saved", new TextEncoder().encode("KEEP"));
       const control = await bash.exec("pandoc -f markdown -t plain /a.md");
       assert.equal(control.exitCode, 0, control.stderr);
@@ -26,6 +26,31 @@ for (const fixture of cases) {
     } finally { await bash.dispose(); }
   });
 }
+
+test("Pandoc invalid Lua document bytes match JavaScript output errors", async () => {
+  const bash = await createRustWasmBash({forceNative: true, cwd: "/"});
+  try {
+    await bash.fs.writeFile("/a.md", "a");
+    for (const source of [
+      "function Str(el) return pandoc.Str(string.char(255)) end",
+      "function Meta(m) m[string.char(255)]=pandoc.MetaString('value'); return m end",
+    ]) {
+      await bash.fs.writeFile("/filter.lua", source);
+      for (const [output, exitCode, stderr] of [
+        ["", 4, "E_AST: Invalid UTF-8 Lua string\n"],
+        ["-o -", 4, "E_AST: Invalid UTF-8 Lua string\n"],
+        ["-o /saved", 9, "E_IO: Capability failed\n"],
+      ]) {
+        await bash.fs.writeFile("/saved", "KEEP");
+        const result = await bash.exec(`pandoc -f markdown -t plain /a.md -L /filter.lua ${output}`);
+        assert.equal(result.exitCode, exitCode, result.stderr);
+        assert.equal(result.stderr, stderr);
+        assert.equal(result.stdout, "");
+        assert.deepEqual(await bash.fs.readFile("/saved"), new TextEncoder().encode("KEEP"));
+      }
+    }
+  } finally { await bash.dispose(); }
+});
 
 test("Pandoc Lua metadata and binary writers use the filtered document", async () => {
   const bash = await createRustWasmBash({forceNative: true, cwd: "/"});

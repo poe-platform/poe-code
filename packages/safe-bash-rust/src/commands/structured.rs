@@ -37459,12 +37459,18 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             };
             document = match pandoc_lua::filter(
                 &document,
-                &String::from_utf8_lossy(&source),
+                &source,
                 path,
                 &out_fmt,
                 fs.shell_limits().max_parse_units,
             ) {
                 Ok(document) => document,
+                Err(message)
+                    if message == "Invalid UTF-8 Lua string"
+                        && out_path.as_deref().is_some_and(|path| path != "-") =>
+                {
+                    return err_out("E_IO: Capability failed\n", 9);
+                }
                 Err(message) => return err_out(&format!("E_AST: {message}\n"), 4),
             };
         }

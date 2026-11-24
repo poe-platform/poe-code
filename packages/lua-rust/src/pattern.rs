@@ -312,9 +312,7 @@ impl<'a> Matcher<'a> {
         let end = start
             .saturating_add(length.max(0) as usize)
             .min(self.source.len());
-        Value::String(
-            String::from_utf8_lossy(self.source.get(start..end).unwrap_or_default()).into_owned(),
-        )
+        Value::String(self.source.get(start..end).unwrap_or_default().to_vec())
     }
     fn results(&self, start: isize, end: isize, find: bool, whole: bool) -> Result<Vec<Value>> {
         let mut result = Vec::new();

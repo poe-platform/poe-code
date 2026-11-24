@@ -9656,8 +9656,8 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut show_dests = false;
     let mut show_custom = false;
     let mut date_mode = "normal";
-    let mut first_p: Option<usize> = None;
-    let mut last_p: Option<usize> = None;
+    let mut first_p: Option<f64> = None;
+    let mut last_p: Option<f64> = None;
     let mut pw_opt: Option<String> = None;
     let mut files: Vec<String> = Vec::new();
     let mut i = 0usize;
@@ -9677,14 +9677,22 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "-isodates" => date_mode = "iso",
             "-rawdates" => date_mode = "raw",
             "-f" => {
-                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                let Some(v) = args
+                    .get(i + 1)
+                    .and_then(|s| qpdf_decimal(s))
+                    .filter(|v| v.is_finite())
+                else {
                     return err_out("Invalid -f page number\n", 99);
                 };
                 first_p = Some(v);
                 i += 1;
             }
             "-l" => {
-                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                let Some(v) = args
+                    .get(i + 1)
+                    .and_then(|s| qpdf_decimal(s))
+                    .filter(|v| v.is_finite())
+                else {
                     return err_out("Invalid -l page number\n", 99);
                 };
                 last_p = Some(v);
@@ -9762,24 +9770,26 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         Err(error) => return err_out(&format!("Syntax Error: {error}\n"), 1),
     };
     let page_count = doc.pages.len();
-    let fp = first_p.unwrap_or(1).max(1);
+    let fp = first_p.unwrap_or(1.).max(1.);
     let lp = last_p
         .map(|v| {
-            if v == 0 {
+            if v <= 0. {
                 page_count
             } else {
-                page_count.min(v)
+                v.min(page_count as f64) as usize
             }
         })
         .unwrap_or(1);
-    if fp > page_count || (last_p.is_some() && fp > lp) {
+    if fp > page_count as f64 || (last_p.is_some() && fp > lp as f64) {
         return err_out(
             &format!(
-                "Command Line Error: Wrong page range given: the first page ({fp}) can not be after the last page ({lp}).\n"
+                "Command Line Error: Wrong page range given: the first page ({}) can not be after the last page ({lp}).\n",
+                mcp_protocol_rust::numbers::format(fp)
             ),
             99,
         );
     }
+    let fp = fp as usize;
     if show_url {
         let mut u_out = String::from("Page  Type          URL\n");
         let last = if last_p.is_none() { page_count } else { lp };
@@ -9910,12 +9920,8 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             format!("{r}")
         }
     };
-    let multi_page = first_p.is_some() || last_p.is_some();
-    let start_p = first_p.unwrap_or(1).max(1);
-    let end_p = last_p
-        .unwrap_or(if multi_page { start_p } else { 1 })
-        .min(page_count);
-    for pno in start_p..=end_p {
+    let multi_page = last_p.is_some_and(|v| v != 0.);
+    for pno in fp..=lp {
         let (pw, ph, crop_opt) = doc
             .page_media
             .get(&pno)
@@ -9957,11 +9963,17 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             } else {
                 String::new()
             };
-            out.push_str(&format!("{:<17}{mb}\n", format!("{pfx}MediaBox:")));
-            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}CropBox:")));
-            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}BleedBox:")));
-            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}TrimBox:")));
-            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}ArtBox:")));
+            for (name, value) in [
+                ("MediaBox", &mb),
+                ("CropBox", &cb),
+                ("BleedBox", &cb),
+                ("TrimBox", &cb),
+                ("ArtBox", &cb),
+            ] {
+                let label = format!("{pfx}{name}:");
+                let width = 17.max(label.len() + 1);
+                out.push_str(&format!("{label:<width$}{value}\n"));
+            }
         }
     }
     out.push_str(&format!("{:<17}{} bytes\n", "File size:", b.len()));

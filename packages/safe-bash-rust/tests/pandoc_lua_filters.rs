@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/source_names.rs"]
+mod lua_source_names;
 #[path = "../../lua-rust/tests/table_frames.rs"]
 mod lua_table_frames;
 #[path = "../../lua-rust/tests/errors.rs"]
@@ -94,6 +96,12 @@ fn lua_filters_match_javascript() {
     };
     for case in cases {
         let fs = Arc::new(MemoryVfs::new());
+        let path = case.get("path").map(text).unwrap_or_else(|| "/upper.lua".into());
+        let cwd = case.get("cwd").map(text).unwrap_or_else(|| "/".into());
+        let (parent, _) = path.rsplit_once('/').unwrap();
+        fs.mkdir_all(if parent.is_empty() { "/" } else { parent })
+            .unwrap();
+        fs.mkdir_all(&cwd).unwrap();
         fs.write_file("/a.md", b"a").unwrap();
         let script = match case.get("script").unwrap() {
             Value::Array(bytes) => bytes
@@ -105,12 +113,12 @@ fn lua_filters_match_javascript() {
                 .collect(),
             value => text(value).into_bytes(),
         };
-        fs.write_file("/upper.lua", &script).unwrap();
+        fs.write_file(&path, &script).unwrap();
         fs.write_file("/saved", b"KEEP").unwrap();
         let mut shell = Shell::new(
             fs.clone(),
             ShellOptions {
-                cwd: Some("/".into()),
+                cwd: Some(cwd),
                 mode: BackendMode::NativeOnly,
                 ..Default::default()
             },

@@ -36851,7 +36851,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             let Some(path) = path.filter(|path| !path.is_empty() && !path.starts_with('-')) else {
                 return err_out(&format!("E_OPTION: Missing value: {name}\n"), 2);
             };
-            lua_filters.push(resolve_posix_path(cwd, path));
+            lua_filters.push(path);
             i += 1;
         } else if a == "--file-scope" {
             file_scope = true;
@@ -37453,7 +37453,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             ("meta".into(), JVal::Object(source_metadata.clone())),
         ]);
         for path in &lua_filters {
-            let source = match fs.read_file(path) {
+            let source = match fs.read_file(&resolve_posix_path(cwd, path)) {
                 Ok(bytes) => bytes,
                 Err(_) => return err_out("E_IO: Capability failed\n", 9),
             };

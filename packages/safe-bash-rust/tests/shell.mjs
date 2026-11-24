@@ -85,6 +85,20 @@ async function test() {
       const error = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/errors.lua -o /base.saved");
       if (error.exitCode !== 4 || error.stdout || error.stderr !== `E_AST: ${expected}\n` || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
     }
+    await shell.fs.mkdir("/filters", {recursive: true});
+    for (const [label, expected] of [
+      ["@source", "source"],
+      ["a".repeat(45), `[string "${"a".repeat(45)}..."]`],
+      [`@${"x".repeat(60)}`, `...${"x".repeat(57)}`],
+      [`=${"x".repeat(61)}`, "x".repeat(60)],
+    ]) {
+      await shell.fs.writeFile(`/filters/${label}`, "function Str(el) error('broken');return el end");
+      const error = await shell.exec(`(cd /filters && printf hello | pandoc -f markdown -t plain -L '${label}' -o /base.saved)`);
+      if (error.exitCode !== 4 || error.stdout || error.stderr !== `E_AST: ${expected}:1: broken\n` || new TextDecoder().decode(await shell.fs.readFile("/base.saved")) !== "KEEP") throw new Error(JSON.stringify(error));
+    }
+    await shell.fs.writeFile("/filters/upper.lua", "function Str(el) return pandoc.Str(el.text:upper()) end");
+    const relativeFilter = await shell.exec("(cd /filters && printf hello | pandoc -f markdown -t plain -L ./upper.lua)");
+    if (relativeFilter.exitCode || relativeFilter.stderr || relativeFilter.stdout !== "HELLO\n") throw new Error(JSON.stringify(relativeFilter));
     await shell.fs.writeFile("/remove.lua", "function Str(el) local t={1,2}; local a=table.remove(t,3); local b=table.remove(t,nil); local p=setmetatable({[3]=7},{__len=function() return 3 end}); return pandoc.Str(tostring(a)..':'..b..':'..t[1]..':'..table.remove(p)) end");
     const removed = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/remove.lua");
     if (removed.exitCode || removed.stderr || removed.stdout !== "nil:2:1:7\n") throw new Error(JSON.stringify(removed));

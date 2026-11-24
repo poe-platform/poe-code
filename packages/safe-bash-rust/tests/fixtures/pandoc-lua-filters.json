@@ -6436,5 +6436,306 @@
     "status": 4,
     "stderr": "E_AST: Expected Lua table\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to get length of a function value\n"
+  },
+  {
+    "id": "source-name-plain-short",
+    "flags": [
+      "-L",
+      "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-plain-long",
+    "flags": [
+      "-L",
+      "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-plain-unicode",
+    "flags": [
+      "-L",
+      "/ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ"
+    ],
+    "path": "/ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ...\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-plain-newline",
+    "flags": [
+      "-L",
+      "/source\nname"
+    ],
+    "path": "/source\nname",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/source...\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-file-short",
+    "flags": [
+      "-L",
+      "@source"
+    ],
+    "path": "/@source",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: source:1: broken\n"
+  },
+  {
+    "id": "source-name-file-long",
+    "flags": [
+      "-L",
+      "@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail"
+    ],
+    "path": "/@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail:1: broken\n",
+    "bufferedStderr": "E_AST: ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail:1: broken\n"
+  },
+  {
+    "id": "source-name-literal-short",
+    "flags": [
+      "-L",
+      "=source"
+    ],
+    "path": "/=source",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: source:1: broken\n"
+  },
+  {
+    "id": "source-name-literal-long",
+    "flags": [
+      "-L",
+      "=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail"
+    ],
+    "path": "/=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatail",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n",
+    "bufferedStderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-plain-byte-split",
+    "flags": [
+      "-L",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaΩ"
+    ],
+    "path": "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaΩ",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa�...\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa�..\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-file-limit",
+    "flags": [
+      "-L",
+      "@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n",
+    "bufferedStderr": "E_AST: ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-file-over-limit",
+    "flags": [
+      "-L",
+      "@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n",
+    "bufferedStderr": "E_AST: ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-file-byte-split",
+    "flags": [
+      "-L",
+      "@ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ"
+    ],
+    "path": "/@ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: ...�ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ:1: broken\n",
+    "bufferedStderr": "E_AST: ...ΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩΩ:1: broken\n"
+  },
+  {
+    "id": "source-name-literal-limit",
+    "flags": [
+      "-L",
+      "=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n",
+    "bufferedStderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-literal-over-limit",
+    "flags": [
+      "-L",
+      "=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "path": "/=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n",
+    "bufferedStderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-literal-byte-split",
+    "flags": [
+      "-L",
+      "=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaΩ"
+    ],
+    "path": "/=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaΩ",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa�:1: broken\n",
+    "bufferedStderr": "E_AST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1: broken\n"
+  },
+  {
+    "id": "source-name-file-empty",
+    "flags": [
+      "-L",
+      "@"
+    ],
+    "path": "/@",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: :1: broken\n"
+  },
+  {
+    "id": "source-name-literal-empty",
+    "flags": [
+      "-L",
+      "="
+    ],
+    "path": "/=",
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: :1: broken\n"
+  },
+  {
+    "id": "source-name-relative",
+    "cwd": "/",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "upper.lua"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-relative-dot",
+    "cwd": "/",
+    "path": "/upper.lua",
+    "flags": [
+      "-L",
+      "./upper.lua"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"./upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-working-directory",
+    "cwd": "/work",
+    "path": "/work/filter.lua",
+    "flags": [
+      "-L",
+      "filter.lua"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"filter.lua\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-working-directory-parent",
+    "cwd": "/work/nested",
+    "path": "/work/filter.lua",
+    "flags": [
+      "-L",
+      "../filter.lua"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"../filter.lua\"]:1: broken\n"
+  },
+  {
+    "id": "source-name-long-equals",
+    "cwd": "/work",
+    "path": "/work/@file",
+    "flags": [
+      "--lua-filter=@file"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: file:1: broken\n"
+  },
+  {
+    "id": "source-name-short-attached",
+    "cwd": "/work",
+    "path": "/work/@file",
+    "flags": [
+      "-L@file"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: file:1: broken\n"
+  },
+  {
+    "id": "source-name-short-equals",
+    "cwd": "/work",
+    "path": "/work/@file",
+    "flags": [
+      "-L=@file"
+    ],
+    "script": "function Str(el) error('broken');return el end",
+    "status": 4,
+    "stderr": "E_AST: file:1: broken\n"
+  },
+  {
+    "id": "source-name-relative-success",
+    "cwd": "/work/nested",
+    "path": "/work/filter.lua",
+    "flags": [
+      "-L",
+      "../filter.lua"
+    ],
+    "script": "function Str(el) return pandoc.Str('A') end",
+    "status": 0,
+    "stdout": "A\n"
+  },
+  {
+    "id": "source-name-relative-missing",
+    "cwd": "/work",
+    "path": "/work/present.lua",
+    "flags": [
+      "-L",
+      "missing.lua"
+    ],
+    "script": "function Str(el) return el end",
+    "status": 9,
+    "stderr": "E_IO: Capability failed\n"
   }
 ]

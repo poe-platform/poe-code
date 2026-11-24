@@ -107,11 +107,38 @@ impl Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some((path, line)) = &self.location {
-            if let Some(path) = path.strip_prefix('@').or_else(|| path.strip_prefix('=')) {
-                write!(f, "{path}:{line}: ")?;
-            } else {
-                write!(f, "[string \"{path}\"]:{line}: ")?;
+            let bytes = path.as_bytes();
+            match bytes.first() {
+                Some(b'=') => write!(
+                    f,
+                    "{}",
+                    String::from_utf8_lossy(&bytes[1..bytes.len().min(61)])
+                )?,
+                Some(b'@') => {
+                    if bytes.len() <= 60 {
+                        write!(f, "{}", &path[1..])?;
+                    } else {
+                        write!(
+                            f,
+                            "...{}",
+                            String::from_utf8_lossy(&bytes[bytes.len() - 57..])
+                        )?;
+                    }
+                }
+                _ => {
+                    let end = bytes
+                        .iter()
+                        .take(45)
+                        .position(|&b| b == b'\n')
+                        .unwrap_or(bytes.len().min(45));
+                    write!(f, "[string \"{}", String::from_utf8_lossy(&bytes[..end]))?;
+                    if end < bytes.len() || bytes.len() >= 45 {
+                        write!(f, "...")?;
+                    }
+                    write!(f, "\"]")?;
+                }
             }
+            write!(f, ":{line}: ")?;
         }
         write!(f, "{}", self.message)
     }

@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {dirname} from "node:path";
 import test from "node:test";
 import {createRustWasmBash} from "./index.js";
 
 const cases = JSON.parse(readFileSync(new URL("../tests/fixtures/pandoc-lua-filters.json", import.meta.url), "utf8"));
 for (const fixture of cases) {
   test(`Pandoc Lua filters match JavaScript: ${fixture.id}`, async () => {
-    const bash = await createRustWasmBash({forceNative: true, cwd: "/"});
+    const path = fixture.path ?? "/upper.lua", cwd = fixture.cwd ?? "/";
+    const bash = await createRustWasmBash({forceNative: true, cwd});
     const fs = bash.fs;
     try {
+      await fs.mkdir(dirname(path), {recursive: true});
+      await fs.mkdir(cwd, {recursive: true});
       await fs.writeFile("/a.md", new TextEncoder().encode("a"));
-      await fs.writeFile("/upper.lua", typeof fixture.script === "string" ? new TextEncoder().encode(fixture.script) : Uint8Array.from(fixture.script));
+      await fs.writeFile(path, typeof fixture.script === "string" ? new TextEncoder().encode(fixture.script) : Uint8Array.from(fixture.script));
       await fs.writeFile("/saved", new TextEncoder().encode("KEEP"));
       const control = await bash.exec("pandoc -f markdown -t plain /a.md");
       assert.equal(control.exitCode, 0, control.stderr);

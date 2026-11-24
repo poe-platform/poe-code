@@ -26,7 +26,8 @@ pub(super) fn excel_arguments(name: &str) -> Option<(usize, usize)> {
     let count = match name {
         "FACT" => 1,
         "COMBIN" | "COMBINA" | "PERMUT" | "PERMUTATIONA" => 2,
-        "NORMDIST" | "NORM.DIST" | "LOGNORM.DIST" => 4,
+        "NORMDIST" | "NORM.DIST" | "LOGNORM.DIST" | "GAMMADIST" | "GAMMA.DIST" => 4,
+        "GAMMAINV" | "GAMMA.INV" | "POISSON" | "POISSON.DIST" => 3,
         "NORMINV" | "NORM.INV" | "LOGNORMDIST" | "LOGINV" | "LOGNORM.INV" | "STANDARDIZE" => 3,
         "NORM.S.DIST" => 2,
         "NORMSDIST" | "NORMSINV" | "NORM.S.INV" | "GAMMA" | "GAMMALN" | "GAMMALN.PRECISE" => 1,
@@ -118,7 +119,11 @@ pub(super) fn calculate(
             }
             Value::Text(text) | Value::UninternedText(text) => {
                 let cumulative = index == 3
-                    && matches!(name, "NORMDIST" | "NORM.DIST" | "LOGNORM.DIST")
+                    && matches!(
+                        name,
+                        "NORMDIST" | "NORM.DIST" | "LOGNORM.DIST" | "GAMMADIST" | "GAMMA.DIST"
+                    )
+                    || index == 2 && matches!(name, "POISSON" | "POISSON.DIST")
                     || index == 1 && name == "NORM.S.DIST";
                 if excel
                     && !cumulative
@@ -172,6 +177,26 @@ pub(super) fn calculate(
             | "POISSON"
             | "POISSON.DIST"
     ) {
+        if excel
+            && matches!(name, "GAMMADIST" | "GAMMA.DIST")
+            && (x < 0. || x == 0. && mean < 1. && cumulative == 0.)
+        {
+            return Some(Value::Error("#NUM!"));
+        }
+        let x = if excel && matches!(name, "POISSON" | "POISSON.DIST") {
+            if x < 0. || mean < 0. {
+                return Some(Value::Error("#NUM!"));
+            }
+            // A zero mean puts all probability at zero. Reject negative x
+            // before truncation, and retain integers just below a boundary.
+            let x = x.trunc();
+            if mean == 0. {
+                return Some(Value::Number(f64::from(sigma != 0. || x == 0.)));
+            }
+            x
+        } else {
+            x
+        };
         return gamma::calculate(name, [x, mean, sigma, cumulative], work).map(|value| {
             // Input errors have already returned above. Translate only errors
             // produced by the selected Excel function, keeping Calc unchanged.

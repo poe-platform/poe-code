@@ -142,6 +142,9 @@ async function test() {
     await shell.fs.writeFile("/range.saved", "KEEP");
     const rangeError = await shell.exec("qpdf /recovered.pdf --pages . 1 -- /range.saved");
     if (rangeError.exitCode !== 2 || rangeError.stdout || rangeError.stderr !== "qpdf: parsing numeric range for /recovered.pdf: error at * in numeric range *1: number 1 out of range\n" || new TextDecoder().decode(await shell.fs.readFile("/range.saved")) !== "KEEP") throw new Error(JSON.stringify(rangeError));
+    await shell.fs.writeFile("/bad-root.pdf", "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\ntrailer << /Root 1 0 R >>\ntrailer << /Root 9 0 R >>\n");
+    const rootError = await shell.exec("qpdf /bad-root.pdf /range.saved");
+    if (rootError.exitCode !== 2 || rootError.stdout || rootError.stderr !== "qpdf: /bad-root.pdf: unable to find /Root dictionary\n" || new TextDecoder().decode(await shell.fs.readFile("/range.saved")) !== "KEEP") throw new Error(JSON.stringify(rootError));
     const attachments = await shell.exec("qpdf /attachments.pdf --list-attachments");
     if (attachments.exitCode || attachments.stderr || attachments.stdout !== "beta -> 8,0\n") throw new Error(JSON.stringify(attachments));
     const missingAttachment = await shell.exec("qpdf /attachments.pdf --show-attachment=alpha");

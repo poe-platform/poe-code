@@ -913,11 +913,11 @@ pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog obj
 pub(super) const NO_ROOT: &str = "unable to find /Root dictionary";
 pub(super) fn encryption_status(bytes: &[u8], password: &str) -> Result<bool, &'static str> {
     header_version(bytes).ok_or("Invalid PDF header: missing %PDF- signature")?;
-    let (objects, _) = index(bytes, password)?;
+    let (objects, _) = index(bytes, password, false)?;
     Ok(objects.security.is_some())
 }
 
-fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>), &'static str> {
+fn index<'a>(bytes: &'a [u8], password: &str, qpdf: bool) -> Result<(Objects<'a>, Value<'a>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
         objects.authenticate(&trailer, password)?;
         objects.offset_repair = OffsetRepair::OnError;
@@ -933,16 +933,19 @@ fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>)
             return Err(NO_ROOT);
         }
     }
-    let (objects, trailer) = pdf_repair::recover(bytes, password)?;
-    trailer
+    let (mut objects, trailer) = pdf_repair::recover(bytes, password, qpdf)?;
+    let root = trailer
         .get(b"Root")
         .and_then(Value::reference)
         .ok_or(NO_CATALOG)?;
+    if qpdf && !matches!(objects.object(root), Some((Value::Dict(_), _))) {
+        return Err(NO_ROOT);
+    }
     Ok((objects, trailer))
 }
 
 pub(super) fn recovery_warnings(bytes: &[u8], password: &str) -> Vec<String> {
-    let Ok((mut objects, trailer)) = index(bytes, password) else {
+    let Ok((mut objects, trailer)) = index(bytes, password, true) else {
         return Vec::new();
     };
     let Some((catalog, _)) = trailer
@@ -1060,7 +1063,7 @@ pub(super) fn read(
     bytes: &[u8],
     password: &str,
 ) -> Result<(PdfDoc, Option<pdf_security::Security>), &'static str> {
-    let (mut objects, trailer) = index(bytes, password)?;
+    let (mut objects, trailer) = index(bytes, password, false)?;
     let doc = read_pages(bytes, &mut objects, trailer).ok_or("Invalid PDF object graph")?;
     Ok((doc, objects.security))
 }

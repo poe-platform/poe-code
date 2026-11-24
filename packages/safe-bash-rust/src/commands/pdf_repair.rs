@@ -69,6 +69,7 @@ pub(super) fn scan<'a>(
 pub(super) fn recover<'a>(
     bytes: &'a [u8],
     password: &str,
+    qpdf: bool,
 ) -> Result<(Objects<'a>, Value<'a>), &'static str> {
     const INVALID: &str = "invalid PDF object graph";
     header_version(bytes).ok_or(INVALID)?;
@@ -119,21 +120,24 @@ pub(super) fn recover<'a>(
         let Some(id) = t.get(b"Root").and_then(Value::reference) else {
             continue;
         };
-        match objects.object(id) {
-            Some((catalog, _)) => match catalog.get(b"Pages") {
-                Some(Value::Dict(_)) => (),
-                Some(Value::Ref(page_tree)) => match objects.object(*page_tree) {
-                    Some((Value::Dict(_), _)) => (),
-                    None if !packed.is_empty() => (),
-                    _ => continue,
+        // qpdf selects the physical trailer before validating its catalog.
+        if !qpdf {
+            match objects.object(id) {
+                Some((catalog, _)) => match catalog.get(b"Pages") {
+                    Some(Value::Dict(_)) => (),
+                    Some(Value::Ref(page_tree)) => match objects.object(*page_tree) {
+                        Some((Value::Dict(_), _)) => (),
+                        None if !packed.is_empty() => (),
+                        _ => continue,
+                    },
+                    _ => {
+                        missing_page_tree |= matches!(catalog, Value::Dict(_));
+                        continue;
+                    }
                 },
-                _ => {
-                    missing_page_tree |= matches!(catalog, Value::Dict(_));
-                    continue;
-                }
-            },
-            None if !packed.is_empty() => (),
-            _ => continue,
+                None if !packed.is_empty() => (),
+                _ => continue,
+            }
         }
         let rank = (
             t.get(b"Encrypt").is_some(),

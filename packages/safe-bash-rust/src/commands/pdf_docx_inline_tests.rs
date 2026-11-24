@@ -47,7 +47,7 @@ fn preserves_inline_fonts_and_layout() {
                 xml.as_bytes(),
             )]);
             let bytes = render_docx(&input, "doc", None, 1 << 20).unwrap();
-            let mut pdf = PageSource::open(&bytes, "").unwrap();
+            let mut pdf = PageSource::open(&bytes, "", false).unwrap();
             assert_eq!(pdf.len(), if overflow { 2 } else { 1 });
             let mut glyphs = Vec::new();
             let mut codes = Vec::new();
@@ -139,7 +139,7 @@ fn preserves_explicit_unicode_advances_across_font_transitions() {
     let input =
         crate::commands::structured::write_zip_stored(&[("word/document.xml", xml.as_bytes())]);
     let bytes = render_docx(&input, "doc", None, 1 << 20).unwrap();
-    let mut pdf = PageSource::open(&bytes, "").unwrap();
+    let mut pdf = PageSource::open(&bytes, "", false).unwrap();
     assert_eq!(pdf.len(), 1);
     let page = pdf.objects.page_dict(pdf.pages[0], &pdf.tree).unwrap();
     let mut glyphs = Vec::new();
@@ -215,7 +215,7 @@ fn preserves_docx_heading_styles_and_layout() {
                 ("word/styles.xml", styles),
             ]);
             let bytes = render_docx(&input, "doc", None, 1 << 20).unwrap();
-            let mut pdf = PageSource::open(&bytes, "").unwrap();
+            let mut pdf = PageSource::open(&bytes, "", false).unwrap();
             assert_eq!(pdf.len(), if bottom { 2 } else { 1 });
             let mut glyphs = Vec::new();
             for index in 0..pdf.len() {

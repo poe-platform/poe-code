@@ -113,6 +113,7 @@ pub(in super::super) struct Layer<'a> {
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub qpdf: bool,
     pub layers:Vec<Layer<'a>>,
     pub flatten_forms: bool,
     pub generate_appearances: bool,
@@ -218,7 +219,7 @@ pub(in super::super) fn rewrite(
     mut read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let (mut objects, mut trailer) = index(bytes,edits.password)?;
+    let (mut objects, mut trailer) = index(bytes,edits.password,edits.qpdf)?;
     objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")
@@ -261,7 +262,7 @@ pub(in super::super) fn rewrite(
         }
         for layer in &edits.layers {
             let bytes = read(layer.path).ok_or_else(|| format!("cannot open {}", layer.path))?;
-            let mut source = super::PageSource::open(&bytes, layer.password.unwrap_or(edits.password))
+            let mut source = super::PageSource::open(&bytes, layer.password.unwrap_or(edits.password), false)
                 .map_err(|_| "invalid layer source")?;
             let mut available = limit / 8;
             let mut list = |s: &str, count| -> Result<Vec<usize>, String> {
@@ -372,7 +373,7 @@ pub(in super::super) fn rewrite(
             .checked_add(1)
             .ok_or(TOO_LARGE)?
             .max(first_new);
-        let mut source = super::PageSource::open(stamp, "")?;
+        let mut source = super::PageSource::open(stamp, "", false)?;
         let last = source.len().saturating_sub(1);
         let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
         let (_, remaining) = source.stamp(

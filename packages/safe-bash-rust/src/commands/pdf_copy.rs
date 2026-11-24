@@ -276,9 +276,9 @@ impl<'a> Objects<'a> {
 }
 
 impl<'a> PageSource<'a> {
-    pub(in super::super) fn open(bytes: &'a [u8], password: &str) -> Result<Self, &'static str> {
+    pub(in super::super) fn open(bytes: &'a [u8], password: &str, qpdf: bool) -> Result<Self, &'static str> {
         const INVALID: &str = "invalid PDF object graph";
-        let (mut objects, trailer) = index(bytes,password)?;
+        let (mut objects, trailer) = index(bytes,password,qpdf)?;
         let root = trailer.get(b"Root").and_then(Value::reference).ok_or(INVALID)?;
         let catalog = objects.object(root).ok_or(INVALID)?.0;
         objects.require_page_tree(&catalog)?;
@@ -595,7 +595,7 @@ impl PageOutput {
             }
         }
         let mut output = Self::new(limits.max_output_bytes);
-        let base_source = PageSource::open(base,edits.password).map_err(|e|format!("{}: {}",primary.unwrap_or("empty"), if e == super::PASSWORD { "invalid password" } else { e }))?;
+        let base_source = PageSource::open(base,edits.password, edits.qpdf).map_err(|e|format!("{}: {}",primary.unwrap_or("empty"), if e == super::PASSWORD { "invalid password" } else { e }))?;
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
@@ -615,7 +615,7 @@ impl PageOutput {
                     let bytes = inputs[key]
                         .as_deref()
                         .ok_or_else(|| format!("cannot open {key}"))?;
-                    entry.insert(PageSource::open(bytes,identity.1).map_err(|_| "invalid page selection")?)
+                    entry.insert(PageSource::open(bytes,identity.1, false).map_err(|_| "invalid page selection")?)
                 }
             };
             let mut indices = Vec::new();
@@ -700,7 +700,7 @@ impl PageOutput {
         let mut output = Self::new(limit);
         let open = |handle: &str| {
             let (bytes, password) = inputs.get(handle).ok_or(INVALID)?;
-            PageSource::open(bytes, password)
+            PageSource::open(bytes, password, false)
         };
         let source = open(primary)?;
         output

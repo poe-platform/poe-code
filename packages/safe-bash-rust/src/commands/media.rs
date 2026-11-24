@@ -6576,7 +6576,7 @@ fn cmd_pdfunite(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     255,
                 )
             };
-            let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src], "") else {
+            let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src], "", false) else {
                 return damaged();
             };
             if output.append(&mut source, None).is_none() {
@@ -6740,7 +6740,7 @@ fn cmd_pdfseparate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOu
             99,
         );
     }
-    let mut source = pdf_reader::PageSource::open(&b, "").ok();
+    let mut source = pdf_reader::PageSource::open(&b, "", false).ok();
     let legacy = if source.is_none() && is_legacy_pdf(&b) {
         Some(PdfDoc::parse(&b))
     } else {
@@ -6880,7 +6880,10 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut externalize_inline = false;
     let mut ii_min_bytes = 1024;
     let mut collate_group: Option<usize> = None;
-    let mut edits = pdf_reader::PageEdits::default();
+    let mut edits = pdf_reader::PageEdits {
+        qpdf: true,
+        ..Default::default()
+    };
     let mut pos_files: Vec<String> = Vec::new();
 
     let mut i = 0usize;
@@ -7605,7 +7608,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             let bytes = primary();
             if let Some(bytes) = bytes {
                 let source =
-                    pdf_reader::PageSource::open(&bytes, password.as_deref().unwrap_or(""));
+                    pdf_reader::PageSource::open(&bytes, password.as_deref().unwrap_or(""), true);
                 if let Err(
                     e @ (pdf_reader::NO_ROOT
                     | pdf_reader::NO_CATALOG
@@ -7932,7 +7935,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     2,
                 );
             }
-            let source = pdf_reader::PageSource::open(&input, password.as_deref().unwrap_or(""));
+            let source = pdf_reader::PageSource::open(&input, password.as_deref().unwrap_or(""), true);
             if let Err(e) = source
                 && !is_legacy_pdf(&input)
             {
@@ -8250,7 +8253,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         } else {
                             &bytes
                         };
-                        let mut source = match pdf_reader::PageSource::open(data, edits.password) {
+                        let mut source = match pdf_reader::PageSource::open(data, edits.password, true) {
                             Ok(source) => source,
                             Err(e) => {
                                 return err_out(
@@ -9111,7 +9114,7 @@ fn cmd_pdftk(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 );
                 let (bytes, password) = &inputs[&input_order[0]];
                 if !is_legacy_pdf(bytes)
-                    && let Err(e) = pdf_reader::PageSource::open(bytes, password)
+                    && let Err(e) = pdf_reader::PageSource::open(bytes, password, false)
                         .and_then(|mut s| s.annotation_report(utf8, limit, &mut report))
                 {
                     return err_out(&format!("Error: {e}\n"), 1);
@@ -9178,7 +9181,7 @@ fn cmd_pdftk(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             let mut source = if is_legacy_pdf(bytes) {
                 None
             } else {
-                match pdf_reader::PageSource::open(bytes, password) {
+                match pdf_reader::PageSource::open(bytes, password, false) {
                     Ok(source) => Some(source),
                     Err(e) => return err_out(&format!("Error: {e}\n"), 1),
                 }
@@ -9315,7 +9318,7 @@ fn cmd_pdftk(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 }
                 files
             } else {
-                let Ok(mut source) = pdf_reader::PageSource::open(bytes, password) else {
+                let Ok(mut source) = pdf_reader::PageSource::open(bytes, password, false) else {
                     return err_out("Error: Invalid attachment source\n", 1);
                 };
                 let Some(files) = source.read_attachments(true) else {
@@ -9575,7 +9578,7 @@ pub(super) fn cmd_pdfdetach(args: &[String], mut stdin: super::CommandInput, cwd
     if !b.starts_with(b"%PDF-") {
         return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
     }
-    let source = pdf_reader::PageSource::open(&b,password);
+    let source = pdf_reader::PageSource::open(&b,password, false);
     let attachments = if let Ok(mut source) = source {
         let Some(files) = source.read_attachments(false) else {
             return err_out("PDF Error: Invalid embedded file stream\n", 1);
@@ -9780,7 +9783,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     if show_url {
         let mut u_out = String::from("Page  Type          URL\n");
         let last = if last_p.is_none() { page_count } else { lp };
-        if let Ok(mut source) = pdf_reader::PageSource::open(&b, supplied) {
+        if let Ok(mut source) = pdf_reader::PageSource::open(&b, supplied, false) {
             return if source
                 .write_urls(
                     fp,
@@ -10061,7 +10064,7 @@ fn cmd_pdffonts(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
             1,
         );
     }
-    let source = pdf_reader::PageSource::open(&b, "").ok();
+    let source = pdf_reader::PageSource::open(&b, "", false).ok();
     let mut has_text = false;
     let page_count = if let Some(src) = &source {
         src.len()
@@ -10488,7 +10491,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         nodiag,
         limit: fs.max_input_bytes(),
     };
-    let mut source = match pdf_reader::PageSource::open(&raw_bytes, password) {
+    let mut source = match pdf_reader::PageSource::open(&raw_bytes, password, false) {
         Ok(source) => Some(source),
         Err(_) if is_legacy_pdf(&raw_bytes) && !needs_geometry => None,
         Err(e) => return err_out(if quiet { "" } else { e }, 1),
@@ -10898,7 +10901,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         );
     }
     let (first_p, end_p) = (first_p.ceil() as usize, end_p.floor() as usize);
-    let mut source = pdf_reader::PageSource::open(&raw_bytes, "").ok();
+    let mut source = pdf_reader::PageSource::open(&raw_bytes, "", false).ok();
     let dimensions = |pno| {
         let (w, h, _) = doc
             .page_media
@@ -11723,7 +11726,7 @@ fn cmd_pdftoppm(
             format!("{pfx}.{ext}")
         };
         if fmt == "PDF" {
-            let mut source = match pdf_reader::PageSource::open(&b, supplied) {
+            let mut source = match pdf_reader::PageSource::open(&b, supplied, false) {
                 Ok(source) => source,
                 Err(error) => return err_out(if quiet { "" } else { error }, 1),
             };
@@ -11861,7 +11864,7 @@ fn cmd_pdftoppm(
     let mut source = if is_legacy_pdf(&b) {
         None
     } else {
-        match pdf_reader::PageSource::open(&b, supplied) {
+        match pdf_reader::PageSource::open(&b, supplied, false) {
             Ok(source) => Some(source),
             Err(error) => {
                 return err_out(
@@ -12207,7 +12210,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             1,
         )
     };
-    let source = match pdf_reader::PageSource::open(&b, password) {
+    let source = match pdf_reader::PageSource::open(&b, password, false) {
         Ok(source) => Ok(source),
         Err(pdf_reader::PASSWORD) => return incorrect_password(),
         Err(pdf_reader::UNSUPPORTED) => {
@@ -24227,7 +24230,7 @@ mod media_unit_tests {
         let mut objects = vec!["<< /Type /Catalog /Pages 2 0 R >>", &tree];
         objects.resize(count + 2, "<< /Type /Page /Parent 2 0 R >>");
         let pdf = classic_pdf(&objects, "");
-        let mut source = pdf_reader::PageSource::open(pdf.as_bytes(), "").unwrap();
+        let mut source = pdf_reader::PageSource::open(pdf.as_bytes(), "", false).unwrap();
         let mut dest = pdf_reader::PageOutput::new(1024 * 1024);
         dest.append(&mut source, None).expect("copy every page");
         let bytes = dest.finish().unwrap();
@@ -24582,7 +24585,7 @@ mod media_unit_tests {
             );
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             let bytes = fs.read_file("/part-1.pdf").unwrap();
-            let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+            let mut source = pdf_reader::PageSource::open(&bytes, "", false).unwrap();
             let raw = (1..10)
                 .filter_map(|n| source.qpdf_object(&n.to_string(), true, false))
                 .collect::<Vec<_>>();
@@ -27485,7 +27488,7 @@ mod media_unit_tests {
                 );
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let bytes = fs.read_file("/doc.pdf").unwrap();
-                let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+                let mut source = pdf_reader::PageSource::open(&bytes, "", false).unwrap();
                 let second_page = bottom && spacing > 0.;
                 assert_eq!(
                     source.len(),
@@ -27553,7 +27556,7 @@ mod media_unit_tests {
                 );
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let bytes = fs.read_file("/doc.pdf").unwrap();
-                let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+                let mut source = pdf_reader::PageSource::open(&bytes, "", false).unwrap();
                 let page = if bottom && lines > 0 { 2 } else { 1 };
                 assert_eq!(source.len(), page, "{separator}, bottom={bottom}");
                 let text = source.text_lines(page, None, false).unwrap();
@@ -27582,7 +27585,7 @@ mod media_unit_tests {
                 );
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let control = control_fs.read_file("/control.pdf").unwrap();
-                let mut control = pdf_reader::PageSource::open(&control, "").unwrap();
+                let mut control = pdf_reader::PageSource::open(&control, "", false).unwrap();
                 let control = control.text_lines(1, None, false).unwrap();
                 assert!(
                     (first.bounds[1] - control[0].bounds[1] - (y - 720.)).abs() < 0.001,
@@ -27625,7 +27628,7 @@ mod media_unit_tests {
                 );
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let bytes = fs.read_file("/doc.pdf").unwrap();
-                let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+                let mut source = pdf_reader::PageSource::open(&bytes, "", false).unwrap();
                 let page = if bottom { 2 } else { 1 };
                 assert_eq!(source.len(), page, "{separator}, bottom={bottom}");
                 let text = source.text_lines(page, None, false).unwrap();
@@ -27654,7 +27657,7 @@ mod media_unit_tests {
                 );
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let control = control_fs.read_file("/control.pdf").unwrap();
-                let mut control = pdf_reader::PageSource::open(&control, "").unwrap();
+                let mut control = pdf_reader::PageSource::open(&control, "", false).unwrap();
                 let control = control.text_lines(1, None, false).unwrap();
                 assert!(
                     (first.bounds[1] - control[0].bounds[1] - (y - 720.)).abs() < 0.001,

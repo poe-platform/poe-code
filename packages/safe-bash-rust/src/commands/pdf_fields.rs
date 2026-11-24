@@ -377,7 +377,7 @@ pub(in super::super) fn report(
         report.push("%FDF-1.2\n1 0 obj\n<< /FDF << /Fields [\n")?;
     }
     if !super::super::is_legacy_pdf(bytes) {
-        let (mut obj, trailer) = index(bytes, password)?;
+        let (mut obj, trailer) = index(bytes, password, false)?;
         let root = obj
             .resolve(trailer.get(b"Root").ok_or("missing PDF catalog")?)
             .ok_or("missing PDF catalog")?;

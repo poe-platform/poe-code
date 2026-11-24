@@ -383,7 +383,7 @@ pub(super) fn apply_filters(
                 .unwrap_or(a)
                 .min(count);
             if a <= b && b - a + 1 < count {
-                let mut src = PageSource::open(&pdf, "").ok()?;
+                let mut src = PageSource::open(&pdf, "", false).ok()?;
                 pdf = PageOutput::selected(&mut src, a - 1..b, limit)?;
             }
         }

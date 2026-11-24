@@ -88,7 +88,7 @@ impl CopyAttachments {
         bytes: &[u8],
         mut visit: impl FnMut(String, String, &[u8]) -> Result<(), String>,
     ) -> Result<(), String> {
-        let (mut src, trailer) = index(bytes, &self.password).map_err(|_| INVALID_SOURCE)?;
+        let (mut src, trailer) = index(bytes, &self.password, false).map_err(|_| INVALID_SOURCE)?;
         let catalog = src
             .resolve(trailer.get(b"Root").ok_or(INVALID)?)
             .ok_or(INVALID)?;

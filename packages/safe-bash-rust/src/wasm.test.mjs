@@ -1,4 +1,5 @@
 import "./qpdf-ranges.wasm.test.mjs";
+import "./qpdf-selections.wasm.test.mjs";
 
 import "./qpdf-trailers.wasm.test.mjs";
 

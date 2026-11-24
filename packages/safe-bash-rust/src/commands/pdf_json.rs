@@ -685,7 +685,7 @@ mod schema_tests {
             let J::Array(keys) = case.get("keys").unwrap() else { panic!() };
             let keys: Vec<String> = keys.iter().map(|v| { let J::String(s) = v else { panic!() }; String::from_utf16_lossy(s) }).collect();
             let mode = match case.get("mode") { Some(J::String(s)) => String::from_utf16_lossy(s), _ => "none".into() };
-            let mut source = PageSource::open(bytes, "").unwrap();
+            let mut source = PageSource::open(bytes, "", false).unwrap();
             let (report, files) = source.qpdf_json(*version as u32, None, &keys, &[], &mode, ("", None), 65536).unwrap();
             assert!(files.is_empty());
             let actual = json::parse(report.as_bytes(), json::Limits::default()).unwrap();

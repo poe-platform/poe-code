@@ -171,7 +171,7 @@ pub(in super::super) struct JsonDocument<'a> {
 }
 impl<'a> JsonDocument<'a> {
     pub(in super::super) fn from_pdf(bytes: &'a [u8], password: &str) -> Result<Self, String> {
-        let (mut o, trailer) = index(bytes, password)?;
+        let (mut o, trailer) = index(bytes, password, true)?;
         let mut doc = Self {
             root: trailer.get(b"Root").and_then(Value::reference),
             info: trailer.get(b"Info").and_then(Value::reference),

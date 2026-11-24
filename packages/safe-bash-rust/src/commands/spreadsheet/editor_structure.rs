@@ -607,6 +607,8 @@ impl Spreadsheet {
                 }
             }
         }
+        next.edit_pivots(edit)?;
+        next.validate_pivots(&mut work)?;
         next.spills = formulas::cache(&mut next.sheets, &next.options, None, work, true)
             .ok_or("Row or column edit exceeds its calculation limit")?;
         *self = next;

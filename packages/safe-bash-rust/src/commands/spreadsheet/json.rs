@@ -2,7 +2,7 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, Spreadsheet, TextOperator, ValueOperator, model::*,
+    DataBar, IconSet, IconThreshold, PivotFilter, PivotTable, PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -516,6 +516,10 @@ impl Sheet<String> {
         })
     }
 }
+structure!(PivotValue { field, aggregate, name });
+structure!(PivotFilter { field, selected });
+structure!(PivotTable { name, sheet, row, column, source_sheet, source, rows, columns, values, filters, row_totals, column_totals });
+
 impl Codec for Workbook {
     fn json(&self) -> Json {
         object([
@@ -539,6 +543,7 @@ impl Codec for Workbook {
             ("name_dependencies", self.name_dependencies.json()),
             ("name_uses", self.name_uses.json()),
             ("tables", self.tables.json()),
+            ("pivots", if self.pivots.is_empty() { Json::Null } else { self.pivots.json() }),
             ("formula_origins", self.formula_origins.json()),
             ("uninterned_arrays", self.uninterned_arrays.json()),
             (
@@ -570,6 +575,7 @@ impl Codec for Workbook {
             name_dependencies: Codec::read(v.get("name_dependencies").unwrap_or(&Json::Null))?,
             name_uses: Codec::read(v.get("name_uses").unwrap_or(&Json::Null))?,
             tables: Codec::read(v.get("tables").unwrap_or(&Json::Null))?,
+            pivots: v.get("pivots").map(BTreeMap::read).transpose()?.unwrap_or_default(),
             formula_origins: Codec::read(v.get("formula_origins").unwrap_or(&Json::Null))?,
             uninterned_arrays: Codec::read(v.get("uninterned_arrays").unwrap_or(&Json::Null))?,
             explicit_formula_styles: Codec::read(
@@ -1147,6 +1153,7 @@ impl Spreadsheet {
             }
         }
         book.validate_conditional_formats(&book.options.conditional_formats, &mut work)?;
+        book.validate_pivots(&mut work)?;
         let mut table_names = BTreeSet::new();
         if book.options.tables.iter().any(|t| {
             let mut columns = BTreeSet::new();

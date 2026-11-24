@@ -11,7 +11,7 @@ pub(in crate::commands) fn cache(
     dynamic: bool,
 ) -> Option<super::SpillCache> {
     let recalculate = book.recalculate || export_names.is_some();
-    if !sheets
+    if book.pivots.is_empty() && !sheets
         .iter()
         .flat_map(|s| s.cells.values())
         .any(|c| (recalculate || c.value.is_none()) && c.formula.is_some())
@@ -253,6 +253,15 @@ pub(in crate::commands) fn cache(
             }
         }
     }
+    if dynamic {
+        for pivot in book.pivots.values() {
+            calc.work = calc.work.checked_sub(256)?;
+            let position = (pivot.sheet, pivot.row, pivot.column);
+            calc.pivot_anchors.insert(position, pivot);
+            calc.expressions.insert(position, Expr::Value(Value::Blank));
+            calc.dynamic.as_mut()?.occupied.insert(position);
+        }
+    }
     if unsupported {
         return (!recalculate).then_some(Default::default());
     }
@@ -348,11 +357,22 @@ pub(in crate::commands) fn cache(
             let value = super::spill::cell_value(calc.values.remove(&coord)?)?;
             spills.values.insert(coord, value);
         }
-        spills.ranges = state.ranges;
+        for (position, range) in state.ranges {
+            if calc.pivot_anchors.contains_key(&position) {
+                spills.pivot_ranges.insert(position, range);
+            } else {
+                spills.ranges.insert(position, range);
+            }
+        }
     }
     let array_sizes = calc.array_sizes;
     let legacy_formulas = calc.legacy_formulas;
+    let pivot_anchors: BTreeSet<_> = calc.pivot_anchors.into_keys().collect();
     for ((sheet, r, c), value) in calc.results {
+        if pivot_anchors.contains(&(sheet, r, c)) {
+            spills.values.insert((sheet, r, c), super::spill::cell_value(value)?);
+            continue;
+        }
         if !missing.contains(&(sheet, r, c)) {
             continue;
         }

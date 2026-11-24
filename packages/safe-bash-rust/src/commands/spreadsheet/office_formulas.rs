@@ -74,6 +74,8 @@ pub use tables::{TableReferenceMap, map_table_references, table_to_range_referen
 pub(super) use tables::{qualify_columns, rewrite_columns};
 #[path = "office_formula_aggregate.rs"]
 mod aggregate;
+#[path = "office_formula_pivot.rs"]
+mod pivot;
 #[path = "office_formula_choose.rs"]
 mod choose;
 #[path = "office_formula_conditional.rs"]
@@ -1431,6 +1433,7 @@ where
 struct Calculation<'a> {
     dynamic: Option<spill::Dynamic>,
     book: &'a Workbook,
+    pivot_anchors: BTreeMap<Coord, &'a super::pivot::PivotTable>,
     sheets: &'a [String],
     array_sizes: BTreeMap<Coord, (usize, usize)>,
     sizes: Vec<(usize, usize)>,
@@ -1471,6 +1474,7 @@ impl<'a> Calculation<'a> {
         Self {
             dynamic: None,
             book,
+            pivot_anchors: BTreeMap::new(),
             sheets,
             array_sizes: BTreeMap::new(),
             sizes,
@@ -1597,7 +1601,11 @@ impl<'a> Calculation<'a> {
                 {
                     Value::Error("#CIRC!")
                 } else {
-                    self.eval(&expr, coord, depth + 1, true)?
+                    if let Some(pivot) = self.pivot_anchors.get(&coord).copied() {
+                        self.pivot_table(pivot, coord, depth + 1)?
+                    } else {
+                        self.eval(&expr, coord, depth + 1, true)?
+                    }
                 };
                 let next = if legacy {
                     self.scalar(next, coord, depth + 1)?

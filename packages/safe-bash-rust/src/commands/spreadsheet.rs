@@ -558,3 +558,11 @@ mod editor_convert_tests;
 #[cfg(test)]
 #[path = "spreadsheet/editor_database_tests.rs"]
 mod editor_database_tests;
+
+#[path = "spreadsheet/pivot.rs"]
+mod pivot;
+pub use pivot::{PivotFilter, PivotTable, PivotValue};
+
+#[cfg(test)]
+#[path = "spreadsheet/editor_pivot_tests.rs"]
+mod editor_pivot_tests;

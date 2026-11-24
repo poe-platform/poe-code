@@ -1,0 +1,267 @@
+//! Grouping uses typed, case-insensitive keys, then the existing Rust aggregates.
+//! Output shares dynamic-array dependency scheduling without becoming a formula
+//! or authored cells in the workbook document.
+use super::{Calculation, Coord, Expr, Value};
+use crate::commands::spreadsheet::{
+    model,
+    pivot::{PivotTable, aggregate},
+};
+use std::collections::{BTreeMap, BTreeSet};
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum Key {
+    Number(u64),
+    Text((Vec<u8>, Vec<u8>, Vec<u8>)),
+    Bool(bool),
+    Error(String),
+    Blank,
+}
+
+fn number_key(n: f64) -> u64 {
+    let bits = if n == 0. { 0. } else { n }.to_bits();
+    if n < 0. { !bits } else { bits ^ (1 << 63) }
+}
+
+fn key(value: &Value, work: &mut usize) -> Option<Key> {
+    *work = work.checked_sub(64)?;
+    Some(match value {
+        Value::Number(n) => Key::Number(number_key(*n)),
+        Value::Bool(b) => Key::Bool(*b),
+        Value::Text(s) | Value::UninternedText(s) => {
+            Key::Text(super::super::collation::key(s, false, work)?)
+        }
+        Value::Error(e) | Value::LiteralError(e) => Key::Error((*e).into()),
+        Value::Blank | Value::Empty => Key::Blank,
+        _ => return None,
+    })
+}
+
+fn selected_key(value: &model::Value<String>, work: &mut usize) -> Option<Key> {
+    *work = work.checked_sub(64)?;
+    Some(match value {
+        model::Value::Number(n) => Key::Number(number_key(*n)),
+        model::Value::Bool(b) => Key::Bool(*b),
+        model::Value::Text(s) => Key::Text(super::super::collation::key(s, false, work)?),
+        model::Value::Error(s) => {
+            *work = work.checked_sub(s.len())?;
+            Key::Error(s.clone())
+        }
+        model::Value::Empty => Key::Blank,
+    })
+}
+
+type Groups = BTreeMap<Vec<Key>, (Vec<Value>, usize)>;
+
+impl Calculation<'_> {
+    fn pivot_group(
+        &mut self,
+        pivot: &PivotTable,
+        row: usize,
+        fields: &[usize],
+        groups: &mut Groups,
+        depth: usize,
+    ) -> Option<usize> {
+        self.work = self.work.checked_sub(fields.len().checked_mul(128)?)?;
+        let mut labels = Vec::with_capacity(fields.len());
+        let mut keys = Vec::with_capacity(fields.len());
+        for &field in fields {
+            let value = self.cell(
+                (pivot.source_sheet, row, pivot.source[1] + field),
+                depth + 1,
+            )?;
+            keys.push(key(&value, &mut self.work)?);
+            labels.push(match value {
+                Value::Blank | Value::Empty => Value::Text("(blank)".into()),
+                value => value,
+            });
+        }
+        let index = groups.len();
+        self.work = self.work.checked_sub(128)?;
+        Some(groups.entry(keys).or_insert((labels, index)).1)
+    }
+
+    pub(super) fn pivot_table(
+        &mut self,
+        pivot: &PivotTable,
+        pos: Coord,
+        depth: usize,
+    ) -> Option<Value> {
+        self.tick(depth)?;
+        let [top, left, bottom, right] = pivot.source;
+        self.read_spill_range(
+            (pivot.source_sheet, top, left),
+            (pivot.source_sheet, bottom, right),
+        )?;
+        self.work = self
+            .work
+            .checked_sub((right - left + 1).checked_mul(128)?)?;
+        let mut headers = Vec::new();
+        let mut names = BTreeSet::new();
+        for column in left..=right {
+            let value = self.cell((pivot.source_sheet, top, column), depth + 1)?;
+            let Value::Text(name) = value else {
+                return Some(Value::Error("#VALUE!"));
+            };
+            self.work = self.work.checked_sub(name.len().checked_mul(4)?)?;
+            if name.is_empty() || !names.insert(super::super::case_fold::sheet_key(&name)) {
+                return Some(Value::Error("#VALUE!"));
+            }
+            headers.push(name);
+        }
+        let mut filters = Vec::new();
+        for filter in &pivot.filters {
+            if let Some(selected) = &filter.selected {
+                self.work = self.work.checked_sub(selected.len().checked_mul(128)?)?;
+                let keys = selected
+                    .iter()
+                    .map(|value| selected_key(value, &mut self.work))
+                    .collect::<Option<BTreeSet<_>>>()?;
+                filters.push((filter.field, keys));
+            }
+        }
+        let mut rows = Groups::new();
+        let mut columns = Groups::new();
+        // Each source row participates in its intersection and optional totals.
+        // Keep row indexes, not copies of its strings or numeric values.
+        let mut groups = BTreeMap::<(Option<usize>, Option<usize>), Vec<usize>>::new();
+        for row in top + 1..=bottom {
+            self.tick(depth)?;
+            let mut included = true;
+            for (field, selected) in &filters {
+                let value = self.cell((pivot.source_sheet, row, left + field), depth + 1)?;
+                if !selected.contains(&key(&value, &mut self.work)?) {
+                    included = false;
+                    break;
+                }
+            }
+            if !included {
+                continue;
+            }
+            let r = self.pivot_group(pivot, row, &pivot.rows, &mut rows, depth)?;
+            let c = self.pivot_group(pivot, row, &pivot.columns, &mut columns, depth)?;
+            for coordinate in [
+                (Some(r), Some(c)),
+                (Some(r), None),
+                (None, Some(c)),
+                (None, None),
+            ] {
+                self.work = self.work.checked_sub(64)?;
+                groups.entry(coordinate).or_default().push(row);
+            }
+        }
+        if pivot.rows.is_empty() && rows.is_empty() {
+            rows.insert(Vec::new(), (Vec::new(), 0));
+        }
+        if pivot.columns.is_empty() && columns.is_empty() {
+            columns.insert(Vec::new(), (Vec::new(), 0));
+        }
+        let row_total = pivot.column_totals && !pivot.rows.is_empty();
+        let column_total = pivot.row_totals && !pivot.columns.is_empty();
+        let header_rows = pivot.columns.len().max(1)
+            + usize::from(pivot.values.len() > 1 && !pivot.columns.is_empty());
+        let label_columns = pivot.rows.len().max(1);
+        let width = label_columns.checked_add(
+            (columns.len() + usize::from(column_total)).checked_mul(pivot.values.len())?,
+        )?;
+        let height = header_rows
+            .checked_add(rows.len())?
+            .checked_add(usize::from(row_total))?;
+        if width > 16_384 - pos.2 || height > 1_048_576 - pos.1 {
+            return Some(Value::Error("#SPILL!"));
+        }
+        self.work = self
+            .work
+            .checked_sub(width.checked_mul(height)?.checked_mul(160)?)?;
+        let mut result = vec![vec![Value::Text(String::new()); width]; height];
+        for (column, &field) in pivot.rows.iter().enumerate() {
+            self.work = self.work.checked_sub(headers[field].len())?;
+            result[header_rows - 1][column] = Value::Text(headers[field].clone());
+        }
+        if pivot.rows.is_empty() {
+            result[header_rows - 1][0] = Value::Text(
+                pivot
+                    .values
+                    .first()
+                    .map_or(pivot.name.as_str(), |v| v.name.as_str())
+                    .into(),
+            );
+        }
+        let row_groups: Vec<_> = rows
+            .values()
+            .map(|(labels, id)| (Some(*id), labels.as_slice()))
+            .chain(row_total.then_some((None, &[][..])))
+            .collect();
+        let column_groups: Vec<_> = columns
+            .values()
+            .map(|(labels, id)| (Some(*id), labels.as_slice()))
+            .chain(column_total.then_some((None, &[][..])))
+            .collect();
+        for (index, (id, labels)) in column_groups.iter().enumerate() {
+            for (measure, value) in pivot.values.iter().enumerate() {
+                let column = label_columns + index * pivot.values.len() + measure;
+                for (r, label) in labels.iter().enumerate() {
+                    self.charge_value(label)?;
+                    result[r][column] = label.clone();
+                }
+                if id.is_none() {
+                    result[0][column] = Value::Text("Grand Total".into());
+                }
+                if pivot.columns.is_empty() || pivot.values.len() > 1 {
+                    self.work = self.work.checked_sub(value.name.len())?;
+                    result[header_rows - 1][column] = Value::Text(value.name.clone());
+                }
+            }
+        }
+        for (index, (row_id, labels)) in row_groups.iter().enumerate() {
+            let row = header_rows + index;
+            for (c, label) in labels.iter().enumerate() {
+                self.charge_value(label)?;
+                result[row][c] = label.clone();
+            }
+            if row_id.is_none() {
+                result[row][0] = Value::Text("Grand Total".into());
+            }
+            for (column, (column_id, _)) in column_groups.iter().enumerate() {
+                for (measure, field) in pivot.values.iter().enumerate() {
+                    let source_rows = groups
+                        .get(&(*row_id, *column_id))
+                        .map_or(&[][..], Vec::as_slice);
+                    self.work = self.work.checked_sub(source_rows.len().checked_mul(64)?)?;
+                    let mut values = Vec::with_capacity(source_rows.len());
+                    for &r in source_rows {
+                        values.push(
+                            self.cell((pivot.source_sheet, r, left + field.field), depth + 1)?,
+                        );
+                    }
+                    let name = aggregate(&field.aggregate)?;
+                    let value = if name == "COUNT" {
+                        Value::Number(
+                            values
+                                .iter()
+                                .filter(|v| matches!(v, Value::Number(_)))
+                                .count() as f64,
+                        )
+                    } else if name == "COUNTA" {
+                        Value::Number(
+                            values
+                                .iter()
+                                .filter(|v| !matches!(v, Value::Blank | Value::Empty))
+                                .count() as f64,
+                        )
+                    } else if values.is_empty() {
+                        Value::Text(String::new())
+                    } else {
+                        self.aggregate_excel(
+                            name,
+                            &[Expr::Value(Value::Matrix(vec![values]))],
+                            pos,
+                            depth + 1,
+                        )?
+                    };
+                    result[row][label_columns + column * pivot.values.len() + measure] = value;
+                }
+            }
+        }
+        Some(Value::Matrix(result))
+    }
+}

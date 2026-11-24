@@ -10,6 +10,7 @@ pub(in super::super) struct SpillCache {
     pub calculated_at_ms: f64,
     pub values: BTreeMap<Coord, CellValue<String>>,
     pub ranges: BTreeMap<Coord, [usize; 2]>,
+    pub pivot_ranges: BTreeMap<Coord, [usize; 2]>,
 }
 
 impl Default for SpillCache {
@@ -18,6 +19,7 @@ impl Default for SpillCache {
             calculated_at_ms: super::clock::now_ms(),
             values: BTreeMap::new(),
             ranges: BTreeMap::new(),
+            pivot_ranges: BTreeMap::new(),
         }
     }
 }

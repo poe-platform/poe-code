@@ -123,6 +123,9 @@ impl Spreadsheet {
             {
                 return Err("Cannot edit a cell that is part of a merged cell".into());
             }
+            if self.pivot_at(s, r, c).is_some() {
+                return Err("Cannot edit calculated pivot cells".into());
+            }
             for (index, a) in self.sheets[s].arrays.iter().enumerate() {
                 remaining = remaining
                     .checked_sub(1)
@@ -310,6 +313,13 @@ impl Spreadsheet {
         mut edits: Vec<(usize, usize, usize, Option<model::TypedCell<String>>)>,
         limit: usize,
     ) -> Result<(), String> {
+        for (s, r, c, cell) in &edits {
+            if self.pivot_at(*s, *r, *c).is_some()
+                && !cell.as_ref().is_some_and(|cell| cell.value.is_none() && cell.formula.is_none())
+            {
+                return Err("Cannot edit calculated pivot cells".into());
+            }
+        }
         // An authored number-format change invalidates the old inferred format.
         // Keep unrelated style edits from changing the cached display format.
         for (s, r, c, cell) in &mut edits {
@@ -540,6 +550,7 @@ impl Spreadsheet {
         }
         .materialize_formulas(limit / 2)?;
         book.validate_conditional_formats(&book.options.conditional_formats, &mut { limit / 2 })?;
+        book.validate_pivots(&mut { limit / 2 })?;
         book.options.recalculate = true;
         book.spills = formulas::cache(&mut book.sheets, &book.options, None, limit / 2, true)
             .ok_or("Imported workbook calculation exceeds its limit")?;

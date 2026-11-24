@@ -36,9 +36,18 @@ impl Spreadsheet {
         if self.sheets.len() == 1 {
             return Err("Cannot delete the only sheet".into());
         }
+        if self.options.pivots.values().any(|p| p.source_sheet == sheet && p.sheet != sheet) {
+            return Err("Remove pivot tables using this source before deleting its sheet".into());
+        }
         let mut next = self.with_sheet_references(sheet, None, limit)?;
         next.sheets.remove(sheet);
         let shift = |s: usize| (s != sheet).then(|| s - usize::from(s > sheet));
+        next.options.pivots.retain(|_, pivot| {
+            let (Some(destination), Some(source)) = (shift(pivot.sheet), shift(pivot.source_sheet)) else { return false; };
+            pivot.sheet = destination;
+            pivot.source_sheet = source;
+            true
+        });
         next.options.tables.retain_mut(|t| {
             if let Some(s) = shift(t.sheet) {
                 t.sheet = s;

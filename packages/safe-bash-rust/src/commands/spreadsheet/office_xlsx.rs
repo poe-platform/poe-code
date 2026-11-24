@@ -2,6 +2,8 @@
 pub(super) mod colors;
 #[path = "office_xlsx_layout.rs"]
 pub(super) mod layout;
+#[path = "office_xlsx_pivot.rs"]
+mod pivot;
 use super::formula_arguments::{self, Syntax};
 use super::model::{ArrayFormula, Iteration, NamedExpression, Sheet, TypedCell, Value, Workbook};
 use super::{
@@ -1933,6 +1935,7 @@ fn read(
     // early compiler error is otherwise persisted over the original formula.
     if editable {
         layout::retain(&mut imported, entries)?;
+        pivot::retain(&mut imported, entries)?;
         for (s, [r, c, w, h]) in dynamic_ranges {
             let sheet = &mut imported.sheets[s];
             let mut empty = Vec::new();

@@ -550,8 +550,8 @@ pub(super) fn retain(
                 }
             }
         }
-        let (directory, name) = path.rsplit_once('/').ok_or("Invalid worksheet path")?;
-        let rel_path = format!("{directory}/_rels/{name}.rels");
+        let (directory, name) = path.rsplit_once('/').unwrap_or(("", path));
+        let rel_path = if directory.is_empty() { format!("_rels/{name}.rels") } else { format!("{directory}/_rels/{name}.rels") };
         if !entries.contains_key(&rel_path) {
             continue;
         }

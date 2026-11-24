@@ -317,6 +317,9 @@ impl Spreadsheet {
         if top >= bottom || left > right || bottom >= 1_048_576 || right >= 16_384 {
             return Err("Select a header row and at least one data row".into());
         }
+        if self.pivot_intersects(sheet, [top, left, right-left+1, bottom-top+1]) {
+            return Err("Tables cannot overlap pivot tables".into());
+        }
         if self.options.tables.iter().any(|t| {
             t.sheet == sheet
                 && t.area[0] <= bottom

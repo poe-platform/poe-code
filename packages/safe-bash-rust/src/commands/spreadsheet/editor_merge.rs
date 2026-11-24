@@ -57,6 +57,9 @@ impl Spreadsheet {
             if w == 1 && h == 1 {
                 return Err("Cannot merge a single cell".into());
             }
+            if self.pivot_intersects(sheet, range) {
+                return Err("Cannot merge cells that intersect a pivot table".into());
+            }
             for previous in source.merges.iter().chain(&ranges[..i]) {
                 pay(&mut work, 16)?;
                 if intersects(range, *previous) {

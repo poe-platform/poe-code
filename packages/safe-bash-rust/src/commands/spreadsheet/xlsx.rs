@@ -18,6 +18,8 @@ mod rich_text;
 pub use rich_text::TextRun;
 #[path = "xlsx_tables.rs"]
 mod tables;
+#[path = "xlsx_pivots.rs"]
+mod pivots;
 
 pub(in crate::commands) fn error(value: &str) -> &str {
     match value {
@@ -268,6 +270,7 @@ pub struct Workbook {
     pub name_dependencies: BTreeMap<usize, Vec<usize>>,
     pub name_uses: Vec<(usize, usize)>,
     pub tables: Vec<Table>,
+    pub pivots: BTreeMap<String, super::pivot::PivotTable>,
     pub conditional_formats: Vec<super::conditional::ConditionalFormat>,
     pub formula_origins: BTreeMap<(usize, usize, usize), (usize, usize, usize)>,
     // Microsoft ODS cell arrays bypass Calc's shared-string pool.
@@ -454,6 +457,16 @@ pub(in crate::commands) fn write_cells(
             tables::write(table, sheets, workbook, n, limit)?.into_bytes(),
         )?;
         table_types.push(format!(r#"<Override PartName="/xl/tables/table{n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>"#));
+    }
+    for (index, pivot) in workbook.pivots.values().enumerate() {
+        let id = index + 1;
+        let (definition, cache) = pivots::write(pivot, id, sheets, spills, &mut work)?;
+        add(format!("xl/pivotTables/pivotTable{id}.xml"), definition.into_bytes())?;
+        add(format!("xl/pivotCache/pivotCacheDefinition{id}.xml"), cache.into_bytes())?;
+        add(format!("xl/pivotTables/_rels/pivotTable{id}.xml.rels"), format!(r#"{XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{REL}/pivotCacheDefinition" Target="../pivotCache/pivotCacheDefinition{id}.xml"/></Relationships>"#).into_bytes())?;
+        for (path, kind) in [(format!("pivotTables/pivotTable{id}"), "pivotTable"), (format!("pivotCache/pivotCacheDefinition{id}"), "pivotCacheDefinition")] {
+            table_types.push(format!(r#"<Override PartName="/xl/{path}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.{kind}+xml"/>"#));
+        }
     }
     let mut rels = vec![];
     let mut nodes = String::new();
@@ -907,6 +920,10 @@ pub(in crate::commands) fn write_cells(
                 .count();
             table_parts = format!(r#"<tableParts count="{count}">{table_parts}</tableParts>"#);
         }
+        for (index, _) in workbook.pivots.values().enumerate().filter(|(_, pivot)| pivot.sheet == idx) {
+            let id = index + 1;
+            write!(sheet_rels, r#"<Relationship Id="pivot{id}" Type="{REL}/pivotTable" Target="../pivotTables/pivotTable{id}.xml"/>"#).ok()?;
+        }
         let mut conditional = String::new();
         let mut extensions = String::new();
         for (id, rule) in workbook
@@ -1062,11 +1079,20 @@ pub(in crate::commands) fn write_cells(
     ] {
         add(name.into(), data.to_vec())?;
     }
+    let mut pivot_caches = String::new();
+    for (index, _) in workbook.pivots.iter().enumerate() {
+        let id = index + 1;
+        let rel = rels.len() + 1;
+        rels.push(format!(r#"<Relationship Id="rId{rel}" Type="{REL}/pivotCacheDefinition" Target="pivotCache/pivotCacheDefinition{id}.xml"/>"#));
+        write!(pivot_caches, r#"<pivotCache cacheId="{id}" r:id="rId{rel}"/>"#).ok()?;
+    }
+    if !pivot_caches.is_empty() { pivot_caches = format!("<pivotCaches>{pivot_caches}</pivotCaches>"); }
     add(
         "xl/workbook.xml".into(),
         format!(
             include_str!("xlsx/workbook.xml"),
             nodes = nodes,
+            pivot_caches = pivot_caches,
             names = names,
             date1904 = u8::from(workbook.date1904),
             iterate = u8::from(

@@ -3444,6 +3444,7 @@ fn expand_replacement_operand(
     pos_args: &[String],
 ) -> Result<String, String> {
     let in_dquote = env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false);
+    let patsub_replacement = env.get("\0shopt_patsub_replacement").is_none_or(|v| v != "0");
     let chars: Vec<char> = raw.chars().collect();
     let mut i = 0usize;
     let mut out = String::new();
@@ -3487,6 +3488,10 @@ fn expand_replacement_operand(
             out.push_str(&exp.replace('&', "\x01"));
         } else if c == '$' {
             let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?;
+            if !patsub_replacement {
+                out.push_str(&exp);
+                continue;
+            }
             let exp_chars: Vec<char> = exp.chars().collect();
             let mut ei = 0usize;
             while ei < exp_chars.len() {
@@ -3510,7 +3515,7 @@ fn expand_replacement_operand(
             i += 1;
         }
     }
-    Ok(out)
+    Ok(if patsub_replacement { out } else { out.replace('&', "\x01") })
 }
 
 fn render_replacement_with_match(rep: &str, matched: &str) -> String {

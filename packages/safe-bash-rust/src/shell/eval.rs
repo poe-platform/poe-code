@@ -8777,7 +8777,7 @@ impl<'a> EvalState<'a> {
             self.env
                 .get(&format!("\0shopt_{name}"))
                 .map(|v| v == "1")
-                .unwrap_or(false)
+                .unwrap_or(name == "patsub_replacement")
         }
     }
 
@@ -8845,6 +8845,7 @@ impl<'a> EvalState<'a> {
             "nocaseglob",
             "nocasematch",
             "nullglob",
+            "patsub_replacement",
             "shift_verbose",
             "xpg_echo",
             "extdebug",

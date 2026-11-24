@@ -26,6 +26,7 @@ const SHOPT: &[&str] = &[
     "dotglob",
     "globstar",
     "nullglob",
+    "patsub_replacement",
     "failglob",
     "lastpipe",
     "inherit_errexit",
@@ -193,7 +194,7 @@ impl HybridBackend {
                 names.iter().map(move |&name| {
                     let flag = env
                         .get(&format!("\0{prefix}_{name}"))
-                        .map_or(matches!(name, "braceexpand" | "hashall"), |v| v == "1");
+                        .map_or(matches!(name, "braceexpand" | "hashall" | "patsub_replacement"), |v| v == "1");
                     (name, Value::Bool(flag))
                 })
             },

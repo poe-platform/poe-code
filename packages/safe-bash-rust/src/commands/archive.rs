@@ -6788,6 +6788,7 @@ pub(super) fn cmd_gzip(
     use crate::vfs::{FileStat, VfsEntryKind, dirname_posix_path, path::absolute_operand};
     use std::collections::BTreeSet;
     struct Source {
+        name: String,
         operand: String,
         real: String,
         stat: FileStat,
@@ -6957,6 +6958,7 @@ pub(super) fn cmd_gzip(
                 Some((target, dest))
             };
             plans.push(Some(Source {
+                name: f.clone(),
                 operand,
                 real,
                 stat,
@@ -6999,6 +7001,7 @@ pub(super) fn cmd_gzip(
     let multiple_files = multiple_files || plans.len() > 1;
     let (mut tested_files, mut tested_bytes) = (0usize, 0usize);
     for plan in plans {
+        let mut stop_on_corruption = false;
         let failure = |e: String| err_out(&format!("{invoked}: {e}\n"), 1);
         let run = (|| {
             let check_source = || {
@@ -7021,11 +7024,12 @@ pub(super) fn cmd_gzip(
                     plan.as_ref().is_some_and(|p| p.destination.is_some()),
                 )
                 .map_err(|e| {
+                    stop_on_corruption = is_bzip2 && !test_mode && e != "bad magic number (file not created by bzip2)";
                     decode_error(
                         &e,
                         plan.as_ref()
                             .map_or(if is_bzip2 { "(stdin)" } else { "stdin" }, |p| {
-                                p.operand.as_str()
+                                if is_bzip2 { p.name.as_str() } else { p.operand.as_str() }
                             }),
                     )
                 })?
@@ -7073,8 +7077,8 @@ pub(super) fn cmd_gzip(
         })();
         if let Err(e) = run {
             result.stderr.push_str(&e.stderr);
-            result.exit_code = e.exit_code;
-            if e.stderr
+            result.exit_code = result.exit_code.max(e.exit_code);
+            if stop_on_corruption || e.stderr
                 .starts_with("Execution aborted: Shell limit exceeded:")
             {
                 break;

@@ -529,7 +529,10 @@ impl PrefixBinding {
         }
         for (key, value) in &mut self.values {
             *value = match value.take() {
-                Some(saved) => env.insert(key.clone(), saved),
+                Some(saved) => {
+                    if key == "BASH_ARGV0" { write_dynamic_variable(key, &saved, env); }
+                    env.insert(key.clone(), saved)
+                },
                 None => env.remove(key),
             };
         }
@@ -998,6 +1001,11 @@ impl<'a> EvalState<'a> {
         custom_commands: &'a BTreeMap<String, RustCommand>,
         allow_unported_fallback: bool,
     ) -> Self {
+        if !env.contains_key("\0bash_argv0_initialized") {
+            if !env.contains_key("BASH_ARGV0") { env.insert("\0unexported__BASH_ARGV0".into(), "1".into()); }
+            env.insert("BASH_ARGV0".into(), env.get("0").cloned().unwrap_or_else(|| "virtual-bash".into()));
+            env.insert("\0bash_argv0_initialized".into(), "1".into());
+        }
         let mut fd_table = BTreeMap::new();
         fd_table.insert(1, FdTarget::Stdout);
         fd_table.insert(2, FdTarget::Stderr);
@@ -5362,6 +5370,7 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&format!("\0keys__{k}"));
                 match orig {
                     Some(v) => {
+                        if k == "BASH_ARGV0" { write_dynamic_variable(k, v, self.env); }
                         self.env.insert(k.clone(), v.clone());
                     }
                     None => {
@@ -7576,6 +7585,9 @@ impl<'a> EvalState<'a> {
         sub_env.insert("OPTERR".to_string(), "1".to_string());
         sub_env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
         sub_env.remove("\0attr__OPTERR");
+        if !sub_env.contains_key("BASH_ARGV0") { sub_env.insert("\0unexported__BASH_ARGV0".into(), "1".into()); }
+        sub_env.insert("BASH_ARGV0".into(), arg0.to_string());
+        sub_env.insert("\0bash_argv0_initialized".into(), "1".into());
         sub_env.insert("0".to_string(), arg0.to_string());
         sub_env
     }
@@ -10036,6 +10048,9 @@ impl<'a> EvalState<'a> {
             if resolved == "SECONDS" {
                 self.env
                     .insert("\0seconds_disabled".to_string(), "1".to_string());
+            }
+            if resolved == "BASH_ARGV0" {
+                self.env.insert("\0bash_argv0_disabled".into(), "1".into());
             }
             if resolved == "OPTIND" {
                 sync_getopts_env(self.env);

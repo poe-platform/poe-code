@@ -1,7 +1,7 @@
 use crate::commands::search::regex_captures;
 use crate::shell::expand::{
     decode_echo_b_escapes, decode_printf_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
-    sync_array_metadata,
+    sync_array_metadata, write_dynamic_variable,
 };
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -1747,7 +1747,9 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             {
                 env.insert(format!("{base}[0]"), scalar);
             }
-            env.insert(resolved.clone(), truncated);
+            if !write_dynamic_variable(&resolved, &truncated, env) {
+                env.insert(resolved.clone(), truncated);
+            }
             if let Some((base, _)) = resolved.split_once('[') {
                 sync_array_metadata(base, env);
             }

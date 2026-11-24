@@ -276,6 +276,9 @@ impl HybridBackend {
             if !exported.contains(&k) {
                 env.insert(format!("\0unexported__{k}"), "1".into());
             }
+            if k == "BASH_ARGV0" {
+                env.insert("\0bash_argv0_initialized".into(), "1".into());
+            }
             env.insert(k, s);
         }
         env.insert("PWD".into(), cwd.clone());

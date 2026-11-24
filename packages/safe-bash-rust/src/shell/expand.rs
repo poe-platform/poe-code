@@ -24,7 +24,7 @@ pub fn glob_match_ext(pattern: &str, text: &str, nocase: bool) -> bool {
 pub fn glob_match_full(pattern: &str, text: &str, nocase: bool, extglob: bool) -> bool {
     let p: Vec<char> = pattern.chars().collect();
     let t: Vec<char> = text.chars().collect();
-    glob_match_slice(&p, &t, nocase, extglob)
+    glob_match_slice(&p, &t, nocase, extglob, false)
 }
 
 fn chars_eq(a: char, b: char, nocase: bool) -> bool {
@@ -135,15 +135,16 @@ fn match_extglob_plus(
     t: &[char],
     nocase: bool,
     extglob: bool,
+    explicit_period: bool,
 ) -> bool {
     for split in 1..=t.len() {
         let prefix = &t[..split];
         if alts
             .iter()
-            .any(|alt| glob_match_slice(alt, prefix, nocase, extglob))
+            .any(|alt| glob_match_slice(alt, prefix, nocase, extglob, explicit_period))
         {
-            if glob_match_slice(rest_p, &t[split..], nocase, extglob)
-                || match_extglob_plus(alts, rest_p, &t[split..], nocase, extglob)
+            if glob_match_slice(rest_p, &t[split..], nocase, extglob, false)
+                || match_extglob_plus(alts, rest_p, &t[split..], nocase, extglob, false)
             {
                 return true;
             }
@@ -152,7 +153,7 @@ fn match_extglob_plus(
     false
 }
 
-fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool {
+fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool, explicit_period: bool) -> bool {
     let mut pi = 0usize;
     let mut ti = 0usize;
     let mut star_pi: Option<usize> = None;
@@ -169,30 +170,31 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool
             let alts = split_extglob_alts(&p[pi + 2..close_idx]);
             let rest_p = &p[close_idx + 1..];
             let rem_t = &t[ti..];
+            let period = explicit_period && ti == 0;
             let matched = match op {
                 '@' => (0..=rem_t.len()).any(|k| {
                     alts.iter()
-                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
-                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
+                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob, period))
+                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob, period && k == 0)
                 }),
                 '?' => {
-                    glob_match_slice(rest_p, rem_t, nocase, extglob)
+                    glob_match_slice(rest_p, rem_t, nocase, extglob, period)
                         || (0..=rem_t.len()).any(|k| {
                             alts.iter()
-                                .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
-                                && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
+                                .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob, period))
+                                && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob, period && k == 0)
                         })
                 }
-                '+' => match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob),
+                '+' => match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob, period),
                 '*' => {
-                    glob_match_slice(rest_p, rem_t, nocase, extglob)
-                        || match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob)
+                    glob_match_slice(rest_p, rem_t, nocase, extglob, period)
+                        || match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob, period)
                 }
-                '!' => (0..=rem_t.len()).any(|k| {
+                '!' => !period && (0..=rem_t.len()).any(|k| {
                     !alts
                         .iter()
-                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
-                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
+                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob, false))
+                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob, false)
                 }),
                 _ => false,
             };
@@ -211,6 +213,7 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool
         }
 
         if pi < p.len() && p[pi] == '*' {
+            if explicit_period && ti == 0 { return false; }
             star_pi = Some(pi);
             star_ti = ti;
             pi += 1;
@@ -218,6 +221,7 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool
         }
 
         if ti < t.len() {
+            if explicit_period && ti == 0 && p.get(pi).is_some_and(|c| matches!(c, '?' | '[')) { return false; }
             if pi < p.len() && p[pi] == '\\' && pi + 1 < p.len() {
                 if chars_eq(p[pi + 1], t[ti], nocase) {
                     pi += 2;
@@ -4569,6 +4573,7 @@ pub fn expand_globs_in_word_with_projection(
         .map(|v| v == "1")
         .unwrap_or(false);
     let dotglob = raw_dotglob || has_globignore;
+    let globskipdots = has_globignore || env.get("\0shopt_globskipdots").is_none_or(|v| v != "0");
     let nullglob = env
         .get("\0shopt_nullglob")
         .map(|v| v == "1")
@@ -4603,6 +4608,7 @@ pub fn expand_globs_in_word_with_projection(
         fs,
         dotglob,
         raw_dotglob,
+        globskipdots,
         nocaseglob,
         globstar,
         extglob,
@@ -4645,6 +4651,7 @@ fn expand_glob_segments(
     fs: &dyn SafeBashFs,
     dotglob: bool,
     raw_dotglob: bool,
+    globskipdots: bool,
     nocaseglob: bool,
     globstar: bool,
     extglob: bool,
@@ -4671,6 +4678,7 @@ fn expand_glob_segments(
                 fs,
                 dotglob,
                 raw_dotglob,
+                globskipdots,
                 nocaseglob,
                 globstar,
                 extglob,
@@ -4733,6 +4741,7 @@ fn expand_glob_segments(
                         fs,
                         dotglob,
                         raw_dotglob,
+                        globskipdots,
                         nocaseglob,
                         globstar,
                         extglob,
@@ -4776,6 +4785,7 @@ fn expand_glob_segments(
                 fs,
                 dotglob,
                 raw_dotglob,
+                globskipdots,
                 nocaseglob,
                 globstar,
                 extglob,
@@ -4790,12 +4800,18 @@ fn expand_glob_segments(
     let Ok(mut entries) = fs.list_dir(cur_dir) else {
         return;
     };
+    entries.retain(|entry| entry != "." && entry != "..");
+    if !globskipdots { entries.extend([".".into(), "..".into()]); }
     entries.sort();
     for entry in entries {
-        if entry.starts_with('.') && !seg.starts_with('.') && !dotglob {
+        let special_dot = entry == "." || entry == "..";
+        if !special_dot && entry.starts_with('.') && !seg.starts_with('.') && !seg.starts_with("\\.") && !dotglob {
             continue;
         }
-        if glob_match_full(seg, &entry, nocaseglob, extglob) {
+        let matches = if special_dot {
+            glob_match_slice(&seg.chars().collect::<Vec<_>>(), &entry.chars().collect::<Vec<_>>(), nocaseglob, extglob, true)
+        } else { glob_match_full(seg, &entry, nocaseglob, extglob) };
+        if matches {
             let child_dir = resolve_posix_path(cur_dir, &entry);
             let child_prefix = if cur_prefix.is_empty() {
                 entry.clone()
@@ -4821,6 +4837,7 @@ fn expand_glob_segments(
                     fs,
                     dotglob,
                     raw_dotglob,
+                    globskipdots,
                     nocaseglob,
                     globstar,
                     extglob,

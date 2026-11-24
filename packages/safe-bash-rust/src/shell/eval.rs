@@ -8782,7 +8782,7 @@ impl<'a> EvalState<'a> {
             self.env
                 .get(&format!("\0shopt_{name}"))
                 .map(|v| v == "1")
-                .unwrap_or(matches!(name, "patsub_replacement" | "sourcepath"))
+                .unwrap_or(matches!(name, "patsub_replacement" | "sourcepath" | "globskipdots"))
         }
     }
 
@@ -8844,6 +8844,7 @@ impl<'a> EvalState<'a> {
             "expand_aliases",
             "extglob",
             "failglob",
+            "globskipdots",
             "globstar",
             "inherit_errexit",
             "lastpipe",

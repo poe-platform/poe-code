@@ -5899,5 +5899,542 @@
     "status": 4,
     "stderr": "E_AST: [string \"/upper.lua\"]:4: broken\n",
     "bufferedStderr": "E_AST: [string \"/upper.lua\"]:5: broken\n"
+  },
+  {
+    "id": "error-callback-native-frame",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort({2,1},function() error('broken',2) end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:104: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "error-callback-parent-frame",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort({2,1},function() error('broken',3) end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-level4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort({2,1},function() error('broken',4) end);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-level5",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort({2,1},function() error('broken',5) end);return el end",
+    "status": 4,
+    "stderr": "E_AST: pandoc constructors:159: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:170: broken\n"
+  },
+  {
+    "id": "table-frames-sort-tail",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function compare() return error('broken',2) end;table.sort({2,1},compare);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-metamethod",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local m={__lt=function() error('broken',2) end};table.sort({setmetatable({},m),setmetatable({},m)});return el end",
+    "status": 4,
+    "stderr": "E_AST: table:79: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-nested",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort({2,1},function() table.sort({4,3},function() error('broken',5) end) end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:104: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort(setmetatable({},{__len=function() return 3 end,__index=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:103: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.sort(setmetatable({},{__len=function() return 2 end,__index=function(_,k) return 3-k end,__newindex=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:104: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-insert-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.insert(setmetatable({},{__newindex=function() error('broken',2) end}),1);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:25: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-remove-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.remove(setmetatable({},{__len=function() return 2 end,__index=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:31: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-remove-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.remove(setmetatable({},{__len=function() return 0 end,__newindex=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:33: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-concat-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.concat(setmetatable({},{__len=function() return 2 end,__index=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:59: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-unpack-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.unpack(setmetatable({},{__len=function() return 2 end,__index=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:72: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-move-index",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.move(setmetatable({},{__index=function() error('broken',2) end}),1,1,2,{});return el end",
+    "status": 4,
+    "stderr": "E_AST: table:45: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-move-write",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) table.move({1},1,1,2,setmetatable({},{__newindex=function() error('broken',2) end}));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:45: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-move-equality",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local m={__eq=function() error('broken',2) end};table.move(setmetatable({},m),1,2,2,setmetatable({},m));return el end",
+    "status": 4,
+    "stderr": "E_AST: table:44: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-insert-length-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',2) end});table.insert(t,1);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:6: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-insert-length-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',3) end});table.insert(t,1);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:14: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-insert-length-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',4) end});table.insert(t,1);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-remove-length-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',2) end});table.remove(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:6: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-remove-length-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',3) end});table.remove(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:28: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-remove-length-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',4) end});table.remove(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-concat-length-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',2) end});table.concat(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:6: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-concat-length-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',3) end});table.concat(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:53: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-concat-length-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',4) end});table.concat(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-unpack-length-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',2) end});table.unpack(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:67: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-unpack-length-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',3) end});table.unpack(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-unpack-length-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',4) end});table.unpack(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: pandoc constructors:159: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-length-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',2) end});table.sort(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:6: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-length-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',3) end});table.sort(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:132: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-length-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=setmetatable({},{__len=function() error('broken',4) end});table.sort(t);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-2-level-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==2 then error('broken',2) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:110: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-2-level-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==2 then error('broken',3) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-2-level-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==2 then error('broken',4) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: [string \"/upper.lua\"]:1: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-4-level-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==4 then error('broken',2) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:87: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-4-level-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==4 then error('broken',3) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:119: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-4-level-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==4 then error('broken',4) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-8-level-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==8 then error('broken',2) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:93: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-8-level-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==8 then error('broken',3) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:119: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-8-level-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==8 then error('broken',4) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-12-level-2",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==12 then error('broken',2) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:113: broken\n",
+    "bufferedStderr": "E_AST: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-12-level-3",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==12 then error('broken',3) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:122: broken\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: broken\n"
+  },
+  {
+    "id": "table-frames-sort-comparison-12-level-4",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=0;table.sort({7,3,8,1,6,2,5,4},function(a,b) n=n+1;if n==12 then error('broken',4) end;return a<b end);return el end",
+    "status": 4,
+    "stderr": "E_AST: table:136: broken\n",
+    "bufferedStderr": "E_AST: [string \"pandoc constructors\"]:159: broken\n"
+  },
+  {
+    "id": "table-frames-pack-order",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local t=table.pack('a',nil,false,'b');local s='';for k,v in pairs(t) do s=s..tostring(k)..':'..tostring(v)..';' end;return pandoc.Str(s) end",
+    "status": 0,
+    "stdout": "4:b;3:false;1:a;n:4;\n"
+  },
+  {
+    "id": "table-frames-invalid-length-nil",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=#nil;return pandoc.Str(tostring(n)) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to get length of a nil value\n"
+  },
+  {
+    "id": "table-frames-invalid-length-false",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=#false;return pandoc.Str(tostring(n)) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to get length of a boolean value\n"
+  },
+  {
+    "id": "table-frames-invalid-length-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=#1;return pandoc.Str(tostring(n)) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to get length of a number value\n"
+  },
+  {
+    "id": "table-frames-invalid-length-function",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local n=#(function() end);return pandoc.Str(tostring(n)) end",
+    "status": 4,
+    "stderr": "E_AST: Expected Lua table\n",
+    "bufferedStderr": "E_AST: [string \"/upper.lua\"]:1: attempt to get length of a function value\n"
   }
 ]

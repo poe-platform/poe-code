@@ -1,3 +1,5 @@
+#[path = "../../lua-rust/tests/table_frames.rs"]
+mod lua_table_frames;
 #[path = "../../lua-rust/tests/errors.rs"]
 mod lua_errors;
 #[path = "../../lua-rust/tests/base.rs"]

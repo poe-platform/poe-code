@@ -335,7 +335,7 @@ impl Runtime {
                 }
                 Ok(lower as i32)
             }
-            _ => Err(Error::new("attempt to get length of a non-table value")),
+            _ => Err(Error::unlocated("Expected Lua table")),
         }
     }
     fn env(&mut self, parent: Option<usize>, varargs: Option<Vec<Value>>) -> usize {

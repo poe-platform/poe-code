@@ -78,6 +78,8 @@ async function test() {
       ["function Str(el) error(42);return el end", "42"],
       ["function Str(el)\n local function fail()\n  error('broken',2)\n end\n fail()\n return el\nend", '[string "/errors.lua"]:5: broken'],
       ["function Str(el) local function fail() return error('broken',2) end;fail();return el end", "pandoc constructors:159: broken"],
+      ["function Str(el) table.sort({2,1},function() error('broken',2) end);return el end", "table:104: broken"],
+      ["function Str(el) table.sort({2,1},function() error('broken',3) end);return el end", "table:136: broken"],
     ]) {
       await shell.fs.writeFile("/errors.lua", source);
       const error = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/errors.lua -o /base.saved");

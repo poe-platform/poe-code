@@ -50,18 +50,6 @@ impl Runtime {
                 ][..],
             ),
             (
-                "table",
-                &[
-                    "table.insert",
-                    "table.remove",
-                    "table.concat",
-                    "table.unpack",
-                    "table.pack",
-                    "table.sort",
-                    "table.move",
-                ][..],
-            ),
-            (
                 "math",
                 &[
                     "math.abs",
@@ -144,6 +132,26 @@ impl Runtime {
             ],
         )
         .expect("valid internal string library installation");
+        let factory = self
+            .run(include_str!("table.lua"), "@table")
+            .expect("valid internal table library")
+            .remove(0);
+        let table = self
+            .call(
+                factory,
+                vec![
+                    Value::Native("table.pack"),
+                    Value::Native("table.integer"),
+                    Value::Native("table.string"),
+                    Value::Native("table.finish"),
+                    Value::Native("table.values"),
+                    Value::Native("table.random"),
+                    Value::Native("table.check"),
+                ],
+            )
+            .expect("valid internal table library installation")
+            .remove(0);
+        self.set_global("table", table);
         let math = self.global("math");
         for (name, value) in [("pi", std::f64::consts::PI), ("huge", f64::INFINITY)] {
             self.raw_set(&math, Value::String(name.into()), Value::Number(value))
@@ -291,10 +299,7 @@ impl Runtime {
                 self.raw_set(&a(0), a(1), a(2))?;
                 a(0)
             }
-            "rawlen" => Value::Integer(
-                self.length(&a(0))
-                    .map_err(|_| Error::unlocated("Expected Lua table"))?,
-            ),
+            "rawlen" => Value::Integer(self.length(&a(0))?),
             "rawequal" => Value::Bool(a(0) == a(1)),
             "getmetatable" => {
                 let meta = match a(0) {
@@ -517,20 +522,8 @@ impl Runtime {
                     Value::Bool(capture),
                 ]);
             }
-            "table.insert" | "table.remove" | "table.concat" | "table.unpack" | "table.move"
-            | "table.sort" => return self.table_library(name, args),
-            "table.pack" => {
-                let table = self.table();
-                self.raw_set(
-                    &table,
-                    Value::String("n".into()),
-                    Value::Integer(args.len() as i32),
-                )?;
-                for (i, v) in args.into_iter().enumerate() {
-                    self.raw_set(&table, Value::Integer((i + 1) as i32), v)?;
-                }
-                table
-            }
+            "table.pack" | "table.integer" | "table.string" | "table.finish" | "table.values"
+            | "table.random" | "table.check" => return self.table_library(name, args),
             "math.random" | "math.randomseed" | "math.ult" => {
                 if name != "math.random" && args.is_empty() {
                     return Err(Error::unlocated("Value expected"));

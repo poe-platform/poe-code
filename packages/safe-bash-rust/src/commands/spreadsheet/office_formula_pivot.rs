@@ -23,6 +23,42 @@ fn key(value: &Value, work: &mut usize) -> Option<Key> {
 
 type Groups = BTreeMap<Vec<Key>, (Vec<Value>, usize)>;
 
+// Group order is already sorted by typed keys. Expand values within each prefix,
+// retaining references to labels instead of copying them for each measure.
+fn axis_groups(
+    groups: &Groups,
+    total: bool,
+    count: usize,
+    position: Option<usize>,
+) -> Vec<(Option<usize>, &[Value], usize)> {
+    let entries: Vec<_> = groups.iter().collect();
+    let mut result = Vec::new();
+    let mut first = 0;
+    while first < entries.len() {
+        let end = if let Some(position) = position {
+            first
+                + entries[first..]
+                    .iter()
+                    .take_while(|(key, _)| key[..position] == entries[first].0[..position])
+                    .count()
+        } else {
+            first + 1
+        };
+        for measure in 0..count {
+            for (_, (labels, id)) in &entries[first..end] {
+                result.push((Some(*id), labels.as_slice(), measure));
+            }
+        }
+        first = end;
+    }
+    if total {
+        for measure in 0..count {
+            result.push((None, &[][..], measure));
+        }
+    }
+    result
+}
+
 impl Calculation<'_> {
     pub(super) fn pivot_source(
         &mut self,
@@ -206,15 +242,18 @@ impl Calculation<'_> {
         }
         let row_total = pivot.column_totals && !pivot.rows.is_empty();
         let column_total = pivot.row_totals && !pivot.columns.is_empty();
-        let header_rows = pivot.columns.len().max(1)
-            + usize::from(pivot.values.len() > 1 && !pivot.columns.is_empty());
-        let label_columns = pivot.rows.len().max(1);
+        let axis = pivot.data_axis();
+        let row_position = axis.filter(|a| a.rows).map(|a| a.position);
+        let column_position = axis.filter(|a| !a.rows).map(|a| a.position);
+        let on_rows = row_position.is_some();
+        let (header_rows, label_columns) = pivot.header_size();
+        let row_measures = if on_rows { pivot.values.len() } else { 1 };
+        let column_measures = if on_rows { 1 } else { pivot.values.len() };
         let width = label_columns.checked_add(
-            (columns.len() + usize::from(column_total)).checked_mul(pivot.values.len())?,
+            (columns.len() + usize::from(column_total)).checked_mul(column_measures)?,
         )?;
         let height = header_rows
-            .checked_add(rows.len())?
-            .checked_add(usize::from(row_total))?;
+            .checked_add((rows.len() + usize::from(row_total)).checked_mul(row_measures)?)?;
         if width > 16_384 - pos.2 || height > 1_048_576 - pos.1 {
             return Some(Value::Error("#SPILL!"));
         }
@@ -224,9 +263,12 @@ impl Calculation<'_> {
         let mut result = vec![vec![Value::Text(String::new()); width]; height];
         for (column, &field) in pivot.rows.iter().enumerate() {
             self.work = self.work.checked_sub(headers[field].len())?;
+            let column = column + usize::from(row_position.is_some_and(|p| p <= column));
             result[header_rows - 1][column] = Value::Text(headers[field].clone());
         }
-        if pivot.rows.is_empty() {
+        if let Some(position) = row_position {
+            result[header_rows - 1][position] = Value::Text("Values".into());
+        } else if pivot.rows.is_empty() {
             result[header_rows - 1][0] = Value::Text(
                 pivot
                     .values
@@ -235,78 +277,84 @@ impl Calculation<'_> {
                     .into(),
             );
         }
-        let row_groups: Vec<_> = rows
-            .values()
-            .map(|(labels, id)| (Some(*id), labels.as_slice()))
-            .chain(row_total.then_some((None, &[][..])))
-            .collect();
-        let column_groups: Vec<_> = columns
-            .values()
-            .map(|(labels, id)| (Some(*id), labels.as_slice()))
-            .chain(column_total.then_some((None, &[][..])))
-            .collect();
-        for (index, (id, labels)) in column_groups.iter().enumerate() {
-            for (measure, value) in pivot.values.iter().enumerate() {
-                let column = label_columns + index * pivot.values.len() + measure;
-                for (r, label) in labels.iter().enumerate() {
-                    self.charge_value(label)?;
-                    result[r][column] = label.clone();
-                }
-                if id.is_none() {
-                    result[0][column] = Value::Text("Grand Total".into());
-                }
-                if pivot.columns.is_empty() || pivot.values.len() > 1 {
-                    self.work = self.work.checked_sub(value.name.len())?;
-                    result[header_rows - 1][column] = Value::Text(value.name.clone());
-                }
+        let row_groups = axis_groups(&rows, row_total, row_measures, row_position);
+        let column_groups = axis_groups(&columns, column_total, column_measures, column_position);
+        for (index, (id, labels, measure)) in column_groups.iter().enumerate() {
+            let column = label_columns + index;
+            for (r, label) in labels.iter().enumerate() {
+                self.charge_value(label)?;
+                let r = r + usize::from(column_position.is_some_and(|p| p <= r));
+                result[r][column] = label.clone();
+            }
+            if id.is_none() {
+                result[usize::from(column_position == Some(0))][column] =
+                    Value::Text("Grand Total".into());
+            }
+            if let Some(position) =
+                column_position.or_else(|| (!on_rows && pivot.columns.is_empty()).then_some(0))
+            {
+                let name = &pivot.values[*measure].name;
+                self.work = self.work.checked_sub(name.len())?;
+                result[position][column] = Value::Text(name.clone());
             }
         }
-        for (index, (row_id, labels)) in row_groups.iter().enumerate() {
+        for (index, (row_id, labels, row_measure)) in row_groups.iter().enumerate() {
             let row = header_rows + index;
             for (c, label) in labels.iter().enumerate() {
                 self.charge_value(label)?;
+                let c = c + usize::from(row_position.is_some_and(|p| p <= c));
                 result[row][c] = label.clone();
             }
             if row_id.is_none() {
-                result[row][0] = Value::Text("Grand Total".into());
+                result[row][usize::from(row_position == Some(0))] =
+                    Value::Text("Grand Total".into());
             }
-            for (column, (column_id, _)) in column_groups.iter().enumerate() {
-                for (measure, field) in pivot.values.iter().enumerate() {
-                    let source_rows = groups
-                        .get(&(*row_id, *column_id))
-                        .map_or(&[][..], Vec::as_slice);
-                    self.work = self.work.checked_sub(source_rows.len().checked_mul(64)?)?;
-                    let mut values = Vec::with_capacity(source_rows.len());
-                    for &r in source_rows {
-                        values.push(self.cell((source_sheet, r, left + field.field), depth + 1)?);
-                    }
-                    let name = aggregate(&field.aggregate)?;
-                    let value = if name == "COUNT" {
-                        Value::Number(
-                            values
-                                .iter()
-                                .filter(|v| matches!(v, Value::Number(_)))
-                                .count() as f64,
-                        )
-                    } else if name == "COUNTA" {
-                        Value::Number(
-                            values
-                                .iter()
-                                .filter(|v| !matches!(v, Value::Blank | Value::Empty))
-                                .count() as f64,
-                        )
-                    } else if values.is_empty() {
-                        Value::Text(String::new())
-                    } else {
-                        self.aggregate_excel(
-                            name,
-                            &[Expr::Value(Value::Matrix(vec![values]))],
-                            pos,
-                            depth + 1,
-                        )?
-                    };
-                    result[row][label_columns + column * pivot.values.len() + measure] = value;
+            if let Some(position) = row_position {
+                let name = &pivot.values[*row_measure].name;
+                self.work = self.work.checked_sub(name.len())?;
+                result[row][position] = Value::Text(name.clone());
+            }
+            for (column, (column_id, _, column_measure)) in column_groups.iter().enumerate() {
+                let measure = if on_rows {
+                    *row_measure
+                } else {
+                    *column_measure
+                };
+                let field = &pivot.values[measure];
+                let source_rows = groups
+                    .get(&(*row_id, *column_id))
+                    .map_or(&[][..], Vec::as_slice);
+                self.work = self.work.checked_sub(source_rows.len().checked_mul(64)?)?;
+                let mut values = Vec::with_capacity(source_rows.len());
+                for &r in source_rows {
+                    values.push(self.cell((source_sheet, r, left + field.field), depth + 1)?);
                 }
+                let name = aggregate(&field.aggregate)?;
+                let value = if name == "COUNT" {
+                    Value::Number(
+                        values
+                            .iter()
+                            .filter(|v| matches!(v, Value::Number(_)))
+                            .count() as f64,
+                    )
+                } else if name == "COUNTA" {
+                    Value::Number(
+                        values
+                            .iter()
+                            .filter(|v| !matches!(v, Value::Blank | Value::Empty))
+                            .count() as f64,
+                    )
+                } else if values.is_empty() {
+                    Value::Text(String::new())
+                } else {
+                    self.aggregate_excel(
+                        name,
+                        &[Expr::Value(Value::Matrix(vec![values]))],
+                        pos,
+                        depth + 1,
+                    )?
+                };
+                result[row][label_columns + column] = value;
             }
         }
         Some(Value::Matrix(result))

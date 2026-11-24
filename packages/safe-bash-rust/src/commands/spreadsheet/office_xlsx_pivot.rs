@@ -1,7 +1,7 @@
 //! Read pivot definitions through OPC relationships, including caches outside xl/.
 //! Contracts and fixtures: ClosedXML 057f5976 (LICENSE.ClosedXML) and
 //! XlsxWriter 238e935a (LICENSE.XlsxWriter).
-use super::super::{PivotFilter, PivotSource, PivotTable, PivotValue, model::Value};
+use super::super::{PivotDataAxis, PivotFilter, PivotSource, PivotTable, PivotValue, model::Value};
 use super::{Imported, attr, elements, xml};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -82,15 +82,67 @@ fn area(source: &str) -> Result<[usize; 4], String> {
     }
     Ok([r, c, bottom, right])
 }
-fn fields(root: &xml::Element, tag: &str) -> Result<Vec<usize>, String> {
+fn fields(root: &xml::Element, tag: &str) -> Result<(Vec<usize>, Option<usize>), String> {
     let Some(list) = elements(&root.children, tag).first().copied() else {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), None));
     };
-    elements(&list.children, "field")
-        .iter()
-        .filter(|field| attr(field, "x") != Some("-2"))
-        .map(|field| index(field, "x"))
-        .collect()
+    let mut fields = Vec::new();
+    let mut data = None;
+    for field in elements(&list.children, "field") {
+        if attr(field, "x") == Some("-2") {
+            if data.replace(fields.len()).is_some() {
+                return Err("Duplicate XLSX pivot values field".into());
+            }
+        } else {
+            fields.push(index(field, "x")?);
+        }
+    }
+    Ok((fields, data))
+}
+
+fn axes(root: &xml::Element) -> Result<(Vec<usize>, Vec<usize>, Option<PivotDataAxis>), String> {
+    let (rows, row_data) = fields(root, "rowFields")?;
+    let (columns, column_data) = fields(root, "colFields")?;
+    let on_rows = match attr(root, "dataOnRows") {
+        Some("1" | "true") => Some(true),
+        Some("0" | "false") => Some(false),
+        None => None,
+        _ => return Err("Invalid XLSX pivot dataOnRows".into()),
+    };
+    let position = attr(root, "dataPosition")
+        .filter(|p| *p != "-1")
+        .map(|p| {
+            p.parse::<usize>()
+                .map_err(|_| "Invalid XLSX pivot dataPosition")
+        })
+        .transpose()?;
+    let data = match (row_data, column_data) {
+        (Some(_), Some(_)) => return Err("Conflicting XLSX pivot values axes".into()),
+        (Some(position), None) => Some(PivotDataAxis {
+            rows: true,
+            position,
+        }),
+        (None, Some(position)) => Some(PivotDataAxis {
+            rows: false,
+            position,
+        }),
+        (None, None) if position.is_some() || on_rows == Some(true) => {
+            let is_row = on_rows.unwrap_or(false);
+            Some(PivotDataAxis {
+                rows: is_row,
+                position: position.unwrap_or(if is_row { rows.len() } else { columns.len() }),
+            })
+        }
+        _ => None,
+    };
+    if data.is_some_and(|data| {
+        on_rows.is_some_and(|rows| rows != data.rows)
+            || position.is_some_and(|p| p != data.position)
+            || data.position > if data.rows { rows.len() } else { columns.len() }
+    }) {
+        return Err("Inconsistent XLSX pivot values placement".into());
+    }
+    Ok((rows, columns, data))
 }
 fn shared_value(node: &xml::Element) -> Result<Value<String>, String> {
     Ok(match node.tag.rsplit(':').next() {
@@ -125,9 +177,7 @@ pub(super) fn retain(
                 .first()
                 .copied()
                 .ok_or("Missing XLSX pivot definition")?;
-            if matches!(attr(root, "dataOnRows"), Some("1" | "true")) {
-                return Err("Pivot values on rows are not supported yet".into());
-            }
+            let (rows, columns, data_axis) = axes(root)?;
             let caches = related(
                 entries,
                 &target,
@@ -376,8 +426,9 @@ pub(super) fn retain(
                 source_binding,
                 source_sheet,
                 source,
-                rows: fields(root, "rowFields")?,
-                columns: fields(root, "colFields")?,
+                rows,
+                columns,
+                data_axis,
                 values,
                 filters,
                 row_totals: !matches!(attr(root, "rowGrandTotals"), Some("0" | "false")),

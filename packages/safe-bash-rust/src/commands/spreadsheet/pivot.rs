@@ -55,6 +55,13 @@ pub enum PivotSource {
     Missing,
 }
 
+/// Placement of the values pseudo-field among row or column fields.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PivotDataAxis {
+    pub rows: bool,
+    pub position: usize,
+}
+
 #[derive(Clone)]
 pub struct PivotTable {
     pub name: String,
@@ -68,9 +75,33 @@ pub struct PivotTable {
     pub rows: Vec<usize>,
     pub columns: Vec<usize>,
     pub values: Vec<PivotValue>,
+    pub data_axis: Option<PivotDataAxis>,
     pub filters: Vec<PivotFilter>,
     pub row_totals: bool,
     pub column_totals: bool,
+}
+
+impl PivotTable {
+    /// Legacy definitions place multiple values after the column fields.
+    pub fn data_axis(&self) -> Option<PivotDataAxis> {
+        if self.values.is_empty() {
+            return None;
+        }
+        self.data_axis.or_else(|| {
+            (self.values.len() > 1).then_some(PivotDataAxis {
+                rows: false,
+                position: self.columns.len(),
+            })
+        })
+    }
+
+    pub(super) fn header_size(&self) -> (usize, usize) {
+        let axis = self.data_axis();
+        (
+            (self.columns.len() + usize::from(axis.is_some_and(|a| !a.rows))).max(1),
+            (self.rows.len() + usize::from(axis.is_some_and(|a| a.rows))).max(1),
+        )
+    }
 }
 
 pub(super) fn aggregate(name: &str) -> Option<&'static str> {
@@ -120,6 +151,16 @@ impl Spreadsheet {
                 || !anchors.insert((pivot.sheet, pivot.row, pivot.column))
             {
                 return Err("Invalid pivot table definition".into());
+            }
+            if pivot.data_axis.is_some_and(|axis| {
+                axis.position
+                    > if axis.rows {
+                        pivot.rows.len()
+                    } else {
+                        pivot.columns.len()
+                    }
+            }) {
+                return Err("Invalid pivot values position".into());
             }
             let mut fields = BTreeSet::new();
             for &field in pivot.rows.iter().chain(&pivot.columns) {
@@ -279,6 +320,17 @@ impl Spreadsheet {
                 pivot.source[axis + 2] = last;
                 if edit.columns {
                     let field = |f| edit.point(before[1] + f).and_then(|c| c.checked_sub(first));
+                    if let Some(axis) = &mut pivot.data_axis {
+                        let fields = if axis.rows {
+                            &pivot.rows
+                        } else {
+                            &pivot.columns
+                        };
+                        axis.position = fields[..axis.position]
+                            .iter()
+                            .filter(|&&f| field(f).is_some())
+                            .count();
+                    }
                     pivot.rows = pivot.rows.iter().filter_map(|&f| field(f)).collect();
                     pivot.columns = pivot.columns.iter().filter_map(|&f| field(f)).collect();
                     pivot.values.retain_mut(|value| {

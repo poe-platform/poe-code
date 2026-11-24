@@ -184,15 +184,13 @@ pub(super) fn write(
         bottom - top
     );
     let mut axes = String::new();
-    for (fields, tag, items_tag, measures) in [
-        (&pivot.rows, "rowFields", "rowItems", false),
-        (
-            &pivot.columns,
-            "colFields",
-            "colItems",
-            pivot.values.len() > 1,
-        ),
+    let data_axis = pivot.data_axis();
+    for (fields, tag, items_tag, rows) in [
+        (&pivot.rows, "rowFields", "rowItems", true),
+        (&pivot.columns, "colFields", "colItems", false),
     ] {
+        let position = data_axis.filter(|a| a.rows == rows).map(|a| a.position);
+        let measures = position.is_some();
         if !fields.is_empty() || measures {
             write!(
                 axes,
@@ -200,11 +198,13 @@ pub(super) fn write(
                 fields.len() + usize::from(measures)
             )
             .ok()?;
-            for field in fields {
-                write!(axes, r#"<field x="{field}"/>"#).ok()?;
-            }
-            if measures {
-                axes.push_str(r#"<field x="-2"/>"#);
+            for i in 0..=fields.len() {
+                if position == Some(i) {
+                    axes.push_str(r#"<field x="-2"/>"#);
+                }
+                if let Some(field) = fields.get(i) {
+                    write!(axes, r#"<field x="{field}"/>"#).ok()?;
+                }
             }
             write!(axes, "</{tag}>").ok()?;
             let count = if measures { pivot.values.len() } else { 1 };
@@ -264,14 +264,24 @@ pub(super) fn write(
         ],
         false,
     );
-    let header_rows = pivot.columns.len().max(1)
-        + usize::from(pivot.values.len() > 1 && !pivot.columns.is_empty());
+    let (header_rows, label_columns) = pivot.header_size();
+    let data_attributes = pivot
+        .data_axis
+        .or(data_axis)
+        .map(|axis| {
+            format!(
+                r#" dataOnRows="{}" dataPosition="{}""#,
+                u8::from(axis.rows),
+                axis.position
+            )
+        })
+        .unwrap_or_default();
     let definition = format!(
-        r#"{XML}<pivotTableDefinition xmlns="{SS}" name="{}" cacheId="{id}" dataCaption="Values" compact="0" compactData="0" outline="0" outlineData="0" rowGrandTotals="{}" colGrandTotals="{}" updatedVersion="3" minRefreshableVersion="3" createdVersion="3"><location ref="{location}" firstHeaderRow="0" firstDataRow="{header_rows}" firstDataCol="{}"/><pivotFields count="{field_count}">{pivot_fields}</pivotFields>{axes}<pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>"#,
+        r#"{XML}<pivotTableDefinition xmlns="{SS}" name="{}" cacheId="{id}" dataCaption="Values"{data_attributes} compact="0" compactData="0" outline="0" outlineData="0" rowGrandTotals="{}" colGrandTotals="{}" updatedVersion="3" minRefreshableVersion="3" createdVersion="3"><location ref="{location}" firstHeaderRow="0" firstDataRow="{header_rows}" firstDataCol="{}"/><pivotFields count="{field_count}">{pivot_fields}</pivotFields>{axes}<pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>"#,
         escaped(&pivot.name),
         u8::from(pivot.row_totals),
         u8::from(pivot.column_totals),
-        pivot.rows.len().max(1)
+        label_columns
     );
     *work = work.checked_sub(cache.len().checked_add(definition.len())?)?;
     Some((definition, cache))

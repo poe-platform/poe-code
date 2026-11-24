@@ -2,8 +2,8 @@
 //! JSON arrays so a shared JSON document cannot merge half of two cell edits.
 use super::{
     ColorScaleThreshold, ConditionalFormat, ConditionalIcon, ConditionalRule, ConditionalValue,
-    DataBar, IconSet, IconThreshold, PivotFilter, PivotSource, PivotTable, PivotValue, Spreadsheet,
-    TextOperator, ValueOperator, model::*,
+    DataBar, IconSet, IconThreshold, PivotDataAxis, PivotFilter, PivotSource, PivotTable,
+    PivotValue, Spreadsheet, TextOperator, ValueOperator, model::*,
 };
 use mcp_protocol_rust::json::Value as Json;
 use std::{
@@ -547,6 +547,7 @@ structure!(PivotValue {
     aggregate,
     name
 });
+structure!(PivotDataAxis { rows, position });
 structure!(PivotFilter { field, selected });
 structure!(PivotTable {
     name,
@@ -556,6 +557,7 @@ structure!(PivotTable {
     source_sheet,
     source,
     source_binding,
+    data_axis,
     rows,
     columns,
     values,

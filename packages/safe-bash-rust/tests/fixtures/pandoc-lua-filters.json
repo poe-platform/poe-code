@@ -1867,5 +1867,148 @@
     "script": "function Str(el) local n=tonumber('11','2'); return pandoc.Str(n..':'..math.type(n)) end",
     "status": 0,
     "stdout": "3:integer\n"
+  },
+  {
+    "id": "intern-quoted",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() return tostring('\\1\\35'=='\\18\\3') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true\n"
+  },
+  {
+    "id": "intern-name-after-literal",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local prefix='\\6\\1'; a=7; return tostring(_G[string.char(6,1)])..':'..tostring(_G[string.char(97)]) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "7:nil\n",
+    "bufferedStdout": "7:7\n"
+  },
+  {
+    "id": "intern-name-bytes",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local prefix='\\6\\246\\1'; oa=8; return tostring(_G[string.char(6,246,1)])..':'..tostring(_G[string.char(111,97)]) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "8:nil\n",
+    "bufferedStdout": "8:8\n"
+  },
+  {
+    "id": "intern-literal-after-name",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() a=7; local s='\\6\\1'; return tostring(s:byte()) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "97\n"
+  },
+  {
+    "id": "intern-keyword",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local s='\\7\\2\\6\\5\\7\\4\\7\\5\\7\\2\\6\\14'; return tostring(('return'):byte()) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "intern-long",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local a=[[\u0001#]]; local b=[[\u0012\u0003]]; return tostring(a==b) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true\n"
+  },
+  {
+    "id": "intern-method",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local prefix='\\6\\246\\1'; local t={x=9}; function t:oa() return self.x end return tostring(t[string.char(6,246,1)]==t.oa)..':'..t:oa() end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true:9\n"
+  },
+  {
+    "id": "intern-locals",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\6\\246\\1'; local q='\\6\\247\\1'; local oa,oq=11,22; return oa..':'..oq end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "11:22\n"
+  },
+  {
+    "id": "intern-labels",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\6\\246\\1'; local q='\\6\\247\\1'; local v=0; goto oa; ::oq:: v=9; goto finish; ::oa:: v=7; ::finish:: return tostring(v) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "7\n"
+  },
+  {
+    "id": "intern-dynamic",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local s='\\1\\35'; return tostring(s==string.char(18,3)) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "false\n"
+  },
+  {
+    "id": "intern-closure-parameters",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\6\\246\\1'; local q='\\6\\247\\1'; local oa=10; local function f(oq) return function() return oa+oq end end return tostring(f(2)()) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "12\n"
+  },
+  {
+    "id": "intern-loop-bindings",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\6\\246\\1'; local q='\\6\\247\\1'; local oa=10; local r={}; for oq=1,2 do r[#r+1]=oa+oq end for _,oq in ipairs({3,4}) do r[#r+1]=oa+oq end return table.concat(r,',') end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "11,12,13,14\n"
+  },
+  {
+    "id": "intern-field-constructors",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\6\\246\\1'; local q='\\6\\247\\1'; local t={oa=1,oq=2}; return tostring(t[string.char(6,246,1)])..':'..tostring(t[string.char(6,247,1)]) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1:2\n"
+  },
+  {
+    "id": "intern-implicit-self",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local p='\\7\\3\\6\\5\\6\\12\\6\\6'; local t={}; function t:f() return self end return tostring(t:f()==nil) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "true\n",
+    "bufferedStdout": "false\n"
   }
 ]

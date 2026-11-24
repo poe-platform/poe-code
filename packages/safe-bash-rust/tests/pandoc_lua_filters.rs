@@ -10,6 +10,8 @@ mod lua_numbers;
 mod lua_format;
 #[path = "../../lua-rust/tests/metatables.rs"]
 mod lua_metatables;
+#[path = "../../lua-rust/tests/interning.rs"]
+mod lua_interning;
 
 use mcp_protocol_rust::json::{self, Value};
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};

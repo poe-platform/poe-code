@@ -118,12 +118,12 @@ struct Table {
 }
 struct Environment {
     parent: Option<usize>,
-    bindings: HashMap<String, usize>,
+    bindings: HashMap<Vec<u8>, usize>,
     varargs: Option<Vec<Value>>,
 }
 #[derive(Clone)]
 struct Function {
-    names: Vec<String>,
+    names: Vec<Vec<u8>>,
     vararg: bool,
     body: Vec<Stmt>,
     env: usize,
@@ -133,11 +133,11 @@ enum Flow {
     Next(usize),
     Return(Vec<Value>),
     Break,
-    Goto(String),
+    Goto(Vec<u8>),
 }
 enum Target {
     Cell(usize),
-    Global(String),
+    Global(Vec<u8>),
     Index(Value, Value),
 }
 pub struct Runtime {
@@ -305,12 +305,12 @@ impl Runtime {
         });
         n
     }
-    fn bind(&mut self, env: usize, name: &str, value: Value) {
+    fn bind(&mut self, env: usize, name: &[u8], value: Value) {
         let cell = self.cells.len();
         self.cells.push(value);
         self.environments[env].bindings.insert(name.into(), cell);
     }
-    fn lookup(&self, mut env: usize, name: &str) -> Option<usize> {
+    fn lookup(&self, mut env: usize, name: &[u8]) -> Option<usize> {
         loop {
             let e = &self.environments[env];
             if let Some(c) = e.bindings.get(name) {
@@ -319,10 +319,10 @@ impl Runtime {
             env = e.parent?;
         }
     }
-    fn variable(&self, env: usize, name: &str) -> Value {
+    fn variable(&self, env: usize, name: &[u8]) -> Value {
         self.lookup(env, name)
             .map(|c| self.cells[c].clone())
-            .unwrap_or_else(|| self.global(name))
+            .unwrap_or_else(|| self.raw_get(&self.globals, &Value::String(name.to_vec())))
     }
     pub fn run(&mut self, source: impl AsRef<[u8]>, path: &str) -> Result<Vec<Value>> {
         let body = syntax::parse(source.as_ref())?;
@@ -332,7 +332,10 @@ impl Runtime {
             Flow::Return(v) => Ok(v),
             Flow::Next(_) => Ok(Vec::new()),
             Flow::Break => Err(Error::new("break outside loop")),
-            Flow::Goto(n) => Err(Error::new(format!("no visible label '{n}'"))),
+            Flow::Goto(n) => Err(Error::new(format!(
+                "no visible label '{}'",
+                String::from_utf8_lossy(&n)
+            ))),
         });
         self.source = old;
         result
@@ -364,7 +367,10 @@ impl Runtime {
                     Flow::Return(values) => Ok(values),
                     Flow::Next(_) => Ok(Vec::new()),
                     Flow::Break => Err(Error::new("break outside loop")),
-                    Flow::Goto(n) => Err(Error::new(format!("no visible label '{n}'"))),
+                    Flow::Goto(n) => Err(Error::new(format!(
+                        "no visible label '{}'",
+                        String::from_utf8_lossy(&n)
+                    ))),
                 }
             }
             _ => {
@@ -462,7 +468,7 @@ impl Runtime {
                 }
                 Node::Method(base, name, args) => {
                     let base = self.one(base, env)?;
-                    let function = self.get(&base, &Value::String(name.clone().into_bytes()))?;
+                    let function = self.get(&base, &Value::String(name.clone()))?;
                     let mut values = vec![base];
                     values.extend(self.eval_list(args, env)?);
                     return self.call(function, values);
@@ -660,7 +666,9 @@ impl Runtime {
                         let value = values.get(i).cloned().unwrap_or_default();
                         match t {
                             Target::Cell(c) => self.cells[c] = value,
-                            Target::Global(n) => self.set_global(&n, value),
+                            Target::Global(n) => {
+                                self.raw_set(&self.globals.clone(), Value::String(n), value)?
+                            }
                             Target::Index(t, k) => self.set(t, k, value)?,
                         }
                     }

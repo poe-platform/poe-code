@@ -1,37 +1,38 @@
 use crate::{Error, Result, Value};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub(crate) struct Expr(pub usize, pub Node);
 #[derive(Clone, Debug)]
 pub(crate) enum Node {
     Literal(Value),
-    Name(String),
+    Name(Vec<u8>),
     Vararg,
     Unary(String, Box<Expr>),
     Binary(String, Box<Expr>, Box<Expr>),
     Index(Box<Expr>, Box<Expr>),
     Call(Box<Expr>, Vec<Expr>),
-    Method(Box<Expr>, String, Vec<Expr>),
+    Method(Box<Expr>, Vec<u8>, Vec<Expr>),
     Table(Vec<(Option<Expr>, Expr)>),
-    Function(Vec<String>, bool, Vec<Stmt>),
+    Function(Vec<Vec<u8>>, bool, Vec<Stmt>),
     Paren(Box<Expr>),
 }
 #[derive(Clone, Debug)]
 pub(crate) enum Stmt {
     Assign(Vec<Expr>, Vec<Expr>),
-    Local(Vec<String>, Vec<Expr>),
-    LocalFunction(String, Expr),
+    Local(Vec<Vec<u8>>, Vec<Expr>),
+    LocalFunction(Vec<u8>, Expr),
     Call(Expr),
     Do(Vec<Stmt>),
     While(Expr, Vec<Stmt>),
     Repeat(Vec<Stmt>, Expr),
     If(Vec<(Option<Expr>, Vec<Stmt>)>),
-    For(String, Expr, Expr, Option<Expr>, Vec<Stmt>),
-    ForIn(Vec<String>, Vec<Expr>, Vec<Stmt>),
+    For(Vec<u8>, Expr, Expr, Option<Expr>, Vec<Stmt>),
+    ForIn(Vec<Vec<u8>>, Vec<Expr>, Vec<Stmt>),
     Return(Vec<Expr>),
     Break,
-    Goto(String),
-    Label(String),
+    Goto(Vec<u8>),
+    Label(Vec<u8>),
 }
 #[derive(Clone)]
 struct Token {
@@ -41,6 +42,7 @@ struct Token {
 }
 struct Lexer<'a> {
     source: &'a [u8],
+    interned: HashMap<Vec<u8>, Vec<u8>>,
     offset: usize,
     line: usize,
 }
@@ -119,6 +121,7 @@ impl Lexer<'_> {
                 self.take();
             }
             let word = String::from_utf8_lossy(&self.source[start..self.offset]).into_owned();
+            value = Value::String(word.as_bytes().to_vec());
             if [
                 "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto",
                 "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
@@ -128,7 +131,6 @@ impl Lexer<'_> {
             {
                 word
             } else {
-                value = Value::String(word.into_bytes());
                 "name".into()
             }
         } else if b == b'\'' || b == b'"' {
@@ -227,6 +229,22 @@ impl Lexer<'_> {
                 (b as char).to_string()
             }
         };
+        if let Value::String(bytes) = &mut value {
+            // The existing lexer interns with unpadded hexadecimal byte keys.
+            // Nibbles retain the same collisions without encoding them as text.
+            let mut key = Vec::new();
+            for &byte in bytes.iter() {
+                if byte >= 16 {
+                    key.push(byte >> 4);
+                }
+                key.push(byte & 15);
+            }
+            *bytes = self
+                .interned
+                .entry(key)
+                .or_insert_with(|| bytes.clone())
+                .clone();
+        }
         Ok(Token { kind, value, line })
     }
 }
@@ -263,11 +281,11 @@ impl Parser {
             )))
         }
     }
-    fn name(&mut self) -> Result<String> {
+    fn name(&mut self) -> Result<Vec<u8>> {
         let value = self.token().value.clone();
         self.expect("name")?;
         if let Value::String(s) = value {
-            Ok(String::from_utf8(s).expect("ASCII identifier"))
+            Ok(s)
         } else {
             unreachable!()
         }
@@ -303,7 +321,7 @@ impl Parser {
         self.expect("(")?;
         let mut names = Vec::new();
         if method {
-            names.push("self".into());
+            names.push(b"self".to_vec());
         }
         let mut vararg = false;
         if self.kind() != ")" {
@@ -378,10 +396,7 @@ impl Parser {
         };
         loop {
             expr = if self.eat(".") {
-                let key = Expr(
-                    line,
-                    Node::Literal(Value::String(self.name()?.into_bytes())),
-                );
+                let key = Expr(line, Node::Literal(Value::String(self.name()?)));
                 Expr(line, Node::Index(Box::new(expr), Box::new(key)))
             } else if self.eat("[") {
                 let key = self.expression(0)?;
@@ -416,6 +431,7 @@ impl Parser {
                 Expr(
                     t.line,
                     Node::Literal(match t.kind.as_str() {
+                        "nil" => Value::Nil,
                         "true" => Value::Bool(true),
                         "false" => Value::Bool(false),
                         _ => t.value,
@@ -544,10 +560,7 @@ impl Parser {
                     line,
                     Node::Index(
                         Box::new(target),
-                        Box::new(Expr(
-                            line,
-                            Node::Literal(Value::String(self.name()?.into_bytes())),
-                        )),
+                        Box::new(Expr(line, Node::Literal(Value::String(self.name()?)))),
                     ),
                 );
             }
@@ -557,10 +570,7 @@ impl Parser {
                     line,
                     Node::Index(
                         Box::new(target),
-                        Box::new(Expr(
-                            line,
-                            Node::Literal(Value::String(self.name()?.into_bytes())),
-                        )),
+                        Box::new(Expr(line, Node::Literal(Value::String(self.name()?)))),
                     ),
                 );
             }
@@ -613,6 +623,7 @@ impl Parser {
 pub(crate) fn parse(source: &[u8]) -> Result<Vec<Stmt>> {
     let mut lexer = Lexer {
         source,
+        interned: HashMap::new(),
         offset: 0,
         line: 1,
     };

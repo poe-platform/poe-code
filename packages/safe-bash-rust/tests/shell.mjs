@@ -39,6 +39,9 @@ async function test() {
     await shell.fs.writeFile("/radix.lua", "function Str(el) return pandoc.Str(table.concat({tonumber('12z',10),tonumber('9007199254740995',10),tonumber('+000ffg',16)},',')) end");
     const radix = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/radix.lua");
     if (radix.exitCode || radix.stderr || radix.stdout !== "12,4,255\n") throw new Error(JSON.stringify(radix));
+    await shell.fs.writeFile("/intern.lua", "function Str(el) local prefix='\\6\\246\\1'; oa=8; return pandoc.Str(tostring(_G[string.char(6,246,1)])) end");
+    const interned = await shell.exec("printf hello | pandoc -f markdown -t plain -L=/intern.lua");
+    if (interned.exitCode || interned.stderr || interned.stdout !== "8\n") throw new Error(JSON.stringify(interned));
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=orange:s=80x60:r=10:d=0.2 -an /clip.mp4");
     if (generated.exitCode || generated.stderr) throw new Error(JSON.stringify(generated));
     const clip = await shell.fs.readFile("/clip.mp4");

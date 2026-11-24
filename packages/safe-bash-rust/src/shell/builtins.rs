@@ -453,6 +453,8 @@ fn builtin_cd(
                 fs.access_path(&raw, true).map_err(|error| {
                     if error.starts_with("ENOTDIR") {
                         "Not a directory"
+                    } else if error.starts_with("ELOOP") {
+                        "Too many levels of symbolic links"
                     } else {
                         "No such file or directory"
                     }

@@ -1,5 +1,7 @@
 #[path = "../../lua-rust/tests/evaluation.rs"]
 mod lua_evaluation;
+#[path = "../../lua-rust/tests/patterns.rs"]
+mod lua_patterns;
 
 use mcp_protocol_rust::json::{self, Value};
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};

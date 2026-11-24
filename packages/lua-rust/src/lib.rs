@@ -1,5 +1,6 @@
 //! In-process Lua evaluation used by native and WebAssembly document filters.
 mod library;
+mod pattern;
 mod syntax;
 use std::collections::HashMap;
 use syntax::{Expr, Node, Stmt};
@@ -127,11 +128,12 @@ impl Runtime {
             cells: Vec::new(),
             globals: Value::Nil,
             source: String::new(),
-            steps: max_steps,
+            steps: usize::MAX,
             depth: 0,
         };
         vm.globals = vm.table();
         vm.install();
+        vm.steps = max_steps;
         vm
     }
     fn tick(&mut self) -> Result<()> {

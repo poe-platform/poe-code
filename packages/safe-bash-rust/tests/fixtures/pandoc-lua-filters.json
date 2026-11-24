@@ -284,5 +284,355 @@
     "script": "function Str(el) return pandoc.Str(el.text..\"A\") end",
     "status": 0,
     "stdout": "aAA\n"
+  },
+  {
+    "id": "pattern-find-captures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.find('abc123','(%a+)(%d+)') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1|6|abc|123\n"
+  },
+  {
+    "id": "pattern-position-captures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('abc123','()(%a+)()(%d+)()') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1|abc|4|123|7\n"
+  },
+  {
+    "id": "pattern-frontiers",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('one two','%f[%a]%a+'),string.match('word','%f[%z]') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "one|\n"
+  },
+  {
+    "id": "pattern-balanced",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('x(a(b)c)y','%b()'),string.match('q[abc]r','%b[]') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "(a(b)c)|[abc]\n"
+  },
+  {
+    "id": "pattern-backreferences",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('abc-abc','(%a+)%-%1'),string.match('abc-def','(%a+)%-%1') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc|nil\n"
+  },
+  {
+    "id": "pattern-repetition",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('aaaab','a-b'),string.match('ab','a?b'),string.match('b','a?b') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "aaaab|ab|b\n"
+  },
+  {
+    "id": "pattern-anchors",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('abcd','^a.*d$'),string.match('xabc','^abc',2),string.match('abc','a$') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abcd|abc|nil\n"
+  },
+  {
+    "id": "pattern-sets",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('abc123','[^%d]+'),string.match('ABC','[a-zA-Z]+'),string.match(']-','[]-]+') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc|ABC|]-\n"
+  },
+  {
+    "id": "pattern-ascii-classes",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match(' 09_f!','%s%d%d%p%l%p'),string.match('AZ','%u+'),string.match('xyz','%X+') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": " 09_f!|AZ|xyz\n"
+  },
+  {
+    "id": "pattern-backtracking",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('aa','^(a?)(a*)$'),string.match('aaab','(a*)ab') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "a|aa\n"
+  },
+  {
+    "id": "pattern-nested-captures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.match('aabb','(a+)(b+)%1?'),string.match('abab','((ab)%2)') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "nil|abab|ab\n"
+  },
+  {
+    "id": "pattern-plain-find",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.find('a.b','.',1,true),string.find('xx.a','.',3,0),string.find('abc',')') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "2|3|nil\n"
+  },
+  {
+    "id": "pattern-start-offset",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.find('abc','',4),string.find('abc','',5),string.find('abc','b',-2) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "4|nil|2|2\n"
+  },
+  {
+    "id": "pattern-utf8-offset",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.find('Ω abc','abc'),string.match('Ω-abc','%a+') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "4|abc\n"
+  },
+  {
+    "id": "pattern-capture-compatibility",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.find('a','a*%f[a]'),string.match('abc','()%1'),string.find('abc','()%1%1') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "nil|1|nil\n"
+  },
+  {
+    "id": "pattern-iterator-words",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() local out=''; for w in string.gmatch('one two 3','%w+') do out=out..w..':' end return out end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "one:two:3:\n"
+  },
+  {
+    "id": "pattern-iterator-captures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() local out=''; for p,w in string.gmatch('ab cd','()(%a+)') do out=out..p..w end return out end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1ab4cd\n"
+  },
+  {
+    "id": "pattern-iterator-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() local out=''; for w in string.gmatch('aab','a*') do out=out..'['..w..']' end return out end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "[aa][]\n"
+  },
+  {
+    "id": "pattern-iterator-state",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() local a=string.gmatch('12','.'); local b=string.gmatch('xy','.'); return a(),b(),a(),b(),a() end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1|x|2|y\n"
+  },
+  {
+    "id": "pattern-iterator-literal-anchor",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() local f=string.gmatch('^a^','^'); return f(),f(),f(),f() end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "^|^|nil\n"
+  },
+  {
+    "id": "pattern-iterator-lazy-validation",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return type(string.gmatch('a','(')) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "function\n"
+  },
+  {
+    "id": "pattern-replace-whole",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('hello world','%w+','[%0]') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "[hello] [world]|2\n"
+  },
+  {
+    "id": "pattern-replace-captures",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc123 def456','(%a+)(%d+)','%2:%1:%%') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "123:abc:% 456:def:%|2\n"
+  },
+  {
+    "id": "pattern-replace-positions",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','()','%1') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1a2b3c4|4\n"
+  },
+  {
+    "id": "pattern-replace-empty",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('aab','a*','X'),string.gsub('abc','','-') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "XbX|-a-b-c-|4\n"
+  },
+  {
+    "id": "pattern-replace-anchors",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','^','X'),string.gsub('abc','$','X') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "Xabc|abcX|1\n"
+  },
+  {
+    "id": "pattern-replace-limits",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('aaa','a','b',2),string.gsub('aaa','a','b',0),string.gsub('aaa','a','b',-1) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "bba|aaa|aaa|0\n"
+  },
+  {
+    "id": "pattern-replace-table",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('a b c','%a',{a='A',b=false,c=7}) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "A b 7|3\n"
+  },
+  {
+    "id": "pattern-replace-function",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('a1 b2','(%a)(%d)',function(a,b) return b..a end) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1a 2b|2\n"
+  },
+  {
+    "id": "pattern-replace-kept-values",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','.',function(a) if a=='b' then return false end end) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc|3\n"
+  },
+  {
+    "id": "pattern-replace-number",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('aa','a',17) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "1717|2\n"
+  },
+  {
+    "id": "pattern-replace-metatable",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('ab','.',setmetatable({}, {__index=function(_,k) return k..k end})) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "aabb|2\n"
+  },
+  {
+    "id": "pattern-replace-whole-fallback",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','b','%1') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc|1\n"
+  },
+  {
+    "id": "pattern-replace-nested",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('ab','.',function(c) return string.gsub(c..c,c,'X') end) end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "XXXX|2\n"
+  },
+  {
+    "id": "pattern-replace-lazy-validation",
+    "flags": [
+      "-L",
+      "/upper.lua"
+    ],
+    "script": "function Str(el) local function result() local function evaluate() return string.gsub('abc','x','%q') end local values=table.pack(evaluate()); for i=1,values.n do values[i]=tostring(values[i]) end return table.concat(values,'|',1,values.n) end return pandoc.Str(result()) end",
+    "status": 0,
+    "stdout": "abc|0\n"
   }
 ]

@@ -1,3 +1,4 @@
+use crate::pattern::{Iteration, Matcher};
 use crate::{Error, Result, Runtime, Value, first};
 impl Runtime {
     pub(crate) fn install(&mut self) {
@@ -41,6 +42,7 @@ impl Runtime {
                     "string.byte",
                     "string.char",
                     "string.find",
+                    "string.match",
                 ][..],
             ),
             (
@@ -102,6 +104,22 @@ impl Runtime {
             }
             self.set_global(name, table);
         }
+        let factory = self
+            .run(include_str!("string.lua"), "@string")
+            .expect("valid internal string library")
+            .remove(0);
+        self.call(
+            factory,
+            vec![
+                self.global("string"),
+                Value::Native("string.coerce"),
+                Value::Native("string.next_match"),
+                Value::Native("string.integer"),
+                Value::Native("string.join"),
+                Value::Native("string.replacement_token"),
+            ],
+        )
+        .expect("valid internal string library installation");
         let math = self.global("math");
         for (name, value) in [
             ("pi", std::f64::consts::PI),
@@ -310,25 +328,82 @@ impl Runtime {
                     .collect::<Result<Vec<_>>>()?;
                 Value::String(String::from_utf8_lossy(&bytes).into_owned())
             }
-            "string.find" => {
+            "string.find" | "string.match" | "string.next_match" => {
                 let text = s(0)?;
-                let needle = s(1)?;
-                if !a(3).truth() && needle.bytes().any(|b| b"^$()%.[]*+-?".contains(&b)) {
-                    return Err(Error::new("Lua string patterns are not supported"));
-                }
-                let start = position(if args.len() > 2 { n(2)? as isize } else { 1 }, text.len())
-                    .max(1) as usize
-                    - 1;
-                return Ok(
-                    if let Some(offset) = text.get(start..).and_then(|s| s.find(&needle)) {
-                        vec![
-                            Value::Number((start + offset + 1) as f64),
-                            Value::Number((start + offset + needle.len()) as f64),
-                        ]
-                    } else {
-                        vec![Value::Nil]
-                    },
+                let pattern = s(1)?;
+                let (start, iterator) = if name == "string.next_match" {
+                    (
+                        n(2)? as isize,
+                        Some(Iteration {
+                            last: n(3)? as isize,
+                            anchor: a(4).truth(),
+                        }),
+                    )
+                } else {
+                    let start = if a(2) == Value::Nil { 1.0 } else { n(2)? };
+                    if !start.is_finite() || start.fract() != 0.0 {
+                        return Err(Error::new("number has no integer representation"));
+                    }
+                    (position(start as isize, text.len()).max(1) - 1, None)
+                };
+                return Matcher::new(text.as_bytes(), pattern.as_bytes(), &mut self.steps).search(
+                    start,
+                    name != "string.match",
+                    a(3).truth(),
+                    iterator,
                 );
+            }
+            "string.coerce" => Value::String(s(0)?),
+            "string.integer" => {
+                let number = n(0)?;
+                if !number.is_finite() || number.fract() != 0.0 {
+                    return Err(Error::new("number has no integer representation"));
+                }
+                Value::Number(number)
+            }
+            "string.join" => {
+                let mut result = String::new();
+                for index in 1..=n(1)? as usize {
+                    let value = self.get(&a(0), &Value::Number(index as f64))?;
+                    match value {
+                        Value::String(text) => result.push_str(&text),
+                        Value::Number(number) => result.push_str(&number.to_string()),
+                        _ => return Err(Error::new("string expected")),
+                    }
+                }
+                Value::String(result)
+            }
+            "string.replacement_token" => {
+                let text = s(0)?;
+                let start = n(1)? as usize;
+                let bytes = text.as_bytes();
+                let mut end = start;
+                while end < bytes.len() && bytes[end] != b'%' {
+                    self.tick()?;
+                    end += 1;
+                }
+                if end > start {
+                    return Ok(vec![
+                        Value::Number(end as f64),
+                        Value::String(text[start..end].into()),
+                        Value::Bool(false),
+                    ]);
+                }
+                let byte = *bytes
+                    .get(start + 1)
+                    .ok_or_else(|| Error::new("Invalid '%' in replacement string"))?;
+                let (value, capture) = if byte.is_ascii_digit() {
+                    (Value::Number((byte - b'0') as f64), true)
+                } else if byte == b'%' {
+                    (Value::String("%".into()), false)
+                } else {
+                    return Err(Error::new("Invalid '%' in replacement string"));
+                };
+                return Ok(vec![
+                    Value::Number((start + 2) as f64),
+                    value,
+                    Value::Bool(capture),
+                ]);
             }
             "table.insert" => {
                 let len = self.length(&a(0))?;

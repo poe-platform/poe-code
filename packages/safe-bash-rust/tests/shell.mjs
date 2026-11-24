@@ -139,6 +139,8 @@ async function test() {
     await shell.fs.writeFile("/recovered.pdf", "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\n3 0 obj << /Title (Recovered) >> endobj\n");
     const trailer = await shell.exec("qpdf /recovered.pdf --show-object=trailer");
     if (trailer.exitCode !== 3 || trailer.stdout !== "<<  >>\n" || trailer.stderr !== "WARNING: /recovered.pdf: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n") throw new Error(JSON.stringify(trailer));
+    const emptyInfo = await shell.exec("pdfinfo /recovered.pdf");
+    if (emptyInfo.exitCode !== 99 || emptyInfo.stdout || emptyInfo.stderr !== "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n") throw new Error(JSON.stringify(emptyInfo));
     await shell.fs.writeFile("/range.saved", "KEEP");
     const rangeError = await shell.exec("qpdf /recovered.pdf --pages . 1 -- /range.saved");
     if (rangeError.exitCode !== 2 || rangeError.stdout || rangeError.stderr !== "qpdf: parsing numeric range for /recovered.pdf: error at * in numeric range *1: number 1 out of range\n" || new TextDecoder().decode(await shell.fs.readFile("/range.saved")) !== "KEEP") throw new Error(JSON.stringify(rangeError));

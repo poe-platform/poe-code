@@ -1,0 +1,451 @@
+[
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-f",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-l",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-f",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-l",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-box",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-meta",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-js",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-custom",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-url",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-dests",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "recovered",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFtdIC9Db3VudCAwID4+IGVuZG9iagozIDAgb2JqIDw8IC9UaXRsZSAoUmVjb3ZlcmVkKSA+PiBlbmRvYmoK",
+    "args": [
+      "-struct",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-f",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-l",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-f",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-l",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-box",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-meta",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-js",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-custom",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-url",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-dests",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "rewritten",
+    "pdf": "JVBERi0xLjQKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFsgXQovQ291bnQgMAo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1RpdGxlIChSZWNvdmVyZWQpCj4+CmVuZG9iagoKeHJlZgowIDQKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDIwIDAwMDAwIG4gCjAwMDAwMDAwNzAgMDAwMDAgbiAKMDAwMDAwMDEyNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDQKL1Jvb3QgMSAwIFIKL0luZm8gMyAwIFIKPj4KCnN0YXJ0eHJlZgoxNjUKJSVFT0Y=",
+    "args": [
+      "-struct",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-f",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-l",
+      "1",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-f",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-l",
+      "0",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (0).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-box",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-meta",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-js",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-custom",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-url",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-dests",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "empty",
+    "pdf": "JVBERi0xLjcKJcKBwoHCgcKBCgoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAwCi9LaWRzIFsgXQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1Byb2R1Y2VyIChAcG9lLWNvZGUvcGRmLWFzdCkKPj4KZW5kb2JqCgp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMjAgMDAwMDAgbiAKMDAwMDAwMDA3MCAwMDAwMCBuIAowMDAwMDAwMTI0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgo+PgoKc3RhcnR4cmVmCjE3NgolJUVPRg==",
+    "args": [
+      "-struct",
+      "in.pdf"
+    ],
+    "status": 99,
+    "stdout": "",
+    "stderr": "Command Line Error: Wrong page range given: the first page (1) can not be after the last page (1).\n"
+  },
+  {
+    "name": "onePage",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSAxMCA+Pgo=",
+    "args": [
+      "in.pdf"
+    ],
+    "status": 0,
+    "stdout": "Q3VzdG9tIE1ldGFkYXRhOiBubwpNZXRhZGF0YSBTdHJlYW06IG5vClRhZ2dlZDogICAgICAgICAgbm8KVXNlclByb3BlcnRpZXM6ICBubwpTdXNwZWN0czogICAgICAgIG5vCkZvcm06ICAgICAgICAgICAgbm9uZQpKYXZhU2NyaXB0OiAgICAgIG5vClBhZ2VzOiAgICAgICAgICAgMQpFbmNyeXB0ZWQ6ICAgICAgIG5vClBhZ2Ugc2l6ZTogICAgICAgMTAgeCAyMCBwdHMKUGFnZSByb3Q6ICAgICAgICAwCkZpbGUgc2l6ZTogICAgICAgMjM2IGJ5dGVzCk9wdGltaXplZDogICAgICAgbm8KUERGIHZlcnNpb246ICAgICAxLjQK",
+    "stderr": ""
+  },
+  {
+    "name": "onePage",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSAxMCA+Pgo=",
+    "args": [
+      "-l",
+      "1",
+      "in.pdf"
+    ],
+    "status": 0,
+    "stdout": "Q3VzdG9tIE1ldGFkYXRhOiBubwpNZXRhZGF0YSBTdHJlYW06IG5vClRhZ2dlZDogICAgICAgICAgbm8KVXNlclByb3BlcnRpZXM6ICBubwpTdXNwZWN0czogICAgICAgIG5vCkZvcm06ICAgICAgICAgICAgbm9uZQpKYXZhU2NyaXB0OiAgICAgIG5vClBhZ2VzOiAgICAgICAgICAgMQpFbmNyeXB0ZWQ6ICAgICAgIG5vClBhZ2UgICAgMSBzaXplOiAgMTAgeCAyMCBwdHMKUGFnZSAgICAxIHJvdDogICAwCkZpbGUgc2l6ZTogICAgICAgMjM2IGJ5dGVzCk9wdGltaXplZDogICAgICAgbm8KUERGIHZlcnNpb246ICAgICAxLjQK",
+    "stderr": ""
+  },
+  {
+    "name": "onePage",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSAxMCA+Pgo=",
+    "args": [
+      "-box",
+      "in.pdf"
+    ],
+    "status": 0,
+    "stdout": "Q3VzdG9tIE1ldGFkYXRhOiBubwpNZXRhZGF0YSBTdHJlYW06IG5vClRhZ2dlZDogICAgICAgICAgbm8KVXNlclByb3BlcnRpZXM6ICBubwpTdXNwZWN0czogICAgICAgIG5vCkZvcm06ICAgICAgICAgICAgbm9uZQpKYXZhU2NyaXB0OiAgICAgIG5vClBhZ2VzOiAgICAgICAgICAgMQpFbmNyeXB0ZWQ6ICAgICAgIG5vClBhZ2Ugc2l6ZTogICAgICAgMTAgeCAyMCBwdHMKUGFnZSByb3Q6ICAgICAgICAwCk1lZGlhQm94OiAgICAgICAgICAgIDAuMDAgICAgIDAuMDAgICAgMTAuMDAgICAgMjAuMDAKQ3JvcEJveDogICAgICAgICAgICAgMC4wMCAgICAgMC4wMCAgICAxMC4wMCAgICAyMC4wMApCbGVlZEJveDogICAgICAgICAgICAwLjAwICAgICAwLjAwICAgIDEwLjAwICAgIDIwLjAwClRyaW1Cb3g6ICAgICAgICAgICAgIDAuMDAgICAgIDAuMDAgICAgMTAuMDAgICAgMjAuMDAKQXJ0Qm94OiAgICAgICAgICAgICAgMC4wMCAgICAgMC4wMCAgICAxMC4wMCAgICAyMC4wMApGaWxlIHNpemU6ICAgICAgIDIzNiBieXRlcwpPcHRpbWl6ZWQ6ICAgICAgIG5vClBERiB2ZXJzaW9uOiAgICAgMS40Cg==",
+    "stderr": ""
+  },
+  {
+    "name": "onePage",
+    "pdf": "JVBERi0xLjQKMSAwIG9iaiA8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4gZW5kb2JqCjIgMCBvYmogPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4gZW5kb2JqCjMgMCBvYmogPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvUmVzb3VyY2VzIDw8ID4+IC9NZWRpYUJveCBbMCAwIDEwIDIwXSA+PiBlbmRvYmoKdHJhaWxlciA8PCAvUm9vdCAxIDAgUiAvU2l6ZSAxMCA+Pgo=",
+    "args": [
+      "-url",
+      "in.pdf"
+    ],
+    "status": 0,
+    "stdout": "UGFnZSAgVHlwZSAgICAgICAgICBVUkwK",
+    "stderr": ""
+  }
+]

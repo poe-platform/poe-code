@@ -9761,7 +9761,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         Err(error) => return err_out(&format!("Syntax Error: {error}\n"), 1),
     };
-    let page_count = doc.pages.len().max(1);
+    let page_count = doc.pages.len();
     let fp = first_p.unwrap_or(1).max(1);
     let lp = last_p
         .map(|v| {
@@ -9896,8 +9896,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     out.push_str(&format!("{:<17}no\n", "Suspects:"));
     out.push_str(&format!("{:<17}none\n", "Form:"));
     out.push_str(&format!("{:<17}no\n", "JavaScript:"));
-    let total_pages = doc.pages.len().max(1);
-    out.push_str(&format!("{:<17}{total_pages}\n", "Pages:"));
+    out.push_str(&format!("{:<17}{page_count}\n", "Pages:"));
     out.push_str(&format!(
         "{:<17}{}\n",
         "Encrypted:",
@@ -9915,7 +9914,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let start_p = first_p.unwrap_or(1).max(1);
     let end_p = last_p
         .unwrap_or(if multi_page { start_p } else { 1 })
-        .min(total_pages);
+        .min(page_count);
     for pno in start_p..=end_p {
         let (pw, ph, crop_opt) = doc
             .page_media

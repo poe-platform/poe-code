@@ -5889,7 +5889,7 @@ pub(super) fn cmd_gzip(
     let mut list_mode = false;
     let mut robot_mode = false;
     let mut test_mode = false;
-    let mut quiet = false;
+    let mut quiet = 0usize;
     let mut recursive = false;
     let mut help_mode = false;
     let mut small_mode = false;
@@ -5961,7 +5961,7 @@ pub(super) fn cmd_gzip(
                         }
                         return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
                     }
-                    quiet = true;
+                    quiet += 1;
                 }
                 "-n" | "--no-name" => {
                     if !is_gzip {
@@ -6377,7 +6377,7 @@ pub(super) fn cmd_gzip(
                                         2,
                                     );
                                 }
-                                quiet = true;
+                                quiet += 1;
                             }
                             'n' => {
                                 if !is_gzip {
@@ -6743,8 +6743,7 @@ pub(super) fn cmd_gzip(
                 "Unknown frame descriptor"
                 | "Reserved bit set"
                 | "Dictionary mismatch"
-                | "Corrupted block detected"
-                | "Restored data doesn't match checksum" => {
+                | "Corrupted block detected" => {
                     "invalid compressed data or codec memory limit exceeded"
                 }
                 _ => error,
@@ -6969,7 +6968,7 @@ pub(super) fn cmd_gzip(
         })();
         if let Err(e) = plan {
             result.exit_code = 1;
-            result.stderr.push_str(&format!("{invoked}: {e}\n"));
+            if !is_zstd || quiet < 2 { result.stderr.push_str(&format!("{invoked}: {e}\n")); }
         }
     }
     let sources: BTreeSet<_> = plans.iter().flatten().map(|p| &p.real).collect();
@@ -6992,9 +6991,11 @@ pub(super) fn cmd_gzip(
                 .is_some_and(|id| identities.contains(id))
         {
             result.exit_code = 1;
-            result.stderr.push_str(&format!(
-                "{invoked}: EINVAL: multiple operands share a source or destination path '{path}'\n"
-            ));
+            if !is_zstd || quiet < 2 {
+                result.stderr.push_str(&format!(
+                    "{invoked}: EINVAL: multiple operands share a source or destination path '{path}'\n"
+                ));
+            }
             return result;
         }
     }
@@ -7041,7 +7042,7 @@ pub(super) fn cmd_gzip(
             if is_zstd && test_mode {
                 tested_files += 1;
                 tested_bytes += output.len();
-                if !quiet && !multiple_files {
+                if quiet == 0 && !multiple_files {
                     let padding =
                         " ".repeat(20usize.saturating_sub(test_source.encode_utf16().count()));
                     result
@@ -7076,7 +7077,7 @@ pub(super) fn cmd_gzip(
             Ok(())
         })();
         if let Err(e) = run {
-            result.stderr.push_str(&e.stderr);
+            if !is_zstd || quiet < 2 { result.stderr.push_str(&e.stderr); }
             result.exit_code = result.exit_code.max(e.exit_code);
             if stop_on_corruption || e.stderr
                 .starts_with("Execution aborted: Shell limit exceeded:")
@@ -7085,7 +7086,7 @@ pub(super) fn cmd_gzip(
             }
         }
     }
-    if is_zstd && test_mode && !quiet && multiple_files && tested_files != 0 {
+    if is_zstd && test_mode && quiet == 0 && multiple_files && tested_files != 0 {
         result.stderr.push_str(&format!(
             "{tested_files} files decompressed :   {tested_bytes} bytes total \n"
         ));

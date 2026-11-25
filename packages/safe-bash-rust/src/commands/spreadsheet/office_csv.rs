@@ -1361,6 +1361,7 @@ mod tests {
                 merges: Vec::new(),
                 arrays: Vec::new(),
                 comments: Vec::new(),
+                validations: Vec::new(),
                 empty_headers: false,
                 default_row_height: None,
                 frozen_rows: 0,

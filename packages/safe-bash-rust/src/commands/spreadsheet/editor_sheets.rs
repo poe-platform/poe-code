@@ -309,6 +309,19 @@ impl Spreadsheet {
                 *source = rewrite(source, None, rule.sheet, (0, 0), false)?;
             }
         }
+        for (sheet, source_sheet) in next.sheets.iter_mut().enumerate() {
+            if replacement.is_none() && sheet == changed {
+                continue;
+            }
+            for rule in &mut source_sheet.validations {
+                for source in [&mut rule.formula, &mut rule.formula2]
+                    .into_iter()
+                    .flatten()
+                {
+                    *source = rewrite(source, None, sheet, (0, 0), false)?;
+                }
+            }
+        }
         next.options.formula_origins.clear();
         Ok(next)
     }

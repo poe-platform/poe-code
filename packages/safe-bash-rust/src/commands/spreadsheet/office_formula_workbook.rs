@@ -113,7 +113,7 @@ impl crate::commands::spreadsheet::Spreadsheet {
     }
 }
 
-fn reference_calculation<'a>(
+pub(super) fn reference_calculation<'a>(
     book: &'a crate::commands::spreadsheet::Spreadsheet,
     names: &'a [String],
     limit: usize,

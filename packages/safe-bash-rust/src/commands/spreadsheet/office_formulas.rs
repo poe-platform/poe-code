@@ -128,6 +128,8 @@ mod workdays;
 use result_format::{Format, Kind as FormatKind};
 #[path = "office_formula_spill.rs"]
 mod spill;
+#[path = "office_formula_validation.rs"]
+pub(super) mod validation;
 #[path = "office_formula_workbook.rs"]
 mod workbook;
 pub(super) use spill::SpillCache;
@@ -1713,13 +1715,18 @@ impl<'a> Calculation<'a> {
         if let Value::Text(text) | Value::UninternedText(text) = &value {
             self.work = self.work.checked_sub(text.len())?;
         }
-        Some(if matches!(value, Value::Empty)
-            && !self.dynamic.as_ref().is_some_and(|state| state.cells.contains(&coord))
-        {
-            Value::Number(0.)
-        } else {
-            value
-        })
+        Some(
+            if matches!(value, Value::Empty)
+                && !self
+                    .dynamic
+                    .as_ref()
+                    .is_some_and(|state| state.cells.contains(&coord))
+            {
+                Value::Number(0.)
+            } else {
+                value
+            },
+        )
     }
     fn scalar(&mut self, value: Value, position: Coord, depth: usize) -> Option<Value> {
         if matches!(value, Value::Lambda(_)) {

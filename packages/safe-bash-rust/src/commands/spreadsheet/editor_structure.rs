@@ -180,6 +180,11 @@ impl Spreadsheet {
                     .comments
                     .iter()
                     .any(|c| edit.point(if columns { c.column } else { c.row }).is_none())
+                || source
+                    .validations
+                    .iter()
+                    .flat_map(|rule| &rule.ranges)
+                    .any(|area| edit.point(area[index + 2]).is_none())
                 || self
                     .options
                     .tables
@@ -418,6 +423,58 @@ impl Spreadsheet {
         next.options
             .conditional_formats
             .retain(|rule| !rule.ranges.is_empty());
+        for (validation_sheet, source_sheet) in next.sheets.iter_mut().enumerate() {
+            for rule in &mut source_sheet.validations {
+                let old_anchor = rule
+                    .ranges
+                    .first()
+                    .map(|a| (a[0], a[1]))
+                    .ok_or("Missing validation range")?;
+                let mut original = old_anchor;
+                if validation_sheet == sheet {
+                    rule.ranges = rule
+                        .ranges
+                        .iter()
+                        .filter_map(|&area| edit.area(area))
+                        .collect();
+                    let Some(anchor) = rule.ranges.first().map(|a| (a[0], a[1])) else {
+                        continue;
+                    };
+                    original = anchor;
+                    let p = if columns {
+                        &mut original.1
+                    } else {
+                        &mut original.0
+                    };
+                    // Rebase onto the first surviving origin before mapping references.
+                    // Otherwise deleting the origin incorrectly invalidates relative A1.
+                    if delta > 0 && *p >= start + edit.count() {
+                        *p -= edit.count();
+                    } else if delta < 0 && *p >= start {
+                        *p += edit.count();
+                    }
+                }
+                let offset = (
+                    original.0 as i64 - old_anchor.0 as i64,
+                    original.1 as i64 - old_anchor.1 as i64,
+                );
+                for source in [&mut rule.formula, &mut rule.formula2]
+                    .into_iter()
+                    .flatten()
+                {
+                    *source = rewrite(
+                        source,
+                        None,
+                        (validation_sheet, original.0, original.1),
+                        offset,
+                        false,
+                    )?;
+                }
+            }
+            source_sheet
+                .validations
+                .retain(|rule| !rule.ranges.is_empty());
+        }
         let mut template_offsets = Vec::new();
         for (table_index, table) in next.options.tables.iter_mut().enumerate() {
             let base = table.area[0] + usize::from(table.header);

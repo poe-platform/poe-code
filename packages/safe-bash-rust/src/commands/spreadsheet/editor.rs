@@ -85,6 +85,7 @@ impl Spreadsheet {
             merges: Vec::new(),
             arrays: Vec::new(),
             comments: Vec::new(),
+            validations: Vec::new(),
             empty_headers: false,
             default_row_height: Some(21.),
             default_column_width: Some(90.),
@@ -297,7 +298,7 @@ impl Spreadsheet {
                 .collect::<Vec<_>>();
             removed.push((sheet, indices, groups));
         }
-        let result = self.replace_cells(replacements, remaining);
+        let result = self.replace_validated_cells(replacements, remaining);
         if result.is_err() {
             for (sheet, indices, groups) in removed {
                 for (index, group) in indices.into_iter().zip(groups) {

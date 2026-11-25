@@ -629,6 +629,7 @@ pub(super) fn retain(
                 }
             }
         }
+        sheet.validations = super::super::validation::read(&nodes, &mut imported.remaining)?;
         let (directory, name) = path.rsplit_once('/').unwrap_or(("", path));
         let rel_path = if directory.is_empty() {
             format!("_rels/{name}.rels")

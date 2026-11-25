@@ -32,7 +32,7 @@ pub(in crate::commands) fn error(value: &str) -> &str {
     }
 }
 
-fn escaped(s: &str) -> String {
+pub(super) fn escaped(s: &str) -> String {
     let mut out = String::new();
     for (i, c) in s.char_indices() {
         if c == '\r' {
@@ -302,6 +302,7 @@ pub struct Workbook {
     pub explicit_formula_styles: BTreeSet<(usize, usize, usize)>,
 }
 pub struct Sheet<S> {
+    pub validations: Vec<super::validation::DataValidation>,
     pub name: S,
     pub state: &'static str,
     pub view: Vec<(&'static str, bool)>,
@@ -1026,6 +1027,7 @@ pub(in crate::commands) fn write_cells(
         }
         let file = format!(
             include_str!("xlsx/worksheet.xml"),
+            validations = super::validation::write(&sh.validations, &mut work)?,
             conditional = conditional,
             extensions = if extensions.is_empty() {
                 String::new()

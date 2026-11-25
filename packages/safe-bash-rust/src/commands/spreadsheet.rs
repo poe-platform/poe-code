@@ -219,6 +219,9 @@ pub use model::{
 
 #[path = "spreadsheet/json.rs"]
 mod json;
+#[path = "spreadsheet/validation.rs"]
+mod validation;
+pub use validation::DataValidation;
 
 #[cfg(test)]
 #[path = "spreadsheet/editor_calculated_tests.rs"]

@@ -167,6 +167,15 @@ impl Spreadsheet {
                         rewrite(source, (s, r as i64, c as i64), Some(s), None)?;
                     }
                 }
+                for rule in &mut sheet.validations {
+                    let [row, column, _, _] = rule.ranges[0];
+                    for source in [&mut rule.formula, &mut rule.formula2]
+                        .into_iter()
+                        .flatten()
+                    {
+                        rewrite(source, (s, row as i64, column as i64), Some(s), None)?;
+                    }
+                }
                 for array in &mut sheet.arrays {
                     let position = (s, array.range[0] as i64, array.range[1] as i64);
                     rewrite(&mut array.expression, position, Some(s), None)?;

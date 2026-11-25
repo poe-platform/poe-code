@@ -324,6 +324,23 @@ fn styled_map<K: Key, T>(values: &BTreeMap<K, T>, write: impl Fn(&T) -> Json) ->
             .collect(),
     )
 }
+structure!(super::DataValidation {
+    ranges,
+    kind,
+    operator,
+    allow_blank,
+    show_error,
+    show_input,
+    show_dropdown,
+    error_style,
+    ime_mode,
+    error_title,
+    error,
+    prompt_title,
+    prompt,
+    formula,
+    formula2
+});
 structure!(TextRun { text, attributes });
 structure!(Comment {
     row,
@@ -506,6 +523,14 @@ impl Sheet<String> {
             ("merges", self.merges.json()),
             ("arrays", self.arrays.json()),
             ("comments", self.comments.json()),
+            (
+                "validations",
+                if self.validations.is_empty() {
+                    Json::Null
+                } else {
+                    self.validations.json()
+                },
+            ),
             ("empty_headers", self.empty_headers.json()),
             ("default_row_height", self.default_row_height.json()),
             ("default_column_width", self.default_column_width.json()),
@@ -540,6 +565,11 @@ impl Sheet<String> {
             merges: Codec::read(v.get("merges").unwrap_or(&Json::Null))?,
             arrays: Codec::read(v.get("arrays").unwrap_or(&Json::Null))?,
             comments: Codec::read(v.get("comments").unwrap_or(&Json::Null))?,
+            validations: v
+                .get("validations")
+                .map(Codec::read)
+                .transpose()?
+                .unwrap_or_default(),
             empty_headers: Codec::read(v.get("empty_headers").unwrap_or(&Json::Null))?,
             default_row_height: Codec::read(v.get("default_row_height").unwrap_or(&Json::Null))?,
             default_column_width: Codec::read(
@@ -1272,7 +1302,8 @@ impl Spreadsheet {
         let coord =
             |(s, r, c): (usize, usize, usize)| s < book.sheets.len() && r < 1_048_576 && c < 16_384;
         for sheet in &book.sheets {
-            if sheet.frozen_rows >= 1_048_576
+            if sheet.validations.iter().any(|rule| !rule.valid())
+                || sheet.frozen_rows >= 1_048_576
                 || sheet.frozen_columns >= 16_384
                 || [sheet.default_row_height, sheet.default_column_width]
                     .into_iter()

@@ -1560,6 +1560,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
+name = "safe-bash-command-trash"
+version = "0.1.0"
+
+[[package]]
 name = "safe-bash-rust"
 version = "0.1.0"
 dependencies = [
@@ -1573,6 +1577,7 @@ dependencies = [
  "office-package-rust",
  "pdf-ast-rust",
  "poe-agent-rust",
+ "safe-bash-command-trash",
  "terminal-png-rust",
 ]
 

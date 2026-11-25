@@ -50,12 +50,27 @@ export async function* decodeRetainedSampleRows(source: PdfFileSource, width: nu
   const channelBytes = color.isSeparation || color.isDeviceN ? color.components * 8 : 0;
   const workingBytes = sampleBytes + alphaBytes + width * 4 + rangeBytes + channelBytes;
   if (!Number.isSafeInteger(rowBytes) || !Number.isSafeInteger(workingBytes) || workingBytes > workingLimit) throw new PdfError("E_LIMIT", "PDF sample working byte limit exceeded");
+  // Own a bounded source block across rows. PdfFileSource validates its receipt
+  // on every read, so reading each narrow row separately multiplies remote IO.
+  const cacheBytes = Math.min(source.chunkBytes, source.size, workingLimit - workingBytes + rangeBytes);
+  let cached: Uint8Array = new Uint8Array(), cachedAt = -1;
   async function row(input: PdfFileSource, start: number, length: number): Promise<Uint8Array> {
     const actual = Math.max(0, Math.min(length, input.size - start));
     const bytes = new Uint8Array(actual);
-    for (let offset = 0; offset < actual; offset += input.chunkBytes) {
+    for (let offset = 0; offset < actual;) {
       options.signal?.throwIfAborted();
-      bytes.set(await input.read(start + offset, Math.min(input.chunkBytes, actual - offset), options.signal), offset);
+      if (alpha) {
+        const count = Math.min(input.chunkBytes, actual - offset);
+        bytes.set(await input.read(start + offset, count, options.signal), offset); offset += count;
+      } else {
+        const position = start + offset;
+        if (position < cachedAt || position >= cachedAt + cached.length) {
+          cached = new Uint8Array(); cachedAt = position;
+          cached = await input.read(position, cacheBytes, options.signal);
+        }
+        const count = Math.min(actual - offset, cachedAt + cached.length - position);
+        bytes.set(cached.subarray(position - cachedAt, position - cachedAt + count), offset); offset += count;
+      }
     }
     return bytes;
   }

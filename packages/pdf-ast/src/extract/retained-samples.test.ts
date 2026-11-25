@@ -121,3 +121,14 @@ it("shares calibrated and tint color conversion with the buffered decoder", asyn
     expect(actual).toEqual([...expected]); await source.close(); await alpha.close();
   }
 });
+
+it("reads narrow sample rows in blocks instead of revalidating each row", async () => {
+  const fs = createMemoryFileSystem(); await fs.writeFile("/input", new Uint8Array(300).fill(17));
+  const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 64 });
+  const read = vi.spyOn(source, "read");
+  try {
+    const rows = await collect(decodeRetainedSampleRows(source, 1, 100, 8, { colorSpace: "rgb", components: 3 }));
+    expect(rows).toEqual(Array.from({ length: 100 }, () => [17, 17, 17, 255]));
+    expect(read).toHaveBeenCalledTimes(5);
+  } finally { await source.close(); }
+});

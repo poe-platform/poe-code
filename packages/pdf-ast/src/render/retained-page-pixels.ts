@@ -31,7 +31,8 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
   const maximum = options.maxPixelWorkingBytes ?? Infinity;
   if (!Number.isSafeInteger(tileSize) || tileSize < 1 || !Number.isSafeInteger(chunkBytes) || chunkBytes < 4
     || (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0))) throw new RangeError("Invalid retained pixel limits");
-  const scratch = tileSize * tileSize * 4 + chunkBytes * 6;
+  const cachePages = Math.min(8, Math.max(1, Math.floor((maximum - tileSize * tileSize * 4) / chunkBytes) - 5));
+  const scratch = tileSize * tileSize * 4 + chunkBytes * (5 + cachePages);
   if (!Number.isSafeInteger(scratch) || scratch > maximum) throw new PdfError("E_LIMIT", "PDF pixel driver working byte limit exceeded");
   const attributes = await page.attributes(); signal?.throwIfAborted();
   const [x0, y0, x1, y1] = attributes.mediaBox;
@@ -58,7 +59,7 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
     async function* tiles() {
       let work = 0;
       const paints = options.imageStorage ? new StoredOperationsWriter(options.imageStorage, signal) : undefined;
-      if (paints) for await (const event of page.evaluateSteps(shared, options)) {
+      if (paints) for await (const event of page.evaluateSteps(shared, { ...options, chunkBytes })) {
         if (!event.captured) await paints.append(event.operation);
         if (++work % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         signal?.throwIfAborted();
@@ -68,14 +69,15 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
         if (++work % 32 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         signal?.throwIfAborted();
         const tile = await renderOperationStreamWindow(geometry, stored ?? async function* () {
-          for await (const event of page.evaluateSteps(shared, options)) if (!event.captured) yield event.operation;
+          for await (const event of page.evaluateSteps(shared, { ...options, chunkBytes })) if (!event.captured) yield event.operation;
         }, { x, y, width: Math.min(tileSize, width - x), height: Math.min(tileSize, height - y) }, { ...options, scale: scaleX });
         yield tile.data;
       }
     }
     try {
       source = await PdfFileSource.fromStream(shared.fs, shared.directory, tiles(), { chunkBytes, cacheBytes: chunkBytes, ...(signal ? { signal } : {}) });
-      let cached: Uint8Array = new Uint8Array(), cachedAt = -1, buffer = new Uint8Array(chunkBytes - chunkBytes % 4), used = 0, work = 0;
+      const cache = new Map<number, Uint8Array>();
+      let buffer = new Uint8Array(chunkBytes - chunkBytes % 4), used = 0, work = 0;
       for (let y = 0; y < output.height; y++) for (let x = 0; x < output.width; x++) {
         if (++work % 16384 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         signal?.throwIfAborted();
@@ -89,9 +91,16 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
         const offset = (ty * width + tx * th + (sy - ty) * tw + sx - tx) * 4;
         for (let channel = 0; channel < 4; channel++) {
           const position = offset + channel;
-          if (position < cachedAt || position >= cachedAt + cached.length) {
-            cachedAt = Math.floor(position / chunkBytes) * chunkBytes; cached = await source.read(cachedAt, chunkBytes, signal);
+          const cachedAt = Math.floor(position / chunkBytes) * chunkBytes;
+          let cached = cache.get(cachedAt);
+          if (cached) cache.delete(cachedAt);
+          else {
+            // Row traversal revisits adjacent tiles. Retain a fixed set of owned
+            // blocks rather than reopening the same tile on every output row.
+            if (cache.size === cachePages) cache.delete(cache.keys().next().value!);
+            cached = await source.read(cachedAt, chunkBytes, signal);
           }
+          cache.set(cachedAt, cached);
           buffer[used++] = cached[position - cachedAt]!;
         }
         if (used === buffer.length) { yield buffer; buffer = new Uint8Array(buffer.length); used = 0; }

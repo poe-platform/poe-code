@@ -62,7 +62,7 @@ it.each([false, true])("cleans staged pixels when the consumer returns and prese
 });
 
 it.each([32, 128])("uses fixed driver scratch and scalar external pixel storage at %i pixels", async dimension => {
-  const chunkBytes = 64, tileSize = 16, scope = {}; let size = 0, revision = 0, live = false, writing = false, reads = 0, peak = 0;
+  const chunkBytes = 1024, tileSize = 16, scope = {}; let size = 0, revision = 0, live = false, writing = false, reads = 0, peak = 0;
   const stat = () => ({ type: "file" as const, size, revision, identityScope: scope, opaqueIdentity: "pixels" });
   const fs = {
     capabilities: { retainedRead: true, retainedStagingWrite: true, retainedStagingCleanup: true },
@@ -82,11 +82,12 @@ it.each([32, 128])("uses fixed driver scratch and scalar external pixel storage 
     readFile() { throw new Error("whole read forbidden"); }, writeFile() { throw new Error("whole write forbidden"); },
   } as unknown as import("@poe-code/safe-fs/contracts").FileSystem;
   const page = { async attributes() { return { mediaBox: [0, 0, dimension, dimension], rotation: 0 }; },
-    async *evaluateSteps() { expect(writing).toBe(false); yield* []; } } as unknown as import("../retained-document.js").PdfRetainedPage;
-  const image = await renderRetainedPagePixels(page, { fs, directory: "/external" }, { scale: 1, tileSize, chunkBytes, maxPixelWorkingBytes: tileSize * tileSize * 4 + chunkBytes * 6 });
+    async *evaluateSteps(_storage: unknown, options: { chunkBytes: number }) { expect(options.chunkBytes).toBe(chunkBytes); expect(writing).toBe(false); yield* []; } } as unknown as import("../retained-document.js").PdfRetainedPage;
+  const image = await renderRetainedPagePixels(page, { fs, directory: "/external" }, { scale: 1, tileSize, chunkBytes, maxPixelWorkingBytes: tileSize * tileSize * 4 + chunkBytes * 13 });
   let total = 0;
   for await (const chunk of image.pixels) { expect(chunk.every(value => value === 255)).toBe(true); total += chunk.length;
     const before = reads; await Promise.resolve(); expect(reads).toBe(before); chunk.fill(0); }
+  expect(reads).toBeLessThanOrEqual(dimension * dimension * 4 / chunkBytes);
   expect(total).toBe(dimension * dimension * 4); expect(size).toBe(total); expect(peak).toBeLessThanOrEqual(chunkBytes); expect(live).toBe(false);
 });
 
@@ -94,8 +95,9 @@ it("admits driver scratch before page access and preserves producer errors throu
   const f = await fixture(); const attributes = vi.spyOn(f.retained, "attributes");
   await expect(renderRetainedPagePixels(f.retained, f.storage, { maxPixelWorkingBytes: 1 })).rejects.toMatchObject({ code: "E_LIMIT" });
   expect(attributes).not.toHaveBeenCalled();
+  await expect(renderRetainedPagePixels(f.retained, f.storage, { tileSize: 8, chunkBytes: 32, maxPixelWorkingBytes: 8 * 8 * 4 + 32 * 6 })).resolves.toMatchObject({ pixels: expect.anything() });
   const reason = { reason: "paint producer" };
-  const page = { attributes: f.retained.attributes.bind(f.retained), async *evaluateSteps() { yield* []; throw reason; } } as unknown as import("../retained-document.js").PdfRetainedPage;
+  const page = { attributes: f.retained.attributes.bind(f.retained), async *evaluateSteps(_storage: unknown, options: { chunkBytes: number }) { expect(options.chunkBytes).toBe(65536); yield* []; throw reason; } } as unknown as import("../retained-document.js").PdfRetainedPage;
   const before = await f.storage.fs.readdir("/scratch");
   const image = await renderRetainedPagePixels(page, f.storage, { scale: 1, tileSize: 8 });
   await expect(image.pixels[Symbol.asyncIterator]().next()).rejects.toBe(reason);

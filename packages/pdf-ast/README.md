@@ -96,8 +96,10 @@ full-page pixel allocation. Consume `pixels` directly or pass it to
 external backend for large pages. `tileSize` defaults to 128 and `chunkBytes` to
 65536. `maxPixelWorkingBytes` admits driver scratch, excluding rasterizer window
 surfaces and evaluator resources; individual decoded resources and metadata
-still need bounded ownership. Rendering repeats page evaluation per
-tile and uses seekable staging before yielding the first output chunk.
+still need bounded ownership. Up to eight tile blocks are retained within that
+budget to avoid rereading them for each output row. With caller-owned image
+backing, page operations are evaluated once and replayed per tile; otherwise
+evaluation repeats. Both paths use seekable staging before the first output chunk.
 
 `PdfMutableObjectStore.delete(objectNumber)` removes a staged object without
 loading its value or stream. Fresh reads and output iterators omit it; previously

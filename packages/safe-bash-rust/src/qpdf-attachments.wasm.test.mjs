@@ -9,9 +9,21 @@ for (const fixture of fixtures) test(`qpdf attachments match JavaScript: ${fixtu
   const bytes = Buffer.from(cases[fixture.name].pdf, "base64");
   const bash = await createRustWasmBash({forceNative: true, cwd: "/", files: {"/in.pdf": bytes}});
   try {
-    const result = await bash.exec(`qpdf in.pdf ${fixture.flags}`);
+    const script = `qpdf in.pdf ${fixture.flags}`;
+    const result = await bash.exec(script);
     assert.deepEqual([result.exitCode, result.stderr, Buffer.from(result.stdoutBytes)],
       [fixture.status, fixture.stderr, Buffer.from(fixture.stdout, "base64")]);
+    const quiet = await bash.exec(`${script} --warning-exit-0`);
+    assert.deepEqual([quiet.exitCode, quiet.stderr, quiet.stdoutBytes],
+      [fixture.status === 3 ? 0 : fixture.status, result.stderr, result.stdoutBytes]);
+    const limit = result.stdoutBytes.length + Buffer.byteLength(result.stderr);
+    if (limit > 1) {
+      const exact = await bash.exec(script, {limits: {maxOutputBytes: limit}});
+      assert.deepEqual([exact.exitCode, exact.stderr, exact.stdoutBytes],
+        [result.exitCode, result.stderr, result.stdoutBytes]);
+      await assert.rejects(bash.exec(script, {limits: {maxOutputBytes: limit - 1}}),
+        {name: "ShellLimitError", limit: "maxOutputBytes"});
+    }
     assert.deepEqual(await bash.fs.readFile("/in.pdf"), new Uint8Array(bytes));
   } finally {await bash.dispose();}
 });

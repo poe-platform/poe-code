@@ -22248,36 +22248,6 @@ test("magick writes native pixel and alpha values into PDF files", async () => {
 });
 
 
-test("qpdf inspects named attachments against native results",async()=>{
-  const {readFile}=await import("node:fs/promises");
-  const {cases}=JSON.parse(await readFile(new URL("../tests/fixtures/attachment-inspection.json",import.meta.url),"utf8"));
-  for(const [name,{pdf,reports}]of Object.entries(cases)) {
-    const bytes=Buffer.from(pdf,"base64"),bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
-    try {
-      for(const [flags,want]of Object.entries(reports)) {
-        const got=await bash.exec("qpdf in.pdf "+flags);
-        assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],
-          [want.status,want.stderr,Buffer.from(want.stdout,"base64")],name+"/"+flags);
-        const quiet=await bash.exec("qpdf in.pdf "+flags+" --warning-exit-0");
-        assert.deepEqual([quiet.exitCode,quiet.stderr,quiet.stdoutBytes],[want.status===3?0:want.status,got.stderr,got.stdoutBytes]);
-        const limit=got.stdoutBytes.length+Buffer.byteLength(got.stderr);
-        if(limit>1) {
-          const exact=await bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit}});
-          assert.deepEqual([exact.exitCode,exact.stderr,exact.stdoutBytes],[got.exitCode,got.stderr,got.stdoutBytes]);
-          const short=bash.exec("qpdf in.pdf "+flags,{limits:{maxOutputBytes:limit-1}});
-          if(limit<=Buffer.byteLength("qpdf: output byte limit exceeded\n")) {
-            await assert.rejects(short,{limit:"maxOutputBytes"});
-          } else {
-            const result=await short;
-            assert.deepEqual([result.exitCode,result.stdout],[2,""]);
-          }
-        }
-        assert.deepEqual(await bash.fs.readFile("/in.pdf"),new Uint8Array(bytes));
-      }
-    }finally{bash.dispose();}
-  }
-});
-
 
 test("qpdf inspection preserves string bytes, sorts decoded keys and selects exact generations", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");

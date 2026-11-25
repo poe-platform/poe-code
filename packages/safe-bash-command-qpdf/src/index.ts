@@ -2110,6 +2110,7 @@ function* executeQpdfCli(
       let modified = false;
       const pageRes = page.getResourcesDict();
       let xobjSub = asDict(workingDoc.cos.resolve(dictGet(pageRes, "XObject")));
+      if (xobjSub) xobjSub = { ...xobjSub, entries: xobjSub.entries.slice() };
       const transformNodes = (
         nodes: readonly import("@poe-code/pdf-ast").PdfContentNode[]
       ): import("@poe-code/pdf-ast").PdfContentNode[] => {
@@ -2122,7 +2123,6 @@ function* executeQpdfCli(
           } else if (node.kind === "inline-image" && node.data.byteLength >= iiMinBytes) {
             if (!xobjSub) {
               xobjSub = cosDict({});
-              dictSet(pageRes, "XObject", xobjSub);
             }
             let resName = `ImExt${extCounter++}`;
             while (dictGet(xobjSub, resName)) {
@@ -2154,6 +2154,10 @@ function* executeQpdfCli(
       };
       const nextAst = transformNodes(page.getContentAst());
       if (modified) {
+        // Resources and XObject dictionaries may be shared by other pages.
+        const resources: PdfCosDict = { ...pageRes, entries: pageRes.entries.slice() };
+        dictSet(resources, "XObject", xobjSub!);
+        dictSet(page.dict, "Resources", resources);
         page.setContentAst(nextAst, streamDataMode !== "uncompress");
       }
     }

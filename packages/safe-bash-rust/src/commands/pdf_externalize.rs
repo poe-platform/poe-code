@@ -77,14 +77,14 @@ impl<'a> LayerState<'a> {
             let Value::Dict(mut page) = original else {
                 return Err(BAD.into());
             };
-            let (r, mut root) = self.resources(o, tree, &page, bodies);
-            let (cat, mut images) = match root
+            let (_, mut root) = self.resources(o, tree, &page, bodies);
+            let mut images = match root
                 .iter()
                 .find(|(k, _)| k.as_ref() == b"XObject")
                 .and_then(|(_, v)| self.lookup(o, bodies, v))
             {
-                Some((r, Value::Dict(d))) => (r, d),
-                _ => (None, vec![]),
+                Some((_, Value::Dict(d))) => d,
+                _ => vec![],
             };
             let mut modified = false;
             let mut bytes =
@@ -117,10 +117,9 @@ impl<'a> LayerState<'a> {
                     Ok(Some(name))
                 })?;
             if modified {
-                self.save_dict(cat, images, &mut root, b"XObject")
-            }
-            self.save_dict(r, root, &mut page, b"Resources");
-            if modified {
+                // Resources and XObject dictionaries may be shared by other pages.
+                self.save_dict(None, images, &mut root, b"XObject");
+                self.save_dict(None, root, &mut page, b"Resources");
                 bytes.pop(); // The content serializer separates operators with one LF.
                 self.replace(o, &mut page, &bytes, bodies, next, left, compress)?;
             }

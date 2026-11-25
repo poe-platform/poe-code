@@ -1,3 +1,4 @@
+import "./qpdf-inline-images.wasm.test.mjs";
 import "./pdftk-stamps.wasm.test.mjs";
 import "./qpdf-ranges.wasm.test.mjs";
 import "./qpdf-selections.wasm.test.mjs";
@@ -23702,40 +23703,6 @@ test("pdfunite omits source document metadata while separate pages retain it", a
     assert.equal(PdfDocument.load(await bash.fs.readFile("/page-1.pdf")).cos.getInfoString("Title"), "private-source-info");
     assert.deepEqual(await bash.fs.readFile("/in.pdf"), input);
   } finally { bash.dispose(); }
-});
-
-
-
-test("qpdf JSON page reports include externalized images in direct and inherited resources",async()=>{
-  const {PdfDocument,cosDict,dictGet,dictSet,dictDelete}=await import("@poe-code/pdf-ast");
-  for(const layout of ["direct","indirect","inherited","shared","shared-xobjects"]) {
-    const doc=PdfDocument.create(),pages=[doc.addPage(),doc.addPage()];
-    pages[0].setRawContentStream(Buffer.concat([Buffer.from("q BI /W 8 /H 1 /BPC 8 /CS /G ID "),Buffer.from([0,32,69,73,32,1,2,3]),Buffer.from(" EI Q\nBI /F /AHx /W 1 /H 1 /BPC 8 /CS /RGB ID FF0000> EI")]));
-    dictSet(pages[1].dict,"Contents",dictGet(pages[0].dict,"Contents"));
-    const resource=()=>cosDict({XObject:doc.cos.allocateObject(cosDict({}))});
-    const shared=doc.cos.allocateObject(resource());
-    for(const p of pages) {
-      dictSet(p.dict,"Resources",layout==="direct"?resource():layout==="indirect"?doc.cos.allocateObject(resource()):layout==="shared-xobjects"?doc.cos.allocateObject(doc.cos.resolveDict(shared)):shared);
-      if(layout==="inherited") {dictSet(doc.cos.resolveDict(dictGet(p.dict,"Parent")),"Resources",shared);dictDelete(p.dict,"Resources");}
-    }
-    const input=doc.save(),bash=new RustWasmBash({cwd:"/",files:{"/in":input}});
-    try {
-      for(const version of [1,2])for(const selection of ["","--json-key=pages","--json-object=1"]) {
-        const result=await bash.exec("qpdf in --externalize-inline-images --ii-min-bytes=2 --json="+version+" "+selection);
-        assert.equal(result.exitCode,0,result.stderr);
-        const report=JSON.parse(result.stdout);assert.equal(report.pages.length,2);
-        for(const page of report.pages) {
-          // qpdf 12.4.2 lists both images on both pages for every layout.
-          assert.deepEqual(page.images.map(i=>[i.width,i.height,i.bitspercomponent,i.colorspace]),[[8,1,8,"/DeviceGray"],[1,1,8,"/DeviceRGB"]],layout+"/"+version+"/"+selection);
-          for(const image of page.images)assert.equal(typeof image.object,"string");
-        }
-      }
-      const saved=await bash.exec("qpdf in --externalize-inline-images --ii-min-bytes=2 out.pdf");assert.equal(saved.exitCode,0,saved.stderr);
-      const output=PdfDocument.load(await bash.fs.readFile("/out.pdf"));
-      for(let index=0;index<2;index++)assert.equal(output.cos.resolveDict(dictGet(output.getPage(index).getResourcesDict(),"XObject")).entries.length,2,layout);
-      assert.deepEqual(await bash.fs.readFile("/in"),input);
-    }finally{bash.dispose();}
-  }
 });
 
 

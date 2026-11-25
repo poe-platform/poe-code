@@ -39,14 +39,15 @@ export async function externalizeRetainedInlineImages(document: PdfRetainedDocum
         }
         resources = { value: { kind: "dict", entries } }; dictSet(page.dict, "Resources", resources.value);
       }
-      const pageResources = resources;
+      const pageResources: PdfCosDict = { ...resources.value, entries: resources.value.entries.slice() };
       xobjects = await dictionary(dictGet(resources.value, "XObject"));
+      if (xobjects) xobjects = { value: { ...xobjects.value, entries: xobjects.value.entries.slice() } };
       async function* transformed(): AsyncGenerator<PdfContentEvent> {
         const events = parseContentStreamEvents(page.streamContents(), storage, { pathStorage: paths, maxDepth: Infinity, maxNodes: Infinity, maxTokenBytes: Infinity, signal });
         for await (const event of events) {
           const length = event.kind === "inline-image" ? event.data instanceof Uint8Array ? event.data.length : event.data.end - event.data.start : 0;
           if (event.kind !== "inline-image" || length < minimum) { yield event; continue; }
-          if (!xobjects) { xobjects = { value: cosDict() }; dictSet(pageResources.value, "XObject", xobjects.value); }
+          if (!xobjects) xobjects = { value: cosDict() };
           let name = `ImExt${counter++}`;
           while (dictGet(xobjects.value, name)) { signal.throwIfAborted(); name = `ImExt${counter++}`; }
           const value = cosDict({ Type: cosName("XObject"), Subtype: cosName("Image") });
@@ -67,8 +68,11 @@ export async function externalizeRetainedInlineImages(document: PdfRetainedDocum
       const content = await PdfFileSource.fromStream(storage.fs, storage.directory, serializeContentEventChunks(transformed(), storage, { signal }), { signal });
       let contentFailed = false;
       try {
-        if (xobjects?.reference) await editor.set(xobjects.reference, xobjects.value);
-        if (resources.reference) await editor.set(resources.reference, resources.value);
+        if (modified) {
+          // Keep new image names local when pages share resource dictionaries.
+          dictSet(pageResources, "XObject", xobjects!.value);
+          dictSet(page.dict, "Resources", pageResources);
+        }
         if (page.reference) await editor.set(page.reference, page.dict);
         if (modified) await editor.replace(page, content.stream(0, content.size, signal), options.compress ?? true);
       } catch (error) { contentFailed = true; throw error; }

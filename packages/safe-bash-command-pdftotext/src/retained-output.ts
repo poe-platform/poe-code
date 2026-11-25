@@ -11,7 +11,7 @@ export async function publishPdfOutput(context: CommandContext, path: string, so
   }
   // Remote providers can atomically compare parent and destination receipts,
   // even though they cannot execute a synchronous JavaScript commit callback.
-  const resolution = capabilities.atomicStagingAncestry && fs.prepareStagingResolution
+  const resolution = capabilities.atomicStagingAncestry && capabilities.synchronousStagingResolution && capabilities.guardedStagingPublication && fs.prepareStagingResolution
     ? await fs.prepareStagingResolution(path, { signal })
     : await (async () => {
       if (!fs.realpath) throw new FsError("ENOTSUP", { path });

@@ -42,7 +42,12 @@ it.each([false, true])("streams retained image extraction without whole-file I/O
 async function compareCommand(input: Uint8Array, flags: string[]) {
   const argv = [...flags,"in.pdf",...(flags.includes("-list") ? [] : ["out"])];
   const expected = new Map([["in.pdf",input]]); const reference = await runPdfimagesCli(argv, expected);
-  const fs = createMemoryFileSystem();await fs.mkdir("/tmp");await fs.writeFile("/in.pdf",input);
+  const backing = createMemoryFileSystem();
+  const fs = new Proxy(backing, { get(target, key) {
+    if (key === "capabilities") return { ...target.capabilities, synchronousStagingResolution: false, guardedStagingPublication: false };
+    if (key === "prepareStagingResolution") return async () => { throw Error("synchronous staging resolution unavailable"); };
+    const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+  } });await fs.mkdir("/tmp");await fs.writeFile("/in.pdf",input);
   const args = createCommandArguments(argv);let stdout="",stderr="";
   const result = await createPdfimagesCommand().execute({command:"pdfimages",args:args.args,argumentValues:args,cwd:"/",env:{},fs,stdin:(async function*(){})(),signal:new AbortController().signal,stdout:{write:async bytes=>{await Promise.resolve();stdout+=new TextDecoder().decode(bytes);}},stderr:{write:async bytes=>{stderr+=new TextDecoder().decode(bytes);}}});
   expect({...result,stdout,stderr}).toEqual(reference);

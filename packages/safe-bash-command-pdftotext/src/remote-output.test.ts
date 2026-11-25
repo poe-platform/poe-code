@@ -4,12 +4,13 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { publishPdfOutput } from "./retained-output.js";
 
-  test(`text output supports atomic receipt publication without synchronous guards`, async () => {
+for (const atomicStagingAncestry of [false, true])
+  test(`text output supports atomic receipt publication without synchronous guards (ancestry=${atomicStagingAncestry})`, async () => {
     const backing = createMemoryFileSystem();
     await backing.mkdir("/out");
     const fs = new Proxy(backing, { get(target, key) {
-      if (key === "capabilities") return { ...target.capabilities, atomicStagingAncestry: false, guardedStagingPublication: false, synchronousStagingResolution: false };
-      if (key === "prepareStagingResolution") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, atomicStagingAncestry, guardedStagingPublication: false, synchronousStagingResolution: false };
+      if (key === "prepareStagingResolution") return async () => { throw Error("synchronous staging resolution unavailable"); };
       if (key === "publishStagedFile") return (...args: Parameters<NonNullable<typeof target.publishStagedFile>>) => {
         assert.equal(args[2].commitGuard, undefined);
         return target.publishStagedFile!(...args);

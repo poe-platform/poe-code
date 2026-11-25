@@ -9,6 +9,8 @@ async function fixture(input: Uint8Array, args: string[]) {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
   let reads = 0, writes = 0, published = 0; const stderr: Uint8Array[] = [];
   const guarded = new Proxy(Object.create(fs) as typeof fs, { get(_target, key) {
+    if (key === "capabilities") return { ...fs.capabilities, synchronousStagingResolution: false, guardedStagingPublication: false };
+    if (key === "prepareStagingResolution") return async () => { throw Error("synchronous staging resolution unavailable"); };
     if (key === "readFile") return async () => { reads++; throw new Error("whole reads forbidden"); };
     if (key === "writeFile") return async () => { writes++; throw new Error("whole writes forbidden"); };
     if (key === "publishStagedFile") return async (...args: Parameters<NonNullable<typeof fs.publishStagedFile>>) => { published++; return fs.publishStagedFile!(...args); };

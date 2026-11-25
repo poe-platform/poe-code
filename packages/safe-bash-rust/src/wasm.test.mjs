@@ -22293,8 +22293,9 @@ test("qpdf inspection preserves string bytes, sorts decoded keys and selects exa
 });
 
 
-test("qpdf rewrites preserve the page hierarchy and inherited attributes", async () => {
-  const { cosDict, cosRef, cosString, cosStream, cosArray, cosName, cosNumber, serializeCosDocument, parseCosDocument } = await import("@poe-code/pdf-ast");
+test("qpdf rewrites match JavaScript and preserve inherited page attributes", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { PdfDocument, dictGet, cosDict, cosRef, cosString, cosStream, cosArray, cosName, cosNumber, serializeCosDocument, parseCosDocument } = await import("@poe-code/pdf-ast");
   const box = (w,h) => cosArray([0,0,w,h].map(k => cosNumber(k)));
   const nodes = [
     cosDict({Type:cosName("Catalog"),Pages:cosRef(2),Outlines:cosRef(8)}),
@@ -22307,18 +22308,34 @@ test("qpdf rewrites preserve the page hierarchy and inherited attributes", async
   const input = serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),version:"1.4"});
   const wasm = new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
   const original = parseCosDocument(input);
+  // Both JavaScript command paths flatten /Pages and materialize inherited
+  // attributes. This exact output was independently captured from both paths.
+  const expected = await readFile(new URL("../tests/fixtures/qpdf-rewrite.pdf", import.meta.url));
   try {
     for (const [script,file] of [["qpdf in.pdf out.pdf","/out.pdf"],["cat in.pdf | qpdf - -",null],
       ["qpdf in.pdf --replace-input","/in.pdf"]]) {
       const got=await wasm.exec(script);
       assert.deepEqual([got.exitCode,got.stderr],[0,""],script);
-      const output=parseCosDocument(file?await wasm.fs.readFile(file):got.stdoutBytes);
-      // qpdf 12.4.2 preserves the nested /Pages dictionaries and inherited
-      // attributes on a plain rewrite; page edits materialize them separately.
+      const bytes=file?await wasm.fs.readFile(file):got.stdoutBytes;
+      assert.deepEqual(Buffer.from(bytes), expected, script);
+      if(file!=="/in.pdf")assert.deepEqual(await wasm.fs.readFile("/in.pdf"),input);
+      const output=parseCosDocument(bytes);
       assert.deepEqual([...output.objects.keys()],[...original.objects.keys()]);
-      const fields=(key,value)=>key==="span"||key==="encoding"?undefined:value;
-      for(const [id,object]of original.objects)assert.equal(JSON.stringify(output.getObject(id),fields),JSON.stringify(object.value,fields),script+"/"+id);
-
+      const doc=PdfDocument.load(bytes);
+      assert.equal(doc.pageCount,2);
+      for(const [i,media,rotation,resourceKeys,content] of [
+        [0,[0,0,48,80],90,["Font"],[255,0,1,2,10]],
+        [1,[0,0,30,20],180,[],[]],
+      ]) {
+        const page=doc.getPage(i),resources=page.getResourcesDict();
+        assert.deepEqual(page.getMediaBox(),media);
+        assert.deepEqual(page.getCropBox(),[0,0,42,72]);
+        assert.equal(page.getRotation(),rotation);
+        assert.deepEqual(resources.entries.map(entry=>entry.key.decoded),resourceKeys);
+        if(i===0)assert.deepEqual(doc.cos.resolve(dictGet(resources,"Font")).entries,[]);
+        assert.deepEqual([...page.getRawContentStream()],content);
+      }
+      assert.deepEqual(dictGet(output.getObject(8),"Title").bytes,dictGet(original.getObject(8),"Title").bytes);
     }
   } finally {wasm.dispose();}
 });

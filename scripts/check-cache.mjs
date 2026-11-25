@@ -668,7 +668,15 @@ export function createCheckCache({
   const writeTo = (key, value, baseDirectory) => {
     const destination = filename(key, baseDirectory);
     fileSystem.mkdirSync(baseDirectory, { recursive: true });
-    const compressed = gzipSync(Buffer.from(JSON.stringify(value)));
+    let serialized;
+    try {
+      serialized = JSON.stringify(value);
+    } catch (error) {
+      // An optional cache entry must not fail a build larger than V8's string limit.
+      if (error instanceof RangeError && error.message === "Invalid string length") return;
+      throw error;
+    }
+    const compressed = gzipSync(Buffer.from(serialized));
     const temporary = destination + "." + randomUUID() + ".tmp";
     try {
       try {

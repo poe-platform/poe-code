@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {execFileSync} from "node:child_process";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createCheckCache, createTaskFingerprints, prepareBuildCache } from "./check-cache.mjs";
 
 function fixture(root = "/repo") {
@@ -258,6 +258,26 @@ describe("content-addressed check cache", () => {
     state.fileSystem.writeFileSync("/cache/" + "a".repeat(64) + ".json.gz", "broken");
     expect(cache.read("a".repeat(64))).toBeNull();
     expect(() => cache.write("../escape", {})).toThrow();
+  });
+
+  it("leaves oversized successful builds uncached and still caches later tasks", () => {
+    const state = fixture();
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    const stringify = vi.spyOn(JSON, "stringify").mockImplementationOnce(() => {
+      throw new RangeError("Invalid string length");
+    });
+    try {
+      expect(() => cache.write("a".repeat(64), { success: true, outputs: [] })).not.toThrow();
+    } finally {
+      stringify.mockRestore();
+    }
+    expect(cache.read("a".repeat(64))).toBeNull();
+    expect(state.fileSystem.readdirSync("/cache")).toEqual([]);
+    cache.write("b".repeat(64), { success: true, durationMs: 12 });
+    expect(cache.read("b".repeat(64))).toEqual({ success: true, durationMs: 12 });
+    const circular: { self?: unknown } = {};
+    circular.self = circular;
+    expect(() => cache.write("c".repeat(64), circular)).toThrow(TypeError);
   });
 
   it("restores build outputs and permissions into another checkout and removes stale outputs", () => {

@@ -72,6 +72,21 @@ async function storage() {
 const options = { runEntries: 2, chunkBytes: 64, cacheBytes: 128 };
 
 describe("externally backed PDF object index", () => {
+  it("searches a cache-sized index block with one receipt check per lookup", async () => {
+    const backing = await storage();
+    const index = await PdfObjectIndex.build(Array.from({ length: 128 }, (_, i) => ({
+      objectNumber: i * 2, type: "uncompressed" as const, offset: i * 10,
+    })), backing);
+    const reads = vi.spyOn(PdfFileSource.prototype, "read");
+    try {
+      expect(await index.get(0)).toMatchObject({ objectNumber: 0, offset: 0 });
+      expect(await index.get(254)).toMatchObject({ objectNumber: 254, offset: 1270 });
+      expect(await index.get(125)).toBeUndefined();
+      expect(await index.get(256)).toBeUndefined();
+      expect(reads).toHaveBeenCalledTimes(4);
+    } finally { reads.mockRestore(); await index.close(); }
+  });
+
   it("sorts arbitrary revisions and preserves the first entry, including free tombstones", async () => {
     const backing = await storage();
     const entries: PdfXRefEntry[] = [

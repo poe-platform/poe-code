@@ -232,7 +232,8 @@ raster images still use the shared resident representation; this is not yet a
 bounded page renderer. Use `page.annotations()` separately for link metadata.
 
 `page.streamRawText(storage, options)` emits UTF-8 raw-mode page text from
-retained evaluation. `streamRawTextChunks(glyphs, storage, options)` formats an
+retained evaluation. Text extraction skips raster image decoding while preserving
+form and annotation text. `streamRawTextChunks(glyphs, storage, options)` formats an
 existing glyph stream the same way. It preserves ActualText, paragraph spacing,
 clipping/diagonal filters and hyphen joining, while staging one line at a time
 to determine its final geometry. Optional `crop: [x0, y0, x1, y1]` selects whole
@@ -675,7 +676,7 @@ For stdin or intermediate data, `new PdfObjectReader(source, index, storage, opt
 objects with `await reader.get(objectNumber, generationNumber)`. Stream payloads
 remain retained source ranges. Compressed members are parsed individually from
 caller-backed decoded streams and fixed-width header tapes; the default cache
-holds two streams. `objectStreamCacheEntries`, `cacheBytes`, `chunkBytes`,
+holds eight streams. `objectStreamCacheEntries`, `cacheBytes`, `chunkBytes`,
 `maxStagingBytes`, and `maxObjectStreamMembers` control that storage. Header and
 decoded bytes share the staging budget, admitted before writes. Parsing defaults
 to 65,536 nodes, 1 MiB per token and depth 100; adjust those intrinsic-value limits

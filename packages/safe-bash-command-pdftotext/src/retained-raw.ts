@@ -114,7 +114,7 @@ export async function executeRetainedText(context: CommandContext, plan: RawText
         if (plan.tsv) {
           // Raw TSV has page rows only, but still evaluate content so retained
           // reads, decoding, validation and cancellation follow extraction.
-          for await (const ignored of page.evaluateSteps(storage, { signal })) { void ignored; }
+          for await (const ignored of page.evaluateSteps(storage, { signal, skipImages: true })) { void ignored; }
           yield encoder.encode(`1\t${page.index + 1}\t0\t0\t0\t0\t0.000000\t0.000000\t${geometry!.width.toFixed(6)}\t${geometry!.height.toFixed(6)}\t-1\t###PAGE###\n`);
           continue;
         }

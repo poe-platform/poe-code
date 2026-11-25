@@ -1,3 +1,4 @@
+import { PdfRetainedDecodedImage } from "../extract/retained-decoded-image.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderOperationStreamWindow, renderDisplayListToBitmap } from "../render/raster.js";
 import { expect, it, vi } from "vitest";
@@ -21,7 +22,11 @@ async function fixture(hideAnnotations = false, backed?: "inline" | "indirect") 
       BBox: numbers([0, 0, 10, 10]), Resources: cosDict({ Font: cosDict({ Late: cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Courier-Bold") }) }) }),
     }), new TextEncoder().encode("0 0 10 10 re f"))) }) }),
   ]));
-  dictSet(page.pageDict, "Contents", original.cos.allocateObject(cosStream(new TextEncoder().encode("BT /Ap 12 Tf (base) Tj ET"))));
+  dictSet(page.pageDict, "Contents", original.cos.allocateObject(cosStream(new TextEncoder().encode("/Picture Do BT /Ap 12 Tf (base) Tj ET"))));
+  dictSet(page.getResourcesDict(), "XObject", cosDict({ Picture: original.cos.allocateObject(cosStream(cosDict({
+    Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(1), Height: cosNumber(1),
+    BitsPerComponent: cosNumber(8), ColorSpace: cosName("DeviceRGB"),
+  }), Uint8Array.of(255, 0, 0))) }));
   if(backed==="indirect")dictSet(page.pageDict,"Annots",original.cos.allocateObject(dictGet(page.pageDict,"Annots")!));
   const expected = page.evaluateDisplayList({ hideAnnotations });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
@@ -106,4 +111,18 @@ for(const backed of ["inline","indirect"] as const)it.each([false,true])(`preser
  const f=await fixture(hide,backed);
  try{const operations=[];for await(const event of f.retained.evaluateSteps(f.storage,{hideAnnotations:hide,chunkBytes:32}))if(!event.captured)operations.push(event.operation);expect(operations).toEqual(f.expected.operations);}
  finally{await f.close();}
+});
+
+
+it.each(["streamRawText", "streamLayoutText", "streamLogicalText"] as const)("%s preserves page, form and annotation text without decoding images", async method => {
+  const f = await fixture();
+  const decode = vi.spyOn(PdfRetainedDecodedImage, "open");
+  try {
+    let text = "";
+    for await (const chunk of f.retained[method](f.storage)) text += new TextDecoder().decode(chunk);
+    for (const label of ["base", "appearance", "widget"]) expect(text).toContain(label);
+    expect(decode).not.toHaveBeenCalled();
+    for await (const event of f.retained.evaluateSteps(f.storage)) { void event; }
+    expect(decode).toHaveBeenCalledTimes(2); // XObject plus inline image in the annotation form.
+  } finally { decode.mockRestore(); await f.close(); }
 });

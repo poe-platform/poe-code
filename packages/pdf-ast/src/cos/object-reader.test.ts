@@ -328,6 +328,24 @@ describe("range-backed PDF object reader", () => {
     await f.close();
   });
 
+  it("reuses the default working set across alternating compressed font resources", async () => {
+    let text = "";
+    const entries: PdfXRefEntry[] = [];
+    for (let member = 1; member <= 8; member++) {
+      const container = member * 10;
+      entries.push(plain(container, text.length), { objectNumber: member, type: "compressed", objectStreamNumber: container, indexInStream: 0 });
+      text += objectStream(`${member} 0 <<>>`, 1, 4).replace("10 0 obj", `${container} 0 obj`) + "\n";
+    }
+    const f = await fixture(text, entries);
+    const create = vi.spyOn(f.fs, "createStagedFile");
+    try {
+      for (let pass = 0; pass < 3; pass++) for (let member = 1; member <= 8; member++) {
+        expect((await f.reader.get(member))?.value).toMatchObject({ kind: "dict", entries: [] });
+      }
+      expect(create).toHaveBeenCalledTimes(16); // One decoded body and header per stream.
+    } finally { create.mockRestore(); await f.close(); }
+  });
+
   it("cleans partial header writes while preserving the storage error", async () => {
     const f = await fixture(objectStream(), [plain(10), compressed(1, 0)]);
     const before = await f.fs.readdir("/scratch");

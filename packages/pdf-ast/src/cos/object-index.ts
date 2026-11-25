@@ -235,11 +235,23 @@ export class PdfObjectIndex {
     let high = this.size;
     while (low < high) {
       const middle = low + Math.floor((high - low) / 2);
-      const entry = decode(await this.source.read(middle * recordBytes, recordBytes, signal));
+      const perBlock = this.source.chunkBytes / recordBytes;
+      const start = Math.floor(middle / perBlock) * perBlock;
+      const bytes = await this.source.read(start * recordBytes, this.source.chunkBytes, signal);
       this.assertOpen(signal);
-      if (entry.objectNumber === objectNumber) return entry;
-      if (entry.objectNumber < objectNumber) low = middle + 1;
-      else high = middle;
+      // Check the sealed source once per block, then search its owned bytes.
+      // Per-record reads turn an in-memory cache hit into a remote stat call.
+      let left = 0, right = bytes.length / recordBytes;
+      while (left < right) {
+        const at = left + Math.floor((right - left) / 2);
+        const entry = decode(bytes, at * recordBytes);
+        if (entry.objectNumber === objectNumber) return entry;
+        if (entry.objectNumber < objectNumber) left = at + 1;
+        else right = at;
+      }
+      if (left === 0) high = start;
+      else if (left === bytes.length / recordBytes) low = start + left;
+      else return undefined;
     }
     return undefined;
   }

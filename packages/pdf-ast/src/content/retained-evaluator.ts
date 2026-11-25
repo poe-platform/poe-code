@@ -30,6 +30,8 @@ export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
   /** Optional caller-owned image and path backing; remains live while operations are used. */
   readonly imageStorage?: import("../ast.js").PdfPixelStorage;
   readonly onAllocation?: (bytes: number) => void;
+  /** Text extraction skips image painting except masks that can paint pattern text. */
+  readonly skipImages?: boolean;
   readonly maxImageBytes?: number;
   readonly maxCachedFonts?: number;
 }
@@ -109,7 +111,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedReader,
     finally { await owner.close().catch(error => { if (!failed) throw error; }); }
   }
   const input = "events" in content ? (async function* () { yield* content.events; })() : cursor(content);
-  const work = evaluateContentSteps({...params,geometryStorage:options.imageStorage ?? options.pathStorage,geometrySignal:options.signal});
+  const work = evaluateContentSteps({...params,geometryStorage:options.imageStorage ?? options.pathStorage,geometrySignal:options.signal,skipImages:options.skipImages});
   const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
   const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
   const resourceOptions = { onWarning: options.onWarning, chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };

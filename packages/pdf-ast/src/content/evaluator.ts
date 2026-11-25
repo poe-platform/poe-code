@@ -1125,7 +1125,7 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
  * Retained geometry and composite captures can use caller backing.
  * The driver owns
  * resource admission and cursor cleanup, including on early return or failure. */
-export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes"> & { readonly geometryStorage?: PdfPixelStorage | undefined; readonly geometrySignal?: AbortSignal | undefined }): EvaluationWork {
+export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes"> & { readonly geometryStorage?: PdfPixelStorage | undefined; readonly geometrySignal?: AbortSignal | undefined; readonly skipImages?: boolean | undefined }): EvaluationWork {
   const fonts: FontScope = [params.resourcesDict];
   function* selectedFont(scopes: FontScope, name: string): EvaluationWork<ResolvedPageFont | undefined> {
     for (const resources of scopes) {
@@ -2010,6 +2010,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               if (sub === "Image") {
                 const maskNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjNode.dict, "ImageMask"));
                 const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
+                if (params.skipImages && !patternMask) break;
                 const imageResult = yield { kind: "image", stream: xobjNode, resources: activeResources,
                   fillColor: patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : { ...st.fillColor, alpha: st.fillAlpha } };
                 if (!imageResult || !("kind" in imageResult) || imageResult.kind !== "decoded-image") throw new TypeError("Expected a decoded PDF image");
@@ -2039,6 +2040,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const maskEntry = dictGet(node.dict, "ImageMask") ?? dictGet(node.dict, "IM");
           const maskNode = maskEntry?.kind === "ref" ? yield* resolveEvaluationNode(maskEntry) : maskEntry;
           const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
+          if (params.skipImages && !patternMask) break;
           const imageResult = yield { kind: "inline-image", dict: node.dict, data: node.data, resources: activeResources,
             fillColor: patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : { ...st.fillColor, alpha: st.fillAlpha } };
           if (!imageResult || !("kind" in imageResult) || imageResult.kind !== "decoded-image") throw new TypeError("Expected a decoded inline PDF image");

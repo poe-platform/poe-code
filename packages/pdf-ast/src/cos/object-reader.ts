@@ -21,7 +21,7 @@ export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "reso
   readonly cacheBytes?: number;
   readonly encryption?: PdfEncryptionState;
   readonly encryptionObjectNumber?: number;
-  /** Number of retained decoded object streams; defaults to two. */
+  /** Number of retained decoded object streams; defaults to eight. */
   readonly objectStreamCacheEntries?: number;
   /** Aggregate decoded object-stream data and header tape bytes. */
   readonly maxStagingBytes?: number;
@@ -71,7 +71,7 @@ export class PdfObjectReader {
     private readonly storage: PdfIndexStorage, options: PdfObjectReaderOptions = {}) {
     const chunkBytes = integer(options.chunkBytes ?? 65536, "chunkBytes", 16);
     const cacheBytes = integer(options.cacheBytes ?? 65536, "cacheBytes", chunkBytes);
-    this.capacity = integer(options.objectStreamCacheEntries ?? 2, "objectStreamCacheEntries", 1);
+    this.capacity = integer(options.objectStreamCacheEntries ?? 8, "objectStreamCacheEntries", 1);
     this.stagingLimit = maximum(options.maxStagingBytes, "maxStagingBytes");
     maximum(options.maxObjectStreamMembers, "maxObjectStreamMembers");
     maximum(options.maxTraversalStagingBytes, "maxTraversalStagingBytes");

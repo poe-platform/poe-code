@@ -470,7 +470,7 @@ export class PdfRetainedPage {
   async *streamRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextOptions = {}): AsyncGenerator<Uint8Array, void, void> {
     const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
     const owned = options.imageStorage || options.pathStorage ? undefined : new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal: options.signal ?? new AbortController().signal }, 4);
-    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true });
+    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true, skipImages: true });
     async function* glyphs() {
       for await (const event of operations) {
         if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
@@ -510,7 +510,7 @@ export class PdfRetainedPage {
   async indexText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
     const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
     const owned = options.imageStorage || options.pathStorage ? undefined : new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal: options.signal ?? new AbortController().signal }, 4);
-    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true });
+    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true, skipImages: true });
     async function* glyphs() {
       for await (const event of operations) if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
     }

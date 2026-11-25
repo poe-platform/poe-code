@@ -2,7 +2,7 @@ import {expect, it, vi} from "vitest";
 import {encode} from "jpeg-js";
 import {PDFDocument} from "pdf-lib";
 import {readZipArchiveEntries} from "@poe-code/office-package/zip-sync";
-import {writeDocument} from "./engine.js";
+import {convert, writeDocument} from "./engine.js";
 import type {Document} from "./types.js";
 
 const attr = ["", [], []] as const;
@@ -52,8 +52,20 @@ it.each(["docx", "pdf"] as const)("does not resolve or reject unused metadata co
   expect(resolve).not.toHaveBeenCalled();
 });
 
-it("rejects unsupported glyphs in visible PDF metadata", async () => {
-  await expect(writeDocument({...document, metadata: {title: {t: "MetaString", c: "東京"}}}, {to: "pdf"}, context)).rejects.toMatchObject({code: "E_CAPABILITY"});
+it("renders supported CJK glyphs in visible PDF metadata", async () => {
+  const result = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "東京"}}}, {to: "pdf"}, context);
+  if (result.kind !== "binary") throw Error("Expected PDF");
+  expect((await PDFDocument.load(result.bytes)).getTitle()).toBe("東京");
+  const plain = await convert([{bytes: result.bytes}], {from: "pdf", to: "plain"}, context);
+  if (plain.kind !== "text") throw Error("Expected extracted PDF text");
+  expect(plain.text.trim().split(/\s+/)).toEqual(["東京", "BODY"]);
+});
+
+it("rejects unshaped text in visible PDF metadata", async () => {
+  await expect(writeDocument({...document, metadata: {title: {t: "MetaString", c: "مرحبا"}}}, {to: "pdf"}, context)).rejects.toMatchObject({
+    code: "E_CAPABILITY",
+    message: "Unsupported PDF script or combining sequence U+0645; text shaping is not available",
+  });
 });
 
 it.each(["docx", "pdf"] as const)("applies explicit raw policy before image acquisition in %s", async to => {

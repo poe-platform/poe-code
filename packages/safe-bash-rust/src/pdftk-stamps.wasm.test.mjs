@@ -4,7 +4,7 @@ import test from "node:test";
 import {PdfDocument} from "@poe-code/pdf-ast";
 import {createRustWasmBash} from "./index.js";
 
-const fixtures = JSON.parse(readFileSync(new URL("../tests/fixtures/pdftk-stamp-parity.json", import.meta.url), "utf8"));
+const fixtures = JSON.parse(readFileSync(new URL("../../../tests/fixtures/media/pdftk-stamp-parity.json", import.meta.url), "utf8"));
 for (const fixture of fixtures) test(`pdftk stamp geometry matches JavaScript: ${fixture.name}`, async () => {
   const input = Buffer.from(fixture.input, "base64"), stamp = Buffer.from(fixture.stamp, "base64");
   const shell = await createRustWasmBash({forceNative: true, cwd: "/", files: {"/in": input, "/stamp": stamp}});

@@ -3,7 +3,7 @@ import {PdfDocument} from "@poe-code/pdf-ast";
 import {createMemoryFileSystem} from "@poe-code/safe-fs";
 import {createCommandArguments} from "safe-bash-contracts";
 import {createPdftkCommand, runPdftkCli} from "./index.js";
-import fixtures from "../../safe-bash-rust/tests/fixtures/pdftk-stamp-parity.json" with {type: "json"};
+import fixtures from "../../../tests/fixtures/media/pdftk-stamp-parity.json" with {type: "json"};
 
 for (const fixture of fixtures) it(`preserves both JavaScript stamp routes: ${fixture.name}`, async () => {
   const input = Uint8Array.from(atob(fixture.input), char => char.charCodeAt(0));

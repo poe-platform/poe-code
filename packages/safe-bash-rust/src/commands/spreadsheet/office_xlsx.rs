@@ -1277,6 +1277,7 @@ fn read(
         .to_ascii_lowercase();
     let known = generator.starts_with("microsoft") || generator.starts_with("libreoffice");
     let mut sources = Vec::new();
+    let mut states = Vec::new();
     for sheet in elements(&workbook, "sheet") {
         let name = attr(sheet, "name").unwrap_or(if editable { "" } else { "Sheet1" });
         if !super::valid_sheet_name(name) {
@@ -1308,6 +1309,13 @@ fn read(
             continue;
         };
         let target = crate::vfs::resolve_posix_path(directory, target);
+        let state = match attr(sheet, "state") {
+            None | Some("visible") => "visible",
+            Some("hidden") => "hidden",
+            Some("veryHidden") => "veryHidden",
+            _ => return Err(format!("Invalid worksheet visibility for {name:?}")),
+        };
+        states.push(state);
         sources.push((name.to_owned(), target.trim_start_matches('/').to_owned()));
     }
     if sources.is_empty() && !elements(&workbook, "sheet").is_empty() {
@@ -1321,7 +1329,11 @@ fn read(
         };
         if let Some(target) = target {
             sources.push(("Sheet1".into(), target.into()));
+            states.push("visible");
         }
+    }
+    if editable && !states.is_empty() && !states.contains(&"visible") {
+        return Err("Workbook must have at least one visible sheet".into());
     }
     let mut remaining = limit;
     let value_errors = if editable {
@@ -1398,6 +1410,7 @@ fn read(
         let mut raw_cells = BTreeMap::new();
         let mut sheet = Sheet {
             name: name.clone(),
+            state: states[s],
             view: Vec::new(),
             print: Default::default(),
             filter: None,
@@ -1646,6 +1659,7 @@ fn read(
             .ok_or(LIMIT)?;
         sheets.push(Sheet {
             name: "Sheet1".into(),
+            state: "visible",
             view: Vec::new(),
             print: Default::default(),
             filter: None,

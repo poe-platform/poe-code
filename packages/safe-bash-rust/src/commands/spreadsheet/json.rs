@@ -469,6 +469,14 @@ impl Sheet<String> {
     fn json_styles(&self, definitions: &BTreeMap<&Style, &str>) -> Json {
         object([
             ("name", self.name.json()),
+            (
+                "state",
+                if self.state == "visible" {
+                    Json::Null
+                } else {
+                    string(self.state)
+                },
+            ),
             ("view", self.view.json()),
             ("print", self.print.json()),
             ("filter", self.filter.json()),
@@ -502,6 +510,12 @@ impl Sheet<String> {
         }
         Ok(Self {
             name: Codec::read(v.get("name").unwrap_or(&Json::Null))?,
+            state: match v.get("state").map(String::read).transpose()?.as_deref() {
+                None | Some("visible") => "visible",
+                Some("hidden") => "hidden",
+                Some("veryHidden") => "veryHidden",
+                _ => return Err("Invalid worksheet visibility".into()),
+            },
             view: Codec::read(v.get("view").unwrap_or(&Json::Null))?,
             print: Codec::read(v.get("print").unwrap_or(&Json::Null))?,
             filter: Codec::read(v.get("filter").unwrap_or(&Json::Null))?,
@@ -1220,6 +1234,9 @@ impl Spreadsheet {
         };
         if book.sheets.is_empty() {
             return Err("Workbook must have at least one sheet".into());
+        }
+        if !book.sheets.iter().any(|s| s.state == "visible") {
+            return Err("Workbook must have at least one visible sheet".into());
         }
         let mut names = BTreeSet::new();
         for sheet in &book.sheets {

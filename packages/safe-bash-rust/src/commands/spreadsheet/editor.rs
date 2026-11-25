@@ -72,6 +72,7 @@ impl Spreadsheet {
         }
         let index = self.sheets.len();
         self.sheets.push(model::Sheet {
+            state: "visible",
             name: name.into(),
             view: Vec::new(),
             frozen_rows: 0,

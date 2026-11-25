@@ -36,6 +36,11 @@ impl Spreadsheet {
         if self.sheets.len() == 1 {
             return Err("Cannot delete the only sheet".into());
         }
+        if self.sheets[sheet].state == "visible"
+            && self.sheets.iter().filter(|s| s.state == "visible").count() == 1
+        {
+            return Err("Cannot delete the only visible sheet".into());
+        }
         if self
             .options
             .pivots

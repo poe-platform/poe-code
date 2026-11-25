@@ -1336,6 +1336,7 @@ mod tests {
         use crate::commands::spreadsheet::model::TypedCell;
         let sheets: Vec<_> = (0..2)
             .map(|i| Sheet {
+                state: "visible",
                 name: format!("Sheet{i}"),
                 view: Vec::new(),
                 print: Default::default(),

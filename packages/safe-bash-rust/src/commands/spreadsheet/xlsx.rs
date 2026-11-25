@@ -295,6 +295,7 @@ pub struct Workbook {
 }
 pub struct Sheet<S> {
     pub name: S,
+    pub state: &'static str,
     pub view: Vec<(&'static str, bool)>,
     pub frozen_rows: usize,
     pub frozen_columns: usize,
@@ -358,10 +359,12 @@ pub(in crate::commands) fn write_cells(
     limit: usize,
     spills: Option<&super::formulas::SpillCache>,
 ) -> Option<Vec<u8>> {
-    if sheets
-        .iter()
-        .any(|s| s.frozen_rows >= 1_048_576 || s.frozen_columns >= 16_384)
-    {
+    let active = sheets.iter().position(|s| s.state == "visible")?;
+    if sheets.iter().any(|s| {
+        s.frozen_rows >= 1_048_576
+            || s.frozen_columns >= 16_384
+            || !matches!(s.state, "visible" | "hidden" | "veryHidden")
+    }) {
         return None;
     }
     // Borrow authored cells. Only derived output needs a temporary export cell;
@@ -858,7 +861,11 @@ pub(in crate::commands) fn write_cells(
             format!("<sheetData>{rows}</sheetData>")
         };
         let column_count = (end_col + 1).max(256).next_power_of_two();
-        let selected = if idx == 0 { r#" tabSelected="1""# } else { "" };
+        let selected = if idx == active {
+            r#" tabSelected="1""#
+        } else {
+            ""
+        };
         let mut view = String::new();
         for (name, enabled) in &sh.view {
             write!(view, r#" {name}="{}""#, u8::from(*enabled)).ok()?;
@@ -1087,7 +1094,8 @@ pub(in crate::commands) fn write_cells(
         ));
         write!(
             nodes,
-            r#"<sheet name="{name}" sheetId="{n}" r:id="rId{n}"/>"#
+            r#"<sheet name="{name}" sheetId="{n}" r:id="rId{n}" state="{}"/>"#,
+            sh.state
         )
         .ok()?;
         for (name, expression) in [
@@ -1172,6 +1180,7 @@ pub(in crate::commands) fn write_cells(
         format!(
             include_str!("xlsx/workbook.xml"),
             nodes = nodes,
+            active = active,
             pivot_caches = pivot_caches,
             names = names,
             date1904 = u8::from(workbook.date1904),

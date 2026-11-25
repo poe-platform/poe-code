@@ -36,3 +36,19 @@ for (const mounted of [false, true]) test(`atomic Trash through ${mounted ? 'mou
     assert.equal((await backing.readFile('/denied'))[0], 1);
   } finally {await shell.dispose();}
 });
+
+test('trash restore selects a mount without mutating its root and rejects read-only mounts', async () => {
+  const backing = createMemoryFileSystem();
+  let readOnly = false, restored = 0;
+  const backend = new Proxy(backing, {get(target, key) {
+    if (key === 'capabilities') return {...target.capabilities, atomicTrash: true, readOnly};
+    if (key === 'trashRestore') return async (path: string) => {assert.equal(path, '/'); restored++;};
+    const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const fs = createMountFileSystem({root: createMemoryFileSystem(), mounts: {'/org': backend}});
+  await fs.trashRestore!('/org', 'item');
+  assert.equal(restored, 1);
+  readOnly = true;
+  await assert.rejects(fs.trashRestore!('/org', 'item'), {code: 'EROFS'});
+  assert.equal(restored, 1);
+});

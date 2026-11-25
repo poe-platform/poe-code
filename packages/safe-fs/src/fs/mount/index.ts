@@ -927,7 +927,8 @@ export class MountFileSystem implements FileSystem {
   trashRestore(path: string, item: string, options: FsOptions = {}): Promise<void> {
     return this.operation("trashRestore", path, options, async () => {
       const location = await this.resolve(path, options, {followFinal: true});
-      this.mutable(location);
+      // The directory selects the backend; restoring does not move the mount root.
+      if (location.mount.backend.capabilities.readOnly) fail("EROFS");
       const backend = location.mount.backend;
       if (!backend.trashRestore) fail("ENOTSUP");
       await backend.trashRestore(location.local, item, options);

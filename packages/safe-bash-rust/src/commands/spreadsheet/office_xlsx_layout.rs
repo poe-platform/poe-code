@@ -1,7 +1,7 @@
 //! Appearance and worksheet metadata for editable XLSX workbooks.
 use super::super::model::{
     Axis, CalculatedColumn, ColorFilter, DynamicFilter, Filter, FilterField, Style, Table,
-    TopFilter,
+    TableStyle, TopFilter,
 };
 use super::{Imported, LIMIT, attr, coordinate, elements, xml};
 use std::{
@@ -106,7 +106,12 @@ fn auto_filter(
                 .attributes
                 .iter()
                 .find(|(key, _)| *key == "Back" && !no_fill)
-                .or_else(|| style.attributes.iter().find(|(key, _)| font && *key == "Fore"))
+                .or_else(|| {
+                    style
+                        .attributes
+                        .iter()
+                        .find(|(key, _)| font && *key == "Fore")
+                })
                 .map(|(_, value)| value.clone())
                 .or_else(|| font.then(|| "FF000000".into()));
             field.color = Some(ColorFilter { font, color: value });
@@ -625,7 +630,11 @@ pub(super) fn retain(
             }
         }
         let (directory, name) = path.rsplit_once('/').unwrap_or(("", path));
-        let rel_path = if directory.is_empty() { format!("_rels/{name}.rels") } else { format!("{directory}/_rels/{name}.rels") };
+        let rel_path = if directory.is_empty() {
+            format!("_rels/{name}.rels")
+        } else {
+            format!("{directory}/_rels/{name}.rels")
+        };
         if !entries.contains_key(&rel_path) {
             continue;
         }
@@ -677,7 +686,24 @@ pub(super) fn retain(
                     );
                 }
             }
+            let style = child(table, "tableStyleInfo")
+                .map(|style| {
+                    let name = attr(style, "name");
+                    imported.remaining = imported
+                        .remaining
+                        .checked_sub(name.map_or(0, str::len) + 128)
+                        .ok_or(LIMIT)?;
+                    Ok::<_, String>(TableStyle {
+                        name: name.map(str::to_owned),
+                        show_first_column: flag(style, "showFirstColumn"),
+                        show_last_column: flag(style, "showLastColumn"),
+                        show_row_stripes: flag(style, "showRowStripes"),
+                        show_column_stripes: flag(style, "showColumnStripes"),
+                    })
+                })
+                .transpose()?;
             imported.book.tables.push(Table {
+                style,
                 calculated_columns,
                 columns: elements(&table.children, "tableColumn")
                     .into_iter()

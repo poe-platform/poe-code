@@ -663,6 +663,7 @@ fn sheet_changes_update_named_expressions_arrays_and_table_indices() {
         compiled: None,
     });
     book.options.tables.push(Table {
+        style: None,
         calculated_columns: Default::default(),
         columns: Vec::new(),
         totals: false,
@@ -673,6 +674,7 @@ fn sheet_changes_update_named_expressions_arrays_and_table_indices() {
         filter: None,
     });
     book.options.tables.push(Table {
+        style: None,
         calculated_columns: Default::default(),
         columns: Vec::new(),
         totals: false,
@@ -1028,6 +1030,7 @@ fn excel_editor_import_retains_cell_appearance_dimensions_merges_and_tables() {
     );
     book.sheets[0].merges.push([3, 0, 2, 1]);
     book.options.tables.push(Table {
+        style: None,
         calculated_columns: Default::default(),
         columns: Vec::new(),
         totals: false,
@@ -2470,6 +2473,7 @@ fn table_conversion_reuses_structured_reference_sections_escaping_and_row_rules(
     // Section and escaped-column cases from IronCalc's structured-reference
     // grammar are resolved by the same AST code used during calculation.
     let table = Table {
+        style: None,
         calculated_columns: Default::default(),
         name: "Sales".into(),
         sheet: 0,

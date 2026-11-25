@@ -435,6 +435,7 @@ impl Spreadsheet {
             edits.push((sheet, top, column, Some(cell)));
         }
         self.options.tables.push(model::Table {
+            style: None,
             calculated_columns: Default::default(),
             name: name.into(),
             sheet,

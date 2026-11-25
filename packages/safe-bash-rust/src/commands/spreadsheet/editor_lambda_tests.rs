@@ -163,6 +163,7 @@ fn named_lambdas_follow_sheet_scope_allow_recursion_and_do_not_capture_callers()
 fn lambda_table_bindings_preserve_parameters_through_rename_and_conversion() {
     let mut book = Spreadsheet::new();
     book.options.tables.push(Table {
+        style: None,
         calculated_columns: Default::default(),
         name: "Sales".into(),
         sheet: 0,

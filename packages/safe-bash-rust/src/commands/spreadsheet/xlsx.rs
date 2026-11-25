@@ -225,7 +225,15 @@ pub struct CalculatedColumn {
     /// first-data-row template. None starts at the first data row.
     pub origin_row: Option<usize>,
 }
+pub struct TableStyle {
+    pub name: Option<String>,
+    pub show_first_column: bool,
+    pub show_last_column: bool,
+    pub show_row_stripes: bool,
+    pub show_column_stripes: bool,
+}
 pub struct Table {
+    pub style: Option<TableStyle>,
     pub calculated_columns: BTreeMap<usize, CalculatedColumn>,
     pub columns: Vec<String>,
     pub totals: bool,

@@ -284,6 +284,23 @@ pub(super) fn write<S: AsRef<str>>(
             output.push_str("/>");
         }
     }
-    output.push_str("</tableColumns></table>");
+    output.push_str("</tableColumns>");
+    if let Some(style) = &table.style {
+        remaining = remaining.checked_sub(160)?;
+        output.push_str("<tableStyleInfo");
+        if let Some(name) = &style.name {
+            write!(output, r#" name="{}""#, attribute(name, &mut remaining)?).ok()?;
+        }
+        write!(
+            output,
+            r#" showFirstColumn="{}" showLastColumn="{}" showRowStripes="{}" showColumnStripes="{}"/>"#,
+            u8::from(style.show_first_column),
+            u8::from(style.show_last_column),
+            u8::from(style.show_row_stripes),
+            u8::from(style.show_column_stripes)
+        )
+        .ok()?;
+    }
+    output.push_str("</table>");
     Some(output)
 }

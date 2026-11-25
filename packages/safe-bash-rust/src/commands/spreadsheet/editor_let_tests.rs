@@ -155,6 +155,7 @@ fn let_preserves_sparse_references_and_spilled_arrays_across_roundtrips() {
 fn table_renames_and_conversion_preserve_let_declarations_and_scopes() {
     let mut book = Spreadsheet::new();
     book.options.tables.push(Table {
+        style: None,
         calculated_columns: Default::default(),
         name: "Sales".into(),
         sheet: 0,

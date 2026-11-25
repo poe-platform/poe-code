@@ -409,6 +409,13 @@ structure!(CalculatedColumn {
     array,
     origin_row
 });
+structure!(TableStyle {
+    name,
+    show_first_column,
+    show_last_column,
+    show_row_stripes,
+    show_column_stripes
+});
 impl Codec for Table {
     fn json(&self) -> Json {
         object([
@@ -418,12 +425,14 @@ impl Codec for Table {
             ("header", self.header.json()),
             ("filter", self.filter.json()),
             ("columns", self.columns.json()),
+            ("style", self.style.json()),
             ("calculated_columns", self.calculated_columns.json()),
             ("totals", self.totals.json()),
         ])
     }
     fn read(v: &Json) -> Result<Self> {
         Ok(Self {
+            style: Codec::read(v.get("style").unwrap_or(&Json::Null))?,
             calculated_columns: v
                 .get("calculated_columns")
                 .map(BTreeMap::<usize, CalculatedColumn>::read)
@@ -1405,6 +1414,7 @@ mod tests {
             compiled: None,
         });
         book.options.tables.push(Table {
+            style: None,
             calculated_columns: Default::default(),
             columns: Vec::new(),
             totals: false,
@@ -1447,6 +1457,7 @@ mod tests {
         assert!(Spreadsheet::from_json(&book.to_json(), 10_000_000).is_err());
         book.sheets[0].merges.clear();
         book.options.tables.push(Table {
+            style: None,
             calculated_columns: Default::default(),
             columns: Vec::new(),
             totals: false,

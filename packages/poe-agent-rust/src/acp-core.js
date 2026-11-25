@@ -330,9 +330,8 @@ async function runLoop(options) {
     }
     options.runContext.messages.push(createAssistantMessage(collectedResponse));
     let followUp = options.takeFollowUp?.();
-    for (const toolOutcome of collectedResponse.toolOutcomes) {
+    const pending = collectedResponse.toolOutcomes.map(async (toolOutcome) => {
       assertNotAborted(options.signal);
-      followUp ??= options.takeFollowUp?.();
       if (toolOutcome.type === "error") {
         await emitToolExecutionError({
           ...toolOutcome.error,
@@ -340,7 +339,7 @@ async function runLoop(options) {
           emit: options.emit,
           toolCalls: options.toolCalls
         });
-        continue;
+        return;
       }
       if (followUp !== undefined) {
         await emitToolExecutionError({
@@ -351,7 +350,7 @@ async function runLoop(options) {
           emit: options.emit,
           toolCalls: options.toolCalls
         });
-        continue;
+        return;
       }
       await runSingleToolCall({
         toolCall: toolOutcome.toolCall,
@@ -362,8 +361,16 @@ async function runLoop(options) {
         toolCalls: options.toolCalls,
         disposeRun: options.disposeRun
       });
-      followUp = options.takeFollowUp?.();
+    });
+    try {
+      await Promise.all(pending);
+    } catch (error) {
+      // Stop siblings before repairing history; late receipts must not append results.
+      options.runContext.abortController.abort(error);
+      await Promise.allSettled(pending);
+      throw error;
     }
+
     await runPostIterationHooks({
       runContext: options.runContext,
       model: options.model,
@@ -420,8 +427,16 @@ async function runSingleToolCall(options) {
     signal: options.signal,
     disposeRun: options.disposeRun
   });
-  const preToolDecision = await options.runContext.hooks.run("preToolUse", preToolContext);
-  const preToolDispatch = await applyHookDecision("preToolUse", preToolDecision, preToolContext);
+  const preToolDecision = await abortable(
+    options.runContext.hooks.run("preToolUse", preToolContext),
+    options.signal
+  );
+  assertNotAborted(options.signal);
+  const preToolDispatch = await abortable(
+    applyHookDecision("preToolUse", preToolDecision, preToolContext),
+    options.signal
+  );
+  assertNotAborted(options.signal);
   const mutableOutcome = {
     intentId: preToolContext.intentId,
     tool: preToolContext.tool,
@@ -470,12 +485,17 @@ async function runSingleToolCall(options) {
     signal: options.signal,
     disposeRun: options.disposeRun
   });
-  const postToolDecision = await options.runContext.hooks.run("postToolUse", postToolContext);
-  const postToolDispatch = await applyHookDecision(
-    "postToolUse",
-    postToolDecision,
-    postToolContext
+  assertNotAborted(options.signal);
+  const postToolDecision = await abortable(
+    options.runContext.hooks.run("postToolUse", postToolContext),
+    options.signal
   );
+  assertNotAborted(options.signal);
+  const postToolDispatch = await abortable(
+    applyHookDecision("postToolUse", postToolDecision, postToolContext),
+    options.signal
+  );
+  assertNotAborted(options.signal);
   if (postToolDispatch.type === "replace") {
     if ("content" in postToolDispatch.patch) {
       postToolContext.result = postToolDispatch.patch.content;

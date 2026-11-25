@@ -2145,6 +2145,163 @@ function createTokenBudget(max: number) {
 }
 
 describe("runAcpCore", () => {
+  it("executes independent calls together and waits for every receipt before inference", async () => {
+    const runContext = createRunContext();
+    const started: string[] = [];
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            { id: "slow", tool: "inspect", args: { file: "first" } },
+            { id: "fast", tool: "inspect", args: { file: "second" } }
+          ]
+        }
+      },
+      { message: { content: "Done", toolCalls: [] } }
+    ]);
+    const host = createHost();
+    host.handle = async (intent) => {
+      started.push(intent.intentId);
+      if (intent.intentId === "slow") {
+        await held;
+        return { status: "success", result: "First file" };
+      }
+      return { status: "error", result: "Second file unavailable" };
+    };
+    const events = collectEvents(runAcpCore({ prompt: "Inspect both", runContext, host, model }));
+    try {
+      await expect.poll(() => [...started]).toEqual(["slow", "fast"]);
+      await expect
+        .poll(() => runContext.messages.filter((message) => message.role === "tool"))
+        .toHaveLength(1);
+      expect(model.complete).toHaveBeenCalledTimes(1);
+      release();
+      const received = await events;
+      expect(
+        received
+          .filter((event) => event.type === "tool.result" || event.type === "tool.error")
+          .map((event) => event.intentId)
+      ).toEqual(["fast", "slow"]);
+      expect(received.at(-1)?.type).toBe("session.complete");
+      expect(model.complete).toHaveBeenCalledTimes(2);
+      expect(
+        runContext.messages
+          .filter((message) => message.role === "tool")
+          .map((message) => message.toolCallId)
+      ).toEqual(["fast", "slow"]);
+    } finally {
+      release();
+      await events;
+    }
+  });
+
+  it.each(["preToolUse", "postToolUse"] as const)(
+    "cancels a parallel batch waiting in %s without saving late results",
+    async (stage) => {
+      const runContext = createRunContext();
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const entered: string[] = [];
+      runContext.hooks.add({
+        name: "held-hook",
+        hooks: {
+          [stage]: async (ctx: { intentId: string }) => {
+            entered.push(ctx.intentId);
+            await held;
+          }
+        }
+      });
+      const host = createHost();
+      const model = createModel([
+        {
+          message: {
+            content: "",
+            toolCalls: [
+              { id: "one", tool: "inspect", args: {} },
+              { id: "two", tool: "inspect", args: {} }
+            ]
+          }
+        }
+      ]);
+      let received: AcpEvent[] | undefined;
+      const run = collectEvents(
+        runAcpCore({ prompt: "Inspect both", runContext, host, model })
+      ).then((events) => {
+        received = events;
+      });
+      try {
+        await expect.poll(() => entered).toEqual(["one", "two"]);
+        runContext.abortController.abort();
+        await expect.poll(() => received?.at(-1)?.type).toBe("session.error");
+        const repaired = [...runContext.messages];
+        expect(repaired.filter((message) => message.role === "tool")).toHaveLength(2);
+        release();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(runContext.messages).toEqual(repaired);
+        if (stage === "preToolUse") expect(host.handle).not.toHaveBeenCalled();
+        expect(model.complete).toHaveBeenCalledTimes(1);
+      } finally {
+        release();
+        runContext.abortController.abort();
+        await run;
+      }
+    }
+  );
+
+  it("cancels sibling calls and repairs the batch when dispatch fails", async () => {
+    const runContext = createRunContext();
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const host = createHost();
+    host.handle = vi.fn(async (intent) => {
+      if (intent.intentId === "broken") throw new Error("host offline");
+      await held;
+      return { status: "success", result: "late result" };
+    });
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [
+            { id: "slow", tool: "inspect", args: {} },
+            { id: "broken", tool: "inspect", args: {} }
+          ]
+        }
+      }
+    ]);
+    let received: AcpEvent[] | undefined;
+    const run = collectEvents(runAcpCore({ prompt: "Inspect both", runContext, host, model })).then(
+      (events) => {
+        received = events;
+      }
+    );
+    try {
+      await expect.poll(() => received?.at(-1)?.type).toBe("session.error");
+      const terminal = received?.at(-1);
+      if (terminal?.type === "session.error") expect(terminal.error.message).toBe("host offline");
+      expect(runContext.abortController.signal.aborted).toBe(true);
+      expect(host.handle).toHaveBeenCalledTimes(2);
+      const repaired = [...runContext.messages];
+      expect(repaired.filter((message) => message.role === "tool")).toHaveLength(2);
+      release();
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(runContext.messages).toEqual(repaired);
+      expect(model.complete).toHaveBeenCalledTimes(1);
+    } finally {
+      release();
+      await run;
+    }
+  });
+
   it("aborts when the run-level max-iterations limit is exceeded", async () => {
     const runContext = createRunContext();
     const model = createModel([
@@ -2980,8 +3137,8 @@ describe("runAcpCore", () => {
     );
 
     expect(events.map((event) => event.type)).toEqual([
-      "tool.error",
       "tool.intent",
+      "tool.error",
       "tool.result",
       "message.delta",
       "session.complete"

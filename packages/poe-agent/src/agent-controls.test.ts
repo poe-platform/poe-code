@@ -188,7 +188,7 @@ describe("session input controls", () => {
     await s.dispose();
   });
 
-  it("uses the next tool boundary and skips the remaining batch", async () => {
+  it("finishes the running tool batch before applying a follow-up", async () => {
     const started = deferred<void>(),
       finish = deferred<void>();
     let secondCalls = 0,
@@ -231,7 +231,7 @@ describe("session input controls", () => {
               name: "second",
               call: () => {
                 secondCalls++;
-                return "wrong";
+                return "second result";
               }
             }
           ]
@@ -244,7 +244,7 @@ describe("session input controls", () => {
     expect(completions).toBe(1);
     finish.resolve();
     await Promise.all([first, follow]);
-    expect(secondCalls).toBe(0);
+    expect(secondCalls).toBe(1);
     expect(requests[1].at(-1)).toMatchObject({ role: "user", content: "correction" });
     expect(s.getHistory().filter((m) => m.role === "tool")).toHaveLength(2);
     await s.dispose();

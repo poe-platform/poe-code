@@ -82,6 +82,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "safe-bash-command-trash"
+version = "0.1.0"
+
+[[package]]
 name = "safe-bash-rust"
 version = "0.1.0"
 dependencies = [
@@ -95,6 +99,7 @@ dependencies = [
  "office-package-rust",
  "pdf-ast-rust",
  "poe-agent-rust",
+ "safe-bash-command-trash",
  "terminal-png-rust",
 ]
 

@@ -2223,6 +2223,14 @@
               "optional": true
             }
           }
+        },
+        "safe-bash-command-trash": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3548,6 +3556,12 @@
     "./commands/python/source-archive": {
       "types": "./dist/commands/python/source-archive.d.ts",
       "import": "./dist/commands/python/source-archive.js"
+    },
+    "./commands/trash": {
+      "types": "./dist/commands/trash/index.d.ts",
+      "workerd": "./dist/commands/trash/index.js",
+      "browser": "./dist/commands/trash/index.js",
+      "import": "./dist/commands/trash/index.js"
     }
   },
   "sideEffects": [
@@ -3820,7 +3834,8 @@
     "@poe-code/ts-ast": "*",
     "safe-bash-command-sort": "*",
     "safe-bash-command-tesseract": "*",
-    "safe-bash-command-ocrmypdf": "*"
+    "safe-bash-command-ocrmypdf": "*",
+    "safe-bash-command-trash": "*"
   },
   "main": "./dist/index.js",
   "imports": {

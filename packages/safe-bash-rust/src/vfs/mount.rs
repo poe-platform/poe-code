@@ -863,6 +863,13 @@ impl SafeBashFs for MountVfs {
         fs.rename(&src, &dest, no_replace)
     }
 
+    fn trash(&self, path: &str) -> Result<Option<super::TrashLocation<'_>>, String> {
+        let operand=path.trim_end_matches('/');
+        let resolved = self.resolve(if operand.is_empty() {"/"} else {operand}, false, WalkPurpose::Access)?;
+        let (_, fs, local) = self.location(&resolved);
+        fs.trash(&local)
+    }
+
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
         let (fs, local) = self.removal_entry(path)?;
         fs.remove_one(&local, directory)

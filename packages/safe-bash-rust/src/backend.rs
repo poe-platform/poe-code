@@ -125,6 +125,12 @@ fn quote_host_text(text: String) -> String {
 }
 
 impl<'a> SafeBashFs for BudgetedFs<'a> {
+    fn trash(&self, path: &str) -> Result<Option<crate::vfs::TrashLocation<'_>>, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.trash(&host_text(path)).map_err(quote_host_text)
+    }
+
     fn shell_limits(&self) -> ShellLimits {
         self.budget.limits.clone()
     }

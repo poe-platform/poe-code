@@ -179,10 +179,13 @@ pub(super) fn cmd_rm(
             Err(format!(
                 "EBUSY: refusing to remove root, '.' or '..' '{path}'"
             ))
-        } else if direct {
-            rm.direct(&operand, &path, single)
         } else {
-            rm.guarded(&operand, &path)
+            match fs.trash(&path) {
+                Ok(Some(_)) => rm.trash(&operand, &path),
+                Err(error) => Err(error),
+                Ok(None) if direct => rm.direct(&operand, &path, single),
+                Ok(None) => rm.guarded(&operand, &path),
+            }
         };
         if let Err(e) = result {
             rm.stderr.push_str(&format!("rm: {e}\n"));
@@ -214,6 +217,24 @@ struct Remove<'a, 'b> {
 }
 
 impl Remove<'_, '_> {
+    fn trash(&mut self, operand: &str, path: &str) -> Result<bool, String> {
+        let Some(st) = self.inspect(path)? else {
+            return if self.force { Ok(true) } else { Err(format!("ENOENT: no such file or directory '{path}'")) };
+        };
+        if st.kind == VfsEntryKind::Directory && !self.recursive {
+            if !self.dir_mode { return Err(format!("EISDIR: recursive flag required '{path}'")); }
+            if !self.fs.list_dir(path)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty '{path}'")); }
+        }
+        if self.prompt {
+            self.stderr.push_str(&format!("rm: trash {}? ", display_operand(operand)));
+            if !self.answers.yes(true)? { return Ok(false); }
+        }
+        let location = self.fs.trash(path)?.ok_or("ENOTSUP: atomic trash is unavailable")?;
+        location.backend.put(&location.path)?;
+        self.removed(operand);
+        Ok(true)
+    }
+
     fn inspect(&self, path: &str) -> Result<Option<FileStat>, String> {
         if self.plain
             && !path.ends_with('/')

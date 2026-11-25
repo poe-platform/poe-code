@@ -26,3 +26,4 @@ docx-ast-rust = { path = "../docx-ast-rust" }
 pdf-ast-rust = { path = "../pdf-ast-rust" }
 office-package-rust = { path = "../office-package-rust" }
 lua-rust = { path = "../lua-rust" }
+safe-bash-command-trash = { path = "../safe-bash-command-trash" }

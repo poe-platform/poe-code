@@ -302,7 +302,12 @@ pub struct RemovalReceipt<'a> {
     pub remove: Box<dyn FnOnce(u64) -> Result<(), String> + 'a>,
 }
 
+pub use safe_bash_command_trash::{TrashBackend, Item as TrashItem, Location as TrashLocation};
+
 pub trait SafeBashFs: Send + Sync {
+    /// Atomic trash capability. Enabling it also routes rm through trash-put.
+    fn trash(&self, _path: &str) -> Result<Option<TrashLocation<'_>>, String> { Ok(None) }
+
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
         path::walk_path(

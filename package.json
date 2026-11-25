@@ -735,7 +735,8 @@
     "safe-bash-command-sort": "*",
     "@poe-code/document-converter-rust": "*",
     "safe-bash-command-tesseract": "*",
-    "safe-bash-command-ocrmypdf": "*"
+    "safe-bash-command-ocrmypdf": "*",
+    "safe-bash-command-trash": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -960,7 +961,8 @@
     "packages/safe-bash-command-ast-grep/LICENSE",
     "packages/image-ast/LICENSE.jpeg",
     "packages/document-converter-rust/dist",
-    "packages/document-converter-rust/LICENSE"
+    "packages/document-converter-rust/LICENSE",
+    "packages/safe-bash-command-trash/dist"
   ],
   "license": "MIT",
   "imports": {

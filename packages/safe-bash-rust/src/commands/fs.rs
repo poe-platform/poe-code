@@ -48,6 +48,10 @@ pub(super) fn try_run_fs_with_input(
         "mkdir" => cmd_mkdir(args, cwd, env, fs),
         "rmdir" => cmd_rmdir(args, cwd, fs),
         "rm" => cmd_rm(args, stdin, cwd, fs),
+        "trash-put" | "trash-list" | "trash-restore" => match safe_bash_command_trash::run(cmd,args,cwd,|path| fs.trash(path)) {
+            Ok(output) => ok_out(&output),
+            Err(error) => err_out(&format!("{cmd}: {error}\n"),1),
+        },
         "cp" => cmd_cp(args, stdin, cwd, env, fs),
         "mv" => cmd_mv(args, stdin, cwd, env, fs),
         "touch" => cmd_touch(args, cwd, env, fs),

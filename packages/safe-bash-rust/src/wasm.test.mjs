@@ -22372,15 +22372,19 @@ test("qpdf split filenames match literal percent fields and preserve extensions"
 });
 
 
-test("qpdf split options match native numeric bounds and reject conflicting operands", async () => {
+test("qpdf split options match JavaScript parsing and preserve files on errors", async () => {
   const {PdfDocument} = await import("@poe-code/pdf-ast");
   const doc=PdfDocument.create(); for(let i=0;i<3;i++) doc.addPage();
   const input=doc.save();
-  // qpdf 12.4.2 parses a signed integer prefix, then checks 32-bit bounds.
-  for(const [option,counts] of [
-    ...["0","-0","junk","","+","\ufeff2","\u00852"].map(value=>["--split-pages="+value,[3]]),
-    ...["2junk","2.9","+2"," 2","\v2"].map(value=>["--split-pages="+value,[2,1]]),
-    ["--split-pages",[1,1,1]], ["--split-pages=2147483647",[3]],
+  // Both JavaScript routes use decimal prefixes without native qpdf's integer
+  // bounds. Zero and NaN disable splitting; negative groups fail immediately.
+  for(const [option,counts,expected] of [
+    ...["0","-0","junk","","+","\u00852","0x10"].map(value=>["--split-pages="+value,[3],["out.pdf"]]),
+    ...["2junk","2.9","+2"," 2","\v2","\ufeff2"].map(value=>["--split-pages="+value,[2,1],["out-1-2.pdf","out-3-3.pdf"]]),
+    ...["2147483647","2147483648","9223372036854775807","9223372036854775808"," 9223372036854775808junk","9".repeat(400)]
+      .map(value=>["--split-pages="+value,[3],["out-1-3.pdf"]]),
+    ["--split-pages",[1,1,1],["out-1.pdf","out-2.pdf","out-3.pdf"]],
+    ["--split-pages=1e2",[1,1,1],["out-1.pdf","out-2.pdf","out-3.pdf"]],
   ]) {
     const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
     try {
@@ -22388,50 +22392,47 @@ test("qpdf split options match native numeric bounds and reject conflicting oper
       const result=await bash.exec("qpdf in.pdf '"+option+"' out.pdf");
       assert.deepEqual([result.exitCode,result.stdout,result.stderr],[0,"",""],option);
       const names=(await bash.fs.readdir("/")).map(entry=>entry.name).filter(name=>!before.has(name)).sort();
-      const expected=counts.length===1 ? [option==="--split-pages=2147483647"?"out-1-3.pdf":"out.pdf"]
-        : counts.length===2 ? ["out-1-2.pdf","out-3-3.pdf"] : ["out-1.pdf","out-2.pdf","out-3.pdf"];
       assert.deepEqual(names,expected,option);
       for(const [i,name] of names.entries()) assert.equal(PdfDocument.load(await bash.fs.readFile("/"+name)).pageCount,counts[i],option);
       assert.deepEqual(await bash.fs.readFile("/in.pdf"),input);
     } finally {bash.dispose();}
   }
-  for(const [args,message] of [
-    ...["-1","-1junk","-2147483648"].map(value=>["--split-pages="+value+" out.pdf",
-      "integer out of range converting "+parseInt(value,10)+" from a 4-byte signed type to a 8-byte unsigned type"]),
-    ...["2147483648","-2147483649","9223372036854775807"].map(value=>["--split-pages="+value+" out.pdf",
-      "integer out of range converting "+value+" from a 8-byte signed type to a 4-byte signed type"]),
-    ...["9223372036854775808","-9223372036854775809"," 9223372036854775808junk"].map(value=>["'--split-pages="+value+"' out.pdf",
-      "overflow/underflow converting "+value+" to 64-bit integer"]),
-    ["--split-pages --replace-input","--split-pages may not be used with --replace-input"],
-    ["--replace-input --split-pages=2","--split-pages may not be used with --replace-input"],
-    ["--split-pages 2 ignored.pdf","unknown argument ignored.pdf"],
-    ["out.pdf ignored.pdf","unknown argument ignored.pdf"],
-  ]) {
+  for(const [value,number] of [
+    ["-1","-1"],["-1junk","-1"],["-2147483648","-2147483648"],["-2147483649","-2147483649"],
+    ["-9223372036854775809","-9223372036854776000"],["-1000000000000000000000","-1e+21"],["-"+"9".repeat(400),"-Infinity"],
+  ]) for(const tail of ["out.pdf","--show-npages","--split-pages=2 part.pdf","--split-pages=0 --replace-input"]) {
+    const args="--split-pages="+value+" "+tail;
     const sentinel=new TextEncoder().encode("keep existing output");
-    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input,"/out.pdf":sentinel}});
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input,"/out.pdf":sentinel,"/out-1.pdf":sentinel}});
     try {
       const before=await bash.fs.readdir("/");
       const result=await bash.exec("qpdf in.pdf "+args);
-      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","qpdf: "+message+"\n"],args);
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","qpdf: integer out of range converting "+number+" from a 4-byte signed type to a 8-byte unsigned type\n"],args);
       assert.deepEqual(await bash.fs.readFile("/in.pdf"),input,args);
       assert.deepEqual(await bash.fs.readFile("/out.pdf"),sentinel,args);
+      assert.deepEqual(await bash.fs.readFile("/out-1.pdf"),sentinel,args);
       assert.deepEqual(await bash.fs.readdir("/"),before,args);
     } finally {bash.dispose();}
   }
-  const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
-  try {
-    for(const flags of ["--split-pages", "--split-pages=-1"]) {
-      const result=await bash.exec("qpdf in.pdf "+flags+" --split-pages=0 --replace-input");
-      assert.equal(result.exitCode,0,result.stderr);
-      assert.equal(PdfDocument.load(await bash.fs.readFile("/in.pdf")).pageCount,3);
-      await assert.rejects(bash.fs.readFile("/in-1.pdf"),{code:"ENOENT"});
-    }
-    const inspected=await bash.exec("qpdf in.pdf --split-pages=-1 --show-npages");
-    assert.deepEqual([inspected.exitCode,inspected.stdout,inspected.stderr],[0,"3\n",""]);
-    const overridden=await bash.exec("qpdf in.pdf --split-pages=-1 --split-pages=2 part.pdf");
-    assert.equal(overridden.exitCode,0,overridden.stderr);
-    assert.equal(PdfDocument.load(await bash.fs.readFile("/part-1-2.pdf")).pageCount,2);
-  } finally {bash.dispose();}
+  for(const [flags,names,counts] of [
+    ["--split-pages --replace-input",["in-1.pdf","in-2.pdf","in-3.pdf"],[1,1,1]],
+    ["--replace-input --split-pages=2",["in-1-2.pdf","in-3-3.pdf"],[2,1]],
+    ["--split-pages 2 ignored.pdf",["2-1","2-2","2-3"],[1,1,1]],
+    ["out.pdf ignored.pdf",["out.pdf"],[3]],
+    ["--split-pages --split-pages=0 --replace-input",[],[]],
+    ["--split-pages=2 --split-pages=0 out.pdf",["out.pdf"],[3]],
+    ["--split-pages=junk --split-pages=2 out.pdf",["out-1-2.pdf","out-3-3.pdf"],[2,1]],
+  ]) {
+    const bash=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+    try {
+      const before=new Set((await bash.fs.readdir("/")).map(entry=>entry.name));
+      const result=await bash.exec("qpdf in.pdf "+flags);
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[0,"",""],flags);
+      assert.deepEqual((await bash.fs.readdir("/")).map(entry=>entry.name).filter(name=>!before.has(name)).sort(),names,flags);
+      for(const [i,name] of names.entries())assert.equal(PdfDocument.load(await bash.fs.readFile("/"+name)).pageCount,counts[i],flags);
+      assert.deepEqual(await bash.fs.readFile("/in.pdf"),input,flags);
+    } finally {bash.dispose();}
+  }
 });
 
 

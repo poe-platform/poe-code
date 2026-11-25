@@ -7184,7 +7184,14 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             continue;
         }
         if let Some(sp) = a.strip_prefix("--split-pages=") {
-            edits.split_pages = Some((qpdf_decimal(sp).unwrap_or(1.) as usize).max(1));
+            let group = qpdf_decimal(sp).unwrap_or(0.);
+            if group < 0. {
+                return err_out(
+                    &format!("qpdf: integer out of range converting {} from a 4-byte signed type to a 8-byte unsigned type\n", mcp_protocol_rust::numbers::format(group)),
+                    2,
+                );
+            }
+            edits.split_pages = (group > 0.).then_some(group as usize);
             i += 1;
             continue;
         }

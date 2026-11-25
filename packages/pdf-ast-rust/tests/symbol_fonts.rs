@@ -155,7 +155,7 @@ fn emoji_sequences_and_other_scripts_still_fail_in_both_public_trees() {
         "😀\u{fe0f}",
         "😀\u{1f3fb}",
         "a\u{301}",
-        "東京",
+        "か\u{3099}",
     ] {
         assert!(write_pdf(&document(text)).is_err(), "{text}");
         let mut layout = layout_document(&document("😀"), &options).unwrap();

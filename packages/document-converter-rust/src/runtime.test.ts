@@ -14,11 +14,12 @@ it("exposes the bundled PDF font bytes for matching screen typography", async ()
     [5, "../../terminal-png-rust/assets/jetbrains-mono-700-normal.ttf"],
     [9, "../../pdf-ast-rust/src/fonts/DocumentSymbolFallback.ttf"],
     [10, "../../pdf-ast-rust/src/fonts/DejaVuSerif.ttf"],
+    [11, "../../pdf-ast-rust/src/fonts/DocumentCjkFallback.ttf"],
   ] as const) {
     const frame = font(index), address = Number(frame & 0xffffffffn), length = Number(frame >> 32n);
     expect(Buffer.from(memory.buffer, address, length)).toEqual(await readFile(new URL(path, import.meta.url)));
   }
-  expect(font(11)).toBe(0n);
+  expect(font(12)).toBe(0n);
 });
 
 it.each(["docx", "pdf"] as const)("uses a precompiled module without runtime compilation for %s", async format => {

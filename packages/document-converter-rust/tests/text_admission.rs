@@ -51,3 +51,19 @@ fn pdf_scalar_profile_does_not_restrict_word_text_or_supported_pdf_text() {
     let pdf = convert(&supported, Format::Pdf).unwrap();
     assert!(pdf.bytes.starts_with(b"%PDF-1.7"));
 }
+
+#[test]
+fn cjk_paragraphs_and_table_cells_export_in_html_and_pandoc() {
+    for json in [
+        r#"{"mode":"html","html":"<h1>東京</h1><p>Ω 東京 李 Zoë</p><table><tr><th>担当者</th></tr><tr><td>李</td></tr></table>"}"#,
+        r#"{"mode":"pandoc","document":{"metadata":{},"blocks":[{"t":"Para","c":[{"t":"Str","c":"Ω 東京 李 Zoë"}]}]}}"#,
+    ] {
+        let result = convert(&request(json), Format::Pdf).unwrap();
+        let pdf = String::from_utf8_lossy(&result.bytes);
+        assert!(pdf.starts_with("%PDF-1.7"));
+        for c in "Ω東京李Zoë".chars() {
+            assert!(pdf.contains(&format!("<{:04X}>", c as u32)), "missing {c}");
+        }
+        assert!(pdf.contains("/BaseFont /DocumentCjkFallback"));
+    }
+}

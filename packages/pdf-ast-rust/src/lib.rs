@@ -17,8 +17,8 @@ use std::{collections::BTreeMap, fmt::Write, sync::Arc};
 use terminal_png_rust::font::Font;
 
 /// Shared document faces: sans regular/bold/italic/bold-italic, then mono in
-/// the same order, followed by the two symbol fallback faces.
-pub const FONT_DATA: [&[u8]; 11] = [
+/// the same order, followed by symbol, serif and CJK fallback faces.
+pub const FONT_DATA: [&[u8]; 12] = [
     include_bytes!("fonts/LiberationSans-Regular.ttf"),
     include_bytes!("fonts/LiberationSans-Bold.ttf"),
     include_bytes!("fonts/LiberationSans-Italic.ttf"),
@@ -30,8 +30,9 @@ pub const FONT_DATA: [&[u8]; 11] = [
     include_bytes!("fonts/DejaVuSans.ttf"),
     include_bytes!("fonts/DocumentSymbolFallback.ttf"),
     include_bytes!("fonts/DejaVuSerif.ttf"),
+    include_bytes!("fonts/DocumentCjkFallback.ttf"),
 ];
-const FONT_NAMES: [&str; 11] = [
+const FONT_NAMES: [&str; 12] = [
     "LiberationSans",
     "LiberationSans-Bold",
     "LiberationSans-Italic",
@@ -43,6 +44,7 @@ const FONT_NAMES: [&str; 11] = [
     "DejaVuSans",
     "DocumentSymbolFallback",
     "DejaVuSerif",
+    "DocumentCjkFallback",
 ];
 
 #[derive(Clone)]
@@ -239,7 +241,7 @@ struct Layout<'a> {
 // Font coverage alone cannot establish correct bidi order or contextual shaping.
 fn admit_text_scalar(c: char) -> Result<(), String> {
     let point = c as u32;
-    if !matches!(point, 0x20..=0x7e | 0xa0..=0x2af | 0x370..=0x52f | 0x1e00..=0x1fff | 0x2000..=0x2bff | 0xfffd | 0x1f600..=0x1f64f)
+    if !matches!(point, 0x20..=0x7e | 0xa0..=0x2af | 0x370..=0x52f | 0x1e00..=0x1fff | 0x2000..=0x2bff | 0x3000..=0x303f | 0x3041..=0x3096 | 0x309b..=0x30ff | 0x3400..=0x4dbf | 0x4e00..=0x9fff | 0xf900..=0xfaff | 0xff01..=0xff60 | 0xfffd | 0x1f600..=0x1f64f)
         || matches!(point, 0x483..=0x489)
     {
         return Err(format!(

@@ -121,3 +121,59 @@ fn nonbreaking_spaces_keep_words_together_when_the_group_fits() {
         );
     }
 }
+
+#[test]
+fn cjk_text_uses_embedded_outlines_and_wraps_without_losing_characters() {
+    let text = "東京李ひらがなカタカナ中文漢字".repeat(12);
+    let options = PdfOptions {
+        page: pdf_ast_rust::PageBox {
+            width: 180.,
+            height: 500.,
+            margin: 15.,
+        },
+        ..Default::default()
+    };
+    let layout = layout_document(&document(&text), &options).unwrap();
+    let mut painted = String::new();
+    let mut lines = std::collections::BTreeSet::new();
+    for (page_index, page) in layout.pages.iter().enumerate() {
+        for paint in &page.paints {
+            let Paint::Text {
+                text,
+                font,
+                x,
+                y,
+                size,
+                ..
+            } = paint
+            else {
+                continue;
+            };
+            lines.insert((page_index, y.to_bits()));
+            let resource = &layout.fonts[*font];
+            assert_eq!(resource.id, "DocumentCjkFallback");
+            let face = terminal_png_rust::font::Font::new(&resource.bytes).unwrap();
+            let mut advance = 0.;
+            for c in text.chars() {
+                let glyph = face.glyph_index(c as u32);
+                assert_ne!(glyph, 0, "missing {c}");
+                assert!(!face.outline(glyph).unwrap().is_empty(), "empty {c}");
+                advance +=
+                    f64::from(face.advance(glyph).unwrap()) / f64::from(face.units_per_em()) * size;
+            }
+            assert!(*x >= 15. && x + advance <= page.width - 15. + 0.01);
+            painted.push_str(text);
+        }
+    }
+    assert_eq!(painted, text);
+    assert!(lines.len() > 1);
+    let bytes = serialize_pdf(&layout, &options.limits).unwrap();
+    let pdf = String::from_utf8_lossy(&bytes);
+    assert!(pdf.contains("/FontFile2"));
+    for c in text.chars() {
+        assert!(
+            pdf.contains(&format!("<{:04X}>", c as u32)),
+            "missing mapping for {c}"
+        );
+    }
+}

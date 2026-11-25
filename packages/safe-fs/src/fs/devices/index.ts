@@ -548,6 +548,20 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.mkdir(path, options);
   }
 
+  async trashPut(path: string, options: FsOptions = {}): Promise<void> {
+    await this.#mutable(path, options, false);
+    if (!this.#filesystem.trashPut) throw new FsError("ENOTSUP", {path});
+    await this.#filesystem.trashPut(path, options);
+  }
+  async trashList(path: string, options: FsOptions = {}) {
+    if (!this.#filesystem.trashList) throw new FsError("ENOTSUP", {path});
+    return this.#filesystem.trashList(path, options);
+  }
+  async trashRestore(path: string, item: string, options: FsOptions = {}): Promise<void> {
+    if (!this.#filesystem.trashRestore) throw new FsError("ENOTSUP", {path});
+    await this.#filesystem.trashRestore(path, item, options);
+  }
+
   rm(path: string, options: RemoveOptions = {}): Promise<void> {
     if (this.#tryResolveSync(path, options) !== undefined) {
       return this.#filesystem.rm(path, options);

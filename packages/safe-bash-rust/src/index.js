@@ -668,6 +668,21 @@ function bindExternalFs(shell,fs,options) {
           handles.set(id,descriptor);
           result=new Uint8Array(4);new DataView(result.buffer).setUint32(0,id,true);return;
         }
+        if(op==="canTrash") {
+          const caps=await fs.capabilitiesFor?.(path,{...settings,creation:"exclusive"}) ?? fs.capabilities;
+          result=Uint8Array.of(Number(caps?.atomicTrash===true));return;
+        }
+        if(op==="trashPut") {await fs.trashPut(path,settings);return;}
+        if(op==="trashRestore") {await fs.trashRestore(path,decoder.decode(data),settings);return;}
+        if(op==="trashList") {
+          const items=await fs.trashList(path,settings);
+          if(items.length>10000)throw fsOperationError("EFBIG",op,path);
+          const fields=items.flatMap(item=>[item.item,item.path,item.deletionDate]);
+          if(fields.some(field=>typeof field!=="string" || field.includes("\0")))throw fsOperationError("EIO",op,path);
+          result=encoder.encode(fields.join("\0"));
+          if(result.length>16*1024*1024)throw fsOperationError("EFBIG",op,path);
+          return;
+        }
         if(op==="unlink" && typeof fs.unlink!=="function" && fs.removeFileConditional) {
           const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
           if(!caps?.atomicFileMutation)throw fsOperationError("ENOTSUP",op,path);

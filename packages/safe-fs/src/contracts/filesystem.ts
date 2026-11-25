@@ -41,6 +41,8 @@ export interface DirectoryEntry {
 }
 
 export interface FileSystemCapabilities {
+  /** Removal uses an atomic, recoverable whole-item trash operation. */
+  readonly atomicTrash?: boolean;
   readonly open?: boolean;
   readonly versionedDescriptors?: boolean;
   /** Prefer pathname streaming for shell > / >> when supported, retaining open for explicit handles.
@@ -375,6 +377,11 @@ export interface ExtractionOptions extends FsOptions {
 }
 
 export interface FileSystem {
+  /** Atomically move one whole entry into provider-owned trash. Never follows the final symlink. */
+  trashPut?(path: string, options?: FsOptions): Promise<void>;
+  /** Select the provider through an existing directory, such as the shell cwd. */
+  trashList?(directory: string, options?: FsOptions): Promise<readonly {item: string; path: string; deletionDate: string}[]>;
+  trashRestore?(directory: string, item: string, options?: FsOptions): Promise<void>;
   /** Synchronous metadata for following directory and ancestor renames. Returns
    * undefined when unavailable. Not a lease, retained inode, or permission bypass;
    * removal invalidates tracking and leaves the last known path. */

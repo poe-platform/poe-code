@@ -14,14 +14,14 @@ impl TrashBackend for Trash {
         self.memory.mkdir_all("/.trash/files")?;
         self.memory.rename(path, "/.trash/files/item", true)
     }
-    fn list(&self) -> Result<Vec<TrashItem>, String> {
+    fn list(&self, _path: &str) -> Result<Vec<TrashItem>, String> {
         Ok(vec![TrashItem {
             name: "item".into(),
             path: "/a".into(),
             deletion_date: "2026-11-25T00:00:00".into(),
         }])
     }
-    fn restore(&self, _: &str) -> Result<(), String> {
+    fn restore(&self, _: &str, _: &str) -> Result<(), String> {
         self.memory.rename("/.trash/files/item", "/a", true)
     }
 }

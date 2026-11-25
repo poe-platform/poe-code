@@ -461,7 +461,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       } finally { await answers.return(undefined); }
     }),
     define("rm", context => {
-      if (maxRecursiveDirectoryDepth === Infinity && !context.argumentValues && !context.signal.aborted && (context.args.length === 1 || context.args.length === 2)) {
+      if (!context.fs.capabilities.atomicTrash && maxRecursiveDirectoryDepth === Infinity && !context.argumentValues && !context.signal.aborted && (context.args.length === 1 || context.args.length === 2)) {
         const fastCtx = context as { _fastMemoryBackingFs?: FileSystem & { symlinkCount?: number; tryRmFastSync?: (path: string, recursive: boolean, force: boolean) => boolean }; _chargeFastFsOp?: () => void; _hasInfiniteFsOpsLimit?: boolean };
         const backingMem = fastCtx._fastMemoryBackingFs;
         if (
@@ -471,6 +471,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
           backingMem.capabilitiesFor === undefined &&
           backingMem.symlinkCount === 0 &&
           !backingMem.capabilities.readOnly &&
+          backingMem.capabilities.atomicTrash !== true &&
           backingMem.capabilities.remove !== false &&
           backingMem.capabilities.recursiveRemove !== false &&
           backingMem.capabilities.removeDirectory !== false &&
@@ -542,7 +543,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
       const recursiveTraversal = recursive && (interactive === "always" || maxRecursiveDirectoryDepth !== Infinity);
-      const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number; capabilitiesFor?: unknown } | undefined;
+      const backingMem = getRuntimeBackingFileSystem(context.fs) as (FileSystem & { symlinkCount?: number }) | undefined;
       const caps = context.fs.capabilities;
       const fastStockMemory =
         interactive === "never" &&
@@ -550,6 +551,8 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         backingMem !== undefined &&
         backingMem.capabilitiesFor === undefined &&
         backingMem.symlinkCount === 0 &&
+        backingMem.capabilities.atomicTrash !== true &&
+        caps.atomicTrash !== true &&
         caps.remove !== false &&
         caps.recursiveRemove !== false &&
         caps.removeDirectory !== false &&
@@ -621,6 +624,19 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             throw new FsError("ENOENT", { path });
           }
           if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
+          const trashCapabilities = await context.fs.capabilitiesFor?.(path, {signal: context.signal, creation: "exclusive"}) ?? context.fs.capabilities;
+          if (trashCapabilities.atomicTrash) {
+            if (!context.fs.trashPut) throw new FsError("ENOTSUP", {path, message: "atomic trash unavailable"});
+            if (stat.type === "directory" && !recursive && (await readDirectory(context, path, true)).length) throw new FsError("ENOTEMPTY", {path});
+            if (interactive === "always" && !await confirm(`remove '${escapeText(operand, "display")}'`)) return false;
+            try { await context.fs.trashPut(path, {signal: context.signal}); }
+            catch (error) {
+              context.signal.throwIfAborted();
+              if (!force || codeOf(error) !== "ENOENT") throw error;
+            }
+            if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
+            return true;
+          }
           if (interactive === "always" || recursiveTraversal) {
             const display = escapeText(operand, "display");
             if (stat.type === "directory" && recursive) {

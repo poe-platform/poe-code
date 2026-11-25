@@ -328,7 +328,49 @@ impl crate::vfs::FileReadHandle for HostRead {
     }
 }
 
+impl crate::vfs::TrashBackend for HostFs {
+    fn put(&self, path: &str) -> Result<(), String> {
+        self.mutable(path, false)?;
+        self.request("trashPut", path, &[], 0, 0).map(drop)
+    }
+    fn list(&self, path: &str) -> Result<Vec<crate::vfs::TrashItem>, String> {
+        let bytes = self.request("trashList", path, &[], 0, 0)?;
+        if bytes.is_empty() {
+            return Ok(vec![]);
+        }
+        let text = String::from_utf8(bytes).map_err(|_| "EIO: invalid trash listing")?;
+        let fields: Vec<_> = text.split('\0').collect();
+        if !fields.len().is_multiple_of(3) {
+            return Err("EIO: invalid trash listing".into());
+        }
+        Ok(fields
+            .chunks_exact(3)
+            .map(|f| crate::vfs::TrashItem {
+                name: f[0].into(),
+                path: f[1].into(),
+                deletion_date: f[2].into(),
+            })
+            .collect())
+    }
+    fn restore(&self, path: &str, item: &str) -> Result<(), String> {
+        self.request("trashRestore", path, item.as_bytes(), 0, 0)
+            .map(drop)
+    }
+}
+
 impl SafeBashFs for HostFs {
+    fn trash(&self, path: &str) -> Result<Option<crate::vfs::TrashLocation<'_>>, String> {
+        let operand = path.trim_end_matches('/');
+        let path = if operand.is_empty() { "/" } else { operand };
+        let available = self.request("canTrash", path, &[], 0, 0)?;
+        Ok(
+            (available.first() == Some(&1)).then(|| crate::vfs::TrashLocation {
+                backend: self,
+                path: path.into(),
+            }),
+        )
+    }
+
     fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
         if !self.devices {
             return Ok(None);

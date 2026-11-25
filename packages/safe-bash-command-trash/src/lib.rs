@@ -10,8 +10,8 @@ pub struct Item {
 /// authorization, reject trashing the trash, and restore without replacement.
 pub trait TrashBackend: Send + Sync {
     fn put(&self, path: &str) -> Result<(), String>;
-    fn list(&self) -> Result<Vec<Item>, String>;
-    fn restore(&self, item: &str) -> Result<(), String>;
+    fn list(&self, path: &str) -> Result<Vec<Item>, String>;
+    fn restore(&self, path: &str, item: &str) -> Result<(), String>;
 }
 
 pub struct Location<'a> {
@@ -51,7 +51,7 @@ pub fn run<'a>(
         "trash-list" if args.is_empty() => {
             let location = locate(cwd)?.ok_or("ENOTSUP: atomic trash is unavailable")?;
             let mut output = String::new();
-            for item in location.backend.list()? {
+            for item in location.backend.list(&location.path)? {
                 output.push_str(&format!(
                     "{}\t{}\t{}\n",
                     item.name, item.deletion_date, item.path
@@ -70,7 +70,7 @@ pub fn run<'a>(
             {
                 return Err("invalid trash item".into());
             }
-            location.backend.restore(&args[0])?;
+            location.backend.restore(&location.path, &args[0])?;
             Ok(String::new())
         }
         _ => Err(format!(
@@ -94,14 +94,14 @@ mod tests {
             self.0.lock().unwrap().push(path.into());
             Ok(())
         }
-        fn list(&self) -> Result<Vec<Item>, String> {
+        fn list(&self, _path: &str) -> Result<Vec<Item>, String> {
             Ok(vec![Item {
                 name: "item".into(),
                 path: "/a".into(),
                 deletion_date: "2026-11-25T10:00:00".into(),
             }])
         }
-        fn restore(&self, item: &str) -> Result<(), String> {
+        fn restore(&self, _path: &str, item: &str) -> Result<(), String> {
             self.0.lock().unwrap().push(item.into());
             Ok(())
         }

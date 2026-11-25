@@ -3002,7 +3002,7 @@ export class Runtime {
       parseBudget: this.budget.parsing, positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner, maximumBytes: this.budget.limits.maxExpansionBytes, checkpoint: () => this.signal.throwIfAborted(), requireParameter: (name, value) => this.requireParameter(value, name, state, io), limit: () => this.budget.fail("maxExpansionBytes"), }, prepared => this.shellArithmetic(prepared, state, io));
   }
   get canFastMemoryRedirect(): boolean {
-    return this._canFastMemoryRedirect ??= ( this.budget.limits.maxPathnameComponents === Infinity && !this.backingFs.capabilitiesFor && this.sourceFs.capabilities.open === true && this.sourceFs.capabilities.preferStreamingRedirection !== true && this.sourceFs.capabilities.readOnly !== true && this.sourceFs.capabilities.write !== false && this.sourceFs.capabilities.append !== false);
+    return this._canFastMemoryRedirect ??= ( this.budget.limits.maxPathnameComponents === Infinity && !this.sourceFs.capabilities.atomicTrash && !this.backingFs.capabilities.atomicTrash && !this.backingFs.capabilitiesFor && this.sourceFs.capabilities.open === true && this.sourceFs.capabilities.preferStreamingRedirection !== true && this.sourceFs.capabilities.readOnly !== true && this.sourceFs.capabilities.write !== false && this.sourceFs.capabilities.append !== false);
   }
   private get syncArithRefs(): ArithmeticReferences {
     return this._syncArithRefs ??= this.createSyncArithRefs();

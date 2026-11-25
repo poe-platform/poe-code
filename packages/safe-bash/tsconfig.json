@@ -1415,6 +1415,9 @@
       "safe-bash-command-ast-grep/*": [
         "../safe-bash-command-ast-grep/src/*.ts",
         "../safe-bash-command-ast-grep/src/*"
+      ],
+      "safe-bash-command-trash": [
+        "../safe-bash-command-trash/src/index.ts"
       ]
     },
     "baseUrl": "."

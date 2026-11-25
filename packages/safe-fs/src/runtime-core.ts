@@ -57,6 +57,7 @@ export function tryMkdirMemorySync(fs: FileSystem, path: string, recursive: bool
   return Boolean((fs && _getMemHooks()?.byProto?.get(Object.getPrototypeOf(fs))?.tryMkdirMemorySync)?.(fs, path, recursive, mode, signal, dirPrefixHint));
 }
 export function tryRmRfMemorySync(fs: FileSystem, path: string, signal?: AbortSignal): boolean {
+  if (fs.capabilities.atomicTrash) return false;
   return Boolean((fs && _getMemHooks()?.byProto?.get(Object.getPrototypeOf(fs))?.tryRmRfMemorySync)?.(fs, path, signal));
 }
 export function tryWriteMemoryFileInDirSync(fs: FileSystem, dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number, signal?: AbortSignal): boolean {

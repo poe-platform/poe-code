@@ -10,12 +10,27 @@ export interface TrashBackend {
 }
 export interface TrashLimits { readonly maxItems: number; readonly maxOutputBytes: number }
 export interface TrashCommandsOptions {
-  readonly backend: TrashBackend;
+  readonly backend?: TrashBackend;
   readonly replace?: boolean;
   readonly limits?: Partial<TrashLimits>;
 }
-export function createTrashCommand(options: TrashCommandsOptions, name = "trash-put"): CommandDefinition {
+const filesystemBackend: TrashBackend = {
+  async put(path, context) {
+    if (!context.fs.trashPut) throw new Error("filesystem does not support atomic trash");
+    await context.fs.trashPut(path, {signal: context.signal});
+  },
+  async list(context) {
+    if (!context.fs.trashList) throw new Error("filesystem does not support atomic trash");
+    return context.fs.trashList(context.cwd, {signal: context.signal});
+  },
+  async restore(item, context) {
+    if (!context.fs.trashRestore) throw new Error("filesystem does not support atomic trash");
+    await context.fs.trashRestore(context.cwd, item, {signal: context.signal});
+  },
+};
+export function createTrashCommand(options: TrashCommandsOptions = {}, name = "trash-put"): CommandDefinition {
   if (!["trash-put", "trash-list", "trash-restore"].includes(name)) throw new TypeError("Unknown trash command");
+  const backend = options.backend ?? filesystemBackend;
   const limits = {maxItems: 10000, maxOutputBytes: 16 * 1024 * 1024, ...options.limits};
   for (const value of Object.values(limits)) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError("Invalid trash limit");
   return {name, async execute(context) {
@@ -28,11 +43,11 @@ export function createTrashCommand(options: TrashCommandsOptions, name = "trash-
         for (const arg of args) {
           context.signal.throwIfAborted();
           if (!arg || arg.includes("\0")) throw new Error("invalid path");
-          await options.backend.put(arg.startsWith("/") ? arg : `${context.cwd}/${arg}`, context);
+          await backend.put(arg.startsWith("/") ? arg : `${context.cwd.endsWith("/") ? context.cwd : `${context.cwd}/`}${arg}`, context);
         }
       } else if (name === "trash-list") {
         if (args.length) throw new Error("usage: trash-list");
-        const items = await options.backend.list(context);
+        const items = await backend.list(context);
         if (items.length > limits.maxItems) throw new Error("trash listing exceeds item limit");
         let bytes = 0;
         for (const item of items) {
@@ -45,7 +60,7 @@ export function createTrashCommand(options: TrashCommandsOptions, name = "trash-
       } else {
         const item = args[0];
         if (args.length !== 1 || !item || item.includes("/") || item.includes("\0") || item === "." || item === "..") throw new Error("usage: trash-restore ITEM");
-        await options.backend.restore(item, context);
+        await backend.restore(item, context);
       }
       return {exitCode: 0};
     } catch (error) {
@@ -55,10 +70,10 @@ export function createTrashCommand(options: TrashCommandsOptions, name = "trash-
     }
   }};
 }
-export function createTrashCommands(options: TrashCommandsOptions): readonly CommandDefinition[] {
+export function createTrashCommands(options: TrashCommandsOptions = {}): readonly CommandDefinition[] {
   return ["trash-put", "trash-list", "trash-restore"].map(name => createTrashCommand(options, name));
 }
-export function trashCommands(options: TrashCommandsOptions): VirtualShellPlugin {
+export function trashCommands(options: TrashCommandsOptions = {}): VirtualShellPlugin {
   const commands = createTrashCommands(options);
   return {name: "trash-commands", setup(host) {
     if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);

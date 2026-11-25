@@ -40,7 +40,7 @@ const operations = new Set<keyof FileSystem>([
   "confineExtraction", "confineTrustedExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir", "iterateDirectory",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
-  "writeFile", "writeStream",
+  "writeFile", "writeStream", "trashPut", "trashList", "trashRestore",
 ]);
 
 export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,

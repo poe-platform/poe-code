@@ -2,6 +2,7 @@ import "../shell/sync-extra-evaluators.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { basicCommands } from "./basic.js";
+import { createTrashCommands } from "./trash/index.js";
 import { filesystemCommands } from "./filesystem.js";
 import { streamCommands } from "./streams.js";
 import { textCommands } from "./text.js";
@@ -35,7 +36,7 @@ let defaultBaseStandardCommands: readonly CommandDefinition[] | undefined;
 let defaultTailStandardCommands: readonly CommandDefinition[] | undefined;
 
 export function createStandardCommandsWithGrep(options: StandardCommandsOptions, grep: readonly CommandDefinition[]): readonly CommandDefinition[] {
-  const commands: CommandDefinition[] = [];
+  const commands: CommandDefinition[] = [...createTrashCommands()];
   const execute = directExecutor(options.execute ?? (async context => {
     const command = commands.find(definition => definition.name === context.command);
     if (command) return command.execute(context);

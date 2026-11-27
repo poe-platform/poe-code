@@ -85,7 +85,7 @@ for (const [label, numbers, expected] of [
     context.after(() => shell.dispose());
     const result = await shell.exec("ls -l /character; ls -lL /link");
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, `crw-rw-rw- 1 0 0 ${expected} 1970-01-01 00:00 /character\ncrw-rw-rw- 1 0 0 ${expected} 1970-01-01 00:00 /link\n`);
+    assert.equal(result.stdout, `crw-rw-rw- 1 0 0 ${expected} Jan  1  1970 /character\ncrw-rw-rw- 1 0 0 ${expected} Jan  1  1970 /link\n`);
     const regular = await shell.exec("ls -l /regular");
     assert.equal(regular.exitCode, 0, regular.stderr);
     assert.ok(regular.stdout.startsWith("-rw-r--r-- 1 0 0 4 "));

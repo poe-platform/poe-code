@@ -847,6 +847,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
     createReadlinkCommand(),
     createRealpathCommand(),
     define("ls", async context => {
+      const now = Date.now();
       let hidden: "none" | "all" | "almost-all" = "none";
       let sort: "name" | "time" | "size" | "none" | "extension" | "version" = "name";
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
@@ -986,7 +987,11 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         if (parsed.flags.has("l")) {
           if (!("size" in stat)) throw new Error("ls long listing requires file stats");
           let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
-          const date = new Date(stat[timeKey]).toISOString().slice(0, 16).replace("T", " ");
+          const timestamp = new Date(stat[timeKey]);
+          // GNU ls uses half an average Gregorian year to classify recent times.
+          const recent = stat[timeKey] > now - 15_778_476_000 && stat[timeKey] <= now;
+          const time = recent ? timestamp.toISOString().slice(11, 16) : String(timestamp.getUTCFullYear()).padStart(5, " ");
+          const date = `${timestamp.toUTCString().slice(8, 11)} ${String(timestamp.getUTCDate()).padStart(2, " ")} ${time}`;
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);

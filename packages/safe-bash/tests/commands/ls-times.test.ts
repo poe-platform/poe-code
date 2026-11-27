@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { type FsOptions } from "../../src/contracts/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+import { Shell } from "../../src/shell/index.js";
 import { fixture, run } from "./helpers.js";
 
 const times = {
@@ -18,6 +20,7 @@ for (const [selector, expected] of [
   ["-ct", "gamma\nalpha\nbeta\n"], ["-ut", "beta\ngamma\nalpha\n"],
 ] as const) {
   test(`ls ${selector} selects provider timestamps`, async context => {
+    context.mock.method(Date, "now", () => 240000);
     const fs = await fixture({ alpha: "x", beta: "x", gamma: "x" });
     const lstat = fs.lstat.bind(fs);
     context.mock.method(fs, "lstat", async (path: string, options?: FsOptions) => ({
@@ -38,7 +41,41 @@ for (const [selector, expected] of [
       ? expected.trimEnd().split("\n").map(name => [name, times[name as keyof typeof times]] as const)
       : Object.entries(times);
     assert.equal(long.stdout, "total 12\n" + entries.map(([name, metadata]) =>
-      `-rw-rw-rw- 1 0 0 1 1970-01-01 00:0${metadata[key] / 60000} ${name}\n`).join(""));
+      `-rw-rw-rw- 1 0 0 1 Jan  1 00:0${metadata[key] / 60000} ${name}\n`).join(""));
+  });
+}
+
+test("ls long dates preserve GNU date fields in shell pipelines", async context => {
+  context.mock.method(Date, "now", () => Date.parse("2026-01-02T03:04:05Z"));
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch -d '2020-01-02 03:04' a; ls -l a | cut -d' ' -f6-; ls -l a | awk '{print NF}'");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "Jan  2  2020 a\n9\n");
+  const filename = await shell.exec("ls -l a | awk '{print $9}'");
+  assert.equal(filename.exitCode, 0);
+  assert.equal(filename.stderr, "");
+  assert.equal(filename.stdout, "a\n");
+});
+
+for (const [timestamp, expected] of [
+  ["2026-01-02T03:04:05Z", "Jan  2 03:04"],
+  ["2025-12-31T23:59:00Z", "Dec 31 23:59"],
+  ["2020-01-02T03:04:00Z", "Jan  2  2020"],
+  ["2026-01-02T03:04:06Z", "Jan  2  2026"],
+  ["2025-07-03T12:09:29Z", "Jul  3  2025"],
+  ["2025-07-03T12:09:30Z", "Jul  3 12:09"],
+] as const) {
+  test(`ls long date formats ${timestamp} as ${expected}`, async context => {
+    context.mock.method(Date, "now", () => Date.parse("2026-01-02T03:04:05Z"));
+    const fs = await fixture({ item: "" });
+    const time = Date.parse(timestamp);
+    await fs.utimes("/work/item", time, time);
+    const result = await run("ls", ["-l", "item"], { fs });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `-rw-rw-rw- 1 0 0 0 ${expected} item\n`);
   });
 }
 

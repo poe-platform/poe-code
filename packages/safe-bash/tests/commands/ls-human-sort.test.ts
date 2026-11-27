@@ -28,7 +28,7 @@ for (const args of [["-lh"], ["-l", "--human-readable"]]) {
     const result = await run("ls", [...args, "item"], { fs });
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, `-rw-rw-rw- 1 0 0 ${expected} 1970-01-01 00:00 item\n`);
+    assert.equal(result.stdout, `-rw-rw-rw- 1 0 0 ${expected} Jan  1  1970 item\n`);
   });
 }
 

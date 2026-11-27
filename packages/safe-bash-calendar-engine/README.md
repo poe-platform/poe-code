@@ -9,3 +9,6 @@ and zero-based day-of-year transitions, including southern-hemisphere seasons.
 Date parsing supports next/last/this units, fortnights, weekday names, and
 yesterday/tomorrow combined with an ISO date or a time, such as
 `2024-01-05 tomorrow 10:00`.
+Absolute date strings also accept fixed timezone abbreviations such as EST, PDT,
+CET, and JST, and east-positive corrections such as `UTC+2` or `GMT-5:30`.
+Abbreviations retain their fixed offset regardless of the date's season.

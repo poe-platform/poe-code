@@ -240,9 +240,27 @@ function decimalEpoch(text: string): bigint | undefined {
   return boundedInstant(match[1] === "-" ? -magnitude - (/[1-9]/.test(fraction.slice(9)) ? 1n : 0n) : magnitude);
 }
 
+const dateZoneOffsets: Readonly<Record<string, string>> = {
+  Z: "+00", UT: "+00", UTC: "+00", GMT: "+00", WET: "+00", BST: "+01",
+  WEST: "+01", CET: "+01", CEST: "+02", MET: "+01", MEST: "+02",
+  EET: "+02", EEST: "+03", MSK: "+03", MSD: "+04",
+  AST: "-04", ADT: "-03", NST: "-03:30", NDT: "-02:30",
+  EST: "-05", EDT: "-04", CST: "-06", CDT: "-05",
+  MST: "-07", MDT: "-06", PST: "-08", PDT: "-07",
+  AKST: "-09", AKDT: "-08", HST: "-10", JST: "+09", KST: "+09",
+  NZST: "+12", NZDT: "+13"
+};
+
 function parsedZone(text: string | undefined, fallback: TimeZone): TimeZone {
   if (text === undefined) return fallback;
-  return /^[+-]/.test(text) ? new TimeZone(text, true) : new TimeZone(text.toUpperCase());
+  const name = text.toUpperCase();
+  if (name.startsWith("+") || name.startsWith("-")) return new TimeZone(name, true);
+  // Date-string corrections use east-positive offsets, unlike POSIX TZ values.
+  const correction = /^(?:UTC|GMT)([+-])(\d{1,2})(?::(\d{2}))?$/.exec(name);
+  if (correction) return new TimeZone(`${correction[1]}${correction[2]!.padStart(2, "0")}:${correction[3] ?? "00"}`, true);
+  const offset = dateZoneOffsets[name];
+  if (offset === undefined) throw new CommandFailure(`unsupported date timezone: ${text}`);
+  return new TimeZone(offset, true);
 }
 
 export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigint {
@@ -295,14 +313,14 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
 function parseAbsoluteDate(value: string, zone: TimeZone): { instant: bigint; zone: TimeZone } {
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return { instant: epoch, zone };
-  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
+  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
   if (iso) {
     const fields: CalendarFields = { year: Number(iso[1] ?? iso[4]), month: Number(iso[2] ?? iso[5]), day: Number(iso[3] ?? iso[6]), hour: Number(iso[7] ?? 0),
       minute: Number(iso[8] ?? 0), second: Number(iso[9] ?? 0) };
     const sourceZone = parsedZone(iso[11], zone);
     return { instant: sourceZone.instant(fields, BigInt((iso[10] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
   }
-  const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+(GMT|UTC|[+-]\d{4})$/.exec(value);
+  const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{4})$/.exec(value);
   if (rfc) {
     const fields: CalendarFields = { year: Number(rfc[4]), month: monthNames.findIndex(name => name.startsWith(rfc[3]!)) + 1,
       day: Number(rfc[2]), hour: Number(rfc[5]), minute: Number(rfc[6]), second: Number(rfc[7]) };

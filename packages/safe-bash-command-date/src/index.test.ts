@@ -33,6 +33,24 @@ async function run(args: string[], fs = createMemoryFileSystem(), env: Record<st
 import { FsError } from "safe-bash-contracts";
 import { evalSyncDate } from "./date.js";
 
+for (const [input, format, expected] of [
+  ["2024-01-05 next week", "%F", "2024-01-12\n"],
+  ["2024-01-05 last month", "%F", "2023-12-05\n"],
+  ["2024-01-05 next year", "%F", "2025-01-05\n"],
+  ["2024-01-05 yesterday", "%F", "2024-01-04\n"],
+  ["2024-01-05 tomorrow 10:00", "%FT%T", "2024-01-06T10:00:00\n"],
+  ["2024-01-05 fortnight", "%F", "2024-01-19\n"],
+  ["next month", "ok", "ok\n"],
+  ["last sunday", "ok", "ok\n"],
+  ["monday", "ok", "ok\n"],
+] as const) {
+  test(`date parses ${input} in both execution paths`, async () => {
+    const args = ["-u", "-d", input, "+" + format];
+    assert.deepEqual(await run(args), { exitCode: 0, stdout: expected, stderr: "" });
+    assert.equal(evalSyncDate(args, undefined, undefined, undefined, () => undefined), expected);
+  });
+}
+
 for (const [args, expected] of [
   [["-u", "-r", "1700000000", "+%F"], "2023-11-14\n"],
   [["-u", "-r", "-0.25", "+%s.%N"], "-1.750000000\n"],

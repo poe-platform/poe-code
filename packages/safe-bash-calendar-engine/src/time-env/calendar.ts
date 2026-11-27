@@ -253,22 +253,31 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
   }
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return epoch;
-  if (value === "now") return now();
-  if (["today", "yesterday", "tomorrow"].includes(value)) {
-    const current = now();
-    if (value === "today") return current;
-    const fields = zone.fields(current);
-    const changed = utcFields(utcMilliseconds(fields) + (value === "yesterday" ? -86400000 : 86400000));
-    return zone.instant(changed, current - floorDivide(current, nanosecondsPerSecond) * nanosecondsPerSecond);
+  const weekday = /^(?:(next|last|this)\s+)?(sunday|monday|tuesday|wednesday|thursday|friday|saturday)$/i.exec(value);
+  if (weekday) {
+    const fields = zone.fields(now());
+    const target = weekdayNames.findIndex(name => name.toLowerCase() === weekday[2]!.toLowerCase());
+    let days = (target - new Date(utcMilliseconds(fields)).getUTCDay() + 7) % 7;
+    if (weekday[1]?.toLowerCase() === "last") days -= 7;
+    else if (weekday[1]?.toLowerCase() === "next" && days === 0) days = 7;
+    return zone.instant(utcFields(utcMilliseconds({ ...fields, day: fields.day + days, hour: 0, minute: 0, second: 0 })));
   }
-  const relative = /^(?:(.*?)\s+)?([+-]?\s*\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?:\s+(ago))?$/.exec(value);
+  const relative = /^(?:(.*?)\s+)??(?:(?:([+-]?\s*\d+|next|last|this)\s+)?(seconds?|minutes?|hours?|days?|weeks?|fortnights?|months?|years?)|(now|today|yesterday|tomorrow))(?:\s+(ago))?(?:\s+(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?$/i.exec(value);
   if (relative) {
-    const rawAmount = relative[2]!.replace(/\s+/g, "");
+    const keyword = relative[4]?.toLowerCase();
+    const ordinal = relative[2]?.toLowerCase();
+    const rawAmount = keyword ? (keyword === "yesterday" ? "-1" : keyword === "tomorrow" ? "1" : "0")
+      : ordinal === "last" ? "-1" : ordinal === "this" ? "0" : ordinal === "next" || ordinal === undefined ? "1" : ordinal.replace(/\s+/g, "");
     if (rawAmount.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
     const base = relative[1] === undefined || relative[1] === "now"
       ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone);
-    const amount = BigInt(rawAmount) * (relative[4] ? -1n : 1n);
-    const unit = relative[3]!;
+    if (relative[6] !== undefined) {
+      base.instant = base.zone.instant({ ...base.zone.fields(base.instant), hour: Number(relative[6]),
+        minute: Number(relative[7]), second: Number(relative[8] ?? 0) }, BigInt((relative[9] ?? "").slice(0, 9).padEnd(9, "0")));
+    }
+    const amount = BigInt(rawAmount) * (relative[5] ? -1n : 1n);
+    const unit = relative[3]?.toLowerCase() ?? "day";
+    if (amount === 0n) return base.instant;
     if (["second", "minute", "hour"].some(name => unit.startsWith(name))) {
       const scale = unit.startsWith("hour") ? 3600n : unit.startsWith("minute") ? 60n : 1n;
       return boundedInstant(base.instant + amount * scale * nanosecondsPerSecond);
@@ -276,7 +285,7 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
     const fields = base.zone.fields(base.instant);
     const changed = unit.startsWith("year") ? { ...fields, year: fields.year + Number(amount) }
       : unit.startsWith("month") ? { ...fields, month: fields.month + Number(amount) }
-      : { ...fields, day: fields.day + Number(amount) * (unit.startsWith("week") ? 7 : 1) };
+      : { ...fields, day: fields.day + Number(amount) * (unit.startsWith("week") ? 7 : unit.startsWith("fortnight") ? 14 : 1) };
     const normalized = utcFields(utcMilliseconds(changed));
     return base.zone.instant(normalized, base.instant - floorDivide(base.instant, nanosecondsPerSecond) * nanosecondsPerSecond);
   }

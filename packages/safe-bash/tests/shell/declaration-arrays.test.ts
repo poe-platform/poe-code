@@ -62,6 +62,18 @@ for (const [source, stdout] of controlDeclarations) {
 }
 
 const cases = [
+  ["declare -a a='(1 2 3)'; echo ${#a[@]} ${a[1]}", "3 2\n"],
+  ["declare -A m='([k]=v)'; echo \"${m[k]}\"", "v\n"],
+  ["saved='([2]=\"two words\" \"\" tail)'; typeset -a a=\"$saved\"; printf '<%s>' \"${!a[@]}\" \"${a[@]}\"", "<2><3><4><two words><><tail>"],
+  ["saved='([k]=\"two words\" [empty]=\"\")'; typeset -A m=\"$saved\"; printf '<%s>' \"${m[k]}\" \"${m[empty]}\" \"${#m[@]}\"", "<two words><><2>"],
+  ["a=(old); declare -a a+='(new tail)'; printf '<%s>' \"${a[@]}\"", "<old><new><tail>"],
+  ["declare -A m=([old]=before); declare -A m+='([k]=after)'; printf '<%s>' \"${m[old]}\" \"${m[k]}\"", "<before><after>"],
+  ["a=(outer); f(){ local -a a='(inner tail)'; printf '<%s>' \"${a[@]}\"; }; f; printf '<%s>' \"${a[@]}\"", "<inner><tail><outer>"],
+  ["word='two words'; declare -a a='(\"$word\" $(printf tail))'; printf '<%s>' \"${a[@]}\"", "<two words><tail>"],
+  ["declare -a a='()'; declare -A m='()'; printf '%s:%s' \"${#a[@]}\" \"${#m[@]}\"", "0:0"],
+  ["declare value='(1 2)'; declare -a a='plain text'; printf '<%s>' \"$value\" \"${a[@]}\"", "<(1 2)><plain text>"],
+  ["declare -a a='(one' b='(one)tail' c=' (one)' d='(one) '; printf '<%s>' \"${a[@]}\" \"${b[@]}\" \"${c[@]}\" \"${d[@]}\"", "<(one><(one)tail>< (one)><(one) >"],
+  ["declare -a a=$'(\\xff two)'; printf '<%s>' \"${a[@]}\"", "<\ufffd><two>"],
   ['declare -a a=(x y); printf "<%s>" "${a[@]}"', "<x><y>"],
   ['f(){ local -a a=(x y); printf "<%s>" "${a[@]}"; }; f', "<x><y>"],
   ['readonly -a a=(x y); printf "<%s>" "${a[@]}"', "<x><y>"],

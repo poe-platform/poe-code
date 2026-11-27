@@ -9383,7 +9383,7 @@ export class Runtime {
         }
         try {
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
-        const compound = syntax?.name === name ? syntax : undefined;
+        let compound = syntax?.name === name ? syntax : undefined;
         const reference = match[2] ?? state.variables[name];
         if (namerefDeclaration && reference !== undefined && (reference === name || !variableTarget(reference))) {
           await this.diagnostic(context, `${command}: ${reference}: invalid name reference`); status = 1; continue;
@@ -9418,6 +9418,13 @@ export class Runtime {
           continue;
         }
         if ((localDeclaration || command === "declare") && (indexedLocal || compound)) {
+          if (!compound && match[2]?.startsWith("(") && match[2].endsWith(")")) {
+            const assigned = assignedValue();
+            this.budget.source(shellValueByteLength(assigned));
+            const source = typeof assigned === "string" ? assigned : latin1Text(shellValueBytes(assigned, context[valueScope]));
+            const entries = parseCompoundArrayValue(source, byteLocale(state.variables), typeof assigned !== "string", state.extensions?.syntax, this.budget.parsing, !!state.extglob);
+            compound = { kind: "compound", name, append, entries };
+          }
           if (controlNames.has(name) && name !== "IFS" && name !== "OPTIND") throw new ArrayFailure("control binding cannot be indexed");
           const existingLocal = locals?.get(name);
           const saved = !locals || existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);

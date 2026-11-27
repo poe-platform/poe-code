@@ -27701,6 +27701,40 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
     s.trim_matches('\'').trim_matches('"').to_string()
 }
 
+fn sql_like_match(text: &str, pattern: &str, escape: Option<char>) -> bool {
+    let mut text = text.chars();
+    let mut pattern = pattern.chars();
+    let mut retry = None;
+    loop {
+        let next = pattern.next();
+        let escaped = next.is_some() && next == escape;
+        if next == Some('%') && !escaped {
+            retry = Some((text.clone(), pattern.clone()));
+            continue;
+        }
+        let next = if escaped { pattern.next() } else { next };
+        let value = text.next();
+        if next.is_none() && value.is_none() && !escaped {
+            return true;
+        }
+        if next
+            .zip(value)
+            .is_some_and(|(p, t)| (!escaped && p == '_') || p.eq_ignore_ascii_case(&t))
+        {
+            continue;
+        }
+        // Retry the suffix after the last % with one more input character.
+        let Some((retry_text, retry_pattern)) = &mut retry else {
+            return false;
+        };
+        if retry_text.next().is_none() {
+            return false;
+        }
+        text = retry_text.clone();
+        pattern = retry_pattern.clone();
+    }
+}
+
 fn sql_wildcard_match(text: &[u8], pat: &[u8], many: u8, single: u8) -> bool {
     if pat.is_empty() {
         return text.is_empty();
@@ -27993,16 +28027,30 @@ fn eval_sql_where(
         return v == SQL_NULL;
     }
 
-    if let Some(nlp) = find_top_sql_bool_kw(&upper, " NOT LIKE ") {
-        let lv = eval_sql_row_expr(&trimmed[..nlp], columns, row, tables).to_ascii_lowercase();
-        let pat =
-            eval_sql_row_expr(&trimmed[nlp + 10..], columns, row, tables).to_ascii_lowercase();
-        return !sql_wildcard_match(lv.as_bytes(), pat.as_bytes(), b'%', b'_');
-    }
-    if let Some(lp) = find_top_sql_bool_kw(&upper, " LIKE ") {
-        let lv = eval_sql_row_expr(&trimmed[..lp], columns, row, tables).to_ascii_lowercase();
-        let pat = eval_sql_row_expr(&trimmed[lp + 6..], columns, row, tables).to_ascii_lowercase();
-        return sql_wildcard_match(lv.as_bytes(), pat.as_bytes(), b'%', b'_');
+    if let Some((position, keyword, negate)) = [(" NOT LIKE ", true), (" LIKE ", false)]
+        .into_iter()
+        .find_map(|(keyword, negate)| {
+            find_top_sql_bool_kw(&upper, keyword).map(|position| (position, keyword, negate))
+        })
+    {
+        let value = eval_sql_row_expr(&trimmed[..position], columns, row, tables);
+        let rhs = &trimmed[position + keyword.len()..];
+        let (pattern, escape) =
+            if let Some(ep) = find_top_sql_bool_kw(&rhs.to_ascii_uppercase(), " ESCAPE ") {
+                let escape = eval_sql_row_expr(&rhs[ep + 8..], columns, row, tables);
+                let mut chars = escape.chars();
+                let first = chars.next();
+                if escape == SQL_NULL || first.is_none() || chars.next().is_some() {
+                    return false;
+                }
+                (&rhs[..ep], first)
+            } else {
+                (rhs, None)
+            };
+        let pattern = eval_sql_row_expr(pattern, columns, row, tables);
+        return value != SQL_NULL
+            && pattern != SQL_NULL
+            && (sql_like_match(&value, &pattern, escape) != negate);
     }
     if let Some(ngp) = find_top_sql_bool_kw(&upper, " NOT GLOB ") {
         let lv = eval_sql_row_expr(&trimmed[..ngp], columns, row, tables);

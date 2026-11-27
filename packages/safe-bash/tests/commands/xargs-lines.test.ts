@@ -4,6 +4,24 @@ import { Shell } from "../../src/shell/shell.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
+for (const script of [
+  "printf 'a b\\n' | xargs -I {} | od -c",
+  "printf 'x\\ny\\n' | xargs -I{} | wc -l",
+]) test(`xargs replacement without a command runs empty echo: ${script}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, script.endsWith("od -c") ? "0000000  \\n\n0000001\n" : "2\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    for (const option of ["-I {}", "-I{}"]) {
+      const direct = await shell.exec(`xargs ${option}`, { stdin: "a b\nx\n" });
+      assert.equal(direct.stdout, "\n\n");
+      assert.equal(direct.exitCode, 0);
+    }
+  } finally { await shell.dispose(); }
+});
+
 for (const fixture of [
   { option: "", stdin: "a\n'bad", stdout: "[a]" },
   { option: "", stdin: 'a\n"bad', stdout: "[a]" },

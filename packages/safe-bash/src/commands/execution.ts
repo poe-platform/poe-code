@@ -214,7 +214,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       };
       const dispatch = async () => {
         if (stop) return;
-        const childArguments = initial.withValues(replacementPattern === undefined || parsed.operands.length === 0 ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
+        const childArguments = initial.withValues(replacementPattern === undefined ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
         const args = childArguments.args;
         const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
@@ -638,7 +638,6 @@ export function evalSyncXargs(
     if (delimChar !== undefined && (eofStr !== undefined || maxLines !== undefined || replaceStr !== undefined)) {
       return undefined;
     }
-    const hasExplicitCmd = i < opArgs.length;
     const cmd = opArgs[i] ?? "echo";
     if (cmd !== "echo" && cmd !== "printf" && cmd !== "basename" && cmd !== "dirname" && cmd !== "cat" && cmd !== "wc" && cmd !== "head" && cmd !== "tail" && cmd !== "true") return undefined;
     const initialArgs = opArgs.slice(i + 1);
@@ -834,11 +833,7 @@ export function evalSyncXargs(
       let args: string[];
       if (replaceStr !== undefined) {
         const val = batch[0]!;
-        if (hasExplicitCmd) {
-          args = baseInitial.map(a => a.split(replaceStr!).join(val));
-        } else {
-          args = [...baseInitial, val];
-        }
+        args = baseInitial.map(a => a.split(replaceStr!).join(val));
       } else {
         args = [...baseInitial, ...batch];
       }

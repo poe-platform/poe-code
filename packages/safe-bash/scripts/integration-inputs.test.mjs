@@ -944,6 +944,7 @@ function assertSource7Discovery(files) {
     "tests/shell/conditional-predicates.test.ts",
     "tests/shell/read-count.test.ts",
     "tests/shell/declaration-arrays.test.ts",
+    "tests/shell/readonly-array-assignment.test.ts",
     "tests/shell/background-jobs.test.ts",
     "tests/shell/background-jobs-review.test.ts",
     "tests/shell/session-hooks.test.ts",

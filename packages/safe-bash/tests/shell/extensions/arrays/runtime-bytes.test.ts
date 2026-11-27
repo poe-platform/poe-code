@@ -67,8 +67,8 @@ test("byte-cell fixture bytes agree with pinned Bash in the C byte profile", nat
 });
 
 for (const [name, source, expected] of [
-  ["readonly element refuses RHS effects", `a=($'\\xff'); readonly a; a[0]=\${side:=bad}; printf '%s:%s' "$a" "\${side-unset}"`, "ff3a756e736574"],
-  ["readonly zero retains RHS evaluation order", `a=($'\\xff'); readonly a; a=\${side:=ran}; printf '%s:%s' "$a" "\${side-unset}"`, "ff3a72616e"],
+  ["readonly element refuses RHS effects", `a=($'\\xff'); readonly a; a[0]=\${side:=bad}\nprintf '%s:%s' "$a" "\${side-unset}"`, "ff3a756e736574"],
+  ["readonly zero retains RHS evaluation order", `a=($'\\xff'); readonly a; a=\${side:=ran}\nprintf '%s:%s' "$a" "\${side-unset}"`, "ff3a72616e"],
 ] as const) test(`byte-cell guard: ${name}`, async context => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs });
@@ -76,7 +76,7 @@ for (const [name, source, expected] of [
   for (const command of basicCommands()) shell.register(command);
   const result = await shell.exec(source);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stderr, "shell: line 1: indexed array: readonly binding\n");
+  assert.equal(result.stderr, "shell: line 1: a: readonly variable\n");
   assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), expected);
 });
 

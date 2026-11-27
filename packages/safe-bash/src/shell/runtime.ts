@@ -3367,8 +3367,7 @@ export class Runtime {
   }
   private assertArrayWritable(state: State, name: string, origin: "assignment" | "declaration" = "assignment"): void {
     if (!state.readonlyVariables?.has(name)) return;
-    if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) throw new DiscardCommandFailure(name, 1, origin);
-    throw new ArrayFailure("readonly binding");
+    throw new DiscardCommandFailure(name, 1, origin);
   }
   async arrayZero(state: State, name: string, io: IO, expand: () => Promise<ShellValue>, append = false, freeze = false, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
     const store = requireArrays(state);

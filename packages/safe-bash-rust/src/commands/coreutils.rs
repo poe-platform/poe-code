@@ -7264,9 +7264,14 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
             }
             acc
         } else {
-            v.val.trunc().max(0.0) as u128
+            v.val.trunc().abs() as u128
         };
-        return format_bc_base(n, bc.obase);
+        let magnitude = format_bc_base(n, bc.obase);
+        return if v.neg && n != 0 {
+            format!("-{magnitude}")
+        } else {
+            magnitude
+        };
     }
     if let Some(ref d) = v.coefficient {
         return format_big_with_scale(d, v.scale, v.neg);

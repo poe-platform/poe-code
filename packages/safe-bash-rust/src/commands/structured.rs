@@ -1826,6 +1826,15 @@ fn resolve_jq_lhs_paths(
         let _ = result?;
         return Ok(paths);
     }
+    if let ("getpath", Some(filter)) = (name, args) {
+        return eval_jq(filter, input, vars)?
+            .into_iter()
+            .map(|candidate| match candidate {
+                JVal::Array(path) => Ok(path),
+                _ => Err("Path must be specified as an array".into()),
+            })
+            .collect();
+    }
     if s == "first" {
         return match input {
             JVal::Array(_) | JVal::Null => Ok(vec![vec![JVal::Number(0.0, None)]]),

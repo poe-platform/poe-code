@@ -242,7 +242,7 @@ impl AwkState<'_> {
                     }
                 }
                 self.set_var("FILENAME", Scalar::Text(name));
-                self.fnr = 0;
+                self.fnr = 0.0;
             }
             record_phase_start = false;
             let rs = crate::vfs::stream_string_to_bytes(&self.rs);
@@ -258,8 +258,8 @@ impl AwkState<'_> {
                 self.vfs,
             ) {
                 Ok(Some(line)) => {
-                    self.nr += 1;
-                    self.fnr += 1;
+                    self.nr += 1.0;
+                    self.fnr += 1.0;
                     return Some(line);
                 }
                 Ok(None) => self.reader = None,

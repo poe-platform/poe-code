@@ -2239,8 +2239,8 @@ struct AwkState<'a> {
     fields: Vec<Scalar>,
     line: String,
     record_value: Option<Scalar>,
-    nr: usize,
-    fnr: usize,
+    nr: f64,
+    fnr: f64,
     fs: String,
     rs: String,
     ofs: String,
@@ -2295,6 +2295,9 @@ impl<'a> AwkState<'a> {
             .unwrap_or_else(|| "%.6g".to_string());
         vars.entry("SUBSEP".to_string())
             .or_insert_with(|| "\x1c".to_string());
+        let nr = vars
+            .remove("NR")
+            .map_or(0.0, |v| Scalar::input(v).number().trunc());
         Self {
             vars: vars
                 .into_iter()
@@ -2306,8 +2309,8 @@ impl<'a> AwkState<'a> {
             funcs,
             fields: Vec::new(),
             line: String::new(),
-            nr: 0,
-            fnr: 0,
+            nr,
+            fnr: 0.0,
             fs,
             rs,
             ofs,
@@ -2521,8 +2524,8 @@ impl<'a> AwkState<'a> {
     fn get_var(&self, name: &str) -> Scalar {
         match name {
             "NF" => Scalar::Number(self.fields.len() as f64),
-            "NR" => Scalar::Number(self.nr as f64),
-            "FNR" => Scalar::Number(self.fnr as f64),
+            "NR" => Scalar::Number(self.nr),
+            "FNR" => Scalar::Number(self.fnr),
             "FS" => Scalar::Text(self.fs.clone()),
             "RS" => Scalar::Text(self.rs.clone()),
             "OFS" => Scalar::Text(self.ofs.clone()),
@@ -2535,6 +2538,8 @@ impl<'a> AwkState<'a> {
 
     fn set_var(&mut self, name: &str, val: Scalar) {
         match name {
+            "NR" => self.nr = val.number().trunc(),
+            "FNR" => self.fnr = val.number().trunc(),
             "FS" => self.fs = self.formatted(val.text(Some(&self.convfmt))),
             "RS" => self.rs = self.formatted(val.text(Some(&self.convfmt))),
             "OFS" => self.ofs = self.formatted(val.text(Some(&self.convfmt))),

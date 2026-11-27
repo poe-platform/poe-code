@@ -2559,17 +2559,31 @@ fn try_eval_jq_builtin(
                 let mut obj = Vec::new();
                 for item in a {
                     if let JVal::Object(fields) = item {
-                        let k = fields
-                            .iter()
-                            .find(|(fk, _)| fk == "key" || fk == "name")
-                            .map(|(_, v)| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        let v = fields
-                            .iter()
-                            .find(|(fk, _)| fk == "value")
-                            .map(|(_, v)| v.clone())
+                        let key = ["key", "Key", "name", "Name"]
+                            .into_iter()
+                            .find_map(|alias| {
+                                fields
+                                    .iter()
+                                    .find(|(name, value)| {
+                                        name == alias && (alias == "Name" || value.is_truthy())
+                                    })
+                                    .map(|(_, value)| value)
+                            })
+                            .unwrap_or(&JVal::Null);
+                        let JVal::Str(key) = key else {
+                            return Err(format!(
+                                "Cannot use {} ({}) as object key",
+                                key.type_name(),
+                                key.to_json_string(true, false, 0)
+                            )
+                            .into());
+                        };
+                        let value = ["value", "Value"]
+                            .into_iter()
+                            .find_map(|alias| fields.iter().find(|(name, _)| name == alias))
+                            .map(|(_, value)| value.clone())
                             .unwrap_or(JVal::Null);
-                        obj.push((k, v));
+                        obj.push((key.clone(), value));
                     }
                 }
                 return Ok(Some(vec![JVal::Object(obj)]));

@@ -6722,7 +6722,13 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
             && !s.starts_with('\'')
             && let Ok(n) = clean.parse::<f64>()
         {
-            JVal::Number(n, None)
+            if !clean.contains(['.', 'e', 'E'])
+                && let Some(value) = jq_number::literal(clean)
+            {
+                value
+            } else {
+                JVal::Number(n, None)
+            }
         } else {
             JVal::Str(clean.to_string())
         }

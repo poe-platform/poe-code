@@ -6117,9 +6117,9 @@ export class Runtime {
             state.lastArgument = rawState.lastArgument;
           }
           if (!words.length) return state.substitutionStatus;
+          if (state.xtrace) await this.trace(words, state, originalIO);
           const args = words.slice(1);
           const argValues = allStrings ? args : wordValues.slice(1);
-          if (state.xtrace) await this.trace(words, state, originalIO);
           try {
             return await this.dispatch(wordValues[0]!, args, state, originalIO, emptySavedVariables, false, argValues, emptySavedVariables);
           } catch (error) {
@@ -6342,8 +6342,8 @@ export class Runtime {
           state.lastArgument = rawState.lastArgument;
         }
       }
-      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
       if (!words.length) return state.substitutionStatus;
+      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
       if (persistentRedirects) {
         snapshotHolder.persistentRedirects = true;
         for (const redirect of command.redirects) {
@@ -7235,8 +7235,8 @@ export class Runtime {
     initializeIdentityVariables(variables);
     exported.add("SHLVL");
     variables.PPID = "1";
-    variables.OPTERR = "1";
     variables.PS4 ??= "+ ";
+    variables.OPTERR = "1";
     const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {
       directoryFileSystem: this.fs, logicalCwd: state.logicalCwd,
       umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState() }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
@@ -7277,14 +7277,21 @@ export class Runtime {
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some((flag, index) => flag !== "O" && !(flag === "o" && index === flags.length - 1 && Object.hasOwn(options, args[0] ?? "")) && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
+      if (!flags.length || [...flags].some((flag, index) => flag !== "O" && !(flag === "o" && index === flags.length - 1) && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
         await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-h, +/-u, +/-n, +/-B, +/-f, +/-C, +/-P, +/-O shopt-option and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }
       for (const flag of flags) {
         if (flag === "c") commandString = true;
         else if (flag === "s") standardInput = true;
-        else if (flag === "o") options[args.shift()! as keyof typeof options] = enabled;
+        else if (flag === "o") {
+          const name = args.shift();
+          if (name === undefined || !Object.hasOwn(options, name)) {
+            await writeDiagnostic(context.stderr, `${context.command}: ${name ?? "-o"}: invalid option name\n`);
+            return 2;
+          }
+          options[name as keyof typeof options] = enabled;
+        }
         else if (flag === "O") {
           const name = args[0];
           shoptArguments.push(name === undefined || name.startsWith("-") || name.startsWith("+")
@@ -9468,8 +9475,8 @@ export class Runtime {
               allexport: !!state.allexport, braceexpand: state.braceexpand !== false,
               errexit: !!state.errexit, hashall: state.hashall !== false, noclobber: !!state.noclobber,
               noexec: !!state.noexec, noglob: !!state.noglob,
-              nounset: !!state.nounset, physical: !!state.physical, pipefail: state.pipefail,
               xtrace: !!state.xtrace,
+              nounset: !!state.nounset, physical: !!state.physical, pipefail: state.pipefail,
             },
             extensions: new Map([...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled])),
           };

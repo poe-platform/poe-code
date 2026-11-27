@@ -17952,7 +17952,7 @@ const syncExtraRuntimeMethods = {
     return progress;
   },
   tryFastPureSubstitution(this: any, part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
-    if (state.xtrace) return undefined;
+    if (rawState.xtrace) return undefined;
     // These evaluators read the visible exports directly. Dispatch normally
     // when a child must instead inherit an exported value hidden by a local.
     for (const locals of rawState.locals) {

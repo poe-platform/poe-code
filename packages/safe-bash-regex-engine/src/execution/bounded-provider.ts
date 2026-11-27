@@ -322,7 +322,7 @@ async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promis
       await yieldTurn(signal);
     }
   }
-  const execution = matchExprSteps(input.descriptor, input.subject, { asciiOnly: true, ownedUnits: input.ownedUnits });
+  const execution = matchExprSteps(input.descriptor, input.subject, { asciiOnly: input.descriptor.profile === "byte", ownedUnits: input.ownedUnits });
   while (true) {
     signal.throwIfAborted();
     const step = execution.next();
@@ -1326,7 +1326,7 @@ class CooperativeWorker implements RegexWorker {
         const exprOwned = owned as OwnedExprRequest;
         const execution = exprOwned.descriptor.kind === "bre-search"
           ? searchBreSteps(exprOwned.descriptor, exprOwned.subject, { ownedUnits: exprOwned.ownedUnits })
-          : matchExprSteps(exprOwned.descriptor, exprOwned.subject, { asciiOnly: true, ownedUnits: exprOwned.ownedUnits });
+          : matchExprSteps(exprOwned.descriptor, exprOwned.subject, { asciiOnly: exprOwned.descriptor.profile === "byte", ownedUnits: exprOwned.ownedUnits });
         let yields = 0;
         let syncReply: ExprMatchReply | BreSearchReply | undefined;
         while (true) {

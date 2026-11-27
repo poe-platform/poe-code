@@ -11,6 +11,38 @@ import type { RegexWorker, RegexWorkerRequest } from "../../../src/commands/rege
 const bytes = (text: string) => new TextEncoder().encode(text);
 const descriptor = (pattern: string, limits = exprMatchCeilings, profile: ExprMatchDescriptor["profile"] = "byte"): ExprMatchDescriptor => ({ kind: "expr-match", pattern: bytes(pattern), profile, limits });
 
+for (const [source, stdout, exitCode] of [
+  ["LC_ALL=C.UTF-8 expr 'é' : '.'", "1\n", 0],
+  ["LC_ALL=C.UTF-8 expr 'héllo wörld' : 'h.*o \\(.*\\)'", "wörld\n", 0],
+  ["LC_ALL=C.UTF-8 expr '😀é' : '.*'", "2\n", 0],
+  ["LC_ALL=C.UTF-8 expr '你好' : '你\\(好\\)'", "好\n", 0],
+  ["LC_ALL=C.UTF-8 expr match 'éé' '\\(é\\)\\1'", "é\n", 0],
+  ["LC_ALL=C.UTF-8 expr 'é' : 'x'", "0\n", 1],
+] as const) test(`default expr matches UTF-8: ${source}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, exitCode);
+  } finally { await shell.dispose(); }
+});
+
+test("bounded expr worker preserves UTF-8 capture byte offsets", async () => {
+  const worker = createBoundedRegexProvider().createWorker(defaults);
+  try {
+    const reply = await exchange(worker, {
+      id: 1, descriptor: descriptor(".\\(é\\)", exprMatchCeilings, "utf8-scalar"),
+      rows: [{ bytes: bytes("😀é"), all: false, terminated: false }],
+    });
+    assert.ok("result" in reply, JSON.stringify(reply));
+    assert.deepEqual(reply.result.overall, { start: 0, end: 6 });
+    assert.deepEqual(reply.result.capture, { start: 4, end: 6 });
+  } finally { await worker.terminate(); }
+});
+
 async function exchange(worker: RegexWorker, request: RegexWorkerRequest): Promise<ExprMatchReply> {
   return new Promise((resolve, reject) => {
     const message = (reply: unknown) => {

@@ -2,6 +2,7 @@ use super::png_pixels::Raster;
 
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Kernel {
+    Sample,
     Nearest,
     Linear,
     Cubic,
@@ -80,6 +81,16 @@ impl Raster {
         }
         if w.saturating_mul(h) > limit / 4 || w == 0 || h == 0 {
             return Err("image exceeds memory budget");
+        }
+        if kernel == Kernel::Sample {
+            // Sample at each destination pixel's center, choosing the preceding
+            // source pixel on exact boundaries, as ImageMagick does.
+            self.remap(w, h, |im, x, y| {
+                let source_x = ((2 * x as u64 + 1) * im.width as u64 - 1) / (2 * w as u64);
+                let source_y = ((2 * y as u64 + 1) * im.height as u64 - 1) / (2 * h as u64);
+                im.pixels[source_y as usize * im.width + source_x as usize]
+            });
+            return Ok(());
         }
         let (sx, sy) = (
             1. / (self.width as f64 / w as f64),

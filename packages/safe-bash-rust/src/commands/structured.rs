@@ -27422,7 +27422,7 @@ fn eval_sql_where(
             let inner = paren_s[1..close].trim();
             if inner.to_ascii_uppercase().starts_with("SELECT ") {
                 let sub_sql = substitute_correlated_subquery(inner, columns, row);
-                let res = exec_sql_select(
+                let res = exec_sql_select_ext(
                     &sub_sql,
                     tables,
                     &BTreeMap::new(),
@@ -27430,17 +27430,26 @@ fn eval_sql_where(
                     false,
                     false,
                     false,
+                    false,
                     None,
                     false,
                     "|",
+                    SQL_NULL,
                 );
-                return !res.lines().any(|l| l.trim() == lv);
+                return !res
+                    .lines()
+                    .any(|value| lv == SQL_NULL || value == SQL_NULL || value.trim() == lv);
             }
-            let items: Vec<String> = split_top_level_comma(inner)
-                .into_iter()
-                .map(|it| eval_sql_row_expr(it, columns, row, tables))
-                .collect();
-            return !items.contains(&lv);
+            if inner.is_empty() {
+                return true;
+            }
+            // A NULL operand or candidate makes an unmatched NOT IN unknown,
+            // which does not qualify a row for WHERE.
+            return lv != SQL_NULL
+                && !split_top_level_comma(inner).into_iter().any(|item| {
+                    let value = eval_sql_row_expr(item, columns, row, tables);
+                    value == SQL_NULL || value == lv
+                });
         }
     }
 

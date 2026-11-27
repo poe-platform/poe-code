@@ -3464,6 +3464,9 @@ fn try_bind_jq_pattern(
                     if !try_bind_jq_pattern(&sub_pat, sub_val, vars, strict) {
                         return false;
                     }
+                    if k_raw.trim().starts_with('$') {
+                        vars.insert(key.to_string(), sub_val.clone());
+                    }
                 } else if strict {
                     return false;
                 } else {

@@ -235,6 +235,7 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
   const reader = new Reader(text, budget);
   const patches: FilePatch<Lines, Hunks>[] = [];
   let convertedBytes = 0;
+  let skippedText = false;
   while ((await reader.peek(1)) !== undefined) {
     try {
       if ((await reader.peek(1)) === "") { await reader.take(); continue; }
@@ -242,7 +243,8 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
         throw new ToolError("unexpected deletion outside a patch hunk");
       }
       if (!/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test((await reader.peek(8))!)) {
-        await reader.take();
+        await reader.take(8);
+        skippedText = true;
         continue;
       }
       let indexPath: string | undefined;
@@ -277,5 +279,6 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
       break;
     }
   }
+  if (skippedText && !patches.length && !progress?.error) throw new ToolError("no patch found");
   return patches;
 }

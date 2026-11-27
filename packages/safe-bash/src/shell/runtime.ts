@@ -7237,7 +7237,7 @@ export class Runtime {
     variables.PPID = "1";
     variables.PS4 ??= "+ ";
     variables.OPTERR = "1";
-    const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {
+    const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process"), "1"), {
       directoryFileSystem: this.fs, logicalCwd: state.logicalCwd,
       umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState() }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
     for (const name of state.exportedFunctions ?? []) {
@@ -11828,6 +11828,7 @@ export class RootShellState implements State {
     this.directoryReference = undefined;
   }
   declare variables: Record<string, string>;
+  declare readonlyVariables?: Set<string>;
   declare variableAttributes: Map<string, string>;
   declare _functions: Map<string, Command> | undefined;
   declare getopts: GetoptsBinding | undefined;
@@ -11847,13 +11848,29 @@ export class RootShellState implements State {
   declare pipefail: boolean;
   declare profile: "bash";
   declare secondsOrigin: number;
-  constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, ) {
+  constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, parentPid?: string, ) {
     this.cwd = cwd;
     this.logicalCwd = cwd;
     this.variables = variables;
     this.variableAttributes = new Map([["OPTIND", "i"]]);
-    this.shift_verbose = variables.POSIXLY_CORRECT !== undefined;
     this._exported = exported;
+    // A state clone inherits bindings; only a new interpreter initializes them.
+    if (parentPid !== undefined) {
+      variables.UID ??= "1000";
+      variables.EUID ??= variables.UID;
+      variables.PPID = parentPid;
+      variables.OSTYPE ??= "linux-gnu";
+      variables.HOSTTYPE ??= "x86_64";
+      variables.MACHTYPE ??= "x86_64-pc-linux-gnu";
+      variables.HOSTNAME ??= "sandbox";
+      const level = variables.SHLVL?.trim() ?? "";
+      const inheritedLevel = /^[+-]?\d+$/u.test(level) ? Number(level) : 0;
+      variables.SHLVL = String(Number.isSafeInteger(inheritedLevel) ? Math.max(0, inheritedLevel + 1) : 1);
+      this.readonlyVariables = new Set(["UID", "EUID", "PPID"]);
+      for (const name of this.readonlyVariables) this.variableAttributes.set(name, "i");
+      this.exported.add("SHLVL");
+    }
+    this.shift_verbose = variables.POSIXLY_CORRECT !== undefined;
     this.extensions = extensions;
     this.status = 0;
     this.substitutionStatus = 0;

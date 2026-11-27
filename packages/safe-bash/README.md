@@ -785,6 +785,13 @@ one execution. `stdin` accepts a string, `Uint8Array`, or async byte source;
 `stdout`/`stderr` accept byte sinks. Results still buffer output when sinks are
 provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/types.ts).
 
+`UID` and `EUID` default to the virtual user ID 1000; explicit `env.UID` and
+`env.EUID` configure them. These and `PPID` are readonly integers. `PPID` is
+0 initially and 1 in nested interpreters, matching the virtual process ID.
+`OSTYPE=linux-gnu`, `HOSTTYPE=x86_64`, `MACHTYPE=x86_64-pc-linux-gnu`, and
+`HOSTNAME=sandbox` describe the default virtual machine. `SHLVL` is exported
+and increments for each new interpreter, but not for subshells or sourced scripts.
+
 `RANDOM` produces values from 0 through 32767 and accepts a seed for repeatable
 sequences. `SECONDS` tracks elapsed whole seconds and accepts a new starting
 value. Assignments through arithmetic, `read`, and `printf -v` retain these

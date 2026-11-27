@@ -836,6 +836,7 @@ export class Shell implements PluginHost {
           variables,
           exported,
           undefined,
+          "0",
         );
         currentState.processSubstitutionIds = this.#processSubstitutionIds;
         state = currentState;

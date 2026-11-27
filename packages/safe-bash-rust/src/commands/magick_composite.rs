@@ -182,6 +182,7 @@ pub(super) fn run(
     let mut gravity = "northwest".to_owned();
     let mut amounts = "";
     let mut geometry = "";
+    let mut size = (1, 1);
     let mut operands = Vec::new();
     let mut iter = args.iter().map(String::as_str);
     while let Some(arg) = iter.next() {
@@ -215,17 +216,18 @@ pub(super) fn run(
                 }
             }
             "-quality" => quality = super::js_number(iter.next()?, 1.),
-            "-background" => {
+            "-size" => size = super::magick_coordinates::Geometry::canvas_size(iter.next()?),
+            "-background" | "-depth" => {
                 iter.next()?;
             }
             "-composite" => {}
             "-adjoin" => adjoin = true,
             "+adjoin" if cmd != "composite" => adjoin = false,
             a if a.starts_with('-') && a != "-" => return None,
-            a => operands.push(a),
+            a => operands.push((a, size)),
         }
     }
-    let (&dest, inputs) = operands.split_last()?;
+    let (&(dest, _), inputs) = operands.split_last()?;
     let &[first, second, ref rest @ ..] = inputs else {
         return None;
     };
@@ -240,7 +242,8 @@ pub(super) fn run(
     };
     let fail = |e: &str| Some(err_out(&format!("magick: {e}\n"), 1));
     let kernel = Kernel::Lanczos3;
-    let steps = [base, overlay].map(|token| (0, magick_stack::Step::Input(token, (1, 1), kernel)));
+    let steps =
+        [base, overlay].map(|(token, size)| (0, magick_stack::Step::Input(token, size, kernel)));
     let mut images = match magick_stack::evaluate(
         &steps,
         0,

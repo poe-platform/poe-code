@@ -18958,6 +18958,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     let mut not_null_cols = Vec::new();
     let mut check_exprs = Vec::new();
     let mut foreign_keys = Vec::new();
+    let mut unique_indexes = Vec::new();
     let mut rowid_alias_col: Option<usize> = None;
     let mut is_text_cols: Vec<bool> = Vec::new();
     let mut pk_col_count = 0usize;
@@ -18998,6 +18999,9 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                     }
                 }
                 continue;
+            }
+            if split_top_level_sql_cmp(&format!("{c_up} "), " UNIQUE ").is_some() {
+                unique_indexes.push((String::new(), vec![cname.clone()]));
             }
             if let Some(dp) = c_up.find(" DEFAULT ") {
                 let after_d = c_norm[dp + 9..].trim();
@@ -19070,7 +19074,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             not_null_cols,
             check_exprs,
             foreign_keys,
-            unique_indexes: Vec::new(),
+            unique_indexes,
             is_fts5: false,
             next_seq: 0,
             create_sql: stmt.to_string(),
@@ -20904,7 +20908,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if upper.starts_with("CREATE TABLE") {
             if let Some(open) = stmt.find('(') {
-                if let Some(close) = stmt.rfind(')') {
+                if stmt.rfind(')').is_some() {
                     let head = stmt[..open].trim();
                     let tname = head
                         .split_whitespace()
@@ -20912,91 +20916,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         .unwrap_or("")
                         .trim_matches('"')
                         .to_string();
-                    let cols_def = &stmt[open + 1..close];
-                    let mut cols = Vec::new();
-                    let mut defaults = BTreeMap::new();
-                    let mut generated = BTreeMap::new();
-                    let mut not_null_cols = Vec::new();
-                    let mut check_exprs = Vec::new();
-                    let mut foreign_keys = Vec::new();
-                    for c in split_top_level_comma(cols_def) {
-                        let c_norm = c.replace(['\r', '\n', '\t'], " ");
-                        let c_up = c_norm.to_ascii_uppercase();
-                        let cname = c_norm
-                            .split_whitespace()
-                            .next()
-                            .unwrap_or("")
-                            .trim_matches('"')
-                            .to_string();
-                        let cu = cname.to_ascii_uppercase();
-                        if cu == "FOREIGN" {
-                            if let Some(fk) = parse_sql_fk_clause("", &c_norm) {
-                                foreign_keys.push(fk);
-                            }
-                            continue;
-                        }
-                        if cname.is_empty()
-                            || matches!(cu.as_str(), "PRIMARY" | "UNIQUE" | "CHECK" | "CONSTRAINT")
-                        {
-                            continue;
-                        }
-                        if let Some(dp) = c_up.find(" DEFAULT ") {
-                            let after_d = c_norm[dp + 9..].trim();
-                            let dval = if let Some(stripped) = after_d.strip_prefix('\'') {
-                                stripped.split('\'').next().unwrap_or("").to_string()
-                            } else {
-                                after_d
-                                    .split_whitespace()
-                                    .next()
-                                    .unwrap_or("")
-                                    .trim_matches('"')
-                                    .to_string()
-                            };
-                            defaults.insert(cname.to_ascii_lowercase(), dval);
-                        }
-                        if let Some(fk) = parse_sql_fk_clause(&cname, &c_norm) {
-                            foreign_keys.push(fk);
-                        }
-                        if let Some(gp) = c_up.find("GENERATED ALWAYS AS") {
-                            let after_g = &c_norm[gp + 19..];
-                            if let Some(go) = after_g.find('(')
-                                && let Some(gc) = find_matching_paren(&after_g[go..])
-                            {
-                                let gexpr = after_g[go + 1..go + gc].trim().to_string();
-                                generated.insert(cname.to_ascii_lowercase(), gexpr);
-                            }
-                        }
-                        if c_up.contains("NOT NULL")
-                            && !c_up.contains("SET NULL")
-                            && !c_up.contains("DEFAULT ")
-                            && !c_up.contains("PRIMARY KEY")
-                        {
-                            not_null_cols.push(cname.clone());
-                        }
-                        if let Some(cp) = c_up.find("CHECK") {
-                            let after_c = &c_norm[cp + 5..];
-                            if let Some(co) = after_c.find('(')
-                                && let Some(cc) = find_matching_paren(&after_c[co..])
-                            {
-                                check_exprs.push(after_c[co + 1..co + cc].trim().to_string());
-                            }
-                        }
-                        cols.push(cname);
-                    }
-                    tables.entry(tname).or_insert(SqlTable {
-                        columns: cols,
-                        rows: Vec::new(),
-                        imported_csv: false,
-                        defaults,
-                        generated,
-                        not_null_cols,
-                        check_exprs,
-                        foreign_keys,
-                        unique_indexes: Vec::new(),
-                        is_fts5: false,
-                        next_seq: 0,
-                        create_sql: stmt.trim().trim_end_matches(';').to_string(),
-                    });
+                    let (table, _, _) = parse_create_table_metadata(stmt);
+                    tables.entry(tname).or_insert(table);
                 }
             }
         } else if upper.starts_with("CREATE TRIGGER") {
@@ -21105,7 +21026,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 Err(e) => return err_out(&e, 1),
             }
         } else if upper.starts_with("UPDATE ") {
-            let ret_chunk = exec_sql_update(
+            let ret_chunk = match exec_sql_update(
                 stmt,
                 &mut tables,
                 &triggers,
@@ -21113,7 +21034,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 json_mode,
                 csv_mode,
                 &sep,
-            );
+            ) {
+                Ok(chunk) => chunk,
+                Err(e) => return err_out(&e, 1),
+            };
             if !ret_chunk.is_empty() {
                 emit_chunk(
                     ret_chunk,
@@ -21331,7 +21255,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
             } else if resolved_any_cte && rest.to_ascii_uppercase().starts_with("UPDATE ") {
-                let ret_chunk = exec_sql_update(
+                let ret_chunk = match exec_sql_update(
                     rest,
                     &mut tables,
                     &triggers,
@@ -21339,7 +21263,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     json_mode,
                     csv_mode,
                     &sep,
-                );
+                ) {
+                    Ok(chunk) => chunk,
+                    Err(e) => {
+                        for cname in &cte_names {
+                            tables.remove(cname);
+                        }
+                        return err_out(&e, 1);
+                    }
+                };
                 if !ret_chunk.is_empty() {
                     emit_chunk(
                         ret_chunk,
@@ -21556,7 +21488,7 @@ fn fire_sql_triggers(
             } else if sub_up.starts_with("DELETE FROM ") {
                 let _ = exec_sql_delete(sub, tables, triggers, false, false, false, "|");
             } else if sub_up.starts_with("UPDATE ") {
-                let _ = exec_sql_update(sub, tables, triggers, false, false, false, "|");
+                exec_sql_update(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("SELECT ") {
                 let sel_out = exec_sql_select_ext(
                     sub,
@@ -22087,11 +22019,11 @@ fn exec_sql_update(
     json_mode: bool,
     csv_mode: bool,
     sep: &str,
-) -> String {
+) -> Result<String, String> {
     let stmt_norm = stmt.replace(['\r', '\n', '\t'], " ");
     let upper = stmt_norm.to_ascii_uppercase();
     let Some(set_pos) = upper.find(" SET ") else {
-        return String::new();
+        return Ok(String::new());
     };
     let tname = stmt_norm[6..set_pos].trim().trim_matches('"').to_string();
     let ret_pos = upper.rfind(" RETURNING ");
@@ -22112,7 +22044,7 @@ fn exec_sql_update(
         .get(&tname)
         .map(|t| (t.columns.clone(), t.generated.clone()))
     else {
-        return String::new();
+        return Ok(String::new());
     };
     let mut eval_cols = t_cols.clone();
     for c in &t_cols {
@@ -22153,7 +22085,7 @@ fn exec_sql_update(
     }
     let mut affected_rows = Vec::new();
     for (r_idx, old_r, ur) in updated_pairs {
-        if !fire_sql_triggers(
+        match fire_sql_triggers(
             &tname,
             SqlTriggerOp::Update,
             true,
@@ -22162,10 +22094,22 @@ fn exec_sql_update(
             Some(&ur),
             tables,
             triggers,
-        )
-        .unwrap_or(false)
-        {
-            continue;
+        ) {
+            Ok(false) => continue,
+            Ok(true) => {}
+            Err(e) => {
+                *tables = tables_snap;
+                return Err(e);
+            }
+        }
+        for nn_col in &tables_snap[&tname].not_null_cols {
+            if let Some(pos) = find_sql_col(&t_cols, nn_col)
+                && ur[pos].is_empty()
+            {
+                let error = format!("Error: NOT NULL constraint failed: {tname}.{nn_col}\n");
+                *tables = tables_snap;
+                return Err(error);
+            }
         }
         if let Some(tbl) = tables.get_mut(&tname)
             && let Some(slot) = tbl.rows.get_mut(r_idx)
@@ -22249,7 +22193,7 @@ fn exec_sql_update(
             }
         }
         affected_rows.push(ur.clone());
-        let _ = fire_sql_triggers(
+        if let Err(e) = fire_sql_triggers(
             &tname,
             SqlTriggerOp::Update,
             false,
@@ -22258,10 +22202,13 @@ fn exec_sql_update(
             Some(&ur),
             tables,
             triggers,
-        );
+        ) {
+            *tables = tables_snap;
+            return Err(e);
+        }
     }
     if let Some(rcols) = returning_cols {
-        return format_sql_returning(
+        return Ok(format_sql_returning(
             &rcols,
             &t_cols,
             &affected_rows,
@@ -22269,9 +22216,9 @@ fn exec_sql_update(
             json_mode,
             csv_mode,
             sep,
-        );
+        ));
     }
-    String::new()
+    Ok(String::new())
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -41789,6 +41736,37 @@ mod tests {
                 assert_eq!(fs.read_file("/result").unwrap(), b"existing output");
             }
         }
+    }
+
+    #[test]
+    fn sqlite_update_not_null_failure_rolls_back_all_rows() {
+        let mut tables = BTreeMap::from([(
+            "t".into(),
+            SqlTable {
+                columns: vec!["k".into(), "replacement".into()],
+                rows: vec![
+                    vec!["first".into(), "changed".into()],
+                    vec!["keep".into(), String::new()],
+                ],
+                not_null_cols: vec!["k".into()],
+                ..Default::default()
+            },
+        )]);
+        let before = tables["t"].rows.clone();
+        let result = exec_sql_update(
+            "UPDATE t SET k=replacement RETURNING k",
+            &mut tables,
+            &[],
+            false,
+            false,
+            false,
+            "|",
+        );
+        assert_eq!(
+            result.unwrap_err(),
+            "Error: NOT NULL constraint failed: t.k\n"
+        );
+        assert_eq!(tables["t"].rows, before);
     }
 
     #[test]

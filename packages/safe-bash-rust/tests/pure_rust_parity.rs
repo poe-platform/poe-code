@@ -20,6 +20,40 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn sqlite_unique_column_rejects_duplicate_inserts_and_preserves_rows() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::from([
+        ("LC_ALL".into(), "C".into()),
+        ("TZ".into(), "UTC".into()),
+    ]));
+    let result = shell.exec("cd /; sqlite3 :memory: <<'INPUT'\nCREATE TABLE t(k TEXT UNIQUE); INSERT INTO t VALUES('a'),('a'); SELECT COUNT(*) FROM t;\nINPUT").unwrap();
+    assert_eq!(result.exit_code, 1);
+    assert_eq!(result.stdout, "");
+    assert!(result.stderr.contains("UNIQUE constraint failed: t.k"));
+
+    let result = shell.exec("sqlite3 /work/unique.db \"CREATE TABLE t(k TEXT unique); INSERT INTO t VALUES('kept');\"").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    for values in ["('a'),('a')", "('a'),('kept')"] {
+        let result = shell
+            .exec(&format!(
+                "sqlite3 /work/unique.db \"INSERT INTO t VALUES{values};\""
+            ))
+            .unwrap();
+        assert_eq!(result.exit_code, 1);
+        assert!(result.stderr.contains("UNIQUE constraint failed: t.k"));
+        let result = shell
+            .exec("sqlite3 /work/unique.db 'SELECT k FROM t;'")
+            .unwrap();
+        assert_eq!(result.stdout, "kept\n");
+    }
+    let result = shell.exec("sqlite3 /work/unique.db \"INSERT INTO t VALUES('b'),('c'),(NULL),(NULL); SELECT COUNT(*) FROM t;\"").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stdout, "5\n");
+    let result = shell.exec("sqlite3 :memory: \"CREATE TABLE t(k TEXT DEFAULT 'not UNIQUE here'); INSERT INTO t VALUES('a'),('a'); SELECT COUNT(*) FROM t;\"").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stdout, "2\n");
+}
+
+#[test]
 fn factor_parses_gnu_options_before_reading_numbers() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     for (script, status, stdout, stderr) in [

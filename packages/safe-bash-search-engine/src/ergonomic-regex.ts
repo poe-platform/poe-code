@@ -43,6 +43,7 @@ type ClassItem =
 type AstNode =
   | { readonly type: "empty" }
   | { readonly type: "reset" }
+  | { readonly type: "look"; readonly child: AstNode; readonly negative: boolean; readonly behind: number | undefined }
   | { readonly type: "literal"; readonly cp: number; readonly insensitive: boolean }
   | { readonly type: "dot"; readonly dotall: boolean; readonly nullData: boolean }
   | { readonly type: "class"; readonly negated: boolean; readonly items: readonly ClassItem[]; readonly insensitive: boolean; readonly multiline: boolean }
@@ -384,6 +385,7 @@ function parsePattern(
         pos++;
         const enclosing = { insensitive, anchorMultiline, dotall };
         let capturing = true;
+        let look: { negative: boolean; behind: boolean } | undefined;
         let name: string | undefined;
         if (pattern[pos] === "?") {
           pos++;
@@ -408,7 +410,12 @@ function parsePattern(
             pos++;
             capturing = false;
           } else if (pattern[pos] === "=" || pattern[pos] === "!" || (pattern[pos] === "<" && (pattern[pos + 1] === "=" || pattern[pos + 1] === "!"))) {
-            throw new SearchError("unsupported ERE lookaround");
+            if (!perl) throw new SearchError("unsupported ERE lookaround");
+            needsVm = true;
+            capturing = false;
+            const behind = pattern[pos] === "<";
+            if (behind) pos++;
+            look = { behind, negative: pattern[pos++] === "!" };
           } else if (pattern[pos] === "<" || pattern.startsWith("P<", pos)) {
             pos += pattern[pos] === "<" ? 1 : 2;
             const end = pattern.indexOf(">", pos);
@@ -431,6 +438,12 @@ function parsePattern(
         pos++;
         if (inner.node.type === "empty") needsVm = true;
         atomNode = captures && capturing ? { type: "capture", child: inner.node, index } : inner.node;
+        if (look) {
+          const behind = look.behind ? fixedScalarLength(inner.node) : undefined;
+          if (look.behind && behind === undefined) throw new SearchError("unsupported PCRE variable-length lookbehind");
+          atomNode = { type: "look", child: inner.node, negative: look.negative, behind };
+          quantifiable = false;
+        }
         atomEre = `(${inner.ere})`;
       } else if (!bre && (ch === "*" || ch === "+" || ch === "?" || ch === "{")) {
         throw new SearchError(`invalid ERE: unexpected quantifier '${ch}'`);
@@ -631,7 +644,35 @@ function parsePattern(
   };
 }
 
+// Lookbehind lengths count Unicode scalars, while match offsets remain bytes.
+function fixedScalarLength(node: AstNode): number | undefined {
+  switch (node.type) {
+    case "empty": case "assert": case "look": return 0;
+    case "reset": return undefined;
+    case "literal": case "dot": case "class": return 1;
+    case "capture": return fixedScalarLength(node.child);
+    case "seq": {
+      let total = 0;
+      for (const child of node.children) {
+        const length = fixedScalarLength(child);
+        if (length === undefined) return undefined;
+        total += length;
+      }
+      return total;
+    }
+    case "alt": {
+      const lengths = node.branches.map(fixedScalarLength);
+      return lengths.every(length => length === lengths[0]) ? lengths[0] : undefined;
+    }
+    case "rep": {
+      const length = fixedScalarLength(node.child);
+      return length !== undefined && node.min === node.max ? length * node.min : undefined;
+    }
+  }
+}
+
 type NfaInst =
+  | { readonly op: "look"; readonly node: Extract<AstNode, { type: "look" }>; readonly out: number }
   | { readonly op: "reset"; readonly out: number }
   | { readonly op: "accept" }
   | { readonly op: "jump"; readonly out: number }
@@ -655,6 +696,8 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
     switch (node.type) {
       case "empty":
         return next;
+      case "look":
+        return emit({ op: "look", node, out: next });
       case "reset":
         return emit({ op: "reset", out: next });
       case "literal":
@@ -720,6 +763,9 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
       switch (inst.op) {
         case "accept":
           reordered.push(inst);
+          break;
+        case "look":
+          reordered.push({ ...inst, out: inst.out + 1 });
           break;
         case "reset":
           reordered.push({ op: "reset", out: inst.out + 1 });
@@ -818,10 +864,14 @@ export class ErgonomicVmMatcher {
   private readonly nlistPositions: Int32Array;
   private readonly leadingLiteral: { cp: number; foldedCp: number; insensitive: boolean } | undefined;
   private stepStamp = 1;
+  private readonly lookMatchers = new Map<number, ErgonomicVmMatcher>();
 
   constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map(), private readonly binaryText = false) {
     this.insts = compileAstToNfa(rootAst);
     this.multiline = multiline;
+    this.insts.forEach((inst, index) => {
+      if (inst.op === "look") this.lookMatchers.set(index, new ErgonomicVmMatcher(inst.node.child, multiline, captureCount, captureNames, binaryText));
+    });
     const n = this.insts.length;
     this.visited = new Int32Array(n);
     this.clistStates = new Int32Array(n);
@@ -874,6 +924,8 @@ export class ErgonomicVmMatcher {
   private findNext(
     subject: DecodedSubject,
     from: number,
+    anchored = false,
+    requiredEnd?: number,
   ): { start: number; end: number; slots: readonly number[] | undefined } | undefined {
     const { cps, widths, length } = subject;
     const insts = this.insts;
@@ -904,6 +956,26 @@ export class ErgonomicVmMatcher {
       if (visited[stateId] === stamp) return false;
       visited[stateId] = stamp;
       const inst = insts[stateId]!;
+      if (inst.op === "look") {
+        let start = pos;
+        if (inst.node.behind !== undefined) {
+          for (let remaining = inst.node.behind; remaining > 0 && start >= 0; remaining--) {
+            start--;
+            while (start >= 0 && cps[start]! < 0) start--;
+          }
+        }
+        const found = start >= 0
+          ? this.lookMatchers.get(stateId)!.findNext(subject, start, true, inst.node.behind === undefined ? undefined : pos)
+          : undefined;
+        if (Boolean(found) === inst.node.negative) return false;
+        let saved = slots;
+        if (found?.slots) {
+          const merged = [...(slots ?? [])];
+          found.slots.forEach((value, index) => { if (value !== undefined) merged[index] = value; });
+          saved = merged;
+        }
+        return addThread(inst.out, startPos, pos, stamp, saved);
+      }
       if (inst.op === "reset") {
         return addThread(inst.out, pos, pos, stamp, slots);
       }
@@ -926,6 +998,7 @@ export class ErgonomicVmMatcher {
         return false;
       }
       if (inst.op === "accept") {
+        if (requiredEnd !== undefined && pos !== requiredEnd) return false;
         matchedStart = startPos;
         matchedEnd = pos;
         matchedSlots = slots;
@@ -940,7 +1013,7 @@ export class ErgonomicVmMatcher {
     };
 
     for (let pos = from; pos <= length; pos++) {
-      if (clistLen === 0 && matchedStart < 0 && lead !== undefined && pos < length) {
+      if (!anchored && clistLen === 0 && matchedStart < 0 && lead !== undefined && pos < length) {
         if (!lead.insensitive) {
           while (pos < length && cps[pos] !== lead.cp) pos++;
         } else {
@@ -971,14 +1044,15 @@ export class ErgonomicVmMatcher {
         }
       }
 
-      if (!acceptedAtPos && matchedStart < 0) {
+      if (!acceptedAtPos && matchedStart < 0 && (!anchored || pos === from)) {
         addThread(0, pos, pos, stamp);
       }
 
       if (matchedStart >= 0 && nlistLen === 0) {
         return { start: matchedStart, end: matchedEnd, slots: matchedSlots };
       }
-      if (pos === length) break;
+      if (pos === length || (requiredEnd !== undefined && pos === requiredEnd)) break;
+      if (anchored && nlistLen === 0) break;
 
       const cp = cps[pos]!;
       clistLen = 0;

@@ -6252,6 +6252,8 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
             let v = v.trim_start();
             let val = if v.starts_with("\"\"\"") || v.starts_with("'''") {
                 parse_toml_multiline(v, &mut lines)?
+            } else if v.starts_with('[') {
+                parse_toml_array(v, &mut lines)?
             } else {
                 parse_toml_value(strip_toml_comment(v).trim())?
             };
@@ -6261,6 +6263,41 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
         }
     }
     Ok(JVal::Object(root))
+}
+
+fn parse_toml_array<'a>(
+    first: &'a str,
+    lines: &mut impl Iterator<Item = &'a str>,
+) -> Result<JVal, String> {
+    let mut value = String::new();
+    let mut depth = 0;
+    let mut quote = None;
+    let mut escaped = false;
+    for line in std::iter::once(first).chain(lines) {
+        for c in line.chars() {
+            if escaped {
+                escaped = false;
+            } else if c == '\\' && quote == Some('"') {
+                escaped = true;
+            } else if Some(c) == quote {
+                quote = None;
+            } else if quote.is_none() {
+                match c {
+                    '\'' | '"' => quote = Some(c),
+                    '#' => break,
+                    '[' => depth += 1,
+                    ']' => depth -= 1,
+                    _ => {}
+                }
+            }
+            value.push(c);
+            if depth == 0 {
+                return parse_toml_value(&value);
+            }
+        }
+        value.push('\n');
+    }
+    Err("unterminated TOML array".into())
 }
 
 fn parse_toml_multiline<'a>(

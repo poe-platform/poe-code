@@ -146,3 +146,30 @@ for (const [args, input, expected] of [
   });
   assert.deepEqual({ ...result, stdout, stderr }, { exitCode: 0, stdout: expected, stderr: "" });
 });
+
+for (const [args, input, expected] of [
+  [["café"], "café\n✓ done\n", "café\n"],
+  [["-c", "✓"], "café\n✓ done\n", "1\n"],
+  [["-E", "é|x"], "café\n✓ done\n", "café\n"],
+  [["😀"], "😀\n", "😀\n"],
+  [["-oE", "😀+|中文"], "😀😀 中文\n", "😀😀\n中文\n"],
+  [["-w", "café"], "café cafétéria\n", "café cafétéria\n"],
+  [["-x", "café"], "café\ncafé noir\n", "café\n"],
+  [["-i", "CAFé"], "café\n", "café\n"],
+  [["é"], "è\n", ""],
+] as const) {
+  test(`grep matches UTF-8 literals: ${args.join(" ")}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/f", new TextEncoder().encode(input));
+    const values = createCommandArguments([...args, "/f"]);
+    let stdout = "", stderr = "";
+    const result = await createGrepCommands()[0]!.execute({
+      command: "grep", args: values.args, argumentValues: values, cwd: "/", env: {},
+      fs, stdin: toByteSource(""), stdinIsDefault: true,
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+      signal: new AbortController().signal,
+    });
+    assert.deepEqual({ ...result, stdout, stderr }, { exitCode: expected ? 0 : 1, stdout: expected, stderr: "" });
+  });
+}

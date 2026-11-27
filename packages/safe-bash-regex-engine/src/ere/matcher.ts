@@ -1096,7 +1096,7 @@ export async function createEreSpanMatcher(program: EreProgram, subject: string,
 }
 
 /** Owns validated UTF-8, using byte positions for C-locale word matching. */
-export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false, word = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
+export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false, word = false, unicode = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
   ledger.check(signal);
   ledger.admitInput("subjectBytes", bytes.length, signal);
   // Logical allocation units per byte: copy 1, offset storage 8, character
@@ -1109,11 +1109,11 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
   const offsets: number[] = [];
   for (let offset = 0; offset < owned.length;) {
     const first = owned[offset]!;
-    const width = word || first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
+    const width = word && !unicode || first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
     ledger.charge("work", width, signal);
     { const c = ledger.checkpoint(signal); if (c) await c; }
     offsets.push(offset);
-    if (leftmostFirst && !word) {
+    if (unicode || leftmostFirst && !word) {
       let code = width === 1 ? first : first & (0x7f >> width);
       for (let index = 1; index < width; index++) code = (code << 6) | (owned[offset + index]! & 0x3f);
       characters.push(String.fromCodePoint(code));

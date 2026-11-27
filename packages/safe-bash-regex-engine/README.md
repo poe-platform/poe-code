@@ -2,7 +2,7 @@
 
 The internal regex engine supplies the shared text/query matcher and ERE
 algorithms used by Safe Bash commands. It preserves capture behavior, explicit
-work limits and cooperative cancellation without executing host utilities. Rg alternations and repetitions accept Unicode
+work limits and cooperative cancellation without executing host utilities. Grep and rg alternations and repetitions accept Unicode
 literals, preserve UTF-8 byte offsets, and retain work limits and cancellation.
 ASCII case-insensitive searches also accept Unicode subjects.
 Shell ERE captures follow the recorded Darwin Bash 3.2 profile: an inner group

@@ -918,6 +918,8 @@ impl<'a> Input<'a> {
                     .filter(|&v| v != 0.)
                     .unwrap_or(1.)
                     .clamp(0.25, 4.);
+            } else {
+                return Err(format!("Unsupported audio filter '{item}' for PCM output"));
             }
         }
         let mask = if opts.channels.is_some() { super::audio_remix::default_mask(out_ch) } else { match self {

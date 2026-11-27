@@ -340,7 +340,8 @@ async function breFragments(pattern: string, ledger: EreLedger, signal: AbortSig
   for (let index = 0; index < pattern.length; index++) {
     ledger.charge("work", 1, signal);
     await ledger.checkpoint(signal);
-    let character = pattern[index]!;
+    let character = String.fromCodePoint(pattern.codePointAt(index)!);
+    if (character.length === 2) index++;
     let literal = false;
     if (bracket >= 0) {
       if (index === bracket + 1 && character === "^") {
@@ -1128,7 +1129,11 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
   const ereKey = ereCacheKeyFor(selected, fold);
   const snapBeforeEre = ledger.usage;
   const programs: EreProgram[] = [];
-  for (const pattern of selected.patterns) {
+  for (const source of selected.patterns) {
+    // Grep descriptors carry byte strings; ERE syntax consumes Unicode scalars.
+    const pattern = selected.kind === "grep"
+      ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(await literalBytes(source, selected, ledger, signal))
+      : source;
     if (selected.kind === "rg" && !selected.nullData && pattern.includes("\n")) fail("unsupported", "rg multiline matching is unsupported");
     ledger.charge("allocationUnits", (selected.whole ? 3 : 1) * 3 + 2, signal);
     const fragments: EreFragment[] = selected.kind === "grep" && !selected.extended
@@ -1140,7 +1145,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
       fragments.unshift({ text: "^(", literal: false });
       fragments.push({ text: ")$", literal: false });
     }
-    programs.push(await compileEre(fragments, ledger, signal, fold, undefined, selected.kind === "rg"));
+    programs.push(await compileEre(fragments, ledger, signal, fold, undefined, true));
   }
   const snapAfterEre = ereKey !== undefined ? ledger.usage : undefined;
   const unboundedLedger =
@@ -1197,7 +1202,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
       }
     }
     if (selected.kind === "rg" && selected.word && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching supports ASCII subjects only");
-    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word);
+    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word, programs.some(program => !program.ascii));
     if (row.all) {
       ledger.charge("allocationUnits", programs.length + 1, signal);
       const finders: ((from: number) => Promise<Span | undefined>)[] = [];

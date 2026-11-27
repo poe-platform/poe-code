@@ -3255,7 +3255,7 @@ export class FastShellCommandContext {
   get fs(): FileSystem {
     const self = this._self ?? this;
     void self.cwd;
-    return self._contextFs ??= descriptorFileSystem(self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal()), self._io, self._getScopedSignal());
+    return self._contextFs ??= self._runtime.getContextFsFor(self._state.umask ?? 0o022, self._getScopedSignal(), self._io);
   }
   set fs(replacement: FileSystem) {
     (this._self ?? this)._contextFs = replacement;

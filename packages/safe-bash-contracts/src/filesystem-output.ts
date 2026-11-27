@@ -4,7 +4,7 @@ import { createBytePipe, outputFailure, type BytePipe, type ByteSink, type ByteS
 import { createOutputOperation } from "./output.js";
 import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, registerManagedAbortSignal, removeAbortSignalWaiter } from "./runtime-control.js";
 
-import { filesystemOutputBudgets, type FileOutputContext } from "./filesystem-output-budget.js";
+import { budgetedFileOutput, filesystemOutputBudgets, type FileOutputContext } from "./filesystem-output-budget.js";
 import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descriptor.js";
 export { writeFileOutput, bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
@@ -228,7 +228,8 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       await writing;
     },
   };
-  const budget = context.outputBudget !== "independent" && context.registerCleanup
+  const alreadyBudgeted = (context.fs as typeof context.fs & { [budgetedFileOutput]?: (path: string) => boolean })[budgetedFileOutput]?.(path);
+  const budget = !alreadyBudgeted && context.outputBudget !== "independent" && context.registerCleanup
     ? filesystemOutputBudgets.get(context.registerCleanup) : undefined;
   const operation = createOutputOperation(context, budget?.sinkBudget(destination) ?? destination);
   operation.registerCleanup(async () => {

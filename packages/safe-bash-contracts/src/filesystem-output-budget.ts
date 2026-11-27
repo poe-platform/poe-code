@@ -2,6 +2,9 @@ import type { CommandContext } from "./command.js";
 import { FsError } from "./errors.js";
 import type { ByteSink } from "./io.js";
 
+/** Internal filesystem view hook: these paths already write through shell-budgeted sinks. */
+export const budgetedFileOutput = Symbol.for("safe-bash.budgetedFileOutput");
+
 export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>, preserveReceipt?: boolean) => Promise<number>;
 
 type FileOutputBudget = {

@@ -201,8 +201,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   such as `exec {input}<rows` allocate an available descriptor from 10 through 255;
   use `exec {input}<&-` to close it. Output descriptors also remain open after
   ordinary commands such as `: {output}>log`.
-  Command file reads and writes also accept `/dev/stdin`, `/dev/stdout`,
-  `/dev/stderr` and `/dev/fd/N`, using that invocation's open descriptors.
+  File operands also accept `/dev/stdin`, `/dev/stdout`, `/dev/stderr` and
+  `/dev/fd/N`, using the command's open streams (for example,
+  `echo hello | cat /dev/stdin` or `echo warning | tee /dev/stderr`).
   `shopt -s varredir_close` closes named redirects such as `{out}>log` when the
   command finishes; the assigned number remains available. `exec` keeps them open.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,

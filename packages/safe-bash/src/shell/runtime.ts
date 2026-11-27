@@ -89,6 +89,7 @@ import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
+import { descriptorFileSystem, descriptorPath } from "./descriptor-filesystem.js";
 export function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
@@ -1897,7 +1898,7 @@ export async function restoreVariable(state: State, name: string, saved: SavedVa
 
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
-
+>>>>>>> c989122e7c (fix(safe-bash): resolve descriptor paths in command file operands)
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -2650,7 +2651,13 @@ export class Runtime {
     }
     return this._fs;
   }
-  getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
+  getContextFsFor(umask: number, sig: AbortSignal, io?: IO): FileSystem {
+    if (io) {
+      const created = scopeFileSystem(descriptorFileSystem(creationFileSystem(this.sourceFs, umask), io, this.budget.limits.maxInputBytes), this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
+      runtimeFileSystems.set(created, this.sourceFs);
+      if (this.budget.limits.maxPathnameComponents === Infinity) registerRuntimeBackingFileSystem(created, this.backingFs, this.budget.chargeFs);
+      return created;
+    }
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
       return this._contextFs;
     }
@@ -6536,7 +6543,7 @@ export class Runtime {
     const getScopedSignal = (): AbortSignal => (scopedSignal ??= combineManagedSignals(this.signal, scope.signal));
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
-      if (!contextFs) contextFs = descriptorFileSystem(this.getContextFsFor(state.umask ?? 0o022, getScopedSignal()), io, getScopedSignal());
+      if (!contextFs) contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal(), io);
       return contextFs;};
     let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
     let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;

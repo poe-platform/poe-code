@@ -8,8 +8,80 @@ import type { CommandContext } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
-import { Capture, MemoryRedirectSink, type IO } from "../../src/shell/runtime.js";
+import { Capture, MemoryRedirectSink, type IO, type State } from "../../src/shell/runtime.js";
+
+for (const middleware of [false, true]) for (const [source, stdout, stderr = ""] of [
+  ["echo a | cat /dev/stdin", "a\n"],
+  ["echo c | wc -l /dev/stdin", "1 /dev/stdin\n"],
+  ["echo e | cat /dev/fd/0", "e\n"],
+  ["echo g | md5sum /dev/stdin", "f5302386464f953ed581edac03556e55  /dev/stdin\n"],
+  ["echo b | tee /dev/stderr >/dev/null", "", "b\n"],
+  ["printf 'b\\na\\n' | sort -o /dev/stdout", "a\nb\n"],
+  ["echo a | tee /dev/fd/2 >/dev/null", "", "a\n"],
+  ["exec 3<<<hello; cat /dev/fd/3; exec 3<&-", "hello\n"],
+  ["exec 3>out; echo hello | tee /dev/fd/3 >/dev/null; echo kept >&3; exec 3>&-; cat out", "hello\nkept\n"],
+  ["echo a | cat /dev/stdin; echo b | cat /dev/stdin", "a\nb\n"],
+  ["echo hello | tee /dev/stdout", "hello\nhello\n"],
+  ["echo hello | tee /dev/stderr 2>&1 >/dev/null", "hello\n"],
+  ["cat /dev/stdin /dev/fd/0 <<<once", "once\n"],
+  ["echo hello | env cat /dev/stdin", "hello\n"],
+] as const) {
+  test(`descriptor file operand (middleware: ${middleware}): ${source}`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    t.after(() => shell.dispose());
+    if (middleware) shell.use((_context, next) => next());
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, stderr);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const source of ["cat /dev/fd/9", "cat /dev/stdin 0<&-", "echo x | tee /dev/fd/9", "echo x | tee /dev/stdin"]) {
+  test(`descriptor file operand rejects unavailable streams: ${source}`, async t => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.stderr, "");
+    await assert.rejects(fs.stat("/dev/fd/9"));
+  });
+}
+
+test("descriptor filesystem reads and writes bytes without closing shared streams", async t => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs });
+  t.after(() => shell.dispose());
+  shell.commands.register({ name: "transfer", async execute(context) {
+    const bytes = await context.fs.readFile("/dev/stdin", { signal: context.signal });
+    await context.fs.writeFile("/dev/stdout", bytes, { signal: context.signal });
+    await context.fs.appendFile("/dev/stderr", bytes, { signal: context.signal });
+    return { exitCode: 0 };
+  } });
+  const bytes = Uint8Array.of(0, 128, 255, 10);
+  const result = await shell.exec("transfer", { stdin: bytes });
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, bytes);
+  assert.deepEqual(result.stderrBytes, bytes);
+});
+
+for (const [source, maxOutputBytes, stdout, stderr] of [
+  ["tee /dev/stdout <<<ab", 6, "ab\nab\n", ""],
+  ["tee /dev/stderr <<<ab", 6, "ab\n", "ab\n"],
+  ["sort -o /dev/stdout <<<ab", 3, "ab\n", ""],
+] as const) test(`descriptor file output charges each byte once: ${source}`, async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxOutputBytes } }).use(agentCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, stderr);
+});
 
 for (const [source, stdout, stderr = ""] of [
   ["echo a | cat /dev/stdin", "a\n"],
@@ -102,6 +174,11 @@ test("fast redirected commands share effective IO on new and reused contexts", a
   const shell = new Shell({ fs });
   const contexts: CommandContext[] = [];
   const execute = (context: CommandContext) => {
+    if (context.args[0] === "prepare") {
+      // Identity integer attributes disable the fast evaluator; isolate this context-pooling fixture.
+      (context as unknown as { _state: State })._state.variableAttributes?.clear();
+      return RESOLVED_EXIT_ZERO;
+    }
     contexts.push(context);
     const io = (context as unknown as { _io: IO })._io;
     assert.equal(io.stdout, context.stdout);
@@ -131,7 +208,7 @@ test("fast redirected commands share effective IO on new and reused contexts", a
     builtInDirectContextExecutors.delete(execute);
     await shell.dispose();
   });
-  const result = await shell.exec("awk > /out; awk >> /out; awk plain");
+  const result = await shell.exec("awk prepare; awk > /out; awk >> /out; awk plain");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "visible\n");
   assert.equal(result.stderr, "");

@@ -6,6 +6,27 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("ls and find preserve literal filenames in captured output", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch é 'a\\b'; ls; find . -name 'é'");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "a\\b\né\n./é\n");
+  for (const name of ["é", "文", "😀", "a\\b", "tab\there", "line\nbreak"]) {
+    await fs.writeFile(`/work/${name}`, new Uint8Array());
+    const listed = await run("ls", ["-d", name], { fs });
+    assert.equal(listed.exitCode, 0);
+    assert.equal(listed.stdout, `${name}\n`);
+    for (const action of [[], ["-print"], ["-print0"], ["-depth"]]) {
+      const found = await run("find", [name, ...action], { fs });
+      assert.equal(found.exitCode, 0);
+      assert.equal(found.stdout, `${name}${action[0] === "-print0" ? "\0" : "\n"}`);
+    }
+  }
+});
+
 test("ls long directory listings include totals before pipeline consumers", async context => {
   const fs = await fixture({});
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

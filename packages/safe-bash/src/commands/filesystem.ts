@@ -914,7 +914,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       });
       if (sort === "name" && timeKey !== "mtimeMs" && !parsed.flags.has("l")) sort = "time";
       const formatName = (name: string): string => {
-        if (!parsed.flags.has("Q")) return escapeText(name, "display");
+        if (!parsed.flags.has("Q")) return name;
         let quoted = '"';
         for (const character of name) {
           quoted += character === '"' ? '\\"' : character === "\x07" ? "\\a" : escapeText(character, "display");

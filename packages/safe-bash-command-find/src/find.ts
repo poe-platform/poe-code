@@ -3,9 +3,8 @@ import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { compileFindExpression, type Entry } from "./expression.js";
 import { basename,FsError,resolvePath,type CommandDefinition,type CommandHandler,type FileStat } from "safe-bash-contracts";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
-import { escapeText } from "safe-bash-contracts/escaping";
 import { chargeRuntimeFileSystemOperation,getRuntimeBackingFileSystem,isSyncResolved } from "safe-bash-contracts/runtime-control";
-import { writeEncodedBytes } from "safe-bash-io-engine/byte-encoding";
+import { byteLength, writeEncodedBytes } from "safe-bash-io-engine/byte-encoding";
 import { createDirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
 import { filesystemCommandRequirements } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { builtInDirectContextExecutors,codeOf,define,diagnostic,output,outputRange,pathOf,RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
@@ -146,14 +145,15 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                 if (typeof fastMap._next === "number" && fastMap._keys !== undefined && fastMap._vals !== undefined) {
                   let parent = rootDisplay;
                   while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
-                  const pLen = parent === "/" ? 0 : escapeText(parent, "display").length;
+                  const pLen = parent === "/" ? 0 : byteLength(parent);
+                  const parentLines = parent.split("\n").length;
                   const rootName = basename(rootDisplay) || "/";
                   let matchCount = 0;
                   let totalBytes = 0;
                   let allFiles = true;
                   if (match(rootName)) {
-                    matchCount = 1;
-                    totalBytes = escapeText(rootDisplay, "display").length + 1;
+                    matchCount = rootDisplay.split("\n").length;
+                    totalBytes = byteLength(rootDisplay) + 1;
                   }
                   const next = fastMap._next;
                   const keys = fastMap._keys;
@@ -164,8 +164,8 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                     if (k !== "" && v !== undefined) {
                       if (v.type !== "file") { allFiles = false; break; }
                       if (match(k)) {
-                        matchCount++;
-                        totalBytes += pLen + escapeText(k, "display").length + 2;
+                        matchCount += parentLines + k.split("\n").length - 1;
+                        totalBytes += pLen + byteLength(k) + 2;
                       }
                     }
                   }
@@ -188,33 +188,31 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                   else chargeRuntimeFileSystemOperation(context.fs);
                   let parent = rootDisplay;
                   while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
-                  const escapedParent = escapeText(parent === "/" ? "" : parent, "display");
+                  if (parent === "/") parent = "";
                   const rootName = basename(rootDisplay) || "/";
                   sharedFindPrintBufInUse = true;
                   let printPos = 0;
                   let overflow = false;
                   if (match(rootName)) {
-                    const escRoot = escapeText(rootDisplay, "display");
-                    if (escRoot.length + 1 <= sharedFindPrintBuf.length) {
-                      for (let c = 0; c < escRoot.length; c++) sharedFindPrintBuf[printPos++] = escRoot.charCodeAt(c);
+                    if (byteLength(rootDisplay) + 1 <= sharedFindPrintBuf.length) {
+                      printPos += writeUtf8(sharedFindPrintBuf, printPos, rootDisplay);
                       sharedFindPrintBuf[printPos++] = 10;
                     } else {
                       overflow = true;
                     }
                   }
                   if (!overflow) {
-                    const pLen = escapedParent.length;
+                    const pLen = byteLength(parent);
                     for (let i = keyBase; i < keyEnd; i++) {
                       const childName = findKeyScratch[i]!;
-                      const escChild = escapeText(childName, "display");
-                      const cLen = escChild.length;
+                      const cLen = byteLength(childName);
                       if (printPos + pLen + cLen + 2 > sharedFindPrintBuf.length) {
                         overflow = true;
                         break;
                       }
-                      for (let c = 0; c < pLen; c++) sharedFindPrintBuf[printPos++] = escapedParent.charCodeAt(c);
+                      printPos += writeUtf8(sharedFindPrintBuf, printPos, parent);
                       sharedFindPrintBuf[printPos++] = 47;
-                      for (let c = 0; c < cLen; c++) sharedFindPrintBuf[printPos++] = escChild.charCodeAt(c);
+                      printPos += writeUtf8(sharedFindPrintBuf, printPos, childName);
                       sharedFindPrintBuf[printPos++] = 10;
                     }
                   }
@@ -356,7 +354,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
         if (!depthFirst && depth >= minDepth) {
           const res = evaluate(entry);
           const ok = typeof res === "boolean" ? res : await res;
-          if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
+          if (ok && !explicitAction) await appendPrintLine(display);
           if (status.quitRequested) return;
         }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
@@ -365,7 +363,6 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
           let next: Set<string> | undefined;
           let parent = display;
           while (parent.endsWith("/")) parent = parent.slice(0, -1);
-          const escapedParent = canSkipChildStat && !needsDisplay ? escapeText(parent, "display") : "";
           const childDepth = depth + 1;
           if (memDirEntries !== undefined && memDirEntries.size <= maxEntriesLimit) {
             const keyBase = findKeyScratchTop;
@@ -390,9 +387,9 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                     const res = evaluate(scratchChildEntry);
                     const ok = typeof res === "boolean" ? res : await res;
                     if (ok) {
-                      if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
+                      if (needsDisplay) await appendPrintLine(scratchChildEntry.display);
                       else {
-                        const pending = appendPrintChild(escapedParent, escapeText(childName, "display"));
+                        const pending = appendPrintChild(parent, childName);
                         if (pending) await pending;
                       }
                     }
@@ -424,7 +421,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
         if (depthFirst && depth >= minDepth) {
           const res = evaluate(entry);
           const ok = typeof res === "boolean" ? res : await res;
-          if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
+          if (ok && !explicitAction) await appendPrintLine(display);
         }
         if (depth === 0 && printPos > 0) {
           const fp = flushPrintBuffer();
@@ -553,8 +550,8 @@ export function evalSyncFind(
       if (token === "-print") {
         explicitAction = true;
         return entry => {
-          if (usedCustomOut) customOut += escapeText(entry.display, "display") + "\n";
-          else outLines.push(escapeText(entry.display, "display"));
+          if (usedCustomOut) customOut += entry.display + "\n";
+          else outLines.push(entry.display);
           return true;
         };
       }
@@ -563,7 +560,7 @@ export function evalSyncFind(
         explicitAction = true;
         usedCustomOut = true;
         return entry => {
-          customOut += escapeText(entry.display, "display") + "\0";
+          customOut += entry.display + "\0";
           return true;
         };
       }
@@ -761,7 +758,7 @@ export function evalSyncFind(
       };
       if (!depthFirst && depth >= minDepth) {
         const ok = evaluate(entry);
-        if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
+        if (ok && !explicitAction) outLines.push(display);
         if (quitNow) return true;
       }
       if (info.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
@@ -783,7 +780,7 @@ export function evalSyncFind(
       }
       if (!quitNow && depthFirst && depth >= minDepth) {
         const ok = evaluate(entry);
-        if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
+        if (ok && !explicitAction) outLines.push(display);
       }
       return true;
     };

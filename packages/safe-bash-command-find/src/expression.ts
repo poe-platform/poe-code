@@ -1,7 +1,6 @@
 import { basename, FsError, getCommandArguments, type CommandContext, type CommandHandler } from "safe-bash-contracts";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { escapeText } from "safe-bash-contracts/escaping";
 import type { DirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
 import { filesystemCommandRequirements } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { modeChange } from "safe-bash-io-engine/commands/mode-change";
@@ -205,7 +204,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
       }
       if (token === "-print" || token === "-print0") {
         explicitAction = true;
-        return async entry => { await output(context, token === "-print0" ? `${entry.display}\0` : `${escapeText(entry.display, "display")}\n`); return true; };
+        return async entry => { await output(context, `${entry.display}${token === "-print0" ? "\0" : "\n"}`); return true; };
       }
       if (token === "-printf") {
         needsStat = true;

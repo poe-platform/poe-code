@@ -6,6 +6,48 @@ import { FindFormatBudget } from "./find-format.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, shellValueFromBytes, shellValueBytes, type CommandDefinition } from "safe-bash-contracts";
 import { createFindCommand, createFindCommands, findCommands } from "./index.js";
+import { evalSyncFind } from "./find.js";
+
+test("synchronous find preserves literal filenames for every print action", () => {
+  const path = "/é文😀a\\b\tline\nbreak";
+  for (const action of [[], ["-print"], ["-print0"], ["-depth"]]) {
+    assert.equal(evalSyncFind([path, ...action], "/", () => ({ type: "file", size: 0, mode: 0o644 }), true),
+      path + (action[0] === "-print0" ? "\0" : "\n"));
+  }
+});
+
+for (const fast of [false, true]) {
+  for (const countOnly of [false, true]) {
+    test(`find prints literal UTF-8 paths with fast=${fast} countOnly=${countOnly}`, async () => {
+      const fs = createMemoryFileSystem();
+      const root = "/文😀";
+      await fs.mkdir(root);
+      const names = ["a\\b", "tab\there", "é", "文", "😀"];
+      for (const name of names) await fs.writeFile(`${root}/${name}`, new Uint8Array());
+      const expected = [root, ...names.map(name => `${root}/${name}`)].join("\n") + "\n";
+      registerRuntimeBackingFileSystem(fs, fs, () => {});
+      let stdout = "";
+      let counted = false;
+      const result = await createFindCommand().execute({
+        ...{ _hasInfiniteFsOpsLimit: fast },
+        command: "find", args: [root, "-name", "*"], cwd: "/", env: {}, fs,
+        stdin: toByteSource(""), signal: new AbortController().signal,
+        stdout: {
+          ...(countOnly ? { lineCountOnly: 0, writeLineCountSync(count: number, bytes: number) {
+            assert.equal(count, names.length + 1);
+            assert.equal(bytes, Buffer.byteLength(expected));
+            counted = true;
+            return true;
+          } } : {}),
+          async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+        },
+        stderr: { async write() { assert.fail("unexpected stderr"); } },
+      });
+      assert.equal(result.exitCode, 0);
+      if (!counted) assert.equal(stdout, expected);
+    });
+  }
+}
 
 for (const route of ["recursive", "name", "count"] as const) {
 test(`find accounts for direct memory directory reads through ${route}`, async () => {
@@ -109,7 +151,7 @@ for (const option of ["-name", "-iname"]) {
         assert.equal(result.exitCode, 0, stderr);
         assert.equal(stderr, "");
         assert.deepEqual(stdout.trimEnd().split("\n").sort(),
-          pattern === "?.txt" ? ["/dir/\\360\\237\\230\\200.txt", "/dir/x.txt"] : ["/dir/ab.txt"]);
+          pattern === "?.txt" ? ["/dir/x.txt", "/dir/😀.txt"] : ["/dir/ab.txt"]);
       }
     }
   });
@@ -190,7 +232,7 @@ test("find -exec preserves raw argument bytes through host invocation", async ()
 });
 
 for (const rejectCount of [false, true]) {
-  test(`count-only find preserves escaped byte accounting with fallback=${rejectCount}`, async () => {
+  test(`count-only find preserves literal byte and line accounting with fallback=${rejectCount}`, async () => {
     const fs = createMemoryFileSystem();
     await fs.mkdir('/é');
     await fs.writeFile('/é/é\n\\', new Uint8Array());
@@ -204,7 +246,7 @@ for (const rejectCount of [false, true]) {
       stdout: {
         ...{ lineCountOnly: 0,
         writeLineCountSync(count: number, bytes: number) {
-          assert.equal(count, 2);
+          assert.equal(count, 3);
           offeredBytes = bytes;
           return !rejectCount;
         } },
@@ -213,7 +255,7 @@ for (const rejectCount of [false, true]) {
       stderr: { async write() {} },
     });
     assert.equal(result.exitCode, 0);
-    const expected = '/\\303\\251\n/\\303\\251/\\303\\251\\n\\\\\n';
+    const expected = '/é\n/é/é\n\\\n';
     assert.equal(offeredBytes, new TextEncoder().encode(expected).length);
     assert.equal(charges, 1);
     if (rejectCount) assert.equal(stdout, expected);
@@ -346,12 +388,13 @@ for (const deletedType of ["file", "directory"] as const) {
       command: "find", args: ["/dir", predicate, "*"], cwd: "/", env: {}, fs,
       stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: {
-        lineCountOnly: 0,
+        ...{ lineCountOnly: 0,
         writeLineCountSync(count: number, totalBytes: number) {
           assert.equal(count, 3);
           assert.equal(totalBytes, new TextEncoder().encode("/dir\n/dir/a.txt\n/dir/c.txt\n").length);
           counted = true;
           return true;
+        },
         },
         async write() { assert.fail("expected count shortcut"); },
       },

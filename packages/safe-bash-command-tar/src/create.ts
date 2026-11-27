@@ -18,7 +18,7 @@ function safeName(name: string): string {
   return components.slice(components.lastIndexOf("..") + 1).join("/") || ".";
 }
 
-interface ManifestResult<Entries> { entries: Entries; output?: string; outputStat?: FileStat }
+interface ManifestResult<Entries> { entries: Entries; missingMembers: boolean; output?: string; outputStat?: FileStat }
 export function manifest(context: CommandContext, options: TarOptions, budget: Budget): Promise<ManifestResult<SourceEntry[]>>;
 export function manifest(context: CommandContext, options: TarOptions, budget: Budget, backing: ManifestBacking): Promise<ManifestResult<ManifestStorage>>;
 export async function manifest(context: CommandContext, options: TarOptions, budget: Budget, backing?: ManifestBacking): Promise<ManifestResult<SourceEntry[] | ManifestStorage>> {
@@ -26,6 +26,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
   const transformedNames = new TransformedNames(context, options.transforms, budget.limits);
   const storage = new ManifestStorage(context, backing);
   let archiveBytes = 1024;
+  let missingMembers = false;
   let output: string | undefined;
   let outputStat: FileStat | undefined;
   if (options.archive !== "-") {
@@ -42,7 +43,12 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (depth > budget.limits.maxDepth) fail("source traversal depth limit exceeded");
     await budget.member();
     if (exclusions.matches(name, operand.excludeCount)) return;
-    let stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
+    let stat = options.mode === "c" ? await maybeStat(context, path) : await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
+    if (!stat) {
+      missingMembers = true;
+      await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: Cannot stat: No such file or directory\n`, true);
+      return;
+    }
     if (stat.type === "symlink" && options.dereference) {
       path = await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
       stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
@@ -149,7 +155,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, [], operand);
   }
   if (options.mode === "c") recordPadding(archiveBytes, options.recordSize, budget.limits.maxArchiveBytes);
-  return { entries: backing ? storage : storage.entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
+  return { entries: backing ? storage : storage.entries, missingMembers, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
 }
 
 function checkSource(source: SourceEntry, current: FileStat): void {

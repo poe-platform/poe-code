@@ -52,6 +52,10 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
         } else {
           for await (const chunk of readBytes(source, signal)) await writeBytes(context.stdout, chunk, signal);
         }
+        if (prepared.missingMembers) {
+          await budget.output("tar: Exiting with failure status due to previous errors\n", true);
+          return { exitCode: 2 };
+        }
       } else {
         let source = bounded(parsed.archive === "-" ? context.stdin : extractionInput(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
         source = parsed.compression ? compressed(source, true, signal, limits, parsed.compression) : autodetected(source, signal, limits);

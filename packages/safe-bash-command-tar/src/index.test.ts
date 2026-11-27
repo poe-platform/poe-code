@@ -7,6 +7,25 @@ import { createCommandArguments, toByteSource, type CommandDefinition, type File
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
 import { headerBytes, paxRecord, parseHeader } from "./format.js";
 
+for (const members of [["f", "nope"], ["nope", "f"], ["nope"]]) test(`tar publishes valid members despite missing inputs: ${members.join(" ")}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/f", new TextEncoder().encode("1\n"));
+  const created = await run(createTarCommand(), ["cf", "t.tar", ...members], "", fs);
+  assert.equal(created.exitCode, 2);
+  assert.equal(created.stdout, "");
+  assert.ok(created.stderr.includes("nope: Cannot stat: No such file or directory"));
+  assert.ok(created.stderr.includes("Exiting with failure status due to previous errors"));
+  const listed = await run(createTarCommand(), ["tf", "t.tar"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stderr, "");
+  assert.equal(listed.stdout, members.includes("f") ? "f\n" : "");
+  if (members.includes("f")) {
+    const extracted = await run(createTarCommand(), ["xOf", "t.tar", "f"], "", fs);
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.equal(extracted.stdout, "1\n");
+  }
+});
+
 test("tar lists and extracts the legacy Opus release archive", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/archive.tar.gz", await readFile(new URL("../../media-codecs/vendor/sources/opus-1.5.2.tar.gz", import.meta.url)));

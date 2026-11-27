@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import type { CommandContext } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -9,6 +10,62 @@ import { Shell } from "../../src/shell/index.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
 import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
 import { Capture, MemoryRedirectSink, type IO } from "../../src/shell/runtime.js";
+
+for (const [source, stdout, stderr = ""] of [
+  ["echo a | cat /dev/stdin", "a\n"],
+  ["echo c | wc -l /dev/stdin", "1 /dev/stdin\n"],
+  ["echo e | cat /dev/fd/0", "e\n"],
+  ["echo g | md5sum /dev/stdin", "f5302386464f953ed581edac03556e55  /dev/stdin\n"],
+  ["echo b | tee /dev/stderr >/dev/null", "", "b\n"],
+  ["echo b | tee /dev/stdout", "b\nb\n"],
+  ["echo b | tee /dev/fd/3 3>&2 >/dev/null", "", "b\n"],
+  ["cat /dev/fd/3 3<<<hello", "hello\n"],
+  ["printf 'b\\na\\n' | sort -o /dev/stdout", "a\nb\n"],
+  ["echo b | tee /dev/stderr 2>&1 >/dev/null", "b\n"],
+  ["echo a | cat /dev/stdin /dev/fd/0", "a\n"],
+] as const) {
+  test(`command descriptor operand: ${source}`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, stderr);
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+test("command file APIs use current descriptors without creating backing files", async t => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands());
+  t.after(() => shell.dispose());
+  shell.register({ name: "copy-input", async execute(context) {
+    const bytes = await context.fs.readFile("/dev/stdin", { signal: context.signal });
+    await context.fs.writeFile("/dev/stdout", bytes, { signal: context.signal });
+    await context.fs.appendFile("/dev/stderr", bytes, { signal: context.signal });
+    return { exitCode: 0 };
+  } });
+  for (let run = 0; run < 2; run++) {
+    const result = await shell.exec("copy-input <<<hello >out; cat out");
+    assert.equal(result.stdout, "hello\n");
+    assert.equal(result.stderr, "hello\n");
+    assert.equal(result.exitCode, 0);
+  }
+  for (const path of ["/dev/stdin", "/dev/stdout", "/dev/stderr"]) {
+    await assert.rejects(fs.stat(path), { code: "ENOENT" });
+  }
+});
+
+for (const source of ["cat /dev/fd/9", "cat /dev/stdin 0<&-", "echo lost | tee /dev/fd/9", "echo lost | tee /dev/fd/3 3<<<input"]) {
+  test(`command descriptor operand rejects unavailable access: ${source}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /EBADF|Bad file descriptor/);
+  });
+}
 
 for (const [source, expected] of [
   ['{ f() { echo err > /dev/stderr; }; f 2>&1 | tr a-z A-Z; echo out > /dev/stdout; echo $?; read x < /dev/stdin <<< hi; echo "$x"; echo fd > /dev/fd/1; } | cat', 'ERR\nout\n0\nhi\nfd\n'],

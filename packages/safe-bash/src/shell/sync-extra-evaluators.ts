@@ -1,4 +1,5 @@
 import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
+import { descriptorFileSystem } from "./descriptor-filesystem.js";
 import { protectedReadArrays } from "./variable-target.js";
 import { dynamicVariableNames, initializeIdentityVariables } from "./dynamic-variables.js";
 import type { ConditionalExpression } from "./conditional.js";
@@ -3253,7 +3254,7 @@ export class FastShellCommandContext {
   get fs(): FileSystem {
     const self = this._self ?? this;
     void self.cwd;
-    return self._contextFs ??= self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    return self._contextFs ??= descriptorFileSystem(self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal()), self._io, self._getScopedSignal());
   }
   set fs(replacement: FileSystem) {
     (this._self ?? this)._contextFs = replacement;

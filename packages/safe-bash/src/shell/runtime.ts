@@ -1,4 +1,5 @@
 import { pwdBuiltinHelp } from "./pwd-help.js";
+import { descriptorFileSystem, descriptorPath } from "./descriptor-filesystem.js";
 import { isShellIdentifier, protectedReadArrays, variableTarget } from "./variable-target.js";
 export { isShellIdentifier } from "./variable-target.js";
 import { defaultPredicateExecutors } from "../commands/predicates.js";
@@ -1883,13 +1884,6 @@ export async function restoreVariable(state: State, name: string, saved: SavedVa
   await typed.owner.close();
 
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
-}
-function descriptorPath(target: string): number | undefined {
-  if (target === "/dev/stdin") return 0;
-  if (target === "/dev/stdout") return 1;
-  if (target === "/dev/stderr") return 2;
-  const name = target.startsWith("/dev/fd/") ? target.slice(8) : "";
-  return name.length > 0 && [...name].every(character => character >= "0" && character <= "9") ? Number(name) : undefined;
 }
 
 function decimalIndex(value: string): number {
@@ -6530,7 +6524,7 @@ export class Runtime {
     const getScopedSignal = (): AbortSignal => (scopedSignal ??= combineManagedSignals(this.signal, scope.signal));
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
-      if (!contextFs) contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal());
+      if (!contextFs) contextFs = descriptorFileSystem(this.getContextFsFor(state.umask ?? 0o022, getScopedSignal()), io, getScopedSignal());
       return contextFs;};
     let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
     let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;

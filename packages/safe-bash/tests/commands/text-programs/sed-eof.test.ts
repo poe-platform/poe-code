@@ -5,13 +5,13 @@ import { Shell } from "../../../src/shell/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 
 for (const [program, stdin, stdout] of [
-  ["N;P;D", "a\nb\nc\n", "a\nb\n"],
-  ["N", "a\n", ""],
+  ["N;P;D", "a\nb\nc\n", "a\nb\nc\n"],
+  ["N", "a\n", "a\n"],
   ["N", "a\nb\n", "a\nb\n"],
   ["n", "a\n", "a\n"],
-  ["p;N", "a\n", "a\n"],
-  ["N;p", "a\n", ""],
-  ["a\\\nqueued\nN", "a\n", "queued\n"],
+  ["p;N", "a\n", "a\na\n"],
+  ["N;p", "a\n", "a\n"],
+  ["a\\\nqueued\nN", "a\n", "a\nqueued\n"],
 ] as const) {
   test(`sed EOF semantics for ${program} on ${JSON.stringify(stdin)}`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem() }).use(textProgramCommands());

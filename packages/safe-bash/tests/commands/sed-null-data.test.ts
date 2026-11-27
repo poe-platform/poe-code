@@ -505,13 +505,12 @@ for (const [name, args, inputHex, stdoutHex, files, outputHex] of nativeTransiti
   });
 }
 
-// The documented POSIX N-at-EOF policy also applies to NUL records.
-// GNU instead emits 610a6200 and 7461696c0061646465640a for these inputs.
+// GNU sed prints the final pattern space when N reaches EOF, including NUL records.
 for (const [name, args, inputHex, stdoutHex] of [
-  ["N EOF", ["-z", "N"], "610a6200", ""],
-  ["queued N EOF", ["-z", "-e", "a added", "-e", "N"], "7461696c", "61646465640a"],
+  ["N EOF", ["-z", "N"], "610a6200", "610a6200"],
+  ["queued N EOF", ["-z", "-e", "a added", "-e", "N"], "7461696c", "7461696c0061646465640a"],
 ] as const) {
-  test(`sed NUL POSIX EOF profile: ${name}`, async () => {
+  test(`sed NUL GNU EOF profile: ${name}`, async () => {
     const result = await runVirtual("sed", { args, stdin: Buffer.from(inputHex, "hex") });
     assert.equal(result.exitCode, 0, result.stderr.toString());
     assert.equal(result.stderr.length, 0);

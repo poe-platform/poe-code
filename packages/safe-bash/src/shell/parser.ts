@@ -1193,7 +1193,7 @@ class Lexer {
       }
       const parameterStart = this.position - 2;
       const afterBang = this.peekAfterContinuation(this.position + 1);
-      const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[afterBang] ?? "");
+      const listing = this.source[this.position] === "!" && (this.source[afterBang] === "#" || /[a-zA-Z_0-9]/u.test(this.source[afterBang] ?? ""));
       if (listing) this.position = afterBang;
       const afterHash = this.peekAfterContinuation(this.position + 1);
       const length = !listing && this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[afterHash] ?? "")

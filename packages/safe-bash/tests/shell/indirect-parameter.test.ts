@@ -3,9 +3,25 @@ import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
-import { printfCommand } from "../../src/commands/basic.js";
+import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
+
+for (const [source, expected] of [
+  ['set -- a b c; echo ${!#}; f(){ echo "last=${!#}"; }; f x y z', "c\nlast=z\n"],
+  ['set -- a "b c"; args "${!#}" ${!#}', '["b c","b","c"]'],
+  ['set -- a b c d e f g h i j k; args "${!#}"', '["k"]'],
+  ['set --; args "${!#}" "$0"', '["virtual-bash","virtual-bash"]'],
+] as const) test(`last positional parameter indirection: ${source}`, async () => {
+  const { shell } = setup();
+  for (const command of basicCommands()) shell.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+});
 
 for (const nounset of ["+u", "-u"]) {
   for (const [initialize, expansion, expectedStatus] of [

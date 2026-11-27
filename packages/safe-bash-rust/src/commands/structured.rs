@@ -6207,7 +6207,7 @@ fn strip_toml_comment(line: &str) -> &str {
 
 fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
     let mut root: Vec<(String, JVal)> = Vec::new();
-    let mut cur_section: Option<(String, bool)> = None;
+    let mut cur_section = Some(&mut root);
 
     let mut lines = input.split_inclusive('\n');
     while let Some(raw_line) = lines.next() {
@@ -6215,22 +6215,12 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        if let Some(arr_sec) = line.strip_prefix("[[").and_then(|s| s.strip_suffix("]]")) {
-            let sec = arr_sec.trim().to_string();
-            if let Some((_, JVal::Array(arr))) = root.iter_mut().find(|(k, _)| k == &sec) {
-                arr.push(JVal::Object(Vec::new()));
-            } else {
-                root.push((sec.clone(), JVal::Array(vec![JVal::Object(Vec::new())])));
-            }
-            cur_section = Some((sec, true));
+        if let Some(sec) = line.strip_prefix("[[").and_then(|s| s.strip_suffix("]]")) {
+            cur_section = toml_table(&mut root, sec, true);
             continue;
         }
         if let Some(sec) = line.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
-            let sec_name = sec.trim().to_string();
-            if !root.iter().any(|(k, _)| k == &sec_name) {
-                root.push((sec_name.clone(), JVal::Object(Vec::new())));
-            }
-            cur_section = Some((sec_name, false));
+            cur_section = toml_table(&mut root, sec, false);
             continue;
         }
         if let Some((k, v)) = raw_line.split_once('=') {
@@ -6245,23 +6235,8 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
             } else {
                 parse_toml_value(strip_toml_comment(v).trim())?
             };
-            match &cur_section {
-                None => insert_toml_dotted(&mut root, &key_segs, val),
-                Some((sec_name, false)) => {
-                    if let Some((_, JVal::Object(obj))) =
-                        root.iter_mut().find(|(k, _)| k == sec_name)
-                    {
-                        insert_toml_dotted(obj, &key_segs, val);
-                    }
-                }
-                Some((sec_name, true)) => {
-                    if let Some((_, JVal::Array(arr))) =
-                        root.iter_mut().find(|(k, _)| k == sec_name)
-                        && let Some(JVal::Object(obj)) = arr.last_mut()
-                    {
-                        insert_toml_dotted(obj, &key_segs, val);
-                    }
-                }
+            if let Some(table) = cur_section.as_deref_mut() {
+                insert_toml_dotted(table, &key_segs, val);
             }
         }
     }
@@ -6329,6 +6304,69 @@ fn parse_toml_multiline<'a>(
         }
     }
     Err("unterminated TOML multiline string".into())
+}
+
+fn toml_table<'a>(
+    mut table: &'a mut Vec<(String, JVal)>,
+    header: &str,
+    array: bool,
+) -> Option<&'a mut Vec<(String, JVal)>> {
+    let mut quote = None;
+    let mut escaped = false;
+    let mut path = header
+        .split(|c| {
+            if escaped {
+                escaped = false;
+                return false;
+            }
+            match (quote, c) {
+                (Some('"'), '\\') => escaped = true,
+                (Some(q), c) if q == c => quote = None,
+                (None, '"' | '\'') => quote = Some(c),
+                (None, '.') => return true,
+                _ => {}
+            }
+            false
+        })
+        .peekable();
+    while let Some(part) = path.next() {
+        let part = part.trim();
+        let key = if part.starts_with('"') {
+            parse_json_string(&part.chars().collect::<Vec<_>>(), &mut 0).ok()?
+        } else {
+            part.strip_prefix('\'')
+                .and_then(|s| s.strip_suffix('\''))
+                .unwrap_or(part)
+                .to_string()
+        };
+        let append = array && path.peek().is_none();
+        let index = table
+            .iter()
+            .position(|(k, _)| k == &key)
+            .unwrap_or_else(|| {
+                table.push((
+                    key,
+                    if append {
+                        JVal::Array(Vec::new())
+                    } else {
+                        JVal::Object(Vec::new())
+                    },
+                ));
+                table.len() - 1
+            });
+        let mut value = &mut table[index].1;
+        if let JVal::Array(items) = value {
+            if append {
+                items.push(JVal::Object(Vec::new()));
+            }
+            value = items.last_mut()?;
+        }
+        let JVal::Object(entries) = value else {
+            return None;
+        };
+        table = entries;
+    }
+    Some(table)
 }
 
 fn has_undefined_yaml_alias(src: &str) -> bool {

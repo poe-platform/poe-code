@@ -21921,13 +21921,16 @@ fn fire_sql_triggers(
         let mut trig_cols = Vec::new();
         let mut trig_metadata = Vec::new();
         let mut trig_row = Vec::new();
-        for (scope, row) in [("NEW", new_row), ("OLD", old_row)] {
-            if let Some(row) = row {
-                for (column, value) in cols.iter().zip(row) {
-                    let column = column.strip_prefix(&format!("{tname}.")).unwrap_or(column);
-                    trig_cols.push(format!("{scope}.{column}"));
-                    trig_row.push(value.clone());
-                }
+        if let Some(nrow) = new_row {
+            for (c, v) in cols.iter().zip(nrow.iter()) {
+                trig_cols.push(format!("NEW.{c}"));
+                trig_row.push(v.clone());
+            }
+        }
+        if let Some(orow) = old_row {
+            for (c, v) in cols.iter().zip(orow.iter()) {
+                trig_cols.push(format!("OLD.{c}"));
+                trig_row.push(v.clone());
             }
         }
         if let Some(table) = tables.get(tname) {

@@ -1772,7 +1772,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
 
 function sqlPrintf(format: string, args: SqlValue[]): string {
   let argIdx = 0;
-  return format.replace(/%([-+ #0!,]*\d*(?:\.\d+)?)([sdiufeEgGoxXpcqQw%])/g, (full, flags: string, spec: string) => {
+  return format.replace(/%([-+ #0!,]*\d*(?:\.\d+)?)(?:ll|l)?([sdiufeEgGoxXpcqQw%])/g, (full, flags: string, spec: string) => {
     if (spec === "%") {
       return "%";
     }
@@ -1785,6 +1785,22 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
     let out = "";
     if (spec === "s") {
       out = raw === null || raw === undefined ? "" : toSqlString(raw);
+      const precisionIndex = flags.indexOf(".");
+      const precision = precisionIndex < 0 ? undefined : Number(flags.slice(precisionIndex + 1));
+      if (precision === undefined && width === 0) return out;
+      let length: number;
+      // SQLite measures strings in UTF-8 bytes unless ! requests characters.
+      if (modifiers.includes("!")) {
+        const characters = Array.from(out);
+        out = characters.slice(0, precision).join("");
+        length = Math.min(characters.length, precision ?? characters.length);
+      } else {
+        const bytes = new TextEncoder().encode(out).subarray(0, precision);
+        out = new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
+        length = bytes.length;
+      }
+      const padding = " ".repeat(Math.max(0, width - length));
+      return modifiers.includes("-") ? out + padding : padding + out;
     } else if (spec === "q") {
       out = raw === null || raw === undefined ? "(NULL)" : toSqlString(raw).replace(/'/g, "''");
     } else if (spec === "w") {

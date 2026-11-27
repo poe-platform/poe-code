@@ -233,6 +233,33 @@ test("sqlite3 instr counts Unicode characters for text and bytes for blobs", asy
 
 for (const fn of ["printf", "format"]) {
   for (const [args, expected] of [
+    ["'%.3s|%10.3s|%-6.2s|', 'abcdef', 'abcdef', 'abcdef'", "abc|       abc|ab    |"],
+    ["'%.0s|%.9s|%.3s|%.3s|%.3s', 'abc', 'abc', '', NULL, 12345", "|abc|||123"],
+    ["'%.2s|%.4s|%6.2s|%-6.4s', 'éx', '😀x', 'éx', '😀x'", "é|😀|    é|😀  "],
+    ["'%!.2s|%!4.2s|%-!4.1s', 'é😀x', 'é😀x', '😀x'", "é😀|  é😀|😀   "],
+    ["'%ld|%lld|%lli|%llu|%llx|%llo', 5, 9223372036854775807, -9223372036854775808, -1, 255, 8",
+      "5|9223372036854775807|-9223372036854775808|18446744073709551615|ff|10"],
+    ["'%+08lld|%-6.3lld|%lld:%s|%%:%ld', 12, 5, 7, 'ok', 9", "+0000012|005   |7:ok|%:9"],
+  ]) {
+    test(`sqlite3 ${fn} string precision and length modifiers: ${args}`, async () => {
+      const sql = `SELECT ${fn}(${args});`;
+      assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+        code: 0, stdout: `${expected}\n`, stderr: ""
+      });
+      assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), `${expected}\n`);
+    });
+  }
+  test(`sqlite3 ${fn} combines string precision and long long integers`, async () => {
+    const sql = `SELECT ${fn}('%.3s|%10.3s|%-6.2s|', 'abcdef', 'abcdef', 'abcdef'), ${fn}('%lld', 5);`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+      code: 0, stdout: "abc|       abc|ab    ||5\n", stderr: ""
+    });
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), "abc|       abc|ab    ||5\n");
+  });
+}
+
+for (const fn of ["printf", "format"]) {
+  for (const [args, expected] of [
     ["'%!f|%!f|%!f|%!f',1.0,1.25,-2.5,NULL", "1.0|1.25|-2.5|0.0"],
     ["'%!e|%!E|%!g|%!G',1,1.25,1000000,0.00001", "1.0e+00|1.25E+00|1.0e+06|1.0E-05"],
     ["'%!.0f|%!.0e|%!.1g|%!.3f',1,1.6,1.6,1.2346", "1.0|2.0e+00|2.0|1.235"],

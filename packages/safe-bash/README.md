@@ -311,7 +311,10 @@ is unchanged and may further restrict real file modes; remote modes can be advis
 reads and writes the named variable. Both attributes follow function scope and restore
 outer bindings on return. Indexed and associative arrays support readonly (`-r`),
 integer (`-i`, including arithmetic `+=`), and ASCII case conversion (`-l`/`-u`)
-on each element. Nameref targets must be simple variable names; combining nameref
+on each element. Associative compound assignments accept `[key]=value` entries or
+alternating keys and values (`declare -A m=(a 1 b 2)`), including replacement and
+`+=` assignments; a final key without a value receives an empty string.
+Nameref targets must be simple variable names; combining nameref
 with integer or array attributes is unsupported.
 
 ### Command bundle

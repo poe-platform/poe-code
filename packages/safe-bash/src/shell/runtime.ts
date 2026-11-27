@@ -3515,6 +3515,7 @@ export class Runtime {
       let current = store.get(name);
       if (associative !== undefined && current && current.associative !== associative) throw new ArrayFailure("cannot convert array kind");
       const isAssociative = associative ?? current?.associative;
+      const associativePairs = isAssociative && assignment.kind === "compound" && assignment.entries.length > 0 && !assignment.entries[0]!.index;
       let initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
       let selectedIndex: number | undefined;
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
@@ -3522,7 +3523,7 @@ export class Runtime {
         operation.reserve({ work: assignment.index.decimal.length + 1 }).release();
         if (!current?.associative) selectedIndex = await this.arrayIndex(current, assignment.index, state, io, operation, true, initialMaximum);
       } else for (const entry of assignment.entries) {
-        if (isAssociative && !entry.index) throw new ArrayFailure("associative compound entry requires a subscript");
+        if (isAssociative && !associativePairs && !entry.index) throw new ArrayFailure("associative compound entry requires a subscript");
         operation.reserve({ work: entry.value.parts.length + (entry.index?.decimal.length ?? 0) + 2 }).release();
         if (entry.index) {
           const index = numericIndex(entry.index);
@@ -3549,6 +3550,34 @@ export class Runtime {
           const previous = assignment.append ? store.get(name)?.getValue(selectedIndex)
             ?? (selectedIndex === 0 ? state.variables[name] : undefined) ?? "" : undefined;
           attributedElement = await this.attributeValue(state, name, concatShellValues(elementFields, io[valueScope]), io, "assignment", previous);
+        }
+      } else if (associativePairs) {
+        // The first word selects key/value pairs. Expand each word as a scalar,
+        // including words that the parser recognized as [key]=value entries.
+        const expandPairWord = (word: Word): Promise<ShellValue[]> => {
+          operation.reserve({ metadata: 32 + word.parts.length * 64, slots: word.parts.length + 1, work: word.parts.length + 1 });
+          // Pair lists do not expand literal tildes, braces, or pathname globs.
+          const parts = word.parts.map(part => part.kind === "text" ? { ...part, quoted: true } : part);
+          return this.valueWord({ ...word, parts }, state, io, false);
+        };
+        for (let index = 0; index < assignment.entries.length; index += 2) {
+          const keyEntry = assignment.entries[index]!;
+          const valueEntry = assignment.entries[index + 1];
+          const keyWord = compoundEntryWords.get(keyEntry) ?? keyEntry.value;
+          const valueWord = valueEntry ? compoundEntryWords.get(valueEntry) ?? valueEntry.value : undefined;
+          const key = await this.arrayJoin(operation, await expandPairWord(keyWord), " ");
+          const fields = valueWord ? await expandPairWord(valueWord) : [""];
+          if (shellValueByteLength(key) === 0) {
+            await this.diagnostic(io, "associative array: bad array subscript");
+            continue;
+          }
+          operation.reserve({ metadata: 160, slots: 4, work: 4 });
+          const part: WordPart = { kind: "text", value: shellValueText(key), quoted: true };
+          if (typeof key !== "string") invokedValues.set(part, key);
+          expandedEntries.push({ entry: {
+            index: { decimal: part.value, word: { offset: keyWord.offset, parts: [part] } },
+            value: valueWord ?? keyWord,
+          }, fields });
         }
       } else for (const entry of assignment.entries) {
         const original = compoundEntryWords.get(entry);

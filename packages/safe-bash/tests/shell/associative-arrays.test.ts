@@ -3,6 +3,51 @@ import test from "node:test";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { setup } from "./helpers.js";
 
+test('associative pair-list declaration through the public shell', async t => {
+  const { Shell, createMemoryFileSystem, agentCommands } = await import('../../src/index.js');
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/work', { recursive: true });
+  const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec('declare -A m=(a 1 b 2); echo ${m[a]} ${m[b]} ${#m[@]}');
+  assert.equal(result.stdout, '1 2 2\n');
+  assert.equal(result.stderr, '');
+  assert.equal(result.exitCode, 0);
+});
+
+for (const [label, source, expected] of [
+  ['replacement', 'declare -A m=([old]=gone); m=(a 1 b 2); args "${m[old]}" "${m[a]}" "${m[b]}" "${#m[@]}"', '["","1","2","2"]'],
+  ['append and duplicate keys', 'declare -A m=([old]=keep [a]=old); m+=(a 1 b 2 a last); args "${m[old]}" "${m[a]}" "${m[b]}" "${#m[@]}"', '["keep","last","2","3"]'],
+  ['missing final value', 'declare -A m=(a 1 b); args "${m[a]}" "${m[b]}" "${m[b]+set}" "${#m[@]}"', '["1","","set","2"]'],
+  ['scalar expansions', 'key="two words"; value="many words"; declare -A m=($key $value empty ""); args "${m[$key]}" "${m[empty]+set}"', '["many words","set"]'],
+  ['literal braces and patterns', 'declare -A m=({a,b} {1,2} * ?); args "${m["{a,b}"]}" "${m["*"]}" "${#m[@]}"', '["{1,2}","?","2"]'],
+  ['literal tildes', 'HOME=/home/test; declare -A m=(~ ~/value); args "${m["~"]}" "${m[/home/test]}"', '["~/value",""]'],
+  ['assignment-shaped words remain literal', 'declare -A m=(a [b]=2 [c]+=3 value); args "${m[a]}" "${m["[c]+=3"]}" "${#m[@]}"', '["[b]=2","value","2"]'],
+  ['positional parameters form one word', 'set -- a 1 b 2; declare -A m=("$@" value); args "${m["a 1 b 2"]}" "${#m[@]}"', '["value","1"]'],
+  ['replacement reads the old binding', 'declare -A m=([a]=old); m=(b "${m[a]}"); args "${m[b]}" "${#m[@]}"', '["old","1"]'],
+  ['integer attributes', 'declare -Ai m=(a 2+3 b 4*2); m+=(a 7); args "${m[a]}" "${m[b]}"', '["7","8"]'],
+  ['case attributes', 'declare -Au m=(key mixed); args "${m[key]}"', '["MIXED"]'],
+  ['function scope', 'declare -A m=([a]=outer); f() { local -A m=(a inner); args "${m[a]}"; }; f; args "${m[a]}"', '["inner"]["outer"]'],
+  ['expanded keys run once', 'i=0; declare -A m=($((i+=1)) first $((i+=1)) second); args "$i" "${m[1]}" "${m[2]}"', '["2","first","second"]'],
+  ['raw key identity', "declare -A m; x=$'\\377'; y=$'\\376'; m=($x first $y second); args \"${m[$x]}\" \"${m[$y]}\"", '["first","second"]'],
+] as const) test(`associative pair lists: ${label}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, '');
+  assert.equal(result.exitCode, 0);
+});
+
+test('associative pair lists diagnose empty keys and keep valid pairs', async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec('declare -A m=("" bad a good); args "${m[a]}" "${#m[@]}"');
+  assert.equal(result.stdout, '["good","1"]');
+  assert.match(result.stderr, /bad array subscript/u);
+  assert.equal(result.exitCode, 0);
+});
+
 for (const explicitExtension of [false, true]) {
   for (const nounset of ['', 'set -u; ']) {
     test(`associative scalar operators read key zero: extension=${explicitExtension}, ${nounset || 'normal'}`, async () => {

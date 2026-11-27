@@ -23340,6 +23340,11 @@ fn resolve_sql_from_table(
     if upper.contains(" JOIN ") {
         let mut join_pos_list: Vec<(usize, usize, bool, bool)> = Vec::new();
         let kw_specs = [
+            (" NATURAL LEFT OUTER JOIN ", true, false),
+            (" NATURAL LEFT JOIN ", true, false),
+            (" NATURAL INNER JOIN ", false, false),
+            (" NATURAL CROSS JOIN ", false, false),
+            (" NATURAL JOIN ", false, false),
             (" FULL OUTER JOIN ", true, true),
             (" FULL JOIN ", true, true),
             (" LEFT OUTER JOIN ", true, false),
@@ -23446,6 +23451,14 @@ fn resolve_sql_from_table(
                         .iter()
                         .map(|i| acc_tbl.columns.len() + i),
                 );
+                if upper[j_pos..j_pos + j_klen].starts_with(" NATURAL ") {
+                    using_cols = right_tbl
+                        .columns
+                        .iter()
+                        .map(|col| col.rsplit('.').next().unwrap_or(col))
+                        .filter(|col| find_sql_col(&acc_tbl.columns, col).is_some())
+                        .collect();
+                }
                 if !using_cols.is_empty() {
                     let mut conditions = Vec::new();
                     for col in using_cols {

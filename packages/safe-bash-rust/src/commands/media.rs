@@ -12510,6 +12510,7 @@ fn cmd_magick(
         ClipThreshold(f64, bool),
         Gray,
         Luma(bool),
+        Luminance,
         Flip,
         Flop,
         AutoOrient,
@@ -12751,7 +12752,9 @@ fn cmd_magick(
             }
             "-colorspace" | "-grayscale" if i + 1 < args.len() => {
                 let space = args[i + 1].to_ascii_lowercase();
-                if space.contains("gray")
+                if arg == "-grayscale" && space == "rec709luminance" {
+                    ops.push(PixelOp::Luminance);
+                } else if space.contains("gray")
                     || space.contains("grey")
                     || matches!(space.as_str(), "rec709luma" | "rec601luma")
                 {
@@ -13216,12 +13219,19 @@ fn cmd_magick(
                     }
                     PixelOp::Threshold(value) => image.threshold(*value),
                     PixelOp::ClipThreshold(value, white) => image.clip_threshold(*value, *white),
-                    PixelOp::Gray | PixelOp::Luma(_) => {
+                    PixelOp::Gray | PixelOp::Luma(_) | PixelOp::Luminance => {
                         channels = 1;
+                        let was_gray = image.gray;
                         image.gray = true;
                         for p in &mut image.pixels {
                             let v = if let PixelOp::Luma(rec601) = op {
                                 magick_color::luma(p[0], p[1], p[2], *rec601)
+                            } else if matches!(op, PixelOp::Luminance) {
+                                if was_gray {
+                                    p[0]
+                                } else {
+                                    magick_color::luminance(p[0], p[1], p[2])
+                                }
                             } else {
                                 magick_color::gray(p[0], p[1], p[2])
                             };
@@ -13471,7 +13481,7 @@ fn cmd_magick(
         }
         if ops
             .iter()
-            .any(|op| matches!(op, PixelOp::Gray | PixelOp::Luma(_)))
+            .any(|op| matches!(op, PixelOp::Gray | PixelOp::Luma(_) | PixelOp::Luminance))
         {
             meta.cs = "Gray".to_string();
         }

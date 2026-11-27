@@ -168,6 +168,13 @@ pub(super) fn luma(r: u8, g: u8, b: u8, rec601: bool) -> u8 {
     (f64::from(quantum) / 257.).round().clamp(0., 255.) as u8
 }
 
+pub(super) fn luminance(r: u8, g: u8, b: u8) -> u8 {
+    let [r, g, b] = [r, g, b].map(linear);
+    // Keep linear light and match Q16-HDRI rounding, as for luma above.
+    let quantum = ((0.212656 * r + 0.715158 * g + 0.072186 * b) * 65535.) as f32;
+    (f64::from(quantum) / 257.).round().clamp(0., 255.) as u8
+}
+
 pub(super) fn channel_mask(spec: &str) -> [bool; 4] {
     let s = spec.trim().to_ascii_lowercase();
     match s.as_str() {

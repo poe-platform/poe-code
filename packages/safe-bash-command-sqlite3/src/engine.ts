@@ -458,6 +458,7 @@ export type ExprNode =
   | { kind: "star"; table?: string | undefined }
   | { kind: "param"; name: string; index: number }
   | { kind: "unary"; op: string; expr: ExprNode }
+  | { kind: "row"; items: ExprNode[] }
   | { kind: "binary"; op: string; left: ExprNode; right: ExprNode }
   | { kind: "collate"; expr: ExprNode; collation: string }
   | { kind: "between"; expr: ExprNode; low: ExprNode; high: ExprNode; not: boolean }
@@ -505,6 +506,8 @@ function expressionChildren(expr: ExprNode): ExprNode[] {
     case "cast":
     case "in_subquery":
       return [expr.expr];
+    case "row":
+      return expr.items;
     case "binary":
       return [expr.left, expr.right];
     case "between":
@@ -955,6 +958,12 @@ class ExprParser {
       }
       this.pos += 1;
       const expr = this.parseExpression();
+      if (this.matchValue(",")) {
+        const items = [expr];
+        do { items.push(this.parseExpression()); } while (this.matchValue(","));
+        this.matchValue(")");
+        return { kind: "row", items };
+      }
       this.matchValue(")");
       return expr;
     }
@@ -7715,7 +7724,36 @@ export class SqliteDatabase {
           expr.op,
           yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation)
         );
+      case "row":
+        throw new Error("row value misused");
       case "binary": {
+        if (expr.left.kind === "row" || expr.right.kind === "row") {
+          if (expr.left.kind !== "row" || expr.right.kind !== "row"
+            || expr.left.items.length !== expr.right.items.length
+            || !["=", "==", "!=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT"].includes(expr.op)) {
+            throw new Error("row value misused");
+          }
+          const equality = ["=", "==", "!=", "<>", "IS", "IS NOT"].includes(expr.op);
+          const identity = expr.op === "IS" || expr.op === "IS NOT";
+          let unknown = false;
+          for (let i = 0; i < expr.left.items.length; i++) {
+            yield;
+            const left = expr.left.items[i]!;
+            const right = expr.right.items[i]!;
+            const l = yield* this.evalExprSteps(left, row, positionalParams, cteScope, evaluation);
+            const r = yield* this.evalExprSteps(right, row, positionalParams, cteScope, evaluation);
+            const collation = this.expressionCollation({ kind: "binary", op: expr.op, left, right }, row,
+              this.expressionCollation(left, row, this.expressionCollation(right, row)));
+            const equal = this.applyComparison(identity ? "IS" : "=", left, right, l, r, row, collation);
+            if (equal === null) {
+              if (!equality) return null;
+              unknown = true;
+            } else if (equal === 0) {
+              return this.applyComparison(expr.op, left, right, l, r, row, collation);
+            }
+          }
+          return unknown ? null : this.applyBinary(expr.op, 0, 0);
+        }
         if (expr.op === "MATCH") {
           const values = this.ftsValues(expr.left, row);
           const query = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
@@ -7757,9 +7795,9 @@ export class SqliteDatabase {
         }
         const collation = this.expressionCollation(expr, row,
           this.expressionCollation(expr.left, row, this.expressionCollation(expr.right, row)));
-        let l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
+        const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
         if (expr.op === "IS" || expr.op === "IS NOT") {
-          let right = expr.right;
+          let right: ExprNode = expr.right;
           while (right.kind === "collate") right = right.expr;
           if (right.kind === "literal" && right.booleanLiteral) {
             const truth = isTruthy(l instanceof Uint8Array ? toSqlString(l) : l);
@@ -7797,14 +7835,9 @@ export class SqliteDatabase {
             ? 1
             : 0;
         }
-        let r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
+        const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
         if (["=", "==", "!=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT"].includes(expr.op)) {
-          const leftAffinity = this.expressionAffinity(expr.left, row);
-          const rightAffinity = this.expressionAffinity(expr.right, row);
-          if (leftAffinity === "NUMERIC" && rightAffinity !== "NUMERIC") r = applyColumnAffinity(r, "NUMERIC", false);
-          else if (rightAffinity === "NUMERIC" && leftAffinity !== "NUMERIC") l = applyColumnAffinity(l, "NUMERIC", false);
-          else if (leftAffinity === "TEXT" && rightAffinity === undefined) r = applyColumnAffinity(r, "TEXT", false);
-          else if (rightAffinity === "TEXT" && leftAffinity === undefined) l = applyColumnAffinity(l, "TEXT", false);
+          return this.applyComparison(expr.op, expr.left, expr.right, l, r, row, collation);
         }
         return this.applyBinary(expr.op, l, r, collation);
       }
@@ -8064,6 +8097,19 @@ export class SqliteDatabase {
       return integerResult(BigInt.asIntN(64, ~integerPrefix(v)));
     }
     return v;
+  }
+
+  private applyComparison(
+    op: string, left: ExprNode, right: ExprNode, l: SqlValue, r: SqlValue,
+    row: Record<string, SqlValue>, collation: string
+  ): SqlValue {
+    const leftAffinity = this.expressionAffinity(left, row);
+    const rightAffinity = this.expressionAffinity(right, row);
+    if (leftAffinity === "NUMERIC" && rightAffinity !== "NUMERIC") r = applyColumnAffinity(r, "NUMERIC", false);
+    else if (rightAffinity === "NUMERIC" && leftAffinity !== "NUMERIC") l = applyColumnAffinity(l, "NUMERIC", false);
+    else if (leftAffinity === "TEXT" && rightAffinity === undefined) r = applyColumnAffinity(r, "TEXT", false);
+    else if (rightAffinity === "TEXT" && leftAffinity === undefined) l = applyColumnAffinity(l, "TEXT", false);
+    return this.applyBinary(op, l, r, collation);
   }
 
   private applyBinary(op: string, l: SqlValue, r: SqlValue, collation = "BINARY"): SqlValue {

@@ -22203,7 +22203,15 @@ fn exec_sql_update(
             .collect()
     });
     let where_pos = find_top_sql_bool_kw(&upper[set_pos + 5..], " WHERE ").map(|p| set_pos + 5 + p);
-    let set_end = where_pos.or(ret_pos).unwrap_or(stmt_norm.len());
+    let from_pos = find_top_sql_bool_kw(
+        &upper[set_pos + 5..where_pos.or(ret_pos).unwrap_or(stmt_norm.len())],
+        " FROM ",
+    )
+    .map(|p| set_pos + 5 + p);
+    let set_end = from_pos
+        .or(where_pos)
+        .or(ret_pos)
+        .unwrap_or(stmt_norm.len());
     let set_clause = stmt_norm[set_pos + 5..set_end].trim();
     let where_clause = where_pos.map(|wp| {
         let w_end = ret_pos.unwrap_or(stmt_norm.len());
@@ -22224,6 +22232,30 @@ fn exec_sql_update(
     for c in &t_cols {
         eval_cols.push(format!("{tname}.{c}"));
     }
+    let source = if let Some(fp) = from_pos {
+        let from_clause =
+            stmt_norm[fp + 6..where_pos.or(ret_pos).unwrap_or(stmt_norm.len())].trim();
+        let mut source = resolve_sql_from_table(from_clause, tables, &BTreeMap::new())
+            .ok_or_else(|| format!("Error: no such table: {from_clause}\n"))?;
+        let qualifier = from_clause
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .trim_matches('"');
+        for column in &mut source.columns {
+            if !column.contains('.') {
+                *column = format!("{qualifier}.{column}");
+            }
+        }
+        source
+    } else {
+        SqlTable {
+            rows: vec![Vec::new()],
+            ..SqlTable::default()
+        }
+    };
+    eval_cols.extend_from_slice(&source.columns);
+    eval_affinities.extend_from_slice(&source.affinities);
     let assigns: Vec<(usize, String)> = split_top_level_comma(set_clause)
         .into_iter()
         .filter_map(|item| {
@@ -22239,10 +22271,13 @@ fn exec_sql_update(
         for (r_idx, r) in tbl.rows.iter().enumerate() {
             let mut eval_r = r.clone();
             eval_r.extend_from_slice(r);
-            let matches = match where_clause {
-                Some(wc) => eval_sql_where(wc, &eval_cols, &eval_affinities, &eval_r, &tables_snap),
-                None => true,
-            };
+            let matches = source.rows.iter().any(|source_row| {
+                eval_r.truncate(r.len() * 2);
+                eval_r.extend_from_slice(source_row);
+                where_clause.is_none_or(|wc| {
+                    eval_sql_where(wc, &eval_cols, &eval_affinities, &eval_r, &tables_snap)
+                })
+            });
             if matches {
                 let old_r = r.clone();
                 let mut new_r = r.clone();

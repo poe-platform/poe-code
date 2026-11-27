@@ -1138,6 +1138,13 @@ test("tr SET2 class alignment, trailing backslash, and wc --total modes", async 
   assert.equal((await run("wc", ["--total=only"], { stdin: "a\nb\n" })).stdout, "2 2 4\n");
 });
 
+test("head completes a large producer-head-consumer pipeline", { timeout: 5000 }, async context => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("seq 300000 | head -n 150000 | wc -l", { signal: context.signal });
+  assert.deepEqual([result.stdout, result.stderr, result.exitCode], ["150000\n", "", 0]);
+});
+
 for (const [args, text, prefix] of [
   ["-n 1", "line1\nline2\n", "line1\n"],
   ["-c 3", "abcdef", "abc"],

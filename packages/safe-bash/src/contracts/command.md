@@ -89,14 +89,16 @@ export interface CommandInput {
   readonly stat?: FileStat;
   readonly position: number;
   read(maxBytes: number, signal: AbortSignal): Promise<IteratorResult<Uint8Array>>;
-  readAvailable?(maxBytes: number, signal: AbortSignal, delimiter?: number): Promise<IteratorResult<Uint8Array>>;
+  readAvailable?(maxBytes: number, signal: AbortSignal, delimiter?: number, maxDelimiters?: number): Promise<IteratorResult<Uint8Array>>;
   seek?(absolutePosition: number, signal: AbortSignal): Promise<void>;
 }
 ```
 
 `readAvailable`, when provided, returns one available fragment without waiting to
 fill the request. An optional delimiter (an integer byte from 0 to 255) stops the
-fragment immediately after that byte. Unconsumed bytes remain on the shared
+fragment immediately after that byte. `maxDelimiters` (a positive safe integer,
+defaulting to 1) allows multiple records per fragment, still bounded by
+`maxBytes`. Unconsumed bytes remain on the shared
 cursor, so a prefix reader such as `head` preserves input for the next command.
 
 `read` fills up to the requested number of bytes, stopping early only at EOF.

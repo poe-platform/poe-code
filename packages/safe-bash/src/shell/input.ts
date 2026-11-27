@@ -1172,11 +1172,12 @@ export class ShellInput implements ByteSource, CommandInput {
   get identity(): object { return this._cursor.identity; }
 
   /** Return one available fragment rather than waiting to fill a native read. */
-  readAvailable(maxBytes: number, callerSignal: AbortSignal, delimiter?: number): Promise<IteratorResult<Uint8Array>> {
+  readAvailable(maxBytes: number, callerSignal: AbortSignal, delimiter?: number, maxDelimiters = 1): Promise<IteratorResult<Uint8Array>> {
     const signal = AbortSignal.any([this.signal, callerSignal]);
     return this._cursor.consume(signal, async () => {
       if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("Invalid input read size");
       if (delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255)) throw new RangeError("Invalid input delimiter");
+      if (!Number.isSafeInteger(maxDelimiters) || maxDelimiters < 1) throw new RangeError("Invalid input delimiter count");
       this._cursor.admitBoundedRead();
       if (!maxBytes) return { done: false, value: new Uint8Array() };
       const buffered = this._cursor.remainder !== undefined;
@@ -1185,8 +1186,17 @@ export class ShellInput implements ByteSource, CommandInput {
       // Copy producer storage once; repeatedly copying a retained remainder makes
       // line-at-a-time readers quadratic in the size of the producer chunk.
       const bytes = buffered ? result.value : new Uint8Array(result.value);
-      const end = delimiter === undefined ? -1 : bytes.subarray(0, maxBytes).indexOf(delimiter);
-      const count = Math.min(maxBytes, end < 0 ? bytes.byteLength : end + 1);
+      let count = Math.min(maxBytes, bytes.byteLength);
+      if (delimiter !== undefined) {
+        const fragment = bytes.subarray(0, count);
+        let offset = 0;
+        for (let remaining = maxDelimiters; remaining > 0; remaining--) {
+          const end = fragment.indexOf(delimiter, offset);
+          if (end < 0) break;
+          offset = end + 1;
+          if (remaining === 1) count = offset;
+        }
+      }
       const value = new Uint8Array(bytes.subarray(0, count));
       if (count < bytes.byteLength) this._cursor.remainder = bytes.subarray(count);
       this._cursor.position += count;

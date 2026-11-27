@@ -220,3 +220,33 @@ test("available reads reject invalid delimiters without consuming input", async 
     assert.deepEqual((await input.readAvailable(64, budget.signal)).value, new TextEncoder().encode("abc"));
   } finally { await input.close(); budget.close(); budget.values.close(); }
 });
+
+test("available reads batch delimiters within the byte limit and retain owned suffixes", async () => {
+  const budget = new Budget(defaultLimits);
+  const storage = Uint8Array.of(255, 0, 65, 0, 66, 0, 67);
+  const input = new ShellInput(toByteSource(storage), budget, budget.signal);
+  try {
+    const first = await input.readAvailable(3, budget.signal, 0, 2);
+    assert.deepEqual(first.value, Uint8Array.of(255, 0, 65));
+    assert.equal(input.position, 3);
+    storage.fill(9);
+    first.value!.fill(8);
+    assert.deepEqual((await input.readAvailable(64, budget.signal, 0, 2)).value, Uint8Array.of(0, 66, 0));
+    assert.equal(input.position, 6);
+    assert.deepEqual((await input.readAvailable(64, budget.signal, 0, 2)).value, Uint8Array.of(67));
+    assert.equal(input.position, 7);
+    assert.equal((await input.readAvailable(64, budget.signal, 0, 2)).done, true);
+  } finally { await input.close(); budget.close(); budget.values.close(); }
+});
+
+test("available reads reject invalid delimiter counts without consuming input", async () => {
+  const budget = new Budget(defaultLimits);
+  const input = new ShellInput(toByteSource("a\nb\n"), budget, budget.signal);
+  try {
+    for (const count of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      await assert.rejects(input.readAvailable(64, budget.signal, 10, count), RangeError);
+      assert.equal(input.position, 0);
+    }
+    assert.deepEqual((await input.readAvailable(64, budget.signal, 10, 2)).value, new TextEncoder().encode("a\nb\n"));
+  } finally { await input.close(); budget.close(); budget.values.close(); }
+});

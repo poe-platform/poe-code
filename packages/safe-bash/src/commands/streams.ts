@@ -120,11 +120,13 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
   const cursor = sharedInput && !skip ? context.stdinInput : undefined;
   if (cursor?.readAvailable) {
     while (remaining > 0) {
-      const step = await cursor.readAvailable(bytes ? Math.min(remaining, 64 * 1024) : 64 * 1024, context.signal, bytes ? undefined : delimiter);
+      const step = await cursor.readAvailable(bytes ? Math.min(remaining, 64 * 1024) : 64 * 1024, context.signal, bytes ? undefined : delimiter, bytes ? 1 : remaining);
       if (step.done) break;
       const chunk = step.value;
       if (bytes) remaining -= chunk.length;
-      else if (chunk.at(-1) === delimiter) remaining--;
+      else {
+        for (let offset = chunk.indexOf(delimiter); offset !== -1; offset = chunk.indexOf(delimiter, offset + 1)) remaining--;
+      }
       if (chunk.length) await output(context, chunk);
     }
     return;

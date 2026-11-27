@@ -19,12 +19,10 @@ export function fromDateIso8601(input: Json): number {
 }
 
 export function toDateIso8601(input: Json): string {
-  if (!isNumber(input)) throw new JqError("strftime/1 requires parsed datetime inputs");
-  const date = new Date(Math.trunc(numberValue(input)) * 1000);
-  if (!Number.isFinite(date.getTime())) throw new JqError("error converting number of seconds since epoch to datetime");
-  const year = String(date.getUTCFullYear()).padStart(4, "0");
-  const fields = [date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()]
-    .map(value => String(value).padStart(2, "0"));
+  const [fullYear, month, day, hour, minute, second] = isNumber(input) ? gmtime(input) : datetime(input, "strftime/1");
+  const year = String(fullYear).padStart(4, "0");
+  const fields = [month! + 1, day!, hour!, minute!, second!]
+    .map(value => String(Math.trunc(value)).padStart(2, "0"));
   return `${year}-${fields[0]}-${fields[1]}T${fields[2]}:${fields[3]}:${fields[4]}Z`;
 }
 

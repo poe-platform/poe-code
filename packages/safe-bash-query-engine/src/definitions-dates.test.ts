@@ -23,6 +23,11 @@ for (const [filter, input, expected] of [
   ['strptime("%Y %W %w")', '2024 09 4', [[2024, 1, 29, 0, 0, 0, 4, 59]]],
   ['strptime("%s")', '123', [[1970, 0, 1, 0, 2, 3, 4, 0]]],
   ['gmtime', 0, [[1970, 0, 1, 0, 0, 0, 4, 0]]],
+  ['gmtime | todate', 1704450030, ['2024-01-05T10:20:30Z']],
+  ['strptime("%Y-%m-%dT%H:%M:%SZ") | todate', '2024-03-10T01:02:03Z', ['2024-03-10T01:02:03Z']],
+  ['gmtime | todateiso8601', 1704450030, ['2024-01-05T10:20:30Z']],
+  ['todate', 1704450030.5, ['2024-01-05T10:20:30Z']],
+  ['todate', [2024, 1, 29, 23, 59, 60, 4, 59], ['2024-02-29T23:59:60Z']],
   ['mktime', [1970, 0, 1, 0, 0, 0, 4, 0], [0]],
   ['strftime("%Y-%m-%dT%H:%M:%SZ")', 0, ['1970-01-01T00:00:00Z']],
   ['strptime("%Y-%m-%dT%H:%M:%SZ")', '1970-01-01T00:00:00Z', [[1970, 0, 1, 0, 0, 0, 4, 0]]],
@@ -50,6 +55,8 @@ for (const [filter, message] of [
   ['-1 | gmtime | mktime', 'invalid gmtime representation'],
   ['null | gmtime', 'requires numeric inputs'],
   ['[] | mktime', 'requires parsed datetime inputs'],
+  ['[] | todate', 'strftime/1 requires parsed datetime inputs'],
+  ['[2024, 0, 1, 0, 0, "0", 1, 0] | todate', 'strftime/1 requires parsed datetime inputs'],
 ] as const) {
   test(`query errors remain bounded: ${filter}`, async () => {
     const session = createYqQuerySession({ signal: new AbortController().signal, limits: { maxSteps: 200 } });

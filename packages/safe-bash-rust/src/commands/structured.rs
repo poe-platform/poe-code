@@ -2376,7 +2376,7 @@ fn try_eval_jq_builtin(
             return Ok(Some(vec![JVal::Array(keys)]));
         }
         "values" => {
-            return Ok(Some(if input.is_truthy() {
+            return Ok(Some(if !matches!(input, JVal::Null) {
                 vec![input.clone()]
             } else {
                 Vec::new()

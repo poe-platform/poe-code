@@ -40,6 +40,8 @@ class UsageError extends Error {
   }
 }
 
+class ArithmeticError extends Error {}
+
 async function collectSourceBytes(source: ByteSource, signal: AbortSignal, maxBytes: number, admit: (bytes: number) => void): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
@@ -143,7 +145,7 @@ function mulDec(a: DecimalValue, b: DecimalValue, currentScale: number): Decimal
 }
 
 function divDec(a: DecimalValue, b: DecimalValue, currentScale: number): DecimalValue {
-  if (b.coeff === 0n) throw new Error("Runtime error (func=(main), adr=0): Divide by zero");
+  if (b.coeff === 0n) throw new ArithmeticError("Runtime error (func=(main), adr=0): Divide by zero");
   const shift = currentScale + b.scale - a.scale;
   const num = shift >= 0 ? a.coeff * pow10(shift) : a.coeff / pow10(-shift);
   return { coeff: num / b.coeff, scale: currentScale };
@@ -185,7 +187,7 @@ async function powDec(base: DecimalValue, exp: DecimalValue, currentScale: numbe
   }
   const fullScale = BigInt(base.scale) * n;
   if (neg) {
-    if (coeff === 0n) throw new Error("Runtime error (func=(main), adr=0): Divide by zero");
+    if (coeff === 0n) throw new ArithmeticError("Runtime error (func=(main), adr=0): Divide by zero");
     return { coeff: 10n ** (BigInt(currentScale) + fullScale) / coeff, scale: currentScale };
   }
   const scaleLimit = BigInt(Math.max(currentScale, base.scale));
@@ -203,7 +205,7 @@ function isNonZero(d: DecimalValue): boolean {
 }
 
 function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
-  if (x.coeff < 0n) throw new Error("Runtime error: Square root of a negative number");
+  if (x.coeff < 0n) throw new ArithmeticError("Runtime error: Square root of a negative number");
   if (x.coeff === 0n) return { coeff: 0n, scale: 0 };
   const resScale = Math.max(currentScale, x.scale);
   const shift = 2 * resScale - x.scale;
@@ -1126,7 +1128,14 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     let executionFailure: { error: unknown } | undefined;
     try {
       for (const s of stmts) {
-        await execStmt(s);
+        try {
+          await execStmt(s);
+        } catch (error) {
+          if (!(error instanceof ArithmeticError)) throw error;
+          context.signal.throwIfAborted();
+          await writeText(context.stderr, `bc: ${error.message}\n`);
+          context.signal.throwIfAborted();
+        }
       }
     } catch (sig) {
       if (!(sig instanceof FlowSignal && sig.kind === "halt")) {

@@ -174,8 +174,24 @@ test("bc still reports ordinary usage and evaluation errors", async () => {
     exitCode: 2, stdout: "", stderr: "bc: invalid option -- '-'\n",
   });
   assert.deepEqual(await evaluate("1/0"), {
-    exitCode: 1, stdout: "", stderr: "bc: Runtime error (func=(main), adr=0): Divide by zero\n",
+    exitCode: 0, stdout: "", stderr: "bc: Runtime error (func=(main), adr=0): Divide by zero\n",
   });
+});
+
+for (const expression of ["1/0", "1%0", "0^-1", "sqrt(-1)"]) {
+  test(`bc continues after ${expression} with a successful exit status`, async () => {
+    const result = await evaluate(`3\n${expression}\n2+2\n`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "3\n4\n");
+    assert.match(result.stderr, /Runtime error.*(?:Divide by zero|Square root of a negative number)/);
+  });
+}
+
+test("bc unwinds failed functions and loops before continuing", async () => {
+  const result = await evaluate("x=7\ndefine f(x) { print x; return 1/0; }\nf(2)\nx\nwhile (1) { sqrt(-1); 99; }\n2+2\n");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "27\n4\n");
+  assert.equal(result.stderr.split("\n").filter(Boolean).length, 2);
 });
 
 for (const [program, stdout, prefix] of [
@@ -479,7 +495,7 @@ test("bc Bessel function handles zero argument at default scale", async () => {
 for (const program of ["2; missing(0)", 'print "prefix"; 1/0', 'define f() { print "prefix"; return 1/0; }\nf()']) {
   test(`bc preserves output before runtime failure: ${program}`, async () => {
     const result = await evaluate(program);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, program.includes("missing") ? 1 : 0);
     assert.equal(result.stdout, program.startsWith("2;") ? "2\n" : "prefix");
     assert.notEqual(result.stderr, "");
   });

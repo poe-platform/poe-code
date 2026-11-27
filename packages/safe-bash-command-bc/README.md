@@ -12,6 +12,8 @@ explicit `Infinity` disables an individual quota. `maxExponent` bounds the absol
 
 Cancellation rejects with the original abort reason instead of returning an error exit code or writing a diagnostic.
 
+Division by zero and square roots of negative numbers report a diagnostic, abandon the current top-level statement, and continue evaluating with exit status zero. Resource-limit failures still stop evaluation and return a nonzero status.
+
 Use `bc -l` for decimal sine, cosine, arctangent, logarithm, exponential and integer-order Bessel functions. Results truncate to `scale` (20 by default with `-l`), using BigInt series with work-budget accounting and cooperative cancellation.
 
 Numeric output wraps at 70 columns by default (69 characters followed by `\` and a newline). Set the command environment variable `BC_LINE_LENGTH` to another width, or `0` to disable wrapping. Standalone strings preserve backslashes; `print` interprets GNU bc escapes such as `\n` and `\q`. Strings remain unwrapped; numbers printed after strings continue at the current column.

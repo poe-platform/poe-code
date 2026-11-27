@@ -20061,7 +20061,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut output_path: Option<String> = None;
     let mut params: BTreeMap<String, String> = BTreeMap::new();
     let mut tx_snapshot: Option<BTreeMap<String, SqlTable>> = None;
-    let mut savepoints: BTreeMap<String, BTreeMap<String, SqlTable>> = BTreeMap::new();
+    let mut savepoints: Vec<(String, BTreeMap<String, SqlTable>)> = Vec::new();
 
     fn expand_dot_reads(input: &str, cwd: &str, fs: &dyn SafeBashFs, out: &mut String) {
         for line in input.lines() {
@@ -20595,7 +20595,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if let Some(rest) = upper.strip_prefix("SAVEPOINT ") {
             let sp_name = rest.trim().to_ascii_lowercase();
-            savepoints.insert(sp_name, tables.clone());
+            savepoints.push((sp_name, tables.clone()));
             continue;
         }
         if let Some(rest) = upper.strip_prefix("RELEASE ") {
@@ -20605,15 +20605,16 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .unwrap_or(rest.trim())
                 .trim()
                 .to_ascii_lowercase();
-            if tx_snapshot.is_none()
-                && savepoints.len() == 1
-                && savepoints.contains_key(&sp_name)
-                && foreign_keys_enabled
-                && !sql_deferred_foreign_keys_satisfied(&tables)
-            {
-                return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+            if let Some(index) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
+                if tx_snapshot.is_none()
+                    && index == 0
+                    && foreign_keys_enabled
+                    && !sql_deferred_foreign_keys_satisfied(&tables)
+                {
+                    return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+                }
+                savepoints.truncate(index);
             }
-            savepoints.remove(&sp_name);
             continue;
         }
         if let Some(rb_rest) = upper.strip_prefix("ROLLBACK") {
@@ -20625,11 +20626,18 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or(after_to.trim())
                     .trim()
                     .to_ascii_lowercase();
-                if let Some(snap) = savepoints.get(&sp_name).cloned() {
+                if let Some(index) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
+                    tables = savepoints[index].1.clone();
+                    savepoints.truncate(index + 1);
+                }
+            } else {
+                if let Some(snap) = tx_snapshot
+                    .take()
+                    .or_else(|| savepoints.first().map(|(_, snap)| snap.clone()))
+                {
                     tables = snap;
                 }
-            } else if let Some(snap) = tx_snapshot.take() {
-                tables = snap;
+                savepoints.clear();
             }
             continue;
         }
@@ -20911,6 +20919,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &mut tables,
                 &triggers,
                 foreign_keys_enabled,
+                tx_snapshot.is_some() || !savepoints.is_empty(),
                 json_mode,
                 csv_mode,
                 &sep,
@@ -21442,6 +21451,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     }
 
+    // Closing a connection rolls back any transaction that was never committed.
+    if let Some(snapshot) =
+        tx_snapshot.or_else(|| savepoints.into_iter().next().map(|(_, snap)| snap))
+    {
+        tables = snapshot;
+    }
+
     if dirty && !readonly_mode && db_path != ":memory:" {
         if tables.values().any(|t| t.is_fts5) {
             return err_out(
@@ -21479,21 +21495,28 @@ fn sql_foreign_key_parent_exists(
         } else {
             find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
         };
-        parent.rows.iter().any(|row| row.get(index).map(String::as_str) == Some(value))
+        parent
+            .rows
+            .iter()
+            .any(|row| row.get(index).map(String::as_str) == Some(value))
     })
 }
 
 fn sql_deferred_foreign_keys_satisfied(tables: &BTreeMap<String, SqlTable>) -> bool {
     tables.values().all(|table| {
-        table.foreign_keys.iter().filter(|fk| fk.initially_deferred).all(|fk| {
-            let Some(index) = find_sql_col(&table.columns, &fk.child_col) else {
-                return true;
-            };
-            table.rows.iter().all(|row| {
-                let value = row.get(index).map(String::as_str).unwrap_or(SQL_NULL);
-                value == SQL_NULL || sql_foreign_key_parent_exists(fk, value, tables)
+        table
+            .foreign_keys
+            .iter()
+            .filter(|fk| fk.initially_deferred)
+            .all(|fk| {
+                let Some(index) = find_sql_col(&table.columns, &fk.child_col) else {
+                    return true;
+                };
+                table.rows.iter().all(|row| {
+                    let value = row.get(index).map(String::as_str).unwrap_or(SQL_NULL);
+                    value == SQL_NULL || sql_foreign_key_parent_exists(fk, value, tables)
+                })
             })
-        })
     })
 }
 
@@ -21556,7 +21579,9 @@ fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
         on_update: extract_action("ON UPDATE "),
         initially_deferred: {
             let words: Vec<_> = after_up.split_whitespace().collect();
-            words.windows(3).any(|w| w == ["DEFERRABLE", "INITIALLY", "DEFERRED"])
+            words
+                .windows(3)
+                .any(|w| w == ["DEFERRABLE", "INITIALLY", "DEFERRED"])
                 && !words.windows(2).any(|w| w == ["NOT", "DEFERRABLE"])
         },
     })
@@ -21649,7 +21674,7 @@ fn fire_sql_triggers(
             if sub_up.starts_with("INSERT ") {
                 exec_sql_insert(sub, tables, triggers, false, false, false, false, "|")?;
             } else if sub_up.starts_with("DELETE FROM ") {
-                exec_sql_delete(sub, tables, triggers, false, false, false, "|")?;
+                exec_sql_delete(sub, tables, triggers, false, false, false, false, "|")?;
             } else if sub_up.starts_with("UPDATE ") {
                 exec_sql_update(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("SELECT ") {
@@ -22447,6 +22472,7 @@ fn exec_sql_delete(
     tables: &mut BTreeMap<String, SqlTable>,
     triggers: &[SqlTrigger],
     foreign_keys_enabled: bool,
+    in_transaction: bool,
     json_mode: bool,
     csv_mode: bool,
     sep: &str,
@@ -22530,13 +22556,18 @@ fn exec_sql_delete(
                     if let Some(ctbl) = tables.get_mut(&ctname) {
                         match fk.on_delete.as_str() {
                             "NO ACTION" | "RESTRICT" => {
-                                if pval != SQL_NULL
+                                if !(in_transaction
+                                    && fk.initially_deferred
+                                    && fk.on_delete == "NO ACTION")
+                                    && pval != SQL_NULL
                                     && ctbl.rows.iter().any(|cr| {
                                         cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str())
                                     })
                                 {
                                     *tables = tables_snap;
-                                    return Err("Error: FOREIGN KEY constraint failed\n".to_string());
+                                    return Err(
+                                        "Error: FOREIGN KEY constraint failed\n".to_string()
+                                    );
                                 }
                             }
                             "CASCADE" => {

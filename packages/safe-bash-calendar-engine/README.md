@@ -14,3 +14,5 @@ CET, and JST, and east-positive corrections such as `UTC+2` or `GMT-5:30`.
 Abbreviations retain their fixed offset regardless of the date's season.
 
 Time-only inputs use the current day in the source timezone; explicit dates and time-only inputs accept AM/PM notation.
+
+`%Z` uses tzdb abbreviations, including historical and daylight-saving names, with the runtime Intl label as a fallback.

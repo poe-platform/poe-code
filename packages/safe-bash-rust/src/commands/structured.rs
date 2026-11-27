@@ -17355,8 +17355,19 @@ async fn eval_xpath_expr<'a>(
 ) -> Result<XPathVal<'a>, String> {
     use xpath::Op;
     let mut stack: Vec<XPathVal> = Vec::new();
-    for op in ops {
+    let mut pc = 0;
+    while pc < ops.len() {
+        let op = &ops[pc];
+        pc += 1;
         let value = match *op {
+            Op::ShortCircuit(value, target) => {
+                let lhs = stack.last_mut().unwrap();
+                if lhs.to_bool_val() == value {
+                    *lhs = XPathVal::Bool(value);
+                    pc = target;
+                }
+                continue;
+            }
             Op::Text(s) => XPathVal::Str(s.into()),
             Op::Number(n) => XPathVal::Num(n),
             Op::Select(i) => doc.select(i, ctx, pos, last).await,

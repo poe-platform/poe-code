@@ -6,6 +6,7 @@ pub(super) enum Op<'s> {
     Select(usize),
     Negate,
     Binary(&'s str),
+    ShortCircuit(bool, usize),
     Call(&'s str, usize),
 }
 pub(super) enum AxisTest<'s> {
@@ -338,15 +339,21 @@ fn query<'a>(
 
 enum Pending<'a> {
     Group(Option<&'a str>, usize),
-    Binary(&'a str, u8),
+    Binary(&'a str, u8, Option<usize>),
     Negate,
 }
 fn flush<'a>(stack: &mut Vec<Pending<'a>>, out: &mut Vec<Op<'a>>, min: u8) {
     while let Some(op) = stack.last() {
         match *op {
             Pending::Group(..) => break,
-            Pending::Binary(_, p) if p < min => break,
-            Pending::Binary(op, _) => out.push(Op::Binary(op)),
+            Pending::Binary(_, p, _) if p < min => break,
+            Pending::Binary(op, _, guard) => {
+                out.push(Op::Binary(op));
+                if let Some(index) = guard {
+                    // Skip the right operand and the binary operation together.
+                    out[index] = Op::ShortCircuit(op == "or", out.len());
+                }
+            }
             Pending::Negate => out.push(Op::Negate),
         }
         stack.pop();
@@ -444,7 +451,14 @@ fn expression<'a>(
                 _ => return Err(c.error()),
             };
             flush(&mut stack, &mut out, p);
-            stack.push(Pending::Binary(op, p));
+            let guard = if matches!(op, "and" | "or") {
+                let index = out.len();
+                out.push(Op::ShortCircuit(op == "or", 0));
+                Some(index)
+            } else {
+                None
+            };
+            stack.push(Pending::Binary(op, p, guard));
             expecting = true;
             continue;
         }

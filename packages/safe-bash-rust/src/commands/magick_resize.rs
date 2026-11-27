@@ -3,6 +3,7 @@ use super::png_pixels::Raster;
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Kernel {
     Sample,
+    Scale,
     Nearest,
     Linear,
     Cubic,
@@ -89,6 +90,43 @@ impl Raster {
                 let source_x = ((2 * x as u64 + 1) * im.width as u64 - 1) / (2 * w as u64);
                 let source_y = ((2 * y as u64 + 1) * im.height as u64 - 1) / (2 * h as u64);
                 im.pixels[source_y as usize * im.width + source_x as usize]
+            });
+            return Ok(());
+        }
+        if kernel == Kernel::Scale {
+            // Keep cell boundaries in target-sized units so fractional ratios do
+            // not lose coverage at source pixel edges. Round only the final pixel.
+            self.remap(w, h, |im, x, y| {
+                let left = x as f64 * im.width as f64;
+                let right = (x + 1) as f64 * im.width as f64;
+                let top = y as f64 * im.height as f64;
+                let bottom = (y + 1) as f64 * im.height as f64;
+                let mut sums = [0.; 4];
+                for iy in
+                    (top / h as f64) as usize..((bottom / h as f64).ceil() as usize).min(im.height)
+                {
+                    let dy = bottom.min((iy + 1) as f64 * h as f64) - top.max(iy as f64 * h as f64);
+                    for ix in (left / w as f64) as usize
+                        ..((right / w as f64).ceil() as usize).min(im.width)
+                    {
+                        let dx =
+                            right.min((ix + 1) as f64 * w as f64) - left.max(ix as f64 * w as f64);
+                        let pixel = im.pixels[iy * im.width + ix];
+                        let weight = dx * dy * f64::from(pixel[3]);
+                        for (sum, value) in sums[..3].iter_mut().zip(pixel) {
+                            *sum += weight * f64::from(value);
+                        }
+                        sums[3] += weight;
+                    }
+                }
+                let alpha = sums[3];
+                if alpha > 0. {
+                    for sum in &mut sums[..3] {
+                        *sum /= alpha;
+                    }
+                }
+                sums[3] /= im.width as f64 * im.height as f64;
+                sums.map(|value| value.round().clamp(0., 255.) as u8)
             });
             return Ok(());
         }

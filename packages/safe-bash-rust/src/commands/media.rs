@@ -12566,10 +12566,10 @@ fn cmd_magick(
             "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
                 ops.push(PixelOp::Resize(
                     &args[i + 1],
-                    if arg == "-sample" {
-                        Kernel::Sample
-                    } else {
-                        kernel
+                    match arg.as_str() {
+                        "-sample" => Kernel::Sample,
+                        "-scale" => Kernel::Scale,
+                        _ => kernel,
                     },
                 ));
                 resize_spec = Some(args[i + 1].clone());

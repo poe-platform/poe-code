@@ -3208,7 +3208,7 @@ fn try_eval_jq_builtin(
                     return Ok(Some(vec![updated]));
                 }
                 "walk" => {
-                    return Ok(Some(vec![walk_jval(input, arg_expr, vars)?]));
+                    return walk_jval(input, arg_expr, vars).map(Some);
                 }
                 "with_entries" => {
                     let entries = eval_jq("to_entries", input, vars)?
@@ -3350,28 +3350,27 @@ fn flatten_jval(items: &[JVal], depth: usize, out: &mut Vec<JVal>) {
     }
 }
 
-fn walk_jval(val: &JVal, f_expr: &str, vars: &JqScope<'_>) -> Result<JVal, JqFault> {
+fn walk_jval(val: &JVal, f_expr: &str, vars: &JqScope<'_>) -> Result<Vec<JVal>, JqFault> {
     let stepped = match val {
         JVal::Array(items) => {
             let mut new_items = Vec::with_capacity(items.len());
             for item in items {
-                new_items.push(walk_jval(item, f_expr, vars)?);
+                new_items.extend(walk_jval(item, f_expr, vars)?);
             }
             JVal::Array(new_items)
         }
         JVal::Object(entries) => {
             let mut new_entries = Vec::with_capacity(entries.len());
             for (k, v) in entries {
-                new_entries.push((k.clone(), walk_jval(v, f_expr, vars)?));
+                if let Some(value) = walk_jval(v, f_expr, vars)?.into_iter().next() {
+                    new_entries.push((k.clone(), value));
+                }
             }
             JVal::Object(new_entries)
         }
         other => other.clone(),
     };
-    Ok(eval_jq(f_expr, &stepped, vars)?
-        .into_iter()
-        .next()
-        .unwrap_or(JVal::Null))
+    eval_jq(f_expr, &stepped, vars)
 }
 
 fn collect_pattern_vars(pat: &str, out: &mut Vec<String>) {

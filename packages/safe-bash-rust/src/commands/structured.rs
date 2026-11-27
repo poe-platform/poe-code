@@ -17753,22 +17753,6 @@ async fn filter_xpath_items(
 
 // SQL rows and expressions use strings; reserve a distinct internal value for SQL NULL.
 const SQL_NULL: &str = "\x00SQL_NULL";
-// Blob payloads stay hexadecimal so arbitrary bytes survive string-based rows.
-const SQL_BLOB: &str = "\x00SQL_BLOB:";
-
-fn sql_blob_bytes(value: &str) -> Option<Vec<u8>> {
-    let hex = value.strip_prefix(SQL_BLOB)?;
-    hex.as_bytes()
-        .chunks_exact(2)
-        .map(|pair| {
-            Some(
-                (char::from(pair[0]).to_digit(16)? * 16 + char::from(pair[1]).to_digit(16)?)
-                    as u8,
-            )
-        })
-        .collect()
-}
-
 #[derive(Default, Clone)]
 struct SqlForeignKey {
     child_col: String,
@@ -18469,6 +18453,32 @@ enum SqlBtreeVal {
     Float(f64),
     Text(String),
     Blob(Vec<u8>),
+}
+
+// SQL rows use strings; tag blobs so arbitrary bytes and empty blobs retain
+// their storage class without being confused with text or NULL.
+const SQL_BLOB_PREFIX: &str = "\x00BLOB:";
+
+fn sql_blob_value(bytes: &[u8]) -> String {
+    let mut value = String::from(SQL_BLOB_PREFIX);
+    for byte in bytes {
+        value.push_str(&format!("{byte:02X}"));
+    }
+    value
+}
+
+fn sql_blob_bytes(value: &str) -> Option<Vec<u8>> {
+    let hex = value.strip_prefix(SQL_BLOB_PREFIX)?;
+    hex.as_bytes()
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|pair| {
+            let hi = (pair[0] as char).to_digit(16)?;
+            let lo = (pair[1] as char).to_digit(16)?;
+            Some((hi * 16 + lo) as u8)
+        })
+        .collect()
 }
 
 fn sqlite_read_u16_be(buf: &[u8], offset: usize) -> usize {
@@ -19374,10 +19384,10 @@ fn serialize_sql_db(
                     continue;
                 }
                 let cell_str = r.get(col_i).map(|s| s.as_str()).unwrap_or("");
-                if tbl.imported_csv {
-                    vals.push(SqlBtreeVal::Text(cell_str.to_string()));
-                } else if let Some(bytes) = sql_blob_bytes(cell_str) {
+                if let Some(bytes) = sql_blob_bytes(cell_str) {
                     vals.push(SqlBtreeVal::Blob(bytes));
+                } else if tbl.imported_csv {
+                    vals.push(SqlBtreeVal::Text(cell_str.to_string()));
                 } else if cell_str == SQL_NULL {
                     vals.push(SqlBtreeVal::Null);
                 } else {
@@ -19686,11 +19696,7 @@ fn deserialize_sql_db(
                                     }
                                 }
                                 Some(SqlBtreeVal::Text(s)) => s.clone(),
-                                Some(SqlBtreeVal::Blob(b)) => {
-                                    let hex: String =
-                                        b.iter().map(|byte| format!("{byte:02X}")).collect();
-                                    format!("{SQL_BLOB}{hex}")
-                                }
+                                Some(SqlBtreeVal::Blob(b)) => sql_blob_value(b),
                             };
                             row_strs.push(cell_s);
                         }
@@ -20553,7 +20559,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     let vals: Vec<String> = r
                         .iter()
                         .map(|c| {
-                            if !tbl.imported_csv && c.parse::<f64>().is_ok() {
+                            if let Some(hex) = c.strip_prefix(SQL_BLOB_PREFIX) {
+                                format!("X'{hex}'")
+                            } else if !tbl.imported_csv && c.parse::<f64>().is_ok() {
                                 c.clone()
                             } else {
                                 format!("'{}'", c.replace('\'', "''"))
@@ -21959,7 +21967,9 @@ fn fire_sql_triggers(
                         .position(|c| c.eq_ignore_ascii_case(&tr.body[start..end]))
                     {
                         let v = &trig_row[i];
-                        if v == SQL_NULL {
+                        if let Some(hex) = v.strip_prefix(SQL_BLOB_PREFIX) {
+                            body.push_str(&format!("X'{hex}'"));
+                        } else if v == SQL_NULL {
                             body.push_str("NULL");
                         } else if v.parse::<f64>().is_ok() {
                             body.push_str(v);
@@ -23723,16 +23733,16 @@ fn format_sql_result_rows(
         return String::new();
     }
     fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> std::borrow::Cow<'a, str> {
-        if v == "\x00LIT_NULL" {
+        if nullvalue == SQL_NULL {
+            return v.into();
+        }
+        if let Some(bytes) = sql_blob_bytes(v) {
+            let end = bytes.iter().position(|b| *b == 0).unwrap_or(bytes.len());
+            crate::vfs::bytes_to_stream_string(&bytes[..end]).into()
+        } else if v == "\x00LIT_NULL" {
             "NULL".into()
         } else if v == SQL_NULL {
             nullvalue.into()
-        } else if let Some(bytes) = sql_blob_bytes(v) {
-            let end = bytes
-                .iter()
-                .position(|byte| *byte == 0)
-                .unwrap_or(bytes.len());
-            String::from_utf8_lossy(&bytes[..end]).into_owned().into()
         } else {
             v.into()
         }
@@ -23746,7 +23756,9 @@ fn format_sql_result_rows(
                     let allow_num = proj_is_num
                         .and_then(|p| p.get(idx).copied())
                         .unwrap_or(true);
-                    let jv = if val_s == "\x00LIT_NULL" {
+                    let jv = if let Some(bytes) = sql_blob_bytes(val_s) {
+                        JVal::Str(String::from_utf8_lossy(&bytes).into_owned())
+                    } else if val_s == "\x00LIT_NULL" {
                         JVal::Str("NULL".to_string())
                     } else if val_s == SQL_NULL {
                         JVal::Null
@@ -23908,7 +23920,9 @@ fn format_sql_result_rows(
                     let allow_num = proj_is_num
                         .and_then(|p| p.get(idx).copied())
                         .unwrap_or(true);
-                    if v == SQL_NULL {
+                    if let Some(hex) = v.strip_prefix(SQL_BLOB_PREFIX) {
+                        format!("X'{hex}'")
+                    } else if v == SQL_NULL {
                         "NULL".to_string()
                     } else if allow_num && is_sql_numeric_text(v) {
                         v.clone()
@@ -23937,7 +23951,9 @@ fn format_sql_result_rows(
             let quoted: Vec<String> = vals
                 .iter()
                 .map(|v| {
-                    if v == SQL_NULL {
+                    if let Some(hex) = v.strip_prefix(SQL_BLOB_PREFIX) {
+                        format!("X'{hex}'")
+                    } else if v == SQL_NULL {
                         "NULL".to_string()
                     } else if is_sql_numeric_text(v) {
                         v.clone()
@@ -26040,7 +26056,7 @@ fn substitute_correlated_subquery(
                 && let Some(index) = cols.iter().position(|c| matches(c, &reference))
                 && let Some(value) = row.get(index)
             {
-                if let Some(hex) = value.strip_prefix(SQL_BLOB) {
+                if let Some(hex) = value.strip_prefix(SQL_BLOB_PREFIX) {
                     out.push_str(&format!("X'{hex}'"));
                 } else if value == SQL_NULL {
                     out.push_str("NULL");
@@ -26145,15 +26161,6 @@ fn eval_sql_row_expr(
     if s.is_empty() {
         return SQL_NULL.to_string();
     }
-    if let Some(hex) = s
-        .strip_prefix("x'")
-        .or_else(|| s.strip_prefix("X'"))
-        .and_then(|rest| rest.strip_suffix('\''))
-        && hex.len().is_multiple_of(2)
-        && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
-    {
-        return format!("{SQL_BLOB}{}", hex.to_ascii_uppercase());
-    }
     // Split the lowest-precedence operator; concatenation binds above arithmetic.
     if let Some((sp, op)) = find_sql_binary_operator(s) {
         let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
@@ -26218,6 +26225,12 @@ fn eval_sql_row_expr(
         return s.to_string();
     }
     let upper = s.to_ascii_uppercase();
+    if let Some(hex) = upper.strip_prefix("X'").and_then(|s| s.strip_suffix('\''))
+        && hex.len().is_multiple_of(2)
+        && hex.bytes().all(|b| b.is_ascii_hexdigit())
+    {
+        return format!("{SQL_BLOB_PREFIX}{hex}");
+    }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if inner.to_ascii_uppercase().starts_with("SELECT ") {
@@ -26338,7 +26351,7 @@ fn eval_sql_row_expr(
         if inner == SQL_NULL {
             return SQL_NULL.to_string();
         }
-        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
             return (hex.len() / 2).to_string();
         }
         return inner.chars().count().to_string();
@@ -26348,7 +26361,7 @@ fn eval_sql_row_expr(
         if inner == SQL_NULL {
             return SQL_NULL.to_string();
         }
-        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
             return (hex.len() / 2).to_string();
         }
         return inner.len().to_string();
@@ -26539,7 +26552,7 @@ fn eval_sql_row_expr(
             .to_string();
         }
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
-        if v.starts_with(SQL_BLOB) {
+        if v.starts_with(SQL_BLOB_PREFIX) {
             return "blob".to_string();
         }
         if v == "\x00LIT_NULL" {
@@ -26561,7 +26574,7 @@ fn eval_sql_row_expr(
         let is_str_lit = (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
             || (inner_raw.starts_with('"') && inner_raw.ends_with('"'));
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
-        if let Some(hex) = v.strip_prefix(SQL_BLOB) {
+        if let Some(hex) = v.strip_prefix(SQL_BLOB_PREFIX) {
             return format!("X'{hex}'");
         }
         if is_str_lit {
@@ -26583,7 +26596,7 @@ fn eval_sql_row_expr(
         if inner == SQL_NULL {
             return String::new();
         }
-        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
             return hex.to_string();
         }
         let mut hex = String::new();

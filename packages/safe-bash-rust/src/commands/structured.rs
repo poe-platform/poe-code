@@ -26320,11 +26320,15 @@ fn eval_sql_row_expr(
         if let Some(sp) = split_at {
             let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
             let rv_s = eval_sql_row_expr(&s[sp + 1..], cols, row, tables);
-            if op == '/'
-                && let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>())
-                && let Some(quotient) = lv.checked_div(rv)
-            {
-                return quotient.to_string();
+            if let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>()) {
+                let result = match op {
+                    '+' => lv.checked_add(rv),
+                    '/' => lv.checked_div(rv),
+                    _ => None,
+                };
+                if let Some(result) = result {
+                    return result.to_string();
+                }
             }
             let lv = lv_s.parse::<f64>().unwrap_or(0.0);
             let rv = rv_s.parse::<f64>().unwrap_or(0.0);

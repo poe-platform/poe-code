@@ -7794,7 +7794,13 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
     }
 }
 
-fn eval_bc_func(fname: &str, arg_vals: &[BcVal], bc: &mut BcEnv, depth: usize) -> Option<BcVal> {
+fn eval_bc_func(
+    fname: &str,
+    raw_args: &[String],
+    arg_vals: &[BcVal],
+    bc: &mut BcEnv,
+    depth: usize,
+) -> Option<BcVal> {
     if depth > 256 {
         return Some(BcVal::default());
     }
@@ -7804,34 +7810,52 @@ fn eval_bc_func(fname: &str, arg_vals: &[BcVal], bc: &mut BcEnv, depth: usize) -
     for st in &stmts {
         if let Some(rest) = st.trim().strip_prefix("auto ") {
             for v in rest.split(',') {
-                let vn = v.trim().trim_end_matches("[]").trim();
+                let vn = v.trim();
                 if !vn.is_empty() {
                     auto_names.push(vn.to_string());
                 }
             }
         }
     }
-    let mut saved: Vec<(String, Option<BcVal>)> = Vec::new();
-    let mut saved_arr_keys: Vec<(String, BcVal)> = Vec::new();
-    for an in &auto_names {
-        saved.push((an.clone(), bc.vars.remove(an)));
-        let prefix = format!("{an}[");
-        let arr_k: Vec<String> = bc
-            .vars
-            .keys()
-            .filter(|k| k.starts_with(&prefix))
-            .cloned()
-            .collect();
-        for k in arr_k {
-            if let Some(v) = bc.vars.remove(&k) {
-                saved_arr_keys.push((k, v));
+    // Copy arguments before hiding locals: callers and parameters may share names.
+    let mut bindings = Vec::new();
+    for (idx, p) in params.iter().enumerate() {
+        if let Some(name) = p.strip_suffix("[]") {
+            if let Some(arg) = raw_args
+                .get(idx)
+                .and_then(|arg| arg.trim().strip_suffix("[]"))
+            {
+                let prefix = format!("{}[", arg.trim());
+                for (key, value) in &bc.vars {
+                    if let Some(index) = key.strip_prefix(&prefix) {
+                        bindings.push((format!("{}[{index}", name.trim()), value.clone()));
+                    }
+                }
             }
+        } else {
+            bindings.push((p.clone(), arg_vals.get(idx).cloned().unwrap_or_default()));
         }
     }
-    for (idx, p) in params.iter().enumerate() {
-        let val = arg_vals.get(idx).cloned().unwrap_or_default();
-        bc.vars.insert(p.clone(), val);
-    }
+    let is_local = |key: &str| {
+        auto_names.iter().any(|name| {
+            if let Some(array) = name.strip_suffix("[]") {
+                key.strip_prefix(array.trim())
+                    .is_some_and(|suffix| suffix.starts_with('['))
+            } else {
+                key == name
+            }
+        })
+    };
+    let mut saved = Vec::new();
+    bc.vars.retain(|key, value| {
+        if is_local(key) {
+            saved.push((key.clone(), value.clone()));
+            false
+        } else {
+            true
+        }
+    });
+    bc.vars.extend(bindings);
     let mut dummy_out = String::new();
     let mut ret_val = BcVal::default();
     for st in stmts {
@@ -7840,28 +7864,8 @@ fn eval_bc_func(fname: &str, arg_vals: &[BcVal], bc: &mut BcEnv, depth: usize) -
             break;
         }
     }
-    for an in &auto_names {
-        let prefix = format!("{an}[");
-        let arr_k: Vec<String> = bc
-            .vars
-            .keys()
-            .filter(|k| k.starts_with(&prefix))
-            .cloned()
-            .collect();
-        for k in arr_k {
-            bc.vars.remove(&k);
-        }
-    }
-    for (k, v) in saved_arr_keys {
-        bc.vars.insert(k, v);
-    }
-    for (an, old) in saved {
-        if let Some(v) = old {
-            bc.vars.insert(an, v);
-        } else {
-            bc.vars.remove(&an);
-        }
-    }
+    bc.vars.retain(|key, _| !is_local(key));
+    bc.vars.extend(saved);
     Some(ret_val)
 }
 
@@ -8057,7 +8061,7 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
                 return BcVal::from_f64_scaled(out_v, bc.scale);
             }
             _ => {
-                if let Some(res) = eval_bc_func(fname, &arg_vals, bc, depth + 1) {
+                if let Some(res) = eval_bc_func(fname, &raw_args, &arg_vals, bc, depth + 1) {
                     return res;
                 }
             }

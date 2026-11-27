@@ -32,10 +32,8 @@ export function escapedName(value: string, budget: WalkBudget): string {
   let result = "", bytes = 0;
   for (const character of value) {
     const point = character.codePointAt(0)!;
-    const localeSensitive = point === 32 || point >= 127;
-    const utf8 = localeSensitive && budget.filenameCharset() === "UTF-8";
-    const part = point === 32 && !utf8 ? "\\ "
-      : utf8 && !/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Cs}]/u.test(character) ? character
+    const utf8 = point >= 127 && budget.filenameCharset() === "UTF-8";
+    const part = utf8 && !/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Cs}]/u.test(character) ? character
       : escapeText(character, "display");
     bytes += utf8ByteLength(part);
     budget.checkOutput(bytes);

@@ -171,25 +171,12 @@ export function evalSyncTree(
   let fileCount = 0;
   const lines: string[] = [];
 
-  let utf8FilenameCharset = false;
-  if (env) {
-    for (const k of ["LC_ALL", "LC_CTYPE", "LANG"]) {
-      const loc = env[k];
-      if (loc) {
-        const mod = loc.indexOf("@");
-        const nm = mod < 0 ? loc : loc.slice(0, mod);
-        const enc = nm.slice(nm.indexOf(".") + 1).toUpperCase();
-        utf8FilenameCharset = enc === "UTF-8" || enc === "UTF8";
-        break;
-      }
-    }
-  }
   const escapeTreeLabel = (s: string): string | undefined => {
     for (let k = 0; k < s.length; k++) {
       const code = s.charCodeAt(k);
       if (code < 32 || code >= 127 || code === 92) return undefined;
     }
-    return utf8FilenameCharset ? s : s.replace(/ /g, "\\ ");
+    return s;
   };
   const isEntryDirectory = (absDir: string, entry: { readonly name: string; readonly type: "file" | "directory" | "symlink" }): boolean => {
     if (entry.type === "directory") return true;

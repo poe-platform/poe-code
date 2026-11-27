@@ -202,7 +202,7 @@ test("filename locale is independent of branch charset and preserves terminal sa
   for (const name of ["a b", "é", "é", "中", "👋", "bidi\u202e", "line\u2028", "escape\u001b"]) {
     await fs.writeFile(`/data/${name}`, new Uint8Array());
   }
-  const c = "data\na\\ b\nbidi\\342\\200\\256\nescape\\033\ne\\314\\201\nline\\342\\200\\250\n\\303\\251\n\\344\\270\\255\n\\360\\237\\221\\213\n";
+  const c = "data\na b\nbidi\\342\\200\\256\nescape\\033\ne\\314\\201\nline\\342\\200\\250\n\\303\\251\n\\344\\270\\255\n\\360\\237\\221\\213\n";
   const utf8 = "data\na b\nbidi\\342\\200\\256\nescape\\033\né\nline\\342\\200\\250\né\n中\n👋\n";
   for (const [env, expected] of [
     [{ LC_ALL: "C", TREE_CHARSET: "UTF8" }, c],
@@ -225,7 +225,7 @@ test("locale filename rendering covers full paths, link targets and encoded outp
   await fs.writeFile("/data/a é", new Uint8Array());
   await fs.symlink!("a é", "/data/link");
   for (const [locale, expected] of [
-    ["C", "data\ndata/a\\ \\303\\251\ndata/link -> a\\ \\303\\251\n"],
+    ["C", "data\ndata/a \\303\\251\ndata/link -> a \\303\\251\n"],
     ["C.UTF-8", "data\ndata/a é\ndata/link -> a é\n"],
   ] as const) {
     const args = ["-fi", "--noreport", "data"];

@@ -473,6 +473,7 @@ export type ExprNode =
       args: ExprNode[];
       distinct?: boolean | undefined;
       star?: boolean | undefined;
+      orderBy?: WindowSpec["orderBy"];
       filterWhere?: ExprNode | undefined;
       over?: {
         partitionBy: ExprNode[];
@@ -1064,6 +1065,24 @@ class ExprParser {
             args.push(this.parseExpression());
           } while (this.matchValue(","));
         }
+        const orderBy: WindowSpec["orderBy"] = [];
+        if (this.matchWord("ORDER")) {
+          if (!this.matchWord("BY")) throw new Error('expected BY after ORDER');
+          do {
+            const expr = this.parseExpression();
+            const desc = this.matchWord("DESC");
+            if (!desc) this.matchWord("ASC");
+            let nulls: "FIRST" | "LAST" | undefined;
+            if (this.matchWord("NULLS")) {
+              if (this.matchWord("FIRST")) nulls = "FIRST";
+              else {
+                if (!this.matchWord("LAST")) throw new Error('expected FIRST or LAST after NULLS');
+                nulls = "LAST";
+              }
+            }
+            orderBy.push({ expr, desc, nulls });
+          } while (this.matchValue(","));
+        }
         this.matchValue(")");
 
         let filterWhere: ExprNode | undefined;
@@ -1080,7 +1099,7 @@ class ExprParser {
           throw new Error("FILTER clause may only be used with aggregate window functions");
         }
 
-        return { kind: "func", name, args, distinct, star, filterWhere, over };
+        return { kind: "func", name, args, distinct, star, orderBy, filterWhere, over };
       }
 
       // Table.column or Table.*
@@ -7281,6 +7300,32 @@ export class SqliteDatabase {
           yield* this.evalExprSteps(expr.filterWhere!, r, positionalParams, cteScope)
         );
       }, this);
+    }
+
+    if (expr.orderBy?.length) {
+      const orderBy = expr.orderBy;
+      const collations = orderBy.map(order => this.expressionCollation(order.expr, filteredGroup[0] ?? {}));
+      const rows = yield* stepMap(filteredGroup, function* (row) {
+        const keys = yield* stepMap(orderBy, function* (order) {
+          return yield* this.evalExprSteps(order.expr, row, positionalParams, cteScope);
+        }, this);
+        return { row, keys };
+      }, this);
+      yield* stepSort(rows, function* (a, b) {
+        for (let i = 0; i < orderBy.length; i += 1) {
+          yield;
+          const order = orderBy[i]!;
+          const left = a.keys[i]!;
+          const right = b.keys[i]!;
+          if (order.nulls && (left === null) !== (right === null)) {
+            return (left === null) === (order.nulls === "FIRST") ? -1 : 1;
+          }
+          const comparison = compareSqlValues(left, right, collations[i]);
+          if (comparison !== 0) return order.desc ? -comparison : comparison;
+        }
+        return 0;
+      }, this);
+      filteredGroup = rows.map(({ row }) => row);
     }
 
     if (u === "COUNT" && (expr.star || expr.args.length === 0)) {

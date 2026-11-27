@@ -134,9 +134,20 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
         if (!started && options.to === "utf16") { const a = append([0xff, 0xfe]); if (a) await a; }
         started = true;
         let bytes = encode(decoded.value, options.to);
-        const transliterated = bytes === undefined && options.transliterate;
+        const transliterated = bytes === undefined && options.transliterate !== false;
         if (transliterated) {
-          const replacement = Object.hasOwn(cTransliterations, decoded.value) ? cTransliterations[decoded.value]! : "?";
+          let replacement = Object.hasOwn(cTransliterations, decoded.value) ? cTransliterations[decoded.value]! : "?";
+          if (options.transliterate === "UTF-8") {
+            // Canonically decomposed accents reduce to their ASCII base in UTF-8 locales.
+            let base = "";
+            for (const character of String.fromCodePoint(decoded.value).normalize("NFD")) {
+              const value = character.codePointAt(0)!;
+              if (value >= 0x300 && value <= 0x36f) continue;
+              if (value >= 128) { base = "?"; break; }
+              base += character;
+            }
+            if (base !== "?") replacement = base;
+          }
           budget.charge(replacement.length + 1);
           const mutableBytes: number[] = [];
           for (const character of replacement) mutableBytes.push(...encode(character.charCodeAt(0), options.to)!);

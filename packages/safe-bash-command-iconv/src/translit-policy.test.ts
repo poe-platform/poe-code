@@ -7,12 +7,20 @@ const args = ["-f", "UTF-8", "-t", "ASCII//TRANSLIT"];
 for (const env of [{}, { LC_ALL: "C" }, { LC_ALL: "POSIX" }, { LC_ALL: "", LC_CTYPE: "C" }, { LANG: "POSIX" }, { LC_ALL: "C", LC_CTYPE: "C.UTF-8", LANG: "en_US.UTF-8" }]) test(`admitted transliteration locale ${JSON.stringify(env)}`, async () => {
   assert.deepEqual(await run(args, Buffer.from("éß€😀"), {}, { env }), { exitCode: 0, stdoutHex: "3f73734555523f", stderrHex: "" });
 });
-for (const locale of ["C.UTF-8", "C.utf8", "en_US.UTF-8", "en_US", "de_DE", "c", "POSIX.UTF-8"]) test(`explicitly unsupported transliteration locale ${locale}`, async () => {
+for (const locale of ["C.UTF-8", "C.utf8", "en_US.UTF-8", "POSIX.UTF-8"]) test(`UTF-8 transliteration locale ${locale}`, async () => {
+  assert.deepEqual(await run(args, Buffer.from("café ü e\u0301 ß€😀"), {}, { env: { LANG: locale } }), {
+    exitCode: 0, stdoutHex: Buffer.from("cafe u e ssEUR?").toString("hex"), stderrHex: "",
+  });
+  assert.deepEqual(await run(["-f", "UTF-8", "-t", "latin1//TRANSLIT"], Buffer.from("éü"), {}, { env: { LC_ALL: locale } }), {
+    exitCode: 0, stdoutHex: "e9fc", stderrHex: "",
+  });
+});
+for (const locale of ["en_US", "de_DE", "c"]) test(`explicitly unsupported transliteration locale ${locale}`, async () => {
   let acquired = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() { acquired++; yield Uint8Array.of(65); } };
   const result = await run(args, undefined, {}, { env: { LC_ALL: locale, LC_CTYPE: "C" }, stdin });
   assert.equal(result.exitCode, 1); assert.equal(result.stdoutHex, ""); assert.equal(acquired, 0);
-  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), `iconv: unsupported transliteration locale: ${locale}; supported: C, POSIX, or unset\n`);
+  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), `iconv: unsupported transliteration locale: ${locale}; supported: C, POSIX, UTF-8 locales, or unset\n`);
 });
 for (const reason of [false, 0, "", null]) {
   test(`locale getter cancellation prevents lower lookups and I/O: ${JSON.stringify(reason)}`, async () => {

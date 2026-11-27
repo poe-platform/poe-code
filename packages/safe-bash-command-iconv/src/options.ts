@@ -5,7 +5,7 @@ export interface Parsed {
   readonly from: Encoding;
   readonly to: Encoding;
   readonly discard: boolean;
-  readonly transliterate: boolean;
+  readonly transliterate: false | "C" | "UTF-8";
   readonly verbose: boolean;
   readonly output: string | undefined;
   readonly files: readonly string[];
@@ -81,11 +81,11 @@ export function parse(budget: Budget): Parsed | { readonly information: string }
       break;
     }
   }
-  let transliterate = false;
+  let transliterate: Parsed["transliterate"] = false;
   if (to !== undefined) {
     const [name, ...suffixes] = to.split("//");
     for (const suffix of suffixes) {
-      if (suffix.toUpperCase() === "TRANSLIT") transliterate = true;
+      if (suffix.toUpperCase() === "TRANSLIT") transliterate = "C";
       else if (suffix.toUpperCase() === "IGNORE") discard = true;
       else throw new IconvError(`unsupported encoding suffix: ${to}`);
     }
@@ -103,10 +103,13 @@ export function parse(budget: Budget): Parsed | { readonly information: string }
       if (locale) break;
     }
     locale ||= "C";
-    if (transliterate && locale !== "C" && locale !== "POSIX") throw new IconvError(`unsupported transliteration locale: ${locale}; supported: C, POSIX, or unset`);
+    const codeset = locale.slice(locale.indexOf(".") + 1).toUpperCase();
+    const utf8 = codeset === "UTF-8" || codeset === "UTF8";
+    if (transliterate && utf8) transliterate = "UTF-8";
+    if (transliterate && !utf8 && locale !== "C" && locale !== "POSIX") throw new IconvError(`unsupported transliteration locale: ${locale}; supported: C, POSIX, UTF-8 locales, or unset`);
     let fallback: string;
     if (locale === "C" || locale === "POSIX") fallback = "ASCII";
-    else if (locale === "C.UTF-8" || locale === "C.utf8") fallback = "UTF-8";
+    else if (utf8) fallback = "UTF-8";
     else throw new IconvError(`unsupported default encoding locale: ${locale}; specify -f and -t`);
     from ??= fallback; to ??= fallback;
   }

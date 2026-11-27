@@ -2,10 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../src/index.js";
 
+test("UTF-8 locale transliteration succeeds in a shell pipeline", async () => {
+  const fs = entry.createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new entry.Shell({ fs, cwd: "/work" }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec('printf \'café ü\\n\' | LC_ALL=C.UTF-8 iconv -f utf-8 -t ascii//TRANSLIT; echo "rc=$?"');
+    assert.equal(result.stdout, "cafe u\nrc=0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
 test("the default public preset appends iconv and exposes its factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 190);
-  assert.equal(new Set(names).size, 190);
+  assert.equal(names.length, 193);
+  assert.equal(new Set(names).size, 193);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(names.includes(name));
   assert.deepEqual(names.slice(-78), ["hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
   for (const name of ["createIconvCommand", "createIconvCommands", "iconvCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);

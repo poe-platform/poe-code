@@ -9,6 +9,25 @@ import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { AwkRetention } from "../../../src/commands/text-programs/awk-retention.js";
 import { AwkPipes } from "../../../src/commands/text-programs/awk-pipes.js";
 
+for (const [program, expected, stderr] of [
+  ['BEGIN { r = system("echo hi"); print r }', "hi\n0\n", ""],
+  ['BEGIN { print "before"; print system("echo child; echo error >&2; exit 7"); print "after" }', "before\nchild\n7\nafter\n", "error\n"],
+  ['BEGIN { print system(""); print system("false"); print system("true") }', "0\n1\n0\n", ""],
+  ['BEGIN { print system("printf café"); print system("echo " ++i); print i }', "café0\n1\n0\n1\n", ""],
+  ['BEGIN { system("echo saved > result"); getline value < "result"; print value }', "saved\n", ""],
+] as const) {
+  test(`awk system executes through the virtual shell: ${program}`, async () => {
+    const shell = new Shell({ fs: await makeFileSystem(), cwd: "/work" }).use(textProgramCommands());
+    for (const command of basicCommands()) shell.register(command);
+    try {
+      const result = await shell.exec(`awk '${program}'`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, stderr);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [program, expected] of [
   [`BEGIN { cmd="printf 'one\\ntwo\\n'"; while ((cmd | getline value)>0) print value; print close(cmd); cmd | getline value; print value; close(cmd) }`, "one\ntwo\n0\none\n"],
   [`BEGIN { cmd="sed s/a/A/g"; print "abc" | cmd; print "bar" | cmd; print close(cmd) }`, "Abc\nbAr\n0\n"],

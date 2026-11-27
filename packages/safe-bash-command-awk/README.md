@@ -10,6 +10,8 @@ Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoc
 timestamps with `strftime` and `mktime`, and use GNU-style bitwise functions.
 Command pipes (`command | getline` and `print ... | command`) run through the
 virtual shell, with bounded streams and `close(command)` support.
+`system(command)` runs a virtual shell command, inherits stdin/stdout/stderr, and
+returns its exit status after flushing pending awk output.
 Use `fflush()`, `fflush("")`, or `fflush("/dev/stdout")` to publish pending stdout.
 Output also flushes before awaiting another input chunk. `fflush(filename)` returns
 `0` for an open output and `-1` for an unknown output without closing it.

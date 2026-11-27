@@ -1391,6 +1391,17 @@ export class AwkRuntime {
     }
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
+    if (name === "system") {
+      if (!this.context.invoke) throw new ProgramError("system requires virtual command invocation");
+      const command = textDecoder.decode(latin1Bytes(this.asText(first)));
+      this.budget.check(command);
+      await this.flushStdout();
+      const result = await this.context.invoke("sh", ["-c", command], {
+        signal: this.context.signal, stdin: this.context.stdin,
+        stdout: this.context.stdout, stderr: this.context.stderr,
+      });
+      return numeric(result.exitCode);
+    }
     if (name === "fflush") {
       const filename = this.asText(first);
       if (args.length === 0 || filename === "" || filename === "/dev/stdout") {

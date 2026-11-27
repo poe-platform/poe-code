@@ -17842,6 +17842,8 @@ fn sql_declared_affinity(declaration: &str) -> SqlAffinity {
 #[derive(Default, Clone)]
 struct SqlTable {
     columns: Vec<String>,
+    // USING keys remain addressable by qualified name but are omitted from SELECT *.
+    star_hidden_columns: Vec<usize>,
     affinities: Vec<SqlAffinity>,
     rows: Vec<Vec<String>>,
     imported_csv: bool,
@@ -19207,6 +19209,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     (
         SqlTable {
             columns: cols,
+            star_hidden_columns: Vec::new(),
             affinities,
             rows: Vec::new(),
             imported_csv: is_imported_csv,
@@ -23242,31 +23245,27 @@ fn resolve_sql_from_table(
                     .unwrap_or(trimmed.len());
                 let seg = trimmed[j_pos + j_klen..seg_end].trim();
                 let seg_up = seg.to_ascii_uppercase();
+                let mut using_columns = Vec::new();
                 let (tbl_part, on_cond_owned) = if let Some(on_p) = seg_up.find(" ON ") {
                     (seg[..on_p].trim(), Some(seg[on_p + 4..].trim().to_string()))
                 } else if let Some(us_p) = seg_up.find(" USING") {
                     let t_p = seg[..us_p].trim();
                     let after_u = seg[us_p + 6..].trim();
-                    let u_col = after_u
-                        .trim_start_matches('(')
-                        .trim_end_matches(')')
-                        .split(',')
-                        .next()
-                        .unwrap_or("")
-                        .trim();
+                    using_columns = split_top_level_comma(
+                        after_u.trim_start_matches('(').trim_end_matches(')'),
+                    );
                     let r_alias = t_p.split_whitespace().last().unwrap_or(t_p);
-                    let l_col = acc_tbl
-                        .columns
+                    let conditions = using_columns
                         .iter()
-                        .find(|c| {
-                            c.split('.')
-                                .next_back()
-                                .unwrap_or(c)
-                                .eq_ignore_ascii_case(u_col)
+                        .map(|u_col| {
+                            let left_index = find_sql_col(&acc_tbl.columns, u_col);
+                            let l_col = left_index
+                                .map(|i| acc_tbl.columns[i].as_str())
+                                .unwrap_or(u_col);
+                            format!("{l_col} = {r_alias}.{u_col}")
                         })
-                        .cloned()
-                        .unwrap_or_else(|| u_col.to_string());
-                    (t_p, Some(format!("{l_col} = {r_alias}.{u_col}")))
+                        .collect::<Vec<_>>();
+                    (t_p, Some(conditions.join(" AND ")))
                 } else {
                     (seg, None)
                 };
@@ -23290,6 +23289,18 @@ fn resolve_sql_from_table(
                     acc_tbl.columns.len() + right_tbl.columns.len(),
                     SqlAffinity::None,
                 );
+                let mut star_hidden_columns = acc_tbl.star_hidden_columns.clone();
+                star_hidden_columns.extend(
+                    right_tbl
+                        .star_hidden_columns
+                        .iter()
+                        .map(|i| acc_tbl.columns.len() + i),
+                );
+                for column in &using_columns {
+                    if let Some(i) = find_sql_col(&right_tbl.columns, column) {
+                        star_hidden_columns.push(acc_tbl.columns.len() + i);
+                    }
+                }
                 let mut combined_cols = acc_tbl.columns.clone();
                 combined_cols.extend(right_tbl.columns.iter().cloned());
                 let mut combined_rows = Vec::new();
@@ -23339,6 +23350,7 @@ fn resolve_sql_from_table(
                 }
                 acc_tbl = SqlTable {
                     columns: combined_cols,
+                    star_hidden_columns,
                     affinities: combined_affinities,
                     rows: combined_rows,
                     imported_csv: acc_tbl.imported_csv && right_tbl.imported_csv,
@@ -24249,9 +24261,10 @@ fn exec_sql_select_with_mode(
         tbl.columns
             .iter()
             .enumerate()
-            .filter(|(_, c)| {
+            .filter(|(i, c)| {
                 let short = c.split('.').next_back().unwrap_or(c);
-                !(tbl.is_fts5 && short.eq_ignore_ascii_case("rowid"))
+                !tbl.star_hidden_columns.contains(i)
+                    && !(tbl.is_fts5 && short.eq_ignore_ascii_case("rowid"))
             })
             .map(|(i, c)| {
                 let short = c.split('.').next_back().unwrap_or(c).to_string();

@@ -76,3 +76,20 @@ for (const input of ["24:00", "10:60", "10:20:60", "0am", "13pm", "2024-01-05 00
     assert.throws(() => parseDate(input, new TimeZone("UTC"), () => 0n));
   });
 }
+
+for (const [name, epoch, expected] of [
+  ["Australia/Sydney", 1719756000, "AEST"],
+  ["America/St_Johns", 1704412800, "NST"],
+  ["Europe/Paris", 1720000000, "CEST"],
+  ["Asia/Shanghai", 0, "CST"],
+  ["Australia/Sydney", 1704412800, "AEDT"],
+  ["America/St_Johns", 1720000000, "NDT"],
+  ["Europe/Paris", 1704412800, "CET"],
+  ["Asia/Kathmandu", 1720000000, "+0545"],
+  ["Europe/Paris", -2208988800, "PMT"],
+] as const) {
+  test(`${name} at ${epoch} uses the IANA abbreviation`, () => {
+    assert.equal(formatDate("%Z", BigInt(epoch) * 1000000000n,
+      new TimeZone(name), settings({}).limits), `${expected}\n`);
+  });
+}

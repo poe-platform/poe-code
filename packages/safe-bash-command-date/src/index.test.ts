@@ -114,3 +114,21 @@ for (const [input, expected] of [
     assert.equal(evalSyncDate(args, undefined), expected);
   });
 }
+
+for (const [name, epoch, expected] of [
+  ["Australia/Sydney", "1719756000", "AEST"],
+  ["America/St_Johns", "1704412800", "NST"],
+  ["Europe/Paris", "1720000000", "CEST"],
+  ["Asia/Shanghai", "0", "CST"],
+] as const) {
+  test(`date uses IANA abbreviations for ${name} in both execution paths`, async () => {
+    const args = ["-d", "@" + epoch, "+%Z"];
+    assert.deepEqual(await run(args, createMemoryFileSystem(), { TZ: name }),
+      { exitCode: 0, stdout: expected + "\n", stderr: "" });
+    assert.equal(evalSyncDate(args, name), expected + "\n");
+    const result = await run(args.slice(0, 2), createMemoryFileSystem(), { TZ: name });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.ok(result.stdout.includes(" " + expected + " "), result.stdout);
+  });
+}

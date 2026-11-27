@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import { CommandFailure } from "./shared.js";
 
 export const nanosecondsPerSecond = 1000000000n;
@@ -116,6 +117,7 @@ export class TimeZone {
   private readonly fixedOffset: number | undefined;
   private readonly formatter: Intl.DateTimeFormat | undefined;
   private readonly label: string;
+  private readonly ianaZone: moment.MomentZone | null | undefined;
   private readonly daylight: { standardOffset: number; offset: number; label: string; start: TransitionRule; end: TransitionRule } | undefined;
 
   constructor(input: string, numericOffset = false) {
@@ -144,10 +146,7 @@ export class TimeZone {
           this.formatter = new Intl.DateTimeFormat("en-US-u-ca-gregory-nu-latn", { timeZone: name,
             year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
             era: "short", hourCycle: "h23", timeZoneName: "short" });
-          const canonicalName = this.formatter.resolvedOptions().timeZone;
-          if (canonicalName === "Asia/Calcutta" || canonicalName === "Asia/Kolkata") this.label = "IST";
-          else if (canonicalName === "Europe/Berlin") this.label = "CET";
-          else if (canonicalName === "Asia/Tokyo") this.label = "JST";
+          this.ianaZone = moment.tz.zone(name) ?? moment.tz.zone(this.formatter.resolvedOptions().timeZone);
         } catch { throw new CommandFailure(`unsupported virtual TZ: ${input}`); }
       }
     }
@@ -193,13 +192,8 @@ export class TimeZone {
       fields = { year: parts.era === "BC" ? 1 - year : year, month: Number(parts.month), day: Number(parts.day),
         hour: Number(parts.hour), minute: Number(parts.minute), second: Number(parts.second) };
       offset = (utcMilliseconds(fields) - milliseconds) / 1000;
-      // ICU's English GMT offsets differ from native strftime abbreviations.
-      // Match the observed offset so historical offsets retain their own labels.
-      zone = this.label === "IST" && offset === 19800 ? "IST"
-        : this.label === "JST" && offset === 32400 ? "JST"
-        : this.label === "CET" && offset === 3600 ? "CET"
-        : this.label === "CET" && offset === 7200 ? "CEST"
-        : parts.timeZoneName!;
+      // Intl short names are localized display labels, not tzdata abbreviations.
+      zone = this.ianaZone?.abbr(milliseconds) ?? parts.timeZoneName!;
     }
     checkCalendar(fields, restrictYear);
     return { ...fields, offset, zone };

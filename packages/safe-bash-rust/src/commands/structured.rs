@@ -6727,6 +6727,12 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
     if let Some(alias) = s.strip_prefix('*') {
         return anchors.get(alias.trim()).cloned().unwrap_or(JVal::Null);
     }
+    let string_tag = s
+        .strip_prefix("!!str")
+        .filter(|rest| rest.is_empty() || rest.starts_with(char::is_whitespace));
+    if let Some(value) = string_tag {
+        s = value.trim();
+    }
     let val = if let Some(inner) = s.strip_prefix('{').and_then(|v| v.strip_suffix('}')) {
         let mut entries = Vec::new();
         for part in split_top_level_comma(inner) {
@@ -6761,7 +6767,9 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
         JVal::Str(String::from_utf16_lossy(&value))
     } else {
         let clean = s.trim_matches('"').trim_matches('\'');
-        if clean == "true" {
+        if string_tag.is_some() {
+            JVal::Str(clean.to_string())
+        } else if clean == "true" {
             JVal::Bool(true)
         } else if clean == "false" {
             JVal::Bool(false)

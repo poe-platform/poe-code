@@ -43,3 +43,45 @@ fn yq_preserves_explicit_yaml_strings_without_the_tag() {
         assert_eq!(result.stdout, format!("{expected}\n"), "{yaml}");
     }
 }
+
+#[test]
+fn yq_explicit_string_tags_preserve_scalar_text() {
+    for (input, expected) in [
+        ("id: !!str 007\n", "{\"id\":\"007\"}\n"),
+        ("id: !!str\t007\n", "{\"id\":\"007\"}\n"),
+        ("id: !!str \"00\\u0037\"\n", "{\"id\":\"007\"}\n"),
+        ("!!str 007\n", "\"007\"\n"),
+        ("id: !!str -001.20\n", "{\"id\":\"-001.20\"}\n"),
+        ("id: !!str true\n", "{\"id\":\"true\"}\n"),
+        ("id: !!str null\n", "{\"id\":\"null\"}\n"),
+        ("id: !!str \"007\"\n", "{\"id\":\"007\"}\n"),
+        ("id: !!str\n", "{\"id\":\"\"}\n"),
+        ("- !!str 007\n", "[\"007\"]\n"),
+        ("id: [!!str 007, 7]\n", "{\"id\":[\"007\",7]}\n"),
+        (
+            "id: &id !!str 007\ncopy: *id\n",
+            "{\"id\":\"007\",\"copy\":\"007\"}\n",
+        ),
+        ("id: !!string 007\n", "{\"id\":\"!!string 007\"}\n"),
+        ("id: \"!!str 007\"\n", "{\"id\":\"!!str 007\"}\n"),
+        ("id: 7\n", "{\"id\":7}\n"),
+    ] {
+        let (mut shell, _) = Shell::with_memory_fs();
+        let result = shell
+            .exec_with_options(
+                &format!("printf %s '{input}' | yq -I 0 -p=yaml -o=json ."),
+                ExecOptions {
+                    cwd: Some("/".into()),
+                    env: BTreeMap::from([
+                        ("LC_ALL".into(), "C".into()),
+                        ("TZ".into(), "UTC".into()),
+                    ]),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{input}: {}", result.stderr);
+        assert_eq!(result.stdout, expected, "{input}");
+        assert_eq!(result.stderr, "", "{input}");
+    }
+}

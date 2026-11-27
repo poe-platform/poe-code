@@ -192,6 +192,8 @@ mod magick_compare;
 mod magick_composite;
 #[path = "magick_coordinates.rs"]
 mod magick_coordinates;
+#[path = "magick_draw.rs"]
+mod magick_draw;
 #[path = "magick_filter.rs"]
 mod magick_filter;
 #[path = "magick_histogram.rs"]
@@ -12475,6 +12477,7 @@ fn cmd_magick(
     let mut adjoin = true;
     let (mut delay, mut repeat) = (None, None);
     enum PixelOp<'a> {
+        Draw(Vec<magick_draw::Primitive>, [u8; 4]),
         Modulate([f64; 3]),
         Tint([u8; 4]),
         Replace([u8; 4], Option<[u8; 4]>, f64, bool),
@@ -13060,8 +13063,19 @@ fn cmd_magick(
                 });
                 i += 1;
             }
+            "-draw" => {
+                if i + 1 >= args.len() - usize::from(!is_mogrify) {
+                    return err_out("magick: missing drawing primitive definition\n", 1);
+                }
+                let primitives = match magick_draw::parse(&args[i + 1], fs.max_input_bytes()) {
+                    Ok(primitives) => primitives,
+                    Err(e) => return err_out(&format!("magick: {e}\n"), 1),
+                };
+                ops.push(PixelOp::Draw(primitives, fill));
+                i += 2;
+            }
             "-depth" | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
-            | "-draw" | "-annotate" | "-define"
+            | "-annotate" | "-define"
                 if i + 1 < args.len() =>
             {
                 i += 2;
@@ -13142,6 +13156,10 @@ fn cmd_magick(
                     }
                 }
                 match op {
+                    PixelOp::Draw(primitives, fill) => {
+                        magick_draw::draw(image, primitives, *fill, fs.max_input_bytes())?;
+                        channels = (if image.gray { 1 } else { 3 }) + u8::from(image.alpha);
+                    }
                     PixelOp::Modulate(values) => {
                         image.modulate(*values);
                         channels = if image.alpha { 4 } else { 3 };

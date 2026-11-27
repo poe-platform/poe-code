@@ -36033,56 +36033,76 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
 }
 
 fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
-    let mut s = input.to_string();
-    while let Some(pos) = s.find("{\\b ") {
-        let after = &s[pos + 4..];
-        if let Some(end) = after.find('}') {
-            s = format!("{}**{}**{}", &s[..pos], &after[..end], &after[end + 1..]);
-        } else {
-            break;
-        }
-    }
-    while let Some(pos) = s.find("{\\i ") {
-        let after = &s[pos + 4..];
-        if let Some(end) = after.find('}') {
-            s = format!("{}*{}*{}", &s[..pos], &after[..end], &after[end + 1..]);
-        } else {
-            break;
-        }
-    }
-    s = s.replace("\\par}", "\n\n").replace("\\par", "\n\n");
-    let mut cleaned = String::new();
-    let chars: Vec<char> = s.chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] == '{' || chars[i] == '}' {
-            i += 1;
-        } else if chars[i] == '\\' {
-            i += 1;
-            while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '-') {
-                i += 1;
+    let tokens = tokenize_rtf_bytes(input.as_bytes()).ok()?;
+    let events = extract_rtf_events(&tokens).ok()?;
+    let mut blocks = Vec::new();
+    let mut paragraph = Vec::new();
+    let mut text = String::new();
+    let mut style = (false, false);
+    let mut stack = Vec::new();
+    let mut space = false;
+    let flush =
+        |text: &mut String, (bold, italic), paragraph: &mut Vec<PandocInline>, space: &mut bool| {
+            let mut words = text.split_ascii_whitespace();
+            if let Some(word) = words.next() {
+                if !paragraph.is_empty()
+                    && (*space || text.starts_with(|ch: char| ch.is_ascii_whitespace()))
+                {
+                    paragraph.push(PandocInline::Space);
+                }
+                let mut content = vec![PandocInline::Text(word.into())];
+                for word in words {
+                    content.push(PandocInline::Space);
+                    content.push(PandocInline::Text(word.into()));
+                }
+                if bold {
+                    content = vec![PandocInline::Strong(content)];
+                }
+                if italic {
+                    content = vec![PandocInline::Emph(content)];
+                }
+                paragraph.extend(content);
+                *space = text.ends_with(|ch: char| ch.is_ascii_whitespace());
+            } else {
+                *space |= !text.is_empty();
             }
-            if i < chars.len() && chars[i] == ' ' {
-                i += 1;
+            text.clear();
+        };
+    for event in events {
+        if let RtfEvent::Text {
+            text: value,
+            boundary: None,
+        } = &event
+        {
+            text.push_str(value);
+            continue;
+        }
+        flush(&mut text, style, &mut paragraph, &mut space);
+        match event {
+            RtfEvent::Open => stack.push(style),
+            RtfEvent::Close => style = stack.pop()?,
+            RtfEvent::Control { name, parameter } => match name.as_str() {
+                "b" => style.0 = parameter != Some(0),
+                "i" => style.1 = parameter != Some(0),
+                "plain" => style = (false, false),
+                _ => {}
+            },
+            RtfEvent::Text { boundary, .. } => {
+                if boundary == Some("line") {
+                    paragraph.push(PandocInline::LineBreak);
+                } else if !paragraph.is_empty() {
+                    blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                }
+                space = false;
             }
-        } else {
-            cleaned.push(chars[i]);
-            i += 1;
+            _ => {}
         }
     }
-    let mut defs = MdqDefinitions::default();
-    defs.last_link_wins = true;
-    defs.pandoc_auto_identifiers = true;
-    defs.pandoc_strikeout = true;
-    parse_pandoc_markdown(
-        &cleaned,
-        PandocPipeTables::Markdown,
-        0,
-        pandoc_list::Tasks::Markdown,
-        defs,
-        false,
-        &Default::default(),
-    )
+    flush(&mut text, style, &mut paragraph, &mut space);
+    if !paragraph.is_empty() {
+        blocks.push(PandocBlock::Para(paragraph));
+    }
+    Some(blocks)
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {

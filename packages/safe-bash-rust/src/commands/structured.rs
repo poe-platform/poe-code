@@ -2588,8 +2588,7 @@ fn try_eval_jq_builtin(
         }
         "floor" | "ceil" | "round" | "abs" | "fabs" | "sqrt" => {
             if let JVal::Number(n, literal) = input {
-                if s == "abs"
-                    && jq_number::compare(*n, literal.as_deref(), 0.0, Some("0")).is_ge()
+                if s == "abs" && jq_number::compare(*n, literal.as_deref(), 0.0, Some("0")).is_ge()
                 {
                     return Ok(Some(vec![input.clone()]));
                 }
@@ -15320,14 +15319,24 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         "sum" => {
                             let ci = col_idx.unwrap_or(0);
-                            let s: f64 = grp_rows
-                                .iter()
-                                .filter_map(|r| r.get(ci)?.parse::<f64>().ok())
-                                .sum();
-                            if s.fract() == 0.0 {
-                                format!("{}", s as i64)
-                            } else {
-                                format!("{s}")
+                            // Widen integer totals so intermediate sums stay exact too.
+                            let mut integer_sum = 0_i128;
+                            let mut float_sum = None;
+                            for value in grp_rows.iter().filter_map(|r| r.get(ci)) {
+                                if let Ok(n) = value.parse::<i64>() {
+                                    if let Some(sum) = &mut float_sum {
+                                        *sum += n as f64;
+                                    } else {
+                                        integer_sum += i128::from(n);
+                                    }
+                                } else if let Ok(n) = value.parse::<f64>() {
+                                    *float_sum.get_or_insert(integer_sum as f64) += n;
+                                }
+                            }
+                            match float_sum {
+                                None => integer_sum.to_string(),
+                                Some(s) if s.fract() == 0.0 => format!("{}", s as i64),
+                                Some(s) => format!("{s}"),
                             }
                         }
                         "mean" | "avg" => {
@@ -19196,16 +19205,17 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 if let Some(open) = c_norm.find('(')
                     && let Some(close) = find_matching_paren(&c_norm[open..])
                 {
-                    let key_cols: Vec<String> = split_top_level_comma(&c_norm[open + 1..open + close])
-                        .into_iter()
-                        .map(|col| {
-                            col.split_whitespace()
-                                .next()
-                                .unwrap_or("")
-                                .trim_matches('"')
-                                .to_string()
-                        })
-                        .collect();
+                    let key_cols: Vec<String> =
+                        split_top_level_comma(&c_norm[open + 1..open + close])
+                            .into_iter()
+                            .map(|col| {
+                                col.split_whitespace()
+                                    .next()
+                                    .unwrap_or("")
+                                    .trim_matches('"')
+                                    .to_string()
+                            })
+                            .collect();
                     unique_indexes.push((String::new(), key_cols));
                 }
                 if is_primary_key {
@@ -21960,7 +21970,9 @@ fn fire_sql_triggers(
                 c if c.is_ascii_alphanumeric() || !c.is_ascii() || matches!(c, '_' | '$' | '.') => {
                     while chars
                         .next_if(|(_, c)| {
-                            c.is_ascii_alphanumeric() || !c.is_ascii() || matches!(c, '_' | '$' | '.')
+                            c.is_ascii_alphanumeric()
+                                || !c.is_ascii()
+                                || matches!(c, '_' | '$' | '.')
                         })
                         .is_some()
                     {}
@@ -27888,7 +27900,10 @@ fn days_in_month(y: i32, m: i32) -> i32 {
     }
 }
 
-fn apply_sql_datetime_modifiers(base: &str, modifiers: &[&str]) -> Option<(i32, i32, i32, i32, i32, i32)> {
+fn apply_sql_datetime_modifiers(
+    base: &str,
+    modifiers: &[&str],
+) -> Option<(i32, i32, i32, i32, i32, i32)> {
     let norm = base.replace('T', " ");
     let mut parts = norm.split_whitespace();
     let date_part = parts.next()?;
@@ -34731,7 +34746,8 @@ fn write_workbook_to_file(
         match path {
             "fd://1" => result.stdout = crate::vfs::bytes_to_stream_string(bytes),
             "fd://2" => result.stderr = crate::vfs::bytes_to_stream_string(bytes),
-            _ => fs.write_file(&full, bytes)
+            _ => fs
+                .write_file(&full, bytes)
                 .map_err(|e| format!("ssconvert: {path}: {e}\n"))?,
         }
         Ok(result)
@@ -37378,7 +37394,9 @@ fn render_pandoc_rst(blocks: &[PandocBlock]) -> Result<String, &'static str> {
                             }
                             PandocInline::Space | PandocInline::SoftBreak => content.push(' '),
                             _ => {
-                                return Err("E_UNSUPPORTED_FEATURE: Nested RST script formatting\n");
+                                return Err(
+                                    "E_UNSUPPORTED_FEATURE: Nested RST script formatting\n",
+                                );
                             }
                         }
                     }
@@ -43472,7 +43490,8 @@ mod tests {
         fs.write_file("/out.txt", b"original").unwrap();
         let error = shell
             .exec("pandoc -f csv -t plain -o /out.txt /input.csv")
-            .err().unwrap();
+            .err()
+            .unwrap();
         assert!(error.contains("maxOutputBytes"), "{error}");
         assert_eq!(fs.read_file("/out.txt").unwrap(), b"original");
     }

@@ -148,6 +148,7 @@ export class AwkRuntime {
   private recordValue: Scalar | undefined = string("");
   private entries = 0;
   private fsText = " ";
+  private fieldWidths: number[] | undefined;
   private fpatActive = false;
   private rsText = "\n";
   private convfmtText = "%.6g";
@@ -241,8 +242,12 @@ export class AwkRuntime {
     this.retention.admit(textSize(store.get(name)), textSize(value));
     const owned = ownScalar(value);
     store.set(name, owned);
+    if (store === this.variables && (name === "FS" || name === "FIELDWIDTHS" || name === "FPAT")) {
+      this.setFieldWidths(name === "FIELDWIDTHS" ? this.asText(owned) : undefined);
+    }
     if (store === this.variables) {
       if (name === "FS") { this.fsText = this.asText(owned); this.fpatActive = false; }
+      else if (name === "FIELDWIDTHS") this.fpatActive = false;
       else if (name === "FPAT") this.fpatActive = true;
       else if (name === "RS") this.rsText = this.asText(owned);
       else if (name === "CONVFMT") this.convfmtText = this.asText(owned);
@@ -269,6 +274,7 @@ export class AwkRuntime {
       } else this.retention.release(textSize(value));
     }
     store.clear();
+    if (store === this.variables) this.setFieldWidths(undefined);
   }
   private set(name: string, value: Scalar): void {
     if (this.get(name) instanceof AwkArray) throw new ProgramError(`cannot assign a scalar to array '${name}'`);
@@ -284,7 +290,7 @@ export class AwkRuntime {
   private setNumber(name: string, n: number): Scalar {
     const valNum = (n | 0) === n && (n !== 0 || 1 / n > 0) ? (n | 0) : n;
     const store = this.store(name);
-    if (name === "NF" && store === this.variables) {
+    if ((name === "NF" || name === "FS" || name === "FIELDWIDTHS" || name === "FPAT") && store === this.variables) {
       const val = numeric(valNum);
       this.set(name, val);
       return val;
@@ -295,9 +301,7 @@ export class AwkRuntime {
     const box = numeric(valNum);
     store.set(name, box);
     if (store === this.variables) {
-      if (name === "FS") { this.fsText = this.asText(box); this.fpatActive = false; }
-      else if (name === "FPAT") this.fpatActive = true;
-      else if (name === "RS") this.rsText = this.asText(box);
+      if (name === "RS") this.rsText = this.asText(box);
       else if (name === "CONVFMT") this.convfmtText = this.asText(box);
       else if (name === "NR") { this.nrNum = valNum; this.nrDirty = false; }
       else if (name === "FNR") { this.fnrNum = valNum; this.fnrDirty = false; }
@@ -339,6 +343,59 @@ export class AwkRuntime {
     return pattern;
   }
   private async regex(expression: Expression): Promise<Pattern> { return expression.kind === "regex" ? expression.pattern : this.pattern(this.asText(await this.scalarExpression(expression))); }
+  private setFieldWidths(specification: string | undefined): void {
+    if (specification === undefined) {
+      this.retention.release((this.fieldWidths?.length ?? 0) * 8);
+      this.fieldWidths = undefined;
+      return;
+    }
+    this.budget.step(specification.length);
+    const widths: number[] = [];
+    let index = 0;
+    const integer = (): number => {
+      if (specification[index] === "+") index++;
+      const start = index;
+      while (index < specification.length && specification[index]! >= "0" && specification[index]! <= "9") index++;
+      const value = Number(specification.slice(start, index));
+      if (start === index || !Number.isSafeInteger(value)) throw new ProgramError("invalid FIELDWIDTHS value");
+      return value;
+    };
+    while (index < specification.length) {
+      while (index < specification.length && " \t\n\r\v\f".includes(specification[index]!)) index++;
+      if (index === specification.length) break;
+      let skip = 0;
+      let width: number;
+      if (specification[index] === "*") { width = Infinity; index++; }
+      else {
+        width = integer();
+        if (specification[index] === ":") {
+          skip = width; index++;
+          if (specification[index] === "*") { width = Infinity; index++; }
+          else width = integer();
+        }
+      }
+      if (width <= 0 || index < specification.length && !" \t\n\r\v\f".includes(specification[index]!)) throw new ProgramError("invalid FIELDWIDTHS value");
+      if (width === Infinity && specification.slice(index).trim() !== "") throw new ProgramError("invalid FIELDWIDTHS value");
+      if ((widths.length + 2) * 8 > this.retention.capacity - this.retention.retainedBytes + (this.fieldWidths?.length ?? 0) * 8) throw new ProgramError("awk retained text limit exceeded");
+      widths.push(skip, width);
+    }
+    this.retention.admit((this.fieldWidths?.length ?? 0) * 8, widths.length * 8);
+    this.fieldWidths = widths;
+  }
+  private splitFixedWidth(record: string): Scalar[] {
+    this.budget.step(record.length);
+    const fields: Scalar[] = [];
+    let offset = 0;
+    for (let index = 0; index < this.fieldWidths!.length && offset < record.length; index += 2) {
+      this.budget.step();
+      if (fields.length >= (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("field count limit exceeded");
+      offset = Math.min(record.length, offset + this.fieldWidths![index]!);
+      const end = Math.min(record.length, offset + this.fieldWidths![index + 1]!);
+      fields.push(inputValue(record.slice(offset, end)));
+      offset = end;
+    }
+    return fields;
+  }
   private splitSync(value: string, separator: string, paragraph: boolean): Scalar[] | Promise<Scalar[]> {
     if (!paragraph && value.length < 256 && (separator === " " || separator.length === 1)) {
       this.budget.step(value.length);
@@ -609,6 +666,7 @@ export class AwkRuntime {
   private setRecordSliceSync(source: string, recStart: number, recEnd: number): void | Promise<void> {
     const recLen = recEnd - recStart;
     if (recLen > this.budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    if (this.fieldWidths !== undefined) return this.setRecordSlow(source.slice(recStart, recEnd), "", false);
     const separator = this.varText("FS");
     const paragraph = this.varText("RS") === "";
     const maxFields = this.budget.options.maxFields ?? Infinity;
@@ -681,57 +739,13 @@ export class AwkRuntime {
     this.budget.check(record);
     const separator = this.varText("FS");
     const paragraph = this.varText("RS") === "";
-    const maxFields = this.budget.options.maxFields ?? Infinity;
-    if (value === undefined && !paragraph && record.length < 256 && (separator === " " || separator.length === 1) && maxFields >= 64) {
-      this.budget.step(record.length);
-      let count = 0;
-      let fieldBytes = 0;
-      const starts = this.fieldStarts;
-      const ends = this.fieldEnds;
-      if (separator === " ") {
-        let start = -1;
-        for (let index = 0; index < record.length; index++) {
-          const ch = record.charCodeAt(index);
-          if (ch === 32 || ch === 9 || ch === 10) {
-            if (start >= 0) {
-              if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
-              starts[count] = start; ends[count] = index; fieldBytes += index - start; count++;
-              start = -1;
-            }
-          } else if (start < 0) start = index;
-        }
-        if (start >= 0) {
-          if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
-          starts[count] = start; ends[count] = record.length; fieldBytes += record.length - start; count++;
-        }
-      } else if (record !== "") {
-        let start = 0;
-        let idx: number;
-        while ((idx = record.indexOf(separator, start)) >= 0) {
-          if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
-          starts[count] = start; ends[count] = idx; fieldBytes += idx - start; count++;
-          start = idx + 1;
-        }
-        if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
-        starts[count] = start; ends[count] = record.length; fieldBytes += record.length - start; count++;
-      }
-      this.retention.admit(this.record.length + this.fieldBytes, record.length + fieldBytes);
-      this.record = record;
-      this.fieldBytes = fieldBytes;
-      this.fieldCount = count;
-      this.fieldsMaterialized = false;
-      this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-      this.recordValue = undefined;
-      this.variables.set("NF", numeric(count));
-      return;
-    }
     return this.setRecordSlow(record, separator, paragraph, value);
   }
   private setRecordSlow(record: string, separator: string, paragraph: boolean, value?: Scalar): void | Promise<void> {
     const resolvedVal = value ?? inputValue(record);
     const fields = this.fpatActive
       ? this.splitByContent(record, this.varText("FPAT"))
-      : this.splitSync(record, separator, paragraph);
+      : this.fieldWidths !== undefined ? this.splitFixedWidth(record) : this.splitSync(record, separator, paragraph);
     if (!(fields instanceof Promise)) {
       this.replaceRecord(record, fields, resolvedVal);
       return;
@@ -1489,7 +1503,7 @@ export class AwkRuntime {
     if (this.frames.length !== 0) return false;
     if (expr.kind === "unary" && (expr.operator === "++" || expr.operator === "--") && expr.operand.kind === "variable") {
       const name = expr.operand.name;
-      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "FPAT" && name !== "RS" && name !== "CONVFMT") {
+      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "FIELDWIDTHS" && name !== "FPAT" && name !== "RS" && name !== "CONVFMT") {
         this.budget.step();
         const existing = this.variables.get(name);
         if (existing === undefined || !(existing instanceof AwkArray)) {
@@ -1510,7 +1524,7 @@ export class AwkRuntime {
       expr.left.kind === "variable"
     ) {
       const name = expr.left.name;
-      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "FPAT" && name !== "RS" && name !== "CONVFMT") {
+      if (name !== "NF" && name !== "NR" && name !== "FNR" && name !== "FS" && name !== "FIELDWIDTHS" && name !== "FPAT" && name !== "RS" && name !== "CONVFMT") {
         const right = expr.right;
         let rightNum: number | undefined;
         if (right.kind === "field" && right.index.kind === "number") {

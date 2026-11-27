@@ -11,6 +11,10 @@ Set `FPAT` to an extended regular expression to match field contents, for exampl
 splitting. Assigning either variable affects subsequent records and `$0`
 reassignment, while `split()` continues to use `FS` by default.
 
+Set `FIELDWIDTHS="2 3 1"` to read fixed-width byte columns, preserving spaces within
+fields. Widths may include `skip:width` entries and a final `*` for the remainder.
+Assigning `FS` or `FPAT` switches splitting modes; `split()` still uses `FS`.
+
 Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoch
 timestamps with `strftime` and `mktime`, and use GNU-style bitwise functions.
 Command pipes (`command | getline` and `print ... | command`) run through the

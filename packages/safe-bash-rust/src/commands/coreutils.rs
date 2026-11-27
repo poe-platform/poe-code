@@ -7959,7 +7959,7 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         }
         return apply_bc_binop(&l, &r, op_s, bc);
     }
-    if let Some(idx) = rfind_top_level(s, '^') {
+    if let Some(idx) = find_top_level(s, '^') {
         let l = eval_bc_val(&s[..idx], bc, depth);
         let r = eval_bc_val(&s[idx + 1..], bc, depth);
         return apply_bc_binop(&l, &r, "^", bc);
@@ -8148,8 +8148,20 @@ fn balanced_parens(s: &str) -> bool {
     d == 0
 }
 
-fn rfind_top_level(s: &str, target: char) -> Option<usize> {
-    rfind_top_level_any(s, &[target]).map(|(idx, _)| idx)
+fn find_top_level(s: &str, target: char) -> Option<usize> {
+    let mut d = 0i32;
+    let mut b = 0i32;
+    for (i, c) in s.char_indices() {
+        match c {
+            '(' => d += 1,
+            ')' => d -= 1,
+            '[' => b += 1,
+            ']' => b -= 1,
+            c if c == target && d == 0 && b == 0 => return Some(i),
+            _ => {}
+        }
+    }
+    None
 }
 
 fn rfind_top_level_any(s: &str, targets: &[char]) -> Option<(usize, char)> {

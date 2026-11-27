@@ -6551,6 +6551,15 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
             JVal::Bool(false)
         } else if clean == "null" || clean == "~" {
             JVal::Null
+        } else if let Some((digits, radix)) = s
+            .strip_prefix("0x")
+            .or_else(|| s.strip_prefix("0X"))
+            .map(|digits| (digits, 16))
+            .or_else(|| s.strip_prefix("0o").map(|digits| (digits, 8)))
+            && digits.chars().all(|c| c == '_' || c.is_digit(radix))
+            && let Ok(n) = u64::from_str_radix(&digits.replace('_', ""), radix)
+        {
+            JVal::Number(n as f64, Some(n.to_string().into_boxed_str()))
         } else if !s.starts_with('"')
             && !s.starts_with('\'')
             && let Ok(n) = clean.parse::<f64>()

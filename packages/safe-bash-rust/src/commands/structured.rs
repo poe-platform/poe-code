@@ -1826,6 +1826,12 @@ fn resolve_jq_lhs_paths(
         let _ = result?;
         return Ok(paths);
     }
+    if s == "first" {
+        return match input {
+            JVal::Array(_) | JVal::Null => Ok(vec![vec![JVal::Number(0.0, None)]]),
+            _ => Err(format!("Cannot index {} with number", input.type_name()).into()),
+        };
+    }
     if s == ".." || s == "recurse" {
         let mut out = vec![Vec::new()];
         let mut all_paths = Vec::new();

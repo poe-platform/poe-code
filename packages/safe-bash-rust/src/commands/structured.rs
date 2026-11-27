@@ -6840,7 +6840,8 @@ fn parse_yaml_block(
                     let mut item_map = Vec::new();
                     let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
                     let val_s = v.trim();
-                    let first_val = parse_yaml_key_value(lines, idx, indent + 2, val_s, anchors);
+                    let key_indent = indent + text.len() - after_dash.len();
+                    let first_val = parse_yaml_key_value(lines, idx, key_indent, val_s, anchors);
                     item_map.push((key, first_val));
                     if *idx < lines.len() && lines[*idx].0 > indent {
                         let child_indent = lines[*idx].0;
@@ -6981,7 +6982,8 @@ fn parse_yaml_key_value(
         let anchor = val_s.strip_prefix('&').map(|s| s.trim().to_string());
         let child = if *idx < lines.len()
             && (lines[*idx].0 > parent_indent
-                || (lines[*idx].0 == parent_indent && lines[*idx].1.starts_with("- ")))
+                || (lines[*idx].0 == parent_indent
+                    && (lines[*idx].1 == "-" || lines[*idx].1.starts_with("- "))))
         {
             let child_indent = lines[*idx].0;
             parse_yaml_block(lines, idx, child_indent, anchors)

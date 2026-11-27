@@ -6937,6 +6937,29 @@ fn parse_yaml_key_value(
         }
         return child;
     }
+    let scalar = if val_s.starts_with('&') {
+        val_s
+            .split_once(char::is_whitespace)
+            .map_or(val_s, |(_, value)| value.trim_start())
+    } else {
+        val_s
+    };
+    if !scalar.starts_with(['\'', '"', '[', '{', '*', '!', '|', '>'])
+        && lines
+            .get(*idx)
+            .is_some_and(|(indent, _)| *indent > parent_indent)
+    {
+        let mut folded = val_s.to_string();
+        while let Some(&(indent, line)) = lines.get(*idx) {
+            if indent <= parent_indent {
+                break;
+            }
+            folded.push(' ');
+            folded.push_str(line.trim());
+            *idx += 1;
+        }
+        return parse_yaml_scalar(&folded, anchors);
+    }
     parse_yaml_scalar(val_s, anchors)
 }
 

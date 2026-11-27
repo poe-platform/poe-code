@@ -14,18 +14,19 @@ function definition(name: string, options: StreamFormatCommandsOptions = {}) {
   return command;
 }
 
-test("default factory contains 190 and standalone formatting installs exactly four without split", async () => {
+test("default factory contains 193 and standalone formatting installs exactly four without split", async () => {
   const instance = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 190);
-  assert.equal(new Set(names).size, 190);
+  assert.equal(names.length, 193);
+  assert.equal(new Set(names).size, 193);
   for (const name of ["curl", "safejs", "node", "npm", "npx"]) {
     const result = await instance.exec(`${name}`);
     assert.equal(result.exitCode, 127);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, `shell: line 1: ${name}: command not found\n`);
   }
-  assert.equal(instance.commands.list().length, 190);
+  assert.equal(instance.commands.list().length, 193);
+  for (const name of ["trash-put", "trash-list", "trash-restore"]) assert.equal(instance.commands.has(name), true);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.equal(instance.commands.has(name), true);
   for (const name of ["seq", "nl", "rev", "unexpand", "split", "xq", "xmllint", "mdq"]) assert.equal(instance.commands.has(name), true);
   assert.equal((await instance.exec("seq 1")).exitCode, 0);
@@ -104,9 +105,9 @@ for (const name of ["seq", "nl", "rev", "unexpand"]) {
     const result = await definition(name).execute(context(name, name === "seq" ? ["100"] : [], stdin, {
       stdout: { async write() { throw new FsError("EPIPE"); } }, stderr: { async write(bytes) { errors.push(new Uint8Array(bytes)); } },
     }));
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 141);
     assert.ok(reads <= 1);
-    assert.match(Buffer.concat(errors).toString(), /EPIPE/);
+    assert.equal(Buffer.concat(errors).toString(), "");
   });
 }
 

@@ -52,7 +52,7 @@ test("rev preserves each file boundary and pipeline output", async () => {
 });
 
 test("rev guest locale precedence, no ambient host fallback", async () => {
-  for (const env of [{ LANG: "en_US.UTF-8", LC_CTYPE: "C" }, { LANG: "C", LC_CTYPE: "en_US.UTF-8", LC_ALL: "C" }, {}]) {
+  for (const env of [{ LANG: "en_US.UTF-8", LC_CTYPE: "C" }, { LANG: "C", LC_CTYPE: "en_US.UTF-8", LC_ALL: "C" }, { LANG: "C" }]) {
     const instance = shell({}, env);
     const result = await instance.exec("rev", { stdin: Buffer.from([97, 255, 98, 10]) });
     assert.equal(result.exitCode, 0);

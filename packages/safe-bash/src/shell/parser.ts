@@ -1736,7 +1736,7 @@ class Parser {
       command = { kind, name, ...(words ? { words } : {}), body, redirects: [] };
     } else if (this.is("function")) {
       this.advance();
-      if (this.current.kind !== "word" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error("Invalid function name");
+      if (this.current.kind !== "word" || !this.current.value) this.error("Invalid function name");
       const name = this.advance().value;
       if (this.is("(")) {
         this.advance();
@@ -1748,7 +1748,7 @@ class Parser {
     // Bracketed words must reach assignment scanning before interpreting a following parenthesis.
     } else if (this.current.kind === "word" && !this.current.value.includes("[") && (this.lookahead !== undefined || this.lexer.source.includes("(", this.current.end)) && this.peek().value === "(" && !compoundHead(this.current.word!, this.budget)) {
       const name = this.advance().value;
-      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
+      if (!name) this.error("Invalid function name");
       this.expect("(");
       this.expect(")");
       this.newlines();

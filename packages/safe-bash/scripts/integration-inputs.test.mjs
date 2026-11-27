@@ -962,6 +962,7 @@ function assertSource7Discovery(files) {
     "tests/shell/sync-loop-semantics.test.ts",
     "tests/shell/loop-count.test.ts",
     "tests/shell/function-loop-boundary.test.ts",
+    "tests/shell/function-names.test.ts",
     "tests/shell/shift-count.test.ts",
     "tests/shell/exit-return-status.test.ts",
     "tests/shell/numeric-option-terminator.test.ts",

@@ -16,4 +16,4 @@ Division by zero and square roots of negative numbers report a diagnostic, aband
 
 Use `bc -l` for decimal sine, cosine, arctangent, logarithm, exponential and integer-order Bessel functions. Results truncate to `scale` (20 by default with `-l`), using BigInt series with work-budget accounting and cooperative cancellation.
 
-Numeric output wraps at 70 columns by default (69 characters followed by `\` and a newline). Set the command environment variable `BC_LINE_LENGTH` to another width, or `0` to disable wrapping. Standalone strings preserve backslashes; `print` interprets GNU bc escapes such as `\n` and `\q`. Strings remain unwrapped; numbers printed after strings continue at the current column.
+Numeric output uses a line length of 70 by default (68 characters followed by `\` and a newline). Set the command environment variable `BC_LINE_LENGTH` to another width, or `0` to disable wrapping. Standalone strings preserve backslashes; `print` interprets GNU bc escapes such as `\n` and `\q`. Strings remain unwrapped; numbers printed after strings continue at the current column.

@@ -411,13 +411,32 @@ for (const [program, expected] of [
 test("bc wraps numeric output at the default width and honors BC_LINE_LENGTH", async () => {
   const digits = (2n ** 300n).toString();
   for (const [env, expected] of [
-    [{}, digits.slice(0, 69) + "\\\n" + digits.slice(69)],
+    [{}, digits.slice(0, 68) + "\\\n" + digits.slice(68)],
     [{ BC_LINE_LENGTH: "0" }, digits],
-    [{ BC_LINE_LENGTH: "10" }, Array.from({ length: Math.ceil(digits.length / 9) }, (_, i) => digits.slice(i * 9, i * 9 + 9)).join("\\\n")],
+    [{ BC_LINE_LENGTH: "10" }, Array.from({ length: Math.ceil(digits.length / 8) }, (_, i) => digits.slice(i * 8, i * 8 + 8)).join("\\\n")],
   ] as const) {
     assert.deepEqual(await evaluate("2^300", {}, [], { env }), { exitCode: 0, stdout: expected + "\n", stderr: "" });
   }
 });
+
+test("bc wraps 2^100 at 18 digits when BC_LINE_LENGTH is 20", async () => {
+  assert.deepEqual(await evaluate("2^100", {}, [], { env: { BC_LINE_LENGTH: "20" } }), {
+    exitCode: 0,
+    stdout: "126765060022822940\\\n1496703205376\n",
+    stderr: "",
+  });
+});
+
+for (const [width, program, stdout] of [
+  ["10", "12345678;123456789;1234567890", "12345678\n12345678\\\n9\n12345678\\\n90\n"],
+  ["3", "123", "1\\\n2\\\n3\n"],
+] as const) {
+  test(`bc reserves the continuation and newline columns at width ${width}`, async () => {
+    assert.deepEqual(await evaluate(program, {}, [], { env: { BC_LINE_LENGTH: width } }), {
+      exitCode: 0, stdout, stderr: "",
+    });
+  });
+}
 
 for (const expression of ["s(1)", "c(1)", "a(1)", "l(2)", "e(1)", "2^10001"]) {
   test(`bc charges iterative arithmetic to maxSteps: ${expression}`, async () => {
@@ -441,10 +460,10 @@ test("bc exponentials exceed floating point range and preserve nested truncation
 
 test("bc wraps print numbers across output columns and counts continuation bytes", async () => {
   const program = 'print "abc",123456789; print "\\n"; 1234567890';
-  const stdout = 'abc123456\\\n789\n123456789\\\n0\n';
+  const stdout = 'abc12345\\\n6789\n12345678\\\n90\n';
   assert.deepEqual(await evaluate(program, { maxOutputBytes: stdout.length }, [], { env: { BC_LINE_LENGTH: "10" } }), { exitCode: 0, stdout, stderr: "" });
   assert.equal((await evaluate(program, { maxOutputBytes: stdout.length - 1 }, [], { env: { BC_LINE_LENGTH: "10" } })).exitCode, 1);
-  for (const value of ["1", "-1", "invalid", "1.5"]) {
+  for (const value of ["1", "2", "-1", "invalid", "1.5"]) {
     assert.equal((await evaluate("2^300", {}, [], { env: { BC_LINE_LENGTH: value } })).stdout, (await evaluate("2^300")).stdout);
   }
 });

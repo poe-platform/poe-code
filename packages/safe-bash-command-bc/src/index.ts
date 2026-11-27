@@ -787,7 +787,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     let outBuffer = new Uint8Array();
     let outputBytes = 0;
     const configuredWidth = Number(context.env.BC_LINE_LENGTH ?? 70);
-    const lineLength = Number.isSafeInteger(configuredWidth) && (configuredWidth === 0 || configuredWidth > 1) ? configuredWidth : 70;
+    const lineLength = Number.isSafeInteger(configuredWidth) && (configuredWidth === 0 || configuredWidth > 2) ? configuredWidth : 70;
     let outputColumn = 0;
 
     const appendOutput = (text: string | Uint8Array): void => {
@@ -810,8 +810,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const appendNumber = (value: DecimalValue): void => {
       let text = formatDecimalInBase(value, obase);
       if (lineLength !== 0) {
-        while (outputColumn + text.length >= lineLength) {
-          const count = Math.max(0, lineLength - outputColumn - 1);
+        while (outputColumn + text.length > lineLength - 2) {
+          const count = Math.max(0, lineLength - outputColumn - 2);
           appendOutput(text.slice(0, count) + "\\\n");
           text = text.slice(count);
         }

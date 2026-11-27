@@ -14472,7 +14472,9 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     let va = a.get(sort_idx).map(|s| s.as_str()).unwrap_or("");
                     let vb = b.get(sort_idx).map(|s| s.as_str()).unwrap_or("");
                     let ord = if numeric {
-                        if let (Ok(na), Ok(nb)) = (va.parse::<f64>(), vb.parse::<f64>()) {
+                        if let (Ok(na), Ok(nb)) = (va.parse::<i64>(), vb.parse::<i64>()) {
+                            na.cmp(&nb)
+                        } else if let (Ok(na), Ok(nb)) = (va.parse::<f64>(), vb.parse::<f64>()) {
                             na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                         } else {
                             va.cmp(vb)

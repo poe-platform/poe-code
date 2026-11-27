@@ -919,6 +919,8 @@ Playwright timeout value `0`. `xargs -s Infinity` and `--max-chars=Infinity` exp
 the command-size quota. Without `-n`, argument count does not split `xargs` batches;
 command-size and explicit line limits still apply. `-I` followed by `-n 1` preserves
 replacement mode; `-L` and other `-n` values select the last requested batching mode.
+Child exits 126 and 127 aggregate to `xargs` status 123 and allow later batches;
+`xargs` reserves statuses 126/127 for failures to start or find the command.
 Stream chunk sizes and polling intervals control execution
 independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
 creation/deletion patches; top-level readable character and FIFO inputs are

@@ -125,7 +125,7 @@ for (const reason of [undefined, null, false, 0, ""]) test(`actual shell keeps o
   } finally { cleanup.resolve(); await running.catch(() => {}); await shell.dispose(); }
 });
 
-for (const terminal of [255]) test(`actual shell terminal ${terminal} drains sibling cleanup before settlement`, async () => {
+for (const terminal of [255, 126, 127]) test(`actual shell child exit ${terminal} drains sibling cleanup before settlement`, async () => {
   const { shell, commands } = fixture();
   const terminalRelease = deferred();
   const sibling = deferred();
@@ -153,8 +153,8 @@ for (const terminal of [255]) test(`actual shell terminal ${terminal} drains sib
     assert.equal(cleaned, true);
     assert.equal(settled, false);
     cleanup.resolve();
-    assert.equal((await running).exitCode, terminal === 255 ? 124 : terminal);
-    assert.equal(signals.length, 2);
+    assert.equal((await running).exitCode, terminal === 255 ? 124 : 123);
+    assert.equal(signals.length, terminal === 255 ? 2 : 3);
   } finally { terminalRelease.resolve(); sibling.resolve(); cleanup.resolve(); await running.catch(() => {}); await shell.dispose(); }
 });
 

@@ -218,6 +218,13 @@ hook, its existing registry/callback fallback still receives that exact map.
 `env`, `xargs` and `directExecutor` (used by find) explicitly request external dispatch.
 Direct executor callers retain the existing environment merge behavior.
 
+`CommandResult.launchFailure?: boolean` identifies a failure to find or start
+the requested command. Dispatchers set it with status 126 or 127; a command that
+runs and returns either status leaves it unset. The flag describes only that
+invocation, so a shell script or `env` that runs a missing command still counts
+as a command that ran. `xargs` uses this distinction to preserve execution
+failures while aggregating ordinary nonzero child exits to 123.
+
 # Child cancellation
 
 `CommandInvokeOptions.signal` is an optional child-cancellation authority. It

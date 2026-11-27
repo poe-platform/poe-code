@@ -261,6 +261,40 @@ test("xargs replacement does not hide an invalid max-args value", async () => {
   assert.equal(result.exitCode, 2);
 });
 
+test("xargs maps shell exits 126 and 127 to invocation failure status 123", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("printf 'y\\n' | xargs sh -c 'exit 126'; echo $?; printf 'y\\n' | xargs sh -c 'exit 127'; echo $?");
+    assert.equal(result.stdout, "123\n123\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const exitCode of [126, 127]) for (const parallel of [1, 2]) {
+  test(`xargs continues all batches after child exit ${exitCode} with -P${parallel}`, async () => {
+    const calls: string[] = [];
+    const result = await run("xargs", [`-P${parallel}`, "-n1", "custom"], {
+      stdin: "one two three",
+      execute(context) { calls.push(context.args[0]!); return { exitCode }; },
+    });
+    assert.equal(result.exitCode, 123);
+    assert.deepEqual(calls, ["one", "two", "three"]);
+  });
+}
+
+test("xargs preserves actual command lookup and execution failures", async () => {
+  assert.equal((await run("xargs", ["env", "missing-command"], { stdin: "y\n" })).exitCode, 123);
+  const shell = new Shell({ fs: await fixture({ blocked: "exit 0\n", script: "exit 127\n" }), cwd: "/work" }).use(agentCommands());
+  try {
+    await shell.exec("chmod +x script");
+    for (const [command, status] of [["missing-command", 127], ["./missing", 127], ["./blocked", 126], ["./script", 123], ["sh -c missing-command", 123], ["env missing-command", 123]] as const) {
+      const result = await shell.exec(`printf 'y\\n' | xargs ${command}`);
+      assert.equal(result.exitCode, status, command);
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("xargs maps child failures and stops on status 255", async () => {
   let calls = 0;
   assert.equal((await run("xargs", ["-n", "1", "custom"], { stdin: "one two", execute: () => { calls++; return { exitCode: 1 }; } })).exitCode, 123);

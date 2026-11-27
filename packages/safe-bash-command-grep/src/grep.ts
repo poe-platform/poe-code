@@ -536,7 +536,7 @@ async function executeGrepWithSession(
       let matcher: "G" | "E" | "F" | "P" | undefined;
       let helpRequested = false;
       let ignoreCase = false;
-      const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "text" };
+      const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "without-match" };
       let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
       let rewrittenArgs: string[] | undefined;
@@ -934,8 +934,13 @@ inspect the resulting state before repeating the action.
             if (endOfChunk || lineBuffered || outUsed - outStart >= 8192) await flushOut();
             return true;
           };
+          const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
           if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, (batch, endOfChunk) => {
-            if (binaryFiles.mode === "without-match" && batch.some(line => line.bytes.includes(0))) {
+            if (binaryFiles.mode !== "text" && batch.some(line => {
+              if (line.bytes.includes(0)) return true;
+              try { utf8Decoder.decode(line.bytes); return false; }
+              catch (error) { if (error instanceof TypeError) return true; throw error; }
+            })) {
               count = 0;
               return false;
             }

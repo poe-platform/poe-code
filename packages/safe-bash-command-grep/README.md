@@ -2,6 +2,9 @@
 
 Search virtual files and pipelines with basic, extended, or fixed patterns,
 recursive include/exclude selection, context lines, and explicit resource limits.
+Searches skip input containing NUL or invalid UTF-8 bytes by default, so binary
+files do not abort recursive searches. Use `-a` or `--binary-files=text` to
+treat those bytes as text within the selected regex executor's limits.
 `grep -P` also supports `\K` match-start resets, `\xHH` hexadecimal characters,
 and `\Q...\E` literal quoting (for example, `grep -oP 'version: \K.*'`).
 `grep -P` supports positive and negative lookahead and fixed-length lookbehind,

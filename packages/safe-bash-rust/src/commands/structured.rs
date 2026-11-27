@@ -21594,17 +21594,19 @@ fn sql_foreign_key_satisfied(
     if cval == SQL_NULL {
         return true;
     }
-    tables.get(resolve_sql_table_name(tables, &fk.parent_table)).is_some_and(|parent| {
-        let p_idx = if fk.parent_col.is_empty() {
-            0
-        } else {
-            find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
-        };
-        parent
-            .rows
-            .iter()
-            .any(|r| r.get(p_idx).map(|s| s.as_str()) == Some(cval))
-    })
+    tables
+        .get(resolve_sql_table_name(tables, &fk.parent_table))
+        .is_some_and(|parent| {
+            let p_idx = if fk.parent_col.is_empty() {
+                0
+            } else {
+                find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
+            };
+            parent
+                .rows
+                .iter()
+                .any(|r| r.get(p_idx).map(|s| s.as_str()) == Some(cval))
+        })
 }
 
 fn sql_deferred_foreign_keys_valid(tables: &BTreeMap<String, SqlTable>) -> bool {

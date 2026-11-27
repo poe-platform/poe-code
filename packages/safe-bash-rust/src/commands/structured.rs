@@ -291,7 +291,7 @@ fn extract_yaml_doc_meta(
             path_stack.pop();
         }
         if !stripped.starts_with('-')
-            && let Some((k, v)) = stripped.split_once(':')
+            && let Some((k, v)) = split_yaml_mapping_entry(stripped)
         {
             let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
             let mut full_path = String::new();
@@ -6396,7 +6396,7 @@ fn has_undefined_yaml_alias(src: &str) -> bool {
         if trimmed.starts_with('#') {
             continue;
         }
-        if let Some((_, val_part)) = trimmed.split_once(':') {
+        if let Some((_, val_part)) = split_yaml_mapping_entry(trimmed) {
             let vp = val_part.trim();
             if let Some(rest) = vp.strip_prefix('&') {
                 let aname = rest.split_whitespace().next().unwrap_or("");
@@ -6530,6 +6530,31 @@ fn split_top_level_comma(s: &str) -> Vec<&str> {
     out
 }
 
+fn split_yaml_mapping_entry(text: &str) -> Option<(&str, &str)> {
+    let text = text.trim_start();
+    let mut chars = text.char_indices().peekable();
+    let (_, quote) = chars.next()?;
+    if quote != '"' && quote != '\'' {
+        return text.split_once(':');
+    }
+    while let Some((index, ch)) = chars.next() {
+        if quote == '"' && ch == '\\' {
+            chars.next();
+        } else if ch == quote {
+            if quote == '\'' && chars.peek().is_some_and(|(_, next)| *next == '\'') {
+                chars.next();
+                continue;
+            }
+            let end = index + ch.len_utf8();
+            return text[end..]
+                .trim_start()
+                .strip_prefix(':')
+                .map(|value| (&text[..end], value));
+        }
+    }
+    None
+}
+
 fn parse_nested_yaml(input: &str) -> JVal {
     let trimmed = input.trim_start();
     if (trimmed.starts_with('{') || trimmed.starts_with('[') || trimmed.starts_with('"'))
@@ -6555,9 +6580,8 @@ fn parse_nested_yaml(input: &str) -> JVal {
                 None
             } else {
                 let value = stripped.strip_prefix("- ").unwrap_or(stripped);
-                let value = value
-                    .split_once(':')
-                    .map_or(value, |(_, value)| value.trim());
+                let value =
+                    split_yaml_mapping_entry(value).map_or(value, |(_, value)| value.trim());
                 if value == ">" || yaml_literal_header(value).is_some() {
                     scalar_parent_indent = Some(indent);
                 }
@@ -6571,10 +6595,7 @@ fn parse_nested_yaml(input: &str) -> JVal {
     let mut anchors = BTreeMap::new();
     if lines.len() == 1 {
         let only = lines[0].1;
-        if (only.starts_with('\'') && only.ends_with('\''))
-            || (only.starts_with('"') && only.ends_with('"'))
-            || (only != "-" && !only.starts_with("- ") && !only.contains(':'))
-        {
+        if only != "-" && !only.starts_with("- ") && split_yaml_mapping_entry(only).is_none() {
             return parse_yaml_scalar(only, &mut anchors);
         }
     }
@@ -6596,7 +6617,7 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
     let val = if let Some(inner) = s.strip_prefix('{').and_then(|v| v.strip_suffix('}')) {
         let mut entries = Vec::new();
         for part in split_top_level_comma(inner) {
-            if let Some((k, v)) = part.split_once(':') {
+            if let Some((k, v)) = split_yaml_mapping_entry(part) {
                 let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
                 entries.push((key, parse_yaml_scalar(v.trim(), anchors)));
             }
@@ -6681,7 +6702,7 @@ fn parse_yaml_block(
                     }
                 } else if !after_dash.starts_with('{')
                     && !after_dash.starts_with('[')
-                    && let Some((k, v)) = after_dash.split_once(':')
+                    && let Some((k, v)) = split_yaml_mapping_entry(after_dash)
                     && (v.is_empty() || v.starts_with([' ', '\t']))
                     && {
                         let kt = k.trim();
@@ -6724,7 +6745,7 @@ fn parse_yaml_block(
         if indent < min_indent || text == "-" || text.starts_with("- ") {
             break;
         }
-        if let Some((k, v)) = text.split_once(':') {
+        if let Some((k, v)) = split_yaml_mapping_entry(text) {
             let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
             let val_s = v.trim();
             *idx += 1;

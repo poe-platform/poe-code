@@ -27,6 +27,32 @@ test("ls and find preserve literal filenames in captured output", async context 
   }
 });
 
+test("ls accepts color options in captured output", async context => {
+  const fs = await fixture({});
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a; ls --color=never; echo $?; ls --color=auto; ls --color");
+  assert.equal(result.stdout, "a\n0\na\na\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  for (const option of ["--color", "--colour"]) {
+    for (const suffix of ["", "=never", "=auto", "=always"]) {
+      const listed = await run("ls", [option + suffix], { fs });
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      assert.equal(listed.stdout, "a\n");
+      assert.equal(listed.stderr, "");
+    }
+    const invalid = await run("ls", [option + "=invalid"], { fs });
+    assert.equal(invalid.exitCode, 2);
+    assert.equal(invalid.stdout, "");
+    assert.ok(invalid.stderr.includes("invalid argument"));
+  }
+  await fs.writeFile("/work/--color=never", new Uint8Array());
+  const literal = await run("ls", ["--", "--color=never"], { fs });
+  assert.equal(literal.exitCode, 0, literal.stderr);
+  assert.equal(literal.stdout, "--color=never\n");
+});
+
 test("ls long directory listings include totals before pipeline consumers", async context => {
   const fs = await fixture({});
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

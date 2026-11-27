@@ -856,6 +856,14 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const args: string[] = [];
       for (let index = 0; index < context.args.length; index++) {
         const argument = context.args[index]!;
+        if (!ended && (argument === "--color" || argument === "--colour" || argument.startsWith("--color=") || argument.startsWith("--colour="))) {
+          const selection = argument.includes("=") ? argument.slice(argument.indexOf("=") + 1) : "always";
+          if (selection !== "never" && selection !== "auto" && selection !== "always") {
+            throw new UsageError(`invalid argument '${selection}' for '--color'`);
+          }
+          // Listings are captured as plain text, without terminal color escapes.
+          continue;
+        }
         if (!ended && (argument === "--time" || argument.startsWith("--time="))) {
           const selection = argument === "--time" ? context.args[++index] : argument.slice(7);
           if (selection === undefined) throw new UsageError("option '--time' requires an argument");

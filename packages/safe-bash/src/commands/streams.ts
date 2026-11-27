@@ -388,7 +388,7 @@ function headTailCount(amount: string): number {
   }
   if (!offset && !suffix) throw new UsageError(`invalid number '${amount}'`);
   const count = (offset ? BigInt(text.slice(0, offset)) : 1n) * multiplier;
-  if (count > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError(`invalid number '${amount}'`);
+  if (count > BigInt(Number.MAX_SAFE_INTEGER)) return Number.MAX_SAFE_INTEGER;
   return Number(count);
 }
 

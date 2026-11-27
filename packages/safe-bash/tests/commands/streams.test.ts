@@ -1075,6 +1075,39 @@ test("streams match GNU tr escape/repeat rules, cat -E CRLF, tee --output-error=
   assert.match(wcDir.stderr, /EISDIR/u);
 });
 
+for (const [script, expected] of [
+  ["seq 3 | head -n 9223372036854775807", "1\n2\n3\n"],
+  ["seq 3 | tail -n 99999999999999999999999", "1\n2\n3\n"],
+  ["seq 3 | head -c 1E | wc -c", "6\n"],
+]) {
+  test(`oversized stream count: ${script}`, async () => {
+    const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`set -o pipefail; ${script}`);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+test("head and tail preserve signed oversized counts and validate suffixes", async () => {
+  const stdin = "one\ntwo\nthree\n";
+  for (const command of ["head", "tail"]) {
+    for (const unit of ["-n", "-c"]) {
+      for (const count of ["9007199254740991", "9007199254740992", "1E", "1ZB", "1YiB", "1R", "1Q"]) {
+        for (const sign of ["", "+", "-"]) {
+          const result = await run(command, [unit, sign + count], { stdin });
+          assert.equal(result.exitCode, 0, `${command} ${unit} ${sign}${count}`);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, command === "head" && sign === "-" || command === "tail" && sign === "+" ? "" : stdin);
+        }
+      }
+      const invalid = await run(command, [unit, "99999999999999999999999EBB"], { stdin });
+      assert.equal(invalid.exitCode, 2);
+      assert.match(invalid.stderr, /invalid number/u);
+    }
+  }
+});
+
 test("head and tail apply last-wins for -n/-c and -v/-q, unit-only multipliers, obsolete -NUM[cbkmqv], and non-first +NUM operands", async () => {
   const fs = await fixture({ "/work/f1": "hello\nworld\n", "/work/+2": "alpha\nbeta\n" });
   assert.equal((await run("head", ["-n", "1", "-c", "3", "f1"], { fs })).stdout, "hel");

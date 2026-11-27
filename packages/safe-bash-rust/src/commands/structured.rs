@@ -12537,6 +12537,9 @@ fn cmd_csvsql(
                 ));
             }
         }
+        if let Some((_, error)) = out.split_once("\x00RAISE_ERR:") {
+            return err_out(&format!("Runtime error: {error}\n"), 1);
+        }
         if line_numbers && !out.is_empty() {
             let rows = parse_csv_rows(&out, ',');
             let mut lout = String::new();
@@ -21554,6 +21557,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &nullvalue,
                     &widths,
                 );
+                if let Some((_, error)) = chunk.split_once("\x00RAISE_ERR:") {
+                    errors.push_str(&format!("Runtime error: {error}\n"));
+                    for cname in &cte_names {
+                        tables.remove(cname);
+                    }
+                    break;
+                }
                 emit_chunk(
                     chunk,
                     &mut once_path,
@@ -21666,6 +21676,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &nullvalue,
                 &widths,
             );
+            if let Some((_, error)) = chunk.split_once("\x00RAISE_ERR:") {
+                errors.push_str(&format!("Runtime error: {error}\n"));
+                break;
+            }
             emit_chunk(
                 chunk,
                 &mut once_path,
@@ -22172,6 +22186,9 @@ fn exec_sql_insert(
             sel_sql, tables, views, false, false, false, false, false, None, false, "\x1f",
             SQL_NULL,
         );
+        if let Some((_, error)) = sel_out.split_once("\x00RAISE_ERR:") {
+            return Err(format!("Runtime error: {error}\n"));
+        }
         for line in sel_out.lines() {
             value_tuples.push(line.split('\x1f').map(|s| s.to_string()).collect());
         }
@@ -25267,6 +25284,8 @@ fn exec_sql_aggregate_select(
     nullvalue: &str,
     widths: &[usize],
 ) -> String {
+    let integer_overflow = Cell::new(false);
+    let overflow = &integer_overflow;
     let raw_items = split_top_level_comma(select_part);
     let mut exprs: Vec<(String, String)> = Vec::new();
     for item in raw_items {
@@ -25341,7 +25360,7 @@ fn exec_sql_aggregate_select(
                 if split_top_level_comma(argument).len() != 1 {
                     return None;
                 }
-                let extremum = eval_sql_group_expr(expr, cols, grp, tables, 0);
+                let extremum = eval_sql_group_expr(expr, cols, grp, tables, 0, overflow);
                 grp.iter().position(|row| {
                     let value = eval_sql_row_expr(argument, cols, row, tables);
                     value != SQL_NULL
@@ -25357,7 +25376,9 @@ fn exec_sql_aggregate_select(
             if eu.contains("OVER (") || eu.contains("OVER(") {
                 row_vals.push(String::new());
             } else {
-                row_vals.push(eval_sql_group_expr(e, cols, grp, tables, source_row));
+                row_vals.push(eval_sql_group_expr(
+                    e, cols, grp, tables, source_row, overflow,
+                ));
             }
         }
         if let Some(hc) = having_clause {
@@ -25374,7 +25395,7 @@ fn exec_sql_aggregate_select(
                 })
                 .collect();
             let ext_grp_refs: Vec<&Vec<String>> = ext_grp.iter().collect();
-            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs, tables, source_row) {
+            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs, tables, source_row, overflow) {
                 continue;
             }
         }
@@ -25444,6 +25465,7 @@ fn exec_sql_aggregate_select(
                 &out_grps[row_i].0,
                 tables,
                 out_grps[row_i].1,
+                overflow,
             )
         };
 
@@ -25559,8 +25581,8 @@ fn exec_sql_aggregate_select(
                             rb.get(*idx).cloned().unwrap_or_default(),
                         ),
                         AggOrdTarget::Expr(expr_s) => (
-                            eval_sql_group_expr(expr_s, cols, &[ra], tables, 0),
-                            eval_sql_group_expr(expr_s, cols, &[rb], tables, 0),
+                            eval_sql_group_expr(expr_s, cols, &[ra], tables, 0, overflow),
+                            eval_sql_group_expr(expr_s, cols, &[rb], tables, 0, overflow),
                         ),
                     };
                     let va = va_owned.as_str();
@@ -25573,6 +25595,9 @@ fn exec_sql_aggregate_select(
                 std::cmp::Ordering::Equal
             });
         }
+    }
+    if overflow.get() {
+        return "\x00RAISE_ERR:integer overflow".to_string();
     }
     let hdr: Vec<String> = exprs.iter().map(|(_, alias)| alias.clone()).collect();
     let only_rows: Vec<Vec<String>> = out_rows.into_iter().map(|(_, r)| r).collect();
@@ -25623,6 +25648,7 @@ fn eval_sql_having(
     grp: &[&Vec<String>],
     tables: &BTreeMap<String, SqlTable>,
     source_row: usize,
+    overflow: &Cell<bool>,
 ) -> bool {
     let trimmed = hc.trim();
     if trimmed.starts_with('(') && find_matching_paren(trimmed) == Some(trimmed.len() - 1) {
@@ -25632,25 +25658,40 @@ fn eval_sql_having(
             grp,
             tables,
             source_row,
+            overflow,
         );
     }
     let upper = trimmed.to_ascii_uppercase();
     if let Some(or_p) = find_top_sql_bool_kw(&upper, " OR ") {
-        return eval_sql_having(&trimmed[..or_p], cols, grp, tables, source_row)
-            || eval_sql_having(&trimmed[or_p + 4..], cols, grp, tables, source_row);
+        return eval_sql_having(&trimmed[..or_p], cols, grp, tables, source_row, overflow)
+            || eval_sql_having(
+                &trimmed[or_p + 4..],
+                cols,
+                grp,
+                tables,
+                source_row,
+                overflow,
+            );
     }
     if let Some(and_p) = find_top_sql_bool_kw(&upper, " AND ") {
-        return eval_sql_having(&trimmed[..and_p], cols, grp, tables, source_row)
-            && eval_sql_having(&trimmed[and_p + 5..], cols, grp, tables, source_row);
+        return eval_sql_having(&trimmed[..and_p], cols, grp, tables, source_row, overflow)
+            && eval_sql_having(
+                &trimmed[and_p + 5..],
+                cols,
+                grp,
+                tables,
+                source_row,
+                overflow,
+            );
     }
     if upper.starts_with("NOT ") && !upper.starts_with("NOT EXISTS") && !upper.contains(" NOT IN (")
     {
-        return !eval_sql_having(&trimmed[4..], cols, grp, tables, source_row);
+        return !eval_sql_having(&trimmed[4..], cols, grp, tables, source_row, overflow);
     }
     for op in [">=", "<=", "!=", "<>", "=", ">", "<"] {
         if let Some((lhs, rhs)) = split_top_level_sql_cmp(trimmed, op) {
-            let lv = eval_sql_group_expr(lhs.trim(), cols, grp, tables, source_row);
-            let rv = eval_sql_group_expr(rhs.trim(), cols, grp, tables, source_row);
+            let lv = eval_sql_group_expr(lhs.trim(), cols, grp, tables, source_row, overflow);
+            let rv = eval_sql_group_expr(rhs.trim(), cols, grp, tables, source_row, overflow);
             let ord = match (lv.parse::<f64>(), rv.parse::<f64>()) {
                 (Ok(na), Ok(nb)) => na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal),
                 _ => lv.cmp(&rv),
@@ -27225,12 +27266,14 @@ fn eval_sql_group_expr(
     grp: &[&Vec<String>],
     tables: &BTreeMap<String, SqlTable>,
     source_row: usize,
+    overflow: &Cell<bool>,
 ) -> String {
     let s = expr.trim();
     // Split the lowest-precedence operator; concatenation binds above arithmetic.
     if let Some((sp, op)) = find_sql_binary_operator(s) {
-        let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row);
-        let rv_s = eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row);
+        let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row, overflow);
+        let rv_s =
+            eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row, overflow);
         if op == "||" {
             if lv_s == SQL_NULL || rv_s == SQL_NULL {
                 return SQL_NULL.to_string();
@@ -27293,10 +27336,10 @@ fn eval_sql_group_expr(
         let prefix_len = if is_type { 10 } else { 13 };
         let args = split_top_level_comma(&s[prefix_len..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_group_expr(doc_arg, cols, grp, tables, source_row);
+            let doc_s = eval_sql_group_expr(doc_arg, cols, grp, tables, source_row, overflow);
             let path_s = args
                 .get(1)
-                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row))
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row, overflow))
                 .unwrap_or_else(|| "$".to_string());
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
@@ -27338,10 +27381,11 @@ fn eval_sql_group_expr(
         let inner = s[5..s.len() - 4].trim();
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
-            let base_val = eval_sql_group_expr(base_expr, cols, grp, tables, source_row);
+            let base_val = eval_sql_group_expr(base_expr, cols, grp, tables, source_row, overflow);
             if base_val != SQL_NULL {
                 for (cond_s, then_val) in branches {
-                    let when_val = eval_sql_group_expr(cond_s, cols, grp, tables, source_row);
+                    let when_val =
+                        eval_sql_group_expr(cond_s, cols, grp, tables, source_row, overflow);
                     let matches = if let (Ok(bn), Ok(wn)) =
                         (base_val.parse::<f64>(), when_val.parse::<f64>())
                     {
@@ -27350,7 +27394,9 @@ fn eval_sql_group_expr(
                         base_val == when_val
                     };
                     if matches {
-                        return eval_sql_group_expr(then_val, cols, grp, tables, source_row);
+                        return eval_sql_group_expr(
+                            then_val, cols, grp, tables, source_row, overflow,
+                        );
                     }
                 }
             }
@@ -27359,26 +27405,33 @@ fn eval_sql_group_expr(
                 let cond_up = cond_s.to_ascii_uppercase();
                 let cond_ok = if let Some(is_null_p) = cond_up.rfind(" IS NULL") {
                     let target_e = cond_s[..is_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row, overflow);
                     v == SQL_NULL
                 } else if let Some(is_not_null_p) = cond_up.rfind(" IS NOT NULL") {
                     let target_e = cond_s[..is_not_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row, overflow);
                     v != SQL_NULL
                 } else {
-                    eval_sql_having(cond_s, cols, grp, tables, source_row)
+                    eval_sql_having(cond_s, cols, grp, tables, source_row, overflow)
                 };
                 if cond_ok {
-                    return eval_sql_group_expr(then_val, cols, grp, tables, source_row);
+                    return eval_sql_group_expr(then_val, cols, grp, tables, source_row, overflow);
                 }
             }
         }
-        return eval_sql_group_expr(else_opt.unwrap_or("NULL"), cols, grp, tables, source_row);
+        return eval_sql_group_expr(
+            else_opt.unwrap_or("NULL"),
+            cols,
+            grp,
+            tables,
+            source_row,
+            overflow,
+        );
     }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if !inner.to_ascii_uppercase().starts_with("SELECT ") {
-            return eval_sql_group_expr(inner, cols, grp, tables, source_row);
+            return eval_sql_group_expr(inner, cols, grp, tables, source_row, overflow);
         }
     }
     let empty_tables = tables;
@@ -27402,7 +27455,7 @@ fn eval_sql_group_expr(
             .copied()
             .filter(|r| eval_sql_where(w_cond, cols, &[], r, &empty_tables))
             .collect();
-        return eval_sql_group_expr(base_agg, cols, &filtered_grp, tables, 0);
+        return eval_sql_group_expr(base_agg, cols, &filtered_grp, tables, 0, overflow);
     }
     if upper.starts_with("PRINTF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
@@ -27410,7 +27463,7 @@ fn eval_sql_group_expr(
             let fmt_s = args[0].trim().trim_matches('\'').trim_matches('"');
             let eval_args: Vec<String> = args[1..]
                 .iter()
-                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row))
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row, overflow))
                 .collect();
             return eval_sql_printf(fmt_s, &eval_args);
         }
@@ -27419,7 +27472,7 @@ fn eval_sql_group_expr(
         let inner = &s[5..s.len() - 1];
         if let Some(as_pos) = inner.to_ascii_uppercase().rfind(" AS ") {
             let sub = inner[..as_pos].trim();
-            let val = eval_sql_group_expr(sub, cols, grp, tables, source_row);
+            let val = eval_sql_group_expr(sub, cols, grp, tables, source_row, overflow);
             if let Ok(n) = val.parse::<f64>() {
                 return (n as i64).to_string();
             }
@@ -27429,7 +27482,7 @@ fn eval_sql_group_expr(
     if upper.starts_with("ROUND(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
-            let raw_v = eval_sql_group_expr(first, cols, grp, tables, source_row);
+            let raw_v = eval_sql_group_expr(first, cols, grp, tables, source_row, overflow);
             if raw_v == SQL_NULL {
                 return SQL_NULL.to_string();
             }
@@ -27437,7 +27490,7 @@ fn eval_sql_group_expr(
             let digits = args
                 .get(1)
                 .and_then(|d| {
-                    eval_sql_group_expr(d, cols, grp, tables, source_row)
+                    eval_sql_group_expr(d, cols, grp, tables, source_row, overflow)
                         .parse::<i32>()
                         .ok()
                 })
@@ -27456,7 +27509,7 @@ fn eval_sql_group_expr(
     if (upper.starts_with("COALESCE(") || upper.starts_with("IFNULL(")) && upper.ends_with(')') {
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
-            let v = eval_sql_group_expr(arg, cols, grp, tables, source_row);
+            let v = eval_sql_group_expr(arg, cols, grp, tables, source_row, overflow);
             if v != SQL_NULL {
                 return v;
             }
@@ -27466,11 +27519,11 @@ fn eval_sql_group_expr(
     if upper.starts_with("IIF(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
         if args.len() >= 2 {
-            if eval_sql_having(args[0], cols, grp, tables, source_row) {
-                return eval_sql_group_expr(args[1], cols, grp, tables, source_row);
+            if eval_sql_having(args[0], cols, grp, tables, source_row, overflow) {
+                return eval_sql_group_expr(args[1], cols, grp, tables, source_row, overflow);
             }
             if let Some(f_arg) = args.get(2) {
-                return eval_sql_group_expr(f_arg, cols, grp, tables, source_row);
+                return eval_sql_group_expr(f_arg, cols, grp, tables, source_row, overflow);
             }
             return SQL_NULL.to_string();
         }
@@ -27533,8 +27586,8 @@ fn eval_sql_group_expr(
         let mut entries = Vec::new();
         let mut ai = 0usize;
         while ai + 1 < args.len() {
-            let k = eval_sql_group_expr(args[ai], cols, grp, tables, source_row);
-            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp, tables, source_row);
+            let k = eval_sql_group_expr(args[ai], cols, grp, tables, source_row, overflow);
+            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp, tables, source_row, overflow);
             let jv = parse_sql_arg_to_jval(&v_s, args[ai + 1]);
             entries.push((k, jv));
             ai += 2;
@@ -27546,7 +27599,7 @@ fn eval_sql_group_expr(
         let items: Vec<JVal> = args
             .into_iter()
             .map(|a| {
-                let v_s = eval_sql_group_expr(a, cols, grp, tables, source_row);
+                let v_s = eval_sql_group_expr(a, cols, grp, tables, source_row, overflow);
                 parse_sql_arg_to_jval(&v_s, a)
             })
             .collect();
@@ -27642,8 +27695,10 @@ fn eval_sql_group_expr(
             (false, raw_inner)
         };
         let mut any_float = false;
+        let mut integer_sum = Some(0i64);
         let mut seen_raw: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-        let mut nums: Vec<f64> = Vec::new();
+        let mut sum = 0.0;
+        let mut has_number = false;
         for r in grp {
             let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
             if v == SQL_NULL {
@@ -27652,22 +27707,32 @@ fn eval_sql_group_expr(
             if is_distinct && !seen_raw.insert(v.clone()) {
                 continue;
             }
-            if v.contains('.') {
-                any_float = true;
+            if !any_float {
+                if let Ok(n) = v.parse::<i64>() {
+                    integer_sum = integer_sum.and_then(|sum| sum.checked_add(n));
+                } else {
+                    any_float = true;
+                }
             }
             if let Ok(n) = v.parse::<f64>() {
-                nums.push(n);
+                sum += n;
+                has_number = true;
             }
         }
-        if nums.is_empty() {
+        if !has_number {
             return SQL_NULL.to_string();
         }
-        let sum: f64 = nums.into_iter().sum();
+        if !any_float {
+            return match integer_sum {
+                Some(sum) => sum.to_string(),
+                None => {
+                    overflow.set(true);
+                    SQL_NULL.to_string()
+                }
+            };
+        }
         if (sum - sum.round()).abs() < 1e-9 {
-            if any_float {
-                return format!("{sum:.1}");
-            }
-            return (sum.round() as i64).to_string();
+            return format!("{sum:.1}");
         }
         return sum.to_string();
     }

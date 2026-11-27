@@ -3469,8 +3469,11 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             idx += 1;
             continue;
         }
-        if stmt == "print" || stmt.starts_with("print ") || stmt.starts_with("print(") {
-            let rest = stmt.strip_prefix("print").unwrap_or("").trim();
+        if let Some(rest) = stmt
+            .strip_prefix("print")
+            .filter(|rest| !rest.starts_with(|c: char| c.is_ascii_alphanumeric() || c == '_'))
+        {
+            let rest = rest.trim();
             let (expr_part, redir) = split_awk_redirection(rest);
             let expr_trim = expr_part.trim();
             let mut line_out = String::new();

@@ -2489,7 +2489,10 @@ impl<'a> AwkState<'a> {
         } else if self.fs.is_empty() {
             awk_byte_fields(line)
         } else if self.fs.len() == 1 {
-            line.split(&self.fs).map(|s| s.to_string()).collect()
+            let separator = self.fs.chars().next().unwrap();
+            line.split(|c| c == separator || (self.rs.is_empty() && c == '\n'))
+                .map(str::to_owned)
+                .collect()
         } else {
             let rx = ZeroRegex::awk(&self.fs);
             let spans = rx.find_all(line);

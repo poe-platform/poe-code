@@ -3014,20 +3014,8 @@ fn run_awk<'a>(
                         }
                     }
                     AwkCond::Range(start_e, end_e) => {
-                        let active = if !r.in_range {
-                            if eval_awk_cond(start_e, &mut state) {
-                                r.in_range = true;
-                                true
-                            } else {
-                                false
-                            }
-                        } else {
-                            if eval_awk_cond(end_e, &mut state) {
-                                r.in_range = false;
-                            }
-                            true
-                        };
-                        if active {
+                        if r.in_range || eval_awk_cond(start_e, &mut state) {
+                            r.in_range = !eval_awk_cond(end_e, &mut state);
                             exec_awk_statements(&r.body, &mut state);
                         }
                     }

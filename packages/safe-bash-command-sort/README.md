@@ -1,7 +1,7 @@
 # Safe Bash sort
 
 Sort byte records in an injected virtual filesystem, with stable sorting, keys,
-numeric and locale modes, duplicate elimination, order checking and merging.
+numeric, random and locale modes, duplicate elimination, order checking and merging.
 
 ```ts
 import { sortCommands } from "safe-bash-command-sort";
@@ -12,7 +12,9 @@ shell.use(sortCommands());
 command options used by `sort` in Safe Bash.
 
 Use `sort -c` / `-C` to check order with one preceding record, `sort -m`
-to merge ordered sources, and `sort -u` to suppress equal keys. General sorting
+to merge ordered sources, and `sort -u` to suppress equal keys.
+Use `sort -R`, `--random-sort` or `--sort=random` to randomize key order while
+keeping equal keys together. General sorting
 spills sorted runs through the caller's injected safe-fs when its batch fills.
 Output preserves input bytes and supports retained output aliases with `-o`.
 

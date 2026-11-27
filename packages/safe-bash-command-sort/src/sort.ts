@@ -11,6 +11,7 @@ import { SortRecord, SortStorage, readRecords } from "./records.js";
 import { SortRuns } from "./runs.js";
 import { mergeRecords } from "./merge.js";
 import { resolveSortLimits, type SortCommandsOptions } from "./options.js";
+import { randomSortHash } from "./random.js";
 import { compareLargeKeys } from "./record-compare.js";
 
 function sortCollator(env: Readonly<Record<string, string>>): Intl.Collator | undefined {
@@ -203,7 +204,7 @@ function sortKey(specification: string): SortKey {
     let character: number | undefined;
     let blanks = false;
     if (specification[offset] === ".") { offset++; character = position(minimumCharacter); }
-    while (specification[offset] !== undefined && "bdfghiMnrV".includes(specification[offset]!)) {
+    while (specification[offset] !== undefined && "bdfghiMnrRV".includes(specification[offset]!)) {
       const flag = specification[offset++]!;
       flags.add(flag);
       if (flag === "b") blanks = true;
@@ -353,6 +354,7 @@ const SORT_LONG_OPTIONS = Object.freeze({
   "general-numeric-sort": "g",
   "month-sort": "M",
   "version-sort": "V",
+  "random-sort": "R",
   "dictionary-order": "d",
   "ignore-nonprinting": "i",
   merge: "m",
@@ -378,6 +380,7 @@ const SORT_MODE_FLAGS: Readonly<Record<string, string>> = Object.freeze({
   "human-numeric": "h",
   month: "M",
   version: "V",
+  random: "R",
 });
 
 async function keyBytes(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Promise<Uint8Array> {
@@ -467,7 +470,7 @@ async function executeSort(context: CommandContext, settings: SortCommandsOption
         return argument;
       })
     : context.args;
-  const parsed = options(args, "hngMVdimrfbuszt:k:o:cCS:", SORT_LONG_OPTIONS);
+  const parsed = options(args, "hngMRVdimrfbuszt:k:o:cCS:", SORT_LONG_OPTIONS);
   if (parsed.flags.has("c") && parsed.flags.has("C")) throw new UsageError("options '-cC' are incompatible");
   const checking = parsed.flags.has("c") || parsed.flags.has("C");
   if (checking && parsed.operands.length > 1) throw new UsageError(`extra operand '${parsed.operands[1]}' not allowed with -${parsed.flags.has("C") ? "C" : "c"}`);
@@ -485,16 +488,17 @@ async function executeSort(context: CommandContext, settings: SortCommandsOption
   const keys = (parsed.values.get("k") ?? []).map(sortKey);
   for (const key of keys.length ? keys : [undefined]) {
     const flags = key?.flags.size ? key.flags : parsed.flags;
-    const modes = ["g", "h", "M", "n", "V"].filter(flag => flags.has(flag));
+    const modes = ["g", "h", "M", "n", "R", "V"].filter(flag => flags.has(flag));
     const nontextual = ["g", "h", "M", "n"].some(flag => flags.has(flag));
     if (modes.length > 1 || nontextual && (flags.has("d") || flags.has("i"))) {
-      const incompatible = ["d", "g", "h", "i", "M", "n", ...(modes.length > 1 ? ["V"] : [])].filter(flag => flags.has(flag));
+      const incompatible = ["d", "g", "h", "i", "M", "n", ...(modes.length > 1 ? ["R", "V"] : [])].filter(flag => flags.has(flag));
       throw new UsageError(`options '-${incompatible.join("")}' are incompatible`);
     }
   }
   const limits = resolveSortLimits(settings.limits, parsed);
   const collator = sortCollator(context.env);
-  const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "V", "d", "i"].some(flag => parsed.flags.has(flag));
+  const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "R", "V", "d", "i"].some(flag => parsed.flags.has(flag));
+  const randomSeed = parsed.flags.has("R") || keys.some(key => key.flags.has("R")) ? Math.floor(Math.random() * 0x100000000) : 0;
   const direction = parsed.flags.has("r") ? -1 : 1;
   const work = new SortWork(context.signal);
   const decoder = collator ? new TextDecoder("utf-8", { fatal: true }) : undefined;
@@ -527,7 +531,10 @@ async function executeSort(context: CommandContext, settings: SortCommandsOption
           if (flags.has("f")) { first = await foldSortBytes(first, work); second = await foldSortBytes(second, work); }
           if (flags.has("d") || flags.has("i")) { first = await filterSortBytes(first, flags.has("d"), work); second = await filterSortBytes(second, flags.has("d"), work); }
           let result: number;
-          if (flags.has("g")) {
+          if (flags.has("R")) {
+            result = await randomSortHash([first], randomSeed, work) - await randomSortHash([second], randomSeed, work)
+              || await compareSortBytes(first, second, work);
+          } else if (flags.has("g")) {
             const a = await generalNumericValue(first, work), b = await generalNumericValue(second, work);
             result = a.rank - b.rank || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0);
           } else if (flags.has("M")) result = await monthValue(first, work) - await monthValue(second, work);
@@ -547,7 +554,7 @@ async function executeSort(context: CommandContext, settings: SortCommandsOption
     active.signal.throwIfAborted();
     if (simple && !collator) return (await compareRecordBytes(left, right, work)) * direction;
     if (left.length > resources.recordBytes || right.length > resources.recordBytes) {
-      return compareLargeKeys(left, right, keys, parsed.flags, separator, work, resources,
+      return compareLargeKeys(left, right, keys, parsed.flags, separator, work, resources, randomSeed,
         collator ? (a, b) => compareText(a, b, work) : undefined);
     }
     return keyBytesCompare(await left.materialize(), await right.materialize());

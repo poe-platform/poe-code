@@ -368,3 +368,69 @@ test("early output retirement closes every record even when one close fails", as
     assert.deepEqual(closed, [1, 2, 3]);
   } finally { await storage.close(); }
 });
+
+for (const flag of ["-R", "--random-sort", "--sort=random"]) {
+  test(`random sort preserves records and groups duplicates (${flag})`, async () => {
+    const ctx = await context([flag]);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource("a\nb\na\nc\nb\n") });
+    assert.equal(result.exitCode, 0, Buffer.concat(ctx.errors).toString());
+    const lines = Buffer.concat(ctx.output).toString().trimEnd().split("\n");
+    assert.deepEqual([...lines].sort(), ["a", "a", "b", "b", "c"]);
+    assert.equal(lines.lastIndexOf("a") - lines.indexOf("a"), 1);
+    assert.equal(lines.lastIndexOf("b") - lines.indexOf("b"), 1);
+  });
+}
+
+test("random sort uses a new seed per invocation and respects reverse order", async t => {
+  let seed = 0;
+  t.mock.method(Math, "random", () => seed);
+  const input = "a\nb\nc\nd\ne\nf\ng\nh\n";
+  const outputs: string[] = [];
+  for (const [nextSeed, args] of [[0.1, ["-R"]], [0.8, ["-R"]], [0.1, ["-Rr"]]] as const) {
+    seed = nextSeed;
+    const ctx = await context(args);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource(input) });
+    assert.equal(result.exitCode, 0);
+    outputs.push(Buffer.concat(ctx.output).toString());
+  }
+  assert.notEqual(outputs[0], outputs[1]);
+  assert.equal(outputs[2], outputs[0]!.trimEnd().split("\n").reverse().join("\n") + "\n");
+});
+
+test("random keys preserve stable groups and unique keys across spilled runs", async t => {
+  t.mock.method(Math, "random", () => 0.25);
+  const lines = Array.from({ length: 80 }, (_, index) => `${index % 4}:${"x".repeat(4000)}:${index}`);
+  for (const unique of [false, true]) {
+    const ctx = await context(["-S1M", "-t:", "-k1,1R", unique ? "-u" : "-s"]);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource(lines.join("\n") + "\n") });
+    assert.equal(result.exitCode, 0, Buffer.concat(ctx.errors).toString());
+    const output = Buffer.concat(ctx.output).toString().trimEnd().split("\n");
+    const groups = [...new Set(output.map(line => line[0]))];
+    assert.equal(groups.length, 4);
+    assert.deepEqual(output, groups.flatMap(key => {
+      const matching = lines.filter(line => line[0] === key);
+      return unique ? matching.slice(0, 1) : matching;
+    }));
+    assert.deepEqual(await ctx.fs.readdir("/work"), []);
+  }
+});
+
+test("random ordering is identical for resident and oversized records", async t => {
+  t.mock.method(Math, "random", () => 0.5);
+  const lines = ["a", "b", "c", "a"].map(key => key + "x".repeat(8000));
+  const outputs: string[] = [];
+  for (const budget of ["1M", "8M"]) {
+    const ctx = await context(["-R", "-S", budget]);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource(lines.join("\n") + "\n") });
+    assert.equal(result.exitCode, 0, Buffer.concat(ctx.errors).toString());
+    outputs.push(Buffer.concat(ctx.output).toString());
+  }
+  assert.equal(outputs[0], outputs[1]);
+});
+
+test("random and numeric ordering are incompatible", async () => {
+  const ctx = await context(["-Rn"]);
+  const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource("1\n2\n") });
+  assert.equal(result.exitCode, 2);
+  assert.match(Buffer.concat(ctx.errors).toString(), /incompatible/);
+});

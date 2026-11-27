@@ -1,6 +1,7 @@
 import { compareByteArrays } from "safe-bash-io-engine/byte-encoding";
 import { SortRecord, type SortStorage } from "./records.js";
 import type { SortKey } from "./sort.js";
+import { randomSortHash } from "./random.js";
 import type { SortWork } from "./work.js";
 
 /** Each cursor caches at most one page, including while scanning a huge key. */
@@ -283,7 +284,7 @@ async function versions(left: View, right: View): Promise<number> {
 
 export async function compareLargeKeys(
   left: SortRecord, right: SortRecord, keys: readonly SortKey[], globalFlags: ReadonlySet<string>, separator: number | undefined,
-  work: SortWork, resources: SortStorage, locale?: (left: Uint8Array, right: Uint8Array) => number | Promise<number>,
+  work: SortWork, resources: SortStorage, randomSeed: number, locale?: (left: Uint8Array, right: Uint8Array) => number | Promise<number>,
 ): Promise<number> {
   for (const key of keys.length ? keys : [undefined]) {
     const flags = key?.flags.size ? key.flags : globalFlags;
@@ -301,7 +302,8 @@ export async function compareLargeKeys(
       second = await transformed(b, flags, resources);
       a = first.view; b = second.view;
       let order: number;
-      if (flags.has("g")) { const x = await generalNumeric(a), y = await generalNumeric(b); order = x.rank - y.rank || (x.value < y.value ? -1 : x.value > y.value ? 1 : 0); }
+      if (flags.has("R")) order = await randomSortHash(a.chunks(), randomSeed, work) - await randomSortHash(b.chunks(), randomSeed, work) || await bytesCompare(a, b);
+      else if (flags.has("g")) { const x = await generalNumeric(a), y = await generalNumeric(b); order = x.rank - y.rank || (x.value < y.value ? -1 : x.value > y.value ? 1 : 0); }
       else if (flags.has("M")) order = await month(a) - await month(b);
       else if (flags.has("V")) order = await versions(a, b);
       else if (flags.has("n") || flags.has("h")) order = await numericCompare(a, b, flags.has("h"));

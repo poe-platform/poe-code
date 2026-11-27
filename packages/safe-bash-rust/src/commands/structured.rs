@@ -2587,7 +2587,12 @@ fn try_eval_jq_builtin(
             }
         }
         "floor" | "ceil" | "round" | "abs" | "fabs" | "sqrt" => {
-            if let JVal::Number(n, _) = input {
+            if let JVal::Number(n, literal) = input {
+                if s == "abs"
+                    && jq_number::compare(*n, literal.as_deref(), 0.0, Some("0")).is_ge()
+                {
+                    return Ok(Some(vec![input.clone()]));
+                }
                 let res = match s {
                     "floor" => n.floor(),
                     "ceil" => n.ceil(),

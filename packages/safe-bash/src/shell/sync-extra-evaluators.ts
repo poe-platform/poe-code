@@ -1,5 +1,6 @@
 import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
 import { protectedReadArrays } from "./variable-target.js";
+import { dynamicVariableNames } from "./dynamic-variables.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { escapeText, writeDiagnostic } from "../escaping.js";
@@ -352,7 +353,7 @@ const sharedCaptureDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
 let cachedCaptureAsciiLen = 0;
 let cachedCaptureAsciiStr = "";
-const printfSlowTargets = new Set([...controlNames, ...protectedReadArrays, "RANDOM", "SECONDS", "PIPESTATUS", "_"]);
+const printfSlowTargets = new Set([...controlNames, ...protectedReadArrays, "PIPESTATUS", "_"]);
 const syncRestorationCharge = { epoch: true, metadata: 64, work: 8 } as const;
 const syncRestorationTickets = { generation: 0, version: 0, epoch: 0 };
 const syncPipeStatusCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
@@ -1036,6 +1037,7 @@ export function resolveSimpleArithOperand(tok: string, rawState: State, monitor:
     return Number(elemVal);
   }
   tok = resolveSyncNameref(rawState, tok);
+  if (dynamicVariableNames.has(tok)) return undefined;
   // These values come from execution context or lazy shell bindings, not raw variables.
   // Decline after resolving namerefs so aliases use the same full evaluator.
   if (tok === "LINENO" || tok === "_" || tok === "FUNCNAME" || tok === "BASH_SOURCE" || tok === "PIPESTATUS") return undefined;
@@ -3991,6 +3993,7 @@ const syncExtraRuntimeMethods = {
           return undefined;
         }
         const stMon = stateMonitor(this._syncArithState!);
+        if (dynamicVariableNames.has(reference)) throw new ArrayFailure("dynamic variable in sync arithmetic");
         if (stMon && (stMon.hasOverlay(reference) || stMon.store?.watches.has(reference))) throw new ArrayFailure("watched or overlaid variable in sync arithmetic");
         if (arrayStore(this._syncArithState!)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
         const value = this._syncArithRawVars![reference]
@@ -4089,7 +4092,7 @@ const syncExtraRuntimeMethods = {
       case "name": {
         const effName = resolveSyncNameref(state, tree.name);
         if (state.readonlyVariables?.has(effName)) return false;
-        if (effName === "OPTIND" || effName === "PIPESTATUS" || effName === "RANDOM" || effName === "SECONDS") return false;
+        if (effName === "OPTIND" || effName === "PIPESTATUS" || dynamicVariableNames.has(effName)) return false;
         const monitor = stateMonitor(state);
         if (monitor?.hasOverlay(effName) || monitor?.store?.watches.has(effName)) return false;
         if (tree.subscript !== undefined) {
@@ -4698,7 +4701,7 @@ const syncExtraRuntimeMethods = {
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
       let resolvedPart = word.parts[i]!;
-      if (resolvedPart.kind === "variable" && (resolveSyncNameref(rawState, resolvedPart.name) === "RANDOM" || resolveSyncNameref(rawState, resolvedPart.name) === "SECONDS")) return undefined;
+      if (resolvedPart.kind === "variable" && dynamicVariableNames.has(resolveSyncNameref(rawState, resolvedPart.name))) return undefined;
       if (resolvedPart.kind === "variable" && !resolvedPart.prefixNames && rawState.variableAttributes?.get(resolvedPart.name)?.includes("n")) {
         if (resolvedPart.indirect) return undefined;
         const resolvedName = resolveSyncNameref(rawState, resolvedPart.name);
@@ -4746,6 +4749,7 @@ const syncExtraRuntimeMethods = {
           if (typeof refName !== "string") return undefined;
           let targetVal: ShellValue | undefined;
           if (isShellIdentifier(refName)) {
+            if (dynamicVariableNames.has(refName)) return undefined;
             if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "DIRSTACK") {
               return undefined;
             }
@@ -5498,7 +5502,7 @@ const syncExtraRuntimeMethods = {
       const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
-        if (p.name === "BASH_SUBSHELL" || p.name === "BASHPID" || p.name === "RANDOM" || p.name === "SECONDS") return false;
+        if (p.name === "BASH_SUBSHELL" || p.name === "BASHPID" || dynamicVariableNames.has(p.name)) return false;
         if ( !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined && (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))) {
           const activePos = this._fastSubPositional ?? rawState.positional;
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
@@ -8670,7 +8674,7 @@ const syncExtraRuntimeMethods = {
           continue;
         }
         if (p.kind === "variable") {
-          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.length || p.substring !== undefined || p.transform !== undefined || p.operator !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || controlNames.has(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "_" || store?.get(p.name) || rawState.variableAttributes?.get(p.name)) {
+          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.length || p.substring !== undefined || p.transform !== undefined || p.operator !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || controlNames.has(p.name) || p.name === "LINENO" || dynamicVariableNames.has(p.name) || p.name === "_" || store?.get(p.name) || rawState.variableAttributes?.get(p.name)) {
             return false;
           }
           if (!out.includes(p.name)) out.push(p.name);
@@ -12571,7 +12575,7 @@ const syncExtraRuntimeMethods = {
         // Unsubscripted array references expand element zero through the normal
         // evaluator. fastValueWord cannot guarantee that expansion throughout
         // a loop, so reject it before executing any loop effects.
-        if (part.name === "RANDOM" || part.name === "SECONDS" || part.name === "BASHPID" || stateMonitor(rawState)?.store?.get(part.name)) return false;
+        if (dynamicVariableNames.has(part.name) || part.name === "BASHPID" || stateMonitor(rawState)?.store?.get(part.name)) return false;
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
@@ -14945,7 +14949,7 @@ const syncExtraRuntimeMethods = {
           const p = w.parts[pi]!;
           if (p.kind === "text") continue;
           if (p.kind !== "variable") return false;
-          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.transform !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "EPOCHSECONDS" || p.name === "EPOCHREALTIME" || p.name === "_") {
+          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.transform !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || p.name === "LINENO" || dynamicVariableNames.has(p.name) || p.name === "_") {
             return false;
           }
           outReads.add(p.name);

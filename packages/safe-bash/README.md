@@ -772,6 +772,10 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 sequences. `SECONDS` tracks elapsed whole seconds and accepts a new starting
 value. Assignments through arithmetic, `read`, and `printf -v` retain these
 behaviors; unsetting either variable removes its special behavior.
+`EPOCHSECONDS` and `EPOCHREALTIME` read the current Unix time; `EPOCHREALTIME`
+uses six fractional digits with millisecond clock resolution. `SRANDOM` reads
+cryptographic random integers from 0 through 4294967295. Assignments to these
+three variables have no effect until `unset` removes their special behavior.
 
 HTML, YAML, CSV and XML query limits, plus `xan`, `bc`, `less`, `sponge`, SafeJS
 and LLM provider quotas accept `Infinity`; explicit `undefined` retains the default.

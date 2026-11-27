@@ -1,11 +1,12 @@
 import { bytesToHex } from "../../byte-encoding.js";
+import { dynamicVariableNames } from "../dynamic-variables.js";
 import { Admission, ArrayFailure, ArrayOwner, exactSum } from "./ledger.js";
 import type { Tickets } from "./ledger.js";
 import { shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueRetainedBytes, shellValueText } from "../../contracts/value.js";
 import type { ShellValue } from "../../contracts/value.js";
 
 export const controlNames: ReadonlySet<string> = new Set([
-  "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "REPLY", "LANG", "LC_ALL", "LC_CTYPE", "RANDOM", "SECONDS", "LINENO", "BASH_ARGV0",
+  "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "REPLY", "LANG", "LC_ALL", "LC_CTYPE", ...dynamicVariableNames, "LINENO", "BASH_ARGV0",
 ]);
 
 export class OwnedText {

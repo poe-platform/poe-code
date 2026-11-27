@@ -1,3 +1,7 @@
+export const dynamicVariableNames: ReadonlySet<string> = new Set([
+  "RANDOM", "SECONDS", "EPOCHSECONDS", "EPOCHREALTIME", "SRANDOM",
+]);
+
 /** Primitive fields keep dynamic bindings independent when shell state is forked. */
 export interface DynamicVariableState {
   arg0?: string;
@@ -6,6 +10,9 @@ export interface DynamicVariableState {
   randomDisabled?: boolean;
   secondsOrigin?: number;
   secondsDisabled?: boolean;
+  epochSecondsDisabled?: boolean;
+  epochRealtimeDisabled?: boolean;
+  srandomDisabled?: boolean;
 }
 
 export function writeDynamicVariable(state: DynamicVariableState, name: string, value: string): void {
@@ -20,6 +27,16 @@ export function writeDynamicVariable(state: DynamicVariableState, name: string, 
 }
 
 export function readDynamicVariable(state: DynamicVariableState, name: string): string | undefined {
+  if (name === "EPOCHSECONDS" && !state.epochSecondsDisabled) {
+    return String(Math.floor(Date.now() / 1000));
+  }
+  if (name === "EPOCHREALTIME" && !state.epochRealtimeDisabled) {
+    const now = Date.now();
+    return `${Math.floor(now / 1000)}.${String(now % 1000).padStart(3, "0")}000`;
+  }
+  if (name === "SRANDOM" && !state.srandomDisabled) {
+    return String(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]);
+  }
   if (name === "RANDOM" && !state.randomDisabled) {
     // Park–Miller's bounded integer state gives repeatable seeded sequences.
     const seed = ((state.randomSeed ?? 1) * 16807) % 2147483647;

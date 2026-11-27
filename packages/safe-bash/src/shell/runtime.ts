@@ -71,7 +71,7 @@ import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, 
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
-import { readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
+import { dynamicVariableNames, readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
 import { shellOptions } from "./options.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
 import { mapfileHelp } from "./mapfile-help.js";
@@ -2997,6 +2997,9 @@ export class Runtime {
     if (name === "GLOBIGNORE") state.dotglob = false;
     if (name === "RANDOM") state.randomDisabled = true;
     if (name === "SECONDS") state.secondsDisabled = true;
+    if (name === "EPOCHSECONDS") state.epochSecondsDisabled = true;
+    if (name === "EPOCHREALTIME") state.epochRealtimeDisabled = true;
+    if (name === "SRANDOM") state.srandomDisabled = true;
     if (name === "BASH_ARGV0") state.bashArgv0Disabled = true;
     state.exported.delete(name);
     state.variableAttributes?.delete(name);
@@ -3147,7 +3150,7 @@ export class Runtime {
         this.signal.throwIfAborted();
         const name = typeof key === "string" ? this.referenceName(state, key) : key;
         if (arrayStore(state)?.get(String(name))) throw new ArrayFailure("indexed arithmetic is unsupported");
-        const value = (typeof name === "string" && (name === "RANDOM" || name === "SECONDS") ? this.variable(state, name) : Reflect.get(target, name))
+        const value = (typeof name === "string" && dynamicVariableNames.has(name) ? this.variable(state, name) : Reflect.get(target, name))
           ?? (name === "LINENO" ? String(line ?? 1)
             : name === "_" ? state.lastArgument ?? ""
             : name === "FUNCNAME" ? state.functionNames?.[0]
@@ -3183,7 +3186,7 @@ export class Runtime {
     name = this.referenceName(state, name);
     if (name === "$" || name === "BASHPID") return "1";
     if (name === "!") return "";
-    if (name === "RANDOM" || name === "SECONDS") return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
+    if (dynamicVariableNames.has(name)) return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
     if (name === "DIRSTACK") return state.logicalCwd ?? state.cwd;
@@ -10588,7 +10591,7 @@ export class Runtime {
         const name = this.referenceName(state, part.name);
         const binding = arrayStore(state)?.get(name);
         const index = binding?.associative ? binding.keys.get("30")?.index ?? -1 : 0;
-        retained = name === "RANDOM" || name === "SECONDS" || name === "LINENO" ? value : binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
+        retained = dynamicVariableNames.has(name) || name === "LINENO" ? value : binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
       } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {

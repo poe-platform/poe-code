@@ -1,5 +1,11 @@
 # Env replacement and pinned ordering
 
+Current tests use GNU/Linux insertion order: append new names and preserve the
+positions of replaced names. `order.test.ts` covers the same 23 scenarios with
+expectations verified against GNU coreutils 9.4 on Linux. `native-order.json` and
+the checkpoints below preserve the earlier Darwin/gnulib observations; those
+prepend-new results are no longer the current compatibility target.
+
 ## Integrated frozen checkpoint
 
 Sagan runtime954f230 integrates the contract/core caller below. At that exact

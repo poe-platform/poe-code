@@ -11,4 +11,6 @@ shell.use(envCommands());
 const result = await shell.exec("env --help");
 ```
 
+New variables are appended in assignment order, matching GNU/Linux `env`. Replacing an existing value keeps its position, including when the environment is passed to a child command.
+
 The module also exports `createEnvCommand`, its command-list factory, and typed options and limits.

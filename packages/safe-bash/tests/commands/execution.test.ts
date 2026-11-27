@@ -181,6 +181,18 @@ test("xargs replacement defaults to echo without arguments and preserves trailin
   assert.equal(result.stdout, "<a  >\n<b\t>\n<c    >\n<d \t>\n<e  f  >\n");
 });
 
+for (const args of [["-I", "{}"], ["-I{}"], ["--replace"], ["-i"]]) {
+  test(`xargs replacement with default echo omits input arguments: ${args.join(" ")}`, async () => {
+    for (const [stdin, stdout] of [["a b\n", "\n"], ["x\ny\n", "\n\n"], ["", ""]]) {
+      const result = await run("xargs", args, { stdin: chunks(stdin) });
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(evalSyncXargs(new TextEncoder().encode(stdin), args), stdout);
+    }
+  });
+}
+
 for (const ending of ["\n", ""]) {
   const stdin = " \t\n  a/b  \n\t a  b\t" + ending;
   const expected = "<a/b  >\n<a  b\t>\n";

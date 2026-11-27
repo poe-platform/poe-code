@@ -89,7 +89,6 @@ import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
-import { descriptorFileSystem, descriptorPath } from "./descriptor-filesystem.js";
 export function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
@@ -1898,7 +1897,6 @@ export async function restoreVariable(state: State, name: string, saved: SavedVa
 
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
->>>>>>> c989122e7c (fix(safe-bash): resolve descriptor paths in command file operands)
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;

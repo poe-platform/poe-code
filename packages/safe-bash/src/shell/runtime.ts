@@ -10347,6 +10347,10 @@ export class Runtime {
         return tempPath;
       }
       await this.sourceFs.writeFile(tempPath, new Uint8Array(0));
+      // Retain inherited pipes before the parent command redirects or closes them.
+      const references = new PipeDescriptorFrame(io[invocationScope]);
+      const inheritedIO = isolateIO({
+        ...io, stdin: closedSource, stdinIsDefault: false, processSubstitutions: undefined, }, references);
       io.processSubstitutions?.push(async () => {
         let bytes: Uint8Array = new Uint8Array(0);
         try {
@@ -10369,9 +10373,7 @@ export class Runtime {
         const lifetime = new DescriptorLifetime(async () => {
           try { await input.close(); }
           finally { await prepared.close(); }});
-        const references = new PipeDescriptorFrame(io[invocationScope]);
-        const childIO = isolateIO({
-          ...io, stdin: input, stdinIsDefault: false, processSubstitutions: undefined, }, references);
+        const childIO = { ...inheritedIO, stdin: input };
         (childIO.descriptors as Map<number, Descriptor>).set(0, { input, stdinIsDefault: false, lifetime });
         try {
           await this.run(part.script, child, childIO);

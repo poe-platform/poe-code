@@ -5,6 +5,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { createDiffPatchCommands } from "../../src/commands/diff-patch/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 
 function createShell(): Shell {
   return new Shell({
@@ -14,6 +15,19 @@ function createShell(): Shell {
 }
 
 describe("process substitution", () => {
+  for (const [script, stdout] of [
+    ["echo a > >(cat) | cat; echo st=$?", "a\nst=0\n"],
+    ["echo a | tee >(sed s/a/b/) >/dev/null | cat; echo st=$?", "b\nst=0\n"],
+  ] as const) {
+    it(`preserves inherited pipeline output: ${script}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+      const result = await shell.exec(script);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.exitCode, 0);
+    });
+  }
+
   it("supports <(cmd) as command arguments (e.g. diff)", async () => {
     const shell = createShell();
     const result = await shell.exec("diff <(printf \"a\\n\") <(printf \"b\\n\")");

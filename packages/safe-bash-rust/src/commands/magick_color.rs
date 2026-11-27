@@ -336,8 +336,7 @@ impl super::png_pixels::Raster {
         let g = if gamma < 0.1 { 0.1 } else { gamma };
         self.map_rgb(|v| {
             if g.is_nan() { return 0; }
-            let first = (255. * (v / 255.).powf(g)).floor();
-            (255. * (first / 255.).powf(1. / g)).floor() as u8
+            (255. * (v / 255.).powf(1. / g)).round() as u8
         });
     }
 

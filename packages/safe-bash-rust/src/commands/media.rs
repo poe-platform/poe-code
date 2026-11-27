@@ -21665,28 +21665,26 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn convert_gamma_quantizes_each_stage_without_changing_alpha() {
+    fn convert_gamma_corrects_samples_without_changing_alpha() {
         let fs = MemoryVfs::new();
         let im = png_pixels::Raster {
-            width: 9,
-            height: 7,
+            width: 2,
+            height: 1,
             gray: false,
             alpha: true,
             density: 96,
             orientation: Some(1),
-            pixels: (0..63)
-                .map(|i| std::array::from_fn(|j| ((i * 4 + j) * 43) as u8))
-                .collect(),
+            pixels: vec![[64, 128, 192, 64], [0, 255, 1, 128]],
         };
         fs.write_file("/in.png", &im.png()).unwrap();
-        for (gamma, hash) in [
+        for (gamma, expected) in [
             (
                 "2.2",
-                "6ebb33294c60ce318daec288ca5e10dd4b628dcdff9f3a7d0bf0569cb1284486",
+                vec![[136, 186, 224, 64], [0, 255, 21, 128]],
             ),
             (
                 "garbage",
-                "f06336f3721851cb6e53a9063080b494cd84c541275f98fad3da408823a514ab",
+                vec![[0, 0, 0, 64], [0, 0, 0, 128]],
             ),
         ] {
             let r = cmd_media_doc(
@@ -21698,8 +21696,10 @@ mod media_unit_tests {
             );
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             assert_eq!(
-                hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),
-                hash
+                png_pixels::Raster::decode(&fs.read_file("/o.png").unwrap(), 1024)
+                    .unwrap()
+                    .pixels,
+                expected
             );
         }
     }

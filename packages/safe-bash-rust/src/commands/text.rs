@@ -1948,17 +1948,17 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::NextAppend => {
-                if let Err(e) = queue.flush(out, rec_term) {
-                    return SedFlow::Error(e);
-                }
                 if *line_idx + 1 < total {
+                    if let Err(e) = queue.flush(out, rec_term) {
+                        return SedFlow::Error(e);
+                    }
                     *line_idx += 1;
                     pattern_space.text.push(rec_term);
                     pattern_space.text.push_str(records[*line_idx].1);
                     pattern_space.unterminated = records[*line_idx].2;
                     *subst_made = false;
                 } else {
-                    return SedFlow::Delete;
+                    return SedFlow::Branch(None);
                 }
             }
             SedOp::Branch(lbl) => {

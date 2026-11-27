@@ -311,3 +311,37 @@ test("concurrent sed file writes preserve small batches with different record wi
     assert.equal(new TextDecoder().decode(await fs.readFile("/output")), input);
   }));
 });
+
+for (const [args, input, expected] of [
+  [["N;s/\\n/-/"], "a\nb\nc\n", "a-b\nc\n"],
+  [["aX\nN"], "a\nb\nc\n", "X\na\nb\nc\nX\n"],
+  [["-n", "aX\nN"], "a\nb\nc\n", "X\nX\n"],
+  [["N;s/\\n/-/"], "a\nb\nc", "a-b\nc"],
+  [["N;s/\\n/-/"], "a\nb\n", "a-b\n"],
+  [["N;s/\\n/-/"], "", ""],
+  [["N;s/c/changed/"], "c\n", "c\n"],
+  [["{N;};s/c/changed/"], "c\n", "c\n"],
+  [["-n", "N;s/\\n/-/p"], "a\nb\nc\n", "a-b\n"],
+  [["-n", "{N;};p"], "c\n", ""],
+  [["N;N;s/a/changed/"], "a\nb", "a\nb"],
+  [["n;s/./changed/"], "c\n", "c\n"],
+  [["-z", "N"], "a\0b\0c\0", "a\0b\0c\0"],
+  [["-z", "N"], "a\0b\0c", "a\0b\0c"],
+] as const) {
+  test(`sed next-record EOF ${JSON.stringify({ args, input })}`, async () => {
+    const result = await run(createSedCommand(), [...args], input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+test("sed next-record EOF preserves the last in-place record", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a\nb\nc\n"));
+  const result = await run(createSedCommand(), ["-i", "N;s/\\n/-/", "/input"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a-b\nc\n");
+});

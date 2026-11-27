@@ -900,8 +900,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             else if ((await peekNextRecord()) !== undefined) { const p = flush(false); if (p) await p; }
             const next = await readNextRecord();
             if (next === undefined) {
-              // POSIX N at EOF skips pattern printing but retains queued output.
-              if (instruction.kind === "N") { const p = flush(false); if (p) await p; }
+              if (instruction.kind === "N") { const p = flush(); if (p) await p; }
               return { status: 0, quit: false };
             }
             record = next; number++;

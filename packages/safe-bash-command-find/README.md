@@ -7,7 +7,7 @@ to UTC, and support explicit offsets, `@` epoch seconds, and relative dates such
 as `1 day ago`. Comparisons are strictly newer. Missing candidate birth times do
 not match; missing reference birth times report an error before any actions run.
 
-Run `find` against an injected virtual filesystem with portable byte streams.
+Run `find` against an injected virtual filesystem with portable byte streams. `-executable`, `-readable`, and `-writable` test filesystem access, including symlink targets and read-only policies.
 
 ```ts
 import { createFindCommand, findCommands } from "@poe-platform/safe-bash/commands/find";

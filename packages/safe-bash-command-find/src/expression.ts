@@ -198,6 +198,20 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         if (!useName) needsDisplay = true;
         return entry => compiledMatcher!(useName ? entry.name : entry.display);
       }
+      if (token === "-readable" || token === "-writable" || token === "-executable") {
+        const mode = token === "-readable" ? 4 : token === "-writable" ? 2 : 1;
+        return async entry => {
+          try {
+            await context.fs.access(entry.path, mode, { signal: context.signal });
+            context.signal.throwIfAborted();
+            return true;
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (["ENOENT", "ENOTDIR", "EACCES", "EPERM", "ELOOP", "EROFS"].includes(codeOf(error) ?? "")) return false;
+            throw error;
+          }
+        };
+      }
       if (token === "-true" || token === "-false") return () => token === "-true";
       if (token === "-empty") { needsStat = true; return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0; }
       if (token === "-prune") { prunes = true; return entry => { entry.prune = true; return true; }; }

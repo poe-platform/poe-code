@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { toByteSource, type FileSystem } from "safe-bash-contracts";
+import { createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-code/safe-fs";
+import { FsError, toByteSource, type FileSystem } from "safe-bash-contracts";
 import { createFindCommand } from "./index.js";
 import { evalSyncFind } from "./find.js";
 
@@ -123,6 +123,52 @@ for (const args of [["-maxdepth", "-1"], ["-mindepth"], ["-perm", "888"], ["-lin
     assert.ok(await fs.lstat("/work/keep"));
   });
 }
+
+for (const [predicate, mode] of [["-readable", 0o400], ["-writable", 0o200], ["-executable", 0o100]] as const) {
+  test(`find ${predicate} tests access without consuming the next expression`, async () => {
+    const fs = await fixture({ allowed: "", denied: "" });
+    await fs.chmod("/work/allowed", mode);
+    await fs.chmod("/work/denied", 0);
+    const result = await run("find", [".", "-type", "f", predicate, "-print"], { fs });
+    assert.deepEqual(result, { exitCode: 0, stdout: "./allowed\n", stderr: "" });
+    const negated = await run("find", [".", "-type", "f", "!", predicate], { fs });
+    assert.deepEqual(negated, { exitCode: 0, stdout: "./denied\n", stderr: "" });
+  });
+
+  test(`find ${predicate} follows targets even with -P and rejects dangling links`, async () => {
+    const fs = await fixture({ allowed: "", denied: "" });
+    await fs.chmod("/work/allowed", mode);
+    await fs.chmod("/work/denied", 0);
+    for (const target of ["allowed", "denied", "missing"]) await fs.symlink(target, `/work/${target}-link`);
+    const result = await run("find", ["-P", ".", "-type", "l", predicate], { fs });
+    assert.deepEqual(result, { exitCode: 0, stdout: "./allowed-link\n", stderr: "" });
+  });
+
+  test(`find ${predicate} short circuits and defers synchronous evaluation to filesystem access`, async context => {
+    const fs = await fixture({ file: "" });
+    const access = context.mock.method(fs, "access", async () => { assert.fail("short-circuited access"); });
+    const result = await run("find", ["file", "-true", "-o", predicate], { fs });
+    assert.deepEqual(result, { exitCode: 0, stdout: "file\n", stderr: "" });
+    assert.equal(access.mock.callCount(), 0);
+    assert.equal(evalSyncFind(["file", predicate], "/work", () => ({ type: "file", mode: 0o777, size: 0 })), undefined);
+  });
+}
+
+test("find -writable respects read-only filesystem policy", async () => {
+  const fs = createReadOnlyFileSystem(await fixture({ file: "" }));
+  const result = await run("find", ["file", "-writable", "-o", "-readable"], { fs });
+  assert.deepEqual(result, { exitCode: 0, stdout: "file\n", stderr: "" });
+  assert.deepEqual(await run("find", ["file", "-writable"], { fs }), { exitCode: 0, stdout: "", stderr: "" });
+});
+
+test("find access predicates report filesystem failures other than denied access", async context => {
+  const fs = await fixture({ file: "" });
+  context.mock.method(fs, "access", async () => { throw new FsError("EIO", { path: "/work/file" }); });
+  const result = await run("find", ["file", "-readable"], { fs });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.notEqual(result.stderr, "");
+});
 
 for (const [type, mode] of [["b", 0o060000], ["p", 0o010000], ["s", 0o140000]] as const) {
   test(`find -type ${type} inspects special-file mode bits`, async context => {

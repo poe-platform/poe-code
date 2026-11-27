@@ -10,6 +10,20 @@ import { fixture, run } from "./helpers.js";
 
 const now = 1_700_000_000_000;
 
+test("find access predicates work after chmod in an agent shell", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a b; chmod +x a; find . -type f -executable; find . -type f -readable | sort");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "./a\n./a\n./b\n");
+  const writable = await shell.exec("chmod a-w b; find . -type f -writable");
+  assert.equal(writable.exitCode, 0);
+  assert.equal(writable.stderr, "");
+  assert.equal(writable.stdout, "./a\n");
+});
+
 test("find -newermt selects files touched after a date through agentCommands", async context => {
   const fs = await fixture();
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

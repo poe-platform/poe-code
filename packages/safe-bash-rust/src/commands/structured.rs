@@ -17765,6 +17765,9 @@ async fn filter_xpath_items(
     Ok(items)
 }
 
+// SQL rows and expressions use strings; reserve a distinct internal value for SQL NULL.
+const SQL_NULL: &str = "\x00SQL_NULL";
+
 #[derive(Default, Clone)]
 struct SqlForeignKey {
     child_col: String,
@@ -17772,6 +17775,7 @@ struct SqlForeignKey {
     parent_col: String,
     on_delete: String,
     on_update: String,
+    initially_deferred: bool,
 }
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -18929,7 +18933,9 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
             def.push_str(&format!(" GENERATED ALWAYS AS ({gexpr})"));
         }
         if let Some(dval) = tbl.defaults.get(&col.to_ascii_lowercase()) {
-            if dval.parse::<f64>().is_ok() {
+            if dval == SQL_NULL {
+                def.push_str(" DEFAULT NULL");
+            } else if dval.parse::<f64>().is_ok() {
                 def.push_str(&format!(" DEFAULT {dval}"));
             } else {
                 def.push_str(&format!(" DEFAULT '{}'", dval.replace('\'', "''")));
@@ -18957,6 +18963,9 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
         }
         if !fk.on_update.is_empty() {
             fk_s.push_str(&format!(" ON UPDATE {}", fk.on_update));
+        }
+        if fk.initially_deferred {
+            fk_s.push_str(" DEFERRABLE INITIALLY DEFERRED");
         }
         parts.push(fk_s);
     }
@@ -19057,7 +19066,13 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             }
             if let Some(dp) = c_up.find(" DEFAULT ") {
                 let after_d = c_norm[dp + 9..].trim();
-                let dval = if let Some(stripped) = after_d.strip_prefix('\'') {
+                let dval = if after_d
+                    .split_whitespace()
+                    .next()
+                    .is_some_and(|v| v.eq_ignore_ascii_case("NULL"))
+                {
+                    SQL_NULL.to_string()
+                } else if let Some(stripped) = after_d.strip_prefix('\'') {
                     stripped.split('\'').next().unwrap_or("").to_string()
                 } else {
                     after_d
@@ -19205,7 +19220,7 @@ fn serialize_sql_db(
                 let cell_str = r.get(col_i).map(|s| s.as_str()).unwrap_or("");
                 if tbl.imported_csv {
                     vals.push(SqlBtreeVal::Text(cell_str.to_string()));
-                } else if cell_str.is_empty() {
+                } else if cell_str == SQL_NULL {
                     vals.push(SqlBtreeVal::Null);
                 } else {
                     let is_text_col = is_text_cols.get(col_i).copied().unwrap_or(false);
@@ -19478,7 +19493,7 @@ fn deserialize_sql_db(
                                     if Some(col_i) == rowid_alias_col {
                                         rowid.to_string()
                                     } else {
-                                        String::new()
+                                        SQL_NULL.to_string()
                                     }
                                 }
                                 Some(SqlBtreeVal::Int(n)) => n.to_string(),
@@ -20556,6 +20571,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             || upper == "END"
             || upper == "END TRANSACTION"
         {
+            if foreign_keys_enabled && !sql_deferred_foreign_keys_satisfied(&tables) {
+                return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+            }
             tx_snapshot = None;
             savepoints.clear();
             continue;
@@ -20572,6 +20590,14 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .unwrap_or(rest.trim())
                 .trim()
                 .to_ascii_lowercase();
+            if tx_snapshot.is_none()
+                && savepoints.len() == 1
+                && savepoints.contains_key(&sp_name)
+                && foreign_keys_enabled
+                && !sql_deferred_foreign_keys_satisfied(&tables)
+            {
+                return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+            }
             savepoints.remove(&sp_name);
             continue;
         }
@@ -20844,17 +20870,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .to_string();
                 let col_up = col_spec.to_ascii_uppercase();
                 let def_val = if let Some(dp) = col_up.find(" DEFAULT ") {
-                    col_spec[dp + 9..]
-                        .trim()
-                        .trim_matches('\'')
-                        .trim_matches('"')
-                        .to_string()
+                    eval_sql_scalar_expr(col_spec[dp + 9..].trim())
                 } else {
-                    String::new()
+                    SQL_NULL.to_string()
                 };
                 if let Some(tbl) = tables.get_mut(tname) {
                     tbl.create_sql.clear();
-                    if !def_val.is_empty() {
+                    if col_up.contains(" DEFAULT ") {
                         tbl.defaults
                             .insert(col_name.to_ascii_lowercase(), def_val.clone());
                     }
@@ -21072,6 +21094,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &mut tables,
                 &triggers,
                 foreign_keys_enabled,
+                tx_snapshot.is_some() || !savepoints.is_empty(),
                 json_mode,
                 csv_mode,
                 &sep,
@@ -21191,7 +21214,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if let Some((base_sql, rec_sql, is_union_all)) = rec_split {
                     let base_out = exec_sql_select_ext(
                         base_sql, &tables, &views, false, false, false, false, false, None, true,
-                        "\x1f", "",
+                        "\x1f", SQL_NULL,
                     );
                     let mut lines = base_out.lines();
                     let hdr_line = lines.next().unwrap_or("");
@@ -21228,7 +21251,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             None,
                             false,
                             "\x1f",
-                            "",
+                            SQL_NULL,
                         );
                         let mut next_frontier = Vec::new();
                         for line in step_out.lines().filter(|l| !l.is_empty()) {
@@ -21296,6 +21319,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &mut tables,
                     &triggers,
                     foreign_keys_enabled,
+                    tx_snapshot.is_some() || !savepoints.is_empty(),
                     json_mode,
                     csv_mode,
                     &sep,
@@ -21424,6 +21448,35 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
 }
 
+fn sql_foreign_key_parent_exists(
+    fk: &SqlForeignKey,
+    value: &str,
+    tables: &BTreeMap<String, SqlTable>,
+) -> bool {
+    tables.get(&fk.parent_table).is_some_and(|parent| {
+        let index = if fk.parent_col.is_empty() {
+            0
+        } else {
+            find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
+        };
+        parent.rows.iter().any(|row| row.get(index).map(String::as_str) == Some(value))
+    })
+}
+
+fn sql_deferred_foreign_keys_satisfied(tables: &BTreeMap<String, SqlTable>) -> bool {
+    tables.values().all(|table| {
+        table.foreign_keys.iter().filter(|fk| fk.initially_deferred).all(|fk| {
+            let Some(index) = find_sql_col(&table.columns, &fk.child_col) else {
+                return true;
+            };
+            table.rows.iter().all(|row| {
+                let value = row.get(index).map(String::as_str).unwrap_or(SQL_NULL);
+                value == SQL_NULL || sql_foreign_key_parent_exists(fk, value, tables)
+            })
+        })
+    })
+}
+
 fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
     let up = clause.to_ascii_uppercase();
     let ref_pos = up.find(" REFERENCES ")?;
@@ -21481,6 +21534,11 @@ fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
         parent_col,
         on_delete: extract_action("ON DELETE "),
         on_update: extract_action("ON UPDATE "),
+        initially_deferred: {
+            let words: Vec<_> = after_up.split_whitespace().collect();
+            words.windows(3).any(|w| w == ["DEFERRABLE", "INITIALLY", "DEFERRED"])
+                && !words.windows(2).any(|w| w == ["NOT", "DEFERRABLE"])
+        },
     })
 }
 
@@ -21529,7 +21587,9 @@ fn fire_sql_triggers(
         let mut body = tr.body.clone();
         if let Some(nrow) = new_row {
             for (c, v) in cols.iter().zip(nrow.iter()) {
-                let repl = if !v.is_empty() && v.parse::<f64>().is_ok() {
+                let repl = if v == SQL_NULL {
+                    "NULL".to_string()
+                } else if v.parse::<f64>().is_ok() {
                     v.clone()
                 } else {
                     format!("'{}'", v.replace('\'', "''"))
@@ -21541,7 +21601,9 @@ fn fire_sql_triggers(
         }
         if let Some(orow) = old_row {
             for (c, v) in cols.iter().zip(orow.iter()) {
-                let repl = if !v.is_empty() && v.parse::<f64>().is_ok() {
+                let repl = if v == SQL_NULL {
+                    "NULL".to_string()
+                } else if v.parse::<f64>().is_ok() {
                     v.clone()
                 } else {
                     format!("'{}'", v.replace('\'', "''"))
@@ -21555,7 +21617,7 @@ fn fire_sql_triggers(
             let sub = sub_stmt.trim();
             let sub_up = sub.to_ascii_uppercase();
             if sub_up.starts_with("INSERT ") {
-                exec_sql_insert(sub, tables, triggers, false, false, false, "|")?;
+                exec_sql_insert(sub, tables, triggers, false, false, false, false, "|")?;
             } else if sub_up.starts_with("DELETE FROM ") {
                 exec_sql_delete(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("UPDATE ") {
@@ -21659,7 +21721,7 @@ fn format_sql_returning(
             let mut entries = Vec::new();
             for (expr_s, alias) in &expanded_specs {
                 let val_s = eval_sql_row_expr(expr_s, t_cols, r, tables);
-                let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
+                let jv = if val_s == SQL_NULL {
                     JVal::Null
                 } else if let Ok(n) = val_s.parse::<f64>() {
                     JVal::Number(n, None)
@@ -21697,6 +21759,7 @@ fn exec_sql_insert(
     tables: &mut BTreeMap<String, SqlTable>,
     triggers: &[SqlTrigger],
     foreign_keys_enabled: bool,
+    in_transaction: bool,
     json_mode: bool,
     csv_mode: bool,
     sep: &str,
@@ -21767,7 +21830,7 @@ fn exec_sql_insert(
                 .map(|v| {
                     let vt = v.trim();
                     if vt.eq_ignore_ascii_case("NULL") {
-                        String::new()
+                        SQL_NULL.to_string()
                     } else if ((vt.starts_with('\'') && vt.ends_with('\''))
                         || (vt.starts_with('"') && vt.ends_with('"')))
                         && !vt.contains("||")
@@ -21795,9 +21858,9 @@ fn exec_sql_insert(
             None,
             false,
             "\x1f",
-            "",
+            SQL_NULL,
         );
-        for line in sel_out.lines().filter(|l| !l.is_empty()) {
+        for line in sel_out.lines() {
             value_tuples.push(line.split('\x1f').map(|s| s.to_string()).collect());
         }
     } else {
@@ -21828,7 +21891,7 @@ fn exec_sql_insert(
                 defaults_clone
                     .get(&tc.to_ascii_lowercase())
                     .cloned()
-                    .unwrap_or_default()
+                    .unwrap_or_else(|| SQL_NULL.to_string())
             })
             .collect();
         if let Some(ref cols) = explicit_cols {
@@ -21891,7 +21954,7 @@ fn exec_sql_insert(
         }
         for nn_col in &nn_clone {
             if let Some(pos) = find_sql_col(&t_cols, nn_col)
-                && row[pos].is_empty()
+                && row[pos] == SQL_NULL
             {
                 *tables = stmt_snap;
                 return Err(format!(
@@ -21907,19 +21970,13 @@ fn exec_sql_insert(
         }
         if foreign_keys_enabled {
             for fk in &fk_clone {
+                if in_transaction && fk.initially_deferred {
+                    continue;
+                }
                 if let Some(c_idx) = find_sql_col(&t_cols, &fk.child_col) {
                     let cval = row.get(c_idx).map(|s| s.as_str()).unwrap_or("");
-                    if !cval.is_empty() && !cval.eq_ignore_ascii_case("NULL") {
-                        let parent_ok = tables.get(&fk.parent_table).is_some_and(|ptbl| {
-                            let p_idx = if fk.parent_col.is_empty() {
-                                0
-                            } else {
-                                find_sql_col(&ptbl.columns, &fk.parent_col).unwrap_or(0)
-                            };
-                            ptbl.rows
-                                .iter()
-                                .any(|pr| pr.get(p_idx).map(|s| s.as_str()) == Some(cval))
-                        });
+                    if cval != SQL_NULL {
+                        let parent_ok = sql_foreign_key_parent_exists(fk, cval, tables);
                         if !parent_ok {
                             *tables = stmt_snap;
                             return Err("Error: FOREIGN KEY constraint failed\n".to_string());
@@ -21939,7 +21996,7 @@ fn exec_sql_insert(
                 if col_positions.len() == ucols.len()
                     && col_positions
                         .iter()
-                        .all(|&p| !row.get(p).map(|s| s.as_str()).unwrap_or("").is_empty())
+                        .all(|&p| row.get(p).is_some_and(|s| s != SQL_NULL))
                     && let Some(dup_idx) = tbl
                         .rows
                         .iter()
@@ -22116,10 +22173,13 @@ fn exec_sql_update(
         let w_end = ret_pos.unwrap_or(stmt_norm.len());
         stmt_norm[wp + 7..w_end].trim()
     });
-    let Some((t_cols, gen_clone, checks)) = tables
-        .get(&tname)
-        .map(|t| (t.columns.clone(), t.generated.clone(), t.check_exprs.clone()))
-    else {
+    let Some((t_cols, gen_clone, checks)) = tables.get(&tname).map(|t| {
+        (
+            t.columns.clone(),
+            t.generated.clone(),
+            t.check_exprs.clone(),
+        )
+    }) else {
         return Ok(String::new());
     };
     let mut eval_affinities = tables[&tname].affinities.clone();
@@ -22182,7 +22242,7 @@ fn exec_sql_update(
         }
         for nn_col in &tables_snap[&tname].not_null_cols {
             if let Some(pos) = find_sql_col(&t_cols, nn_col)
-                && ur[pos].is_empty()
+                && ur[pos] == SQL_NULL
             {
                 let error = format!("Error: NOT NULL constraint failed: {tname}.{nn_col}\n");
                 *tables = tables_snap;
@@ -22236,12 +22296,12 @@ fn exec_sql_update(
                                 let old_cr = cr.clone();
                                 match fk.on_update.as_str() {
                                     "CASCADE" => cr[c_idx] = new_pval.clone(),
-                                    "SET NULL" => cr[c_idx] = String::new(),
+                                    "SET NULL" => cr[c_idx] = SQL_NULL.to_string(),
                                     "SET DEFAULT" => {
                                         cr[c_idx] = c_defs
                                             .get(&fk.child_col.to_ascii_lowercase())
                                             .cloned()
-                                            .unwrap_or_default();
+                                            .unwrap_or_else(|| SQL_NULL.to_string());
                                     }
                                     _ => {}
                                 }
@@ -22393,7 +22453,7 @@ fn exec_sql_delete(
                     if let Some(ctbl) = tables.get_mut(&ctname) {
                         match fk.on_delete.as_str() {
                             "NO ACTION" | "RESTRICT" => {
-                                if !pval.is_empty()
+                                if pval != SQL_NULL
                                     && ctbl.rows.iter().any(|cr| {
                                         cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str())
                                     })
@@ -22410,7 +22470,7 @@ fn exec_sql_delete(
                             "SET NULL" => {
                                 for cr in &mut ctbl.rows {
                                     if cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str()) {
-                                        cr[c_idx] = String::new();
+                                        cr[c_idx] = SQL_NULL.to_string();
                                     }
                                 }
                             }
@@ -22418,7 +22478,7 @@ fn exec_sql_delete(
                                 let def_v = c_defs
                                     .get(&fk.child_col.to_ascii_lowercase())
                                     .cloned()
-                                    .unwrap_or_default();
+                                    .unwrap_or_else(|| SQL_NULL.to_string());
                                 for cr in &mut ctbl.rows {
                                     if cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str()) {
                                         cr[c_idx] = def_v.clone();
@@ -22545,7 +22605,8 @@ fn resolve_sql_from_table(
                 });
             }
             let sub_out = exec_sql_select_ext(
-                inner_sql, tables, views, false, false, false, false, false, None, true, "\x1f", "",
+                inner_sql, tables, views, false, false, false, false, false, None, true, "\x1f",
+                SQL_NULL,
             );
             let mut lines = sub_out.lines();
             let hdr_line = lines.next().unwrap_or("");
@@ -22857,7 +22918,7 @@ fn resolve_sql_from_table(
                     }
                     if !matched && is_left {
                         let mut cr = lr.clone();
-                        cr.extend(vec![String::new(); right_tbl.columns.len()]);
+                        cr.extend(vec![SQL_NULL.to_string(); right_tbl.columns.len()]);
                         combined_rows.push(cr);
                     }
                 }
@@ -22932,7 +22993,7 @@ fn resolve_sql_from_table(
     } else {
         let vsql = views.get(raw_tname)?;
         let sub_out = exec_sql_select_ext(
-            vsql, tables, views, false, false, false, false, false, None, true, "\x1f", "",
+            vsql, tables, views, false, false, false, false, false, None, true, "\x1f", SQL_NULL,
         );
         let mut lines = sub_out.lines();
         let hdr_line = lines.next().unwrap_or("");
@@ -23080,7 +23141,7 @@ fn format_sql_result_rows(
     fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> &'a str {
         if v == "\x00LIT_NULL" {
             "NULL"
-        } else if v.is_empty() || v == "NULL" {
+        } else if v == SQL_NULL {
             nullvalue
         } else {
             v
@@ -23097,7 +23158,7 @@ fn format_sql_result_rows(
                         .unwrap_or(true);
                     let jv = if val_s == "\x00LIT_NULL" {
                         JVal::Str("NULL".to_string())
-                    } else if val_s.is_empty() || val_s == "NULL" {
+                    } else if val_s == SQL_NULL {
                         JVal::Null
                     } else if allow_num
                         && is_sql_numeric_text(val_s)
@@ -23257,7 +23318,7 @@ fn format_sql_result_rows(
                     let allow_num = proj_is_num
                         .and_then(|p| p.get(idx).copied())
                         .unwrap_or(true);
-                    if v.eq_ignore_ascii_case("NULL") {
+                    if v == SQL_NULL {
                         "NULL".to_string()
                     } else if allow_num && is_sql_numeric_text(v) {
                         v.clone()
@@ -23286,7 +23347,7 @@ fn format_sql_result_rows(
             let quoted: Vec<String> = vals
                 .iter()
                 .map(|v| {
-                    if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+                    if v == SQL_NULL {
                         "NULL".to_string()
                     } else if is_sql_numeric_text(v) {
                         v.clone()
@@ -23875,8 +23936,8 @@ fn exec_sql_select_with_mode(
                             .unwrap_or(1);
                         let default_val = args
                             .get(2)
-                            .map(|s| s.trim_matches('\'').trim_matches('"').to_string())
-                            .unwrap_or_default();
+                            .map(|s| eval_sql_scalar_expr(s))
+                            .unwrap_or_else(|| SQL_NULL.to_string());
                         if is_lag {
                             SqlWinFn::Lag {
                                 col_idx,
@@ -24235,8 +24296,8 @@ fn exec_sql_select_with_mode(
                                     .unwrap_or(1);
                                 let default_val = args
                                     .get(2)
-                                    .map(|s| s.trim_matches('\'').trim_matches('"').to_string())
-                                    .unwrap_or_default();
+                                    .map(|s| eval_sql_scalar_expr(s))
+                                    .unwrap_or_else(|| SQL_NULL.to_string());
                                 if is_lag {
                                     if my_pos >= offset {
                                         filtered[p_indices[my_pos - offset]]
@@ -24257,7 +24318,7 @@ fn exec_sql_select_with_mode(
                             } else {
                                 String::new()
                             };
-                            let replacement = if wval.is_empty() {
+                            let replacement = if wval == SQL_NULL {
                                 "NULL".to_string()
                             } else if wval.parse::<f64>().is_ok() {
                                 wval
@@ -25162,7 +25223,7 @@ fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
     if (rt.starts_with('\'') && rt.ends_with('\'')) || (rt.starts_with('"') && rt.ends_with('"')) {
         return JVal::Str(val_s.to_string());
     }
-    if val_s.is_empty() {
+    if val_s == SQL_NULL {
         return JVal::Null;
     }
     if is_sql_numeric_text(val_s)
@@ -25206,7 +25267,9 @@ fn substitute_correlated_subquery(sub_sql: &str, cols: &[String], row: &[String]
     let mut pairs: Vec<(&String, &String)> = cols.iter().zip(row.iter()).collect();
     pairs.sort_by_key(|a| std::cmp::Reverse(a.0.len()));
     for (c, v) in pairs {
-        let repl = if !v.is_empty() && v.parse::<f64>().is_ok() {
+        let repl = if v == SQL_NULL {
+            "NULL".to_string()
+        } else if v.parse::<f64>().is_ok() {
             v.clone()
         } else {
             format!("'{}'", v.replace('\'', "''"))
@@ -25228,13 +25291,16 @@ fn eval_sql_row_expr(
 ) -> String {
     let s = expr.trim();
     if s.is_empty() {
-        return String::new();
+        return SQL_NULL.to_string();
     }
     let concat_parts = split_sql_concat(s);
     if concat_parts.len() > 1 {
         let mut res = String::new();
         for p in concat_parts {
             let pv = eval_sql_row_expr(p, cols, row, tables);
+            if pv == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             res.push_str(if pv == "\x00LIT_NULL" { "NULL" } else { &pv });
         }
         return res;
@@ -25297,7 +25363,7 @@ fn eval_sql_row_expr(
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
             let base_val = eval_sql_row_expr(base_expr, cols, row, tables);
-            if !base_val.is_empty() && !base_val.eq_ignore_ascii_case("NULL") {
+            if base_val != SQL_NULL {
                 for (cond_s, then_val) in branches {
                     let when_val = eval_sql_row_expr(cond_s, cols, row, tables);
                     let matches = if let (Ok(bn), Ok(wn)) =
@@ -25321,7 +25387,7 @@ fn eval_sql_row_expr(
         }
         return else_opt
             .map(|ev| eval_sql_row_expr(ev, cols, row, tables))
-            .unwrap_or_default();
+            .unwrap_or_else(|| SQL_NULL.to_string());
     }
     if upper.starts_with("RAISE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
@@ -25342,11 +25408,11 @@ fn eval_sql_row_expr(
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
             let v = eval_sql_row_expr(arg, cols, row, tables);
-            if !v.is_empty() && !v.eq_ignore_ascii_case("NULL") {
+            if v != SQL_NULL {
                 return v;
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("IIF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
@@ -25358,15 +25424,21 @@ fn eval_sql_row_expr(
             if let Some(f_arg) = args.get(2) {
                 return eval_sql_row_expr(f_arg, cols, row, tables);
             }
-            return String::new();
+            return SQL_NULL.to_string();
         }
     }
     if upper.starts_with("LENGTH(") && s.ends_with(')') {
         let inner = eval_sql_row_expr(&s[7..s.len() - 1], cols, row, tables);
+        if inner == SQL_NULL {
+            return SQL_NULL.to_string();
+        }
         return inner.chars().count().to_string();
     }
     if upper.starts_with("OCTET_LENGTH(") && s.ends_with(')') {
         let inner = eval_sql_row_expr(&s[13..s.len() - 1], cols, row, tables);
+        if inner == SQL_NULL {
+            return SQL_NULL.to_string();
+        }
         return inner.len().to_string();
     }
     if (upper.starts_with("SUBSTR(") || upper.starts_with("SUBSTRING(")) && s.ends_with(')') {
@@ -25378,6 +25450,9 @@ fn eval_sql_row_expr(
         let parts = split_top_level_comma(&s[pfx..s.len() - 1]);
         if parts.len() >= 2 {
             let text = eval_sql_row_expr(parts[0], cols, row, tables);
+            if text == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             let chs: Vec<char> = text.chars().collect();
             let pos = eval_sql_row_expr(parts[1], cols, row, tables)
                 .trim()
@@ -25440,8 +25515,8 @@ fn eval_sql_row_expr(
             let mut best_raw: Option<String> = None;
             for a in args {
                 let v = eval_sql_row_expr(a, cols, row, tables);
-                if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-                    return String::new();
+                if v == SQL_NULL {
+                    return SQL_NULL.to_string();
                 }
                 best_raw = Some(match best_raw {
                     None => v,
@@ -25462,7 +25537,7 @@ fn eval_sql_row_expr(
                     }
                 });
             }
-            return best_raw.unwrap_or_default();
+            return best_raw.unwrap_or_else(|| SQL_NULL.to_string());
         }
     }
     if upper.starts_with("JSON_ARRAY_LENGTH(") && s.ends_with(')') {
@@ -25501,8 +25576,8 @@ fn eval_sql_row_expr(
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
             let raw_v = eval_sql_row_expr(first, cols, row, tables);
-            if raw_v.is_empty() || raw_v.eq_ignore_ascii_case("NULL") {
-                return String::new();
+            if raw_v == SQL_NULL {
+                return SQL_NULL.to_string();
             }
             let n = raw_v.parse::<f64>().unwrap_or(0.0);
             let digits = args
@@ -25531,7 +25606,7 @@ fn eval_sql_row_expr(
         if v == "\x00LIT_NULL" {
             return "text".to_string();
         }
-        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+        if v == SQL_NULL {
             return "null".to_string();
         }
         if v.parse::<f64>().is_ok() {
@@ -25553,7 +25628,7 @@ fn eval_sql_row_expr(
         if v == "\x00LIT_NULL" {
             return "'NULL'".to_string();
         }
-        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+        if v == SQL_NULL {
             return "\x00LIT_NULL".to_string();
         }
         if v.parse::<f64>().is_ok() {
@@ -25563,6 +25638,9 @@ fn eval_sql_row_expr(
     }
     if upper.starts_with("HEX(") && s.ends_with(')') {
         let inner = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables);
+        if inner == SQL_NULL {
+            return String::new();
+        }
         let mut hex = String::new();
         for b in inner.as_bytes() {
             hex.push_str(&format!("{b:02X}"));
@@ -25598,14 +25676,24 @@ fn eval_sql_row_expr(
         if args.len() >= 2 {
             let a = eval_sql_row_expr(args[0], cols, row, tables);
             let b = eval_sql_row_expr(args[1], cols, row, tables);
-            return if a == b { String::new() } else { a };
+            return if a == b { SQL_NULL.to_string() } else { a };
         }
     }
     if upper.starts_with("UPPER(") && s.ends_with(')') {
-        return eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables).to_ascii_uppercase();
+        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables);
+        return if value == SQL_NULL {
+            value
+        } else {
+            value.to_ascii_uppercase()
+        };
     }
     if upper.starts_with("LOWER(") && s.ends_with(')') {
-        return eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables).to_ascii_lowercase();
+        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables);
+        return if value == SQL_NULL {
+            value
+        } else {
+            value.to_ascii_lowercase()
+        };
     }
     if (upper.starts_with("TRIM(") || upper.starts_with("LTRIM(") || upper.starts_with("RTRIM("))
         && s.ends_with(')')
@@ -25614,6 +25702,9 @@ fn eval_sql_row_expr(
         let args = split_top_level_comma(&s[pfx..s.len() - 1]);
         if let Some(first) = args.first() {
             let base = eval_sql_row_expr(first, cols, row, tables);
+            if base == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             if let Some(chars_arg) = args.get(1) {
                 let cut_chars: Vec<char> = eval_sql_row_expr(chars_arg, cols, row, tables)
                     .chars()
@@ -25640,6 +25731,9 @@ fn eval_sql_row_expr(
         let args = split_top_level_comma(&s[8..s.len() - 1]);
         if args.len() >= 3 {
             let base = eval_sql_row_expr(args[0], cols, row, tables);
+            if base == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             let from_s = eval_sql_row_expr(args[1], cols, row, tables);
             let to_s = eval_sql_row_expr(args[2], cols, row, tables);
             return base.replace(&from_s, &to_s);
@@ -25661,7 +25755,7 @@ fn eval_sql_row_expr(
         let mut out_s = String::new();
         for a in args {
             let v = eval_sql_row_expr(a, cols, row, tables);
-            if !v.eq_ignore_ascii_case("NULL") {
+            if v != SQL_NULL {
                 out_s.push_str(&v);
             }
         }
@@ -25673,22 +25767,23 @@ fn eval_sql_row_expr(
             let sep_s = eval_sql_row_expr(sep_arg, cols, row, tables);
             let mut parts_v = Vec::new();
             for a in &args[1..] {
-                let rt = a.trim();
                 let v = eval_sql_row_expr(a, cols, row, tables);
-                let is_lit_empty = rt == "''" || rt == "\"\"";
-                if (!v.is_empty() || is_lit_empty) && !v.eq_ignore_ascii_case("NULL") {
+                if v != SQL_NULL {
                     parts_v.push(v);
                 }
             }
             return parts_v.join(&sep_s);
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if (upper.starts_with("LPAD(") || upper.starts_with("RPAD(")) && s.ends_with(')') {
         let is_left = upper.starts_with("LPAD(");
         let args = split_top_level_comma(&s[5..s.len() - 1]);
         if args.len() >= 2 {
             let base = eval_sql_row_expr(args[0], cols, row, tables);
+            if base == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             let target_len = eval_sql_row_expr(args[1], cols, row, tables)
                 .trim()
                 .parse::<f64>()
@@ -25720,6 +25815,9 @@ fn eval_sql_row_expr(
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         if args.len() >= 2 {
             let base = eval_sql_row_expr(args[0], cols, row, tables);
+            if base == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
             let count = eval_sql_row_expr(args[1], cols, row, tables)
                 .trim()
                 .parse::<f64>()
@@ -25730,6 +25828,9 @@ fn eval_sql_row_expr(
     }
     if upper.starts_with("REVERSE(") && s.ends_with(')') {
         let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        if base == SQL_NULL {
+            return SQL_NULL.to_string();
+        }
         return base.chars().rev().collect();
     }
     if upper.starts_with("CHAR(") && s.ends_with(')') {
@@ -25749,6 +25850,9 @@ fn eval_sql_row_expr(
     }
     if upper.starts_with("UNICODE(") && s.ends_with(')') {
         let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        if base == SQL_NULL {
+            return SQL_NULL.to_string();
+        }
         return base
             .chars()
             .next()
@@ -25761,7 +25865,7 @@ fn eval_sql_row_expr(
             .filter(|c| !c.is_whitespace())
             .collect();
         if h.len() % 2 != 0 || !h.chars().all(|c| c.is_ascii_hexdigit()) {
-            return String::new();
+            return SQL_NULL.to_string();
         }
         let mut bytes = Vec::with_capacity(h.len() / 2);
         let mut i = 0usize;
@@ -25775,8 +25879,8 @@ fn eval_sql_row_expr(
     }
     if upper.starts_with("SIGN(") && s.ends_with(')') {
         let v = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables);
-        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-            return String::new();
+        if v == SQL_NULL {
+            return SQL_NULL.to_string();
         }
         let n = v.parse::<f64>().unwrap_or(0.0);
         return if n > 0.0 {
@@ -25797,8 +25901,8 @@ fn eval_sql_row_expr(
         let open_p = s.find('(').unwrap_or(4);
         let fn_name = &upper[..open_p];
         let v = eval_sql_row_expr(&s[open_p + 1..s.len() - 1], cols, row, tables);
-        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-            return String::new();
+        if v == SQL_NULL {
+            return SQL_NULL.to_string();
         }
         let n = v.parse::<f64>().unwrap_or(0.0);
         let r = match fn_name {
@@ -25822,18 +25926,14 @@ fn eval_sql_row_expr(
         if args.len() >= 2 {
             let va = eval_sql_row_expr(args[0], cols, row, tables);
             let vb = eval_sql_row_expr(args[1], cols, row, tables);
-            if va.is_empty()
-                || vb.is_empty()
-                || va.eq_ignore_ascii_case("NULL")
-                || vb.eq_ignore_ascii_case("NULL")
-            {
-                return String::new();
+            if va == SQL_NULL || vb == SQL_NULL {
+                return SQL_NULL.to_string();
             }
             let a = va.parse::<f64>().unwrap_or(0.0);
             let b = vb.parse::<f64>().unwrap_or(0.0);
             if fn_name == "MOD" {
                 if b == 0.0 {
-                    return String::new();
+                    return SQL_NULL.to_string();
                 }
                 let r = a % b;
                 if (r - r.round()).abs() < 1e-9 {
@@ -25858,8 +25958,8 @@ fn eval_sql_row_expr(
         let inner = &s[5..s.len() - 1];
         if let Some(ap) = inner.to_ascii_uppercase().rfind(" AS ") {
             let val = eval_sql_row_expr(&inner[..ap], cols, row, tables);
-            if val.is_empty() || val.eq_ignore_ascii_case("NULL") {
-                return String::new();
+            if val == SQL_NULL {
+                return SQL_NULL.to_string();
             }
             let target_t = inner[ap + 4..].trim().to_ascii_uppercase();
             if target_t.starts_with("INT") {
@@ -25935,11 +26035,11 @@ fn eval_sql_row_expr(
                         }
                         JVal::Bool(true) => "true".to_string(),
                         JVal::Bool(false) => "false".to_string(),
-                        JVal::Null => String::new(),
+                        JVal::Null => SQL_NULL.to_string(),
                     };
                 } else {
                     return match found {
-                        JVal::Null => String::new(),
+                        JVal::Null => SQL_NULL.to_string(),
                         JVal::Bool(true) => "1".to_string(),
                         JVal::Bool(false) => "0".to_string(),
                         JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
@@ -25948,7 +26048,7 @@ fn eval_sql_row_expr(
                 }
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("JSON(") && s.ends_with(')') {
         let doc_s = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables);
@@ -25986,14 +26086,14 @@ fn eval_sql_row_expr(
                     let segs = parse_sql_json_path(&path_s);
                     let new_jv = parse_sql_arg_to_jval(&val_s, args[ai + 1]);
                     if set_jq_jval_path(&mut jval, &segs, new_jv).is_err() {
-                        return String::new();
+                        return SQL_NULL.to_string();
                     }
                     ai += 2;
                 }
                 return jval.to_json_string(true, false, 0);
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("JSON_REMOVE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[12..s.len() - 1]);
@@ -26010,7 +26110,7 @@ fn eval_sql_row_expr(
                 return jval.to_json_string(true, false, 0);
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("JSON_PATCH(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[11..s.len() - 1]);
@@ -26025,7 +26125,7 @@ fn eval_sql_row_expr(
                 return jdoc.to_json_string(true, false, 0);
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if let Some((lhs, rhs)) = s.split_once("->>") {
         let doc_s = eval_sql_row_expr(lhs, cols, row, tables);
@@ -26036,12 +26136,12 @@ fn eval_sql_row_expr(
             let segs = parse_sql_json_path(&path_s);
             let found = get_jq_jval_path(&jval, &segs);
             return match found {
-                JVal::Null => String::new(),
+                JVal::Null => SQL_NULL.to_string(),
                 JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
                 _ => found.to_raw_string(true, false),
             };
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if let Some((lhs, rhs)) = s.split_once("->") {
         let doc_s = eval_sql_row_expr(lhs, cols, row, tables);
@@ -26052,11 +26152,11 @@ fn eval_sql_row_expr(
             let segs = parse_sql_json_path(&path_s);
             let found = get_jq_jval_path(&jval, &segs);
             return match found {
-                JVal::Null => String::new(),
+                JVal::Null => SQL_NULL.to_string(),
                 _ => found.to_json_string(true, false, 0),
             };
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     for op in ['+', '-', '*', '/', '%'] {
         let mut depth = 0i32;
@@ -26077,12 +26177,16 @@ fn eval_sql_row_expr(
             }
         }
         if let Some(sp) = split_at {
-            let lv = eval_sql_row_expr(&s[..sp], cols, row, tables)
-                .parse::<f64>()
-                .unwrap_or(0.0);
-            let rv = eval_sql_row_expr(&s[sp + 1..], cols, row, tables)
-                .parse::<f64>()
-                .unwrap_or(0.0);
+            let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
+            let rv_s = eval_sql_row_expr(&s[sp + 1..], cols, row, tables);
+            if op == '/'
+                && let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>())
+                && let Some(quotient) = lv.checked_div(rv)
+            {
+                return quotient.to_string();
+            }
+            let lv = lv_s.parse::<f64>().unwrap_or(0.0);
+            let rv = rv_s.parse::<f64>().unwrap_or(0.0);
             let res = match op {
                 '+' => lv + rv,
                 '-' => lv - rv,
@@ -26126,7 +26230,10 @@ fn eval_sql_row_expr(
         return n.to_string();
     }
     if let Some(c_idx) = find_sql_col(cols, s) {
-        return row.get(c_idx).cloned().unwrap_or_default();
+        return row
+            .get(c_idx)
+            .cloned()
+            .unwrap_or_else(|| SQL_NULL.to_string());
     }
     eval_sql_scalar_expr(s)
 }
@@ -26282,7 +26389,11 @@ fn eval_sql_group_expr(
     if concat_parts.len() > 1 {
         let mut res = String::new();
         for p in concat_parts {
-            res.push_str(&eval_sql_group_expr(p, cols, grp, tables));
+            let value = eval_sql_group_expr(p, cols, grp, tables);
+            if value == SQL_NULL {
+                return SQL_NULL.to_string();
+            }
+            res.push_str(&value);
         }
         return res;
     }
@@ -26322,11 +26433,11 @@ fn eval_sql_group_expr(
                         }
                         JVal::Bool(true) => "true".to_string(),
                         JVal::Bool(false) => "false".to_string(),
-                        JVal::Null => String::new(),
+                        JVal::Null => SQL_NULL.to_string(),
                     }
                 } else {
                     match found {
-                        JVal::Null => String::new(),
+                        JVal::Null => SQL_NULL.to_string(),
                         JVal::Bool(true) => "1".to_string(),
                         JVal::Bool(false) => "0".to_string(),
                         JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
@@ -26335,14 +26446,14 @@ fn eval_sql_group_expr(
                 };
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("CASE ") && upper.ends_with(" END") {
         let inner = s[5..s.len() - 4].trim();
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
             let base_val = eval_sql_group_expr(base_expr, cols, grp, tables);
-            if !base_val.is_empty() && !base_val.eq_ignore_ascii_case("NULL") {
+            if base_val != SQL_NULL {
                 for (cond_s, then_val) in branches {
                     let when_val = eval_sql_group_expr(cond_s, cols, grp, tables);
                     let matches = if let (Ok(bn), Ok(wn)) =
@@ -26363,11 +26474,11 @@ fn eval_sql_group_expr(
                 let cond_ok = if let Some(is_null_p) = cond_up.rfind(" IS NULL") {
                     let target_e = cond_s[..is_null_p].trim();
                     let v = eval_sql_group_expr(target_e, cols, grp, tables);
-                    v.is_empty() || v.eq_ignore_ascii_case("NULL")
+                    v == SQL_NULL
                 } else if let Some(is_not_null_p) = cond_up.rfind(" IS NOT NULL") {
                     let target_e = cond_s[..is_not_null_p].trim();
                     let v = eval_sql_group_expr(target_e, cols, grp, tables);
-                    !v.is_empty() && !v.eq_ignore_ascii_case("NULL")
+                    v != SQL_NULL
                 } else {
                     eval_sql_having(cond_s, cols, grp, tables)
                 };
@@ -26376,7 +26487,7 @@ fn eval_sql_group_expr(
                 }
             }
         }
-        return eval_sql_group_expr(else_opt.unwrap_or("0"), cols, grp, tables);
+        return eval_sql_group_expr(else_opt.unwrap_or("NULL"), cols, grp, tables);
     }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
@@ -26514,8 +26625,8 @@ fn eval_sql_group_expr(
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
             let raw_v = eval_sql_group_expr(first, cols, grp, tables);
-            if raw_v.is_empty() || raw_v.eq_ignore_ascii_case("NULL") {
-                return String::new();
+            if raw_v == SQL_NULL {
+                return SQL_NULL.to_string();
             }
             let n = raw_v.parse::<f64>().unwrap_or(0.0);
             let digits = args
@@ -26541,11 +26652,11 @@ fn eval_sql_group_expr(
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
             let v = eval_sql_group_expr(arg, cols, grp, tables);
-            if !v.is_empty() && !v.eq_ignore_ascii_case("NULL") {
+            if v != SQL_NULL {
                 return v;
             }
         }
-        return String::new();
+        return SQL_NULL.to_string();
     }
     if upper.starts_with("IIF(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
@@ -26556,7 +26667,7 @@ fn eval_sql_group_expr(
             if let Some(f_arg) = args.get(2) {
                 return eval_sql_group_expr(f_arg, cols, grp, tables);
             }
-            return String::new();
+            return SQL_NULL.to_string();
         }
     }
     if upper.starts_with("COUNT(") && upper.ends_with(')') {
@@ -26569,7 +26680,7 @@ fn eval_sql_group_expr(
             let mut seen = std::collections::BTreeSet::new();
             for r in grp {
                 let v = eval_sql_row_expr(dist_expr, cols, r, &empty_tables);
-                if !v.is_empty() && !v.eq_ignore_ascii_case("NULL") {
+                if v != SQL_NULL {
                     seen.insert(v);
                 }
             }
@@ -26579,7 +26690,7 @@ fn eval_sql_group_expr(
             .iter()
             .filter(|r| {
                 let v = eval_sql_row_expr(inner, cols, r, &empty_tables);
-                !v.is_empty() && !v.eq_ignore_ascii_case("NULL")
+                v != SQL_NULL
             })
             .count();
         return cnt.to_string();
@@ -26600,13 +26711,17 @@ fn eval_sql_group_expr(
         let mut vals: Vec<String> = Vec::new();
         for r in grp {
             let v = eval_sql_row_expr(col_expr, cols, r, &empty_tables);
-            if !v.is_empty() && !v.eq_ignore_ascii_case("NULL") {
+            if v != SQL_NULL {
                 if !is_distinct || !vals.contains(&v) {
                     vals.push(v);
                 }
             }
         }
-        return vals.join(gsep);
+        return if vals.is_empty() {
+            SQL_NULL.to_string()
+        } else {
+            vals.join(gsep)
+        };
     }
     if upper.starts_with("JSON_OBJECT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[12..s.len() - 1]);
@@ -26663,7 +26778,7 @@ fn eval_sql_group_expr(
         let mut best_str: Option<String> = None;
         for r in grp {
             let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
-            if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            if v == SQL_NULL {
                 continue;
             }
             if let Ok(n) = v.parse::<f64>() {
@@ -26696,7 +26811,7 @@ fn eval_sql_group_expr(
             }
             return n.to_string();
         }
-        return best_str.unwrap_or_default();
+        return best_str.unwrap_or_else(|| SQL_NULL.to_string());
     }
     if upper.starts_with("TOTAL(") && upper.ends_with(')') {
         let inner_expr = &s[6..s.len() - 1];
@@ -26726,7 +26841,7 @@ fn eval_sql_group_expr(
         let mut nums: Vec<f64> = Vec::new();
         for r in grp {
             let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
-            if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            if v == SQL_NULL {
                 continue;
             }
             if is_distinct && !seen_raw.insert(v.clone()) {
@@ -26740,7 +26855,7 @@ fn eval_sql_group_expr(
             }
         }
         if nums.is_empty() {
-            return String::new();
+            return SQL_NULL.to_string();
         }
         let sum: f64 = nums.into_iter().sum();
         if (sum - sum.round()).abs() < 1e-9 {
@@ -26762,7 +26877,7 @@ fn eval_sql_group_expr(
         let mut seen_raw: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         for r in grp {
             let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
-            if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            if v == SQL_NULL {
                 continue;
             }
             if is_distinct && !seen_raw.insert(v.clone()) {
@@ -26773,7 +26888,7 @@ fn eval_sql_group_expr(
             }
         }
         if nums.is_empty() {
-            return String::new();
+            return SQL_NULL.to_string();
         }
         let sum: f64 = nums.iter().sum();
         let avg = sum / (nums.len() as f64);
@@ -26973,7 +27088,7 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
         }
     }
     if s.eq_ignore_ascii_case("NULL") {
-        return String::new();
+        return SQL_NULL.to_string();
     }
     s.trim_matches('\'').trim_matches('"').to_string()
 }
@@ -27253,12 +27368,12 @@ fn eval_sql_where(
     if upper.ends_with(" IS NOT NULL") {
         let lhs = trimmed[..trimmed.len() - 12].trim();
         let v = eval_sql_row_expr(lhs, columns, row, tables);
-        return !v.is_empty() && !v.eq_ignore_ascii_case("NULL");
+        return v != SQL_NULL;
     }
     if upper.ends_with(" IS NULL") {
         let lhs = trimmed[..trimmed.len() - 8].trim();
         let v = eval_sql_row_expr(lhs, columns, row, tables);
-        return v.is_empty() || v.eq_ignore_ascii_case("NULL");
+        return v == SQL_NULL;
     }
 
     if let Some(nlp) = find_top_sql_bool_kw(&upper, " NOT LIKE ") {
@@ -27356,7 +27471,7 @@ fn eval_sql_where(
     !v.is_empty()
         && v != "0"
         && !v.eq_ignore_ascii_case("false")
-        && !v.eq_ignore_ascii_case("null")
+        && v != SQL_NULL
         && v.parse::<f64>().map(|n| n != 0.0).unwrap_or(true)
 }
 
@@ -41912,7 +42027,7 @@ mod tests {
                 columns: vec!["k".into(), "replacement".into()],
                 rows: vec![
                     vec!["first".into(), "changed".into()],
-                    vec!["keep".into(), String::new()],
+                    vec!["keep".into(), SQL_NULL.to_string()],
                 ],
                 not_null_cols: vec!["k".into()],
                 ..Default::default()

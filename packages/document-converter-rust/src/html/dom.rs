@@ -269,13 +269,13 @@ fn parse_html_children(
                     }));
                     continue;
                 }
-                if matches!(tag_name.as_str(), "script" | "style")
-                    || tag_name == "title" && !svg_element
-                {
+                let rcdata = matches!(tag_name.as_str(), "title" | "textarea") && !svg_element;
+                if matches!(tag_name.as_str(), "script" | "style") || rcdata {
                     let lower_rem = src[*pos..].to_ascii_lowercase();
-                    let closing = if tag_name == "title" {
-                        lower_rem.match_indices("</title").find_map(|(start, _)| {
-                            let after = &lower_rem[start + 7..];
+                    let closing = if rcdata {
+                        let close_pat = format!("</{tag_name}");
+                        lower_rem.match_indices(&close_pat).find_map(|(start, _)| {
+                            let after = &lower_rem[start + close_pat.len()..];
                             after.as_bytes().first().filter(|ch| {
                                 ch.is_ascii_whitespace() || matches!(ch, b'>' | b'/')
                             })?;
@@ -286,7 +286,7 @@ fn parse_html_children(
                         lower_rem.find(&close_pat).map(|at| (at, close_pat.len()))
                     };
                     let end = closing.map_or(bytes.len(), |(at, _)| *pos + at);
-                    let text = if tag_name == "title" {
+                    let text = if rcdata {
                         decode_html_entities(&src[*pos..end], false)
                     } else {
                         src[*pos..end].to_string()

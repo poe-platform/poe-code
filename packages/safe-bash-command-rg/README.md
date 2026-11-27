@@ -27,6 +27,10 @@ Use `rg -n -m 18 -M 240 pattern file.log` to replace output lines longer than
 240 bytes with an omission marker. `--max-columns` is the long form; `0`
 disables the limit. Matches, counts, exit status and JSON output are unchanged.
 
+Word matching (`\w`, `\W`, `\b`, `\B`, and `-w`) recognizes Unicode letters,
+combining marks, decimal digits, connector punctuation and join controls.
+Matches retain their original UTF-8 byte offsets.
+
 The module also exports `createRgCommand`, its command-list factory, and typed options and limits.
 
 Set `RIPGREP_CONFIG_PATH` to a virtual file containing one argument per line.

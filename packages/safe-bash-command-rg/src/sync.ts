@@ -169,7 +169,7 @@ export function evalSyncRg(
   if (maxCount === 0) return undefined;
   for (const t of targets) {
     const b = t === "-" ? (stdinUsed ? new Uint8Array(0) : ((stdinUsed = true), stdinBytes)) : (readFile ? readFile(t) : undefined);
-    if (!b || b.byteLength > 65536 || b.includes(0) || b.includes(13)) return undefined;
+    if (!b || b.byteLength > 65536 || b.includes(0) || b.includes(13) || b.some(byte => byte >= 128)) return undefined;
     const label = t === "-" ? "<stdin>" : t;
     let text: string;
     try { text = syncRgDecoder.decode(b); } catch { return undefined; }

@@ -436,8 +436,9 @@ Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matchin
 Use `strings -s ':'` or `--output-separator=:` to separate extracted strings with custom text, including after the final string. An empty separator joins the strings.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.
-It preserves original UTF-8 byte offsets and supports case/word selection on ASCII
-subjects, plus bounded ASCII globs for path and ignore filtering. Unicode case/word
+It preserves original UTF-8 byte offsets and supports ASCII case selection and
+Unicode word matching (`\w`, `\W`, `\b`, `\B`, and `-w`), plus bounded ASCII globs
+for path and ignore filtering. Unicode case
 selection, Unicode regex syntax, escape extensions, lazy repetition and invalid
 UTF-8/NUL subjects require a configured regex executor; unsupported profiles fail
 explicitly. Replacement supports `$0`, numbered and named captures (`$1`, `${1}`,

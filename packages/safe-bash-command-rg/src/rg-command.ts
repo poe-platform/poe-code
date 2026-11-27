@@ -940,8 +940,8 @@ Exit status: 0 when a match is found, 1 when none is found, 2 on error.
 Regular expression support depends on the configured regex executor.
 The default supports UTF-8 literals and bounded ASCII regular expressions.
 Regex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.
-Case and word selection support ASCII patterns and subjects.
-Unicode selection and extended regex syntax require a configured executor.
+Word selection (-w, \\w, \\b) supports Unicode letters, marks and numbers.
+Unicode case selection and extended regex syntax require a configured executor.
 `));
             await limits.flush();
             return { exitCode: 0 };

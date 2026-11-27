@@ -57,6 +57,12 @@ function isAsciiWordCp(cp: number): boolean {
   return (cp >= 48 && cp <= 57) || (cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122) || cp === 95;
 }
 
+function isWordCp(cp: number, unicode: boolean): boolean {
+  if (cp < 128 || !unicode) return isAsciiWordCp(cp);
+  // Classify one scalar only; user patterns never reach the host regex engine.
+  return /^[\p{Alphabetic}\p{M}\p{Nd}\p{Pc}\p{Join_Control}]$/u.test(String.fromCodePoint(cp));
+}
+
 function isAsciiSpaceCp(cp: number): boolean {
   return cp === 32 || cp === 9 || cp === 10 || cp === 11 || cp === 12 || cp === 13;
 }
@@ -87,12 +93,12 @@ function matchPosixClass(name: string, cp: number, insensitive: boolean): boolea
   }
 }
 
-function matchShorthand(id: "d" | "D" | "w" | "W" | "s" | "S", cp: number): boolean {
+function matchShorthand(id: "d" | "D" | "w" | "W" | "s" | "S", cp: number, unicodeWord: boolean): boolean {
   switch (id) {
     case "d": return cp >= 48 && cp <= 57;
     case "D": return !(cp >= 48 && cp <= 57);
-    case "w": return isAsciiWordCp(cp);
-    case "W": return !isAsciiWordCp(cp);
+    case "w": return isWordCp(cp, unicodeWord);
+    case "W": return !isWordCp(cp, unicodeWord);
     case "s": return isAsciiSpaceCp(cp);
     case "S": return !isAsciiSpaceCp(cp);
   }
@@ -101,6 +107,7 @@ function matchShorthand(id: "d" | "D" | "w" | "W" | "s" | "S", cp: number): bool
 function evalClassNode(
   node: Extract<AstNode, { type: "class" }>,
   cp: number,
+  unicodeWord: boolean,
 ): boolean {
   if (!node.multiline && cp === 10 && node.negated) {
     return false;
@@ -128,7 +135,7 @@ function evalClassNode(
         break;
       }
     } else if (item.kind === "shorthand") {
-      if (matchShorthand(item.id, cp)) {
+      if (matchShorthand(item.id, cp, unicodeWord)) {
         matched = true;
         break;
       }
@@ -885,11 +892,11 @@ export class ErgonomicVmMatcher {
   private stepStamp = 1;
   private readonly lookMatchers = new Map<number, ErgonomicVmMatcher>();
 
-  constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map(), private readonly binaryText = false) {
+  constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map(), private readonly binaryText = false, private readonly unicodeWord = false) {
     this.insts = compileAstToNfa(rootAst);
     this.multiline = multiline;
     this.insts.forEach((inst, index) => {
-      if (inst.op === "look") this.lookMatchers.set(index, new ErgonomicVmMatcher(inst.node.child, multiline, captureCount, captureNames, binaryText));
+      if (inst.op === "look") this.lookMatchers.set(index, new ErgonomicVmMatcher(inst.node.child, multiline, captureCount, captureNames, binaryText, unicodeWord));
     });
     const n = this.insts.length;
     this.visited = new Int32Array(n);
@@ -907,34 +914,30 @@ export class ErgonomicVmMatcher {
 
   private evalAssertion(
     kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow",
-    cps: Int32Array,
-    len: number,
+    subject: DecodedSubject,
     pos: number,
     multiline = this.multiline,
   ): boolean {
+    const { cps, widths, length: len } = subject;
+    if (kind === "bol") return pos === 0 || (multiline && cps[pos - 1] === 10);
+    if (kind === "eol") return pos === len || (multiline && cps[pos] === 10);
+    let previous = pos - 1;
+    // Locate the preceding scalar without crossing an invalid UTF-8 byte.
+    for (let distance = 1; previous >= 0 && cps[previous]! < 0 && distance < 4; distance++) previous--;
+    if (previous >= 0 && previous + widths[previous]! > pos) return false;
+    const prevW = previous >= 0 && previous + widths[previous]! === pos && isWordCp(cps[previous]!, this.unicodeWord);
+    const nextW = pos < len && isWordCp(cps[pos]!, this.unicodeWord);
     switch (kind) {
-      case "bol":
-        return pos === 0 || (multiline && cps[pos - 1] === 10);
-      case "eol":
-        return pos === len || (multiline && cps[pos] === 10);
       case "wb": {
-        const prevW = pos > 0 && isAsciiWordCp(cps[pos - 1]!);
-        const nextW = pos < len && isAsciiWordCp(cps[pos]!);
         return prevW !== nextW;
       }
       case "nwb": {
-        const prevW = pos > 0 && isAsciiWordCp(cps[pos - 1]!);
-        const nextW = pos < len && isAsciiWordCp(cps[pos]!);
         return prevW === nextW;
       }
       case "bow": {
-        const prevW = pos > 0 && isAsciiWordCp(cps[pos - 1]!);
-        const nextW = pos < len && isAsciiWordCp(cps[pos]!);
         return !prevW && nextW;
       }
       case "eow": {
-        const prevW = pos > 0 && isAsciiWordCp(cps[pos - 1]!);
-        const nextW = pos < len && isAsciiWordCp(cps[pos]!);
         return prevW && !nextW;
       }
     }
@@ -1011,7 +1014,7 @@ export class ErgonomicVmMatcher {
         return addThread(inst.out, startPos, pos, stamp, saved);
       }
       if (inst.op === "assert") {
-        if (this.evalAssertion(inst.kind, cps, length, pos, inst.multiline)) {
+        if (this.evalAssertion(inst.kind, subject, pos, inst.multiline)) {
           return addThread(inst.out, startPos, pos, stamp, slots);
         }
         return false;
@@ -1090,7 +1093,7 @@ export class ErgonomicVmMatcher {
         } else if (inst.op === "dot") {
           if ((inst.dotall || cp !== 10) && (inst.nullData || this.binaryText || cp !== 0)) nextOut = inst.out;
         } else if (inst.op === "class") {
-          if (evalClassNode(inst.node, cp)) nextOut = inst.out;
+          if (evalClassNode(inst.node, cp, this.unicodeWord)) nextOut = inst.out;
         }
         if (nextOut >= 0) {
           clistStates[clistLen] = nextOut;
@@ -1201,7 +1204,7 @@ export function prepareErgonomicRegex(
       let root: AstNode = branches.length === 1 ? branches[0]! : { type: "alt", branches };
       if (config.whole) root = { type: "seq", children: [{ type: "assert", kind: "bol" }, root, { type: "assert", kind: "eol" }] };
       else if (config.word) root = { type: "seq", children: [{ type: "assert", kind: "bow" }, root, { type: "assert", kind: "eow" }] };
-      return { mode: "vm", vm: new ErgonomicVmMatcher(root, Boolean(multiline && hasNewline), 0, new Map(), Boolean(config.binaryText)), crossLine: Boolean(multiline && hasNewline) };
+      return { mode: "vm", vm: new ErgonomicVmMatcher(root, Boolean(multiline && hasNewline), 0, new Map(), Boolean(config.binaryText), config.kind === "rg"), crossLine: Boolean(multiline && hasNewline) };
     }
     return { mode: "delegated", patterns, extended: Boolean(config.extended) };
   }
@@ -1250,7 +1253,7 @@ export function prepareErgonomicRegex(
     }
     result = {
       mode: "vm",
-      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames, Boolean(config.binaryText)),
+      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames, Boolean(config.binaryText), config.kind === "rg"),
       crossLine: multiline && anyCrossLine,
     };
   }

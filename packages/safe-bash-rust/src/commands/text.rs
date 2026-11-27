@@ -5025,7 +5025,7 @@ fn format_awk_printf(
             };
             let val = vals.get(arg_idx).unwrap_or(&Scalar::Unset);
             arg_idx += 1;
-            let (raw_body, is_num, allow_sign) = match conv {
+            let (mut raw_body, is_num, mut allow_sign) = match conv {
                 'd' | 'i' => {
                     let n = val.number();
                     if !n.is_finite() {
@@ -5045,23 +5045,12 @@ fn format_awk_printf(
                         return Err((2, "cannot format a non-finite number"));
                     }
                     let unsigned = (n.trunc() % 4294967296.0) as i64 as u32;
-                    let mut text = match conv {
+                    let text = match conv {
                         'x' => format!("{unsigned:x}"),
                         'X' => format!("{unsigned:X}"),
                         'o' => format!("{unsigned:o}"),
                         _ => unsigned.to_string(),
                     };
-                    if alt_form && n != 0.0 {
-                        text.insert_str(
-                            0,
-                            match conv {
-                                'x' => "0x",
-                                'X' => "0X",
-                                'o' => "0",
-                                _ => "",
-                            },
-                        );
-                    }
                     (text, true, false)
                 }
                 'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
@@ -5098,6 +5087,33 @@ fn format_awk_printf(
                     (truncated, false, false)
                 }
             };
+            if matches!(conv, 'd' | 'i' | 'u' | 'o' | 'x' | 'X') {
+                if let Some(precision) = prec {
+                    zero_pad = false;
+                    if precision == 0 && raw_body == "0" && (!alt_form || matches!(conv, 'd' | 'i'))
+                    {
+                        raw_body.clear();
+                        allow_sign = false;
+                    } else {
+                        let sign_len = usize::from(raw_body.starts_with('-'));
+                        let digit_len = raw_body.len() - sign_len;
+                        if precision > digit_len {
+                            raw_body.insert_str(sign_len, &"0".repeat(precision - digit_len));
+                        }
+                    }
+                }
+                if alt_form && val.number() != 0.0 {
+                    raw_body.insert_str(
+                        0,
+                        match conv {
+                            'x' => "0x",
+                            'X' => "0X",
+                            'o' => "0",
+                            _ => "",
+                        },
+                    );
+                }
+            }
             let signed_val =
                 if allow_sign && !raw_body.starts_with('-') && !raw_body.starts_with('+') {
                     if force_sign {

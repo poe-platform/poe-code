@@ -45,6 +45,7 @@ export interface SplitArguments {
   readonly separator: number;
   readonly elideEmpty: boolean;
   readonly verbose: boolean;
+  readonly filter: string | undefined;
 }
 
 function count(text: string, label: string, units = false, zero = false): bigint {
@@ -91,6 +92,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
   let separator: number | undefined;
   let elideEmpty = false;
   let verbose = false;
+  let filter: string | undefined;
   const operands: string[] = [];
   let ended = false;
   const apply = (option: string, value?: string, rawValue?: Uint8Array): void => {
@@ -104,6 +106,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     else if (option === "e") elideEmpty = true;
     else if (option === "u") return;
     else if (option === "verbose") verbose = true;
+    else if (option === "filter") filter = value;
     else if (option === "t") {
       const bytes = value === "\\0" ? bytesFrom("\0") : rawValue ?? bytesFrom(value!);
       if (bytes.length !== 1) throw new PublicDiagnostic("separator must be exactly one byte");
@@ -134,7 +137,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     }
   };
   const long: Readonly<Record<string, string>> = {
-    lines: "l", bytes: "b", "line-bytes": "C", "suffix-length": "a",
+    filter: "filter", lines: "l", bytes: "b", "line-bytes": "C", "suffix-length": "a",
     "numeric-suffixes": "d", "additional-suffix": "additional-suffix",
     "hex-suffixes": "x", separator: "t", "elide-empty-files": "e", number: "n",
     unbuffered: "u", verbose: "verbose", help: "help", version: "version",
@@ -178,6 +181,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
       }
     }
   }
+  if (filter !== undefined && selectedChunk) throw new PublicDiagnostic("--filter does not process a chunk extracted to stdout");
   if (legacyLines !== undefined) apply("l", legacyLines);
   if (operands.length > 2) throw new PublicDiagnostic(`extra operand '${operands[2]}'`);
   let requiredSuffixLength = 1;
@@ -202,6 +206,6 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     mode: mode ?? "lines", size, chunkMode, selectedChunk, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
     alphabet,
     suffixLength, automatic,
-    numericStart: numericStart ?? "0", additionalSuffix, separator: separator ?? 10, elideEmpty, verbose,
+    numericStart: numericStart ?? "0", additionalSuffix, separator: separator ?? 10, elideEmpty, verbose, filter,
   };
 }

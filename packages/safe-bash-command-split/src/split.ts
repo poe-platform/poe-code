@@ -1,7 +1,7 @@
 import { bytesFrom } from "safe-bash-byte-engine";
-import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
+import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { quoteShellOperand, writeDiagnostic } from "safe-bash-contracts/escaping";
-import { FsError, isFsError, collectBytes, getCommandArguments, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, isFsError, collectBytes, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
@@ -67,6 +67,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     await writeBytes(context.stdout, bytesFrom(gnuInformationSync("split", [`--${args.information}`])!), context.signal);
     return;
   }
+  if (args.filter !== undefined && !context.invoke) throw new PublicDiagnostic("virtual command invocation unavailable");
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
   const budget = new Budget(limits, signal);
@@ -78,7 +79,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     let name = args.selectedChunk ? "" : names.next();
     let initial: Awaited<ReturnType<Outputs["prepare"]>> | undefined;
     let initialDirectoryError: FsError | undefined;
-    if (args.input !== "-" && !args.selectedChunk) {
+    if (args.input !== "-" && !args.selectedChunk && args.filter === undefined) {
       try { initial = await outputs.prepare(name); }
       catch (error) {
         signal.throwIfAborted();
@@ -90,7 +91,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     const window = args.mode === "line-bytes" ? new LineBytes(cursor, Number(args.size), args.separator) : undefined;
     let chunkInput: Uint8Array | undefined;
     if (args.mode === "chunks") {
-      const source = (async function* (): ByteSource {
+      const source = (async function* (): AsyncGenerator<Uint8Array> {
         while (true) {
           const bytes = await cursor!.peek();
           if (!bytes.length) break;
@@ -161,13 +162,12 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       budget.check(++files, limits.maxFiles, "file");
       if (files > 1) name = names.next();
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;
-      const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       if (args.verbose) {
-        const line = bytesFrom(`creating file ${quoteShellOperand(name)}\n`);
+        const line = bytesFrom(args.filter === undefined ? `creating file ${quoteShellOperand(name)}\n` : `executing with FILE=${name} ${quoteShellOperand(args.filter)}\n`);
         budget.output(line.length);
         await context.stdout.write(line);
       }
-      const source = (async function* (): ByteSource {
+      const source = (async function* (): AsyncGenerator<Uint8Array> {
         if (!first.done) {
           budget.output(first.value.length);
           yield first.value;
@@ -177,6 +177,18 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           yield chunk;
         }
       })();
+      if (args.filter !== undefined) {
+        const result = await context.invoke!("sh", ["-c", args.filter], {
+          env: { ...context.env, FILE: name }, cwd: context.cwd, signal,
+          // A filter may stop reading early; retain the iterator to drain this piece.
+          stdin: { [Symbol.asyncIterator]: () => ({ next: () => source.next() }) },
+          stdinIsDefault: false, stdout: context.stdout, stderr: context.stderr,
+        });
+        if (result.exitCode !== 0) throw new PublicDiagnostic(`filter exited with status ${result.exitCode}`);
+        for await (const chunk of source) { void chunk; }
+        continue;
+      }
+      const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(destination.path, { signal }) ?? context.fs.capabilities), signal);
       if (context.fs.writeStream && capabilities.streamingWrite !== false) {
         await interruptible(() => context.fs.writeStream!(destination.path, source, { signal, flag: destination.flag }), signal);
@@ -205,6 +217,7 @@ export function evalSyncSplit(
     const limits = settings({});
     const args = parseArguments(opArgs, limits);
     if ("information" in args) return gnuInformationSync("split", [`--${args.information}`]);
+    if (args.filter !== undefined) return undefined;
     if (args.input === "-" && inBytes === undefined) return undefined;
     const src = args.input === "-" ? inBytes! : readFileSync?.(args.input);
     if (!src) return undefined;

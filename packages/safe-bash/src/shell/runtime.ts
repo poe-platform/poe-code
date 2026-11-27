@@ -1262,6 +1262,7 @@ class DiscardCommandFailure extends CommandFailure {
   constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
 }
 class ParameterExpansionFailure extends ExpansionFailure {}
+class NegativeArrayIndexFailure extends ArrayFailure {}
 export class NounsetFailure extends ExpansionFailure {
   constructor(message: string, line?: number, readonly status = 1) { super(message, line); }
 }
@@ -3457,7 +3458,8 @@ export class Runtime {
       let number = await this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
       if (number < 0n) number += BigInt(relativeMaximum + 1);
       const maximum = create ? 2147483647 : 4294967295;
-      if (number < 0n || number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
+      if (number < 0n) throw new NegativeArrayIndexFailure(`index outside 0..${maximum}`);
+      if (number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
       return Number(number);
     }
     const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
@@ -10139,7 +10141,14 @@ export class Runtime {
       return resolved;
     }
     const maximum = binding?.maximum ?? ((this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)) - 1);
-    const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
+    let index: number | undefined;
+    try { index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum); }
+    catch (error) {
+      if (!(error instanceof NegativeArrayIndexFailure)) throw error;
+      await this.diagnostic(io, `${part.name}: bad array subscript`);
+      // Retain a resolved missing index so later reads cannot evaluate it again.
+      index = -1;
+    }
     const resolved = { ...part, [writtenArrayParameter]: parameterName };
     copyArraySelector(part, resolved);
     setArraySelector(resolved, { kind: "element", index: { decimal: String(index) } });
@@ -10183,6 +10192,7 @@ export class Runtime {
         if (operator === "+" ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, io);
           if (operator === "=") {
+            if (index !== undefined && index < 0) throw new ExpansionFailure(`${writtenArrayParameter in part ? String(part[writtenArrayParameter]) : part.name}: bad array subscript`, io.diagnosticLine ?? part.line);
             if (indirectArrayTarget in part) {
               await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted);
               throw new ExpansionFailure(`${part[indirectArrayTarget]}: invalid variable name`, io.diagnosticLine ?? part.line);

@@ -3,6 +3,30 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
+for (const [source, expected, diagnostics] of [
+  ['a=(1 2 3); say "[${a[-5]}]"; say "rc=$?"; say ${a[-4]-u}', '[]\nrc=0\nu\n', 2],
+  ['a=(1 2 3); say "${a[-4]:-u}" "${a[-4]+set}" "${a[-4]:+set}"', 'u  \n', 3],
+  ['a=(); say "[${a[-1]}]"; say ${a[-1]-u}', '[]\nu\n', 2],
+  ['a=([5]=six); say "${a[-6]-u}" "${a[-7]-u}" "${a[-1]}"', 'u u six\n', 1],
+  ['a=(1 2 3); i=-5; say "[${a[i++]}]" "$i" "${a[-1]}"', '[] -4 3\n', 1],
+] as const) test(`out-of-range negative array reads continue: ${source}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, 'shell: line 1: a: bad array subscript\n'.repeat(diagnostics));
+});
+
+test('out-of-range negative array default assignment does not overwrite the last element', async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec('a=(1 2 3); trap \'say "${a[@]}"\' EXIT; say "${a[-5]:=x}"; say after');
+  assert.equal(result.stdout, '1 2 3\n');
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, 'shell: line 1: a: bad array subscript\nshell: line 1: a[-5]: bad array subscript\n');
+});
+
 for (const [source, expected] of [
   ['unset u; a=(); set --; set -- ${u:-"${a[@]}"}', []],
   ['unset u; a=(); set --; set -- "${a[@]}"', []],

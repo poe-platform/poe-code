@@ -20909,13 +20909,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if upper.starts_with("CREATE TABLE") {
             if let Some(open) = stmt.find('(') {
                 if stmt.rfind(')').is_some() {
-                    let head = stmt[..open].trim();
-                    let tname = head
-                        .split_whitespace()
-                        .last()
-                        .unwrap_or("")
-                        .trim_matches('"')
-                        .to_string();
+                    let head = stmt["CREATE TABLE".len()..open].trim();
+                    let head = if head.to_ascii_uppercase().starts_with("IF NOT EXISTS ") {
+                        head["IF NOT EXISTS".len()..].trim()
+                    } else {
+                        head
+                    };
+                    let tname = head.trim_matches('"').to_string();
                     let (table, _, _) = parse_create_table_metadata(stmt);
                     tables.entry(tname).or_insert(table);
                 }
@@ -22771,7 +22771,16 @@ fn resolve_sql_from_table(
     }
 
     // 4. Single table or view: `<tname> [[AS] <alias>]`
-    let parts: Vec<&str> = trimmed.split_whitespace().collect();
+    let mut quoted = false;
+    let parts: Vec<&str> = trimmed
+        .split(|c: char| {
+            if c == '"' {
+                quoted = !quoted;
+            }
+            c.is_whitespace() && !quoted
+        })
+        .filter(|part| !part.is_empty())
+        .collect();
     let raw_tname = parts.first().copied().unwrap_or("").trim_matches('"');
     let alias = if parts.len() >= 3 && parts[1].eq_ignore_ascii_case("AS") {
         Some(parts[2].trim_matches('"'))

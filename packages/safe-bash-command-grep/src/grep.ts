@@ -1,5 +1,6 @@
 import { latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { shellValueByteLength } from "safe-bash-contracts/value";
+import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
 import { hasYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
@@ -235,6 +236,17 @@ function hasNulOrNonAscii(buf: Uint8Array, start: number, end: number): boolean 
   return false;
 }
 
+async function isBinarySubject(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal): Promise<boolean> {
+  try {
+    await validateUtf8(bytes, ledger, signal);
+    return false;
+  } catch (error) {
+    signal.throwIfAborted();
+    if (!(error instanceof PublicDiagnostic)) throw error;
+    return true;
+  }
+}
+
 function tryFastGrepAscii(
   context: Parameters<CommandDefinition["execute"]>[0],
   limits: GrepLimits,
@@ -398,7 +410,7 @@ async function tryFastGrepAsciiAsync(
             }
             if (hasNulOrNonAscii(raw, lineStart, lineEnd)) {
               subjectLedger ??= new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity });
-              await validateUtf8(raw.subarray(lineStart, lineEnd), subjectLedger, context.signal);
+              if (await isBinarySubject(raw.subarray(lineStart, lineEnd), subjectLedger, context.signal)) break;
             }
             const maxPos = lineEnd - litLen;
             let matched = false;
@@ -461,7 +473,7 @@ async function tryFastGrepAsciiAsync(
         const lineLen = lEnd - lStart;
         if (hasNulOrNonAscii(chunk, lStart, lEnd)) {
           subjectLedger ??= new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity });
-          await validateUtf8(chunk.subarray(lStart, lEnd), subjectLedger, context.signal);
+          if (await isBinarySubject(chunk.subarray(lStart, lEnd), subjectLedger, context.signal)) return false;
         }
         const maxPos = lEnd - litLen;
         let matched = false;
@@ -536,7 +548,7 @@ async function executeGrepWithSession(
       let matcher: "G" | "E" | "F" | "P" | undefined;
       let helpRequested = false;
       let ignoreCase = false;
-      const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "without-match" };
+      const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "binary" };
       let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
       let rewrittenArgs: string[] | undefined;
@@ -751,14 +763,14 @@ inspect the resulting state before repeating the action.
       };
       const initRes = session.runSync(descriptor, EMPTY_GREP_ROWS);
       if (initRes instanceof Promise) await initRes;
-      const asciiPattern = context.args[0] ?? "";
-      const validateAsciiSubjects = !parsed.flags.has("a") && context.args.length <= 2 && asciiPattern.length > 0 && asciiPattern.length <= 64 &&
-        asciiPattern[0] !== "-" && Array.from(asciiPattern.startsWith("^") ? asciiPattern.slice(1) : asciiPattern)
-          .every(character => character.charCodeAt(0) >= 32 && character.charCodeAt(0) <= 126 && !"$()*+.?[\\]^{|}".includes(character));
-      const subjectLedger = validateAsciiSubjects ? new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }) : undefined;
+      const skipBinarySubjects = binaryFiles.mode === "without-match" || binaryFiles.mode === "binary" && !parsed.flags.has("F");
+      let subjectLedger: EreLedger | undefined;
       const runGrepBatch = (batch: GrepLine[]) => {
-        if (subjectLedger) return (async () => {
-          for (const line of batch) await validateUtf8(line.bytes, subjectLedger, context.signal);
+        if (skipBinarySubjects && batch.some(line => hasNulOrNonAscii(line.bytes, 0, line.bytes.length))) return (async () => {
+          subjectLedger ??= new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity });
+          for (const line of batch) {
+            if (await isBinarySubject(line.bytes, subjectLedger, context.signal)) return undefined;
+          }
           return vmMatcher ? vmMatcher.batchSync(batch) : session.runSync(descriptor, batch);
         })();
         return vmMatcher ? vmMatcher.batchSync(batch) : session.runSync(descriptor, batch);
@@ -852,8 +864,9 @@ inspect the resulting state before repeating the action.
           const isCountOnly = parsed.flags.has("c");
           const isOnlyMatching = parsed.flags.has("o");
           const canFastBufferLines = !isQuiet && !isListFiles && !isCountOnly && !withContext && !isOnlyMatching && !hasLinePrefix && !lineBuffered && binaryFiles.mode !== "without-match";
-          const processBatchSlow = async (batch: GrepLine[], endOfChunk: boolean, resultsPromise?: Promise<readonly (readonly { start: number; end: number }[])[]>, startIdx = 0, precomputedResults?: readonly (readonly { start: number; end: number }[])[]): Promise<boolean> => {
+          const processBatchSlow = async (batch: GrepLine[], endOfChunk: boolean, resultsPromise?: Promise<readonly (readonly { start: number; end: number }[])[] | undefined>, startIdx = 0, precomputedResults?: readonly (readonly { start: number; end: number }[])[]): Promise<boolean> => {
             const results = precomputedResults ?? await resultsPromise!;
+            if (results === undefined) return false;
             for (let index = startIdx; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();
@@ -934,16 +947,7 @@ inspect the resulting state before repeating the action.
             if (endOfChunk || lineBuffered || outUsed - outStart >= 8192) await flushOut();
             return true;
           };
-          const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
           if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, (batch, endOfChunk) => {
-            if (binaryFiles.mode !== "text" && batch.some(line => {
-              if (line.bytes.includes(0)) return true;
-              try { utf8Decoder.decode(line.bytes); return false; }
-              catch (error) { if (error instanceof TypeError) return true; throw error; }
-            })) {
-              count = 0;
-              return false;
-            }
             const resOrPromise = runGrepBatch(batch);
             if (resOrPromise instanceof Promise || !canFastBufferLines) {
               return resOrPromise instanceof Promise

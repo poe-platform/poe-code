@@ -12,6 +12,8 @@ for example `grep -oP '(?<=id=")[^"]+'`. Variable-length lookbehind and
 backreferences are unsupported.
 Basic and extended patterns accept UTF-8 literals, including accents, CJK and emoji;
 matching preserves original output bytes. Case folding and word boundaries use ASCII rules.
+Regex searches skip files containing NUL or invalid UTF-8 subjects and continue searching
+the remaining files; use `-a` to explicitly search binary input as text.
 `egrep` and `fgrep` select extended and fixed matching; `rgrep` enables recursive search (`grep -r`).
 
 ```ts

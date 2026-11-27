@@ -23388,14 +23388,15 @@ fn exec_sql_delete(
             .rows
             .into_iter()
             .filter(|r| {
-                where_clause
-                    .is_none_or(|wc| eval_sql_where(wc, &t_cols, &target.metadata, r, &tables_snap))
+                where_clause.is_none_or(|wc| {
+                    eval_sql_where(wc, &target.columns, &target.metadata, r, &tables_snap)
+                })
             })
             .collect();
     } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
             tbl.retain_rows(|r| {
-                if eval_sql_where(wc, &t_cols, &tables_snap[&tname].metadata, r, &tables_snap) {
+                if eval_sql_where(wc, &target.columns, &target.metadata, r, &tables_snap) {
                     deleted_rows.push(r.clone());
                     false
                 } else {

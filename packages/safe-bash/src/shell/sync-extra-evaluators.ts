@@ -3552,7 +3552,7 @@ const syncExtraRuntimeMethods = {
       for (let j = 0; j < word.parts.length; j++) {
         const part = word.parts[j]!;
         if (part.kind !== "text" || part.byteValue) return false;
-        if (!part.quoted && (part.value.includes("{") || (j === 0 && part.value.startsWith("~")) || hasGlobOrEscape(part.value, !!rawState.extglob))) {
+        if (!part.quoted && (part.value.includes("{") || part.value.includes("~") || hasGlobOrEscape(part.value, !!rawState.extglob))) {
           return false;
         }
       }
@@ -4713,7 +4713,7 @@ const syncExtraRuntimeMethods = {
         if (hereDocument && part.quoted && part.value.includes("$")) return undefined;
         if (!part.quoted) {
           if (braces && rawState.braceexpand !== false && part.value.includes("{") && (word.parts.length > 1 || part.value.includes(",") || part.value.includes(".."))) return undefined;
-          if (!hereDocument && (i === 0 && part.value.startsWith("~") || assignmentStart !== undefined && part.value.includes("~"))) return undefined;
+          if (!hereDocument && (i === 0 && part.value.startsWith("~") || part.value.includes("~") && (assignmentStart !== undefined || rawState.profile !== "sh" && this.assignment(word)))) return undefined;
           if (split && !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)) return undefined;
         }
         out += part.value;
@@ -9648,7 +9648,7 @@ const syncExtraRuntimeMethods = {
         const w1 = command.words[1]!;
         const p1 = w1.parts.length === 1 ? w1.parts[0]! : undefined;
         const pt = r0.target.parts.length === 1 ? r0.target.parts[0]! : undefined;
-        if ( p1?.kind === "text" && !p1.byteValue && !p1.value.startsWith("-") && !p1.value.includes("\0") && (!p1.value.includes("{") && !p1.value.startsWith("~") && !hasGlobOrEscape(p1.value, true)) && pt?.kind === "text" && !pt.byteValue && pt.value.startsWith("/") && !pt.value.includes("\0") && (!pt.value.includes("{") && !hasGlobOrEscape(pt.value, true)) && isCleanAbsolutePath(pt.value) && pt.value !== "/dev" && !pt.value.startsWith("/dev/")) {
+        if ( p1?.kind === "text" && !p1.byteValue && !p1.value.startsWith("-") && !p1.value.includes("\0") && (!p1.value.includes("{") && !p1.value.includes("~") && !hasGlobOrEscape(p1.value, true)) && pt?.kind === "text" && !pt.byteValue && pt.value.startsWith("/") && !pt.value.includes("\0") && (!pt.value.includes("{") && !hasGlobOrEscape(pt.value, true)) && isCleanAbsolutePath(pt.value) && pt.value !== "/dev" && !pt.value.startsWith("/dev/")) {
           const lastSlash = pt.value.lastIndexOf("/");
           let dirPrefix: string | undefined;
           let fileName: string | undefined;
@@ -15775,7 +15775,7 @@ const syncExtraRuntimeMethods = {
           if (!allWordsOk || combined.length > 1500) { allWordsOk = false; break; }
           continue;
         }
-        if (cw.plain !== undefined && cw.parts.length === 1 && cw.parts[0]!.kind === "text" && !cw.parts[0]!.byteValue && (cw.parts[0]!.quoted || (!cw.parts[0]!.value.includes("{") && !cw.parts[0]!.value.startsWith("~") && !hasGlobOrEscape(cw.parts[0]!.value, true)))) {
+        if (cw.plain !== undefined && cw.parts.length === 1 && cw.parts[0]!.kind === "text" && !cw.parts[0]!.byteValue && (cw.parts[0]!.quoted || (!cw.parts[0]!.value.includes("{") && !cw.parts[0]!.value.includes("~") && !hasGlobOrEscape(cw.parts[0]!.value, true)))) {
           const s = cw.plain;
           for (let c = 0; c < s.length; c++) if (s.charCodeAt(c) >= 128) { allWordsOk = false; break; }
           if (!allWordsOk) break;

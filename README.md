@@ -162,7 +162,7 @@ poe-code models --search claude
 
 ## SDK
 
-Safe Bash offers opt-in [trash commands](packages/safe-bash-command-trash/README.md) backed by atomic filesystem operations. Native providers can route `rm` through the same recoverable deletion policy.
+Safe Bash expands home paths in assignment arguments such as `env X=~/dir printenv X` and `echo PATH=x:~`. It offers opt-in [trash commands](packages/safe-bash-command-trash/README.md) backed by atomic filesystem operations. Native providers can route `rm` through the same recoverable deletion policy.
 
 The Rust [spreadsheet API](packages/safe-bash-rust/README.md) supports batch editing, formula recalculation, sparse tables, editable pivot tables, JSON persistence, and XLSX import/export in native applications and WebAssembly. Formula parsing and reference updates share the workbook engine; rejected edit batches preserve the previous workbook.
 

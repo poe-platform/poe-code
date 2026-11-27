@@ -9,6 +9,14 @@ const cases = [
   ["default and alternate operands", "unset u; s=yes; printf '<%s>\\n' ${u-~/dir} ${u:-~/dir} ${s+~/dir} ${s:+~/dir} ${u:=~/dir}; printf '<%s>\\n' \"$u\""],
   ["assignment colons", "p=~/a:~/b:~+/c:~-/d; printf '<%s>\\n' \"$p\""],
   ["declarations", "export ex=~/a:~/b; declare dx=~/a:~/b; readonly rx=~/a:~/b; f() { local lx=~/a:~/b; printf '<%s>\\n' \"$lx\"; }; f; printf '<%s>\\n' \"$ex\" \"$dx\" \"$rx\""],
+  ["ordinary assignment arguments", "HOME=/h; echo a=~ b=~/x c=x:~; env X=~/y printenv X; echo PREFIX=~/p"],
+  ["assignment argument quoting", String.raw`printf '<%s>\n' a="~" a=\~ a=~"" a=~/"x" a=x\:~ a=x:~ a+=~/x a=~/x:~/y`],
+  ["assignment argument syntax", String.raw`name=a; value='a=~'; printf '<%s>\n' a-b=~ 1a=~ =~/x "a"=~ a\=~ $name=~ $value a=~missing`],
+  ["assignment argument splitting", String.raw`HOME='/home/a b:*'; value='one two'; printf '<%s>\n' a=$value a=~ a=~/x a=~/$value`],
+  ["assignment arguments in pipelines and substitutions", String.raw`echo a=~ | cat; env X=~/y printenv X | cat; value=$(printf '%s' a=x:~); printf '<%s>\n' "$value"; echo a=~ >&1`],
+  ["assignment arguments in command pipelines", String.raw`printf '%s\n' 'a=/home/alice' | grep a=~; for i in 1 2; do printf '%s\n' 'a=/home/alice' | grep a=~; done`],
+  ["assignment arguments in loops", String.raw`for value in a=~ b=x:~; do printf '<%s>\n' "$value"; done; for i in 1 2; do echo a=~; done`],
+  ["sh assignment arguments", String.raw`sh -c 'printf "<%s>\n" a=~ b=x:~; export a=~/x; printf "<%s>\n" "$a"'`],
   ["working directories", "printf '<%s>\\n' ~+ ~+/sub ~- ~-/sub; unset OLDPWD; printf '<%s>\\n' ~-"],
   ["quoted prefixes", "printf '<%s>\\n' ~\"\" ~\"foo\" ~'' ~\"/foo\" ~/\"foo\" \"~\"/foo ~\\+ ~missing"],
   ["mixed IFS across parts", "IFS=' :'; x='a '; y=': b'; printf '<%s>\\n' $x$y; x=' '; y=':b'; printf '<%s>\\n' \"a\"$x$y"],
@@ -41,6 +49,15 @@ assert.equal(version.stderr.length, 0);
 const bashVersion = version.stdout.toString();
 const legacyOracle = bashVersion.startsWith("3.2.");
 assert.ok(legacyOracle || Number(bashVersion.split(".")[0]) >= 5, `Unsupported Bash oracle dialect: ${bashVersion}`);
+
+test("assignment arguments expand home on repeated file redirection", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("for HOME in /first /second; do echo a=~ > /result; cat /result | grep a=~; done");
+  assert.equal(result.stdout, "a=/first\na=/second\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
 
 for (const [name, script] of cases) {
   test(`tilde and IFS: ${name}`, async context => {

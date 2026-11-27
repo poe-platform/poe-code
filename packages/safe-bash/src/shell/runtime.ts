@@ -9895,8 +9895,8 @@ export class Runtime {
         else await this.arrayAssignment(assignment, state, io, undefined, "declaration");
         fields.push(assignment.name);
       } else {
-        const scalarAssignment = declaration ? this.assignment(word) : undefined;
-        const split = !scalarAssignment;
+        const scalarAssignment = declaration || state.profile !== "sh" ? this.assignment(word) : undefined;
+        const split = !(declaration && scalarAssignment);
         const assignmentStart = scalarAssignment ? scalarAssignment.name.length + (scalarAssignment.append ? 2 : 1) : undefined;
         const fast = this.fastValueWord(word, state, io, split, false, false, true, assignmentStart);
         if (fast !== undefined) {
@@ -9904,7 +9904,7 @@ export class Runtime {
           fields.push(fast);
           continue;
         }
-        if (!scalarAssignment && state.braceexpand !== false && !hasActiveVariableAttributes(state) && !guestArrays(state)) {
+        if (split && state.braceexpand !== false && !hasActiveVariableAttributes(state) && !guestArrays(state)) {
           const valScope = io[valueScope];
           const fastBrace = tryFastExpandBraceRange(word, this.budget, valScope ? (b, o) => valScope.reserve(b, o) : undefined);
           if (fastBrace !== undefined) {

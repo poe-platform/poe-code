@@ -192,7 +192,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   (including scalar `${!name}` indirection and `^`/`^^` and `,`/`,,` case
   conversion with optional patterns),
   `$(command)` and backtick substitution, arithmetic expansion, pathname globs,
-  and tilde expansion including directory stack references (`~N`, `~+N`, `~-N`).
+  and tilde expansion including directory stack references (`~N`, `~+N`, `~-N`)
+  and assignment arguments such as `env X=~/dir printenv X` and `echo PATH=x:~`.
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`, `<>`), combined output redirection (`&>`, `>& file`, `&>>`), descriptor
   redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without

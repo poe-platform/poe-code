@@ -6224,10 +6224,30 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
             continue;
         }
         if let Some((k, v)) = raw_line.split_once('=') {
-            let key_raw = k.trim().trim_matches('"');
-            let key_segs: Vec<&str> = key_raw
-                .split('.')
-                .map(|s| s.trim().trim_matches('"'))
+            let mut quote = None;
+            let mut escaped = false;
+            let key_segs: Vec<&str> = k
+                .split(|c| {
+                    if escaped {
+                        escaped = false;
+                        return false;
+                    }
+                    match (quote, c) {
+                        (Some('"'), '\\') => escaped = true,
+                        (Some(q), c) if q == c => quote = None,
+                        (None, '"' | '\'') => quote = Some(c),
+                        (None, '.') => return true,
+                        _ => {}
+                    }
+                    false
+                })
+                .map(|s| {
+                    let s = s.trim();
+                    s.strip_prefix('"')
+                        .and_then(|s| s.strip_suffix('"'))
+                        .or_else(|| s.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+                        .unwrap_or(s)
+                })
                 .collect();
             let v = v.trim_start();
             let val = if v.starts_with("\"\"\"") || v.starts_with("'''") {

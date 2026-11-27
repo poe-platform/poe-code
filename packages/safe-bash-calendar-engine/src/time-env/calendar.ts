@@ -313,12 +313,19 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
 function parseAbsoluteDate(value: string, zone: TimeZone): { instant: bigint; zone: TimeZone } {
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return { instant: epoch, zone };
-  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
-  if (iso) {
-    const fields: CalendarFields = { year: Number(iso[1] ?? iso[4]), month: Number(iso[2] ?? iso[5]), day: Number(iso[3] ?? iso[6]), hour: Number(iso[7] ?? 0),
-      minute: Number(iso[8] ?? 0), second: Number(iso[9] ?? 0) };
-    const sourceZone = parsedZone(iso[11], zone);
-    return { instant: sourceZone.instant(fields, BigInt((iso[10] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
+  const numeric = /^(\d{2}(?:\d{2})?-\d{1,2}-\d{1,2}|\d{4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|\d{8})(?:[Tt ](\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
+  if (numeric) {
+    const date = numeric[1]!;
+    const parts = date.includes("/") ? date.split("/") : date.includes("-") ? date.split("-")
+      : [date.slice(0, 4), date.slice(4, 6), date.slice(6)];
+    const [year, month, day] = date.includes("/") && parts[0]!.length < 4
+      ? [parts[2]!, parts[0]!, parts[1]!] : [parts[0]!, parts[1]!, parts[2]!];
+    // GNU date maps two-digit years to 1969–2068; four-digit years stay literal.
+    const fullYear = Number(year) + (year.length === 2 ? (Number(year) <= 68 ? 2000 : 1900) : 0);
+    const fields: CalendarFields = { year: fullYear, month: Number(month), day: Number(day), hour: Number(numeric[2] ?? 0),
+      minute: Number(numeric[3] ?? 0), second: Number(numeric[4] ?? 0) };
+    const sourceZone = parsedZone(numeric[6], zone);
+    return { instant: sourceZone.instant(fields, BigInt((numeric[5] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
   }
   const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{4})$/.exec(value);
   if (rfc) {

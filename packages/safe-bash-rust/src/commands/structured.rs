@@ -12455,7 +12455,9 @@ fn cmd_csvsql(
                     return err_out(&format!("csvsql: Table '{tname}' already exists.\n"), 1);
                 }
                 if let Some(existing_tbl) = tables.get_mut(&tname) {
-                    existing_tbl.rows.extend(data);
+                    for row in data {
+                        existing_tbl.push_row(row);
+                    }
                 }
             } else {
                 if no_create {
@@ -17861,23 +17863,74 @@ struct SqlTable {
 
 impl SqlTable {
     fn push_row(&mut self, row: Vec<String>) {
-        if self.rowids.len() < self.rows.len() {
-            self.rowids = (1..=self.rows.len() as i64).collect();
+        // Tables made from CSV or query results initially have consecutive rowids.
+        self.rowids
+            .extend((self.rowids.len() + 1..=self.rows.len()).map(|i| i as i64));
+        // Stored rowids stay sorted, including when a full i64 rowid forces reuse.
+        let next = self.rowids.last().copied().unwrap_or(0).checked_add(1);
+        let rowid = next.unwrap_or_else(|| {
+            (1..=i64::MAX)
+                .find(|id| self.rowids.binary_search(id).is_err())
+                .unwrap()
+        });
+        let index = if next.is_some() {
+            self.rows.len()
+        } else {
+            self.rowids.partition_point(|id| *id < rowid)
+        };
+        self.rowids.insert(index, rowid);
+        self.rows.insert(index, row);
+    }
+
+    fn retain_rows(&mut self, mut keep: impl FnMut(&Vec<String>) -> bool) {
+        let mut rowids = Vec::new();
+        let mut index = 0;
+        self.rows.retain(|row| {
+            let retain = keep(row);
+            if retain {
+                rowids.push(
+                    self.rowids
+                        .get(index)
+                        .copied()
+                        .unwrap_or((index + 1) as i64),
+                );
+            }
+            index += 1;
+            retain
+        });
+        self.rowids = rowids;
+    }
+
+    fn add_rowid_column(&mut self) {
+        if self.create_sql.is_empty()
+            || find_sql_col(&self.columns, "rowid").is_some()
+            || self
+                .create_sql
+                .to_ascii_uppercase()
+                .contains("WITHOUT ROWID")
+        {
+            return;
         }
-        let rowid = self
-            .rowids
-            .iter()
-            .copied()
-            .max()
-            .unwrap_or(0)
-            .checked_add(1)
-            .unwrap_or_else(|| {
-                (1..=self.rowids.len() as i64 + 1)
-                    .find(|id| !self.rowids.contains(id))
-                    .unwrap()
+        let (_, alias, _) = parse_create_table_metadata(&self.create_sql);
+        self.comparisons
+            .resize(self.columns.len(), SqlColumnComparison::default());
+        self.comparisons.push(SqlColumnComparison {
+            affinity: SqlAffinity::Numeric,
+            ..SqlColumnComparison::default()
+        });
+        self.star_hidden_columns.push(self.columns.len());
+        self.columns.push("rowid".to_string());
+        for (index, row) in self.rows.iter_mut().enumerate() {
+            let rowid = alias.and_then(|i| row.get(i)).cloned().unwrap_or_else(|| {
+                self.rowids
+                    .get(index)
+                    .copied()
+                    .unwrap_or((index + 1) as i64)
+                    .to_string()
             });
-        self.rowids.push(rowid);
-        self.rows.push(row);
+            row.resize(self.columns.len() - 1, String::new());
+            row.push(rowid);
+        }
     }
 }
 
@@ -22850,18 +22903,14 @@ fn exec_sql_delete(
             .collect();
     } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
-            let mut kept = Vec::new();
-            let mut kept_rowids = Vec::new();
-            for (i, r) in tbl.rows.drain(..).enumerate() {
-                if eval_sql_where(wc, &t_cols, &tbl.comparisons, &r, &tables_snap) {
-                    deleted_rows.push(r);
+            tbl.retain_rows(|r| {
+                if eval_sql_where(wc, &t_cols, &tables_snap[&tname].comparisons, r, &tables_snap) {
+                    deleted_rows.push(r.clone());
+                    false
                 } else {
-                    kept.push(r);
-                    kept_rowids.push(tbl.rowids.get(i).copied().unwrap_or((i + 1) as i64));
+                    true
                 }
-            }
-            tbl.rows = kept;
-            tbl.rowids = kept_rowids;
+            });
         } else {
             deleted_rows = std::mem::take(&mut tbl.rows);
             tbl.rowids.clear();
@@ -22941,20 +22990,9 @@ fn exec_sql_delete(
                                 }
                             }
                             "CASCADE" => {
-                                let mut kept_rowids = Vec::new();
-                                let mut i = 0;
-                                ctbl.rows.retain(|cr| {
-                                    let keep =
-                                        cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str());
-                                    if keep {
-                                        kept_rowids.push(
-                                            ctbl.rowids.get(i).copied().unwrap_or((i + 1) as i64),
-                                        );
-                                    }
-                                    i += 1;
-                                    keep
+                                ctbl.retain_rows(|cr| {
+                                    cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str())
                                 });
-                                ctbl.rowids = kept_rowids;
                             }
                             "SET NULL" => {
                                 for cr in &mut ctbl.rows {
@@ -24280,28 +24318,8 @@ fn exec_sql_select_with_mode(
     let Some(mut tbl) = resolve_sql_from_table(from_spec, tables, views) else {
         return String::new();
     };
-    if !tbl.create_sql.is_empty()
-        && !tbl
-            .create_sql
-            .to_ascii_uppercase()
-            .contains("WITHOUT ROWID")
-        && find_sql_col(&tbl.columns, "rowid").is_none()
-    {
-        let (_, alias_col, _) = parse_create_table_metadata(&tbl.create_sql);
-        tbl.star_hidden_columns.push(tbl.columns.len());
-        tbl.columns.push("rowid".into());
-        tbl.comparisons.push(SqlColumnComparison {
-            affinity: SqlAffinity::Numeric,
-            ..SqlColumnComparison::default()
-        });
-        for (i, row) in tbl.rows.iter_mut().enumerate() {
-            let rowid = alias_col
-                .and_then(|col| row.get(col))
-                .and_then(|value| value.parse::<i64>().ok())
-                .unwrap_or_else(|| tbl.rowids.get(i).copied().unwrap_or((i + 1) as i64));
-            row.push(rowid.to_string());
-        }
-    }
+    let visible_columns = tbl.columns.len();
+    tbl.add_rowid_column();
 
     let where_clause = where_pos.map(|wp| {
         let end = [group_pos, having_pos, order_pos, limit_pos]
@@ -24406,6 +24424,7 @@ fn exec_sql_select_with_mode(
     let proj_specs: Vec<(String, SqlProj)> = if select_part == "*" {
         tbl.columns
             .iter()
+            .take(visible_columns)
             .enumerate()
             .filter(|(i, c)| {
                 let short = c.split('.').next_back().unwrap_or(c);
@@ -25204,11 +25223,6 @@ fn exec_sql_select_with_mode(
                 }
             }
             let col_name = col_part.trim_matches('"');
-            if col_name.eq_ignore_ascii_case("rowid")
-                && find_sql_col(&tbl.columns, "rowid").is_none()
-            {
-                continue;
-            }
             if let Some(p_idx) = proj_headers
                 .iter()
                 .position(|h| h.eq_ignore_ascii_case(col_name))

@@ -20,3 +20,5 @@ The module also exports `createDateCommand`, its command-list factory, and typed
 Month-name dates accept `Jan 5 2024`, `5 Jan 2024`, `5-Jan-2024`, and `January 5, 2024 3pm`. You can also pass the default `date` output back to `date -d`.
 
 Relative dates accept multiple items, attached units, and case-insensitive units: `date -u -d '2024-01-05 +1day +2 hours' +%FT%T` prints `2024-01-06T02:00:00`. Use `sec`, `min`, `hr`, or `fortnight` (including plurals); `ago` negates the item immediately before it.
+
+`date -d` accepts English month names in `Jan 5 2024`, `5 Jan 2024`, `5-Jan-2024`, and `January 5, 2024 3pm`, as well as default UTC output such as `Fri Jan  5 10:20:30 UTC 2024`. Month names are case-insensitive; dates without an explicit zone use the virtual `TZ`. Invalid calendar dates and ambiguous or nonexistent local times remain errors.

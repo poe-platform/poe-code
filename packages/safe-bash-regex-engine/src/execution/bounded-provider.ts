@@ -978,7 +978,7 @@ function tryExecuteSync(input: OwnedRequest, signal: AbortSignal, cache: WorkerC
         if (
           ch === 92 || ch === 46 || ch === 94 || ch === 36 || ch === 91 || ch === 93 ||
           ch === 40 || ch === 41 || ch === 124 || ch === 42 || ch === 43 || ch === 63 ||
-          ch === 123 || ch === 125 || (selected.kind === "grep" && ch >= 128)
+          ch === 123 || ch === 125
         ) {
           literal = false;
           break patterns;
@@ -1121,8 +1121,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
         ledger.charge("work", pattern.length, signal);
         await ledger.checkpoint(signal);
       }
-      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)
-        || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
+      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)) { literal = false; break patterns; }
     }
   }
   if (literal) return executeLiteral(input, signal, fold, cache);

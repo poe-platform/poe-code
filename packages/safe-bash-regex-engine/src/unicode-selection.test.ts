@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createBoundedRegexProvider } from "./execution/bounded-provider.js";
 import { RegexExecutor } from "./execution/portable.js";
-import type { SearchDescriptor } from "./execution/protocol.js";
+import type { GrepDescriptor, SearchDescriptor } from "./execution/protocol.js";
 import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
 import { prepareUtf8EreSubject } from "./ere/matcher.js";
@@ -10,6 +10,27 @@ import { prepareUtf8EreSubject } from "./ere/matcher.js";
 const descriptor = (pattern: string): SearchDescriptor => ({
   kind: "rg", patterns: [pattern], fixed: false, case: "sensitive",
   whole: false, word: false, nullData: false,
+});
+
+for (const [pattern, input, expected] of [
+  ["café", "☕ café", [{ start: 4, end: 9 }]],
+  ["é|x", "café x", [{ start: 3, end: 5 }, { start: 6, end: 7 }]],
+  ["😀+|x", "🦀😀😀x", [{ start: 4, end: 12 }, { start: 12, end: 13 }]],
+  ["é|x", "cafè", []],
+] as const) test(`grep Unicode selection preserves byte offsets: ${pattern}`, async context => {
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  const session = executor.open(new AbortController().signal);
+  context.after(async () => { await session.close(); await executor.close(); });
+  const selected: GrepDescriptor = {
+    kind: "grep", patterns: [Buffer.from(pattern).toString("latin1")], fixed: false,
+    extended: true, insensitive: false, whole: false, word: false,
+  };
+  for (let repeat = 0; repeat < 2; repeat++) {
+    for (const all of [false, true]) {
+      const rows = [{ bytes: new TextEncoder().encode(input), all, terminated: true }];
+      assert.deepEqual(await session.run(selected, rows), [all ? expected : expected.slice(0, 1)]);
+    }
+  }
 });
 
 for (const [pattern, input, expected] of [

@@ -35,13 +35,13 @@ for (const [source, input, output, status] of cases) test(`search ASCII folding:
   } finally { await shell.dispose(); }
 });
 
-test("ASCII folding does not widen grep -i é", async () => {
+test("ASCII folding preserves UTF-8 literal case", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
-    const result = await shell.exec("grep -i é", { stdin: "é A\n" });
-    assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, "");
-    assert.ok(result.stderr.includes("unsupported"));
+    const result = await shell.exec("grep -i é", { stdin: "é A\nÉ A\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "é A\n");
+    assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });
 

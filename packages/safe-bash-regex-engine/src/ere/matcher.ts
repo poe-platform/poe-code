@@ -1113,15 +1113,14 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
     ledger.charge("work", width, signal);
     { const c = ledger.checkpoint(signal); if (c) await c; }
     offsets.push(offset);
-    if (unicode || leftmostFirst && !word) {
+    if (unicode || !word) {
       let code = width === 1 ? first : first & (0x7f >> width);
       for (let index = 1; index < width; index++) code = (code << 6) | (owned[offset + index]! & 0x3f);
       characters.push(String.fromCodePoint(code));
       // Match cursors use UTF-16 positions; both halves belong to one scalar.
       if (code > 65535) offsets.push(offset);
     } else {
-      // C-locale matching only distinguishes ASCII from other byte/scalar values.
-      characters.push(String.fromCharCode(first < 0x80 ? first : 128));
+      characters.push(String.fromCharCode(first));
     }
     offset += width;
   }

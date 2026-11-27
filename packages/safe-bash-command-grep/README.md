@@ -10,6 +10,8 @@ and `\Q...\E` literal quoting (for example, `grep -oP 'version: \K.*'`).
 `grep -P` supports positive and negative lookahead and fixed-length lookbehind,
 for example `grep -oP '(?<=id=")[^"]+'`. Variable-length lookbehind and
 backreferences are unsupported.
+Basic and extended patterns accept UTF-8 literals, including accents, CJK and emoji;
+matching preserves original output bytes. Case folding and word boundaries use ASCII rules.
 `egrep` and `fgrep` select extended and fixed matching; `rgrep` enables recursive search (`grep -r`).
 
 ```ts

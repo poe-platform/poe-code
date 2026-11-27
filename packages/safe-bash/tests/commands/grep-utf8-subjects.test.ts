@@ -54,13 +54,39 @@ for (const bytes of [Uint8Array.of(255, 97, 10), Uint8Array.of(0, 97, 10)]) {
   });
 }
 
-test("ordinary UTF-8 grep keeps non-ASCII regex patterns unsupported", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));
+test("grep accepts UTF-8 literals, counts and extended alternatives in a script", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
   try {
-    const result = await shell.exec("grep é", { stdin: "é\n" });
-    assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, "");
-    assert.ok(result.stderr.includes("unsupported"));
+    const result = await shell.exec("printf 'café\\n✓ done\\n' > f; grep 'café' f; echo $?; grep -c '✓' f; echo $?; grep -E 'é|x' f; echo $?");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "café\n0\n1\n0\ncafé\n0\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const [source, input, output, status] of [
+  ["grep café", "café\ncafè\n", "café\n", 0],
+  ["grep -c ✓", "✓ done\n✗ failed\n", "1\n", 0],
+  ["grep -E 'é|x'", "café\nx\ncafè\n", "café\nx\n", 0],
+  ["grep -Eo '😀+'", "🦀😀😀!\n", "😀😀\n", 0],
+  ["grep -bo '^😀*'", "😀😀!\n", "0:😀😀\n", 0],
+  ["grep -o '^東京.*'", "東京駅\n大阪駅\n", "東京駅\n", 0],
+  ["grep -i '^CAFé$'", "café\ncafè\n", "café\n", 0],
+  ["grep -wE 'café|x'", "café cafè\nxcafé\n", "café cafè\n", 0],
+  ["grep -x 'café'", "café\ncafés\n", "café\n", 0],
+  ["grep -E '😀|é'", "🦀\nè\n", "", 1],
+  ["LC_ALL=C.UTF-8 grep -E 'é|x'", "café\n", "café\n", 0],
+  ["LC_ALL=en_US.UTF-8 grep -E 'é|x'", "café\n", "café\n", 0],
+  ["grep -Eo '\ufeffx|é'", "x\n\ufeffx\n", "\ufeffx\n", 0],
+] as const) test(`UTF-8 grep patterns: ${source}`, async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec(source, { stdin: input });
+    assert.equal(result.exitCode, status, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(output));
   } finally { await shell.dispose(); }
 });
 

@@ -468,8 +468,9 @@ execution stays serial; `--multiline` supports cross-line patterns and capture
 replacement through the default portable matcher.
 
 Default `grep`, `egrep` and `fgrep` preserve arbitrary subject bytes for fixed
-matching and ASCII patterns without regex syntax, including NUL and invalid UTF-8
-records with `-a`. Patterns retain UTF-8 validation; regex operators retain the
+matching and UTF-8 patterns without regex syntax, including NUL and invalid UTF-8
+records with `-a`. Basic and extended patterns accept UTF-8 literals, including
+accents, CJK and emoji. Patterns retain UTF-8 validation; regex operators retain the
 bounded engine's UTF-8 subject restrictions.
 
 `/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine

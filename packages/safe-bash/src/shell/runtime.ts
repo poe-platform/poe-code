@@ -9918,7 +9918,6 @@ export class Runtime {
       const value = operand === undefined ? BigInt(state.status) : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
         await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
-        if (command === "exit") return 2;
       } else if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); throw completedExit(1); }
       if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
       if (value === undefined || value === "overflow") throw completedExit(2, command);

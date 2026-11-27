@@ -1,6 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import { setup } from "./helpers.js";
+
+test("exit with a nonnumeric operand stops the script", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('exit abc; echo "still running $?"');
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "exit: abc: numeric argument required\n");
+  assert.equal(result.exitCode, 2);
+});
 
 for (const command of ["exit", "return"]) {
   for (const [args, operand] of [["x 4", "x"], ["-- x 4", "x"], ["9223372036854775808 4", "9223372036854775808"]]) {
@@ -11,8 +23,8 @@ for (const command of ["exit", "return"]) {
         ? `exit ${args}; say "AFTER:$?"`
         : `f() { return ${args}; say BODY_AFTER; }; f; say "AFTER:$?"`;
       const result = await shell.exec(script);
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stdout, "AFTER:2\n");
+      assert.equal(result.exitCode, command === "exit" ? 2 : 0);
+      assert.equal(result.stdout, command === "exit" ? "" : "AFTER:2\n");
       assert.equal(result.stderr, `${command}: ${operand}: numeric argument required\n`);
     });
   }
@@ -55,13 +67,18 @@ for (const [script, stdout, exitCode] of [
 }
 
 for (const [script, exitCode, stdout] of [
-  ['exit junk; say "AFTER:$?"', 0, "AFTER:2\n"],
+  ['exit junk; say "AFTER:$?"', 2, ""],
   ["exit junk", 2, ""],
   ["set -e; exit junk; say BODY_AFTER", 2, ""],
-  ['exit junk || say "RECOVER:$?"', 0, "RECOVER:2\n"],
-  ['f() { exit junk; say "BODY:$?"; }; f; say "AFTER:$?"', 0, "BODY:2\nAFTER:0\n"],
+  ['exit junk || say "RECOVER:$?"', 2, ""],
+  ['f() { exit junk; say "BODY:$?"; }; f; say "AFTER:$?"', 2, ""],
+  ['(exit junk; say CHILD_AFTER); say "PARENT:$?"', 0, "PARENT:2\n"],
+  ['value=$(exit junk; say CHILD_AFTER); say "PARENT:$?:<$value>"', 0, "PARENT:2:<>\n"],
+  ['trap \'say "EXIT:$?"\' EXIT; exit junk; say AFTER', 2, "EXIT:2\n"],
+  ['builtin exit junk; say AFTER', 2, ""],
+  ['command exit junk; say AFTER', 2, ""],
 ] as const) {
-  test(`Bash 5.3 exit numeric error: ${script}`, async () => {
+  test(`exit numeric error terminates only the current shell: ${script}`, async () => {
     const { shell } = setup();
     try {
       const result = await shell.exec(script);
@@ -96,8 +113,8 @@ for (const command of ["exit", "return"]) {
           ? `exit '${argument}'; say "AFTER:$?"`
           : `f() { return '${argument}'; say BODY_AFTER; }; f; say "AFTER:$?"`;
         const result = await shell.exec(script);
-        assert.equal(result.exitCode, 0);
-        assert.equal(result.stdout, "AFTER:2\n");
+        assert.equal(result.exitCode, command === "exit" ? 2 : 0);
+        assert.equal(result.stdout, command === "exit" ? "" : "AFTER:2\n");
         assert.equal(result.stderr, `${command}: ${argument}: numeric argument required\n`);
       } finally { await shell.dispose(); }
     });

@@ -534,8 +534,10 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         {
             let parts: Vec<String> = items
                 .iter()
-                .filter(|value| !matches!(value, JVal::Null))
-                .map(|value| value.to_raw_string(true, false))
+                .map(|value| match value {
+                    JVal::Null => String::new(),
+                    _ => value.to_raw_string(true, false),
+                })
                 .collect();
             return visit_jq(filter, input, vars, &mut |separator| {
                 emit(JVal::Str(parts.join(&separator.to_raw_string(true, false))))

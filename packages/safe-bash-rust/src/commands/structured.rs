@@ -19592,7 +19592,7 @@ fn deserialize_sql_db(
                     if let Some(on_p) = hdr_up.find(" ON ") {
                         let update_columns = hdr_up[..on_p]
                             .find(" UPDATE OF ")
-                            .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]))
+                            .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]).into_iter().map(str::to_string).collect())
                             .unwrap_or_default();
                         let after_on = hdr[on_p + 4..].trim();
                         let tname = after_on
@@ -21075,7 +21075,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if let Some(on_p) = hdr_up.find(" ON ") {
                     let update_columns = hdr_up[..on_p]
                         .find(" UPDATE OF ")
-                        .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]))
+                        .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]).into_iter().map(str::to_string).collect())
                         .unwrap_or_default();
                     let after_on = hdr[on_p + 4..].trim();
                     let tname = after_on

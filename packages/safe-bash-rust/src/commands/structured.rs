@@ -3137,6 +3137,19 @@ fn try_eval_jq_builtin(
                                 .map(|v| v.to_raw_string(true, false))
                                 .unwrap_or_default();
                             let repl_e = parts[1].trim();
+                            if vars.yq.is_some() && fname == "sub" {
+                                let rx = ZeroRegex::yq(&pat)?;
+                                return eval_jq(repl_e, input, vars)?
+                                    .into_iter()
+                                    .map(|value| match value {
+                                        JVal::Str(replacement) => {
+                                            Ok(JVal::Str(yq_sub::replace(st, &rx, &replacement)))
+                                        }
+                                        _ => Err("sub replacement must be a string".into()),
+                                    })
+                                    .collect::<Result<Vec<_>, _>>()
+                                    .map(Some);
+                            }
                             let flags = if let Some(f_e) = parts.get(2) {
                                 eval_jq(f_e.trim(), input, vars)?
                                     .first()

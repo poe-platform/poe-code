@@ -3,61 +3,57 @@ use super::ZeroRegex;
 pub(super) fn replace(text: &str, rx: &ZeroRegex, replacement: &str) -> String {
     let mut out = String::new();
     let mut copied = 0;
-    let mut matched = false;
+    let mut previous_end = None;
     rx.scan(
         text.as_bytes(),
         replacement.contains('$'),
         |start, end, caps| {
-            // Go ignores empty matches immediately following another match.
-            if matched && start == end && start == copied {
+            // Go ignores empty matches immediately following an earlier match.
+            if start == end && previous_end == Some(start) {
                 return true;
             }
             out.push_str(&text[copied..start]);
-            let mut rest = replacement;
-            while let Some(dollar) = rest.find('$') {
-                out.push_str(&rest[..dollar]);
-                rest = &rest[dollar + 1..];
+            let mut source = replacement;
+            while let Some((literal, rest)) = source.split_once('$') {
+                out.push_str(literal);
                 if let Some(tail) = rest.strip_prefix('$') {
                     out.push('$');
-                    rest = tail;
+                    source = tail;
                     continue;
                 }
                 let braced = rest.starts_with('{');
-                let name_start = usize::from(braced);
-                let name_end = rest[name_start..]
-                    .char_indices()
-                    .find(|(_, ch)| !ch.is_alphanumeric() && *ch != '_')
-                    .map_or(rest.len(), |(i, _)| name_start + i);
-                if name_start == name_end || braced && !rest[name_end..].starts_with('}') {
+                let key = if braced { &rest[1..] } else { rest };
+                let len = key
+                    .find(|c: char| c != '_' && !c.is_alphanumeric())
+                    .unwrap_or(key.len());
+                if len == 0 || (braced && !key[len..].starts_with('}')) {
                     out.push('$');
+                    source = rest;
                     continue;
                 }
-                let name = &rest[name_start..name_end];
-                let capture = if name == "0" {
-                    Some((start, end))
+                source = &key[len + usize::from(braced)..];
+                let name = &key[..len];
+                let number = if name.len() > 1 && name.starts_with('0') {
+                    None
                 } else {
-                    let index = if name.bytes().all(|ch| ch.is_ascii_digit()) {
-                        if name.starts_with('0') {
-                            None
-                        } else {
-                            name.parse::<usize>().ok().and_then(|n| n.checked_sub(1))
-                        }
-                    } else {
-                        rx.capture_names
-                            .iter()
-                            .find(|(n, _)| n == name)
-                            .map(|(_, i)| *i)
-                    };
-                    index.and_then(|i| caps.get(i).copied().flatten())
+                    name.parse::<usize>().ok()
                 };
-                if let Some((lo, hi)) = capture {
-                    out.push_str(&text[lo..hi]);
+                let span = match number {
+                    Some(0) => Some((start, end)),
+                    Some(i) => caps.get(i - 1).copied().flatten(),
+                    None => rx.capture_names.iter().find_map(|(capture, i)| {
+                        (capture == name)
+                            .then(|| caps.get(*i).copied().flatten())
+                            .flatten()
+                    }),
+                };
+                if let Some((a, b)) = span {
+                    out.push_str(&text[a..b]);
                 }
-                rest = &rest[name_end + usize::from(braced)..];
             }
-            out.push_str(rest);
+            out.push_str(source);
             copied = end;
-            matched = true;
+            previous_end = Some(end);
             true
         },
     );

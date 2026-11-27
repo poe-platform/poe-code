@@ -648,15 +648,8 @@ impl ZeroRegex {
     }
 
     pub(super) fn yq(pattern: &str) -> Result<Self, String> {
-        let branches = parse_rx_branches(
-            pattern,
-            false,
-            RxDialect::Rg {
-                flags: RxFlags::default(),
-                dot_nul: true,
-            },
-        )
-        .map_err(|err| err.message)?;
+        let branches =
+            parse_rx_branches(pattern, false, RxDialect::Yq).map_err(|err| err.message)?;
         let mut rx = Self::from_branches([branches], false, false, false);
         rx.search = RxSearch::First;
         Ok(rx)
@@ -1312,6 +1305,7 @@ enum RxDialect<'a> {
     Mdq,
     Rg { flags: RxFlags, dot_nul: bool },
     Jq(&'a str),
+    Yq,
 }
 
 #[derive(Debug)]
@@ -1396,7 +1390,8 @@ fn parse_rx_branches(
 ) -> Result<ParsedRegex, RxParseError> {
     let jq = matches!(dialect, RxDialect::Jq(_));
     let sed = matches!(dialect, RxDialect::SedExtended { .. } | RxDialect::Csplit);
-    let strict_ere = sed || jq;
+    let yq = matches!(dialect, RxDialect::Yq);
+    let strict_ere = sed || jq || yq;
     let mdq = matches!(dialect, RxDialect::Mdq);
     let assertions = jq || mdq;
     let rg = matches!(dialect, RxDialect::Rg { .. });
@@ -1504,7 +1499,7 @@ fn parse_rx_branches(
             break;
         }
         let mut atom = match chars[idx] {
-            '^' if (mdq || rg || jq) && mode.multiline => {
+            '^' if (mdq || rg || jq || yq) && mode.multiline => {
                 idx += 1;
                 RxAtom::LineBegin
             }
@@ -1512,11 +1507,11 @@ fn parse_rx_branches(
                 idx += 1;
                 RxAtom::Begin
             }
-            '$' if (mdq || rg || sed) && !mode.multiline => {
+            '$' if (mdq || rg || sed || yq) && !mode.multiline => {
                 idx += 1;
                 RxAtom::End
             }
-            '$' if mdq || rg || jq => {
+            '$' if mdq || rg || jq || yq => {
                 idx += 1;
                 RxAtom::NewlineEnd {
                     multiline: mode.multiline,
@@ -1925,7 +1920,7 @@ fn parse_rx_branches(
                 let outer_mode = mode;
                 let kind = match &chars[idx..] {
                     ['?', flag, ..]
-                        if (rg || jq) && "ims-".contains(*flag)
+                        if (rg || jq || yq) && "ims-".contains(*flag)
                             || mdq
                                 && (flag.is_ascii_alphabetic() || *flag == '-')
                                 && *flag != 'P' =>
@@ -2049,6 +2044,7 @@ fn parse_rx_branches(
                     ['?', '<', ..] if jq => return Err("invalid named capture".into()),
                     ['?', ..] if rg => return Err("unsupported ERE group syntax".into()),
                     ['?', ..] if jq => return Err("unsupported jq regular expression group".into()),
+                    ['?', ..] if yq => return Err("unsupported yq regular expression group".into()),
                     _ => RxGroup::Capture(None),
                 };
                 let slot = if (mdq || strict_ere) && matches!(kind, RxGroup::Capture(_)) {

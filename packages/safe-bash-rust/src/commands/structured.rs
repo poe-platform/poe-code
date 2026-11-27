@@ -3852,33 +3852,6 @@ fn delete_jq_paths_sorted(val: &mut JVal, paths: Vec<Vec<JVal>>) {
     }
 }
 
-fn replace_jq_ident(body: &str, ident: &str, replacement: &str) -> String {
-    let chars: Vec<char> = body.chars().collect();
-    let id_chars: Vec<char> = ident.chars().collect();
-    let mut out = String::new();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if i + id_chars.len() <= chars.len() && chars[i..i + id_chars.len()] == id_chars[..] {
-            let prev_ok = i == 0
-                || !(chars[i - 1].is_ascii_alphanumeric()
-                    || chars[i - 1] == '_'
-                    || chars[i - 1] == '.'
-                    || chars[i - 1] == '$');
-            let next_ok = i + id_chars.len() == chars.len()
-                || !(chars[i + id_chars.len()].is_ascii_alphanumeric()
-                    || chars[i + id_chars.len()] == '_');
-            if prev_ok && next_ok {
-                out.push_str(replacement);
-                i += id_chars.len();
-                continue;
-            }
-        }
-        out.push(chars[i]);
-        i += 1;
-    }
-    out
-}
-
 fn resolve_slice_bounds(s_part: &str, e_part: &str, len: isize) -> (usize, usize) {
     let s_idx = if s_part.is_empty() {
         0
@@ -22130,11 +22103,19 @@ fn exec_sql_insert(
 
     let tname = resolve_sql_table_name(tables, &tname).to_owned();
     let is_view = views.contains_key(&tname);
-    let Some(t_cols) = tables
-        .get(&tname)
-        .map(|t| t.columns.clone())
-        .or_else(|| resolve_sql_from_table(&tname, tables, views).map(|t| t.columns))
-    else {
+    let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()).or_else(|| {
+        resolve_sql_from_table(&tname, tables, views).map(|t| {
+            t.columns
+                .iter()
+                .map(|column| {
+                    column
+                        .strip_prefix(&format!("{tname}."))
+                        .unwrap_or(column)
+                        .to_string()
+                })
+                .collect()
+        })
+    }) else {
         return Ok(String::new());
     };
     if is_view
@@ -22537,7 +22518,16 @@ fn exec_sql_update(
     let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
         return Ok(String::new());
     };
-    let t_cols = target.columns.clone();
+    let t_cols: Vec<String> = target
+        .columns
+        .iter()
+        .map(|column| {
+            column
+                .strip_prefix(&format!("{tname}."))
+                .unwrap_or(column)
+                .to_string()
+        })
+        .collect();
     let gen_clone = target.generated.clone();
     let checks = target.check_exprs.clone();
     let mut eval_comparisons = target.comparisons.clone();
@@ -22818,7 +22808,16 @@ fn exec_sql_delete(
     let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
         return Ok(String::new());
     };
-    let t_cols = target.columns.clone();
+    let t_cols: Vec<String> = target
+        .columns
+        .iter()
+        .map(|column| {
+            column
+                .strip_prefix(&format!("{tname}."))
+                .unwrap_or(column)
+                .to_string()
+        })
+        .collect();
     let tables_snap = tables.clone();
     let mut deleted_rows: Vec<Vec<String>> = Vec::new();
     if is_view {
@@ -23544,19 +23543,16 @@ fn resolve_sql_from_table(
         }
     };
 
-    if let Some(al) = alias {
-        let qual_cols: Vec<String> = base_tbl
-            .columns
-            .iter()
-            .map(|c| format!("{al}.{c}"))
-            .collect();
-        Some(SqlTable {
-            columns: qual_cols,
-            ..base_tbl
-        })
-    } else {
-        Some(base_tbl)
-    }
+    let qualifier = alias.unwrap_or(raw_tname);
+    let qual_cols = base_tbl
+        .columns
+        .iter()
+        .map(|c| format!("{qualifier}.{c}"))
+        .collect();
+    Some(SqlTable {
+        columns: qual_cols,
+        ..base_tbl
+    })
 }
 
 fn has_top_level_aggregate(select_part: &str) -> bool {
@@ -25890,23 +25886,118 @@ fn apply_json_merge_patch(target: &mut JVal, patch: JVal) {
     }
 }
 
-fn substitute_correlated_subquery(sub_sql: &str, cols: &[String], row: &[String]) -> String {
-    let mut out = sub_sql.to_string();
-    let mut pairs: Vec<(&String, &String)> = cols.iter().zip(row.iter()).collect();
-    pairs.sort_by_key(|a| std::cmp::Reverse(a.0.len()));
-    for (c, v) in pairs {
-        let repl = if v == SQL_NULL {
-            "NULL".to_string()
-        } else if v.parse::<f64>().is_ok() {
-            v.clone()
-        } else {
-            format!("'{}'", v.replace('\'', "''"))
-        };
-        if c.contains('.') {
-            out = out.replace(c.as_str(), &repl);
-        } else {
-            out = replace_jq_ident(&out, c, &repl);
+fn substitute_correlated_subquery(
+    sub_sql: &str,
+    cols: &[String],
+    row: &[String],
+    tables: &BTreeMap<String, SqlTable>,
+) -> String {
+    let upper = sub_sql.to_ascii_uppercase();
+    let from = find_top_sql_bool_kw(&upper, " FROM ").map(|start| {
+        let start = start + 6;
+        let end = [" WHERE ", " GROUP BY ", " HAVING ", " ORDER BY ", " LIMIT "]
+            .into_iter()
+            .filter_map(|kw| find_top_sql_bool_kw(&upper[start..], kw))
+            .min()
+            .map_or(sub_sql.len(), |offset| start + offset);
+        start..end
+    });
+    let local = match from.as_ref() {
+        Some(range) => resolve_sql_from_table(&sub_sql[range.clone()], tables, &BTreeMap::new()),
+        None => None,
+    };
+    let matches = |column: &str, reference: &str| {
+        column.eq_ignore_ascii_case(reference)
+            || (!reference.contains('.')
+                && column
+                    .rsplit('.')
+                    .next()
+                    .unwrap_or(column)
+                    .eq_ignore_ascii_case(reference))
+    };
+    let mut out = String::new();
+    let mut chars = sub_sql.char_indices().peekable();
+    while let Some((start, ch)) = chars.next() {
+        if ch == '('
+            && let Some(close) = find_matching_paren(&sub_sql[start..])
+        {
+            let inner = sub_sql[start + 1..start + close].trim();
+            if inner.to_ascii_uppercase().starts_with("SELECT ") {
+                let (outer_cols, outer_row): (Vec<_>, Vec<_>) = cols
+                    .iter()
+                    .zip(row)
+                    .filter(|(column, _)| {
+                        !local
+                            .as_ref()
+                            .is_some_and(|table| table.columns.iter().any(|c| matches(c, column)))
+                    })
+                    .map(|(column, value)| (column.clone(), value.clone()))
+                    .unzip();
+                let bound = substitute_correlated_subquery(inner, &outer_cols, &outer_row, tables);
+                out.push('(');
+                out.push_str(&bound);
+                out.push(')');
+                while chars.next_if(|(i, _)| *i <= start + close).is_some() {}
+                continue;
+            }
         }
+        if ch == '\'' {
+            while let Some((_, c)) = chars.next() {
+                if c == '\'' && chars.next_if(|(_, c)| *c == '\'').is_none() {
+                    break;
+                }
+            }
+        } else if ch.is_alphabetic() || matches!(ch, '_' | '"' | '`' | '[') {
+            let mut reference = String::new();
+            let mut first = ch;
+            loop {
+                if matches!(first, '"' | '`' | '[') {
+                    let end = if first == '[' { ']' } else { first };
+                    while let Some((_, c)) = chars.next() {
+                        if c == end && chars.next_if(|(_, c)| *c == end).is_none() {
+                            break;
+                        }
+                        reference.push(c);
+                    }
+                } else {
+                    reference.push(first);
+                    while let Some((_, c)) =
+                        chars.next_if(|(_, c)| c.is_alphanumeric() || matches!(c, '_' | '$'))
+                    {
+                        reference.push(c);
+                    }
+                }
+                if chars.next_if(|(_, c)| *c == '.').is_none() {
+                    break;
+                }
+                reference.push('.');
+                let Some((_, next)) = chars.next() else {
+                    break;
+                };
+                first = next;
+            }
+            // Inner columns shadow outer columns; table declarations are not references.
+            if !from.as_ref().is_some_and(|range| range.contains(&start))
+                && !local
+                    .as_ref()
+                    .is_some_and(|table| table.columns.iter().any(|c| matches(c, &reference)))
+                && let Some(index) = cols.iter().position(|c| matches(c, &reference))
+                && let Some(value) = row.get(index)
+            {
+                if let Some(hex) = value.strip_prefix(SQL_BLOB) {
+                    out.push_str(&format!("X'{hex}'"));
+                } else if value == SQL_NULL {
+                    out.push_str("NULL");
+                } else if value.parse::<f64>().is_ok() {
+                    out.push_str(value);
+                } else {
+                    out.push_str(&format!("'{}'", value.replace('\'', "''")));
+                }
+                continue;
+            }
+        }
+        let end = chars.peek().map_or(sub_sql.len(), |(i, _)| *i);
+        out.push_str(&sub_sql[start..end]);
     }
     out
 }
@@ -26074,7 +26165,7 @@ fn eval_sql_row_expr(
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if inner.to_ascii_uppercase().starts_with("SELECT ") {
-            let sub_sql = substitute_correlated_subquery(inner, cols, row);
+            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables);
             let res = exec_sql_select(
                 &sub_sql,
                 tables,
@@ -26097,7 +26188,7 @@ fn eval_sql_row_expr(
             && let Some(close) = find_matching_paren(after_ex)
         {
             let inner = after_ex[1..close].trim();
-            let sub_sql = substitute_correlated_subquery(inner, cols, row);
+            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables);
             let res = exec_sql_select(
                 &sub_sql,
                 tables,
@@ -28084,7 +28175,8 @@ fn eval_sql_where(
         if after_ex.starts_with('(')
             && let Some(close) = find_matching_paren(after_ex)
         {
-            let sub_sql = substitute_correlated_subquery(after_ex[1..close].trim(), columns, row);
+            let sub_sql =
+                substitute_correlated_subquery(after_ex[1..close].trim(), columns, row, tables);
             let res = exec_sql_select(
                 &sub_sql,
                 tables,
@@ -28108,7 +28200,7 @@ fn eval_sql_where(
         if let Some(close) = find_matching_paren(paren_s) {
             let inner = paren_s[1..close].trim();
             if inner.to_ascii_uppercase().starts_with("SELECT ") {
-                let sub_sql = substitute_correlated_subquery(inner, columns, row);
+                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables);
                 let res = exec_sql_select_ext(
                     &sub_sql,
                     tables,
@@ -28147,7 +28239,7 @@ fn eval_sql_where(
         if let Some(close) = find_matching_paren(paren_s) {
             let inner = paren_s[1..close].trim();
             if inner.to_ascii_uppercase().starts_with("SELECT ") {
-                let sub_sql = substitute_correlated_subquery(inner, columns, row);
+                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables);
                 let res = exec_sql_select(
                     &sub_sql,
                     tables,

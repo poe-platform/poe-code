@@ -16029,7 +16029,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let files = &positional[1..];
             if mode == "rows" {
                 let mut out = String::new();
-                let mut header_emitted = false;
+                let mut headers = None;
                 for f in files {
                     let text = match read_csv_input(std::slice::from_ref(f), stdin, cwd, fs) {
                         Ok(t) => t,
@@ -16040,9 +16040,20 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     if rows.is_empty() {
                         continue;
                     }
-                    if !header_emitted {
+                    if let Some(expected) = &headers {
+                        if expected != &rows[0] {
+                            return BuiltinOutcome {
+                                stdout: out,
+                                stderr: format!(
+                                    "xan cat: found inconsistent headers as soon as {f:?}!\nExpected: ByteRecord({expected:?})\nGot: ByteRecord({:?})\n",
+                                    rows[0]
+                                ),
+                                exit_code: 1,
+                            };
+                        }
+                    } else {
                         out.push_str(&format_csv_row(&rows[0], ','));
-                        header_emitted = true;
+                        headers = Some(rows[0].clone());
                     }
                     for r in &rows[1..] {
                         out.push_str(&format_csv_row(r, ','));

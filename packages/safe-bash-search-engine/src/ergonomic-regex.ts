@@ -166,6 +166,7 @@ function parsePattern(
   pattern: string,
   kind: ErgonomicRegexConfig["kind"],
   bre: boolean,
+  grepEre: boolean,
   insensitive: boolean,
   multiline: boolean,
   dotall: boolean,
@@ -306,7 +307,7 @@ function parsePattern(
     if (closeIdx < 0) throw new SearchError("invalid ERE: unclosed repetition interval");
     const body = pattern.slice(pos, closeIdx);
     pos = closeIdx + closeSeq.length;
-    if (!/^\d+(?:,\d*)?$/u.test(body)) {
+    if (!/^\d+(?:,\d*)?$/u.test(body) && !(grepEre && /^,\d*$/u.test(body))) {
       throw new SearchError(`invalid ERE repetition interval '{${body}}'`);
     }
     const parts = body.split(",");
@@ -452,7 +453,7 @@ function parsePattern(
           quantifiable = false;
         }
         atomEre = `(${inner.ere})`;
-      } else if (!bre && (ch === "*" || ch === "+" || ch === "?" || ch === "{")) {
+      } else if (!bre && (ch === "*" || ch === "+" || ch === "?" || (ch === "{" && !grepEre))) {
         throw new SearchError(`invalid ERE: unexpected quantifier '${ch}'`);
       } else if (bre && ch === "*") {
         if (nodes.length === 0) {
@@ -600,6 +601,15 @@ function parsePattern(
           else if (qch === "+") { pos++; min = 1; max = Infinity; qEre = "+"; }
           else if (qch === "?") { pos++; min = 0; max = 1; qEre = "?"; }
           else if (qch === "{") {
+            if (grepEre) {
+              let end = pos + 1;
+              while (pattern[end] !== undefined && pattern[end]! >= "0" && pattern[end]! <= "9") end++;
+              if (pattern[end] === ",") {
+                end++;
+                while (pattern[end] !== undefined && pattern[end]! >= "0" && pattern[end]! <= "9") end++;
+              }
+              if (pattern[end] !== "}") break;
+            }
             pos++;
             const b = parseQuantifierBounds();
             min = b.min; max = b.max;
@@ -1169,6 +1179,7 @@ export function prepareErgonomicRegex(
   const multiline = Boolean(config.multiline);
   const dotall = Boolean(config.multilineDotall);
   const bre = config.kind === "grep" && !config.extended;
+  const grepEre = config.kind === "grep" && !bre && !config.perl;
 
   if (patterns.length === 0) {
     return { mode: "delegated", patterns: [], extended: Boolean(config.extended) };
@@ -1202,12 +1213,12 @@ export function prepareErgonomicRegex(
 
   for (const pat of patterns) {
     const provisionalInsensitive = config.caseMode === "insensitive";
-    const firstParse = parsePattern(pat, config.kind, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl);
+    const firstParse = parsePattern(pat, config.kind, bre, grepEre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl);
     const effectiveInsensitive =
       config.caseMode === "insensitive" || (config.caseMode === "smart" && !firstParse.hasUppercaseLiteral);
     const outcome =
       effectiveInsensitive !== provisionalInsensitive
-        ? parsePattern(pat, config.kind, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl)
+        ? parsePattern(pat, config.kind, bre, grepEre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl)
         : firstParse;
     captureCount = outcome.captureCount;
     for (const [name, index] of outcome.captureNames) {

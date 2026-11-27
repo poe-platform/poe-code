@@ -3069,6 +3069,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/grep-insensitive.test.ts"));
   assert.ok(files.includes("tests/commands/grep-word.test.ts"));
   assert.ok(files.includes("tests/commands/grep-bre-literals.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-ere-intervals.test.ts"));
   assert.ok(files.includes("tests/commands/grep-verification-guidance.test.ts"));
   assert.ok(files.includes("tests/commands/archive/permissions.test.ts"));
   assert.ok(files.includes("tests/commands/archive/options.test.ts"));

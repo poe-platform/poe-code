@@ -17905,7 +17905,7 @@ impl SqlTable {
             affinity: SqlAffinity::Numeric,
             ..SqlColumnMetadata::default()
         });
-        self.star_hidden_columns.push(self.columns.len());
+        self.hidden_star_columns.push(self.columns.len());
         self.columns.push("rowid".to_string());
         for (index, row) in self.rows.iter_mut().enumerate() {
             let rowid = alias.and_then(|i| row.get(i)).cloned().unwrap_or_else(|| {

@@ -4,13 +4,14 @@ pub(super) enum Adjustment<'a> {
     AutoLevel(Option<[bool; 4]>),
     AutoGamma,
     Equalize(Option<[bool; 4]>),
-    Stretch(&'a str),
+    Stretch(&'a str, Option<[bool; 4]>),
+    LinearStretch(&'a str),
 }
 
-fn stretch(table: &mut [u8; 256], low: usize, high: usize) {
+fn stretch(table: &mut [u8; 256], low: f64, high: f64) {
     if high > low {
         for (i, value) in table.iter_mut().enumerate() {
-            *value = ((i as f64 - low as f64) / (high - low) as f64 * 255.).round() as u8;
+            *value = ((i as f64 - low) / (high - low) * 255.).round() as u8;
         }
     }
 }
@@ -36,14 +37,14 @@ impl Adjustment<'_> {
                 if let Some(active) = mask {
                     for c in 0..4 {
                         if active[c] {
-                            stretch(&mut tables[c], lows[c], highs[c]);
+                            stretch(&mut tables[c], lows[c] as f64, highs[c] as f64);
                         }
                     }
                 } else {
                     let low = lows[0].min(lows[1]).min(lows[2]);
                     let high = highs[0].max(highs[1]).max(highs[2]);
                     for table in &mut tables[..3] {
-                        stretch(table, low, high);
+                        stretch(table, low as f64, high as f64);
                     }
                 }
             }
@@ -96,7 +97,7 @@ impl Adjustment<'_> {
                     }
                 }
             }
-            Self::Stretch(spec) => {
+            Self::Stretch(spec, _) | Self::LinearStretch(spec) => {
                 let mut parts = spec.split('x');
                 let number = |s: &str| {
                     let n = parse_float_prefix(s);
@@ -112,7 +113,27 @@ impl Adjustment<'_> {
                 } else {
                     (black, count as f64 - white)
                 };
-                for (h, table) in hist.iter().zip(&mut tables[..3]) {
+                let mask = match self {
+                    Self::Stretch(_, mask) => *mask,
+                    _ => Some([true, true, true, false]),
+                };
+                // Default contrast stretching shares Q16 intensity cutoffs across
+                // channels. Rounding intensity to a byte changes those cutoffs.
+                let intensity_hist = mask.is_none().then(|| {
+                    let mut bins = vec![0usize; 65536];
+                    for pixel in &image.pixels {
+                        let value = (super::magick_color::intensity(pixel) * 257.).round() as usize;
+                        bins[value.min(65535)] += 1;
+                    }
+                    bins
+                });
+                let active = mask.unwrap_or([true, true, true, image.alpha]);
+                let scale = if intensity_hist.is_some() { 257. } else { 1. };
+                for (c, table) in tables.iter_mut().enumerate() {
+                    if !active[c] {
+                        continue;
+                    }
+                    let h = intensity_hist.as_deref().unwrap_or(&hist[c]);
                     let mut sum = 0;
                     let mut low = None;
                     let mut high = None;
@@ -125,7 +146,11 @@ impl Adjustment<'_> {
                             high = Some(v);
                         }
                     }
-                    stretch(table, low.unwrap_or(0), high.unwrap_or(255));
+                    stretch(
+                        table,
+                        low.unwrap_or(0) as f64 / scale,
+                        high.unwrap_or(h.len() - 1) as f64 / scale,
+                    );
                 }
             }
         }

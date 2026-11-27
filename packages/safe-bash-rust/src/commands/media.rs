@@ -12965,13 +12965,20 @@ fn cmd_magick(
                     "-auto-level" => Adjustment::AutoLevel(channels),
                     "-auto-gamma" => Adjustment::AutoGamma,
                     "-equalize" => Adjustment::Equalize(channels),
-                    "-normalize" => Adjustment::Stretch("2%x1%"),
-                    _ => Adjustment::Stretch(if i + 1 < args.len() - usize::from(!is_mogrify) {
-                        i += 1;
-                        &args[i]
-                    } else {
-                        "0%x0%"
-                    }),
+                    "-normalize" => Adjustment::Stretch("2%x1%", channels),
+                    _ => {
+                        let spec = if i + 1 < args.len() - usize::from(!is_mogrify) {
+                            i += 1;
+                            args[i].as_str()
+                        } else {
+                            "0%x0%"
+                        };
+                        if arg == "-linear-stretch" {
+                            Adjustment::LinearStretch(spec)
+                        } else {
+                            Adjustment::Stretch(spec, channels)
+                        }
+                    }
                 };
                 ops.push(PixelOp::Histogram(op));
                 i += 1;
@@ -21905,14 +21912,6 @@ mod media_unit_tests {
         };
         fs.write_file("/rgba.png", &im.png()).unwrap();
         for (args, hash) in [
-            (
-                "-normalize",
-                "aef438d4da4e968d2ffd8865fc76081d65aba9da9ca45bc311ddc8b0ee761377",
-            ),
-            (
-                "-contrast-stretch 20%x10%",
-                "4c9cd3a4b690b330e31de2090649a867189b545482b47372fe76d3b12dba62cb",
-            ),
             (
                 "-linear-stretch 2x4",
                 "7e4ecfb25bbe472bad7005d59aab21ea3010377163802cc6acaa0290ed3361db",

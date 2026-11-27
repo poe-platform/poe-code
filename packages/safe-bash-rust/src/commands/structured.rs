@@ -6024,7 +6024,7 @@ fn parse_yq_input_docs_with_meta(
     }
     let is_toml = fmt == Some("toml") || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
     if is_toml {
-        return Ok(vec![(json(parse_toml_to_jval(input)), single_meta())]);
+        return Ok(vec![(json(parse_toml_to_jval(input)?), single_meta())]);
     }
     let is_props = matches!(fmt, Some("props") | Some("p"))
         || filename
@@ -6184,7 +6184,7 @@ fn jval_to_yaml(val: &JVal, indent: usize, quote_all: bool) -> String {
     }
 }
 
-fn parse_toml_to_jval(input: &str) -> JVal {
+fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
     let mut root: Vec<(String, JVal)> = Vec::new();
     let mut cur_section: Option<(String, bool)> = None;
 
@@ -6217,7 +6217,7 @@ fn parse_toml_to_jval(input: &str) -> JVal {
                 .split('.')
                 .map(|s| s.trim().trim_matches('"'))
                 .collect();
-            let val = parse_toml_value(v.trim());
+            let val = parse_toml_value(v.trim())?;
             match &cur_section {
                 None => insert_toml_dotted(&mut root, &key_segs, val),
                 Some((sec_name, false)) => {
@@ -6238,7 +6238,7 @@ fn parse_toml_to_jval(input: &str) -> JVal {
             }
         }
     }
-    JVal::Object(root)
+    Ok(JVal::Object(root))
 }
 
 fn has_undefined_yaml_alias(src: &str) -> bool {
@@ -6287,7 +6287,7 @@ fn insert_toml_dotted(target: &mut Vec<(String, JVal)>, path: &[&str], val: JVal
     }
 }
 
-fn parse_toml_value(s: &str) -> JVal {
+fn parse_toml_value(s: &str) -> Result<JVal, String> {
     let s = s.trim();
     if let Some(inner) = s.strip_prefix('{').and_then(|v| v.strip_suffix('}')) {
         let mut entries = Vec::new();
@@ -6295,33 +6295,62 @@ fn parse_toml_value(s: &str) -> JVal {
             if let Some((k, v)) = part.split_once('=') {
                 entries.push((
                     k.trim().trim_matches('"').trim_matches('\'').to_string(),
-                    parse_toml_value(v.trim()),
+                    parse_toml_value(v.trim())?,
                 ));
             }
         }
-        return JVal::Object(entries);
+        return Ok(JVal::Object(entries));
     }
     if let Some(inner) = s.strip_prefix('[').and_then(|v| v.strip_suffix(']')) {
-        let items: Vec<JVal> = split_top_level_comma(inner)
+        let items = split_top_level_comma(inner)
             .into_iter()
             .filter(|p| !p.trim().is_empty())
             .map(|p| parse_toml_value(p.trim()))
-            .collect();
-        return JVal::Array(items);
+            .collect::<Result<Vec<_>, _>>()?;
+        return Ok(JVal::Array(items));
     }
-    if (s.starts_with('"') && s.ends_with('"')) || (s.starts_with('\'') && s.ends_with('\'')) {
-        return JVal::Str(s[1..s.len() - 1].to_string());
+    if let Some(inner) = s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+        let mut decoded = String::with_capacity(inner.len());
+        let mut chars = inner.chars();
+        while let Some(c) = chars.next() {
+            decoded.push(if c == '\\' {
+                match chars.next() {
+                    Some(c @ ('"' | '\\')) => c,
+                    Some('b') => '\u{8}',
+                    Some('t') => '\t',
+                    Some('n') => '\n',
+                    Some('f') => '\u{c}',
+                    Some('r') => '\r',
+                    Some(kind @ ('u' | 'U')) => {
+                        let digits = if kind == 'u' { 4 } else { 8 };
+                        (0..digits)
+                            .try_fold(0u32, |value, _| {
+                                Some(value * 16 + chars.next()?.to_digit(16)?)
+                            })
+                            .and_then(char::from_u32)
+                            .ok_or("invalid TOML string escape")?
+                    }
+                    _ => return Err("invalid TOML string escape".into()),
+                }
+            } else {
+                c
+            });
+        }
+        return Ok(JVal::Str(decoded));
+    }
+    if let Some(inner) = s.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')) {
+        return Ok(JVal::Str(inner.to_string()));
     }
     if s == "true" {
-        return JVal::Bool(true);
+        return Ok(JVal::Bool(true));
     }
     if s == "false" {
-        return JVal::Bool(false);
+        return Ok(JVal::Bool(false));
     }
     if let Ok(n) = s.parse::<f64>() {
-        return JVal::Number(n, None);
+        return Ok(JVal::Number(n, None));
     }
-    JVal::Str(s.to_string())
+    Ok(JVal::Str(s.to_string()))
 }
 
 fn split_top_level_comma(s: &str) -> Vec<&str> {

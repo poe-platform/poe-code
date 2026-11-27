@@ -1386,6 +1386,10 @@ fn parse_rx_branches(
     let assertions = jq || mdq;
     let rg = matches!(dialect, RxDialect::Rg { .. });
     let mut mode = match dialect {
+        RxDialect::Awk => RxFlags {
+            dotall: true,
+            ..Default::default()
+        },
         RxDialect::SedExtended { ignore_case } => RxFlags {
             icase: ignore_case,
             dotall: true,

@@ -19061,7 +19061,15 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 }
                 continue;
             }
-            if cu == "PRIMARY" || (cu == "CONSTRAINT" && c_up.contains("PRIMARY KEY")) {
+            let is_primary_key =
+                cu == "PRIMARY" || (cu == "CONSTRAINT" && c_up.contains("PRIMARY KEY"));
+            if is_primary_key
+                || cu == "UNIQUE"
+                || c_up.trim_start().starts_with("UNIQUE(")
+                || (cu == "CONSTRAINT"
+                    && split_top_level_sql_cmp(&c_up, " UNIQUE")
+                        .is_some_and(|(_, rest)| rest.trim_start().starts_with('(')))
+            {
                 if let Some(open) = c_norm.find('(')
                     && let Some(close) = find_matching_paren(&c_norm[open..])
                 {
@@ -19077,7 +19085,9 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                         .collect();
                     unique_indexes.push((String::new(), key_cols));
                 }
-                pk_col_count += 2;
+                if is_primary_key {
+                    pk_col_count += 2;
+                }
                 continue;
             }
             if cname.is_empty() || matches!(cu.as_str(), "UNIQUE" | "CHECK" | "CONSTRAINT") {
@@ -21198,7 +21208,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 }
                 views.insert(vname, view_sql);
             }
-        } else if upper.starts_with("INSERT ") {
+        } else if upper.starts_with("INSERT ") || upper.starts_with("REPLACE ") {
             match exec_sql_insert(
                 stmt,
                 &mut tables,
@@ -21262,6 +21272,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let mut cte_names: Vec<String> = Vec::new();
             while !rest.to_ascii_uppercase().starts_with("SELECT ")
                 && !rest.to_ascii_uppercase().starts_with("INSERT ")
+                && !rest.to_ascii_uppercase().starts_with("REPLACE ")
                 && !rest.to_ascii_uppercase().starts_with("UPDATE ")
                 && !rest.to_ascii_uppercase().starts_with("DELETE ")
             {
@@ -21426,7 +21437,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     cli_csv_mode,
                     dot_mode_csv,
                 );
-            } else if resolved_any_cte && rest.to_ascii_uppercase().starts_with("INSERT ") {
+            } else if resolved_any_cte
+                && (rest.to_ascii_uppercase().starts_with("INSERT ")
+                    || rest.to_ascii_uppercase().starts_with("REPLACE "))
+            {
                 match exec_sql_insert(
                     rest,
                     &mut tables,
@@ -21774,7 +21788,7 @@ fn fire_sql_triggers(
         for sub_stmt in body.split(';') {
             let sub = sub_stmt.trim();
             let sub_up = sub.to_ascii_uppercase();
-            if sub_up.starts_with("INSERT ") {
+            if sub_up.starts_with("INSERT ") || sub_up.starts_with("REPLACE ") {
                 exec_sql_insert(sub, tables, triggers, false, false, false, false, "|")?;
             } else if sub_up.starts_with("DELETE FROM ") {
                 exec_sql_delete(sub, tables, triggers, false, false, false, false, "|")?;
@@ -21925,7 +21939,8 @@ fn exec_sql_insert(
     let norm = stmt.replace(['\r', '\n', '\t'], " ");
     let upper = norm.to_ascii_uppercase();
     let is_or_ignore = upper.starts_with("INSERT OR IGNORE INTO ");
-    let is_or_replace = upper.starts_with("INSERT OR REPLACE INTO ");
+    let is_or_replace =
+        upper.starts_with("INSERT OR REPLACE INTO ") || upper.starts_with("REPLACE INTO ");
     let into_pos = upper.find(" INTO ").map(|p| p + 6).unwrap_or(11);
     let conflict_pos = upper.find("ON CONFLICT");
     let ret_pos = upper.rfind("RETURNING ");
@@ -22140,6 +22155,7 @@ fn exec_sql_insert(
         }
 
         let mut unique_conflict_idx: Option<(usize, Vec<String>)> = None;
+        let mut replace_conflicts = BTreeSet::new();
         if let Some(tbl) = tables.get(&tname) {
             for (_uname, ucols) in &unique_idx_clone {
                 let col_positions: Vec<usize> = ucols
@@ -22150,13 +22166,23 @@ fn exec_sql_insert(
                     && col_positions
                         .iter()
                         .all(|&p| row.get(p).is_some_and(|s| s != SQL_NULL))
-                    && let Some(dup_idx) = tbl
-                        .rows
-                        .iter()
-                        .position(|er| col_positions.iter().all(|&p| er.get(p) == row.get(p)))
                 {
-                    unique_conflict_idx = Some((dup_idx, ucols.clone()));
-                    break;
+                    for (dup_idx, existing_row) in tbl.rows.iter().enumerate() {
+                        if col_positions
+                            .iter()
+                            .all(|&p| existing_row.get(p) == row.get(p))
+                        {
+                            unique_conflict_idx.get_or_insert_with(|| (dup_idx, ucols.clone()));
+                            if is_or_replace {
+                                replace_conflicts.insert(dup_idx);
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    if unique_conflict_idx.is_some() && !is_or_replace {
+                        break;
+                    }
                 }
             }
         }
@@ -22173,17 +22199,16 @@ fn exec_sql_insert(
         }
 
         let existing_idx = unique_conflict_idx.map(|(idx, _)| idx);
-        if let Some(e_idx) = existing_idx
-            && (is_do_nothing || is_or_replace || is_do_update)
+        if is_or_replace {
+            if let Some(tbl) = tables.get_mut(&tname) {
+                for idx in replace_conflicts.into_iter().rev() {
+                    tbl.rows.remove(idx);
+                }
+            }
+        } else if let Some(e_idx) = existing_idx
+            && (is_do_nothing || is_do_update)
         {
             if is_do_nothing {
-                continue;
-            }
-            if is_or_replace {
-                if let Some(tbl) = tables.get_mut(&tname) {
-                    tbl.rows[e_idx] = row.clone();
-                }
-                affected_rows.push(row.clone());
                 continue;
             }
             if let Some(ref du_str) = do_update_clause {

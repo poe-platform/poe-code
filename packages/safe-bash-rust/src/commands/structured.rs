@@ -6188,7 +6188,8 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
     let mut root: Vec<(String, JVal)> = Vec::new();
     let mut cur_section: Option<(String, bool)> = None;
 
-    for raw_line in input.lines() {
+    let mut lines = input.split_inclusive('\n');
+    while let Some(raw_line) = lines.next() {
         let line = raw_line.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
@@ -6211,13 +6212,18 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
             cur_section = Some((sec_name, false));
             continue;
         }
-        if let Some((k, v)) = line.split_once('=') {
+        if let Some((k, v)) = raw_line.split_once('=') {
             let key_raw = k.trim().trim_matches('"');
             let key_segs: Vec<&str> = key_raw
                 .split('.')
                 .map(|s| s.trim().trim_matches('"'))
                 .collect();
-            let val = parse_toml_value(v.trim())?;
+            let v = v.trim_start();
+            let val = if v.starts_with("\"\"\"") || v.starts_with("'''") {
+                parse_toml_multiline(v, &mut lines)?
+            } else {
+                parse_toml_value(v.trim())?
+            };
             match &cur_section {
                 None => insert_toml_dotted(&mut root, &key_segs, val),
                 Some((sec_name, false)) => {
@@ -6239,6 +6245,69 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
         }
     }
     Ok(JVal::Object(root))
+}
+
+fn parse_toml_multiline<'a>(
+    first: &'a str,
+    lines: &mut impl Iterator<Item = &'a str>,
+) -> Result<JVal, String> {
+    let quote = first.chars().next().unwrap();
+    let mut chars = std::iter::once(&first[3..])
+        .chain(lines)
+        .flat_map(str::chars)
+        .peekable();
+    if chars.peek() == Some(&'\r') {
+        chars.next();
+    }
+    if chars.peek() == Some(&'\n') {
+        chars.next();
+    }
+    let mut out = String::new();
+    while let Some(c) = chars.next() {
+        if c == quote {
+            let mut count = 1;
+            while count < 5 && chars.peek() == Some(&quote) {
+                chars.next();
+                count += 1;
+            }
+            out.extend(std::iter::repeat_n(
+                quote,
+                if count >= 3 { count - 3 } else { count },
+            ));
+            if count >= 3 {
+                return if quote == '"' {
+                    parse_toml_value(&format!("\"{out}\""))
+                } else {
+                    Ok(JVal::Str(out))
+                };
+            }
+        } else if c == '\\' && quote == '"' {
+            if chars
+                .peek()
+                .is_some_and(|c| matches!(c, ' ' | '\t' | '\r' | '\n'))
+            {
+                let mut newline = false;
+                while chars
+                    .peek()
+                    .is_some_and(|c| matches!(c, ' ' | '\t' | '\r' | '\n'))
+                {
+                    newline |= chars.next() == Some('\n');
+                }
+                if !newline {
+                    return Err("invalid TOML line continuation".into());
+                }
+            } else {
+                out.push(c);
+                out.push(chars.next().ok_or("unterminated TOML multiline string")?);
+            }
+        } else if c == '\r' && chars.peek() == Some(&'\n') {
+            chars.next();
+            out.push('\n');
+        } else {
+            out.push(c);
+        }
+    }
+    Err("unterminated TOML multiline string".into())
 }
 
 fn has_undefined_yaml_alias(src: &str) -> bool {

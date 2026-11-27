@@ -1,6 +1,7 @@
 import { Budget, IconvError } from "./internal.js";
 
-export type Encoding = "ascii" | "latin1" | "utf8" | "utf16" | "utf16le" | "utf16be";
+export type Encoding = "ascii" | "latin1" | "utf8" | "utf16" | "utf16le" | "utf16be"
+  | "windows1252" | "latin2" | "latin9" | "utf32" | "utf32le" | "utf32be" | "sjis" | "eucjp";
 export interface Parsed {
   readonly from: Encoding;
   readonly to: Encoding;
@@ -16,6 +17,11 @@ const aliases: Record<string, Encoding> = {
   LATIN1: "latin1", "LATIN-1": "latin1", "ISO-8859-1": "latin1", "ISO8859-1": "latin1",
   UTF8: "utf8", "UTF-8": "utf8", UTF16: "utf16", "UTF-16": "utf16",
   UTF16LE: "utf16le", "UTF-16LE": "utf16le", UTF16BE: "utf16be", "UTF-16BE": "utf16be",
+  "WINDOWS-1252": "windows1252", CP1252: "windows1252",
+  LATIN2: "latin2", "LATIN-2": "latin2", "ISO-8859-2": "latin2", "ISO8859-2": "latin2",
+  LATIN9: "latin9", "LATIN-9": "latin9", "ISO-8859-15": "latin9", "ISO8859-15": "latin9",
+  UTF32: "utf32", "UTF-32": "utf32", UTF32LE: "utf32le", "UTF-32LE": "utf32le", UTF32BE: "utf32be", "UTF-32BE": "utf32be",
+  SHIFT_JIS: "sjis", "SHIFT-JIS": "sjis", SJIS: "sjis", "EUC-JP": "eucjp", EUCJP: "eucjp",
 };
 
 function encoding(value: string): Encoding {

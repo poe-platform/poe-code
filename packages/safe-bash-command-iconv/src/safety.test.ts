@@ -85,7 +85,7 @@ test("empty chunk iteration is bounded and closed", async () => {
 test("unsupported codecs reject before acquiring input", async () => {
   let acquired = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() { acquired++; yield* []; } };
-  for (const encoding of ["Windows-1252", "UTF-32", "NO_SUCH_ENCODING"]) {
+  for (const encoding of ["NO_SUCH_ENCODING", "UTF-7", "ISO-2022-JP"]) {
     const result = await run(["-f", encoding, "-t", "UTF-8"], undefined, {}, { stdin });
     assert.equal(result.exitCode, 1); assert.match(Buffer.from(result.stderrHex, "hex").toString(), /unsupported encoding/);
   }

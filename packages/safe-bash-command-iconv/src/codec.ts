@@ -1,17 +1,68 @@
 import { Lifecycle } from "./lifecycle.js";
 import type { Encoding, Parsed } from "./options.js";
 import { cTransliterations } from "./transliterations.js";
+import { windows1252, latin2, latin9, jis0208, jis0212 } from "./encoding-tables.js";
 
 type Decoded = { readonly count: number; readonly value: number } | { readonly count: number; readonly error: "illegal" | "incomplete" };
 export interface ConversionState { swap: boolean }
 
 const LATIN1_DECODED: readonly Decoded[] = Array.from({ length: 256 }, (_, value) => ({ count: 1, value }));
 const BYTE_ENCODED: readonly (readonly number[])[] = Array.from({ length: 256 }, (_, value) => [value]);
+const singleByteTables: Partial<Record<Encoding, string>> = { windows1252, latin2, latin9 };
+// Fixed-size reverse indexes keep conversion work constant per input character.
+const reverseTables = new Map([windows1252, latin2, latin9, jis0208, jis0212].map(table => {
+  const reverse = new Map<number, number>();
+  for (let index = 0; index < table.length; index++) {
+    const value = table.charCodeAt(index);
+    if (value && !reverse.has(value)) reverse.set(value, index);
+  }
+  return [table, reverse] as const;
+}));
 
 function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boolean): Decoded {
   const first = input[offset]!;
   if (encoding === "ascii") return first < 128 ? LATIN1_DECODED[first]! : { count: 1, error: "illegal" };
   if (encoding === "latin1") return LATIN1_DECODED[first]!;
+  const table = singleByteTables[encoding];
+  if (table) {
+    const value = first < 128 ? first : table.charCodeAt(first - 128);
+    return value || first === 0 ? { count: 1, value } : { count: 1, error: "illegal" };
+  }
+  if (encoding === "sjis" || encoding === "eucjp") {
+    if (first < 128) return { count: 1, value: encoding === "sjis" && first === 0x5c ? 0xa5 : encoding === "sjis" && first === 0x7e ? 0x203e : first };
+    if (encoding === "sjis" && first >= 0xa1 && first <= 0xdf) return { count: 1, value: 0xff61 + first - 0xa1 };
+    const count = encoding === "eucjp" && first === 0x8f ? 3 : 2;
+    const validLead = encoding === "sjis" ? (first >= 0x81 && first <= 0x9f || first >= 0xe0 && first <= 0xef)
+      : first === 0x8e || first === 0x8f || first >= 0xa1 && first <= 0xfe;
+    if (!validLead) return { count: 1, error: "illegal" };
+    for (let index = 1; index < count; index++) {
+      if (offset + index >= input.length) return { count: 0, error: "incomplete" };
+      const byte = input[offset + index]!;
+      const valid = encoding === "sjis" ? byte >= 0x40 && byte <= 0xfc && byte !== 0x7f
+        : byte >= 0xa1 && byte <= (first === 0x8e ? 0xdf : 0xfe);
+      if (!valid) return { count: 1, error: "illegal" };
+    }
+    const second = input[offset + 1]!;
+    if (encoding === "eucjp" && first === 0x8e) return { count, value: 0xff61 + second - 0xa1 };
+    let row: number, column: number;
+    if (encoding === "sjis") {
+      row = (first - (first < 0xa0 ? 0x81 : 0xc1)) * 2;
+      if (second >= 0x9f) { row++; column = second - 0x9f; }
+      else column = second - (second < 0x7f ? 0x40 : 0x41);
+    } else {
+      row = (count === 3 ? second : first) - 0xa1;
+      column = input[offset + count - 1]! - 0xa1;
+    }
+    const value = (count === 3 ? jis0212 : jis0208).charCodeAt(row * 94 + column);
+    return value ? { count, value } : { count: 1, error: "illegal" };
+  }
+  if (encoding.startsWith("utf32")) {
+    if (offset + 3 >= input.length) return { count: 0, error: "incomplete" };
+    const big = encoding === "utf32be" || encoding === "utf32" && swap;
+    let value = 0;
+    for (let index = 0; index < 4; index++) value = value * 256 + input[offset + (big ? index : 3 - index)]!;
+    return value > 0x10ffff || value >= 0xd800 && value <= 0xdfff ? { count: 4, error: "illegal" } : { count: 4, value };
+  }
   if (encoding === "utf8") {
     if (first < 128) return LATIN1_DECODED[first]!;
     let count = 0, value = 0;
@@ -45,6 +96,30 @@ function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boo
 
 function encode(value: number, encoding: Encoding): readonly number[] | undefined {
   if (value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) return undefined;
+  const table = singleByteTables[encoding];
+  if (table) {
+    if (value < 128) return BYTE_ENCODED[value]!;
+    const index = reverseTables.get(table)!.get(value);
+    return index === undefined ? undefined : [index + 128];
+  }
+  if (encoding === "sjis" || encoding === "eucjp") {
+    if (value < 128) return BYTE_ENCODED[value]!;
+    if (value === 0xa5) return [0x5c];
+    if (value === 0x203e) return [0x7e];
+    if (value >= 0xff61 && value <= 0xff9f) return encoding === "sjis" ? [value - 0xff61 + 0xa1] : [0x8e, value - 0xff61 + 0xa1];
+    const index = reverseTables.get(jis0208)!.get(value);
+    if (index === undefined) {
+      const supplementary = reverseTables.get(jis0212)!.get(value);
+      return encoding === "eucjp" && supplementary !== undefined ? [0x8f, Math.floor(supplementary / 94) + 0xa1, supplementary % 94 + 0xa1] : undefined;
+    }
+    const row = Math.floor(index / 94), column = index % 94;
+    if (encoding === "eucjp") return [row + 0xa1, column + 0xa1];
+    return [Math.floor(row / 2) + (row < 62 ? 0x81 : 0xc1), column + (row % 2 ? 0x9f : column < 63 ? 0x40 : 0x41)];
+  }
+  if (encoding.startsWith("utf32")) {
+    const bytes = [value & 255, value >> 8 & 255, value >> 16 & 255, 0];
+    return encoding === "utf32be" ? bytes.reverse() : bytes;
+  }
   if (encoding === "ascii" || encoding === "latin1") {
     if (value < (encoding === "ascii" ? 128 : 256)) return BYTE_ENCODED[value]!;
     if (value >= 0xe0000 && value <= 0xe007f) return [];
@@ -96,6 +171,10 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
   };
   try {
     state.swap = false;
+    if (options.from === "utf32" && input.length >= 4) {
+      if (input[0] === 0 && input[1] === 0 && input[2] === 0xfe && input[3] === 0xff) { state.swap = true; offset = 4; }
+      else if (input[0] === 0xff && input[1] === 0xfe && input[2] === 0 && input[3] === 0) offset = 4;
+    }
     if (options.from === "utf16" && input.length >= 2) {
       if (input[0] === 0xfe && input[1] === 0xff) { state.swap = true; offset = 2; }
       else if (input[0] === 0xff && input[1] === 0xfe) offset = 2;
@@ -132,6 +211,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
         batchCount++;
         if (buffer.length - used < (options.to.startsWith("utf16") ? 2 : 1)) await flushFullOutput();
         if (!started && options.to === "utf16") { const a = append([0xff, 0xfe]); if (a) await a; }
+        if (!started && options.to === "utf32") { const a = append([0xff, 0xfe, 0, 0]); if (a) await a; }
         started = true;
         let bytes = encode(decoded.value, options.to);
         const transliterated = bytes === undefined && options.transliterate !== false;

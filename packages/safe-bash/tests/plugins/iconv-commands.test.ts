@@ -2,6 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../src/index.js";
 
+test("legacy encodings and UTF-32 work through byte pipelines", async () => {
+  const fs = entry.createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new entry.Shell({ fs, cwd: "/work" }).use(entry.agentCommands());
+  try {
+    for (const [script, stdout] of [
+      [String.raw`printf '\x93hi\x94\n' | iconv -f windows-1252 -t utf-8`, "“hi”\n"],
+      [String.raw`printf '\x93hi\x94\n' | iconv -f cp1252 -t utf-8`, "“hi”\n"],
+      [String.raw`printf '€\n' | iconv -f utf-8 -t iso-8859-15 | od -An -tx1`, " a4 0a\n"],
+      [String.raw`printf 'hi\n' | iconv -f utf-8 -t utf-32 | od -An -tx1`, " ff fe 00 00 68 00 00 00 69 00 00 00 0a 00 00 00\n"],
+      [String.raw`printf '\x82\xa0\n' | iconv -f shift_jis -t utf-8`, "あ\n"],
+    ]) {
+      const result = await shell.exec(script!);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout);
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("UTF-8 locale transliteration succeeds in a shell pipeline", async () => {
   const fs = entry.createMemoryFileSystem();
   await fs.mkdir("/work");

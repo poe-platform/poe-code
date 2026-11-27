@@ -20,8 +20,10 @@ export async function maybeStat(context: CommandContext, path: string, follow = 
   if (!allowNonDirectory && path !== "/" && path !== "/dev" && !path.startsWith("/dev/")) {
     const backing = getRuntimeBackingFileSystem(context.fs) as (FileSystem & { symlinkCount?: number }) | undefined;
     if (backing && backing.symlinkCount === 0) {
+      const name = basename(path);
       const parentEntries = tryGetMemoryDirectoryEntryNamesSync(backing, dirname(path));
-      if (parentEntries !== undefined && !parentEntries.has(basename(path))) {
+      // Dot components are resolved by stat; they are not stored directory entries.
+      if (name !== "." && name !== ".." && parentEntries !== undefined && !parentEntries.has(name)) {
         context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
         return undefined;
       }

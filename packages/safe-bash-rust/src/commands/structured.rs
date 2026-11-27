@@ -6688,8 +6688,11 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
             .map(|p| parse_yaml_scalar(p.trim(), anchors))
             .collect();
         JVal::Array(items)
-    } else if s.starts_with('"')
-        && s.ends_with('"')
+    } else if ((s.starts_with('"') && s.ends_with('"'))
+        || matches!(
+            s.split_whitespace().next(),
+            Some("!!str" | "!<tag:yaml.org,2002:str>")
+        ))
         && let Ok(parsed) = config_mutations_rust::yaml::parse_with_options(
             &s.encode_utf16().collect::<Vec<_>>(),
             None,

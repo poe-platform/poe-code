@@ -1,6 +1,6 @@
 # Shared line-ending conversion
 
-Safe Bash uses one engine for DOS/Unix conversion, BOM and UTF-16 detection,
+Safe Bash uses one engine for DOS/Unix and classic Mac (`-c mac`) conversion, BOM and UTF-16 detection,
 binary-file checks, shared option handling, synchronous evaluation, file information,
 bounded byte streams and staged VFS
 publication. Sharing these rules keeps both conversion directions consistent.

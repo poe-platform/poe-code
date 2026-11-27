@@ -29,6 +29,7 @@ export interface ConversionOptions {
   quiet: boolean;
   newline: boolean;
   sevenBit: boolean;
+  mac: boolean;
   keepDate: boolean;
   newFile: boolean;
   addEol: boolean;

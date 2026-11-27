@@ -42,7 +42,7 @@ export class FileInformation {
       previous = current;
     }
     const flags = this.flags;
-    if (flags.has("c") && (binary && !options.force || (direction === "dos2unix" ? dos : unix) === 0 && (!options.addEol || last === (direction === "dos2unix" ? "unix" : "dos")))) return;
+    if (flags.has("c") && (binary && !options.force || (direction === "dos2unix" ? options.mac ? mac : dos : unix) === 0 && (!options.addEol || last === (direction === "dos2unix" ? "unix" : options.mac ? "mac" : "dos")))) return;
     const eol = flags.has("e") || options.addEol && !flags.has("c");
     const fields = ["d", "u", "m", "b", "t", "e"].filter(flag => flag === "e" ? eol : flags.has(flag));
     const separator = fields.length ? "  " : "";

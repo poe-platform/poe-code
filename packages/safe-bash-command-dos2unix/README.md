@@ -20,6 +20,7 @@ try {
 | Command or option | Use |
 | --- | --- |
 | `dos2unix` / `unix2dos` | Convert stdin, or named VFS files in place |
+| `-c mac`, `--convmode mac` | Convert classic Mac CR to Unix LF, or Unix LF to Mac CR; preserve CRLF |
 | `-n input output` | Convert into another VFS file |
 | `-O` | Write converted file contents to stdout |
 | `-b`, `-r`, `-m` | Keep, remove or add a byte order mark |

@@ -18,6 +18,7 @@ try {
 
 | Option | Purpose |
 | --- | --- |
+| `-c mac`, `--convmode mac` | Convert Unix LF to classic Mac CR, preserving CRLF |
 | `-n input output` | Convert to another virtual file |
 | `-O` | Send converted file contents to stdout |
 | `-b`, `-r`, `-m` | Keep, remove or add a BOM |

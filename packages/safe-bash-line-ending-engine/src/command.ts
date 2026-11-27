@@ -51,7 +51,7 @@ export function createLineEndingExecutor(direction: Direction, options: LineEndi
       const active = life;
       const files = new Files(active);
       const args = await budget.arguments();
-      const flags: ConversionOptions = { keepBom: direction === "unix2dos", addBom: false, keepUtf16: false, assume: "bytes", force: false, quiet: false, newline: false, sevenBit: false, keepDate: false, newFile: false, addEol: false, verbose: false, allowChown: false };
+      const flags: ConversionOptions = { keepBom: direction === "unix2dos", addBom: false, keepUtf16: false, assume: "bytes", force: false, quiet: false, newline: false, sevenBit: false, mac: false, keepDate: false, newFile: false, addEol: false, verbose: false, allowChown: false };
       let toStdout = false;
       const information = new FileInformation(active);
       const diagnostic = async (text: string) => { await active.diagnostic(`${direction}: ${text}\n`); };
@@ -61,7 +61,7 @@ export function createLineEndingExecutor(direction: Direction, options: LineEndi
         const outFormat = flags.keepUtf16 ? result.encoding : locale === "C" || locale === "POSIX" ? "ANSI_X3.4-1968" : "UTF-8";
         const encoding = result.encoding ? `${result.encoding} ` : "";
         const target = result.encoding ? `${outFormat} ` : "";
-        await diagnostic(`converting ${encoding}file ${name} to ${flags.newFile ? `${target}file ${destination} in ` : target}${direction === "dos2unix" ? "Unix" : "DOS"} format...`);
+        await diagnostic(`converting ${encoding}file ${name} to ${flags.newFile ? `${target}file ${destination} in ` : target}${direction === "dos2unix" ? "Unix" : flags.mac ? "Mac" : "DOS"} format...`);
       };
       const file = async (name: string, destination: string) => {
         budget.file();
@@ -184,12 +184,13 @@ export function createLineEndingExecutor(direction: Direction, options: LineEndi
               const mode = args[++index];
               if (mode === undefined) { await diagnostic(`option '${argument}' requires an argument`); status = 1; sawFile = true; stop = true; }
               else if (mode.toLowerCase() === "ascii") { flags.sevenBit = false; flags.assume = "bytes"; flags.keepUtf16 = false; }
+              else if (mode.toLowerCase() === "mac") flags.mac = true;
               else if (mode.toLowerCase() === "7bit") { flags.sevenBit = true; flags.assume = "bytes"; }
               else { await diagnostic(`invalid ${mode} conversion mode specified`); status = 1; sawFile = true; stop = true; }
               break;
             }
             case "-h": case "--help": {
-              const bytes = new TextEncoder().encode(`Usage: ${direction} [options] [file ...] [-n infile outfile ...]\nVirtual byte/UTF-16 profile:\n  -o -n -O -i[FLAGS] -e -v -b -r -m -f -s -q -k -l -u -ul -ub -7 -ascii --\n  --no-add-eol --allow-chown --no-allow-chown\n`);
+              const bytes = new TextEncoder().encode(`Usage: ${direction} [options] [file ...] [-n infile outfile ...]\nVirtual byte/UTF-16 profile:\n  -o -n -O -i[FLAGS] -e -v -b -r -m -f -s -q -k -l -u -ul -ub -7 -ascii --\n  -c, --convmode ascii|7bit|mac\n  --no-add-eol --allow-chown --no-allow-chown\n`);
               budget.emitted(bytes.length); await active.stdout(bytes); stop = true; sawFile = true; break;
             }
             default:

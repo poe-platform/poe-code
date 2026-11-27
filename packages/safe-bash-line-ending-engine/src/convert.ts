@@ -94,7 +94,27 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
       if (!options.quiet) await diagnostic(`Binary symbol 0x${current.toString(16).toUpperCase().padStart(wide ? 4 : 2, "0")} found at line ${line}`);
       break;
     }
-    if (direction === "dos2unix") {
+    if (options.mac) {
+      let value = current;
+      if (current === 13) {
+        const next = unit();
+        pushed = typeof next === "number" ? next : await next;
+        if (pushed !== 10) {
+          line++;
+          if (direction === "dos2unix") { value = 10; last = 10; converted++; }
+        }
+      } else if (current === 10) {
+        line++;
+        if (direction === "unix2dos" && previous !== 13) { value = 13; converted++; }
+      }
+      const ok = put(value);
+      if (!(typeof ok === "boolean" ? ok : await ok)) break;
+      if (options.newline && value !== current) {
+        const extra = put(value);
+        if (!(typeof extra === "boolean" ? extra : await extra)) break;
+      }
+      previous = current;
+    } else if (direction === "dos2unix") {
       if (current === 13) {
         const u2 = unit();
         pushed = typeof u2 === "number" ? u2 : await u2;
@@ -123,10 +143,10 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
     await diagnostic("error: Invalid surrogate pair. Missing low surrogate.");
     result.kind = "unicode";
   }
-  if (result.kind === "ok" && options.addEol && last !== -1 && last !== 10) {
+  if (result.kind === "ok" && options.addEol && last !== -1 && last !== 10 && !(options.mac && last === 13)) {
     if (options.verbose) await diagnostic("Added line break to last line.");
     if (direction === "unix2dos") await put(13);
-    await put(10);
+    if (direction === "dos2unix" || !options.mac) await put(10);
   }
   if (result.kind === "ok" && options.verbose) await diagnostic(`Converted ${converted} out of ${line - 1} line breaks.`);
   if (stdio || result.kind === "ok") await writer.flush();

@@ -2,6 +2,8 @@
 
 Use this command with virtual files and configurable resource limits.
 
+Lines are reversed by UTF-8 character by default. Locale overrides follow `LC_ALL`, `LC_CTYPE`, then `LANG`; `C` and `POSIX` reverse raw bytes.
+
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { revCommands } from "@poe-platform/safe-bash/commands/rev";

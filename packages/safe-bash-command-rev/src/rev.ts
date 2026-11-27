@@ -53,7 +53,7 @@ async function reversed(bytes: Uint8Array, utf8: boolean, session: Session, appe
 export function createRevWithSettings(limits: StreamFormatLimits): CommandDefinition {
   return command("rev", limits, async session => {
     const parsed = options(session.context.args, "", {}, true);
-    const locale = session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C";
+    const locale = session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8";
     const utf8 = /(?:^|[._-])utf-?8(?:@.*)?$/iu.test(locale);
     if (!utf8 && locale !== "C" && locale !== "POSIX") throw new UsageError(`unsupported character encoding locale: '${locale}'`);
     await session.files(session.names(parsed.operands), async (source, name) => {

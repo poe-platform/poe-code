@@ -21176,7 +21176,34 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             continue;
         }
         if upper.starts_with("CREATE TABLE") {
-            if let Some(open) = stmt.find('(') {
+            let normalized = stmt.replace(['\r', '\n', '\t'], " ");
+            if let Some((head, _)) =
+                split_top_level_sql_cmp(&normalized.to_ascii_uppercase(), " AS ")
+            {
+                let query = normalized[head.len() + 4..].trim();
+                let head = normalized["CREATE TABLE".len()..head.len()].trim();
+                let if_not_exists = head.to_ascii_uppercase().starts_with("IF NOT EXISTS ");
+                let head = if if_not_exists {
+                    head["IF NOT EXISTS".len()..].trim()
+                } else {
+                    head
+                };
+                let tname = head.trim_matches('"');
+                let tname = resolve_sql_table_name(&tables, tname).to_owned();
+                if tables.contains_key(&tname) {
+                    if if_not_exists {
+                        continue;
+                    }
+                    errors.push_str(&format!("Error: table {tname} already exists\n"));
+                    break;
+                }
+                if let Some(mut table) =
+                    resolve_sql_from_table(&format!("({query})"), &tables, &views)
+                {
+                    table.create_sql = synthesize_table_create_sql(&tname, &table);
+                    tables.insert(tname, table);
+                }
+            } else if let Some(open) = stmt.find('(') {
                 if stmt.contains(')') {
                     let head = stmt["CREATE TABLE".len()..open].trim();
                     let head = if head.to_ascii_uppercase().starts_with("IF NOT EXISTS ") {

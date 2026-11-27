@@ -22003,19 +22003,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
                 if let Some((base_sql, rec_sql, is_union_all)) = rec_split {
-                    let base_out = exec_sql_select_ext(
-                        base_sql, &tables, &views, false, false, false, false, false, None, true,
-                        "\x1f", SQL_NULL,
-                    );
-                    let mut lines = base_out.lines();
-                    let hdr_line = lines.next().unwrap_or("");
-                    let cols: Vec<String> = explicit_cols
-                        .clone()
-                        .unwrap_or_else(|| hdr_line.split('\x1f').map(|s| s.to_string()).collect());
-                    let mut all_rows: Vec<Vec<String>> = lines
-                        .filter(|l| !l.is_empty())
-                        .map(|l| l.split('\x1f').map(|s| s.to_string()).collect())
-                        .collect();
+                    let Some(base_table) =
+                        resolve_sql_from_table(&format!("({base_sql})"), &tables, &views)
+                    else {
+                        break;
+                    };
+                    let cols = explicit_cols.clone().unwrap_or(base_table.columns);
+                    let mut all_rows = base_table.rows;
                     let mut frontier = all_rows.clone();
                     for _ in 0..256 {
                         if frontier.is_empty() {

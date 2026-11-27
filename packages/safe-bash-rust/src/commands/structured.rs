@@ -20646,37 +20646,35 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             .map(|t| t.columns.clone())
                             .unwrap_or_default();
                         for cells in rows {
-                            if cells != tbl_cols {
-                                let allow = fire_sql_triggers(
+                            let allow = fire_sql_triggers(
+                                &tname,
+                                SqlTriggerOp::Insert,
+                                &[],
+                                SqlTriggerTiming::Before,
+                                &tbl_cols,
+                                None,
+                                Some(&cells),
+                                &mut tables,
+                                &views,
+                                &triggers,
+                            )
+                            .unwrap_or(true);
+                            if allow {
+                                if let Some(tbl) = tables.get_mut(&tname) {
+                                    tbl.rows.push(cells.clone());
+                                }
+                                let _ = fire_sql_triggers(
                                     &tname,
                                     SqlTriggerOp::Insert,
                                     &[],
-                                    SqlTriggerTiming::Before,
+                                    SqlTriggerTiming::After,
                                     &tbl_cols,
                                     None,
                                     Some(&cells),
                                     &mut tables,
                                     &views,
                                     &triggers,
-                                )
-                                .unwrap_or(true);
-                                if allow {
-                                    if let Some(tbl) = tables.get_mut(&tname) {
-                                        tbl.rows.push(cells.clone());
-                                    }
-                                    let _ = fire_sql_triggers(
-                                        &tname,
-                                        SqlTriggerOp::Insert,
-                                        &[],
-                                        SqlTriggerTiming::After,
-                                        &tbl_cols,
-                                        None,
-                                        Some(&cells),
-                                        &mut tables,
-                                        &views,
-                                        &triggers,
-                                    );
-                                }
+                                );
                             }
                         }
                     } else if let Some(cols) = rows.next() {

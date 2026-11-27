@@ -12,3 +12,5 @@ yesterday/tomorrow combined with an ISO date or a time, such as
 Absolute date strings also accept fixed timezone abbreviations such as EST, PDT,
 CET, and JST, and east-positive corrections such as `UTC+2` or `GMT-5:30`.
 Abbreviations retain their fixed offset regardless of the date's season.
+
+Time-only inputs use the current day in the source timezone; explicit dates and time-only inputs accept AM/PM notation.

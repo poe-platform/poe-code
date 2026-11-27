@@ -100,3 +100,17 @@ for (const [reference, adjustment, expected] of [
     assert.equal(evalSyncDate(args, env.TZ, undefined, undefined, () => undefined), args.includes("-r") ? undefined : expected);
   });
 }
+
+for (const [input, expected] of [
+  ["10:20", "10:20:00\n"],
+  ["10am", "10:00:00\n"],
+  ["12:30pm", "12:30:00\n"],
+  ["today 00:00", "00:00:00\n"],
+  ["2024-01-05 10:20 a.m.", "10:20:00\n"],
+] as const) {
+  test(`date accepts time of day: ${input}`, async () => {
+    const args = ["-u", "-d", input, "+%T"];
+    assert.deepEqual(await run(args), { exitCode: 0, stdout: expected, stderr: "" });
+    assert.equal(evalSyncDate(args, undefined), expected);
+  });
+}

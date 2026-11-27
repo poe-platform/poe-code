@@ -286,7 +286,7 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
       : ordinal === "last" ? "-1" : ordinal === "this" ? "0" : ordinal === "next" || ordinal === undefined ? "1" : ordinal.replace(/\s+/g, "");
     if (rawAmount.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
     const base = relative[1] === undefined || relative[1] === "now"
-      ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone);
+      ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone, now);
     if (relative[6] !== undefined) {
       base.instant = base.zone.instant({ ...base.zone.fields(base.instant), hour: Number(relative[6]),
         minute: Number(relative[7]), second: Number(relative[8] ?? 0) }, BigInt((relative[9] ?? "").slice(0, 9).padEnd(9, "0")));
@@ -305,25 +305,36 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
     const normalized = utcFields(utcMilliseconds(changed));
     return base.zone.instant(normalized, base.instant - floorDivide(base.instant, nanosecondsPerSecond) * nanosecondsPerSecond);
   }
-  return parseAbsoluteDate(value, zone).instant;
+  return parseAbsoluteDate(value, zone, now).instant;
 }
 
-function parseAbsoluteDate(value: string, zone: TimeZone): { instant: bigint; zone: TimeZone } {
+function parseAbsoluteDate(value: string, zone: TimeZone, now: () => bigint): { instant: bigint; zone: TimeZone } {
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return { instant: epoch, zone };
-  const numeric = /^(\d{2}(?:\d{2})?-\d{1,2}-\d{1,2}|\d{4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|\d{8})(?:[Tt ](\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
-  if (numeric) {
-    const date = numeric[1]!;
-    const parts = date.includes("/") ? date.split("/") : date.includes("-") ? date.split("-")
-      : [date.slice(0, 4), date.slice(4, 6), date.slice(6)];
-    const [year, month, day] = date.includes("/") && parts[0]!.length < 4
-      ? [parts[2]!, parts[0]!, parts[1]!] : [parts[0]!, parts[1]!, parts[2]!];
-    // GNU date maps two-digit years to 1969–2068; four-digit years stay literal.
-    const fullYear = Number(year) + (year.length === 2 ? (Number(year) <= 68 ? 2000 : 1900) : 0);
-    const fields: CalendarFields = { year: fullYear, month: Number(month), day: Number(day), hour: Number(numeric[2] ?? 0),
-      minute: Number(numeric[3] ?? 0), second: Number(numeric[4] ?? 0) };
-    const sourceZone = parsedZone(numeric[6], zone);
-    return { instant: sourceZone.instant(fields, BigInt((numeric[5] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
+  const numeric = /^(\d{2}(?:\d{2})?-\d{1,2}-\d{1,2}|\d{4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|\d{8})(?=$|[A-Za-z+\s-])(?:[Tt ](?=\d))?/i.exec(value);
+  const remainder = numeric ? value.slice(numeric[0].length).trim() : value.replace(/^today\s+/i, "");
+  const time = /^(?:(\d{1,2})(?::(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*(am|pm|a\.m\.|p\.m\.)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(remainder);
+  if (time && (numeric || time[1] !== undefined)) {
+    const sourceZone = parsedZone(time[6], zone);
+    let year: number, month: number, day: number;
+    if (numeric) {
+      const date = numeric[1]!;
+      const parts = date.includes("/") ? date.split("/") : date.includes("-") ? date.split("-")
+        : [date.slice(0, 4), date.slice(4, 6), date.slice(6)];
+      const [yearText, monthText, dayText] = date.includes("/") && parts[0]!.length < 4
+        ? [parts[2]!, parts[0]!, parts[1]!] : [parts[0]!, parts[1]!, parts[2]!];
+      // GNU date maps two-digit years to 1969–2068; four-digit years stay literal.
+      year = Number(yearText) + (yearText.length === 2 ? (Number(yearText) <= 68 ? 2000 : 1900) : 0);
+      month = Number(monthText);
+      day = Number(dayText);
+    } else ({ year, month, day } = sourceZone.fields(now()));
+    let hour = Number(time[1] ?? 0);
+    if (time[5]) {
+      if (hour < 1 || hour > 12) throw new CommandFailure("invalid calendar date or time");
+      hour = hour % 12 + (time[5].toLowerCase().startsWith("p") ? 12 : 0);
+    }
+    const fields: CalendarFields = { year, month, day, hour, minute: Number(time[2] ?? 0), second: Number(time[3] ?? 0) };
+    return { instant: sourceZone.instant(fields, BigInt((time[4] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
   }
   const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{4})$/.exec(value);
   if (rfc) {

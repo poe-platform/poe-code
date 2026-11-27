@@ -12466,6 +12466,7 @@ fn cmd_csvsql(
                     );
                 }
             }
+            let tname = resolve_sql_table_name(&tables, &tname).to_owned();
             if overwrite {
                 tables.remove(&tname);
             }
@@ -19536,7 +19537,11 @@ fn deserialize_sql_db(
                     if let Some(open) = after_on.find('(')
                         && let Some(close) = after_on.rfind(')')
                     {
-                        let tname = after_on[..open].trim().trim_matches('"').to_string();
+                        let tname = resolve_sql_table_name(
+                            tables,
+                            after_on[..open].trim().trim_matches('"'),
+                        )
+                        .to_owned();
                         let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
                             .into_iter()
                             .map(|c| {
@@ -19862,6 +19867,14 @@ fn deserialize_sql_db(
             tables.insert(tname, tbl);
         }
     }
+}
+
+// Resolve ASCII-insensitive identifiers without changing stored schema names.
+fn resolve_sql_table_name<'a>(tables: &'a BTreeMap<String, SqlTable>, name: &'a str) -> &'a str {
+    tables
+        .get_key_value(name)
+        .or_else(|| tables.iter().find(|(key, _)| key.eq_ignore_ascii_case(name)))
+        .map_or(name, |(key, _)| key.as_str())
 }
 
 fn find_sql_col(cols: &[String], target: &str) -> Option<usize> {
@@ -20497,7 +20510,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             if pos_parts.len() >= 2 {
                 let full = resolve_posix_path(cwd, pos_parts[0]);
-                let tname = pos_parts[1].to_string();
+                let tname = resolve_sql_table_name(&tables, pos_parts[1]).to_owned();
                 if let Ok(bytes) = fs.read_file(&full) {
                     dirty = true;
                     let text = String::from_utf8_lossy(&bytes);
@@ -20783,7 +20796,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     if let Some(open) = after_on.find('(')
                         && let Some(close) = after_on.rfind(')')
                     {
-                        let tname = after_on[..open].trim().trim_matches('"').to_string();
+                        let tname = resolve_sql_table_name(
+                            &tables,
+                            after_on[..open].trim().trim_matches('"'),
+                        )
+                        .to_owned();
                         let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
                             .into_iter()
                             .map(|c| {
@@ -20825,13 +20842,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let after_at = norm["ALTER TABLE ".len()..].trim();
             let after_at_up = norm_up["ALTER TABLE ".len()..].trim();
             if let Some(rc_pos) = after_at_up.find(" RENAME COLUMN ") {
-                let tname = after_at[..rc_pos].trim().trim_matches('"');
+                let tname =
+                    resolve_sql_table_name(&tables, after_at[..rc_pos].trim().trim_matches('"'))
+                        .to_owned();
                 let rest_rc = after_at[rc_pos + " RENAME COLUMN ".len()..].trim();
                 let rest_rc_up = rest_rc.to_ascii_uppercase();
                 if let Some(to_pos) = rest_rc_up.find(" TO ") {
                     let old_c = rest_rc[..to_pos].trim().trim_matches('"');
                     let new_c = rest_rc[to_pos + 4..].trim().trim_matches('"');
-                    if let Some(tbl) = tables.get_mut(tname) {
+                    if let Some(tbl) = tables.get_mut(&tname) {
                         tbl.create_sql.clear();
                         for col in &mut tbl.columns {
                             if col.eq_ignore_ascii_case(old_c) {
@@ -20841,7 +20860,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
             } else if let Some(rt_pos) = after_at_up.find(" RENAME TO ") {
-                let old_t = after_at[..rt_pos].trim().trim_matches('"').to_string();
+                let old_t =
+                    resolve_sql_table_name(&tables, after_at[..rt_pos].trim().trim_matches('"'))
+                        .to_owned();
                 let new_t = after_at[rt_pos + " RENAME TO ".len()..]
                     .trim()
                     .trim_matches('"')
@@ -20851,7 +20872,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     tables.insert(new_t, tbl);
                 }
             } else if let Some(dc_pos) = after_at_up.find(" DROP ") {
-                let tname = after_at[..dc_pos].trim().trim_matches('"');
+                let tname =
+                    resolve_sql_table_name(&tables, after_at[..dc_pos].trim().trim_matches('"'))
+                        .to_owned();
                 let mut col_spec = after_at[dc_pos + 6..].trim();
                 if col_spec.to_ascii_uppercase().starts_with("COLUMN ") {
                     col_spec = col_spec[7..].trim();
@@ -20861,7 +20884,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .next()
                     .unwrap_or("")
                     .trim_matches('"');
-                if let Some(tbl) = tables.get_mut(tname) {
+                if let Some(tbl) = tables.get_mut(&tname) {
                     tbl.create_sql.clear();
                     if let Some(c_idx) = tbl
                         .columns
@@ -20880,7 +20903,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
             } else if let Some(ac_pos) = after_at_up.find(" ADD ") {
-                let tname = after_at[..ac_pos].trim().trim_matches('"');
+                let tname =
+                    resolve_sql_table_name(&tables, after_at[..ac_pos].trim().trim_matches('"'))
+                        .to_owned();
                 let mut col_spec = after_at[ac_pos + 5..].trim();
                 if col_spec.to_ascii_uppercase().starts_with("COLUMN ") {
                     col_spec = col_spec[7..].trim();
@@ -20897,7 +20922,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 } else {
                     SQL_NULL.to_string()
                 };
-                if let Some(tbl) = tables.get_mut(tname) {
+                if let Some(tbl) = tables.get_mut(&tname) {
                     tbl.create_sql.clear();
                     if col_up.contains(" DEFAULT ") {
                         tbl.defaults
@@ -20953,6 +20978,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or("")
                     .trim_matches('"')
                     .to_string();
+                let tname = resolve_sql_table_name(&tables, &tname).to_owned();
                 if tables.contains_key(&tname) {
                     if if_not_exists {
                         continue;
@@ -21028,6 +21054,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     };
                     let tname = head.trim_matches('"').to_string();
                     let (table, _, _) = parse_create_table_metadata(stmt);
+                    let tname = resolve_sql_table_name(&tables, &tname).to_owned();
                     tables.entry(tname).or_insert(table);
                 }
             }
@@ -21489,17 +21516,19 @@ fn sql_foreign_key_parent_exists(
     value: &str,
     tables: &BTreeMap<String, SqlTable>,
 ) -> bool {
-    tables.get(&fk.parent_table).is_some_and(|parent| {
-        let index = if fk.parent_col.is_empty() {
-            0
-        } else {
-            find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
-        };
-        parent
-            .rows
-            .iter()
-            .any(|row| row.get(index).map(String::as_str) == Some(value))
-    })
+    tables
+        .get(resolve_sql_table_name(tables, &fk.parent_table))
+        .is_some_and(|parent| {
+            let index = if fk.parent_col.is_empty() {
+                0
+            } else {
+                find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
+            };
+            parent
+                .rows
+                .iter()
+                .any(|row| row.get(index).map(String::as_str) == Some(value))
+        })
 }
 
 fn sql_deferred_foreign_keys_satisfied(tables: &BTreeMap<String, SqlTable>) -> bool {
@@ -21866,6 +21895,7 @@ fn exec_sql_insert(
         (head.trim_matches('"').to_string(), None)
     };
 
+    let tname = resolve_sql_table_name(tables, &tname).to_owned();
     let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()) else {
         return Ok(String::new());
     };
@@ -22219,7 +22249,8 @@ fn exec_sql_update(
     let Some(set_pos) = upper.find(" SET ") else {
         return Ok(String::new());
     };
-    let tname = stmt_norm[6..set_pos].trim().trim_matches('"').to_string();
+    let tname =
+        resolve_sql_table_name(tables, stmt_norm[6..set_pos].trim().trim_matches('"')).to_owned();
     let ret_pos = upper.rfind(" RETURNING ");
     let returning_cols: Option<Vec<String>> = ret_pos.map(|rp| {
         split_top_level_comma(&stmt_norm[rp + 11..])
@@ -22496,6 +22527,7 @@ fn exec_sql_delete(
         let w_end = ret_pos.unwrap_or(norm.len());
         norm[wp + 7..w_end].trim()
     });
+    let tname = resolve_sql_table_name(tables, &tname).to_owned();
     let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()) else {
         return Ok(String::new());
     };
@@ -23063,7 +23095,7 @@ fn resolve_sql_from_table(
         None
     };
 
-    let base_tbl = if let Some(t) = tables.get(raw_tname) {
+    let base_tbl = if let Some(t) = tables.get(resolve_sql_table_name(tables, raw_tname)) {
         t.clone()
     } else if raw_tname.eq_ignore_ascii_case("sqlite_master")
         || raw_tname.eq_ignore_ascii_case("sqlite_schema")

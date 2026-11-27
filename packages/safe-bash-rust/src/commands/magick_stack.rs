@@ -118,6 +118,7 @@ pub(super) enum Step<'a> {
     Write(&'a str, f64, bool),
     Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
+    Separate([bool; 4]),
 }
 
 struct SourceTiming {
@@ -691,6 +692,47 @@ pub(super) fn evaluate(
                 ));
             }
             Step::Append(..) => {}
+            Step::Separate(channels) => {
+                let mut separated = Vec::new();
+                retained = 0;
+                for (scene, start) in stack.drain(..) {
+                    let mut scene = Rc::unwrap_or_clone(scene);
+                    let (keep, _) = transform(&mut scene.image, start..*at, scene.timing.is_some())?;
+                    if !keep {
+                        scene.timing = None;
+                    }
+                    let selected = (0..4)
+                        .filter(|&c| {
+                            channels[c]
+                                && match c {
+                                    0 => true,
+                                    1 | 2 => !scene.image.gray,
+                                    _ => scene.image.alpha,
+                                }
+                        })
+                        .collect::<Vec<_>>();
+                    let count = selected.len().max(1);
+                    retained = retained.saturating_add(count.saturating_mul(
+                        scene.image.pixels.len().saturating_mul(4)
+                            .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>()),
+                    ));
+                    if retained > limit {
+                        return Err("image exceeds memory budget".into());
+                    }
+                    for index in 0..count {
+                        let mut channel = scene.clone();
+                        for pixel in &mut channel.image.pixels {
+                            let value = selected.get(index).map_or(0, |&c| pixel[c]);
+                            *pixel = [value, value, value, 255];
+                        }
+                        channel.image.gray = true;
+                        channel.image.alpha = false;
+                        channel.png_alpha = false;
+                        separated.push((Rc::new(channel), *at));
+                    }
+                }
+                stack = separated;
+            }
         }
     }
     retained = 0;

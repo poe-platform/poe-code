@@ -12567,7 +12567,7 @@ fn cmd_magick(
                 ops.push(PixelOp::Resize(
                     &args[i + 1],
                     if arg == "-sample" {
-                        Kernel::Nearest
+                        Kernel::Sample
                     } else {
                         kernel
                     },
@@ -12677,6 +12677,13 @@ fn cmd_magick(
             }
             "+channel" => {
                 channels = None;
+                i += 1;
+            }
+            "-separate" => {
+                stack_steps.push((
+                    ops.len(),
+                    magick_stack::Step::Separate(channels.unwrap_or([true, true, true, false])),
+                ));
                 i += 1;
             }
             "-negate" | "+negate" => {
@@ -13107,9 +13114,9 @@ fn cmd_magick(
                     }
                     _ => false,
                 })))
-        || stack_steps
-            .iter()
-            .any(|(_, s)| matches!(s, magick_stack::Step::Edit(..)));
+        || stack_steps.iter().any(|(_, s)| {
+            matches!(s, magick_stack::Step::Edit(..) | magick_stack::Step::Separate(..))
+        });
     let apply_pixels =
         |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
             // GIFs decode to four channels even if they did not declare transparency.
@@ -13277,6 +13284,7 @@ fn cmd_magick(
                         matches!(
                             s,
                             magick_stack::Step::Edit(..)
+                                | magick_stack::Step::Separate(..)
                                 | magick_stack::Step::Append(..)
                                 | magick_stack::Step::Write(..)
                         )
@@ -13350,6 +13358,18 @@ fn cmd_magick(
             }
             let bytes = if dest.0 == "gif" {
                 images.gif(timing, kernel, limit)
+            } else if matches!(dest.0, "rgb" | "rgba") {
+                images.frames.into_iter().try_fold(
+                    Vec::new(),
+                    |mut output, scene| {
+                        let bytes = scene.encode(dest.0, quality, limit)?;
+                        if output.len().saturating_add(bytes.len()) > limit {
+                            return Err("output byte limit exceeded");
+                        }
+                        output.extend(bytes);
+                        Ok(output)
+                    },
+                )
             } else {
                 images.frames.pop()?.encode(dest.0, quality, limit)
             };

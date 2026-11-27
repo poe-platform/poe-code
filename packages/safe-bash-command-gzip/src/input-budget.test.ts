@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createGzipCommand } from "./index.js";
 
-for (const args of [["-c"], ["-qc"], ["-k", "/input"], ["-qc", "/input", "-"]]) {
+for (const args of [["-c"], ["-qc"], ["-k", "/input"], ["-qc", "/input", "-"], ["-l"], ["-l", "/input"]]) {
   test(`gzip enforces cumulative host input limits: ${args.join(" ")}`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input", Buffer.from("bounded input"));

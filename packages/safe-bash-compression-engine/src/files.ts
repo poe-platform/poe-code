@@ -11,6 +11,7 @@ import { FileOperation } from "./file-operation.js";
 
 export interface Operand {
   readonly source: string;
+  readonly name?: string;
   readonly realSource?: string;
   readonly sourceStat?: FileStat;
   readonly sourceParent?: FileStat;
@@ -156,7 +157,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
       }
       if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
       realSource = await context.fs.realpath(source, { signal: context.signal });
-      if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
+      if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource, name: source === pathOf(context, name) ? name : name + (options.suffix ?? ".gz") }); continue; }
     }
     const destination = options.output !== undefined ? pathOf(context, options.output) : outputPath(realSource!, options);
     if (options.format === "bzip2" && options.decompress && destination === realSource + ".out" && !options.quiet) {

@@ -17,6 +17,22 @@ import type { DdCommandsOptions } from "../../../src/dd.js";
 const names = ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "dd"];
 const binary = Uint8Array.from({ length: 1025 }, (_, index) => index % 256);
 
+for (const flag of ["-l", "--list"]) {
+  test(`gzip ${flag} exposes uncompressed size and pipeline success`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work");
+    const shell = new Shell({ fs, cwd: "/work" }).use(baseAgentCommands());
+    try {
+      const result = await shell.exec(`echo hello > f; gzip f; gzip ${flag} f.gz | awk '{print $2, $4}'; echo \${PIPESTATUS[0]}`);
+      assert.equal(result.stdout, "uncompressed uncompressed_name\n6 f\n0\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal((await fs.stat("/work/f.gz")).type, "file");
+      await assert.rejects(fs.stat("/work/f"), { code: "ENOENT" });
+    } finally { await shell.dispose(); }
+  });
+}
+
 class RecordingRegistry extends CommandRegistry {
   readonly registrations: { name: string; options: RegisterCommandOptions | undefined }[] = [];
 

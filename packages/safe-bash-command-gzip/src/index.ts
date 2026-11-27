@@ -6,6 +6,7 @@ import { DecodedBudget,type CompressionCommandOptions } from "safe-bash-compress
 import type { CommandDefinition,VirtualShellPlugin } from "safe-bash-contracts";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { builtInDirectContextExecutors,codeOf,define,diagnostic,output } from "safe-bash-io-engine/internal";
+import { gzipListEntry, gzipListName, printGzipListEntry } from "./list.js";
 export interface GzipLimits { readonly maxDecodedBytes: number; }
 export interface GzipCommandsOptions extends CompressionCommandOptions { readonly replace?: boolean; }
 export function createGzipCommands(config: GzipCommandsOptions = {}): readonly CommandDefinition[] {
@@ -17,7 +18,7 @@ export function createGzipCommands(config: GzipCommandsOptions = {}): readonly C
     const command = define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
-      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-l, --list\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };
     }
     let plans;
@@ -45,9 +46,22 @@ export function createGzipCommands(config: GzipCommandsOptions = {}): readonly C
     }
     const decodedBudget = new DecodedBudget(maxDecodedBytes);
     let exitCode = planningFailed ? 1 : 0;
+    let listed = 0;
+    const totals = { compressed: 0, uncompressed: 0, overhead: 0 };
     for (const plan of plans) {
       const source = plan.source === "-" ? "stdin" : plan.source;
       try {
+        if (options.gzipList) {
+          const entry = await gzipListEntry(context, plan);
+          if (!listed && !options.quiet) await output(context, "         compressed        uncompressed  ratio uncompressed_name\n");
+          await printGzipListEntry(context, entry, gzipListName(plan, options.suffix));
+          listed++;
+          totals.compressed += entry.compressed;
+          totals.uncompressed += entry.uncompressed;
+          // GNU's totals ratio subtracts the last input's header/trailer size.
+          totals.overhead = entry.overhead;
+          continue;
+        }
         const warned = await runOperand(context, plan, options, decodedBudget);
         if (warned) {
           if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${source}: decompression OK, trailing garbage ignored`));
@@ -62,6 +76,7 @@ export function createGzipCommands(config: GzipCommandsOptions = {}): readonly C
         if (decodedBudget.exceeded) break;
       }
     }
+    if (listed > 1 && !options.quiet) await printGzipListEntry(context, totals, "(totals)");
     return { exitCode };
   });
     return { ...command, runtimeIdentity: commandRuntimeIdentity, execute: withInputByteBudget(async context => command.execute(context)) };

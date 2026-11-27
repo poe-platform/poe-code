@@ -164,6 +164,7 @@ function escapeEreLiteral(ch: string): string {
 
 function parsePattern(
   pattern: string,
+  kind: ErgonomicRegexConfig["kind"],
   bre: boolean,
   insensitive: boolean,
   multiline: boolean,
@@ -190,13 +191,19 @@ function parsePattern(
   }
 
   function readHexEscape(): number {
-    const digits = pattern.slice(pos, pos + 2);
-    if (digits.length !== 2 || [...digits].some(ch => !"0123456789abcdefABCDEF".includes(ch))) {
-      throw new SearchError("invalid hexadecimal escape: expected two hex digits");
+    const braced = pattern[pos] === "{";
+    const end = braced ? pattern.indexOf("}", pos + 1) : pos + 2;
+    const digits = pattern.slice(pos + (braced ? 1 : 0), end);
+    if (end < 0 || digits.length === 0 || (!braced && digits.length !== 2)
+      || [...digits].some(ch => !"0123456789abcdefABCDEF".includes(ch))) {
+      throw new SearchError("invalid hexadecimal escape: expected two hex digits or {hex digits}");
     }
-    pos += 2;
-    needsVm = true;
     const cp = Number.parseInt(digits, 16);
+    if (cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) {
+      throw new SearchError("invalid hexadecimal escape: expected a Unicode scalar value");
+    }
+    pos = end + (braced ? 1 : 0);
+    needsVm = true;
     if (cp >= 65 && cp <= 90) hasUppercaseLiteral = true;
     if (cp === 10) hasCrossLinePotential = true;
     return cp;
@@ -233,7 +240,7 @@ function parsePattern(
         pos++;
         if (pos >= pattern.length) throw new SearchError("invalid ERE: trailing backslash in bracket expression");
         const esc = pattern[pos++]!;
-        if (perl && esc === "x") {
+        if ((kind === "rg" || perl) && esc === "x") {
           const cp = readHexEscape();
           return { item: { kind: "char", cp }, ereText: "", isSingleChar: true, cp };
         }
@@ -478,7 +485,7 @@ function parsePattern(
           atomNode = { type: "reset" };
           atomEre = "";
           quantifiable = false;
-        } else if (perl && esc === "x") {
+        } else if ((kind === "rg" || perl) && esc === "x") {
           atomNode = { type: "literal", cp: readHexEscape(), insensitive };
           atomEre = "";
         } else if (perl && esc === "Q") {
@@ -1195,12 +1202,12 @@ export function prepareErgonomicRegex(
 
   for (const pat of patterns) {
     const provisionalInsensitive = config.caseMode === "insensitive";
-    const firstParse = parsePattern(pat, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl);
+    const firstParse = parsePattern(pat, config.kind, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl);
     const effectiveInsensitive =
       config.caseMode === "insensitive" || (config.caseMode === "smart" && !firstParse.hasUppercaseLiteral);
     const outcome =
       effectiveInsensitive !== provisionalInsensitive
-        ? parsePattern(pat, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl)
+        ? parsePattern(pat, config.kind, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl)
         : firstParse;
     captureCount = outcome.captureCount;
     for (const [name, index] of outcome.captureNames) {

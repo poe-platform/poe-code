@@ -39,6 +39,9 @@ filesystem and input-byte limits.
 dialect, such as `^a+$`. They do not enable a PCRE2 engine: unsupported syntax
 (including lookaround and backreferences) fails with exit status 2. The same
 bounded dialect applies with an injected provider.
+Hex escapes work with or without `-P`: `\x61` and `\x{61}` match `a`, and
+`\x09` matches a tab. They also work in character classes and ranges; malformed
+escapes and invalid Unicode scalar values fail with exit status 2.
 
 Search recursively with `rg -t ts needle /src`, select paths with `-g`, or list
 selected files with `--files`. Hidden files, ignore rules, symlinks and traversal

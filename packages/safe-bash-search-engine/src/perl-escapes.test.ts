@@ -4,6 +4,12 @@ import { prepareErgonomicRegex } from "./ergonomic-regex.js";
 
 const config = { kind: "grep", fixed: false, extended: true, caseMode: "sensitive", whole: false, word: false, nullData: false, forceVm: true } as const;
 
+for (const pattern of [String.raw`\x`, String.raw`\x6g`, String.raw`\x{}`, String.raw`\x{61`, String.raw`\x{gg}`, String.raw`\x{110000}`, String.raw`[\x{D800}]`]) {
+  test(`rg rejects malformed hex escape ${pattern}`, () => {
+    assert.throws(() => prepareErgonomicRegex([pattern], { ...config, kind: "rg" }), /hexadecimal escape/u);
+  });
+}
+
 for (const pattern of [String.raw`\x`, String.raw`\x6g`, String.raw`[\xgg]`]) {
   test(`Perl mode rejects malformed hex escape ${pattern}`, () => {
     assert.throws(() => prepareErgonomicRegex([pattern], { ...config, perl: true }), /hexadecimal escape/u);

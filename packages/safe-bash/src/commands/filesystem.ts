@@ -1048,6 +1048,17 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             }
           }
           await order(children, true);
+          if (parsed.flags.has("l")) {
+            let totalBytes = 0;
+            for (const child of children) {
+              if (!("size" in child.stat)) throw new Error("ls long listing requires file stats");
+              // Virtual filesystems may omit allocation; estimate only the display,
+              // without presenting logical size as provider-reported allocation.
+              totalBytes += child.stat.allocatedBytes ?? Math.ceil(child.stat.size / 4096) * 4096;
+            }
+            await output(context, `total ${parsed.flags.has("h") ? humanSize(totalBytes, path) : Math.ceil(totalBytes / 1024)}\n`);
+            outputWritten = true;
+          }
           for (const child of children) await render(child);
           if (parsed.flags.has("R")) for (const child of children) {
             if (child.display === "." || child.display === "..") continue;

@@ -130,7 +130,9 @@ test("ls human formatting and metadata sorting compose without sorting rounded s
   const fs = await fixture({ alpha: "x".repeat(1025), beta: "x".repeat(1026) });
   const result = await run("ls", ["-lhS"], { fs });
   assert.equal(result.exitCode, 0);
-  assert.deepEqual(result.stdout.trimEnd().split("\n").map(line => [line.split(" ")[4], line.split(" ").at(-1)]), [["1.1K", "beta"], ["1.1K", "alpha"]]);
+  const [total, ...rows] = result.stdout.trimEnd().split("\n");
+  assert.equal(total, "total 8.0K");
+  assert.deepEqual(rows.map(line => [line.split(" ")[4], line.split(" ").at(-1)]), [["1.1K", "beta"], ["1.1K", "alpha"]]);
 });
 
 for (const follow of [false, true]) test(`ls sorts links using ${follow ? "target" : "link"} metadata`, async context => {
@@ -272,7 +274,7 @@ test("ls human sorting preserves shell output and invocation budgets", async con
 test("ls preserves root operand errors while rendering valid operands", async () => {
   const fs = await sortableFixture();
   const result = await run("ls", ["-S", "missing", "a-new-small"], { fs });
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /ENOENT.*missing/u);
   assert.equal(result.stdout, "a-new-small\n");
 });
@@ -290,7 +292,7 @@ test("ls retains errors from required child metadata and explicit dereferencing"
   assert.equal(result.stdout, "");
   await fs.symlink("missing", "/work/dangling");
   const dangling = await run("ls", ["-SL", "dangling"], { fs });
-  assert.equal(dangling.exitCode, 1);
+  assert.equal(dangling.exitCode, 2);
   assert.match(dangling.stderr, /ENOENT/u);
 });
 

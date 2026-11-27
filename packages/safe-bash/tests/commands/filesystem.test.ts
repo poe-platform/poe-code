@@ -6,6 +6,50 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("ls long directory listings include totals before pipeline consumers", async context => {
+  const fs = await fixture({});
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("mkdir d; echo hi > d/f; ls -l d | head -1; ls -la d | wc -l");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "total 4\n4\n");
+});
+
+test("ls totals cover empty, filtered, recursive and human-readable directory listings", async context => {
+  const fs = await fixture({ "d/f": "hi\n", "d/.hidden": "hidden", "d/empty": "" });
+  await fs.mkdir("/work/d/sub");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  for (const [script, expected] of [
+    ["ls -l d/sub", "total 0\n"],
+    ["ls -l d | head -1", "total 4\n"],
+    ["ls -lA d | head -1", "total 8\n"],
+    ["ls -lh d | head -1", "total 4.0K\n"],
+    ["ls -lR d | grep '^total'", "total 4\ntotal 0\n"],
+    ["ls -l d/sub d/sub", "d/sub:\ntotal 0\n\nd/sub:\ntotal 0\n"],
+    ["ls -l d/f | wc -l", "1\n"],
+    ["ls -ld d | wc -l", "1\n"],
+  ] as const) {
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected, script);
+  }
+});
+
+test("ls totals use reported allocation, including zero and partial KiB blocks", async () => {
+  const fs = await fixture({ sparse: "content", small: "x", other: "y" });
+  const lstat = fs.lstat.bind(fs);
+  fs.lstat = async (path, options) => ({
+    ...await lstat(path, options),
+    allocatedBytes: path.endsWith("sparse") ? 0 : 512,
+  });
+  const result = await run("ls", ["-l"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.split("\n")[0], "total 1");
+});
+
 for (const command of ["cp", "mv", "ln"]) {
   test(`${command} rejects the undocumented -B option before changing files`, async () => {
     const fs = await fixture({ source: "new", target: "old" });

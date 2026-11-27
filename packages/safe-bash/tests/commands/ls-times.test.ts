@@ -37,7 +37,7 @@ for (const [selector, expected] of [
     const entries = selector.endsWith("t") && selector.startsWith("-") && !selector.startsWith("--")
       ? expected.trimEnd().split("\n").map(name => [name, times[name as keyof typeof times]] as const)
       : Object.entries(times);
-    assert.equal(long.stdout, entries.map(([name, metadata]) =>
+    assert.equal(long.stdout, "total 12\n" + entries.map(([name, metadata]) =>
       `-rw-rw-rw- 1 0 0 1 1970-01-01 00:0${metadata[key] / 60000} ${name}\n`).join(""));
   });
 }

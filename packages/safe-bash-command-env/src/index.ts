@@ -32,8 +32,7 @@ export function createEnvCommand(options: EnvCommandsOptions = {}): CommandDefin
           if (debug) await writeDiagnostic(context.stderr, `unset:    ${name}\n`, context.signal);
           delete env[name];
         }
-        const inheritedNames = Object.keys(env);
-        const addedNames: string[] = [];
+        names = Object.keys(env);
         while (parsed.operands[offset]?.includes("=")) {
           const assignment = parsed.operands[offset++]!;
           const equals = assignment.indexOf("=");
@@ -42,10 +41,9 @@ export function createEnvCommand(options: EnvCommandsOptions = {}): CommandDefin
           const content = assignment.slice(equals + 1);
           if (content.includes("\0")) throw new UsageError("environment values cannot contain NUL");
           if (debug) await writeDiagnostic(context.stderr, `setenv:   ${assignment}\n`, context.signal);
-          if (!Object.hasOwn(env, name)) addedNames.push(name);
+          if (!Object.hasOwn(env, name)) names.push(name);
           env[name] = content;
         }
-        names = [...addedNames.reverse(), ...inheritedNames];
         if (offset < parsed.operands.length && parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
         const directory = value(parsed, "C");
         if (directory !== undefined) {

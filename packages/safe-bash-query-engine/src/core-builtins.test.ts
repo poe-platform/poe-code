@@ -4,6 +4,13 @@ import { createYqQuerySession } from "./query-core.js";
 
 // Per-name/arity compatibility matrix, pinned to /usr/bin/jq 1.7.1-apple.
 const cases = [
+  ['add', {a: 1, b: 2}, [3]],
+  ['add', {}, [null]],
+  ['add', {a: "first", b: "second"}, ["firstsecond"]],
+  ['add', {a: [1], b: [2]}, [[1, 2]]],
+  ['add', {a: {x: 1}, b: {x: 2, y: 3}}, [{x: 2, y: 3}]],
+  ['map_values(. * 2) | add', {a: 1, b: 2}, [6]],
+  ['.counts | add', {counts: {a: 1, b: 2}}, [3]],
   ['path(.a.b[0])', null, [["a", "b", 0]]],
   ['[path(.. | select(type == "number"))]', {a: {b: [10,20]}}, [[["a","b",0],["a","b",1]]]],
   ['path(.)', null, [[]]],

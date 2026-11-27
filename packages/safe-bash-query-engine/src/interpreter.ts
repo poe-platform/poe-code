@@ -1827,6 +1827,11 @@ export class Interpreter {
       }
       yield name === "all"; return;
     }
+    if (name === "add") {
+      let result: Json = null;
+      for await (const [, item] of entries(input, budget)) { { const _p = budget.tickSync(); if (_p) await _p; } result = await binary("+", result, item, budget); budget.value(result); }
+      yield result; return;
+    }
     if (!Array.isArray(input)) {
       if (name === "sort") throw new JqError(`${describe(input, budget)} cannot be sorted, as it is not an array`);
       if (name === "min" || name === "max") {
@@ -1847,11 +1852,6 @@ export class Interpreter {
       await measureValue(input, budget);
       const result: Json[] = [];
       for (let index = input.length - 1; index >= 0; index--) { { const _p = budget.tickSync(0); if (_p) await _p; } result.push(input[index]!); }
-      yield result; return;
-    }
-    if (name === "add") {
-      let result: Json = null;
-      for (const item of input) { { const _p = budget.tickSync(); if (_p) await _p; } result = await binary("+", result, item, budget); budget.value(result); }
       yield result; return;
     }
     const keyed: { key: Json; value: Json }[] = [];

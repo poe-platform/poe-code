@@ -17768,6 +17768,21 @@ async fn filter_xpath_items(
 
 // SQL rows and expressions use strings; reserve a distinct internal value for SQL NULL.
 const SQL_NULL: &str = "\x00SQL_NULL";
+// Blob payloads stay hexadecimal so arbitrary bytes survive string-based rows.
+const SQL_BLOB: &str = "\x00SQL_BLOB:";
+
+fn sql_blob_bytes(value: &str) -> Option<Vec<u8>> {
+    let hex = value.strip_prefix(SQL_BLOB)?;
+    hex.as_bytes()
+        .chunks_exact(2)
+        .map(|pair| {
+            Some(
+                (char::from(pair[0]).to_digit(16)? * 16 + char::from(pair[1]).to_digit(16)?)
+                    as u8,
+            )
+        })
+        .collect()
+}
 
 #[derive(Default, Clone)]
 struct SqlForeignKey {
@@ -19222,6 +19237,8 @@ fn serialize_sql_db(
                 let cell_str = r.get(col_i).map(|s| s.as_str()).unwrap_or("");
                 if tbl.imported_csv {
                     vals.push(SqlBtreeVal::Text(cell_str.to_string()));
+                } else if let Some(bytes) = sql_blob_bytes(cell_str) {
+                    vals.push(SqlBtreeVal::Blob(bytes));
                 } else if cell_str == SQL_NULL {
                     vals.push(SqlBtreeVal::Null);
                 } else {
@@ -19514,7 +19531,9 @@ fn deserialize_sql_db(
                                 }
                                 Some(SqlBtreeVal::Text(s)) => s.clone(),
                                 Some(SqlBtreeVal::Blob(b)) => {
-                                    String::from_utf8_lossy(b).into_owned()
+                                    let hex: String =
+                                        b.iter().map(|byte| format!("{byte:02X}")).collect();
+                                    format!("{SQL_BLOB}{hex}")
                                 }
                             };
                             row_strs.push(cell_s);
@@ -23299,13 +23318,19 @@ fn format_sql_result_rows(
     if headers.is_empty() {
         return String::new();
     }
-    fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> &'a str {
+    fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> std::borrow::Cow<'a, str> {
         if v == "\x00LIT_NULL" {
-            "NULL"
+            "NULL".into()
         } else if v == SQL_NULL {
-            nullvalue
+            nullvalue.into()
+        } else if let Some(bytes) = sql_blob_bytes(v) {
+            let end = bytes
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(bytes.len());
+            String::from_utf8_lossy(&bytes[..end]).into_owned().into()
         } else {
-            v
+            v.into()
         }
     }
     if mode == "json" {
@@ -23327,7 +23352,7 @@ fn format_sql_result_rows(
                     {
                         JVal::Number(n, None)
                     } else {
-                        JVal::Str(val_s.clone())
+                        JVal::Str(display_cell(val_s, nullvalue).into_owned())
                     };
                     entries.push((cname.clone(), jv));
                 }
@@ -23358,7 +23383,7 @@ fn format_sql_result_rows(
                 out.push_str(&" ".repeat(pad));
                 out.push_str(h);
                 out.push_str(" = ");
-                out.push_str(dv);
+                out.push_str(&dv);
                 out.push('\n');
             }
         }
@@ -23380,7 +23405,7 @@ fn format_sql_result_rows(
                     let cell = r
                         .get(col)
                         .map(|s| display_cell(s, nullvalue))
-                        .unwrap_or(nullvalue);
+                        .unwrap_or_else(|| nullvalue.into());
                     max_w = max_w.max(cell.chars().count());
                 }
                 max_w
@@ -23419,7 +23444,7 @@ fn format_sql_result_rows(
                     }
                 }
                 let cell = if is_header {
-                    raw_v.as_str()
+                    raw_v.as_str().into()
                 } else {
                     display_cell(raw_v, nullvalue)
                 };
@@ -23432,7 +23457,7 @@ fn format_sql_result_rows(
                     0
                 };
                 s.push_str(&" ".repeat(left));
-                s.push_str(cell);
+                s.push_str(&cell);
                 s.push_str(&" ".repeat(padding - left));
             }
             if framed {
@@ -23543,7 +23568,7 @@ fn format_sql_result_rows(
             for v in vals {
                 let dv = display_cell(v, nullvalue);
                 out.push_str("<TD>");
-                out.push_str(&esc_html(dv));
+                out.push_str(&esc_html(&dv));
                 out.push_str("</TD>\n");
             }
             out.push_str("</TR>\n");
@@ -25454,6 +25479,15 @@ fn eval_sql_row_expr(
     if s.is_empty() {
         return SQL_NULL.to_string();
     }
+    if let Some(hex) = s
+        .strip_prefix("x'")
+        .or_else(|| s.strip_prefix("X'"))
+        .and_then(|rest| rest.strip_suffix('\''))
+        && hex.len().is_multiple_of(2)
+        && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+    {
+        return format!("{SQL_BLOB}{}", hex.to_ascii_uppercase());
+    }
     let concat_parts = split_sql_concat(s);
     if concat_parts.len() > 1 {
         let mut res = String::new();
@@ -25593,12 +25627,18 @@ fn eval_sql_row_expr(
         if inner == SQL_NULL {
             return SQL_NULL.to_string();
         }
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+            return (hex.len() / 2).to_string();
+        }
         return inner.chars().count().to_string();
     }
     if upper.starts_with("OCTET_LENGTH(") && s.ends_with(')') {
         let inner = eval_sql_row_expr(&s[13..s.len() - 1], cols, row, tables);
         if inner == SQL_NULL {
             return SQL_NULL.to_string();
+        }
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+            return (hex.len() / 2).to_string();
         }
         return inner.len().to_string();
     }
@@ -25764,6 +25804,9 @@ fn eval_sql_row_expr(
             return "text".to_string();
         }
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
+        if v.starts_with(SQL_BLOB) {
+            return "blob".to_string();
+        }
         if v == "\x00LIT_NULL" {
             return "text".to_string();
         }
@@ -25783,6 +25826,9 @@ fn eval_sql_row_expr(
         let is_str_lit = (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
             || (inner_raw.starts_with('"') && inner_raw.ends_with('"'));
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
+        if let Some(hex) = v.strip_prefix(SQL_BLOB) {
+            return format!("X'{hex}'");
+        }
         if is_str_lit {
             return format!("'{}'", v.replace('\'', "''"));
         }
@@ -25801,6 +25847,9 @@ fn eval_sql_row_expr(
         let inner = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables);
         if inner == SQL_NULL {
             return String::new();
+        }
+        if let Some(hex) = inner.strip_prefix(SQL_BLOB) {
+            return hex.to_string();
         }
         let mut hex = String::new();
         for b in inner.as_bytes() {

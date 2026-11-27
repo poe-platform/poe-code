@@ -8446,11 +8446,9 @@ fn parse_csv_rows_opts(
         } else if c == '\r' {
             continue;
         } else if c == '\n' {
-            cur_row.push(std::mem::take(&mut cur_cell));
-            if !(cur_row.len() == 1 && cur_row[0].is_empty()) {
+            if !at_field_start || !cur_row.is_empty() {
+                cur_row.push(std::mem::take(&mut cur_cell));
                 rows.push(std::mem::take(&mut cur_row));
-            } else {
-                cur_row.clear();
             }
             at_field_start = true;
         } else {
@@ -8458,7 +8456,7 @@ fn parse_csv_rows_opts(
             at_field_start = false;
         }
     }
-    if !cur_cell.is_empty() || !cur_row.is_empty() {
+    if !at_field_start || !cur_row.is_empty() {
         cur_row.push(cur_cell);
         rows.push(cur_row);
     }

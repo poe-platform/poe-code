@@ -80,3 +80,58 @@ fn magick_sample_maps_both_axes_when_shrinking_and_enlarging() {
         }
     }
 }
+
+#[test]
+fn sample_selects_source_pixels_at_region_midpoints_with_lower_ties() {
+    for (options, format, expected) in [
+        ("-sample 2x1!", "rgb", "ff00000000ff\n"),
+        ("-sample 1x2!", "rgb", "00ff00808080\n"),
+        ("-sample 50%", "rgb", "ff00000000ff\n"),
+        (
+            "-sample 3x2!",
+            "rgb",
+            "ff000000ff000000ff000000808080ffffff\n",
+        ),
+        (
+            "-sample 4x3!",
+            "rgb",
+            concat!(
+                "ff000000ff0000ff000000ffff000000ff0000ff000000ff000000808080\n",
+                "808080ffffff\n"
+            ),
+        ),
+        (
+            "-transparent red -sample 2x1!",
+            "rgba",
+            "ff0000000000ffff\n",
+        ),
+        ("-sample 12x8! -sample 2x1!", "rgb", "ff00000000ff\n"),
+    ] {
+        let fs = Arc::new(MemoryVfs::new());
+        fs.write_file(
+            "/sample.ppm",
+            b"P3\n3 2\n255\n255 0 0   0 255 0   0 0 255\n0 0 0   128 128 128   255 255 255\n",
+        )
+        .unwrap();
+        let mut shell = Shell::new(
+            fs,
+            ShellOptions {
+                cwd: Some("/".into()),
+                env: [("LC_ALL".into(), "C".into()), ("TZ".into(), "UTC".into())].into(),
+                mode: BackendMode::NativeOnly,
+            },
+        );
+        let result = shell
+            .exec_with_options(
+                &format!(
+                    "set -o pipefail; magick sample.ppm {options} -depth 8 {format}:- | xxd -p"
+                ),
+                ExecOptions::default(),
+            )
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{options}: {}", result.stderr);
+        assert_eq!(result.stdout, expected, "{options}");
+        assert_eq!(result.stderr, "", "{options}");
+        assert!(!result.used_typescript_bridge);
+    }
+}

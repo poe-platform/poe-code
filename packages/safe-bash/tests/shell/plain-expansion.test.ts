@@ -4,6 +4,28 @@ import { spawnSync } from "node:child_process";
 import { standardCommands } from "../../src/commands/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+test("shell PID expands in temporary filenames and quoted pipelines", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work", { recursive: true });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('tmp=/work/tmp.$$; echo x > "$tmp"; cat "$tmp"; echo "pid=$$" | tr 0-9 N | cut -c1-5');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "x\npid=N\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/tmp.1")), "x\n");
+});
+
+test("shell PID remains stable across expansion contexts", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("set -u; echo $$ \"$$\" ${$} \"$BASHPID\"; for i in 1 2; do echo $$; done; (echo $$); echo \"$(echo $$)\"; echo '$$' \\$\\$");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "1 1 1 1\n1\n1\n1\n1\n$$ $$\n");
+});
 
 for (const wrap of [(s: string) => s, (s: string) => `for i in 1 2; do ${s}; done`, (s: string) => `f() { ${s}; }; f; f`, (s: string) => `echo "$(${s})"`]) {
   test(`plain case patterns expand home: ${wrap("case")}`, async context => {

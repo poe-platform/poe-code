@@ -1034,7 +1034,7 @@ class Lexer {
   private readExpansionName(): string | undefined {
     while (this.source.startsWith("\\\n", this.position)) this.position += 2;
     const first = this.source[this.position];
-    if (first && /^[?@*#-]$/u.test(first)) {
+    if (first && "?@*#-$".includes(first)) {
       this.position++;
       return first;
     }
@@ -1124,7 +1124,7 @@ class Lexer {
         return;
       }
     }
-    if (this.source[this.position] === "$" || this.source[this.position] === "!" && !this.syntax.specialParameters.length
+    if (this.source[this.position] === "!" && !this.syntax.specialParameters.length
       || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     while (this.source.startsWith("\\\n", this.position)) this.position += 2;
     const firstParen = this.source[this.position] === "(" ? this.position : -1;

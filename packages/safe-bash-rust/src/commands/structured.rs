@@ -20651,23 +20651,18 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     pi += 1;
                 }
             }
+            let delimiter = if explicit_csv {
+                ','
+            } else {
+                sep.chars().next().unwrap_or('|')
+            };
             if pos_parts.len() >= 2 {
                 let full = resolve_posix_path(cwd, pos_parts[0]);
                 let tname = resolve_sql_table_name(&tables, pos_parts[1]).to_owned();
                 if let Ok(bytes) = fs.read_file(&full) {
                     dirty = true;
                     let text = String::from_utf8_lossy(&bytes);
-                    let rows = if !csv_mode
-                        && !explicit_csv
-                        && tables.get(&tname).is_some_and(|t| t.columns.len() == 1)
-                    {
-                        text.lines()
-                            .filter(|l| !l.trim().is_empty())
-                            .map(|l| vec![l.to_string()])
-                            .collect()
-                    } else {
-                        parse_csv_rows(&text, ',')
-                    };
+                    let rows = parse_csv_rows(&text, delimiter);
                     let mut rows = rows.into_iter().skip(skip_lines);
                     if tables.contains_key(&tname) {
                         let tbl_cols = tables

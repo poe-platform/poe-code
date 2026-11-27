@@ -154,6 +154,26 @@ pub fn bounded_html_dom(src: &str) -> Option<Vec<HtmlNode>> {
     (pos <= src.len()).then_some(nodes)
 }
 
+fn foster_table_text(children: &mut Vec<HtmlNode>, before_table: &mut Vec<HtmlNode>) {
+    children.retain_mut(|child| match child {
+        HtmlNode::Text(text)
+            if !text
+                .bytes()
+                .all(|b| matches!(b, b' ' | b'\t' | b'\n' | b'\r' | 0x0c)) =>
+        {
+            before_table.push(HtmlNode::Text(std::mem::take(text)));
+            false
+        }
+        HtmlNode::Element(element)
+            if matches!(element.tag.as_str(), "thead" | "tbody" | "tfoot" | "tr") =>
+        {
+            foster_table_text(&mut element.children, before_table);
+            true
+        }
+        _ => true,
+    });
+}
+
 fn parse_html_children(
     src: &str,
     pos: &mut usize,
@@ -282,10 +302,15 @@ fn parse_html_children(
                 }
                 // These SVG integration points parse their children as HTML;
                 // a nested <svg> re-enters foreign content at its opening tag.
-                let svg_children = svg_element
-                    && !matches!(tag_name.as_str(), "foreignobject" | "desc" | "title");
+                let svg_children =
+                    svg_element && !matches!(tag_name.as_str(), "foreignobject" | "desc" | "title");
                 let mut children =
                     parse_html_children(src, pos, Some(&tag_name), depth - 1, svg_children);
+                if tag_name == "table" && !svg_element {
+                    // HTML table insertion modes move non-whitespace text before
+                    // the table, while cell and caption content stays in place.
+                    foster_table_text(&mut children, &mut out);
+                }
                 if tag_name == "table"
                     && children
                         .iter()

@@ -27413,22 +27413,26 @@ fn days_in_month(y: i32, m: i32) -> i32 {
     }
 }
 
-fn apply_sql_datetime_modifiers(base: &str, modifiers: &[&str]) -> (i32, i32, i32, i32, i32, i32) {
+fn apply_sql_datetime_modifiers(base: &str, modifiers: &[&str]) -> Option<(i32, i32, i32, i32, i32, i32)> {
     let norm = base.replace('T', " ");
     let mut parts = norm.split_whitespace();
-    let date_part = parts.next().unwrap_or("2026-01-01");
+    let date_part = parts.next()?;
     let time_part = parts.next().unwrap_or("00:00:00");
-    let ymd: Vec<i32> = date_part
-        .split('-')
-        .filter_map(|p| p.parse::<i32>().ok())
-        .collect();
+    let mut ymd = date_part.split('-');
+    let mut y = ymd.next()?.parse::<i32>().ok()?;
+    let mut m = ymd.next()?.parse::<i32>().ok()?;
+    let mut d = ymd.next()?.parse::<i32>().ok()?;
+    if ymd.next().is_some()
+        || !(0..=9999).contains(&y)
+        || !(1..=12).contains(&m)
+        || !(1..=31).contains(&d)
+    {
+        return None;
+    }
     let hms: Vec<i32> = time_part
         .split(':')
         .filter_map(|p| p.parse::<i32>().ok())
         .collect();
-    let mut y = ymd.first().copied().unwrap_or(2026);
-    let mut m = ymd.get(1).copied().unwrap_or(1);
-    let mut d = ymd.get(2).copied().unwrap_or(1);
     let mut hh = hms.first().copied().unwrap_or(0);
     let mut mm = hms.get(1).copied().unwrap_or(0);
     let ss = hms.get(2).copied().unwrap_or(0);
@@ -27507,7 +27511,7 @@ fn apply_sql_datetime_modifiers(base: &str, modifiers: &[&str]) -> (i32, i32, i3
             }
         }
     }
-    (y, m, d, hh, mm, ss)
+    Some((y, m, d, hh, mm, ss))
 }
 
 fn eval_sql_scalar_expr(expr: &str) -> String {
@@ -27517,7 +27521,9 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
         let args = split_top_level_comma(&s[5..s.len() - 1]);
         if let Some(base_raw) = args.first() {
             let base = base_raw.trim().trim_matches('\'').trim_matches('"');
-            let (y, m, d, _, _, _) = apply_sql_datetime_modifiers(base, &args[1..]);
+            let Some((y, m, d, _, _, _)) = apply_sql_datetime_modifiers(base, &args[1..]) else {
+                return SQL_NULL.to_string();
+            };
             return format!("{y:04}-{m:02}-{d:02}");
         }
     }
@@ -27526,7 +27532,9 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
         if args.len() >= 2 {
             let fmt = args[0].trim().trim_matches('\'').trim_matches('"');
             let ts = args[1].trim().trim_matches('\'').trim_matches('"');
-            let (y, m, d, hh, mm, ss) = apply_sql_datetime_modifiers(ts, &args[2..]);
+            let Some((y, m, d, hh, mm, ss)) = apply_sql_datetime_modifiers(ts, &args[2..]) else {
+                return SQL_NULL.to_string();
+            };
             return fmt
                 .replace("%Y", &format!("{y:04}"))
                 .replace("%m", &format!("{m:02}"))

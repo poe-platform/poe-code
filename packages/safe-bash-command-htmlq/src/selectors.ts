@@ -160,7 +160,7 @@ export class SelectorParser {
             this.spaces();
             let operator = "",
               expected = "",
-              insensitive = false;
+              insensitive = asciiLower(value) === "lang";
             if (this.peek() !== "]") {
               operator = this.take();
               if (operator !== "=") {

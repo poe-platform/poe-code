@@ -24,6 +24,19 @@ async function run(s: string, argv: readonly string[]) {
     result += new TextDecoder().decode(chunk);
   return result;
 }
+test("language attribute selectors default to ASCII case-insensitive matching", async () => {
+  const html = '<article lang="en-US">A1</article><article lang="EN">B2</article><article lang="eng" data-key="EN">C</article>';
+  for (const [selector, expected] of [
+    ['[lang|=en]', 'A1\nB2\n'],
+    ['[LANG|="EN"]', 'A1\nB2\n'],
+    ['[lang|="en" s]', 'A1\n'],
+    ['[lang|=en s]', 'A1\n'],
+    ['[lang|=en i]', 'A1\nB2\n'],
+    ['[lang=en]', 'B2\n'],
+    ['[data-key|=en]', ''],
+    ['[data-key|=en i]', 'C\n']
+  ] as const) assert.equal(await run(html, [selector, '-t']), expected, selector);
+});
 test("source-only help and version use native flag order without consuming input", async () => {
   const source = {
     [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {

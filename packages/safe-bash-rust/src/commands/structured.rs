@@ -30132,6 +30132,7 @@ fn match_css_attr(expr: &str, anc: &HtmlAnc) -> bool {
     for op in ["^=", "$=", "*=", "|=", "~=", "="] {
         if let Some((k, v)) = expr.split_once(op) {
             let attr_name = k.trim();
+            let default_insensitive = attr_name.eq_ignore_ascii_case("lang");
             let v_trim = v.trim();
             let (raw_val, case_insensitive) = if (v_trim.starts_with('"')
                 || v_trim.starts_with('\''))
@@ -30140,14 +30141,22 @@ fn match_css_attr(expr: &str, anc: &HtmlAnc) -> bool {
             {
                 let inside = &v_trim[1..1 + end_q];
                 let after = v_trim[1 + end_q + 1..].trim();
-                (inside, after.eq_ignore_ascii_case("i"))
+                (
+                    inside,
+                    after.eq_ignore_ascii_case("i") || (after.is_empty() && default_insensitive),
+                )
             } else if let Some(stripped) = v_trim
                 .strip_suffix(" i")
                 .or_else(|| v_trim.strip_suffix(" I"))
             {
                 (stripped.trim().trim_matches('"').trim_matches('\''), true)
+            } else if let Some(stripped) = v_trim
+                .strip_suffix(" s")
+                .or_else(|| v_trim.strip_suffix(" S"))
+            {
+                (stripped.trim().trim_matches('"').trim_matches('\''), false)
             } else {
-                (v_trim.trim_matches('"').trim_matches('\''), false)
+                (v_trim.trim_matches('"').trim_matches('\''), default_insensitive)
             };
             let Some((_, actual)) = anc
                 .attrs

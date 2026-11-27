@@ -82,7 +82,8 @@ The command supports selector lists; descendant, child, adjacent and general
 sibling combinators; type, ID, class and attributes (`=`, `~=`, `|=`, `^=`, `$=`,
 `*=` and `i`/`s` flags); `:scope/:root/:empty`, nonnested `:not`, structural
 first/last/only and nth child/of-type predicates. HTML names use ASCII case
-folding; classes split only on CSS ASCII whitespace. `:link/:any-link` match
+folding; `lang` attribute values match ASCII case-insensitively unless an `s`
+flag is supplied. Classes split only on CSS ASCII whitespace. `:link/:any-link` match
 HTML links with href, including empty href. Browser state predicates parse but
 always return false. Modern `:is/:where/:has/:lang`, nested `:not`, pseudo-elements
 and named namespace prefixes are explicitly rejected. Complete selectors 0.22.0

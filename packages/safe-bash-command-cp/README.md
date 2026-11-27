@@ -1,6 +1,6 @@
 # Copy virtual files
 
-Safe Bash provides `cp` for copying files and directory trees between configured virtual filesystems. It supports recursive/archive copies, symbolic and hard links, metadata preservation, interactive overwrite, backups, update and no-clobber policies.
+Safe Bash provides `cp` for copying files and directory trees between configured virtual filesystems. It supports recursive/archive copies, symbolic and hard links, metadata preservation, interactive overwrite, backups, update and no-clobber policies. Recursive copies report per-entry errors, continue copying remaining entries and exit with status 1 if any entry failed.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

@@ -1,5 +1,5 @@
 import { basename, dirname, FsError, isPathWithin, joinPath, readBytes, writeBytes, commandRuntimeIdentity, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
-import { codeOf, define, eachOperand, lines, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
+import { codeOf, define, diagnostic, eachOperand, lines, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
 import { escapeText, quoteShellOperand } from "safe-bash-contracts/escaping";
 import { compareCopyIdentity, compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
 import { copyCheckedSource, admitCopySource, admitCopyDestination } from "safe-bash-io-engine/commands/copy-source";
@@ -48,8 +48,9 @@ async function copy(
   context: CommandContext, source: string, target: string,
   settings: CopyOptions, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
   preflight = false, displaySource = source, displayTarget = target, rootStat?: FileStat,
-): Promise<void> {
+): Promise<number> {
   context.signal.throwIfAborted();
+  let exitCode = 0;
   const { flags, preserve: requestedPreserve, copiedLinks, backup } = settings;
   const attributesOnly = flags.has("attributes-only");
   const linkMode = flags.has("s") || flags.has("l");
@@ -74,14 +75,14 @@ async function copy(
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw sameFile();
   }
-  if (flags.has("n") && await maybeStat(context, target, false)) return;
+  if (flags.has("n") && await maybeStat(context, target, false)) return 0;
   if (flags.has("u") && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
-    && sourceStat.mtimeMs <= targetStat.mtimeMs) return;
+    && sourceStat.mtimeMs <= targetStat.mtimeMs) return 0;
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw sameFile();
   }
   if (!preflight && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
-    && settings.confirmOverwrite && !await settings.confirmOverwrite(displayTarget)) return;
+    && settings.confirmOverwrite && !await settings.confirmOverwrite(displayTarget)) return 0;
   const metadata = settings.sourceMetadata.get(physicalSource) ?? sourceStat;
   if (preserve.has("timestamps") && !settings.sourceMetadata.has(physicalSource)) settings.sourceMetadata.set(physicalSource, metadata);
   await admitCopyPreservation(context, preserve, sourceStat, target, targetStat);
@@ -108,7 +109,7 @@ async function copy(
     if (!preflight && compareCopyIdentity(previous.stat, await context.fs.lstat(previous.path, { signal: context.signal })) !== "same") {
       throw new FsError("ENOTSUP", { syscall: "cp", path: previous.path, message: "copied hard-link source changed" });
     }
-    if (!preflight && compareCopyIdentity(previous.stat, existing) === "same") return;
+    if (!preflight && compareCopyIdentity(previous.stat, existing) === "same") return 0;
     if (existing) {
       await admitFilesystemModes(context, "cp", ["replace"], [target]);
       if (compareCopyIdentity(link, existing) !== "distinct" || compareCopyIdentity(sourceStat, existing) !== "distinct") {
@@ -151,8 +152,15 @@ async function copy(
         && compareCopyIdentity(sourceStat, sourceStat) === "same"
         && (rootStat.identityScope !== sourceStat.identityScope || rootStat.dev !== sourceStat.dev);
       for (const entry of crossDevice ? [] : await readDirectory(context, source, true)) {
-        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), settings, readDirectory, false, ancestors, preflight,
-          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), rootStat);
+        try {
+          const childExitCode = await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), settings, readDirectory, false, ancestors, preflight,
+            childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), rootStat);
+          if (childExitCode !== 0) exitCode = 1;
+        } catch (error) {
+          if (preflight) throw error;
+          await diagnostic(context, error);
+          exitCode = 1;
+        }
       }
     } finally {
       ancestors.delete(physicalSource);
@@ -239,7 +247,7 @@ async function copy(
         links.set(identity!, { path: target });
         settings.copiedTargets.set(physicalTarget, sourceStat);
       }
-      return;
+      return 0;
     }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
@@ -268,6 +276,7 @@ async function copy(
   if (links) settings.copiedTargets.set(physicalTarget, sourceStat);
   if (links && !previous) links.set(identity!, { path: target, ...preflight ? {} : { stat: await context.fs.lstat(target, { signal: context.signal }) } });
   if (!preflight && flags.has("v")) await output(context, `'${escapeText(displaySource, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
+  return exitCode;
 }
 
 export interface CpLimits {
@@ -310,14 +319,16 @@ export function createCpCommand(configuration: CpCommandsOptions = {}): CommandD
         } } : {},
       };
       try {
+        let copyExitCode = 0;
         const result = await eachOperand(context, destination.sources, async operand => {
           const source = pathOf(context, operand);
           const targetOperand = destination.targetOperand;
-          await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+          const exitCode = await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
             settings, readDirectory, true, new Set(), false, operand,
             destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
+          if (exitCode !== 0) copyExitCode = 1;
         });
-        return { exitCode: declined ? 1 : result.exitCode };
+        return { exitCode: declined || copyExitCode !== 0 ? 1 : result.exitCode };
       } finally { await answers.return(undefined); }
     }), runtimeIdentity: commandRuntimeIdentity, filesystemRequirements: filesystemCommandRequirements.cp };
 }

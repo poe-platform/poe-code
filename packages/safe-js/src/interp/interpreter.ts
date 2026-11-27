@@ -2805,6 +2805,10 @@ async function bindIterationVariable(
     throw new TypeError("for...of declarations must include exactly one declarator.");
   }
 
+  if (left.kind !== "var") {
+    predeclareDeclarationBindings(left, scope);
+  }
+
   if (context.generatorYield !== undefined && left.nodeId !== undefined) {
     context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
       [left.nodeId, { kind: "declaration", index: 0 }]]) };

@@ -1061,6 +1061,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         if (admitted++ % 128 === 0) await yieldTurn(context.signal);
         entries.push(await inspect(pathOf(context, operand), operand, true));
       });
+      if (result.exitCode !== 0) result.exitCode = 2;
       const files = entries.filter(entry => parsed.flags.has("d") || entry.stat.type !== "directory");
       const directories = entries.filter(entry => !parsed.flags.has("d") && entry.stat.type === "directory");
       await order(files);

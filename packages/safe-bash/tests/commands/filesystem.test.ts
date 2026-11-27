@@ -1287,6 +1287,22 @@ test("realpath lexical output bytes match the GNU oracle", async context => {
   }
 });
 
+test("ls returns status 2 for inaccessible command-line operands", async context => {
+  const fs = await fixture({ a: "" });
+  for (const args of [["a", "nope"], ["nope"], ["nope", "a"]]) {
+    const result = await run("ls", args, { fs });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, args.includes("a") ? "a\n" : "");
+    assert.match(result.stderr, /nope/u);
+  }
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a; ls a nope 2>/dev/null; echo $?; ls nope 2>/dev/null; echo $?");
+  assert.equal(result.stdout, "a\n2\n2\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
 test("ls implements hidden names, classification, explicit directories, recursion and long records", async () => {
   const fs = await fixture({ zebra: "z", alpha: "a", ".hidden": "h", "nested/file": "x" });
   await fs.symlink("alpha", "/work/link");

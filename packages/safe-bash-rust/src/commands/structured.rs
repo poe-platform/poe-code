@@ -25609,7 +25609,7 @@ fn eval_sql_printf(fmt: &str, args: &[String]) -> String {
     out
 }
 
-fn parse_sql_json_path(path_s: &str) -> Vec<JVal> {
+fn parse_sql_json_path(path_s: &str, document: &JVal) -> Option<Vec<JVal>> {
     let mut segs = Vec::new();
     let rest = path_s.trim().strip_prefix('$').unwrap_or(path_s.trim());
     for part in rest.split('.').filter(|p| !p.is_empty()) {
@@ -25622,7 +25622,12 @@ fn parse_sql_json_path(path_s: &str) -> Vec<JVal> {
             while let Some(ob) = rem.find('[')
                 && let Some(cb) = rem.find(']')
             {
-                if let Ok(idx) = rem[ob + 1..cb].parse::<f64>() {
+                if &rem[ob + 1..cb] == "#" {
+                    let JVal::Array(items) = get_jq_jval_path(document, &segs) else {
+                        return None;
+                    };
+                    segs.push(JVal::Number(items.len() as f64, None));
+                } else if let Ok(idx) = rem[ob + 1..cb].parse::<f64>() {
                     segs.push(JVal::Number(idx, None));
                 }
                 rem = &rem[cb + 1..];
@@ -25631,7 +25636,7 @@ fn parse_sql_json_path(path_s: &str) -> Vec<JVal> {
             segs.push(JVal::Str(part.to_string()));
         }
     }
-    segs
+    Some(segs)
 }
 
 fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
@@ -25998,7 +26003,9 @@ fn eval_sql_row_expr(
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
-                let segs = parse_sql_json_path(&path_s);
+                let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                    return SQL_NULL.to_string();
+                };
                 let found = get_jq_jval_path(&jval, &segs);
                 return match found {
                     JVal::Array(items) => items.len().to_string(),
@@ -26466,8 +26473,11 @@ fn eval_sql_row_expr(
                     let mut items = Vec::with_capacity(args.len() - 1);
                     for p_arg in &args[1..] {
                         let ps = eval_sql_row_expr(p_arg, cols, row, tables);
-                        let segs = parse_sql_json_path(&ps);
-                        items.push(get_jq_jval_path(&jval, &segs));
+                        items.push(
+                            parse_sql_json_path(&ps, &jval)
+                                .map(|segs| get_jq_jval_path(&jval, &segs))
+                                .unwrap_or(JVal::Null),
+                        );
                     }
                     return JVal::Array(items).to_json_string(true, false, 0);
                 }
@@ -26475,7 +26485,9 @@ fn eval_sql_row_expr(
                     .get(1)
                     .map(|a| eval_sql_row_expr(a, cols, row, tables))
                     .unwrap_or_else(|| "$".to_string());
-                let segs = parse_sql_json_path(&path_s);
+                let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                    return SQL_NULL.to_string();
+                };
                 let found = get_jq_jval_path(&jval, &segs);
                 if is_type {
                     return match found {
@@ -26539,7 +26551,10 @@ fn eval_sql_row_expr(
                 while ai + 1 < args.len() {
                     let path_s = eval_sql_row_expr(args[ai], cols, row, tables);
                     let val_s = eval_sql_row_expr(args[ai + 1], cols, row, tables);
-                    let segs = parse_sql_json_path(&path_s);
+                    let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                        ai += 2;
+                        continue;
+                    };
                     let new_jv = parse_sql_arg_to_jval(&val_s, args[ai + 1]);
                     if set_jq_jval_path(&mut jval, &segs, new_jv).is_err() {
                         return SQL_NULL.to_string();
@@ -26560,7 +26575,9 @@ fn eval_sql_row_expr(
             {
                 for p_arg in &args[1..] {
                     let path_s = eval_sql_row_expr(p_arg, cols, row, tables);
-                    let segs = parse_sql_json_path(&path_s);
+                    let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                        continue;
+                    };
                     delete_jq_jval_path(&mut jval, &segs);
                 }
                 return jval.to_json_string(true, false, 0);
@@ -26589,7 +26606,9 @@ fn eval_sql_row_expr(
         if let Ok(mut parsed) = parse_json_stream(&doc_s)
             && let Some(jval) = parsed.pop()
         {
-            let segs = parse_sql_json_path(&path_s);
+            let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                return SQL_NULL.to_string();
+            };
             let found = get_jq_jval_path(&jval, &segs);
             return match found {
                 JVal::Null => SQL_NULL.to_string(),
@@ -26605,7 +26624,9 @@ fn eval_sql_row_expr(
         if let Ok(mut parsed) = parse_json_stream(&doc_s)
             && let Some(jval) = parsed.pop()
         {
-            let segs = parse_sql_json_path(&path_s);
+            let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                return SQL_NULL.to_string();
+            };
             let found = get_jq_jval_path(&jval, &segs);
             return match found {
                 JVal::Null => SQL_NULL.to_string(),
@@ -26878,7 +26899,9 @@ fn eval_sql_group_expr(
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
-                let segs = parse_sql_json_path(&path_s);
+                let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
+                    return SQL_NULL.to_string();
+                };
                 let found = get_jq_jval_path(&jval, &segs);
                 return if is_type {
                     match found {

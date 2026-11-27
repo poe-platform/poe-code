@@ -11187,14 +11187,21 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             return err_out("csvjson: invalid --key column\n", 1);
         };
         let mut obj_entries = Vec::new();
+        let mut keys = BTreeSet::new();
         for row in data {
-            let k_str = row.get(k_idx).cloned().unwrap_or_default();
+            let k_str = row.get(k_idx).map(String::as_str).unwrap_or("");
+            if !keys.insert(k_str) {
+                return err_out(
+                    &format!("ValueError: Value {k_str} is not unique in the key column.\n"),
+                    1,
+                );
+            }
             let mut rec = Vec::new();
             for (idx, h) in headers.iter().enumerate() {
                 let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
                 rec.push((h.clone(), cell_to_jval(cell)));
             }
-            obj_entries.push((k_str, JVal::Object(rec)));
+            obj_entries.push((k_str.to_string(), JVal::Object(rec)));
         }
         return ok_out(&format_jval_with_indent(
             &JVal::Object(obj_entries),

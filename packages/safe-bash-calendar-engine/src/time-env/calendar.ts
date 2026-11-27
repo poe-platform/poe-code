@@ -272,32 +272,49 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
     else if (weekday[1]?.toLowerCase() === "next" && days === 0) days = 7;
     return zone.instant(utcFields(utcMilliseconds({ ...fields, day: fields.day + days, hour: 0, minute: 0, second: 0 })));
   }
-  const relative = /^(?:(.*?)\s+)??(?:(?:([+-]?\s*\d+|next|last|this)\s+)?(seconds?|minutes?|hours?|days?|weeks?|fortnights?|months?|years?)|(now|today|yesterday|tomorrow))(?:\s+(ago))?(?:\s+(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?$/i.exec(value);
-  if (relative) {
-    const keyword = relative[4]?.toLowerCase();
-    const ordinal = relative[2]?.toLowerCase();
+  const relative = /(?:^|\s|(?<=[a-z])(?=[+-]))(?:(?:([+-]?\s*\d+|next|last|this)\s*)?(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|weeks?|fortnights?|months?|years?)|(now|today|yesterday|tomorrow))(?:\s+(ago))?(?=\s|[+-]|\d|$)/gi;
+  let base: { instant: bigint; zone: TimeZone } | undefined;
+  let end = 0;
+  let years = 0n, months = 0n, days = 0n, seconds = 0n;
+  for (const item of value.matchAll(relative)) {
+    if (base === undefined) {
+      const prefix = value.slice(0, item.index).trim();
+      base = prefix === "" ? { instant: now(), zone } : parseAbsoluteDate(prefix, zone, now);
+    } else if (value.slice(end, item.index).trim() !== "") {
+      throw new CommandFailure(`unsupported or invalid date: ${value}`);
+    }
+    end = item.index + item[0].length;
+    const keyword = item[3]?.toLowerCase();
+    const ordinal = item[1]?.toLowerCase();
     const rawAmount = keyword ? (keyword === "yesterday" ? "-1" : keyword === "tomorrow" ? "1" : "0")
       : ordinal === "last" ? "-1" : ordinal === "this" ? "0" : ordinal === "next" || ordinal === undefined ? "1" : ordinal.replace(/\s+/g, "");
     if (rawAmount.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
-    const base = relative[1] === undefined || relative[1] === "now"
-      ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone, now);
-    if (relative[6] !== undefined) {
-      base.instant = base.zone.instant({ ...base.zone.fields(base.instant), hour: Number(relative[6]),
-        minute: Number(relative[7]), second: Number(relative[8] ?? 0) }, BigInt((relative[9] ?? "").slice(0, 9).padEnd(9, "0")));
+    const amount = BigInt(rawAmount) * (item[4] ? -1n : 1n);
+    const unit = item[2]?.toLowerCase() ?? "day";
+    if (unit.startsWith("year")) years += amount;
+    else if (unit.startsWith("month")) months += amount;
+    else if (unit.startsWith("day")) days += amount;
+    else if (unit.startsWith("week")) days += amount * 7n;
+    else if (unit.startsWith("fortnight")) days += amount * 14n;
+    else seconds += amount * (unit.startsWith("h") ? 3600n : unit.startsWith("min") ? 60n : 1n);
+  }
+  if (base) {
+    const suffix = value.slice(end).trim();
+    if (suffix) {
+      const time = /^(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?$/.exec(suffix);
+      if (!time) throw new CommandFailure(`unsupported or invalid date: ${value}`);
+      base.instant = base.zone.instant({ ...base.zone.fields(base.instant), hour: Number(time[1]),
+        minute: Number(time[2]), second: Number(time[3] ?? 0) }, BigInt((time[4] ?? "").slice(0, 9).padEnd(9, "0")));
     }
-    const amount = BigInt(rawAmount) * (relative[5] ? -1n : 1n);
-    const unit = relative[3]?.toLowerCase() ?? "day";
-    if (amount === 0n) return base.instant;
-    if (["second", "minute", "hour"].some(name => unit.startsWith(name))) {
-      const scale = unit.startsWith("hour") ? 3600n : unit.startsWith("minute") ? 60n : 1n;
-      return boundedInstant(base.instant + amount * scale * nanosecondsPerSecond);
+    let instant = base.instant;
+    if (years || months || days) {
+      const fields = base.zone.fields(instant);
+      // Normalize combined calendar offsets once, then apply elapsed time across DST.
+      const normalized = utcFields(utcMilliseconds({ ...fields, year: fields.year + Number(years),
+        month: fields.month + Number(months), day: fields.day + Number(days) }));
+      instant = base.zone.instant(normalized, instant - floorDivide(instant, nanosecondsPerSecond) * nanosecondsPerSecond);
     }
-    const fields = base.zone.fields(base.instant);
-    const changed = unit.startsWith("year") ? { ...fields, year: fields.year + Number(amount) }
-      : unit.startsWith("month") ? { ...fields, month: fields.month + Number(amount) }
-      : { ...fields, day: fields.day + Number(amount) * (unit.startsWith("week") ? 7 : unit.startsWith("fortnight") ? 14 : 1) };
-    const normalized = utcFields(utcMilliseconds(changed));
-    return base.zone.instant(normalized, base.instant - floorDivide(base.instant, nanosecondsPerSecond) * nanosecondsPerSecond);
+    return boundedInstant(instant + seconds * nanosecondsPerSecond);
   }
   return parseAbsoluteDate(value, zone, now).instant;
 }

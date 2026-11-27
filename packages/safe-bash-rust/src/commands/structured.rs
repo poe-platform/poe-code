@@ -20628,24 +20628,24 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if let Ok(bytes) = fs.read_file(&full) {
                     dirty = true;
                     let text = String::from_utf8_lossy(&bytes);
-                    let mut lines = text
-                        .lines()
-                        .filter(|l| !l.trim().is_empty())
-                        .skip(skip_lines);
+                    let rows = if !csv_mode
+                        && !explicit_csv
+                        && tables.get(&tname).is_some_and(|t| t.columns.len() == 1)
+                    {
+                        text.lines()
+                            .filter(|l| !l.trim().is_empty())
+                            .map(|l| vec![l.to_string()])
+                            .collect()
+                    } else {
+                        parse_csv_rows(&text, ',')
+                    };
+                    let mut rows = rows.into_iter().skip(skip_lines);
                     if tables.contains_key(&tname) {
                         let tbl_cols = tables
                             .get(&tname)
                             .map(|t| t.columns.clone())
                             .unwrap_or_default();
-                        for l in lines {
-                            let cells = if tbl_cols.len() == 1 && !csv_mode && !explicit_csv {
-                                vec![l.to_string()]
-                            } else {
-                                parse_csv_rows(l, ',')
-                                    .into_iter()
-                                    .next()
-                                    .unwrap_or_default()
-                            };
+                        for cells in rows {
                             if cells != tbl_cols {
                                 let allow = fire_sql_triggers(
                                     &tname,
@@ -20679,24 +20679,12 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                 }
                             }
                         }
-                    } else if let Some(hdr_line) = lines.next() {
-                        let cols = parse_csv_rows(hdr_line, ',')
-                            .into_iter()
-                            .next()
-                            .unwrap_or_default();
-                        let rows: Vec<Vec<String>> = lines
-                            .map(|l| {
-                                parse_csv_rows(l, ',')
-                                    .into_iter()
-                                    .next()
-                                    .unwrap_or_default()
-                            })
-                            .collect();
+                    } else if let Some(cols) = rows.next() {
                         tables.insert(
                             tname,
                             SqlTable {
                                 columns: cols,
-                                rows,
+                                rows: rows.collect(),
                                 imported_csv: true,
                                 ..SqlTable::default()
                             },

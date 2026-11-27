@@ -29978,8 +29978,7 @@ fn collect_html_matches(
 }
 
 fn matches_css_selector_list(path: &[HtmlAnc], sel_spec: &str) -> bool {
-    for group in split_top_level_comma(sel_spec) {
-        let steps = parse_css_steps(group.trim());
+    for steps in parse_css_selector_list(sel_spec) {
         if !steps.is_empty() && match_css_steps(&steps, path) {
             return true;
         }
@@ -29995,14 +29994,66 @@ enum CssComb {
     GeneralSibling,
 }
 
-fn parse_css_steps(sel: &str) -> Vec<(CssComb, String)> {
+// Consume one CSS escape without treating its decoded character as selector syntax.
+fn consume_css_escape(source: &str, at: &mut usize) -> char {
+    *at += 1;
+    let start = *at;
+    let bytes = source.as_bytes();
+    while *at < bytes.len() && *at - start < 6 && bytes[*at].is_ascii_hexdigit() {
+        *at += 1;
+    }
+    if *at > start {
+        let value = u32::from_str_radix(&source[start..*at], 16).unwrap();
+        if *at < bytes.len() && matches!(bytes[*at], b' ' | b'\t' | b'\n' | b'\r' | b'\x0c') {
+            let space = bytes[*at];
+            *at += 1;
+            if space == b'\r' && bytes.get(*at) == Some(&b'\n') {
+                *at += 1;
+            }
+        }
+        char::from_u32(value)
+            .filter(|c| *c != '\0')
+            .unwrap_or('\u{fffd}')
+    } else {
+        let c = source[*at..].chars().next().unwrap_or('\u{fffd}');
+        *at = (*at + c.len_utf8()).min(source.len());
+        if c == '\0' { '\u{fffd}' } else { c }
+    }
+}
+
+fn consume_css_identifier(source: &str, at: &mut usize) -> String {
+    let mut value = String::new();
+    while let Some(c) = source[*at..].chars().next() {
+        if c == '\\' {
+            value.push(consume_css_escape(source, at));
+        } else if matches!(c, '.' | '#' | '[' | ':') {
+            break;
+        } else {
+            value.push(c);
+            *at += c.len_utf8();
+        }
+    }
+    value
+}
+
+fn parse_css_selector_list(sel: &str) -> Vec<Vec<(CssComb, String)>> {
+    let mut groups = Vec::new();
     let mut steps = Vec::new();
     let mut cur = String::new();
     let mut comb = CssComb::Descendant;
     let mut bracket_depth = 0i32;
     let mut paren_depth = 0i32;
     let mut in_quote: Option<char> = None;
-    for ch in sel.chars() {
+    let mut at = 0;
+    while at < sel.len() {
+        let ch = sel[at..].chars().next().unwrap();
+        if ch == '\\' {
+            let start = at;
+            consume_css_escape(sel, &mut at);
+            cur.push_str(&sel[start..at]);
+            continue;
+        }
+        at += ch.len_utf8();
         if let Some(q) = in_quote {
             cur.push(ch);
             if ch == q {
@@ -30031,41 +30082,45 @@ fn parse_css_steps(sel: &str) -> Vec<(CssComb, String)> {
                 paren_depth -= 1;
                 cur.push(ch);
             }
+            ',' if bracket_depth == 0 && paren_depth == 0 => {
+                if !cur.is_empty() {
+                    steps.push((comb, std::mem::take(&mut cur)));
+                }
+                groups.push(std::mem::take(&mut steps));
+                comb = CssComb::Descendant;
+            }
             '>' if bracket_depth == 0 && paren_depth == 0 => {
-                if !cur.trim().is_empty() {
-                    steps.push((comb, cur.trim().to_string()));
-                    cur.clear();
+                if !cur.is_empty() {
+                    steps.push((comb, std::mem::take(&mut cur)));
                 }
                 comb = CssComb::Child;
             }
             '+' if bracket_depth == 0 && paren_depth == 0 => {
-                if !cur.trim().is_empty() {
-                    steps.push((comb, cur.trim().to_string()));
-                    cur.clear();
+                if !cur.is_empty() {
+                    steps.push((comb, std::mem::take(&mut cur)));
                 }
                 comb = CssComb::AdjacentSibling;
             }
             '~' if bracket_depth == 0 && paren_depth == 0 => {
-                if !cur.trim().is_empty() {
-                    steps.push((comb, cur.trim().to_string()));
-                    cur.clear();
+                if !cur.is_empty() {
+                    steps.push((comb, std::mem::take(&mut cur)));
                 }
                 comb = CssComb::GeneralSibling;
             }
             c if c.is_whitespace() && bracket_depth == 0 && paren_depth == 0 => {
-                if !cur.trim().is_empty() {
-                    steps.push((comb, cur.trim().to_string()));
-                    cur.clear();
+                if !cur.is_empty() {
+                    steps.push((comb, std::mem::take(&mut cur)));
                     comb = CssComb::Descendant;
                 }
             }
             _ => cur.push(ch),
         }
     }
-    if !cur.trim().is_empty() {
-        steps.push((comb, cur.trim().to_string()));
+    if !cur.is_empty() {
+        steps.push((comb, std::mem::take(&mut cur)));
     }
-    steps
+    groups.push(steps);
+    groups
 }
 
 fn match_css_steps(steps: &[(CssComb, String)], path: &[HtmlAnc]) -> bool {
@@ -30123,8 +30178,7 @@ fn match_css_steps(steps: &[(CssComb, String)], path: &[HtmlAnc]) -> bool {
     }
 }
 
-fn match_css_compound(comp: &str, anc: &HtmlAnc) -> bool {
-    let s = comp.trim();
+fn match_css_compound(s: &str, anc: &HtmlAnc) -> bool {
     if s.is_empty() || s == "*" {
         return true;
     }
@@ -30134,11 +30188,7 @@ fn match_css_compound(comp: &str, anc: &HtmlAnc) -> bool {
         match bytes[i] {
             b'.' => {
                 i += 1;
-                let start = i;
-                while i < bytes.len() && !matches!(bytes[i], b'.' | b'#' | b'[' | b':') {
-                    i += 1;
-                }
-                let want_cls = &s[start..i];
+                let want_cls = consume_css_identifier(s, &mut i);
                 let has_cls = anc
                     .attrs
                     .iter()
@@ -30151,16 +30201,12 @@ fn match_css_compound(comp: &str, anc: &HtmlAnc) -> bool {
             }
             b'#' => {
                 i += 1;
-                let start = i;
-                while i < bytes.len() && !matches!(bytes[i], b'.' | b'#' | b'[' | b':') {
-                    i += 1;
-                }
-                let want_id = &s[start..i];
+                let want_id = consume_css_identifier(s, &mut i);
                 let has_id = anc
                     .attrs
                     .iter()
                     .find(|(k, _)| k.eq_ignore_ascii_case("id"))
-                    .map(|(_, v)| v == want_id)
+                    .map(|(_, v)| *v == want_id)
                     .unwrap_or(false);
                 if !has_id {
                     return false;
@@ -30195,6 +30241,10 @@ fn match_css_compound(comp: &str, anc: &HtmlAnc) -> bool {
                 let start = i;
                 let mut p_depth = 0i32;
                 while i < bytes.len() {
+                    if bytes[i] == b'\\' {
+                        consume_css_escape(s, &mut i);
+                        continue;
+                    }
                     if bytes[i] == b'(' {
                         p_depth += 1;
                     } else if bytes[i] == b')' {
@@ -30214,12 +30264,8 @@ fn match_css_compound(comp: &str, anc: &HtmlAnc) -> bool {
                 }
             }
             _ => {
-                let start = i;
-                while i < bytes.len() && !matches!(bytes[i], b'.' | b'#' | b'[' | b':') {
-                    i += 1;
-                }
-                let want_tag = &s[start..i];
-                if want_tag != "*" && !anc.tag.eq_ignore_ascii_case(want_tag) {
+                let want_tag = consume_css_identifier(s, &mut i);
+                if want_tag != "*" && !anc.tag.eq_ignore_ascii_case(&want_tag) {
                     return false;
                 }
             }
@@ -30396,7 +30442,10 @@ fn match_css_pseudo(pseudo: &str, anc: &HtmlAnc) -> bool {
         .strip_prefix("not(")
         .and_then(|s| s.strip_suffix(')'))
     {
-        return !match_css_compound(inner.trim(), anc);
+        return parse_css_selector_list(inner)
+            .first()
+            .and_then(|steps| steps.first())
+            .is_some_and(|(_, compound)| !match_css_compound(compound, anc));
     }
     true
 }

@@ -63,6 +63,7 @@ fn equalization_preserves_histogram_boundaries_and_channel_selection() {
         ("P3 2 1 255 128 128 128 128 128 128", "", "ffffffffffff\n"),
         // The first intensity is just above 128 and must not enter its cumulative bin.
         ("P3 2 1 255 128 128 129 128 128 128", "", "8080ff808080\n"),
+        ("P3 2 1 255 127 128 129 129 128 127", "", "0080ffff8000\n"),
         (
             "P3 3 1 255 64 64 64 128 128 128 192 192 192",
             "-channel R",

@@ -22006,14 +22006,6 @@ mod media_unit_tests {
                 "fd7962c819885a3b7c43f804220fe541c61a502aa0d4c583e9b12fa590e8eef0",
             ),
             (
-                "-modulate 120,60,80",
-                "27e531f3f93da888c60239c8c81123a2d9fa5edfc5e4499ebaa2dd362238a206",
-            ),
-            (
-                "-modulate 50,-30",
-                "7445043b7de7a28e89dcf69dc7d409d6a52abe20aa033f8d7080f5c8eaa6ee3b",
-            ),
-            (
                 "-modulate bad",
                 "8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3",
             ),

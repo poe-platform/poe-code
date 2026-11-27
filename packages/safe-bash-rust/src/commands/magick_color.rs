@@ -233,12 +233,45 @@ impl super::png_pixels::Raster {
     pub fn modulate(&mut self, [brightness, saturation, hue]: [f64; 3]) {
         let brightness = brightness / 100.;
         let saturation = saturation / 100.;
-        let offset = ((hue - 100.) * 1.8).to_radians();
+        let shift = (hue - 100.) * 3. / 100.;
         for pixel in &mut self.pixels {
-            let [l, a, b] = srgb_to_lab([pixel[0], pixel[1], pixel[2]]);
-            let chroma = a.hypot(b) * saturation;
-            let (sin, cos) = (b.atan2(a) + offset).sin_cos();
-            pixel[..3].copy_from_slice(&lab_to_srgb(l * brightness, chroma * cos, chroma * sin));
+            // ImageMagick defaults to HSL on gamma-encoded RGB.
+            let [r, g, b] = [pixel[0], pixel[1], pixel[2]].map(|c| f64::from(c) / 255.);
+            let max = r.max(g).max(b);
+            let min = r.min(g).min(b);
+            let delta = max - min;
+            let lightness = (max + min) / 2.;
+            let hue = if delta == 0. {
+                0.
+            } else if max == r {
+                (g - b) / delta
+            } else if max == g {
+                2. + (b - r) / delta
+            } else {
+                4. + (r - g) / delta
+            };
+            let hue = (hue + shift).rem_euclid(6.);
+            let sat = if delta == 0. {
+                0.
+            } else {
+                delta / (1. - (2. * lightness - 1.).abs())
+            };
+            let light = lightness * brightness;
+            let chroma = (1. - (2. * light - 1.).abs()) * sat * saturation;
+            let secondary = chroma * (1. - (hue % 2. - 1.).abs());
+            let rgb = match hue as u8 {
+                0 => [chroma, secondary, 0.],
+                1 => [secondary, chroma, 0.],
+                2 => [0., chroma, secondary],
+                3 => [0., secondary, chroma],
+                4 => [secondary, 0., chroma],
+                _ => [chroma, 0., secondary],
+            };
+            for (channel, value) in pixel[..3].iter_mut().zip(rgb) {
+                // Q16-HDRI stores float samples before rounding to output depth.
+                let quantum = ((value + light - chroma / 2.) * 65535.) as f32;
+                *channel = (quantum / 257.).round().clamp(0., 255.) as u8;
+            }
         }
         self.gray = false;
     }

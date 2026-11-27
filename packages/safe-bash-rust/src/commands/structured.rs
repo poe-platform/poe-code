@@ -25201,7 +25201,7 @@ fn exec_sql_aggregate_select(
             .map(|s| s.trim())
             .filter(|s| !s.is_empty())
             .collect();
-        let mut map: BTreeMap<String, Vec<&Vec<String>>> = BTreeMap::new();
+        let mut map: BTreeMap<Vec<String>, Vec<&Vec<String>>> = BTreeMap::new();
         for r in rows {
             let key: Vec<String> = g_specs
                 .iter()
@@ -25223,7 +25223,7 @@ fn exec_sql_aggregate_select(
                     }
                 })
                 .collect();
-            map.entry(key.join("\x1f")).or_default().push(*r);
+            map.entry(key).or_default().push(*r);
         }
         map.into_values().collect()
     } else {

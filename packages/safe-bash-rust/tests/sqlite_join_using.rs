@@ -22,6 +22,26 @@ fn run_sql(sql: &str) -> String {
 }
 
 #[test]
+fn sqlite_natural_join_matches_all_shared_columns() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(x,y); CREATE TABLE b(x,y); INSERT INTO a VALUES(1,1),(1,2); INSERT INTO b VALUES(1,2); SELECT count(*) FROM a NATURAL JOIN b;"
+        ),
+        "1\n"
+    );
+}
+
+#[test]
+fn sqlite_natural_join_keys_aliases_nulls_and_cross_product() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(x,y); CREATE TABLE b(Y,X); CREATE TABLE c(z); INSERT INTO a VALUES(1,1),(1,2),(1,NULL); INSERT INTO b VALUES(2,1),(NULL,1); INSERT INTO c VALUES(3),(4); SELECT * FROM a AS l NATURAL JOIN b AS r; SELECT l.x,l.y,r.Y FROM a AS l NATURAL LEFT JOIN b AS r; SELECT count(*) FROM a NATURAL JOIN c;"
+        ),
+        "1|2\n1|1|\n1|2|2\n1||\n6\n"
+    );
+}
+
+#[test]
 fn sqlite_join_using_suppresses_duplicate_key() {
     assert_eq!(
         run_sql(

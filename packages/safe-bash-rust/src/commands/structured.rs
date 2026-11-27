@@ -23215,7 +23215,11 @@ fn resolve_sql_from_table(
                     }
                 }
             }
-            if let Some((pos, klen, preserve_left, preserve_right)) = best {
+            if let Some((mut pos, mut klen, preserve_left, preserve_right)) = best {
+                if upper[..pos].ends_with(" NATURAL") {
+                    pos -= " NATURAL".len();
+                    klen += " NATURAL".len();
+                }
                 join_pos_list.push((pos, klen, preserve_left, preserve_right));
                 scan_i = pos + klen;
             } else {
@@ -23246,7 +23250,7 @@ fn resolve_sql_from_table(
                 let seg = trimmed[j_pos + j_klen..seg_end].trim();
                 let seg_up = seg.to_ascii_uppercase();
                 let mut using_columns = Vec::new();
-                let (tbl_part, on_cond_owned) = if let Some(on_p) = seg_up.find(" ON ") {
+                let (tbl_part, mut on_cond_owned) = if let Some(on_p) = seg_up.find(" ON ") {
                     (seg[..on_p].trim(), Some(seg[on_p + 4..].trim().to_string()))
                 } else if let Some(us_p) = seg_up.find(" USING") {
                     let t_p = seg[..us_p].trim();
@@ -23281,6 +23285,25 @@ fn resolve_sql_from_table(
                         .into_iter()
                         .map(|c| format!("{right_tname}.{c}"))
                         .collect();
+                }
+                if upper[j_pos..j_pos + j_klen].starts_with(" NATURAL ") {
+                    let mut conditions = Vec::new();
+                    for (i, left_column) in acc_tbl.columns.iter().enumerate() {
+                        if acc_tbl.star_hidden_columns.contains(&i) {
+                            continue;
+                        }
+                        let column = left_column.rsplit('.').next().unwrap_or(left_column);
+                        if let Some(right_index) = find_sql_col(&right_tbl.columns, column) {
+                            using_columns.push(column);
+                            conditions.push(format!(
+                                "{left_column} = {}",
+                                right_tbl.columns[right_index]
+                            ));
+                        }
+                    }
+                    if !conditions.is_empty() {
+                        on_cond_owned = Some(conditions.join(" AND "));
+                    }
                 }
                 let mut combined_affinities = acc_tbl.affinities.clone();
                 combined_affinities.resize(acc_tbl.columns.len(), SqlAffinity::None);

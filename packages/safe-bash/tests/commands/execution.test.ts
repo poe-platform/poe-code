@@ -188,6 +188,10 @@ for (const args of [["-I", "{}"], ["-I{}"], ["--replace"], ["-i"]]) {
       assert.equal(result.stdout, stdout);
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);
+    }
+  });
+  test(`sync xargs replacement with default echo omits input arguments: ${args.join(" ")}`, () => {
+    for (const [stdin, stdout] of [["a b\n", "\n"], ["x\ny\n", "\n\n"], ["", ""]]) {
       assert.equal(evalSyncXargs(new TextEncoder().encode(stdin), args), stdout);
     }
   });

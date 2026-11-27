@@ -4,6 +4,7 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import type { DirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
 import { filesystemCommandRequirements } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { modeChange } from "safe-bash-io-engine/commands/mode-change";
+import { touchTimes } from "safe-bash-io-engine/commands/touch-times";
 import { codeOf, diagnostic, integer, output, pathOf, UsageError } from "safe-bash-io-engine/internal";
 import { compilePattern } from "safe-bash-io-engine/shell/pattern";
 import { compileFindFormat, FindFormatBudget, type FindFormatEntry } from "./find-format.js";
@@ -11,6 +12,9 @@ import type { FileStat } from "safe-bash-contracts";
 import { createFindInvocation } from "./invocation.js";
 export interface Entry extends FindFormatEntry { path: string; display: string; relative: string; depth: number; root: string; name: string; symlink: boolean; prune: boolean }
 type Expression = (entry: Entry) => boolean | Promise<boolean>;
+const timeFields: Readonly<Record<string, "atimeMs" | "ctimeMs" | "mtimeMs" | "birthtimeMs">> = {
+  a: "atimeMs", c: "ctimeMs", m: "mtimeMs", B: "birthtimeMs",
+};
 
 /** Compile actions before traversal, preserving their left-to-right lazy evaluation. */
 export async function compileFindExpression(context: CommandContext, execute: CommandHandler, readDirectory: DirectoryReader) {
@@ -45,7 +49,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
     let prunes = false;
     let needsStat = false;
     let needsDisplay = false;
-    const references = new Map<string, number>();
+    const references = new Map<string, { stat?: FileStat; needsBirthTime: boolean }>();
     const flushes: (() => Promise<void>)[] = [];
     const formats: (() => Promise<void>)[] = [];
     const formatBudget = new FindFormatBudget(context);
@@ -91,7 +95,23 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         if (token === "-maxdepth") maxDepth = number; else minDepth = number;
         return () => true;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-amin", "-cmin", "-newer"].includes(token)) {
+      if (token === "-newer" || token.length === 8 && token.startsWith("-newer")
+        && timeFields[token[6]!] && (timeFields[token[7]!] || token[7] === "t")) {
+        const operand = args[offset++];
+        if (operand === undefined) throw new UsageError(`${token} requires an argument`);
+        needsStat = true;
+        const field = timeFields[token[6] ?? "m"]!;
+        if (token[7] === "t") {
+          const timestamp = touchTimes(operand, undefined, context.env.TZ ?? "UTC", { atimeMs: startedAt, mtimeMs: startedAt }).mtimeMs;
+          return entry => entry.stat[field] !== undefined && entry.stat[field]! > timestamp;
+        }
+        const referenceField = timeFields[token[7] ?? "m"]!;
+        const reference = references.get(operand) ?? { needsBirthTime: false };
+        if (referenceField === "birthtimeMs") reference.needsBirthTime = true;
+        references.set(operand, reference);
+        return entry => entry.stat[field] !== undefined && entry.stat[field]! > reference.stat![referenceField]!;
+      }
+      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-amin", "-cmin"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         if (token === "-regex" || token === "-iregex") {
@@ -100,11 +120,6 @@ export async function compileFindExpression(context: CommandContext, execute: Co
           try { regex = new RegExp(`^(?:${operand})$`, token === "-iregex" ? "iu" : "u"); }
           catch { throw new UsageError(`invalid regular expression '${operand}'`); }
           return entry => regex.test(entry.display);
-        }
-        if (token === "-newer") {
-          needsStat = true;
-          references.set(operand, 0);
-          return entry => entry.stat.mtimeMs > references.get(operand)!;
         }
         if (token === "-mtime" || token === "-mmin" || token === "-amin" || token === "-cmin") {
           needsStat = true;
@@ -283,7 +298,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
       const tree = trees.get(evaluate) ?? "true";
       await context.stderr.write(new TextEncoder().encode(`find: virtual expression tree (evaluation order; no optimizer)\n${explicitAction ? tree : `AND(${tree}, implicit -print)`}\n`));
     }
-    for (const reference of references.keys()) {
+    for (const [reference, metadata] of references) {
       context.signal.throwIfAborted();
       const path = pathOf(context, reference);
       let stat: FileStat;
@@ -294,7 +309,10 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         stat = await context.fs.lstat(path, { signal: context.signal });
       }
       context.signal.throwIfAborted();
-      references.set(reference, stat.mtimeMs);
+      if (metadata.needsBirthTime && stat.birthtimeMs === undefined) {
+        throw new PublicDiagnostic(`cannot determine birth time of '${reference}'`);
+      }
+      metadata.stat = stat;
     }
     return { roots, follow, maxDepth, minDepth, depthFirst, explicitAction, needsStat, needsDisplay, evaluate, flushes, status };
 }

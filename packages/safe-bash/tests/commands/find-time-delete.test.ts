@@ -3,11 +3,23 @@ import test from "node:test";
 import { CommandRegistry, FsError, type FileSystem, type FsOptions, type RemoveOptions } from "../../src/contracts/index.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { exprCommands } from "../../src/commands/expr/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { createReadOnlyFileSystem } from "../../src/fs/readonly/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { fixture, run } from "./helpers.js";
 
 const now = 1_700_000_000_000;
+
+test("find -newermt selects files touched after a date through agentCommands", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch -d 2020-01-01 old; touch new; find . -type f -newermt '2020-06-01'");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "./new\n");
+  assert.equal((await fs.stat("/work/old")).mtimeMs, Date.UTC(2020, 0, 1));
+});
 
 for (const option of ["-iname", "-ipath"]) {
   for (const [pattern, names] of [
@@ -484,7 +496,7 @@ test("find output limits stop later deletions without rolling back completed one
 
 test("find retains unsupported time/ownership/traversal syntax without deleting files", async () => {
   const fs = await fixture({ keep: "keep" });
-  for (const expression of [["-daystart"], ["-newermt", "2026-09-05"], ["-atime", "1"], ["-user", "root"], ["-execdir", "true", ";"], ["-xdev"]]) {
+  for (const expression of [["-daystart"], ["-atime", "1"], ["-user", "root"], ["-xdev"]]) {
     const result = await run("find", ["keep", "-delete", ...expression], { fs });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");

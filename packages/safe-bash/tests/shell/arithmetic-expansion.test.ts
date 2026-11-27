@@ -145,7 +145,29 @@ for (const [source, bytes] of [
   });
 }
 
+test("legacy arithmetic rejects missing delimiters and excessive nesting", async context => {
+  const { shell } = setup({ limits: { maxSyntaxDepth: 8 } });
+  context.after(() => shell.dispose());
+  for (const [source, diagnostic] of [
+    ["say $[1+2", "Unterminated arithmetic expression"],
+    [`say ${"$[".repeat(10)}1${"]".repeat(10)}`, "Syntax nesting exceeds 8"],
+  ] as const) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes(diagnostic), result.stderr);
+  }
+});
+
 const cases = [
+  ["legacy literal arithmetic", 'printf "%s\\n" $[1+2]', "3\n"],
+  ["legacy bare variable", 'x=4; printf "%s\\n" $[x+1]', "5\n"],
+  ["legacy expanded variable", 'x=4; printf "%s\\n" $[$x*2]', "8\n"],
+  ["legacy quoted arithmetic and spacing", 'x=4; printf "%s\\n" "value=$[ (x + 1) * 2 ]"', "value=10\n"],
+  ["legacy nested expansions and array subscript", 'a=(4 7); printf "%s\\n" $[a[1]+$[1+2]+$((2*3))]', "16\n"],
+  ["legacy command substitution", 'printf "%s\\n" $[$(printf 4)+1]', "5\n"],
+  ["legacy quoted closing bracket in substitution", 'printf "%s\\n" $[$(printf 4; : "]")+1]', "5\n"],
+  ["legacy single quotes remain literal", "printf '%s\\n' '$[1+2]'", "$[1+2]\n"],
   ["command substitution", 'set -e\nvalue=$(($(printf 3)-1))\nprintf "%s\\n" "$value"', "2\n"],
   ["named parameter", 'set -e\nrows=3\nvalue=$(($rows-1))\nprintf "%s\\n" "$value"', "2\n"],
   ["bare variable control", 'rows=$(printf 3); value=$((rows-1)); printf "%s\\n" "$value"', "2\n"],

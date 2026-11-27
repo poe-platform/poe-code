@@ -1138,6 +1138,15 @@ class Lexer {
       parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
       const afterFirstClose = this.peekAfterContinuation(end + 1);
       this.position = afterFirstClose + 1;
+    } else if (this.source[this.position] === "[") {
+      const start = ++this.position;
+      if (this.depth + this.operandDepth + 1 > this.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
+      this.operandDepth++;
+      try { this.word("]", true, false, false, true); }
+      finally { this.operandDepth--; }
+      if (this.source[this.position] !== "]") this.error("Unterminated arithmetic expression");
+      const source = this.source.slice(start, this.position++);
+      parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
     } else if (this.source[this.position] === "(") {
       const start = this.position + 1;
       let nested: Parser;

@@ -7783,11 +7783,9 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
             }
         }
         "%" => {
-            if rv == 0.0 {
-                BcVal::from_i64(0)
-            } else {
-                BcVal::from_i64((lv as i64) % (rv as i64))
-            }
+            // bc defines a % b as a - (a / b) * b, with the quotient at scale.
+            let quotient = apply_bc_binop(l, r, "/", bc);
+            BcVal::from_f64_scaled(lv - quotient.val * rv, l.scale.max(bc.scale + r.scale))
         }
         "^" => BcVal::from_f64_scaled(lv.powf(rv), if l.scale == 0 { 0 } else { bc.scale }),
         _ => BcVal::default(),

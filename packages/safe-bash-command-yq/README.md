@@ -30,6 +30,8 @@ The default factories support `-i`, `-n`, `-e`, `ea`, `-P`, and `-I`. Both profi
 accept attached format flags such as `-p=yaml`, `-p=toml`, and `-o=json`.
 The profile also supports maps with quoted or identifier keys (`{name: .name, count: 5}`),
 or select fields with shorthand (`{name}` means `{name: .name}`).
+Pipe binds more tightly than union: `.a | upcase, length` applies `length` to the
+original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.
 The package and command entrypoints also export `createMikeYqCommand`,

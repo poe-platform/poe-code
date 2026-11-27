@@ -17,7 +17,7 @@ export type Expression =
   | { kind: "object"; fields: { key: Expression; value: Expression }[] };
 
 interface Token { text: string; offset: number; kind: "symbol" | "string" | "number" | "name" | "end" }
-const priorities: Readonly<Record<string, number>> = { "|": 1, ",": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
+const priorities: Readonly<Record<string, number>> = { ",": 1, "|": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
 const functions = new Set(["path", "select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
 
 export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean; readonly maxExpressionBytes?: number; readonly maxExpressionDepth?: number } = {}): Expression {

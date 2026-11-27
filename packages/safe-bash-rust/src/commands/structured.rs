@@ -24107,6 +24107,22 @@ fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> 
     if desc { order.reverse() } else { order }
 }
 
+fn parse_sql_limit(clause: &str) -> (usize, usize) {
+    let parts = split_top_level_comma(clause);
+    let (count, offset) = if parts.len() == 2 {
+        // SQLite's comma form reverses the LIMIT count OFFSET offset order.
+        (parts[1], parts[0])
+    } else if let Some(pos) = clause.to_ascii_uppercase().find(" OFFSET ") {
+        (&clause[..pos], &clause[pos + 8..])
+    } else {
+        (clause, "0")
+    };
+    (
+        count.trim().parse().unwrap_or(usize::MAX),
+        offset.trim().parse().unwrap_or(0),
+    )
+}
+
 #[allow(clippy::too_many_arguments)]
 fn exec_sql_select_with_mode(
     stmt: &str,
@@ -24217,24 +24233,8 @@ fn exec_sql_select_with_mode(
                 });
             }
             if let Some(lp) = lim_pos {
-                let lim_str = stmt[lp + 7..].trim();
-                let lim_up = lim_str.to_ascii_uppercase();
-                let (lim_part, off_val) = if let Some(off_p) = lim_up.find(" OFFSET ") {
-                    let ov = lim_str[off_p + 8..]
-                        .split_whitespace()
-                        .next()
-                        .and_then(|s| s.parse::<usize>().ok())
-                        .unwrap_or(0);
-                    (lim_str[..off_p].trim(), ov)
-                } else {
-                    (lim_str, 0usize)
-                };
-                let lim_val = lim_part
-                    .split_whitespace()
-                    .next()
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(combined.len());
-                combined = combined.into_iter().skip(off_val).take(lim_val).collect();
+                let (limit, offset) = parse_sql_limit(&stmt[lp + 7..]);
+                combined = combined.into_iter().skip(offset).take(limit).collect();
             }
             let mut res = String::new();
             if let Some(h) = hdr_opt {
@@ -24382,26 +24382,9 @@ fn exec_sql_select_with_mode(
         after_from[op + 10..end].trim()
     });
 
-    let (limit_val, offset_val) = limit_pos
-        .map(|lp| {
-            let clause = after_from[lp + 7..].trim();
-            let (count, offset) = if let Some((offset, count)) = clause.split_once(',') {
-                (count.trim(), Some(offset.trim()))
-            } else {
-                let mut words = clause.split_whitespace();
-                let count = words.next().unwrap_or("");
-                let offset = words
-                    .next()
-                    .filter(|word| word.eq_ignore_ascii_case("OFFSET"))
-                    .and_then(|_| words.next());
-                (count, offset)
-            };
-            (
-                count.parse::<usize>().ok(),
-                offset.and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
-            )
-        })
-        .unwrap_or((None, 0));
+    let (limit, offset) = limit_pos
+        .map(|lp| parse_sql_limit(&after_from[lp + 7..]))
+        .unwrap_or((usize::MAX, 0));
 
     let filtered: Vec<&Vec<String>> = tbl
         .rows
@@ -24423,6 +24406,8 @@ fn exec_sql_select_with_mode(
             group_clause,
             having_clause,
             order_clause,
+            limit,
+            offset,
             mode,
             insert_table,
             header_mode,
@@ -25281,12 +25266,12 @@ fn exec_sql_select_with_mode(
         }
     }
 
-    proj_rows.drain(..offset_val.min(proj_rows.len()));
-    if let Some(lim) = limit_val {
-        proj_rows.truncate(lim);
-    }
-
-    let only_rows: Vec<Vec<String>> = proj_rows.into_iter().map(|(_, vals)| vals).collect();
+    let only_rows: Vec<Vec<String>> = proj_rows
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .map(|(_, vals)| vals)
+        .collect();
     format_sql_result_rows(
         &proj_headers,
         &only_rows,
@@ -25310,6 +25295,8 @@ fn exec_sql_aggregate_select(
     group_clause: Option<&str>,
     having_clause: Option<&str>,
     order_clause: Option<&str>,
+    limit: usize,
+    offset: usize,
     mode: &str,
     insert_table: Option<&str>,
     header_mode: bool,
@@ -25634,7 +25621,12 @@ fn exec_sql_aggregate_select(
         return "\x00RAISE_ERR:integer overflow".to_string();
     }
     let hdr: Vec<String> = exprs.iter().map(|(_, alias)| alias.clone()).collect();
-    let only_rows: Vec<Vec<String>> = out_rows.into_iter().map(|(_, r)| r).collect();
+    let only_rows: Vec<Vec<String>> = out_rows
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .map(|(_, r)| r)
+        .collect();
     format_sql_result_rows(
         &hdr,
         &only_rows,

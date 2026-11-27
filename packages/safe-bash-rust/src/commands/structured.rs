@@ -6560,7 +6560,7 @@ fn parse_toml_value(s: &str) -> Result<JVal, String> {
     if !s.contains(['.', 'e', 'E'])
         && let Some(value) = jq_number::literal(s)
     {
-        return value;
+        return Ok(value);
     }
     if let Ok(n) = s.parse::<f64>() {
         return Ok(JVal::Number(n, None));

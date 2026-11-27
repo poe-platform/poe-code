@@ -120,7 +120,7 @@ export class Evaluator {
     return result;
   }
 
-  async sort(input: Candidate, expression: Expression, depth: number): Promise<YAMLSeq | YAMLMap> {
+  async sort(input: Candidate, expression: Expression, depth: number, variables: ReadonlyMap<string, Candidate>): Promise<YAMLSeq | YAMLMap> {
     const yaml = this.yaml;
     const base = dereference(input, yaml, this.work);
     if (!yaml.isCollection(base.node)) throw new MikeError(`cannot sort ${nodeTag(base.node, yaml)}, can only sort arrays or maps`);
@@ -129,7 +129,7 @@ export class Evaluator {
     for (const item of result.items) {
       { const t = this.work.tick(); if (t) await t; }
       const candidate = this.child(yaml.isMap(result) ? (item as Pair).value as Node : item as Node, base);
-      const keys = await this.run(expression, [candidate], false, depth + 1);
+      const keys = await this.run(expression, [candidate], false, depth + 1, false, variables);
       this.work.node(keys.length);
       members.push({ item: item as Node | Pair, keys: keys.map(key => dereference(key, yaml, this.work).node) });
     }
@@ -425,11 +425,39 @@ export class Evaluator {
     return scalar(yaml, this.work, operator === "+" ? firstNumber + secondNumber : operator === "-" ? firstNumber - secondNumber : operator === "*" ? firstNumber * secondNumber : operator === "/" ? firstNumber / secondNumber : firstNumber % secondNumber, nodeTag(left, yaml) === "!!float" || nodeTag(right, yaml) === "!!float");
   }
 
-  async run(expression: Expression, inputs: Candidate[], create = false, depth = 0, omitMissing = false): Promise<Candidate[]> {
+  async run(expression: Expression, inputs: Candidate[], create = false, depth = 0, omitMissing = false, variables: ReadonlyMap<string, Candidate> = new Map()): Promise<Candidate[]> {
     this.work.depth(depth);
     { const t = this.work.tick(); if (t) await t; }
-    const next = (body: Expression, values = inputs, writable = create, readOnly = omitMissing) => this.run(body, values, writable, depth + 1, readOnly);
+    const next = (body: Expression, values = inputs, writable = create, readOnly = omitMissing) => this.run(body, values, writable, depth + 1, readOnly, variables);
     const yaml = this.yaml;
+    if (expression.kind === "variable") {
+      const bound = variables.get(expression.name);
+      if (!bound) throw new MikeError(`undefined variable: $${expression.name}`);
+      this.work.node(inputs.length);
+      return inputs.map(() => bound);
+    }
+    if (expression.kind === "bind" || expression.kind === "reduce") {
+      const output: Candidate[] = [];
+      const scoped = new Map(variables);
+      this.work.node(variables.size);
+      if (expression.kind === "reduce") {
+        const items = await next(expression.source, inputs, false);
+        let accumulator = await next(expression.initial, inputs.slice(0, 1), false);
+        for (const item of items) {
+          scoped.set(expression.name, item);
+          accumulator = await this.run(expression.body, accumulator, create, depth + 1, omitMissing, scoped);
+        }
+        return accumulator;
+      }
+      for (const input of inputs) {
+        for (const item of await next(expression.source, [input], false)) {
+          scoped.set(expression.name, item);
+          output.push(...await this.run(expression.body, [input], create, depth + 1, omitMissing, scoped));
+        }
+      }
+      this.work.node(output.length);
+      return output;
+    }
     if (expression.kind === "identity") return inputs;
     if (expression.kind === "group") return next(expression.body);
     if (expression.kind === "literal") return inputs.map(input => {
@@ -631,7 +659,7 @@ export class Evaluator {
       }
       const base = dereference(input, yaml, this.work);
       if (name === "sort" || name === "sort_by") {
-        output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth), input)); continue;
+        output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth, variables), input)); continue;
       }
       if (name === "reverse") {
         if (!yaml.isSeq(base.node)) throw new MikeError(`cannot reverse ${nodeTag(base.node, yaml)}, can only reverse arrays`);

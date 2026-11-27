@@ -5,6 +5,9 @@ export type Expression =
   | { kind: "identity" | "iterate" }
   | { kind: "recursive"; includeKeys?: boolean }
   | { kind: "literal"; value: string | boolean | bigint | number | null; source?: string }
+  | { kind: "variable"; name: string }
+  | { kind: "bind"; name: string; source: Expression; body: Expression }
+  | { kind: "reduce"; name: string; source: Expression; initial: Expression; body: Expression }
   | { kind: "group"; body: Expression }
   | { kind: "field"; base: Expression; key: Expression }
   | { kind: "slice"; base: Expression; start: Expression; end: Expression }
@@ -38,6 +41,9 @@ export function compileExpression(source: string, security: { readonly disableEn
       tokens.push({ text, offset: start, kind: "string" });
       continue;
     }
+    if (character === "$" || character === ";") {
+      tokens.push({ text: character, offset, kind: "symbol" }); offset++; continue;
+    }
     const number = /^(?:[0-9]+(?:\.[0-9]+)?)(?:[eE][+-]?[0-9]+)?/u.exec(source.slice(offset));
     if (number) { tokens.push({ text: number[0], offset, kind: "number" }); offset += number[0].length; continue; }
     const name = /^[A-Za-z_][A-Za-z_0-9-]*/u.exec(source.slice(offset));
@@ -60,6 +66,10 @@ export function compileExpression(source: string, security: { readonly disableEn
     if (token.text === ".") {
       result = { kind: "identity" };
       if (peek().offset === token.offset + 1 && (peek().kind === "name" || peek().kind === "string")) { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
+    } else if (token.text === "$") {
+      const name = take();
+      if (name.kind !== "name" || name.offset !== token.offset + 1) throw new MikeError("bad expression, please check expression syntax");
+      result = { kind: "variable", name: name.text };
     } else if (token.text === ".." || token.text === "...") result = { kind: "recursive", includeKeys: token.text === "..." };
     else if (token.text === "(") { result = { kind: "group", body: parse() }; expect(")"); }
     else if (token.text === "[") { result = peek().text === "]" ? { kind: "array" } : { kind: "array", body: parse() }; expect("]"); }
@@ -123,6 +133,23 @@ export function compileExpression(source: string, security: { readonly disableEn
       }
       if ((peek().text === "tag" || peek().text === "style") && minimum <= 3) {
         result = { kind: "pipe", operator: "|", left: result, right: { kind: "call", name: take().text, args: [] } }; continue;
+      }
+      if (peek().text === "as" && minimum <= 2) {
+        take(); expect("$");
+        const name = take();
+        if (name.kind !== "name" || name.offset !== tokens[position - 2]!.offset + 1) throw new MikeError("bad expression, please check expression syntax");
+        if (peek().text === "ireduce") {
+          take(); expect("(");
+          const initial = parse();
+          expect(";");
+          const body = parse();
+          expect(")");
+          result = { kind: "reduce", name: name.text, source: result, initial, body };
+        } else {
+          expect("|");
+          result = { kind: "bind", name: name.text, source: result, body: parse() };
+        }
+        continue;
       }
       const operator = peek().text;
       const priority = priorities[operator];

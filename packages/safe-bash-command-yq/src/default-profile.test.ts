@@ -13,7 +13,18 @@ for (const factory of [() => createYqCommand(), () => createYqCommands()[0]!, ()
     const fs = createMemoryFileSystem();
     const encoder = new TextEncoder(), decoder = new TextDecoder();
     await fs.writeFile("/data.yaml", encoder.encode("a: 1\nb: hello\n"));
+    await fs.writeFile("/a.yml", encoder.encode("a: 1\n"));
+    await fs.writeFile("/b.yml", encoder.encode("b: 2\n"));
     for (const [args, input, expected, status] of [
+      [['.a as $v | {"k": $v}'], "a: x\n", "k: x\n", 0],
+      [["-o=json", "-I=0", ".[] as $x | $x + 1"], "[1,2]\n", "2\n3\n", 0],
+      [["-o=json", "-I=0", "10 as $x | [(2 as $x | $x), $x]"], "{}\n", "[2,10]\n", 0],
+      [[".[] as $x ireduce (0; . + $x)"], "[1,2,3]\n", "6\n", 0],
+      [[".[] as $x ireduce (42; . + $x)"], "[]\n", "42\n", 0],
+      [[".a as $x | .b + $x"], "a: 2\nb: 3\n", "5\n", 0],
+      [["-o=json", "-I=0", "2 as $x | sort_by(. * $x)"], "[3,1,2]\n", "[1,2,3]\n", 0],
+      [["$missing"], "a: 1\n", "", 1],
+      [["ea", ". as $item ireduce ({}; . * $item)", "/a.yml", "/b.yml"], "", "a: 1\nb: 2\n", 0],
       [["-n", "-o=json", "-I=0", '{a: 1, b: "two"}'], "", '{"a":1,"b":"two"}\n', 0],
       [["-o=json", "-I=0", '{name: .name, count: .count}'], "name: poe-code\ncount: 5\n", '{"name":"poe-code","count":5}\n', 0],
       [["-o=json", "-I=0", '{foo}'], "foo: value\n", '{"foo":"value"}\n', 0],

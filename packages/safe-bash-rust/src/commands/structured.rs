@@ -7069,6 +7069,7 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
     }
 
     let inert = [
+        "annotation",
         "object",
         "objdata",
         "pict",

@@ -6049,18 +6049,6 @@ export class Runtime {
     assignmentCache.set(word, result);
     return result;
   }
-  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
-    state.substitutionStatus = 0;
-    const firstAssignment = command.words.length > 0 ? (getArrayAssignment(command.words[0]!) ?? this.assignment(command.words[0]!)) : undefined;
-    if (!firstAssignment && command.redirects.length === 0 && !fileShortcut) {
-      const commandWords = command.words;
-      let declarationIndex = 0;
-      if (commandWords.length > 0) {
-        while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
-          declarationIndex++;
-          if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
-        }
-      }
   private async trace(words: readonly string[], state: State, io: IO, assignment?: string): Promise<void> {
     const quote = (value: string): string => {
       if (value.length && [...value].every(character => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@%+=:,./-".includes(character))) return value;
@@ -6092,6 +6080,18 @@ export class Runtime {
       if (!(error instanceof PublicDiagnostic || error instanceof FsError) || (error as { code?: string }).code !== "EBADF") throw error;
     }
   }
+  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
+    state.substitutionStatus = 0;
+    const firstAssignment = command.words.length > 0 ? (getArrayAssignment(command.words[0]!) ?? this.assignment(command.words[0]!)) : undefined;
+    if (!firstAssignment && command.redirects.length === 0 && !fileShortcut) {
+      const commandWords = command.words;
+      let declarationIndex = 0;
+      if (commandWords.length > 0) {
+        while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
+          declarationIndex++;
+          if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+        }
+      }
       const declarationName = commandWords[declarationIndex]?.plain ?? "";
       const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
       const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : declarationIndex === 0 && ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
@@ -6122,6 +6122,7 @@ export class Runtime {
           if (!words.length) return state.substitutionStatus;
           const args = words.slice(1);
           const argValues = allStrings ? args : wordValues.slice(1);
+          if (state.xtrace) await this.trace(words, state, originalIO);
           try {
             return await this.dispatch(wordValues[0]!, args, state, originalIO, emptySavedVariables, false, argValues, emptySavedVariables);
           } catch (error) {
@@ -6132,7 +6133,6 @@ export class Runtime {
             this.signal.throwIfAborted();
             const original = error instanceof ExecutionFailure ? error.original : error;
             if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : originalIO, error instanceof ExecutionFailure ? error.diagnostic : undefined);
-          if (state.xtrace) await this.trace(words, state, originalIO);
             if (error instanceof ExecutionFailure) throw error;
             throw new ExecutionFailure(error, originalIO);
           }
@@ -6241,6 +6241,7 @@ export class Runtime {
           if (assignment.append) value = await this.attributeValue(state, assignment.name, value, io);
           state.variableAttributes?.delete(assignment.name);
         }
+        if (state.xtrace) await this.trace([shellValueText(value)], state, io, assignment.name);
         await this.writeVariable(state, assignment.name, value, io);
         if (words.length) state.exported.add(assignment.name);
       }};
@@ -6253,7 +6254,6 @@ export class Runtime {
       }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && previous?.size) {
-        if (state.xtrace) await this.trace([shellValueText(value)], state, io, assignment.name);
         if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
         const redirectState = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         const variables = redirectState.variables;
@@ -6342,10 +6342,10 @@ export class Runtime {
         if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
         if (!functionCommand && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
           rawState.lastArgument = words.at(-1) ?? "";
-      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
           state.lastArgument = rawState.lastArgument;
         }
       }
+      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
       if (!words.length) return state.substitutionStatus;
       if (persistentRedirects) {
         snapshotHolder.persistentRedirects = true;
@@ -7230,6 +7230,7 @@ export class Runtime {
     }
     variables.OPTIND = "1";
     variables.OPTERR = "1";
+    variables.PS4 ??= "+ ";
     const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {
       directoryFileSystem: this.fs, logicalCwd: state.logicalCwd,
       umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState() }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
@@ -7242,7 +7243,6 @@ export class Runtime {
         delete child.variables[key];
         child.exported.delete(key);
       }
-    variables.PS4 ??= "+ ";
     }
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
     publishVariable(child, "BASH_ARGV0", arg0);
@@ -7271,13 +7271,14 @@ export class Runtime {
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => flag !== "O" && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
+      if (!flags.length || [...flags].some((flag, index) => flag !== "O" && !(flag === "o" && index === flags.length - 1 && Object.hasOwn(options, args[0] ?? "")) && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
         await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-h, +/-u, +/-n, +/-B, +/-f, +/-C, +/-P, +/-O shopt-option and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }
       for (const flag of flags) {
         if (flag === "c") commandString = true;
         else if (flag === "s") standardInput = true;
+        else if (flag === "o") options[args.shift()! as keyof typeof options] = enabled;
         else if (flag === "O") {
           const name = args[0];
           shoptArguments.push(name === undefined || name.startsWith("-") || name.startsWith("+")
@@ -7982,9 +7983,9 @@ export class Runtime {
           for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         }
         else if (flag === "B") state.braceexpand = enabled;
+        else if (flag === "x") state.xtrace = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
-        else if (flag === "x") state.xtrace = enabled;
           if (name === undefined) {
             for (const [name, option] of shellOptions(state, true)) await writeText(stdout, enabled ? `${name}\t${option.enabled ? "on" : "off"}\n` : `set ${option.enabled ? "-" : "+"}o ${name}\n`);
           } else {
@@ -7998,11 +7999,11 @@ export class Runtime {
             else if (name === "noclobber") state.noclobber = enabled;
             else if (name === "noexec") state.noexec = enabled;
             else if (name === "physical") state.physical = enabled;
+            else if (name === "xtrace") state.xtrace = enabled;
             else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
               await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
-            else if (name === "xtrace") state.xtrace = enabled;
               return unsupported ? 1 : 2;
             }
             index++;
@@ -9455,6 +9456,7 @@ export class Runtime {
               errexit: !!state.errexit, hashall: state.hashall !== false, noclobber: !!state.noclobber,
               noexec: !!state.noexec, noglob: !!state.noglob,
               nounset: !!state.nounset, physical: !!state.physical, pipefail: state.pipefail,
+              xtrace: !!state.xtrace,
             },
             extensions: new Map([...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled])),
           };
@@ -9468,7 +9470,6 @@ export class Runtime {
         // ownership and assignment rules as an unshadowed global.
         const globalFrame = command === "declare" && enabled.has("g") ? stateMonitor(state)!.globalVariableFrame(name) : undefined;
         let visibleLocal: SavedVariable | undefined;
-              xtrace: !!state.xtrace,
         if (globalFrame) {
           visibleLocal = saveVariable(state, name);
           await this.prepareVariable(state, name, visibleLocal);

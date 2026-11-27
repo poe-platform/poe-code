@@ -8,7 +8,7 @@ Compute digests, encrypt files, generate keys, and create or inspect real certif
 | --- | --- |
 | `dgst`, `md5`, `sha1`, `sha256`, `sha384`, `sha512` | Digests/HMAC, `-binary`, `-hex`, `-r`, `-out`; RSA and ECDSA SHA signatures with `-sign`, `-verify`, `-signature` |
 | `rand` | Secure raw bytes, `-hex`, `-base64`, `-out` |
-| `enc` | AES-128-CBC, AES-256-CBC, AES-256-CTR; `-e`/`-d`, `-a`/`-base64`, `-A`, raw `-K`/`-iv`, passwords, salts, PBKDF2 |
+| `enc` | AES-128-CBC, AES-256-CBC, AES-256-CTR; cipher-free Base64 with `-a`/`-base64`; `-e`/`-d`, `-a`/`-base64`, `-A`, raw `-K`/`-iv`, passwords, salts, PBKDF2 |
 | `base64` | Encode/decode binary stdin or `-in`, optionally write `-out`; `-A` disables wrapping |
 | `genpkey`, `genrsa`, `ecparam`, `rsa`, `ec`, `pkey` | RSA, Ed25519, P-256/P-384/P-521 keys, PEM/DER, public extraction, `-noout`, `-text`, RSA `-modulus` |
 | `req`, `x509` | Signed PKCS#10 CSRs and self-signed X.509 certificates; subject, issuer, validity, serial, fingerprint, extension and expiry inspection |

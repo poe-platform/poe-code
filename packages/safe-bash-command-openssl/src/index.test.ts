@@ -73,6 +73,25 @@ test("openssl command definition exports standard contract and settings", () => 
   }
 });
 
+for (const [flags, input, stdout] of [
+  [["-base64"], "hi\n", "aGkK\n"],
+  [["-base64", "-d"], "aGkK\n", "hi\n"],
+  [["-a", "-A"], "hi\n", "aGkK"],
+  [["-a", "-d", "-A"], "aGkK", "hi\n"],
+  [["-base64"], "", ""],
+  [["-base64"], "x".repeat(60), "eHh4".repeat(16) + "\n" + "eHh4".repeat(4) + "\n"],
+] as const) {
+  test(`enc without a cipher ${flags.join(" ")} (${input.length} bytes)`, async () => {
+    const fs = createMemoryFileSystem();
+    const args = ["enc", ...flags];
+    assert.equal(execFileSync(nativeOpenssl, args, { input, encoding: "utf8" }), stdout);
+    assert.deepEqual(await runOpenssl(fs, args, input), { exitCode: 0, stdout, stderr: "" });
+    await fs.writeFile("/input", new TextEncoder().encode(input));
+    assert.deepEqual(await runOpenssl(fs, [...args, "-in", "/input", "-out", "/output"]), { exitCode: 0, stdout: "", stderr: "" });
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), stdout);
+  });
+}
+
 test("AES ciphers interoperate with native OpenSSL for raw keys, EVP and PBKDF2", async () => {
   const fs = createMemoryFileSystem();
   const payload = new TextEncoder().encode("payload with binary\u0000\u00ff and more than one AES block\n");

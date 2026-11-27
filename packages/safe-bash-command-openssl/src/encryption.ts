@@ -7,11 +7,16 @@ export async function encrypt(args: readonly string[], io: Io, maxIterations: nu
   const a = new Arguments(args, "-aes-128-cbc -aes-256-cbc -aes-256-ctr -d -e -a -base64 -A -salt -nosalt -pbkdf2", "-k -pass -K -iv -S -iter -in -out");
   if (a.positional.length) throw new PublicDiagnostic("unexpected enc argument");
   const ciphers = ["-aes-128-cbc", "-aes-256-cbc", "-aes-256-ctr"].filter(c => a.has(c));
+  const encoded = a.has("-a") || a.has("-base64");
+  if (!ciphers.length && encoded) {
+    const input = await io.read(a.get("-in"));
+    await io.write(a.has("-d") ? unbase64(text.decode(input)) : base64(input, !a.has("-A")) + (a.has("-A") || !input.length ? "" : "\n"), a.get("-out"));
+    return;
+  }
   if (ciphers.length !== 1) throw new PublicDiagnostic("select one supported AES cipher");
   const keyLength = ciphers[0] === "-aes-128-cbc" ? 16 : 32;
   const cipher = ciphers[0] === "-aes-256-ctr" ? "AES-CTR" : "AES-CBC";
   const decrypt = a.has("-d");
-  const encoded = a.has("-a") || a.has("-base64");
   const iterations = a.integer("-iter", 10000, maxIterations);
   let password: string | undefined;
   if (a.has("-pass")) password = await io.password(a.get("-pass"));

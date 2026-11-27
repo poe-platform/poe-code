@@ -4938,7 +4938,7 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
         let t = tok.trim();
         !t.ends_with("++")
             && !t.ends_with("--")
-            && (t.ends_with(['+', '-', '*', '/', '%', '^']) || t == "!")
+            && (t.ends_with(['+', '-', '*', '/', '%', '^', '$']) || t == "!")
     };
     let is_arith_op_start = |tok: &str| -> bool {
         let t = tok.trim();

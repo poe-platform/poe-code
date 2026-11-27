@@ -20869,7 +20869,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             continue;
         }
         if upper.starts_with("DELETE FROM ") {
-            let ret_chunk = exec_sql_delete(
+            let ret_chunk = match exec_sql_delete(
                 stmt,
                 &mut tables,
                 &triggers,
@@ -20877,7 +20877,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 json_mode,
                 csv_mode,
                 &sep,
-            );
+            ) {
+                Ok(chunk) => chunk,
+                Err(error) => {
+                    errors.push_str(&error);
+                    break;
+                }
+            };
             if !ret_chunk.is_empty() {
                 emit_chunk(
                     ret_chunk,
@@ -21551,7 +21557,7 @@ fn fire_sql_triggers(
             if sub_up.starts_with("INSERT ") {
                 exec_sql_insert(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("DELETE FROM ") {
-                let _ = exec_sql_delete(sub, tables, triggers, false, false, false, "|");
+                exec_sql_delete(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("UPDATE ") {
                 exec_sql_update(sub, tables, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("SELECT ") {
@@ -22308,7 +22314,7 @@ fn exec_sql_delete(
     json_mode: bool,
     csv_mode: bool,
     sep: &str,
-) -> String {
+) -> Result<String, String> {
     let norm = stmt.replace(['\r', '\n', '\t'], " ");
     let norm_up = norm.to_ascii_uppercase();
     let ret_pos = norm_up.rfind(" RETURNING ");
@@ -22329,7 +22335,7 @@ fn exec_sql_delete(
         norm[wp + 7..w_end].trim()
     });
     let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()) else {
-        return String::new();
+        return Ok(String::new());
     };
     let tables_snap = tables.clone();
     let mut deleted_rows: Vec<Vec<String>> = Vec::new();
@@ -22386,6 +22392,16 @@ fn exec_sql_delete(
                     };
                     if let Some(ctbl) = tables.get_mut(&ctname) {
                         match fk.on_delete.as_str() {
+                            "NO ACTION" | "RESTRICT" => {
+                                if !pval.is_empty()
+                                    && ctbl.rows.iter().any(|cr| {
+                                        cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str())
+                                    })
+                                {
+                                    *tables = tables_snap;
+                                    return Err("Error: FOREIGN KEY constraint failed\n".to_string());
+                                }
+                            }
                             "CASCADE" => {
                                 ctbl.rows.retain(|cr| {
                                     cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str())
@@ -22427,7 +22443,7 @@ fn exec_sql_delete(
         );
     }
     if let Some(rcols) = returning_cols {
-        return format_sql_returning(
+        return Ok(format_sql_returning(
             &rcols,
             &t_cols,
             &deleted_rows,
@@ -22435,9 +22451,9 @@ fn exec_sql_delete(
             json_mode,
             csv_mode,
             sep,
-        );
+        ));
     }
-    String::new()
+    Ok(String::new())
 }
 
 fn collect_json_tree_rows(jval: &JVal, fullkey: &str, rows: &mut Vec<Vec<String>>) {

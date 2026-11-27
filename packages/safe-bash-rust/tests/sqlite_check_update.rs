@@ -20,8 +20,8 @@ fn sqlite_failed_updates_preserve_stored_rows() {
     for update in [
         "UPDATE t SET n=n-2 RETURNING n",
         "WITH source(n) AS (VALUES (1)) UPDATE t SET n=-8",
-        "CREATE TRIGGER bad BEFORE UPDATE ON t WHEN NEW.n>0 BEGIN UPDATE t SET n=-8; END; UPDATE t SET n=n+1",
-        "CREATE TRIGGER bad AFTER UPDATE ON t WHEN NEW.n>0 BEGIN UPDATE t SET n=-8; END; UPDATE t SET n=n+1",
+        "CREATE TRIGGER bad BEFORE UPDATE ON t WHEN NEW.n=9 BEGIN UPDATE t SET n=-8; END; UPDATE t SET n=9",
+        "CREATE TRIGGER bad AFTER UPDATE ON t WHEN NEW.n=9 BEGIN UPDATE t SET n=-8; END; UPDATE t SET n=9",
     ] {
         let (mut shell, _) = Shell::with_memory_fs();
         let setup = shell

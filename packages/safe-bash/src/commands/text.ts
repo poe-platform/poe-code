@@ -866,7 +866,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     context.signal.throwIfAborted();
     const consumer = outputFile === undefined ? context.stdout.ownedOutput?.consumerClosed : undefined;
     if (consumer?.aborted && consumer.reason === error && error instanceof FsError && error.code === "EPIPE") return { exitCode: 141 };
-    throw error;
+    await diagnostic(context, error);
+    return { exitCode: 1 };
   }
   return { exitCode: 0 };
 }

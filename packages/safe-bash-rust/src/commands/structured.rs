@@ -3066,20 +3066,6 @@ fn try_eval_jq_builtin(
                         return Ok(Some(vec![best.map_or(JVal::Null, |(_, v)| v.clone())]));
                     }
                 }
-                "join" => {
-                    if let JVal::Array(a) = input {
-                        let sep = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        let parts: Vec<String> = a
-                            .iter()
-                            .filter(|v| !matches!(v, JVal::Null))
-                            .map(|v| v.to_raw_string(true, false))
-                            .collect();
-                        return Ok(Some(vec![JVal::Str(parts.join(&sep))]));
-                    }
-                }
                 "split" => {
                     if let JVal::Str(st) = input
                         && split_jq_binary(arg_expr, ";").is_some()
@@ -3186,35 +3172,6 @@ fn try_eval_jq_builtin(
                         .next()
                         .unwrap_or(JVal::Array(Vec::new()));
                     return eval_jq("from_entries", &mapped, vars).map(Some);
-                }
-                "flatten" => {
-                    let src_items: Option<Vec<JVal>> = match input {
-                        JVal::Array(a) => Some(a.clone()),
-                        JVal::Object(entries) => {
-                            Some(entries.iter().map(|(_, v)| v.clone()).collect())
-                        }
-                        _ => None,
-                    };
-                    if let Some(a) = src_items {
-                        let d_val = eval_jq(arg_expr, input, vars)?
-                            .into_iter()
-                            .next()
-                            .unwrap_or(JVal::Null);
-                        let JVal::Number(depth_f, _) = d_val else {
-                            return Err("flatten depth must be a number".into());
-                        };
-                        if depth_f.is_nan() || depth_f < 0.0 {
-                            return Err("flatten depth must not be negative".into());
-                        }
-                        let eff_depth = if depth_f.is_infinite() || depth_f.fract() != 0.0 {
-                            usize::MAX
-                        } else {
-                            depth_f as usize
-                        };
-                        let mut out = Vec::new();
-                        flatten_jval(&a, eff_depth, &mut out);
-                        return Ok(Some(vec![JVal::Array(out)]));
-                    }
                 }
                 "any" | "all" => {
                     let is_any = fname == "any";

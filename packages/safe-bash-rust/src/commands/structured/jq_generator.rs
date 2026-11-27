@@ -529,6 +529,43 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
             }
             _ => {}
         }
+        if let ("join", Some(filter)) = (name, args)
+            && let JVal::Array(items) = input
+        {
+            let parts: Vec<String> = items
+                .iter()
+                .filter(|value| !matches!(value, JVal::Null))
+                .map(|value| value.to_raw_string(true, false))
+                .collect();
+            return visit_jq(filter, input, vars, &mut |separator| {
+                emit(JVal::Str(parts.join(&separator.to_raw_string(true, false))))
+            });
+        }
+        if let ("flatten", Some(filter)) = (name, args) {
+            let items = match input {
+                JVal::Array(items) => Some(items.clone()),
+                JVal::Object(entries) => Some(entries.iter().map(|(_, v)| v.clone()).collect()),
+                _ => None,
+            };
+            if let Some(items) = items {
+                return visit_jq(filter, input, vars, &mut |depth| {
+                    let JVal::Number(depth, _) = depth else {
+                        return Err("flatten depth must be a number".into());
+                    };
+                    if depth.is_nan() || depth < 0.0 {
+                        return Err("flatten depth must not be negative".into());
+                    }
+                    let depth = if depth.is_infinite() || depth.fract() != 0.0 {
+                        usize::MAX
+                    } else {
+                        depth as usize
+                    };
+                    let mut out = Vec::new();
+                    super::flatten_jval(&items, depth, &mut out);
+                    emit(JVal::Array(out))
+                });
+            }
+        }
         if let ("split", Some(filter)) = (name, args)
             && split_jq_top(filter, ';').is_none()
         {

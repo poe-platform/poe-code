@@ -17851,6 +17851,7 @@ struct SqlTable {
     check_exprs: Vec<String>,
     foreign_keys: Vec<SqlForeignKey>,
     unique_indexes: Vec<(String, Vec<String>)>,
+    index_sql: BTreeMap<String, String>,
     is_fts5: bool,
     next_seq: usize,
     create_sql: String,
@@ -19215,6 +19216,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             check_exprs,
             foreign_keys,
             unique_indexes,
+            index_sql: BTreeMap::new(),
             is_fts5: false,
             next_seq: 0,
             create_sql: stmt.to_string(),
@@ -19366,6 +19368,19 @@ fn serialize_sql_db(
         .and_then(|t| t.columns.first().cloned())
         .unwrap_or_else(|| "id".to_string());
     for idx_name in indexes {
+        if let Some((tname, sql)) = tables
+            .iter()
+            .find_map(|(tname, tbl)| tbl.index_sql.get(idx_name).map(|sql| (tname, sql)))
+        {
+            master_entries.push(MasterEntry {
+                m_type: "index".to_string(),
+                name: idx_name.clone(),
+                tbl_name: tname.clone(),
+                rootpage: 0,
+                sql: sql.clone(),
+            });
+            continue;
+        }
         let mut found_unique: Option<(String, Vec<String>)> = None;
         for (tname, tbl) in tables {
             if let Some((_, ucols)) = tbl
@@ -19602,6 +19617,11 @@ fn deserialize_sql_db(
                 }
                 tables.insert(m_name, tbl);
             } else if m_type == "index" {
+                if let Some(SqlBtreeVal::Text(tname)) = vals.get(2)
+                    && let Some(tbl) = tables.get_mut(tname)
+                {
+                    tbl.index_sql.insert(m_name.clone(), m_sql.clone());
+                }
                 if !m_name.starts_with("sqlite_autoindex_") && !indexes.contains(&m_name) {
                     indexes.push(m_name.clone());
                 }
@@ -20879,6 +20899,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .trim_matches('"');
             indexes.retain(|i| !i.eq_ignore_ascii_case(idx_name));
             for tbl in tables.values_mut() {
+                tbl.index_sql
+                    .retain(|n, _| !n.eq_ignore_ascii_case(idx_name));
                 tbl.unique_indexes
                     .retain(|(n, _)| !n.eq_ignore_ascii_case(idx_name));
             }
@@ -20897,6 +20919,17 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .to_string();
                 if !idx_name.is_empty() && !indexes.contains(&idx_name) {
                     indexes.push(idx_name.clone());
+                }
+                let after_on = norm[on_p + 4..].trim();
+                if let Some(open) = after_on.find('(') {
+                    let tname =
+                        resolve_sql_table_name(&tables, after_on[..open].trim().trim_matches('"'))
+                            .to_owned();
+                    if let Some(tbl) = tables.get_mut(&tname) {
+                        tbl.index_sql
+                            .entry(idx_name.clone())
+                            .or_insert_with(|| stmt.to_string());
+                    }
                 }
                 if is_unique && !idx_name.is_empty() {
                     let after_on = norm[on_p + 4..].trim();
@@ -23350,6 +23383,15 @@ fn resolve_sql_from_table(
                 "2".to_string(),
                 tbl.create_sql.clone(),
             ]);
+            for (name, sql) in &tbl.index_sql {
+                rows.push(vec![
+                    "index".to_string(),
+                    name.clone(),
+                    tname.clone(),
+                    "0".to_string(),
+                    sql.clone(),
+                ]);
+            }
         }
         for (vname, vsql) in views {
             rows.push(vec![

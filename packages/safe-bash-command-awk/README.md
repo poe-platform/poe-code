@@ -6,6 +6,11 @@ Run `awk` against an injected virtual filesystem with portable byte streams. Reg
 
 Set `RS` to a multi-character extended regular expression to split records, for example `RS="::"` or `RS="[,:]"`. Regex separators ignore empty matches and buffer the remaining input to EOF, subject to buffer and retention limits. Single-byte separators and paragraph mode (`RS=""`) read incrementally.
 
+Set `FPAT` to an extended regular expression to match field contents, for example
+`FPAT="[^,]+"`. Matches become fields; assigning `FS` switches back to separator
+splitting. Assigning either variable affects subsequent records and `$0`
+reassignment, while `split()` continues to use `FS` by default.
+
 Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoch
 timestamps with `strftime` and `mktime`, and use GNU-style bitwise functions.
 Command pipes (`command | getline` and `print ... | command`) run through the

@@ -2167,7 +2167,6 @@ fn run_sed_on_inputs<'a>(
                     if restart_guard > 1000 {
                         break;
                     }
-                    subst_made = false;
                     continue;
                 }
                 SedFlow::Quit(code, silent) => {

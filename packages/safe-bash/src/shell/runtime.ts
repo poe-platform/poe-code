@@ -71,7 +71,7 @@ import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, 
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
-import { dynamicVariableNames, readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
+import { dynamicVariableNames, initializeIdentityVariables, readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
 import { shellOptions } from "./options.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
 import { mapfileHelp } from "./mapfile-help.js";
@@ -7236,6 +7236,9 @@ export class Runtime {
       }
     }
     variables.OPTIND = "1";
+    initializeIdentityVariables(variables);
+    exported.add("SHLVL");
+    variables.PPID = "1";
     variables.OPTERR = "1";
     variables.PS4 ??= "+ ";
     const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {

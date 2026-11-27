@@ -1,6 +1,6 @@
 import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
 import { protectedReadArrays } from "./variable-target.js";
-import { dynamicVariableNames } from "./dynamic-variables.js";
+import { dynamicVariableNames, initializeIdentityVariables } from "./dynamic-variables.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { escapeText, writeDiagnostic } from "../escaping.js";
@@ -3417,6 +3417,7 @@ const syncExtraRuntimeMethods = {
     if (rawRoot._exported && (rawRoot._exported.size > 1 || (rawRoot._exported.size === 1 && !rawRoot._exported.has("PWD")))) {
       rawRoot._exported.clear();
       rawRoot._exported.add("PWD");
+      rawRoot._exported.add("SHLVL");
     }
     this._syncTouchedPositionals = false;
     if (curVars && !(monitor as unknown as { _wrapped?: unknown })?._wrapped) {
@@ -3435,6 +3436,7 @@ const syncExtraRuntimeMethods = {
         (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._wrapped = undefined;
       }
     }
+    initializeIdentityVariables(rawRoot.variables);
     delete rawRoot.arg0;
     delete rawRoot.bashArgv0Disabled;
     rawRoot.status = 0;

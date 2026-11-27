@@ -216,6 +216,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `for (( … ))`, and `let`, including associative keys. Array expansions support member slices, element substrings, member-wise trimming
   and substitution, and lazy element default, alternate, assignment, and error operators by default.
   For scalar bindings, `${name[@]:offset:length}` and `${name[*]:offset:length}` slice characters instead of array elements.
+  Shell identity variables `UID`, `EUID`, `PPID`, `OSTYPE`, `HOSTTYPE`,
+  `MACHTYPE`, and `HOSTNAME` use virtual defaults (UID 1000, Linux x86_64,
+  hostname `sandbox`). Exported `SHLVL` starts at 1 and increases in child shells.
   Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
   `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
   shell or execution options; missing caller or filesystem identity is refused.

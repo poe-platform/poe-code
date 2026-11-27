@@ -1,3 +1,15 @@
+export function initializeIdentityVariables(variables: Record<string, string>): void {
+  variables.UID ??= "1000";
+  variables.EUID ??= variables.UID;
+  variables.PPID = "0";
+  variables.OSTYPE ??= "linux-gnu";
+  variables.HOSTTYPE ??= "x86_64";
+  variables.MACHTYPE ??= `${variables.HOSTTYPE}-pc-${variables.OSTYPE}`;
+  variables.HOSTNAME ??= "sandbox";
+  const level = Number(variables.SHLVL ?? 0);
+  variables.SHLVL = String(Number.isSafeInteger(level) ? Math.max(0, level + 1) : 1);
+}
+
 export const dynamicVariableNames: ReadonlySet<string> = new Set([
   "RANDOM", "SECONDS", "EPOCHSECONDS", "EPOCHREALTIME", "SRANDOM",
 ]);

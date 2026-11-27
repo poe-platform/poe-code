@@ -1,3 +1,4 @@
+import { initializeIdentityVariables } from "./dynamic-variables.js";
 import { tryExecFast } from "./sync-extra-evaluators.js";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { writeDiagnostic } from "../escaping.js";
@@ -823,6 +824,8 @@ export class Shell implements PluginHost {
           }
           exported = new Set(Object.keys(variables));
         }
+        initializeIdentityVariables(variables);
+        (exported ??= new Set(["PWD"])).add("SHLVL");
         variables.BASH_ARGV0 = "virtual-bash";
         variables.OPTIND = "1";
         variables.OPTERR = "1";

@@ -1777,6 +1777,7 @@ fn exec_sed_cmds(
                     if start_matched {
                         let end_same = match a2 {
                             SedAddr::Line(n) => *n <= line_num,
+                            SedAddr::Last => is_last,
                             SedAddr::RelPlus(0) | SedAddr::RelStep(0) => true,
                             other => {
                                 if matches!(a1, SedAddr::Line(0)) {
@@ -2013,7 +2014,7 @@ fn exec_sed_cmds(
             }
             SedOp::Append(item) => queue.pending.push(item.clone()),
             SedOp::Change(text) => {
-                if cmd.addr2.is_none() || !still_in_range || cmd.negated || is_last {
+                if cmd.addr2.is_none() || !still_in_range || cmd.negated {
                     out.write_record(text, false, rec_term);
                 }
                 return SedFlow::Delete;

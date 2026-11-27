@@ -175,6 +175,7 @@ function isSelfDelimitingCompound(command: Command | undefined): boolean {
 export interface Pipeline {
   readonly commands: Command[];
   readonly negate: boolean;
+  readonly timing?: "default" | "portable";
 }
 
 export interface AndOr {
@@ -1502,9 +1503,20 @@ class Parser {
   pipeline(): Pipeline {
     this.budget.admit();
     let negate = false;
-    while (this.is("!")) {
-      negate = !negate;
-      this.advance();
+    let timing: Pipeline["timing"];
+    while (this.is("!") || this.is("time")) {
+      if (this.is("!")) {
+        negate = !negate;
+        this.advance();
+      } else {
+        this.advance();
+        timing = "default";
+        if (this.is("-p")) {
+          timing = "portable";
+          this.advance();
+        }
+        if (this.is("--")) this.advance();
+      }
     }
     const commands = [this.command()];
     while (this.is("|") || this.is("|&")) {
@@ -1519,7 +1531,7 @@ class Parser {
       this.newlines();
       commands.push(this.command());
     }
-    return { commands, negate };
+    return { commands, negate, ...(timing ? { timing } : {}) };
   }
 
   command(): Command {

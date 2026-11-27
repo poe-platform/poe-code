@@ -4641,6 +4641,8 @@ export class Runtime {
   }
   async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
     this.signal.throwIfAborted();
+    const started = pipeline.timing ? performance.now() : undefined;
+    try {
     const terminal = io.terminal?.target === pipeline ? io.terminal : undefined;
     let status: number;
     if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
@@ -4911,6 +4913,16 @@ export class Runtime {
     }
     if (pipeline.commands.length > 1) await this.errexit(status, state, io);
     return pipeline.negate && !terminal ? Number(status === 0) : status;
+    } finally {
+      if (started !== undefined) {
+        const elapsed = (performance.now() - started) / 1000;
+        // Virtual commands have no separately attributable process CPU usage.
+        const timing = pipeline.timing === "portable"
+          ? `real ${elapsed.toFixed(2)}\nuser 0.00\nsys 0.00\n`
+          : `\nreal\t${Math.floor(elapsed / 60)}m${(elapsed % 60).toFixed(3)}s\nuser\t0m0.000s\nsys\t0m0.000s\n`;
+        await writeDiagnostic(io.stderr, timing, this.signal);
+      }
+    }
   }
   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
     try {

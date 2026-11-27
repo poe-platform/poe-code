@@ -241,6 +241,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `set -a` (or `set -o allexport`) exports subsequent variable
   assignments to child commands, and `set +a` disables automatic export.
   `set +h` disables command hashing; `set -h` (or `set -o hashall`) restores it.
+  `time pipeline` executes and measures a pipeline, writing timing to stderr;
+  `time -p pipeline` uses portable `real`, `user`, and `sys` lines. Wall time is
+  measured; CPU fields are zero because virtual commands have no separate process.
   `set -P` (or `set -o physical`) makes `cd` resolve symlinks before `..`;
   `set +P` restores logical paths, and `cd -L` overrides physical mode for one call.
   Bash-profile `set -f` / `set -o noglob` disables pathname

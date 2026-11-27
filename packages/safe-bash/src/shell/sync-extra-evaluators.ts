@@ -7060,7 +7060,7 @@ const syncExtraRuntimeMethods = {
       }
       for (let i = 0; i < lists.length; i++) {
         const l = lists[i]!;
-        if (l.terminator || l.pipelines.length !== 1 || l.pipelines[0]!.negate || l.pipelines[0]!.commands.length !== 1) {
+        if (l.terminator || l.pipelines.length !== 1 || l.pipelines[0]!.negate || l.pipelines[0]!.timing || l.pipelines[0]!.commands.length !== 1) {
           rawScript._cachedSyncForScriptPlan = null;
           return undefined;
         }
@@ -7218,6 +7218,7 @@ const syncExtraRuntimeMethods = {
     return SYNC_UNIT_ZERO;
   },
   tryFastSinglePipelineUnit( pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (pipeline.timing) return undefined;
     if (state.xtrace) return undefined;
     // Cached argv bypasses word admission. Keep finite budgets on the standard
     // evaluator, before speculative expansion or redirect acquisition can occur.
@@ -7657,6 +7658,7 @@ const syncExtraRuntimeMethods = {
     return finish();
   },
   trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
+    if (pipeline.timing) return undefined;
     io = this.persistentIO(state, io);
     if (state.xtrace) return undefined;
     const _rawSt = (stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: unknown[]; _syncPendingEvalResume?: unknown };
@@ -8552,7 +8554,7 @@ const syncExtraRuntimeMethods = {
     for (const list of script.lists) {
       if (list.terminator) return false;
       for (const pipeline of list.pipelines) {
-        if (pipeline.commands.length !== 1 || pipeline.negate) return false;
+        if (pipeline.commands.length !== 1 || pipeline.negate || pipeline.timing) return false;
         if (!this.canSyncCommandCompound(pipeline.commands[0]!, rawState, depth, loopDepth)) return false;
       }
     }
@@ -12243,7 +12245,7 @@ const syncExtraRuntimeMethods = {
     const list = part.script.lists[0]!;
     if (list.terminator || list.pipelines.length !== 1) return false;
     const p = list.pipelines[0]!;
-    if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
+    if (p.negate || p.timing || p.commands.length < 1 || p.commands.length > 5) return false;
     const indName = this._activePrintfInductionName;
     let usesInduction = false;
     const checkInvariantWord = (w: Word): boolean => {
@@ -12389,7 +12391,7 @@ const syncExtraRuntimeMethods = {
       if (list.terminator || list.pipelines.length !== 1) return undefined;
       const pipeline = list.pipelines[0]!;
       const cmd = pipeline.commands[0];
-      if (pipeline.negate || pipeline.commands.length !== 1) return undefined;
+      if (pipeline.negate || pipeline.timing || pipeline.commands.length !== 1) return undefined;
       if (cmd?.kind === "arithmetic") {
         const tree = cmd.expression.tree;
         if (cmd.expression.error || !tree || tree.kind !== "binary" || !["=", "+=", "-=", "*="].includes(tree.operator) || tree.left.kind !== "name" || tree.left.subscript !== undefined) return undefined;
@@ -13319,7 +13321,7 @@ const syncExtraRuntimeMethods = {
     const isSimpleEchoOrPrintf = (s: Script): boolean => {
       if (s.lists.length !== 1 || s.lists[0]!.terminator || s.lists[0]!.pipelines.length !== 1) return false;
       const pl = s.lists[0]!.pipelines[0]!;
-      if (pl.negate || pl.commands.length !== 1) return false;
+      if (pl.negate || pl.timing || pl.commands.length !== 1) return false;
       const sc = pl.commands[0]!;
       if (sc.kind !== "simple" || sc.redirects.length !== 0 || sc.words.length === 0) return false;
       const w0 = sc.words[0]?.plain;
@@ -13331,7 +13333,7 @@ const syncExtraRuntimeMethods = {
       for (const br of cmd.branches) {
         if (br.condition.lists.length !== 1 || br.condition.lists[0]!.terminator || br.condition.lists[0]!.pipelines.length !== 1) return false;
         const bp = br.condition.lists[0]!.pipelines[0]!;
-        if (bp.negate || bp.commands.length !== 1) return false;
+        if (bp.negate || bp.timing || bp.commands.length !== 1) return false;
         const bc = bp.commands[0]!;
         if (bc.kind === "arithmetic") {
           if (bc.redirects.length !== 0 || bc.expression.error || bc.expression.hasMutation || bc.expression.hasSubscript || !isSafeSmiProgram(bc.expression) || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) return false;
@@ -13357,6 +13359,7 @@ const syncExtraRuntimeMethods = {
     return true;
   },
   canEvalPureTextPipelineSync(pipeline: Pipeline, rawState: State): boolean {
+    if (pipeline.timing) return false;
     const n = pipeline.commands.length;
     if (
       pipeline.negate ||
@@ -13574,7 +13577,7 @@ const syncExtraRuntimeMethods = {
       if (list.terminator) return false;
       for (let p = 0; p < list.pipelines.length; p++) {
         const pipeline = list.pipelines[p]!;
-        if (pipeline.negate) return false;
+        if (pipeline.negate || pipeline.timing) return false;
         if (pipeline.commands.length !== 1) {
           if (this.canEvalPureTextPipelineSync(pipeline, rawState)) continue;
           return false;
@@ -13614,7 +13617,7 @@ const syncExtraRuntimeMethods = {
             const br = cmd.branches[bi]!;
             if (br.condition.lists.length !== 1 || br.condition.lists[0]!.terminator || br.condition.lists[0]!.pipelines.length !== 1) { ifOk = false; break; }
             const bp = br.condition.lists[0]!.pipelines[0]!;
-            if (bp.negate || bp.commands.length !== 1) { ifOk = false; break; }
+            if (bp.negate || bp.timing || bp.commands.length !== 1) { ifOk = false; break; }
             const bc = bp.commands[0]!;
             if (bc.kind === "arithmetic") {
               if (bc.redirects.length !== 0 || (bc.expression.error ? !this.canSyncErrorArithmeticStmt(bc.expression, rawState) : (!isSafeSmiProgram(bc.expression) || bc.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)))) { ifOk = false; break; }
@@ -13649,6 +13652,7 @@ const syncExtraRuntimeMethods = {
           return false;
         }
         if (!nested && cmd.kind === "while" && cmd.redirects.length === 1 && !this._activeSyncLoopHasFileMutations && this.canFastMemoryRedirect && (!this._fileWrites || this._fileWrites.size === 0) && (!this._outputFiles || this._outputFiles.size === 0)) {
+          if (cmd.condition.lists.some(list => list.pipelines.some(pipeline => pipeline.timing))) return false;
           const r0 = cmd.redirects[0]!;
           const targetPlain = r0.target.plain;
           if (!r0.move && !r0.document && (r0.descriptor === undefined || r0.descriptor === 0) && r0.operator === "<" && targetPlain && targetPlain.startsWith("/") && !targetPlain.startsWith("/dev/") && cmd.condition.lists.length === 1 && !cmd.condition.lists[0]!.terminator && cmd.condition.lists[0]!.pipelines.length === 1 && !cmd.condition.lists[0]!.pipelines[0]!.negate && cmd.condition.lists[0]!.pipelines[0]!.commands.length === 1) {
@@ -13713,7 +13717,7 @@ const syncExtraRuntimeMethods = {
           }
           if (cmd.condition.lists.length === 1 && !cmd.condition.lists[0]!.terminator && cmd.condition.lists[0]!.pipelines.length === 1) {
             const nbp = cmd.condition.lists[0]!.pipelines[0]!;
-            if (!nbp.negate && nbp.commands.length === 1) {
+            if (!nbp.negate && !nbp.timing && nbp.commands.length === 1) {
               const nbc = nbp.commands[0]!;
               let nCondOk = false;
               if (nbc.kind === "arithmetic") {
@@ -15320,7 +15324,7 @@ const syncExtraRuntimeMethods = {
     if (command.kind === "while" || command.kind === "until") {
       if ((redirectCount > 0 && (this.budget.fileSystemOperations + redirectCount + 64) >= this.budget.limits.maxFileSystemOperations) || command.condition.lists.length !== 1 || command.condition.lists[0]!.terminator || command.condition.lists[0]!.pipelines.length !== 1) return undefined;
       const cp = command.condition.lists[0]!.pipelines[0]!;
-      if (cp.negate || cp.commands.length !== 1) return undefined;
+      if (cp.negate || cp.timing || cp.commands.length !== 1) return undefined;
       const condCmd = cp.commands[0]!;
       // Only bounded input scans and closed-form arithmetic can finish synchronously.
       // General conditions need the cooperative executor without a caller signal too.
@@ -17476,7 +17480,7 @@ const syncExtraRuntimeMethods = {
       rawState.positional = ["0", "0", "0", "0", "0", "0", "0", "0", "0"];
       while (localListIdx < fnBody.body.lists.length) {
         const list = fnBody.body.lists[localListIdx]!;
-        if (list.terminator || list.pipelines.length !== 1 || list.pipelines[0]!.negate || list.pipelines[0]!.commands.length !== 1) break;
+        if (list.terminator || list.pipelines.length !== 1 || list.pipelines[0]!.negate || list.pipelines[0]!.timing || list.pipelines[0]!.commands.length !== 1) break;
         const lc = list.pipelines[0]!.commands[0]!;
         if (lc.kind !== "simple" || lc.redirects.length !== 0 || lc.words[0]?.plain !== "local") break;
         if (rawState.functions.has("local") || rawState.extensions?.builtins.has("local") || lc.words.length < 2) return undefined;
@@ -18026,7 +18030,7 @@ const syncExtraRuntimeMethods = {
     const list = part.script.lists[0]!;
     if (list.terminator || list.pipelines.length !== 1) return undefined;
     const pipeline = list.pipelines[0]!;
-    if (pipeline.negate) return undefined;
+    if (pipeline.negate || pipeline.timing) return undefined;
     const isCustomReg = customRegisteredRegistries.has(this.commands);
     for (const command of pipeline.commands) {
       if (command.kind !== "simple") continue;
@@ -20041,6 +20045,7 @@ const syncExtraRuntimeMethods = {
         fnPositional.push(argVal);
       }
       const innerW0 = fnBody.body.lists[0]?.pipelines[0]?.commands[0]?.kind === "simple" ? fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain : undefined;
+      if (fnBody.body.lists.some(list => list.pipelines.some(pipeline => pipeline.timing))) return undefined;
       const isSingleEchoOrPrintf = fnBody.body.lists.length === 1 && !fnBody.body.lists[0]!.terminator && fnBody.body.lists[0]!.pipelines.length === 1 && !fnBody.body.lists[0]!.pipelines[0]!.negate && fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 && (innerW0 === "echo" || innerW0 === "printf" || innerW0 === "dirname" || innerW0 === "basename" || innerW0 === "pwd" || innerW0 === "command" || innerW0 === "type" || innerW0 === "seq") && !rawState.functions.has(innerW0!) && !rawState.extensions?.builtins.has(innerW0!);
       if (isSingleEchoOrPrintf) {
         cmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;

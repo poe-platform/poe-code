@@ -249,3 +249,11 @@ for (const statement of [
   assert.equal(await run.instance.runSyncOrAsync(), 0);
   assert.equal(run.stdout(), "1 120 1 2\n2 6\n".repeat(2));
 });
+
+for (const builtin of ["sub", "gsub"]) {
+  test(`${builtin} preserves replacement backslashes`, async () => {
+    const run = await runtime(String.raw`BEGIN { t = "a b"; ${builtin}(" ", "\\\\", t); print t }`);
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.equal(run.stdout(), "a\\\\b\n");
+  });
+}

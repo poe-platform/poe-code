@@ -1822,7 +1822,11 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
       budget.step();
       const next = replacement[++index]!;
       if (syntax === "awk") {
-        size = next === "&" || next === "\\" ? 1 : 2;
+        if (next === "\\" && replacement[index + 1] === "\\" && (replacement[index + 2] === "\\" || replacement[index + 2] === "&")) {
+          budget.step(2);
+          index += 2;
+          size = 2;
+        } else size = next === "&" || (next === "\\" && replacement[index + 1] === "&") ? 1 : 2;
       } else if (next >= "0" && next <= "9") {
         budget.step();
         size = match.groups[Number(next)]?.length ?? 0;
@@ -1861,7 +1865,11 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
       budget.step();
       const next = replacement[++index]!;
       if (syntax === "awk") {
-        await buffer.append(replacement, next === "&" || next === "\\" ? index : index - 1, index + 1);
+        if (next === "\\" && replacement[index + 1] === "\\" && (replacement[index + 2] === "\\" || replacement[index + 2] === "&")) {
+          budget.step(2);
+          index += 2;
+          await buffer.append(replacement, index - 1, index + 1);
+        } else await buffer.append(replacement, next === "&" || (next === "\\" && replacement[index + 1] === "&") ? index : index - 1, index + 1);
       } else if (next >= "0" && next <= "9") {
         budget.step();
         await buffer.append(match.groups[Number(next)] ?? "");
@@ -2028,7 +2036,11 @@ function appendReplacementFromOffsetsSync(
       budget.step();
       const next = replacement[++index]!;
       if (syntax === "awk") {
-        piece = next === "&" || next === "\\" ? next : `\\${next}`;
+        if (next === "\\" && replacement[index + 1] === "\\" && (replacement[index + 2] === "\\" || replacement[index + 2] === "&")) {
+          budget.step(2);
+          index += 2;
+          piece = `\\${replacement[index]}`;
+        } else piece = next === "&" || (next === "\\" && replacement[index + 1] === "&") ? next : `\\${next}`;
       } else if (next >= "0" && next <= "9") {
         budget.step();
         const g = next.charCodeAt(0) - 48;

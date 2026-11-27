@@ -15,6 +15,7 @@ export const filesystemCommandRequirements = {
     { id: "no-create", description: "Skip missing files (-c)", capabilities: ["stat"] },
   ],
   cp: [
+    { id: "parents", description: "Retain source paths (--parents)", capabilities: ["explicitDirectories", "recursiveMkdir"], mutates: true },
     { id: "backup", description: "Rename replaced entries to backup files", capabilities: ["rename"], mutates: true },
     { id: "attributes", description: "Leave existing file contents intact", capabilities: ["stat", "realpath"] },
     { id: "attributes-create", description: "Create an empty destination", capabilities: ["stat", "realpath", "exclusiveCreate"], mutates: true },

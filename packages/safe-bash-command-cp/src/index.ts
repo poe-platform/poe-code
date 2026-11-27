@@ -61,6 +61,10 @@ async function copy(
   const preserve = flags.has("a") && preserveLink
     ? new Set([...requestedPreserve].filter(attribute => attribute !== "timestamps")) : requestedPreserve;
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
+  if (top && flags.has("parents")) {
+    await admitFilesystemModes(context, "cp", ["parents"], [dirname(target)]);
+    if (!preflight) await context.fs.mkdir(dirname(target), { recursive: true, signal: context.signal });
+  }
   rootStat ??= sourceStat;
   const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";
   const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination && !linkMode);
@@ -298,9 +302,11 @@ export function createCpCommand(configuration: CpCommandsOptions = {}): CommandD
       const parsed = { ...copyOptions(context), maxRecursiveDirectoryDepth };
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
       const destination = await destinations(context, parsed.operands, value(parsed, "t"), parsed.flags.has("T"));
+      const parents = parsed.flags.has("parents");
+      if (parents && !destination.directory) throw new PublicDiagnostic("with --parents, the destination must be a directory");
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
-        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+        await copy(context, source, destination.directory ? childOperand(destination.target, parents ? operand : basename(source)) : destination.target,
           parsed, readDirectory, true, new Set(), true, operand);
       });
       parsed.copiedLinks.clear();
@@ -323,9 +329,9 @@ export function createCpCommand(configuration: CpCommandsOptions = {}): CommandD
         const result = await eachOperand(context, destination.sources, async operand => {
           const source = pathOf(context, operand);
           const targetOperand = destination.targetOperand;
-          const exitCode = await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+          const exitCode = await copy(context, source, destination.directory ? childOperand(destination.target, parents ? operand : basename(source)) : destination.target,
             settings, readDirectory, true, new Set(), false, operand,
-            destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
+            destination.directory ? childOperand(targetOperand, parents ? operand : basename(source)) : targetOperand);
           if (exitCode !== 0) copyExitCode = 1;
         });
         return { exitCode: declined || copyExitCode !== 0 ? 1 : result.exitCode };

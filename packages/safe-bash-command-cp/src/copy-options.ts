@@ -37,7 +37,7 @@ export function copyOptions(context: CommandContext) {
     }
   }
   const parsed = options(args, "arRfinuvPHLpdbS:t:Tlsx", {
-    archive: "a", preserve: "p", "attributes-only": false, link: "l", "symbolic-link": "s",
+    archive: "a", preserve: "p", "attributes-only": false, parents: false, link: "l", "symbolic-link": "s",
     recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "backup:", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
   }, false, undefined, undefined, flag => {

@@ -8,6 +8,12 @@ import { AwkRuntime } from "./awk-runtime.js";
 import { AwkParser, builtinArities } from "./awk-syntax.js";
 import { AwkRetention } from "./awk-retention.js";
 
+test("print preserves exact digits of large integral doubles", async () => {
+  const run = await runtime("BEGIN { print 2 ^ 63, 2 ^ 64; print -(2 ^ 63), -(2 ^ 64) }");
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), "9223372036854775808 18446744073709551616\n-9223372036854775808 -18446744073709551616\n");
+});
+
 for (const argument of ["", '""', '"/dev/stdout"']) {
   test(`fflush(${argument}) publishes buffered output before the next statement`, async () => {
     const writes: string[] = [];

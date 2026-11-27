@@ -286,7 +286,7 @@ export function text(value: Scalar, format = "%.6g", budget?: Budget): string {
   if (Number.isInteger(value.number) && Math.abs(value.number) < 1e21) {
     budget?.step(0);
     const n = value.number;
-    const result = (n | 0) === n && n >= 0 && n < 4096 ? SMALL_NUMERIC_STRINGS[n]!.text : String(n);
+    const result = (n | 0) === n && n >= 0 && n < 4096 ? SMALL_NUMERIC_STRINGS[n]!.text : Number.isSafeInteger(n) ? String(n) : BigInt(n).toString();
     budget?.check(result);
     budget?.step(result.length);
     return result;

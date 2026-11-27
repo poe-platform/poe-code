@@ -6695,7 +6695,7 @@ fn eval_expr_primary(
 #[derive(Clone, Debug)]
 struct BcVal {
     val: f64,
-    exact_int: Option<Vec<u8>>, // base-10 digits, most-significant first, non-negative
+    coefficient: Option<Vec<u8>>, // exact magnitude * 10^scale, base-10 digits, most-significant first
     neg: bool,
     scale: usize,
 }
@@ -6713,7 +6713,7 @@ impl BcVal {
         let digits = abs.to_string().bytes().map(|b| b - b'0').collect();
         Self {
             val: n as f64,
-            exact_int: Some(digits),
+            coefficient: Some(digits),
             neg: neg && abs > 0,
             scale: 0,
         }
@@ -6722,14 +6722,14 @@ impl BcVal {
     fn from_f64_scaled(v: f64, scale: usize) -> Self {
         Self {
             val: v,
-            exact_int: None,
+            coefficient: None,
             neg: v < 0.0,
             scale,
         }
     }
 
     fn is_truthy(&self) -> bool {
-        if let Some(ref d) = self.exact_int {
+        if let Some(ref d) = self.coefficient {
             d.iter().any(|&x| x != 0)
         } else {
             self.val.abs() >= 1e-15
@@ -7257,9 +7257,9 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
         return exact_s.clone();
     }
     if bc.obase != 10 {
-        let n = if let Some(ref d) = v.exact_int {
+        let n = if let Some(ref d) = v.coefficient {
             let mut acc = 0u128;
-            for &dig in d {
+            for &dig in &d[..d.len().saturating_sub(v.scale)] {
                 acc = acc.saturating_mul(10).saturating_add(u128::from(dig));
             }
             acc
@@ -7268,9 +7268,7 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
         };
         return format_bc_base(n, bc.obase);
     }
-    if let Some(ref d) = v.exact_int
-        && (v.scale == 0 || v.scale > 12)
-    {
+    if let Some(ref d) = v.coefficient {
         return format_big_with_scale(d, v.scale, v.neg);
     }
     let uses_scale = expr_s.contains('/')
@@ -7542,7 +7540,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                 };
             v = BcVal {
                 val: fv,
-                exact_int: digits,
+                coefficient: digits,
                 neg: fv < 0.0,
                 scale: sc,
             };
@@ -7667,39 +7665,46 @@ fn split_bc_args(s: &str) -> Vec<String> {
 }
 
 fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
-    if matches!(op, "/" | "%") && (r.val == 0.0 || r.exact_int.as_deref() == Some(&[0])) {
+    if matches!(op, "/" | "%") && (r.val == 0.0 || r.coefficient.as_deref() == Some(&[0])) {
         if bc.runtime_err.is_none() {
             bc.runtime_err = Some("Runtime error (func=(main), adr=0): Divide by zero".to_string());
         }
         return BcVal::from_i64(0);
     }
-    if let (Some(la), Some(ra)) = (&l.exact_int, &r.exact_int)
+    if matches!(op, "+" | "-")
+        && let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient)
+    {
+        let scale = l.scale.max(r.scale);
+        let mut la = la.clone();
+        let mut ra = ra.clone();
+        la.extend(std::iter::repeat_n(0, scale - l.scale));
+        ra.extend(std::iter::repeat_n(0, scale - r.scale));
+        let eff_r_neg = if op == "-" { !r.neg } else { r.neg };
+        let (digits, neg) = if l.neg == eff_r_neg {
+            (big_add(&la, &ra), l.neg)
+        } else {
+            match big_cmp(&la, &ra) {
+                std::cmp::Ordering::Greater => (big_sub(&la, &ra), l.neg),
+                std::cmp::Ordering::Less => (big_sub(&ra, &la), eff_r_neg),
+                std::cmp::Ordering::Equal => (vec![0], false),
+            }
+        };
+        let f = digits
+            .iter()
+            .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
+        let is_zero = digits.len() == 1 && digits[0] == 0;
+        return BcVal {
+            val: if neg && !is_zero { -f } else { f } / 10f64.powi(scale as i32),
+            coefficient: Some(digits),
+            neg: neg && !is_zero,
+            scale,
+        };
+    }
+    if let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient)
         && l.scale == 0
         && r.scale == 0
     {
         match op {
-            "+" | "-" => {
-                let eff_r_neg = if op == "-" { !r.neg } else { r.neg };
-                let (digits, neg) = if l.neg == eff_r_neg {
-                    (big_add(la, ra), l.neg)
-                } else {
-                    match big_cmp(la, ra) {
-                        std::cmp::Ordering::Greater => (big_sub(la, ra), l.neg),
-                        std::cmp::Ordering::Less => (big_sub(ra, la), eff_r_neg),
-                        std::cmp::Ordering::Equal => (vec![0], false),
-                    }
-                };
-                let f = digits
-                    .iter()
-                    .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
-                let is_zero = digits.len() == 1 && digits[0] == 0;
-                return BcVal {
-                    val: if neg && !is_zero { -f } else { f },
-                    exact_int: Some(digits),
-                    neg: neg && !is_zero,
-                    scale: 0,
-                };
-            }
             "*" => {
                 let digits = big_mul(la, ra);
                 let neg = l.neg ^ r.neg;
@@ -7709,7 +7714,7 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                     .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
                 return BcVal {
                     val: if neg && !is_zero { -f } else { f },
-                    exact_int: Some(digits),
+                    coefficient: Some(digits),
                     neg: neg && !is_zero,
                     scale: 0,
                 };
@@ -7723,7 +7728,7 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                     .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
                 return BcVal {
                     val: if neg && !is_zero { -f } else { f },
-                    exact_int: Some(quot),
+                    coefficient: Some(quot),
                     neg: neg && !is_zero,
                     scale: 0,
                 };
@@ -7734,7 +7739,7 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                 let f = rem.iter().fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
                 return BcVal {
                     val: if l.neg && !is_zero { -f } else { f },
-                    exact_int: Some(rem),
+                    coefficient: Some(rem),
                     neg: l.neg && !is_zero,
                     scale: 0,
                 };
@@ -7749,7 +7754,7 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                     .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
                 return BcVal {
                     val: if neg && !is_zero { -f } else { f },
-                    exact_int: Some(digits),
+                    coefficient: Some(digits),
                     neg: neg && !is_zero,
                     scale: 0,
                 };
@@ -7935,9 +7940,9 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         };
         if op == '/'
             && r.val != 0.0
-            && r.exact_int.as_deref() != Some(&[0])
+            && r.coefficient.as_deref() != Some(&[0])
             && bc.scale > 12
-            && let (Some(la), Some(ra)) = (&l.exact_int, &r.exact_int)
+            && let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient)
             && l.scale == 0
             && r.scale == 0
         {
@@ -7971,7 +7976,7 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         let first_val = arg_vals.first().cloned().unwrap_or_default();
         match fname {
             "length" => {
-                if let Some(ref d) = first_val.exact_int {
+                if let Some(ref d) = first_val.coefficient {
                     let len = if d.len() == 1 && d[0] == 0 {
                         1
                     } else {
@@ -8009,7 +8014,7 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
                     return BcVal::from_i64(0);
                 }
                 if bc.scale > 12
-                    && let Some(ref d) = first_val.exact_int
+                    && let Some(ref d) = first_val.coefficient
                     && first_val.scale == 0
                 {
                     bc.last_str_out = Some(big_sqrt_scaled(d, bc.scale));
@@ -8082,23 +8087,30 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         let digits = iv.to_string().bytes().map(|b| b - b'0').collect();
         return BcVal {
             val: iv as f64,
-            exact_int: Some(digits),
-            neg: false,
-            scale: 0,
-        };
-    }
-    if s.bytes().all(|b| b.is_ascii_digit()) && !s.is_empty() {
-        let mut digits: Vec<u8> = s.bytes().map(|b| b - b'0').collect();
-        big_trim(&mut digits);
-        let fv = s.parse::<f64>().unwrap_or(0.0);
-        return BcVal {
-            val: fv,
-            exact_int: Some(digits),
+            coefficient: Some(digits),
             neg: false,
             scale: 0,
         };
     }
     let sc = s.split_once('.').map(|(_, f)| f.len()).unwrap_or(0);
+    if s.bytes().any(|b| b.is_ascii_digit())
+        && s.bytes().all(|b| b.is_ascii_digit() || b == b'.')
+        && s.bytes().filter(|&b| b == b'.').count() <= 1
+    {
+        let mut digits: Vec<u8> = s
+            .bytes()
+            .filter(|b| b.is_ascii_digit())
+            .map(|b| b - b'0')
+            .collect();
+        big_trim(&mut digits);
+        let fv = s.parse::<f64>().unwrap_or(0.0);
+        return BcVal {
+            val: fv,
+            coefficient: Some(digits),
+            neg: false,
+            scale: sc,
+        };
+    }
     BcVal::from_f64_scaled(s.parse::<f64>().unwrap_or(0.0), sc)
 }
 

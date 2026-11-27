@@ -39,6 +39,11 @@ test("time keyword regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/time.test.ts"));
 });
 
+test("function stack regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/function-stack.test.ts"));
+});
+
 test("uniq Latin-1 regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/uniq-latin1.test.ts"));

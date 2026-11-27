@@ -34,7 +34,7 @@ shell.register({ name: "late", async execute(context) {
 } });
 await assert.rejects(shell.exec("cancel-parent", { signal: controller.signal }), error => error === reason);
 assert.equal(entered, true);
-assert.deepEqual({ ...parentEnvironment }, { PUBLIC: "parent", PWD: "/" });
+assert.deepEqual({ ...parentEnvironment }, { PUBLIC: "parent", PWD: "/", SHLVL: "1" });
 await new Promise(resolve => setTimeout(resolve, 35));
 checks++;
 

@@ -6662,6 +6662,7 @@ fn parse_yaml_block(
                 } else if !after_dash.starts_with('{')
                     && !after_dash.starts_with('[')
                     && let Some((k, v)) = after_dash.split_once(':')
+                    && (v.is_empty() || v.starts_with([' ', '\t']))
                     && {
                         let kt = k.trim();
                         if kt.starts_with('"') {

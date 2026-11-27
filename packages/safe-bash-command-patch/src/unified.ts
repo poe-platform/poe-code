@@ -133,6 +133,15 @@ export async function parseUnifiedReader<Lines, Hunks extends { readonly length:
         { const c = budget.checkpoint(); if (c) await c; }
         const bodyIndex = index++;
         const body = await physical.read(bodyIndex, physical.body ? 1 : undefined);
+        // GNU patch fills equal missing ranges at EOF with blank context;
+        // the normal matcher then decides whether the fuzz allowance suffices.
+        if (body === undefined && oldCount - oldRead === newCount - newRead && !oldEnded && !newEnded) {
+          index = physical.length;
+          oldRead++;
+          newRead++;
+          await bodyLines.append({ kind: " ", text: "\n" });
+          continue;
+        }
         const kind = body === "" ? " " : body?.[0];
         if (body === undefined || (kind !== " " && kind !== "+" && kind !== "-")) throw new ToolError("truncated or malformed hunk body");
         if ((kind !== "+" && oldEnded) || (kind !== "-" && newEnded)) throw new ToolError("content follows an incomplete final line");

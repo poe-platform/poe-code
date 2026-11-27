@@ -2027,10 +2027,7 @@ fn resolve_jq_lhs_paths(
                 for p in &paths {
                     for iv in &idx_vals {
                         let mut np = p.clone();
-                        match iv {
-                            JVal::Number(n, _) => np.push(JVal::Number(*n, None)),
-                            other => np.push(JVal::Str(other.to_raw_string(true, false))),
-                        }
+                        np.push(iv.clone());
                         next_paths.push(np);
                     }
                 }

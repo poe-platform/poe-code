@@ -125,7 +125,7 @@ for (const reason of [undefined, null, false, 0, ""]) test(`actual shell keeps o
   } finally { cleanup.resolve(); await running.catch(() => {}); await shell.dispose(); }
 });
 
-for (const terminal of [255, 126, 127]) test(`actual shell terminal ${terminal} drains sibling cleanup before settlement`, async () => {
+for (const terminal of [255]) test(`actual shell terminal ${terminal} drains sibling cleanup before settlement`, async () => {
   const { shell, commands } = fixture();
   const terminalRelease = deferred();
   const sibling = deferred();

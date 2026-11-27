@@ -39,9 +39,9 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
   const commands: CommandDefinition[] = [...createTrashCommands()];
   const execute = directExecutor(options.execute ?? (async context => {
     const command = commands.find(definition => definition.name === context.command);
-    if (command) return command.execute(context);
+    if (command) return { exitCode: (await command.execute(context)).exitCode };
     await diagnostic(context, new PublicDiagnostic("command not found"));
-    return { exitCode: 127 };
+    return { exitCode: 127, launchFailure: true };
   }));
   if (
     options.maxDirectoryEntries === undefined &&

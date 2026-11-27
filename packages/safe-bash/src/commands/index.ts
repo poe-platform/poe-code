@@ -16,9 +16,9 @@ export function standardCommands(options: StandardCommandsOptions = {}): Virtual
     setup(host) {
       const commands = createStandardCommands({ ...options, execute: options.execute ?? (async context => {
         const command = host.commands.get(context.command);
-        if (command) return command.execute(context);
+        if (command) return { exitCode: (await command.execute(context)).exitCode };
         await diagnostic(context, new PublicDiagnostic("command not found"));
-        return { exitCode: 127 };
+        return { exitCode: 127, launchFailure: true };
       }) });
       if (!options.replace) {
         for (const command of commands) {

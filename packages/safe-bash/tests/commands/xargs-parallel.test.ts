@@ -277,7 +277,7 @@ for (const terminal of [255, 126, 127]) test(`terminal ${terminal} stops intake 
     const index = starts.length;
     starts.push(args[0]!);
     signals.push(options!.signal!);
-    return { exitCode: await releases[index]!.promise };
+    return { exitCode: await releases[index]!.promise, launchFailure: terminal !== 255 };
   } });
   try {
     await until(() => starts.length === 2 || run.settled);
@@ -298,7 +298,7 @@ for (const terminal of [255, 126, 127]) test(`terminal ${terminal} stops intake 
 test("first observed terminal result is sticky across reversed completion", async () => {
   const releases = [deferred<number>(), deferred<number>()];
   let starts = 0;
-  const run = launch(["-P2", "-n1", "capture"], { invoke: async () => ({ exitCode: await releases[starts++]!.promise }) });
+  const run = launch(["-P2", "-n1", "capture"], { invoke: async () => ({ exitCode: await releases[starts++]!.promise, launchFailure: true }) });
   try {
     await until(() => starts === 2 || run.settled);
     assert.equal(starts, 2);

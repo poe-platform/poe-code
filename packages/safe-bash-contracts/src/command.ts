@@ -307,6 +307,8 @@ export interface CommandContext {
 
 export interface CommandResult {
   readonly exitCode: number;
+  /** The command could not be launched, rather than running and exiting. */
+  readonly launchFailure?: boolean;
 }
 
 export type CommandHandler = (

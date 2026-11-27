@@ -1011,6 +1011,7 @@ interface ExecDescriptorFrame {
   releases: Map<number, () => Promise<void>>;
 }
 const execDescriptorFrames = new WeakMap<State, ExecDescriptorFrame>();
+const launchFailures = new WeakSet<State>();
 async function closeExecDescriptors(state: State): Promise<void> {
   const raw = stateMonitor(state)?.raw ?? state;
   const frame = execDescriptorFrames.get(raw);
@@ -6953,6 +6954,7 @@ export class Runtime {
           const displayed = diagnosticCommandName(commandName, byteLocale({
             LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"), }), allocation);
           await this.diagnostic({ ...io, ...context }, concatShellValues([displayed, ": command not found"], allocation));
+          launchFailures.add(state);
           return { exitCode: 127 };
         }
         this.budget.beginPathLookupSuspension();
@@ -7569,7 +7571,10 @@ export class Runtime {
   }
   async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, loadedSource?: { path: string; source: string }, child?: State): Promise<number> {
     let errexit = false;
-    if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
+    if (target === "") {
+      if (direct) launchFailures.add(state);
+      throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
+    }
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = pathOf(state, target);
     let source: string;
@@ -7623,8 +7628,10 @@ export class Runtime {
       }
     } catch (error) {
       this.signal.throwIfAborted();
-      if (error instanceof ShellLimitError || error instanceof CommandFailure) throw error;
+      if (error instanceof ShellLimitError) throw error;
       if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+      if (direct) launchFailures.add(state);
+      if (error instanceof CommandFailure) throw error;
       throw new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, errorCode(error) === "ENOENT" ? 127 : 126);
     }
     const decodeSource = () => sourceBytes ? this.sourceText(sourceBytes, target) : source;
@@ -7910,7 +7917,7 @@ export class Runtime {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     }, (runtime, scope) => runtime.invokeScoped(name, args, options, context, state, scope));
   }
-  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
+  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<CommandResult> {
     this.signal.throwIfAborted();
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
@@ -7952,7 +7959,10 @@ export class Runtime {
         if (typeof value !== "string") invokedValues.set(part, value);
         return { offset: 0, parts: [part] };
       }), };
-    try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
+    try {
+      const exitCode = await this.runCommandIsolated(command, child, io);
+      return { exitCode, ...(launchFailures.has(child) ? { launchFailure: true } : {}) };
+    }
     finally {
       try { await this.releaseExtensions(child); }
       finally {

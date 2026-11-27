@@ -126,9 +126,9 @@ export interface AgentCommandsOptions {
 export function commandExecutor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
   return async context => {
     const command = lookup(context.command);
-    if (command) return command.execute(context);
+    if (command) return { exitCode: (await command.execute(context)).exitCode };
     await diagnostic(context, new PublicDiagnostic("command not found"));
-    return { exitCode: 127 };
+    return { exitCode: 127, launchFailure: true };
   };
 }
 

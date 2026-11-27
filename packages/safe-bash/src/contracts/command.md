@@ -459,3 +459,9 @@ per handle, with reads and writes bounded to 65,536 bytes. Closing a lease
 drains admitted work without closing the underlying shell descriptor. Enrolled
 output preserves successful write receipts while cancellation drains; later
 operations still fail after cancellation.
+
+`CommandResult.launchFailure` distinguishes a failure to launch a command from
+its own exit status. Invocation hosts set it for missing or non-executable
+commands; a command that starts and exits with 126 or 127 omits it. The marker
+belongs to that invocation only: a running wrapper such as `env` may return its
+child's status, but its child's launch failure is not the wrapper's launch failure.

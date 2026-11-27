@@ -7,6 +7,7 @@ import { Shell } from "../../src/shell/shell.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { options as commandOptions } from "../../src/commands/internal.js";
 import { chunks, fixture, run } from "./helpers.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { evalSyncXargs } from "../../src/commands/execution.js";
 
 for (const entry of [
@@ -336,4 +337,49 @@ test("xargs respects -d and -0 option ordering", async () => {
   const res = await run("xargs", ["-d", ":", "-0", "-n", "1", "echo"], { stdin: "a:b\0c\0" });
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "a:b\nc\n");
+});
+
+for (const status of [126, 127]) test(`xargs aggregates child exit ${status} and continues admission`, async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(standardCommands());
+  try {
+    const result = await shell.exec(`printf 'y\\n' | xargs sh -c 'exit ${status}'; echo $?`);
+    assert.equal(result.stdout, "123\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal((await shell.exec("echo y | xargs sh -c 'missing-command'")).exitCode, 123);
+    assert.equal((await shell.exec("echo y | xargs env missing-command")).exitCode, 123);
+    const batches = await shell.exec(`printf 'one two' | xargs -n1 sh -c 'echo "$1"; exit ${status}' sh`);
+    assert.equal(batches.stdout, "one\ntwo\n");
+    assert.equal(batches.exitCode, 123);
+  } finally { await shell.dispose(); }
+  let calls = 0;
+  const direct = await run("xargs", ["-n1", "custom"], { stdin: "one two", execute: () => { calls++; return { exitCode: status }; } });
+  assert.equal(direct.exitCode, 123);
+  assert.equal(calls, 2);
+});
+
+test("xargs preserves launch failure statuses", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(standardCommands());
+  try {
+    assert.equal((await shell.exec("echo y | xargs missing-command")).exitCode, 127);
+    assert.equal((await shell.exec("echo y | xargs /work")).exitCode, 126);
+    assert.equal((await shell.exec("echo y | xargs /missing")).exitCode, 127);
+  } finally { await shell.dispose(); }
+  assert.equal((await run("xargs", ["missing-command"], { stdin: "y" })).exitCode, 127);
+  assert.equal((await run("xargs", ["env", "missing-command"], { stdin: "y" })).exitCode, 123);
+});
+
+test("agent commands expose xargs child failure statuses to shell callers", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("printf 'y\\n' | xargs sh -c 'exit 126'; echo $?; printf 'y\\n' | xargs sh -c 'exit 127'; echo $?");
+    assert.equal(result.stdout, "123\n123\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    for (const status of [126, 127]) {
+      const parallel = await shell.exec(`printf 'a b c' | xargs -P2 -n1 sh -c 'echo "$1"; exit ${status}' sh`);
+      assert.equal(parallel.exitCode, 123);
+      assert.deepEqual(parallel.stdout.trim().split("\n").sort(), ["a", "b", "c"]);
+    }
+  } finally { await shell.dispose(); }
 });

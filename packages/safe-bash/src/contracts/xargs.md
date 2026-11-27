@@ -74,8 +74,9 @@ atomicity promise and no command-output reordering buffer. Verbose traces are
 written before the corresponding child is admitted and use the same output budget.
 
 Ordinary nonzero child statuses aggregate to 123 and do not stop admission. The
-first observed terminal result is sticky: 255 maps to 124, and 126/127 retain
-their values. Terminal results stop input admission and drain admitted children
+first observed terminal result is sticky: 255 maps to 124, and launch failures
+marked by `CommandResult.launchFailure` retain 126/127. A command that runs and
+exits with 126 or 127 instead contributes status 123 and admission continues. Terminal results stop input admission and drain admitted children
 without cancelling otherwise healthy siblings. Later ordinary statuses cannot
 overwrite a terminal result.
 

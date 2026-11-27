@@ -236,7 +236,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
           return execute({ ...context, command, args, argumentValues: childArguments, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }), env, signal: childSignal });
         }).then(result => {
           const exitCode = result.exitCode;
-          if (!terminal && (exitCode === 255 || exitCode === 126 || exitCode === 127)) {
+          if (!terminal && (exitCode === 255 || result.launchFailure && (exitCode === 126 || exitCode === 127))) {
             terminal = true;
             status = exitCode === 255 ? 124 : exitCode;
             stopInput();

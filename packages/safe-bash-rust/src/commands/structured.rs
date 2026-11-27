@@ -25545,42 +25545,6 @@ fn eval_sql_having(
     true
 }
 
-fn split_sql_concat(expr: &str) -> Vec<&str> {
-    let bytes = expr.as_bytes();
-    let mut out = Vec::new();
-    let mut start = 0usize;
-    let mut depth = 0i32;
-    let mut in_sq = false;
-    let mut in_dq = false;
-    let mut i = 0usize;
-    while i < bytes.len() {
-        let b = bytes[i];
-        if b == b'\'' && !in_dq {
-            if in_sq && i + 1 < bytes.len() && bytes[i + 1] == b'\'' {
-                i += 2;
-                continue;
-            }
-            in_sq = !in_sq;
-        } else if b == b'"' && !in_sq {
-            in_dq = !in_dq;
-        } else if !in_sq && !in_dq {
-            if b == b'(' {
-                depth += 1;
-            } else if b == b')' {
-                depth -= 1;
-            } else if depth == 0 && i + 1 < bytes.len() && b == b'|' && bytes[i + 1] == b'|' {
-                out.push(expr[start..i].trim());
-                i += 2;
-                start = i;
-                continue;
-            }
-        }
-        i += 1;
-    }
-    out.push(expr[start..].trim());
-    out
-}
-
 fn eval_sql_printf(fmt: &str, args: &[String]) -> String {
     let mut out = String::new();
     let chs: Vec<char> = fmt.chars().collect();
@@ -25784,6 +25748,83 @@ fn substitute_correlated_subquery(sub_sql: &str, cols: &[String], row: &[String]
     out
 }
 
+fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
+    let bytes = s.as_bytes();
+    let mut depth = 0usize;
+    let mut case_depth = 0usize;
+    let mut quote = None;
+    let mut additive = None;
+    let mut multiplicative = None;
+    let mut concat = None;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if let Some(end) = quote {
+            if b == end {
+                quote = None;
+            }
+        } else if matches!(b, b'\'' | b'"' | b'`' | b'[') {
+            quote = Some(if b == b'[' { b']' } else { b });
+        } else if b == b'(' {
+            depth += 1;
+        } else if b == b')' {
+            depth = depth.saturating_sub(1);
+        } else if b.is_ascii_digit() {
+            // Signs in numeric exponents are part of the literal.
+            while bytes
+                .get(i)
+                .is_some_and(|b| b.is_ascii_digit() || *b == b'.')
+            {
+                i += 1;
+            }
+            if matches!(bytes.get(i), Some(b'e' | b'E')) {
+                i += 1;
+                if matches!(bytes.get(i), Some(b'+' | b'-')) {
+                    i += 1;
+                }
+                while bytes.get(i).is_some_and(u8::is_ascii_digit) {
+                    i += 1;
+                }
+            }
+            continue;
+        } else if b.is_ascii_alphabetic() || b == b'_' {
+            let start = i;
+            while bytes
+                .get(i)
+                .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
+            {
+                i += 1;
+            }
+            if bytes[start..i].eq_ignore_ascii_case(b"CASE") {
+                case_depth += 1;
+            } else if bytes[start..i].eq_ignore_ascii_case(b"END") {
+                case_depth = case_depth.saturating_sub(1);
+            }
+            continue;
+        } else if depth == 0 && case_depth == 0 && b == b'|' && bytes.get(i + 1) == Some(&b'|') {
+            concat = Some((i, &s[i..i + 2]));
+            i += 1;
+        } else if depth == 0 && case_depth == 0 && matches!(b, b'+' | b'-' | b'*' | b'/' | b'%') {
+            let prev = s[..i].trim_end().as_bytes().last().copied();
+            if matches!(b, b'+' | b'-') {
+                if matches!(
+                    prev,
+                    None | Some(b'+' | b'-' | b'*' | b'/' | b'%' | b'(' | b'|')
+                ) || (b == b'-' && bytes.get(i + 1) == Some(&b'>'))
+                {
+                    i += 1;
+                    continue;
+                }
+                additive = Some((i, &s[i..i + 1]));
+            } else {
+                multiplicative = Some((i, &s[i..i + 1]));
+            }
+        }
+        i += 1;
+    }
+    additive.or(multiplicative).or(concat)
+}
+
 fn eval_sql_row_expr(
     expr: &str,
     cols: &[String],
@@ -25803,17 +25844,62 @@ fn eval_sql_row_expr(
     {
         return format!("{SQL_BLOB}{}", hex.to_ascii_uppercase());
     }
-    let concat_parts = split_sql_concat(s);
-    if concat_parts.len() > 1 {
-        let mut res = String::new();
-        for p in concat_parts {
-            let pv = eval_sql_row_expr(p, cols, row, tables);
-            if pv == SQL_NULL {
+    // Split the lowest-precedence operator; concatenation binds above arithmetic.
+    if let Some((sp, op)) = find_sql_binary_operator(s) {
+        let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
+        let rv_s = eval_sql_row_expr(&s[sp + op.len()..], cols, row, tables);
+        if op == "||" {
+            if lv_s == SQL_NULL || rv_s == SQL_NULL {
                 return SQL_NULL.to_string();
             }
-            res.push_str(if pv == "\x00LIT_NULL" { "NULL" } else { &pv });
+            let lv = if lv_s == "\x00LIT_NULL" {
+                "NULL"
+            } else {
+                &lv_s
+            };
+            let rv = if rv_s == "\x00LIT_NULL" {
+                "NULL"
+            } else {
+                &rv_s
+            };
+            return format!("{lv}{rv}");
         }
-        return res;
+        if let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>()) {
+            let result = match op {
+                "+" => lv.checked_add(rv),
+                "/" => lv.checked_div(rv),
+                _ => None,
+            };
+            if let Some(result) = result {
+                return result.to_string();
+            }
+        }
+        let lv = lv_s.parse::<f64>().unwrap_or(0.0);
+        let rv = rv_s.parse::<f64>().unwrap_or(0.0);
+        let res = match op {
+            "+" => lv + rv,
+            "-" => lv - rv,
+            "*" => lv * rv,
+            "/" => {
+                if rv != 0.0 {
+                    lv / rv
+                } else {
+                    0.0
+                }
+            }
+            "%" => {
+                if rv != 0.0 {
+                    (lv as i64 % rv as i64) as f64
+                } else {
+                    0.0
+                }
+            }
+            _ => 0.0,
+        };
+        if (res - res.round()).abs() < 1e-9 {
+            return (res.round() as i64).to_string();
+        }
+        return res.to_string();
     }
     if (s.starts_with('\'') && s.ends_with('\'')) || (s.starts_with('"') && s.ends_with('"')) {
         return s[1..s.len() - 1].replace("''", "'");
@@ -26699,65 +26785,6 @@ fn eval_sql_row_expr(
         }
         return SQL_NULL.to_string();
     }
-    for op in ['+', '-', '*', '/', '%'] {
-        let mut depth = 0i32;
-        let mut in_sq = false;
-        let bytes = s.as_bytes();
-        let mut split_at = None;
-        for idx in 0..bytes.len() {
-            if bytes[idx] == b'\'' {
-                in_sq = !in_sq;
-            } else if !in_sq {
-                if bytes[idx] == b'(' {
-                    depth += 1;
-                } else if bytes[idx] == b')' {
-                    depth -= 1;
-                } else if depth == 0 && idx > 0 && bytes[idx] == (op as u8) {
-                    split_at = Some(idx);
-                }
-            }
-        }
-        if let Some(sp) = split_at {
-            let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
-            let rv_s = eval_sql_row_expr(&s[sp + 1..], cols, row, tables);
-            if let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>()) {
-                let result = match op {
-                    '+' => lv.checked_add(rv),
-                    '/' => lv.checked_div(rv),
-                    _ => None,
-                };
-                if let Some(result) = result {
-                    return result.to_string();
-                }
-            }
-            let lv = lv_s.parse::<f64>().unwrap_or(0.0);
-            let rv = rv_s.parse::<f64>().unwrap_or(0.0);
-            let res = match op {
-                '+' => lv + rv,
-                '-' => lv - rv,
-                '*' => lv * rv,
-                '/' => {
-                    if rv != 0.0 {
-                        lv / rv
-                    } else {
-                        0.0
-                    }
-                }
-                '%' => {
-                    if rv != 0.0 {
-                        (lv as i64 % rv as i64) as f64
-                    } else {
-                        0.0
-                    }
-                }
-                _ => 0.0,
-            };
-            if (res - res.round()).abs() < 1e-9 {
-                return (res.round() as i64).to_string();
-            }
-            return res.to_string();
-        }
-    }
     if let Some(rest) = s.strip_prefix('-') {
         if let Ok(n) = eval_sql_row_expr(rest.trim(), cols, row, tables).parse::<f64>() {
             let neg = -n;
@@ -26931,17 +26958,59 @@ fn eval_sql_group_expr(
     source_row: usize,
 ) -> String {
     let s = expr.trim();
-    let concat_parts = split_sql_concat(s);
-    if concat_parts.len() > 1 {
-        let mut res = String::new();
-        for p in concat_parts {
-            let value = eval_sql_group_expr(p, cols, grp, tables, source_row);
-            if value == SQL_NULL {
+    // Split the lowest-precedence operator; concatenation binds above arithmetic.
+    if let Some((sp, op)) = find_sql_binary_operator(s) {
+        let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row);
+        let rv_s = eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row);
+        if op == "||" {
+            if lv_s == SQL_NULL || rv_s == SQL_NULL {
                 return SQL_NULL.to_string();
             }
-            res.push_str(&value);
+            return format!("{lv_s}{rv_s}");
         }
-        return res;
+        let lv = lv_s.parse::<f64>().unwrap_or(0.0);
+        let rv = rv_s.parse::<f64>().unwrap_or(0.0);
+        if op == "/"
+            && !lv_s.contains('.')
+            && !rv_s.contains('.')
+            && !s[..sp].contains('.')
+            && !s[sp + 1..].contains('.')
+        {
+            let ri = rv as i64;
+            return if ri != 0 {
+                ((lv as i64) / ri).to_string()
+            } else {
+                "0".to_string()
+            };
+        }
+        let res = match op {
+            "+" => lv + rv,
+            "-" => lv - rv,
+            "*" => lv * rv,
+            "/" => {
+                if rv != 0.0 {
+                    lv / rv
+                } else {
+                    0.0
+                }
+            }
+            "%" => {
+                if rv != 0.0 {
+                    (lv as i64 % rv as i64) as f64
+                } else {
+                    0.0
+                }
+            }
+            _ => 0.0,
+        };
+        if (res - res.round()).abs() < 1e-9
+            && !lv_s.contains('.')
+            && !rv_s.contains('.')
+            && op != "/"
+        {
+            return (res.round() as i64).to_string();
+        }
+        return res.to_string();
     }
     if (s.starts_with('\'') && s.ends_with('\'')) || (s.starts_with('"') && s.ends_with('"')) {
         return s[1..s.len() - 1].to_string();
@@ -27041,87 +27110,6 @@ fn eval_sql_group_expr(
         let inner = s[1..s.len() - 1].trim();
         if !inner.to_ascii_uppercase().starts_with("SELECT ") {
             return eval_sql_group_expr(inner, cols, grp, tables, source_row);
-        }
-    }
-    for tier in [&['+', '-'][..], &['*', '/', '%'][..]] {
-        let mut depth = 0i32;
-        let mut in_sq = false;
-        let bytes = s.as_bytes();
-        let mut split_at: Option<(usize, char)> = None;
-        for idx in 0..bytes.len() {
-            if bytes[idx] == b'\'' {
-                in_sq = !in_sq;
-            } else if !in_sq {
-                if bytes[idx] == b'(' {
-                    depth += 1;
-                } else if bytes[idx] == b')' {
-                    depth -= 1;
-                } else if depth == 0 && idx > 0 {
-                    let ch = bytes[idx] as char;
-                    if tier.contains(&ch) {
-                        if ch == '-' && bytes.get(idx + 1) == Some(&b'>') {
-                            continue;
-                        }
-                        let prev_non_ws = s[..idx].trim_end().as_bytes().last().copied();
-                        if (ch == '-' || ch == '+')
-                            && matches!(
-                                prev_non_ws,
-                                None | Some(b'+' | b'-' | b'*' | b'/' | b'%' | b'(')
-                            )
-                        {
-                            continue;
-                        }
-                        split_at = Some((idx, ch));
-                    }
-                }
-            }
-        }
-        if let Some((sp, op)) = split_at {
-            let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row);
-            let rv_s = eval_sql_group_expr(&s[sp + 1..], cols, grp, tables, source_row);
-            let lv = lv_s.parse::<f64>().unwrap_or(0.0);
-            let rv = rv_s.parse::<f64>().unwrap_or(0.0);
-            if op == '/'
-                && !lv_s.contains('.')
-                && !rv_s.contains('.')
-                && !s[..sp].contains('.')
-                && !s[sp + 1..].contains('.')
-            {
-                let ri = rv as i64;
-                return if ri != 0 {
-                    ((lv as i64) / ri).to_string()
-                } else {
-                    "0".to_string()
-                };
-            }
-            let res = match op {
-                '+' => lv + rv,
-                '-' => lv - rv,
-                '*' => lv * rv,
-                '/' => {
-                    if rv != 0.0 {
-                        lv / rv
-                    } else {
-                        0.0
-                    }
-                }
-                '%' => {
-                    if rv != 0.0 {
-                        (lv as i64 % rv as i64) as f64
-                    } else {
-                        0.0
-                    }
-                }
-                _ => 0.0,
-            };
-            if (res - res.round()).abs() < 1e-9
-                && !lv_s.contains('.')
-                && !rv_s.contains('.')
-                && op != '/'
-            {
-                return (res.round() as i64).to_string();
-            }
-            return res.to_string();
         }
     }
     let empty_tables = tables;

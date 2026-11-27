@@ -63,6 +63,7 @@ function isSyncResolved(promise: unknown): boolean {
 const NEWLINE_BYTES = new Uint8Array([10]);
 const NUL_BYTES = new Uint8Array([0]);
 const SINGLE_STDIN_FILE: readonly { name: string; nested: boolean }[] = Object.freeze([Object.freeze({ name: "-", nested: false })]);
+const GREP_SHORT_OPTIONS = "GEFPivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT";
 const GREP_LONG_OPTIONS: Readonly<Record<string, string | false>> = Object.freeze({
   color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false,
   label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false,
@@ -538,23 +539,30 @@ async function executeGrepWithSession(
       const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "text" };
       let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
-      let normalizedArgs: readonly string[] = context.args;
+      let rewrittenArgs: string[] | undefined;
       for (let i = 0; i < context.args.length; i++) {
         const arg = context.args[i]!;
         if (arg === "--") break;
-        if (arg.length > 1 && arg.charCodeAt(0) === 45 && arg.charCodeAt(1) >= 48 && arg.charCodeAt(1) <= 57 && /^-[0-9]+$/u.test(arg)) {
-          const copy = context.args.slice();
-          let optionsEnded = false;
-          for (let j = i; j < copy.length; j++) {
-            const item = copy[j]!;
-            if (!optionsEnded && item === "--") { optionsEnded = true; continue; }
-            if (!optionsEnded && /^-[0-9]+$/u.test(item)) copy[j] = `-C${item.slice(1)}`;
+        if (!arg.startsWith("-") || arg === "-") continue;
+        if (arg.startsWith("--")) {
+          if (arg.includes("=")) continue;
+          const key = GREP_LONG_OPTIONS[arg.slice(2)];
+          if (typeof key === "string" && (key.endsWith(":") || GREP_SHORT_OPTIONS.includes(`${key}:`))) i++;
+          continue;
+        }
+        if (/^-[0-9]+$/u.test(arg)) {
+          (rewrittenArgs ??= context.args.slice())[i] = `-C${arg.slice(1)}`;
+          continue;
+        }
+        for (let offset = 1; offset < arg.length; offset++) {
+          if (GREP_SHORT_OPTIONS.includes(`${arg[offset]}:`)) {
+            if (offset === arg.length - 1) i++;
+            break;
           }
-          normalizedArgs = copy;
-          break;
         }
       }
-      const parsed = parseOptions(normalizedArgs, "GEFPivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", GREP_LONG_OPTIONS, false, undefined, (key, index, offset) => {
+      const normalizedArgs = rewrittenArgs ?? context.args;
+      const parsed = parseOptions(normalizedArgs, GREP_SHORT_OPTIONS, GREP_LONG_OPTIONS, false, undefined, (key, index, offset) => {
         const text = normalizedArgs[index]!.slice(offset);
         if (["include", "exclude", "exclude-from"].includes(key)) filters.push({ key, pattern: text });
         if (key === "d") directoriesAction = text;
@@ -755,7 +763,8 @@ inspect the resulting state before repeating the action.
         })();
         return vmMatcher ? vmMatcher.batchSync(batch) : session.runSync(descriptor, batch);
       };
-      const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
+      const maxCountArgument = value(parsed, "m");
+      const maxCount = maxCountArgument === undefined || maxCountArgument === "-1" ? Infinity : integer(maxCountArgument);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const delimiterBytes = parsed.flags.has("z") ? NUL_BYTES : NEWLINE_BYTES;

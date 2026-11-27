@@ -124,3 +124,25 @@ for (const [pattern, input, expected] of [
   });
   assert.deepEqual({ ...result, stdout, stderr }, { exitCode: 0, stdout: expected, stderr: "" });
 });
+
+for (const [args, input, expected] of [
+  [["-e", "-1"], "a-1\nb\n", "a-1\n"],
+  [["-F", "-e", "-5"], "x -5 y\n", "x -5 y\n"],
+  [["-m", "-1", "a"], "a\na\n", "a\na\n"],
+  [["--regexp", "-1"], "a-1\nb\n", "a-1\n"],
+  [["-Fe", "-5"], "x -5 y\n", "x -5 y\n"],
+  [["--max-count=-1", "a"], "a\na\n", "a\na\n"],
+  [["-1", "-e", "-1"], "before\na-1\nafter\nother\n", "before\na-1\nafter\n"],
+  [["-e", "-1", "-1"], "before\na-1\nafter\nother\n", "before\na-1\nafter\n"],
+  [["--", "-1"], "a-1\nb\n", "a-1\n"],
+] as const) test(`grep preserves option values in ${args.join(" ")}`, async () => {
+  let stdout = "", stderr = "";
+  const result = await createGrepCommands()[0]!.execute({
+    command: "grep", args, cwd: "/work", env: {},
+    fs: createMemoryFileSystem(), stdin: toByteSource(input), stdinIsDefault: false,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    signal: new AbortController().signal,
+  });
+  assert.deepEqual({ ...result, stdout, stderr }, { exitCode: 0, stdout: expected, stderr: "" });
+});

@@ -3,6 +3,41 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createGrepCommands } from "./index.js";
+import { createGrepAliases } from "./aliases.js";
+
+for (const recursive of [["-r"], ["-R"], ["-d", "recurse"], []]) {
+  for (const mode of [[], ["-l"], ["-c", "--include=*.txt"]]) {
+    for (const operands of [[], ["."]]) {
+      const name = recursive.length ? "grep" : "rgrep";
+      const args = [...recursive, ...mode, "x", ...operands];
+      test(`${name} ${args.join(" ")} preserves implicit versus explicit directory paths`, async () => {
+        const fs = createMemoryFileSystem();
+        await fs.mkdir("/work/sub", { recursive: true });
+        for (const file of ["a.txt", "sub/b.txt"]) {
+          await fs.writeFile(`/work/${file}`, new TextEncoder().encode("x\n"));
+        }
+        const grep = createGrepCommands()[0]!;
+        const command = name === "grep" ? grep : createGrepAliases(grep).find(command => command.name === name)!;
+        const values = createCommandArguments(args);
+        let stdout = "", stderr = "";
+        const result = await command.execute({
+          command: name, args: values.args, argumentValues: values, cwd: "/work", env: {},
+          fs, stdin: toByteSource(""), stdinIsDefault: true,
+          stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+          stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+          signal: new AbortController().signal,
+        });
+        const prefix = operands.length ? "./" : "";
+        const suffix = mode.includes("-l") ? "" : mode.includes("-c") ? ":1" : ":x";
+        assert.deepEqual({ ...result, stdout, stderr }, {
+          exitCode: 0,
+          stdout: `${prefix}a.txt${suffix}\n${prefix}sub/b.txt${suffix}\n`,
+          stderr: "",
+        });
+      });
+    }
+  }
+}
 
 test("grep help works through the standalone portable factory", async () => {
  const values = createCommandArguments(["--help"]);

@@ -42,7 +42,10 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
           if (ancestors.has(canonical)) throw new UsageError(`${name}: recursive directory loop`);
           const next = new Set(ancestors).add(canonical);
           for (const entry of await context.fs.readdir(path, { signal: context.signal })) {
-            yield* visit(`${name.endsWith("/") ? name.slice(0, -1) : name}/${entry.name}`, next, depth + 1, false);
+            const child = depth === 0 && parsed.operands.length === 0
+              ? entry.name
+              : `${name.endsWith("/") ? name.slice(0, -1) : name}/${entry.name}`;
+            yield* visit(child, next, depth + 1, false);
           }
           return;
         }

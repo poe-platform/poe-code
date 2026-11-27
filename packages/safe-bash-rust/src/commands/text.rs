@@ -3931,15 +3931,11 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             let Some(target) = AwkTarget::resolve(lhs, state) else {
                 return Scalar::Unset;
             };
-            let previous = if op == "=" {
-                0.0
-            } else {
-                target.get(state).number()
-            };
             let rval = eval_awk_value(rhs, state);
             let final_val = if op == "=" {
                 rval
             } else {
+                let previous = target.get(state).number();
                 state.arithmetic(op.as_bytes()[0], previous, rval.number())
             };
             if state.runtime_err.is_none() {
@@ -10862,7 +10858,7 @@ mod tests {
           n=1; $1=2; print $(n++)++,n,$1,$2;
           b[0]="abc"; i=0; print sub(/b/,"x",b[i++]),i,b[0];
           print c["x"],length(c),("x" in c);
-          print d[0]+=length(d)
+          d["seed"]=0; print d[0]+=length(d)
         }"#;
         let out = try_run_text_command(
             "awk",
@@ -10877,7 +10873,7 @@ mod tests {
             (out.exit_code, out.stdout.as_str(), out.stderr.as_str()),
             (
                 0,
-                "4 1 5 0\n6 1 6\n16 1 16\n1 2 1\n7\n2 2 3 \n1 1 axc\n 1 1\n1\n",
+                "4 1 5 0\n6 1 6\n16 1 16\n1 2 1\n8\n2 2 3 \n1 1 axc\n 1 1\n1\n",
                 ""
             )
         );

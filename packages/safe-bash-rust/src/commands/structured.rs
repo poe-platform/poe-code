@@ -22935,29 +22935,31 @@ fn resolve_sql_from_table(
         }
     }
 
-    // 3. Multi-table JOINs: `t1 [a1] [INNER|LEFT|CROSS] JOIN t2 [a2] [ON cond | USING(col)] ...`
+    // 3. Multi-table JOINs: `t1 [a1] [INNER|LEFT|FULL|CROSS] JOIN t2 [a2] [ON cond | USING(col)] ...`
     if upper.contains(" JOIN ") {
-        let mut join_pos_list: Vec<(usize, usize, bool)> = Vec::new();
+        let mut join_pos_list: Vec<(usize, usize, bool, bool)> = Vec::new();
         let kw_specs = [
-            (" LEFT OUTER JOIN ", true),
-            (" LEFT JOIN ", true),
-            (" INNER JOIN ", false),
-            (" CROSS JOIN ", false),
-            (" JOIN ", false),
+            (" FULL OUTER JOIN ", true, true),
+            (" FULL JOIN ", true, true),
+            (" LEFT OUTER JOIN ", true, false),
+            (" LEFT JOIN ", true, false),
+            (" INNER JOIN ", false, false),
+            (" CROSS JOIN ", false, false),
+            (" JOIN ", false, false),
         ];
         let mut scan_i = 0usize;
         while scan_i < upper.len() {
-            let mut best: Option<(usize, usize, bool)> = None;
-            for (kw, is_left) in kw_specs {
+            let mut best: Option<(usize, usize, bool, bool)> = None;
+            for (kw, preserve_left, preserve_right) in kw_specs {
                 if let Some(rel) = upper[scan_i..].find(kw) {
                     let pos = scan_i + rel;
-                    if best.is_none_or(|(bp, _, _)| pos < bp) {
-                        best = Some((pos, kw.len(), is_left));
+                    if best.is_none_or(|(bp, _, _, _)| pos < bp) {
+                        best = Some((pos, kw.len(), preserve_left, preserve_right));
                     }
                 }
             }
-            if let Some((pos, klen, is_left)) = best {
-                join_pos_list.push((pos, klen, is_left));
+            if let Some((pos, klen, preserve_left, preserve_right)) = best {
+                join_pos_list.push((pos, klen, preserve_left, preserve_right));
                 scan_i = pos + klen;
             } else {
                 break;
@@ -22979,10 +22981,10 @@ fn resolve_sql_from_table(
                     .collect();
             }
             for j_i in 0..join_pos_list.len() {
-                let (j_pos, j_klen, is_left) = join_pos_list[j_i];
+                let (j_pos, j_klen, preserve_left, preserve_right) = join_pos_list[j_i];
                 let seg_end = join_pos_list
                     .get(j_i + 1)
-                    .map(|&(np, _, _)| np)
+                    .map(|&(np, _, _, _)| np)
                     .unwrap_or(trimmed.len());
                 let seg = trimmed[j_pos + j_klen..seg_end].trim();
                 let seg_up = seg.to_ascii_uppercase();
@@ -23037,9 +23039,17 @@ fn resolve_sql_from_table(
                 let mut combined_cols = acc_tbl.columns.clone();
                 combined_cols.extend(right_tbl.columns.iter().cloned());
                 let mut combined_rows = Vec::new();
+                let mut right_matched = vec![
+                    false;
+                    if preserve_right {
+                        right_tbl.rows.len()
+                    } else {
+                        0
+                    }
+                ];
                 for lr in &acc_tbl.rows {
                     let mut matched = false;
-                    for rr in &right_tbl.rows {
+                    for (right_index, rr) in right_tbl.rows.iter().enumerate() {
                         let mut cr = lr.clone();
                         cr.extend(rr.iter().cloned());
                         let ok = match on_cond_owned.as_deref() {
@@ -23054,12 +23064,22 @@ fn resolve_sql_from_table(
                         };
                         if ok {
                             matched = true;
+                            if preserve_right {
+                                right_matched[right_index] = true;
+                            }
                             combined_rows.push(cr);
                         }
                     }
-                    if !matched && is_left {
+                    if !matched && preserve_left {
                         let mut cr = lr.clone();
                         cr.extend(vec![SQL_NULL.to_string(); right_tbl.columns.len()]);
+                        combined_rows.push(cr);
+                    }
+                }
+                for (rr, matched) in right_tbl.rows.iter().zip(right_matched) {
+                    if !matched {
+                        let mut cr = vec![SQL_NULL.to_string(); acc_tbl.columns.len()];
+                        cr.extend(rr.iter().cloned());
                         combined_rows.push(cr);
                     }
                 }
@@ -27606,6 +27626,9 @@ fn eval_sql_where(
         if let Some((lhs, rhs)) = trimmed.split_once(op) {
             let lv = eval_sql_row_expr(lhs.trim(), columns, row, tables);
             let rv = eval_sql_row_expr(rhs.trim(), columns, row, tables);
+            if lv == SQL_NULL || rv == SQL_NULL {
+                return false;
+            }
             let ord = compare_sql_values((lhs, &lv), (rhs, &rv), columns, affinities);
             return match op {
                 "=" => ord == std::cmp::Ordering::Equal,

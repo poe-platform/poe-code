@@ -457,6 +457,7 @@ test("default inventory includes execution commands; parallel local fallback rea
   assert.equal(defaults.length, 193);
   assert.equal(new Set(defaults).size, 193);
   for (const name of ["trash-put", "trash-list", "trash-restore"]) assert.equal(defaults.includes(name), true);
+  for (const name of ["id", "whoami", "uname"]) assert.equal(defaults.includes(name), true);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.equal(defaults.includes(name), true);
   for (const name of ["sha512sum", "sha384sum", "sha224sum", "xq", "xmllint", "mdq"]) assert.equal(defaults.includes(name), true);
   const enabled = createDefaultCommands({ execution: { maxParallelProcesses: 2 } });

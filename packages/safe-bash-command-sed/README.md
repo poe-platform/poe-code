@@ -16,10 +16,14 @@ Supported operations include addressed substitutions, print/delete, hold space,
 branches, program files (`-f`), extended regular expressions (`-E`), null-delimited
 records (`-z`), and in-place edits with optional backups (`-i.bak`). In-place
 editing replaces the named file, leaving other hard links to its previous contents
-intact. It requires filesystem support for guarded staging and cleanup.
+intact. It replaces a symbolic link with an edited regular file by default;
+`--follow-symlinks` edits the resolved target and keeps the link. The new file
+inherits the input file's permissions. It requires filesystem support for guarded
+staging and cleanup.
 On the memory filesystem, `-i.bak` moves the original file to the backup name,
-including its hard links and open readers. Filesystems without atomic backup
-support use a copy and refuse backups involving known hard links.
+including its hard links, symbolic links and open readers. Filesystems without
+atomic backup support use a copy and refuse backups involving known hard links
+or symbolic links.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

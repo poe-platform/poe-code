@@ -34,6 +34,53 @@ for (const [program, input, expected] of [
   });
 }
 
+test("sed replaces a symlink before a subsequent follow-symlinks edit", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/f", Buffer.from("a\n"), { mode: 0o640 });
+  await fs.symlink!("f", "/l");
+  const first = await run(createSedCommand(), ["-i", "s/a/b/", "/l"], "", fs);
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/l")).toString(), "b\n");
+  assert.equal((await fs.lstat("/l")).type, "file");
+  assert.equal((await fs.stat("/l")).mode & 0o777, 0o640);
+  const second = await run(createSedCommand(), ["-i", "--follow-symlinks", "s/a/c/", "/l"], "", fs);
+  assert.equal(second.exitCode, 0, second.stderr);
+  assert.equal(second.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/f")).toString(), "a\n");
+});
+
+for (const follow of [false, true]) test(`sed continues after a dangling symlink: follow=${follow}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.symlink!("absent", "/dangling");
+  await fs.writeFile("/f", Buffer.from("a\n"));
+  const result = await run(createSedCommand(), ["-i", ...(follow ? ["--follow-symlinks"] : []), "s/a/b/", "/dangling", "/f"], "", fs);
+  assert.equal(result.exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/f")).toString(), "b\n");
+  assert.equal((await fs.lstat("/dangling")).type, "symlink");
+});
+
+for (const follow of [false, true]) for (const suffix of ["", ".bak"]) {
+  test(`sed edits chained symlinks: follow=${follow}, backup=${suffix}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/dir");
+    await fs.writeFile("/dir/f", Buffer.from("a\n"));
+    await fs.symlink!("dir/f", "/middle");
+    await fs.symlink!("middle", "/l");
+    const result = await run(createSedCommand(), ["-i" + suffix, ...(follow ? ["--follow-symlinks"] : []), "s/a/c/", "/l"], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(Buffer.from(await fs.readFile("/l")).toString(), "c\n");
+    assert.equal((await fs.lstat("/l")).type, follow ? "symlink" : "file");
+    assert.equal(Buffer.from(await fs.readFile("/dir/f")).toString(), follow ? "c\n" : "a\n");
+    if (suffix) {
+      const backup = (follow ? "/dir/f" : "/l") + suffix;
+      assert.equal((await fs.lstat(backup)).type, follow ? "file" : "symlink");
+      assert.equal(Buffer.from(await fs.readFile(backup)).toString(), "a\n");
+    }
+  });
+}
+
 for (const input of ["a", "a\n"]) {
   test(`sed empty append makes in-place final newline idempotent: ${JSON.stringify(input)}`, async () => {
     const fs = createMemoryFileSystem();

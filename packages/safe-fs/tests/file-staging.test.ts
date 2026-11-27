@@ -16,6 +16,29 @@ async function fixture() {
   return { fs, parent, staged };
 }
 
+for (const backup of [false, true]) for (const stale of [false, true]) test(`staging replaces only the expected symlink: backup=${backup}, stale=${stale}`, async () => {
+  const { fs, parent, staged } = await fixture();
+  await fs.writeFile("/work/target", new Uint8Array([9]));
+  await fs.symlink("target", "/work/output");
+  const destination = await fs.lstat("/work/output");
+  if (stale) {
+    await fs.unlink("/work/output");
+    await fs.symlink("target", "/work/output");
+  }
+  const publication = backup
+    ? fs.publishStagedFileSet(staged, "/work/output", { parent, destination, companions: [{ path: "/work/output.bak", expected: null, remove: false, keepDestination: true }] })
+    : fs.publishStagedFile(staged, "/work/output", { parent, destination });
+  if (stale) await assert.rejects(publication, { code: "EAGAIN" });
+  else {
+    await publication;
+    assert.equal((await fs.lstat("/work/output")).type, "file");
+    assert.deepEqual(await fs.readFile("/work/output"), new Uint8Array([1, 2, 3]));
+    if (backup) assert.equal(await fs.readlink("/work/output.bak"), "target");
+  }
+  assert.deepEqual(await fs.readFile("/work/target"), new Uint8Array([9]));
+  await fs.removeStagedFile(staged);
+});
+
 test("owned staging publishes exact bytes and cleans only its private directory", async () => {
   const { fs, parent, staged } = await fixture();
   assert.ok(Object.isFrozen(staged) && Object.isFrozen(staged.file.stat));

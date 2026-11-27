@@ -10,13 +10,14 @@ interface Target {
   readonly path: string;
   readonly parent: FileStat;
   readonly original: FileStat;
+  readonly input: FileStat;
   readonly backup: FileStat | null;
   readonly moveBackup: boolean;
   readonly ancestors: readonly FileStagingEntry[];
   readonly fs: FileSystem;
 }
 
-export async function prepareInPlace(context: CommandContext, files: readonly string[], suffix: string): Promise<Target[]> {
+export async function prepareInPlace(context: CommandContext, files: readonly string[], suffix: string, followSymlinks = false): Promise<Target[]> {
   const fs = context.fs;
   if (!fs.confineExtraction || !fs.writeFileConditional || !fs.openReadFile) {
     throw new FsError("ENOTSUP", { message: "in-place editing requires retained ancestry, retained reads and atomic conditional writes" });
@@ -25,23 +26,27 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
   for (const file of files) {
     // Retained views reject symlink ancestry and dot-dot traversal. Remove only
     // redundant separators and '.' so ordinary './file' operands still work.
-    const operand = virtualPath(context, file);
-    const path = "/" + operand.split("/").filter(part => part && part !== ".").join("/");
-    const capabilities = await fs.capabilitiesFor?.(path, { signal: context.signal, stagingAncestry: true }) ?? fs.capabilities;
-    if (capabilities.atomicFileMutation !== true || capabilities.retainedRead !== true) {
-      throw new FsError("ENOTSUP", { path, message: "in-place editing requires retained reads and atomic conditional writes" });
-    }
+    let operand = virtualPath(context, file);
+    let path: string;
     let parent: FileStat;
     let original: FileStat;
+    let input: FileStat;
     try {
+      if (followSymlinks) operand = await fs.realpath(operand, { signal: context.signal });
+      path = "/" + operand.split("/").filter(part => part && part !== ".").join("/");
       parent = await fs.lstat(dirname(path), { signal: context.signal });
       original = await fs.lstat(operand, { signal: context.signal });
+      input = original.type === "symlink" ? await fs.stat(operand, { signal: context.signal }) : original;
     } catch (error) {
       if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
       await writeText(context.stderr, `sed: can't read ${file}: No such file or directory\n`);
       continue;
     }
-    if (parent.type !== "directory" || original.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
+    const capabilities = await fs.capabilitiesFor?.(path, { signal: context.signal, stagingAncestry: true }) ?? fs.capabilities;
+    if (capabilities.atomicFileMutation !== true || capabilities.retainedRead !== true) {
+      throw new FsError("ENOTSUP", { path, message: "in-place editing requires retained reads and atomic conditional writes" });
+    }
+    if (parent.type !== "directory" || input.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
     let backup: FileStat | null = null;
     let moveBackup = false;
     const ancestors: FileStagingEntry[] = [];
@@ -52,6 +57,7 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       if (backup && compareCopyIdentity(original, backup) === "same") throw new FsError("EINVAL", { path, message: "backup aliases the edited file" });
       const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal, create: !backup, stagingAncestry: true }) ?? fs.capabilities;
       moveBackup = capabilities.atomicStagedFileBackup === true && caps.atomicStagedFileBackup === true && !!fs.publishStagedFileSet;
+      if (!moveBackup && original.type === "symlink") throw new FsError("ENOTSUP", { path, message: "preserving symlinks in backups requires atomic backup publication" });
       if (!moveBackup && ((original.nlink ?? 1) > 1 || (backup?.nlink ?? 1) > 1) && backup?.type !== "directory") {
         throw new FsError("ENOTSUP", { path, message: "preserving hard links in backups requires atomic backup publication" });
       }
@@ -70,7 +76,7 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       ancestors.unshift({ path: directory, stat });
       if (directory === "/") break;
     }
-    targets.push({ file, path, parent, original, backup, moveBackup, ancestors });
+    targets.push({ file, path, parent, original, input, backup, moveBackup, ancestors });
   }
   if (!targets.length) return [];
   const view = await fs.confineExtraction([...new Set(targets.map(target => dirname(target.path)))], { signal: context.signal });
@@ -99,7 +105,7 @@ async function replaceEntry(context: CommandContext, target: Target, suffix: str
       // additionally verifies every retained ancestor of the destination.
       staging = await context.fs.createStagedFile!(joinPath(dirname(target.path), `.sed-${globalThis.crypto.randomUUID()}`), "file", {
         type: "file", data,
-      }, { parent: target.parent, retainCleanup: target.moveBackup || !suffix, mode: target.original.mode & 0o7777, signal: context.signal });
+      }, { parent: target.parent, retainCleanup: target.moveBackup || !suffix, mode: target.input.mode & 0o7777, signal: context.signal });
       context.signal.throwIfAborted();
       if (closed) throw new FsError("EPIPE", { message: "in-place publication is closed" });
       const publication = { parent: target.parent, ancestors: target.ancestors, signal: context.signal };
@@ -132,7 +138,7 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
   const close = () => closing ??= reader.close();
   try {
     context.registerCleanup?.(close);
-    const identity = compareCopyIdentity(target.original, await reader.stat({ signal: context.signal }));
+    const identity = compareCopyIdentity(target.input, await reader.stat({ signal: context.signal }));
     if (identity !== "same") throw new FsError(identity === "unknown" ? "ENOTSUP" : "EAGAIN", { path: target.path, message: "in-place reader does not match the inspected file" });
     const source = async function* (): ByteSource {
       let position = 0;

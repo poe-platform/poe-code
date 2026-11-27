@@ -1076,6 +1076,7 @@ async function executeSedGeneral(
     };
     let separator = "\n";
     let inPlace: string | undefined;
+    let followSymlinks = false;
     let ended = false;
     for (let index = 0; index < context.args.length; index++) {
       const argument = context.args[index]!;
@@ -1085,6 +1086,7 @@ async function executeSedGeneral(
       if (argument === "--quiet" || argument === "--silent") { quiet = true; continue; }
       if (argument === "--unbuffered") { unbuffered = true; continue; }
       if (argument === "--posix") continue;
+      if (argument === "--follow-symlinks") { followSymlinks = true; continue; }
       if (argument === "--regexp-extended") { extended = true; continue; }
       if (argument === "--in-place" || argument.startsWith("--in-place=")) {
         inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);
@@ -1193,7 +1195,7 @@ async function executeSedGeneral(
         if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
         await assertPathRequirements(context, sedRequirements, ["in-place"], files);
         if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
-        const targets = await prepareInPlace(context, files, inPlace);
+        const targets = await prepareInPlace(context, files, inPlace, followSymlinks);
         outputState.inputFailed = targets.length !== files.length;
         if (outputFiles.length > 0) await prepareOutputs();
         for (const target of targets) {

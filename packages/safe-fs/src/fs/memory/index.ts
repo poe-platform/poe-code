@@ -2261,7 +2261,7 @@ export class MemoryFileSystem implements FileSystem {
     this.expectEntry(target.parent, parent, destination, false);
     this.expectEntry(target.node, expected, destination);
     if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
-    if (target.node && target.node.type !== "file") this.fail("EAGAIN", "publishStagedFile", destination);
+    if (target.node && target.node.type !== "file" && target.node.type !== "symlink") this.fail("EAGAIN", "publishStagedFile", destination);
     if (preserveIdentity) {
       if (this.capabilities.atomicStagedFileMutation !== true) this.fail("ENOTSUP", "publishStagedFile", destination);
       if (file.node?.type !== "file" || target.node?.type !== "file" || expected === null) this.fail("EINVAL", "publishStagedFile", destination);
@@ -2326,7 +2326,7 @@ export class MemoryFileSystem implements FileSystem {
     this.expectEntry(target.node, expected, destination);
     const node = file.node!;
     if (node.type !== "file" || target.parent === directory.node || target.node === node) this.fail("EINVAL", syscall, destination);
-    if (target.node && target.node.type !== "file") this.fail("EAGAIN", syscall, destination);
+    if (target.node && target.node.type !== "file" && target.node.type !== "symlink") this.fail("EAGAIN", syscall, destination);
     this.permission(file.parent, 3, syscall, staging.file.path);
     this.permission(target.parent, 3, syscall, destination);
     const retired: Location[] = [];

@@ -24454,7 +24454,7 @@ fn exec_sql_select_with_mode(
             })
             .collect()
     } else {
-        split_top_level_comma(select_part)
+        let specs = split_top_level_comma(select_part)
             .into_iter()
             .map(|raw| {
                 let trimmed = raw.trim();
@@ -24637,7 +24637,7 @@ fn exec_sql_select_with_mode(
                         let col_idx = find_sql_col(&tbl.columns, inner).unwrap_or(0);
                         SqlWinFn::Sum { col_idx }
                     };
-                    return (
+                    return Ok((
                         alias,
                         SqlProj::Win {
                             func,
@@ -24645,9 +24645,12 @@ fn exec_sql_select_with_mode(
                             order_keys,
                             frame_bounds,
                         },
-                    );
+                    ));
                 }
-                let mut col_lookup = expr_s.trim_matches('"');
+                let mut col_lookup = expr_s
+                    .trim_matches('"')
+                    .trim_start_matches('[')
+                    .trim_end_matches(']');
                 let mut force_num = false;
                 if expr_up.starts_with("CAST(") && expr_s.ends_with(')') {
                     let inner = &expr_s[5..expr_s.len() - 1];
@@ -24669,12 +24672,43 @@ fn exec_sql_select_with_mode(
                     && !col_lookup.starts_with('\'')
                     && let Some(idx) = find_sql_col(&tbl.columns, col_lookup)
                 {
-                    (alias, SqlProj::Col { idx, force_num })
+                    Ok((alias, SqlProj::Col { idx, force_num }))
                 } else {
-                    (alias, SqlProj::Expr(expr_s.to_string()))
+                    // Bind column references before evaluating rows, including empty results.
+                    let is_column = expr_s.split('.').all(|part| {
+                        let part = part.trim();
+                        if (part.starts_with('`') && part.ends_with('`'))
+                            || (part.starts_with('[') && part.ends_with(']'))
+                            || (part.starts_with('"') && part.ends_with('"'))
+                        {
+                            return part.len() >= 2;
+                        }
+                        let mut chars = part.chars();
+                        chars.next().is_some_and(|c| c.is_alphabetic() || c == '_')
+                            && chars.all(|c| c.is_alphanumeric() || matches!(c, '_' | '$'))
+                    });
+                    if is_column
+                        && !(expr_s.starts_with('"') && expr_s.ends_with('"'))
+                        && !matches!(
+                            expr_up.as_str(),
+                            "NULL"
+                                | "TRUE"
+                                | "FALSE"
+                                | "CURRENT_DATE"
+                                | "CURRENT_TIME"
+                                | "CURRENT_TIMESTAMP"
+                        )
+                    {
+                        return Err(format!("no such column: {expr_s}"));
+                    }
+                    Ok((alias, SqlProj::Expr(expr_s.to_string())))
                 }
             })
-            .collect()
+            .collect::<Result<_, String>>();
+        match specs {
+            Ok(specs) => specs,
+            Err(error) => return format!("\x00RAISE_ERR:{error}"),
+        }
     };
 
     let proj_headers: Vec<String> = proj_specs.iter().map(|(a, _)| a.clone()).collect();

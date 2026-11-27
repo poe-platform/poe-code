@@ -1890,6 +1890,16 @@ fn resolve_jq_lhs_paths(
             return resolve_jq_lhs_paths(rest, input, vars);
         }
     }
+    if !s.starts_with('.') {
+        let _ = visit_jq(s, input, vars, &mut |value| {
+            Err(format!(
+                "Invalid path expression with result {}",
+                value.to_json_string(true, false, 0)
+            )
+            .into())
+        })?;
+        return Ok(Vec::new());
+    }
     let chars: Vec<char> = s.chars().collect();
     let mut i = 0usize;
     let mut paths: Vec<Vec<JVal>> = vec![Vec::new()];

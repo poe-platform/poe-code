@@ -22040,9 +22040,9 @@ fn exec_sql_update(
         let w_end = ret_pos.unwrap_or(stmt_norm.len());
         stmt_norm[wp + 7..w_end].trim()
     });
-    let Some((t_cols, gen_clone)) = tables
+    let Some((t_cols, gen_clone, checks)) = tables
         .get(&tname)
-        .map(|t| (t.columns.clone(), t.generated.clone()))
+        .map(|t| (t.columns.clone(), t.generated.clone(), t.check_exprs.clone()))
     else {
         return Ok(String::new());
     };
@@ -22109,6 +22109,12 @@ fn exec_sql_update(
                 let error = format!("Error: NOT NULL constraint failed: {tname}.{nn_col}\n");
                 *tables = tables_snap;
                 return Err(error);
+            }
+        }
+        for check in &checks {
+            if !eval_sql_where(check, &t_cols, &ur, tables) {
+                *tables = tables_snap;
+                return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
         }
         if let Some(tbl) = tables.get_mut(&tname)
@@ -41766,6 +41772,31 @@ mod tests {
             result.unwrap_err(),
             "Error: NOT NULL constraint failed: t.k\n"
         );
+        assert_eq!(tables["t"].rows, before);
+    }
+
+    #[test]
+    fn sqlite_update_check_failure_rolls_back_all_rows() {
+        let mut tables = BTreeMap::from([(
+            "t".into(),
+            SqlTable {
+                columns: vec!["n".into()],
+                rows: vec![vec!["3".into()], vec!["1".into()]],
+                check_exprs: vec!["n>0".into()],
+                ..Default::default()
+            },
+        )]);
+        let before = tables["t"].rows.clone();
+        let result = exec_sql_update(
+            "UPDATE t SET n=n-2",
+            &mut tables,
+            &[],
+            false,
+            false,
+            false,
+            "|",
+        );
+        assert_eq!(result.unwrap_err(), "Error: CHECK constraint failed: n>0\n");
         assert_eq!(tables["t"].rows, before);
     }
 

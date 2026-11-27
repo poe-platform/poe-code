@@ -1,11 +1,12 @@
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname,FsError,joinPath,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
+import { dirname,FsError,joinPath,writeText,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { Budget,bytes,virtualPath } from "safe-bash-io-engine/commands/text-programs/shared";
 
 interface Target {
+  readonly file: string;
   readonly path: string;
   readonly parent: FileStat;
   readonly original: FileStat;
@@ -30,8 +31,16 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     if (capabilities.atomicFileMutation !== true || capabilities.retainedRead !== true) {
       throw new FsError("ENOTSUP", { path, message: "in-place editing requires retained reads and atomic conditional writes" });
     }
-    const parent = await fs.lstat(dirname(path), { signal: context.signal });
-    const original = await fs.lstat(operand, { signal: context.signal });
+    let parent: FileStat;
+    let original: FileStat;
+    try {
+      parent = await fs.lstat(dirname(path), { signal: context.signal });
+      original = await fs.lstat(operand, { signal: context.signal });
+    } catch (error) {
+      if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+      await writeText(context.stderr, `sed: can't read ${file}: No such file or directory\n`);
+      continue;
+    }
     if (parent.type !== "directory" || original.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
     let backup: FileStat | null = null;
     let moveBackup = false;
@@ -61,8 +70,9 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       ancestors.unshift({ path: directory, stat });
       if (directory === "/") break;
     }
-    targets.push({ path, parent, original, backup, moveBackup, ancestors });
+    targets.push({ file, path, parent, original, backup, moveBackup, ancestors });
   }
+  if (!targets.length) return [];
   const view = await fs.confineExtraction([...new Set(targets.map(target => dirname(target.path)))], { signal: context.signal });
   if (!view.writeFileConditional) throw new FsError("ENOTSUP", { message: "in-place editing requires atomic conditional writes" });
   return targets.map(target => ({ ...target, fs: view }));

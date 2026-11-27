@@ -33,6 +33,7 @@ interface SedFile {
 }
 
 interface OutputState {
+  inputFailed: boolean;
   stdoutUnterminated: boolean;
   readonly files: Map<string, SedFile>;
   readonly unbuffered: boolean;
@@ -343,11 +344,31 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 }
 
 
+async function* inputRecords<T extends { fileIndex: number }>(
+  context: CommandContext, files: readonly string[], budget: Budget, outputState: OutputState,
+  records: (context: CommandContext, files: readonly string[], budget: Budget) => AsyncGenerator<T>,
+): AsyncGenerator<T> {
+  const names = files.length ? files : ["-"];
+  for (const [fileIndex, file] of names.entries()) {
+    try {
+      for await (const record of records(context, [file], budget)) {
+        record.fileIndex = fileIndex;
+        yield record;
+      }
+    } catch (error) {
+      if (file === "-" || !(error instanceof FsError) || error.code !== "ENOENT") throw error;
+      outputState.inputFailed = true;
+      await writeText(context.stderr, `sed: can't read ${file}: No such file or directory\n`);
+    }
+  }
+}
+
+
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   await outputState.flushStdout?.();
   const useBatches = separator !== "\0";
-  const batchSource = useBatches ? lineRecordBatches(context, files, budget) : undefined;
-  const singleSource = useBatches ? undefined : nullRecords(context, files, budget);
+  const batchSource = useBatches ? inputRecords(context, files, budget, outputState, lineRecordBatches) : undefined;
+  const singleSource = useBatches ? undefined : inputRecords(context, files, budget, outputState, nullRecords);
   let currentBatch: LineRecordBatch | undefined;
   let currentBatchLen = 0;
   let batchIndex = 0;
@@ -1157,7 +1178,7 @@ async function executeSedGeneral(
         await assertPathRequirements(context, sedRequirements, ["script-read"], readFiles);
       }
     }
-    const outputState: OutputState = { stdoutUnterminated: false, files: new Map(), unbuffered };
+    const outputState: OutputState = { inputFailed: false, stdoutUnterminated: false, files: new Map(), unbuffered };
     const prepareOutputs = async (): Promise<void> => {
       for (const file of outputFiles) {
         const path = virtualPath(context, file);
@@ -1173,10 +1194,11 @@ async function executeSedGeneral(
         await assertPathRequirements(context, sedRequirements, ["in-place"], files);
         if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
         const targets = await prepareInPlace(context, files, inPlace);
+        outputState.inputFailed = targets.length !== files.length;
         if (outputFiles.length > 0) await prepareOutputs();
-        for (const [index, target] of targets.entries()) {
+        for (const target of targets) {
           if (target.backup?.type === "directory") {
-            await writeText(context.stderr, `sed: cannot rename ${files[index]}: Is a directory\n`);
+            await writeText(context.stderr, `sed: cannot rename ${target.file}: Is a directory\n`);
             return 4;
           }
           const result = await editInPlace(context, target, inPlace, budget, async stdin => {
@@ -1187,16 +1209,17 @@ async function executeSedGeneral(
             await outputState.flushStdout?.();
             return { result, data: bytes(rewritten) };
           });
-          if (result.quit || result.status) return result.status;
+          if (result.quit || result.status) return outputState.inputFailed ? 2 : result.status;
         }
-        return 0;
+        return outputState.inputFailed ? 2 : 0;
       }
       if (outputFiles.length > 0) await prepareOutputs();
       if (separate) {
-        for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return result.status; }
-        return 0;
+        for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return outputState.inputFailed ? 2 : result.status; }
+        return outputState.inputFailed ? 2 : 0;
       }
-      return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
+      const result = await execute(program, context, files, quiet, budget, separator, outputState, lineLength);
+      return outputState.inputFailed ? 2 : result.status;
     } finally {
       // GNU sed closes its script files before draining the final stdout buffer.
       // Keep each earlier separate-file execution and in-place result drained.

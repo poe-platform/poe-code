@@ -1457,6 +1457,41 @@ test("ls returns status 2 for inaccessible command-line operands", async context
   assert.equal(result.exitCode, 0);
 });
 
+test("ls accepts color options in shell scripts", async context => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a; ls --color=never; echo $?; ls --color=auto; ls --color");
+  assert.equal(result.stdout, "a\n0\na\na\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+for (const spelling of ["--color", "--colour"]) {
+  for (const suffix of ["", "=never", "=auto", "=always"]) {
+    test(`ls ${spelling}${suffix} accepts captured plain-text output and preserves operands`, async () => {
+      const result = await run("ls", [spelling + suffix, "a"], { fs: await fixture({ a: "", b: "" }) });
+      assert.equal(result.stdout, "a\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+  for (const selection of ["", "invalid"]) {
+    test(`ls rejects ${spelling}=${selection}`, async () => {
+      const result = await run("ls", [`${spelling}=${selection}`], { fs: await fixture({ a: "" }) });
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("invalid argument"));
+      assert.equal(result.exitCode, 2);
+    });
+  }
+  test(`ls treats ${spelling}=never after -- as an operand`, async () => {
+    const operand = `${spelling}=never`;
+    const result = await run("ls", ["--", operand], { fs: await fixture({ [operand]: "" }) });
+    assert.equal(result.stdout, `${operand}\n`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
 test("ls implements hidden names, classification, explicit directories, recursion and long records", async () => {
   const fs = await fixture({ zebra: "z", alpha: "a", ".hidden": "h", "nested/file": "x" });
   await fs.symlink("alpha", "/work/link");

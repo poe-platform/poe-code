@@ -857,11 +857,12 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       for (let index = 0; index < context.args.length; index++) {
         const argument = context.args[index]!;
         if (!ended && (argument === "--color" || argument === "--colour" || argument.startsWith("--color=") || argument.startsWith("--colour="))) {
-          const selection = argument.includes("=") ? argument.slice(argument.indexOf("=") + 1) : "always";
+          const equals = argument.indexOf("=");
+          const selection = equals < 0 ? "always" : argument.slice(equals + 1);
           if (selection !== "never" && selection !== "auto" && selection !== "always") {
             throw new UsageError(`invalid argument '${selection}' for '--color'`);
           }
-          // Listings are captured as plain text, without terminal color escapes.
+          // Listings use plain text even when callers request terminal colors.
           continue;
         }
         if (!ended && (argument === "--time" || argument.startsWith("--time="))) {

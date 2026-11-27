@@ -351,6 +351,8 @@ binary size suffixes such as `1KiB`, decimal suffixes such as `1KB`, and
 unsqueezed partial final rows. This selects those semantics; custom formats
 and other unsupported options remain unavailable.
 
+`ls --color` and `--colour` accept optional `=never`, `=auto`, or `=always`; listings remain plain text.
+
 | Purpose | Commands |
 | --- | --- |
 | Browse | `pwd`, `ls` (UTC long dates use `Mon DD HH:MM` for recent files and `Mon DD  YYYY` for older or future files; long directory listings include `total` in KiB, or human-readable units with `-h`, using reported allocation or a size estimate rounded per entry to 4 KiB when unavailable; `-i`/`--inode` shows provider-reported inode numbers, with `?` for unknown metadata; `-Q`/`--quote-name` and `--indicator-style=none/slash/file-type/classify`), `tree`, `find` (including `-H` to follow argument symlinks while keeping descendant links physical, and `-D tree` for virtual expression diagnostics; other debug modes are unsupported), `du`, `file`, `basename`, `dirname`, `realpath` (including lexical `-s`/`--strip`/`--no-symlinks`), `readlink` (including `-m`/`--canonicalize-missing`), `which` |

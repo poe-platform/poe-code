@@ -11,6 +11,7 @@ test("default yq shell plugin supports native flags in commands, pipelines, and 
       ["yq -i '.a = 2' /data.yaml", "", 0],
       ["yq '.a' /data.yaml", "2\n", 0],
       ["yq -n '.a = 1'", "a: 1\n", 0],
+      ["printf 'a: hello world\\n' | yq '.a |= sub(\"o\", \"0\")'", "a: hell0 w0rld\n", 0],
       ["yq -e '.missing' /data.yaml", "null\n", 1],
       ["yq ea '.a' /data.yaml /data.yaml", "2\n---\n2\n", 0],
       ["printf '%s' '{\"a\":{\"b\":1}}' | yq -P -I 4 '.'", "a:\n    b: 1\n", 0],

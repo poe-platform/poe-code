@@ -7,6 +7,8 @@ import { EreLedger } from "safe-bash-regex-engine/ere/limits";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "safe-bash-regex-engine/ere/errors";
 import { compileEre } from "safe-bash-regex-engine/ere/syntax";
 import { prepareUtf8EreSubject } from "safe-bash-regex-engine/ere/matcher";
+import { Pattern } from "safe-bash-regex-engine";
+import { Budget, ProgramError } from "safe-bash-regex-engine/text/budget";
 
 function value(node: Node, yaml: YamlModule): string | number | bigint | boolean | null {
   if (!yaml.isScalar(node)) throw new MikeError("expected a scalar value");
@@ -39,6 +41,63 @@ export class Evaluator {
   #warnedMerge = false;
   #regex: EreLedger | undefined;
   constructor(readonly yaml: YamlModule, readonly work: NativeWork, readonly mergeSpec = false) {}
+
+  async substitute(text: string, source: string, replacement: string): Promise<string> {
+    const budget = new Budget({ ...this.work.context, signal: this.work.signal }, {
+      maxSteps: this.work.limits.maxSteps,
+    });
+    try {
+      const pattern = new Pattern(source, true, false, "rust", "", { maxPatternInstructions: this.work.limits.maxSteps });
+      const parts: string[] = [];
+      let bytes = 0, copied = 0, cursor = 0, previousEnd = -1;
+      const append = (part: string) => {
+        budget.step(part.length + 1);
+        bytes += utf8ByteLength(part);
+        if (bytes > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+        parts.push(part);
+      };
+      while (cursor <= text.length) {
+        const match = await pattern.find(text, budget, cursor);
+        if (!match) break;
+        // Go ignores an empty match immediately following the previous match.
+        if (match.start !== match.end || match.start !== previousEnd) {
+          append(text.slice(copied, match.start));
+          let literalStart = 0;
+          for (let index = 0; index < replacement.length; index++) {
+            budget.step();
+            if (replacement[index] !== "$") continue;
+            append(replacement.slice(literalStart, index));
+            if (replacement[index + 1] === "$") { append("$"); index++; }
+            else {
+              const braced = replacement[index + 1] === "{";
+              const start = index + (braced ? 2 : 1);
+              let end = start;
+              while (end < replacement.length && /[\p{L}\p{N}_]/u.test(replacement[end]!)) { budget.step(); end++; }
+              if (end === start || braced && replacement[end] !== "}") append("$");
+              else {
+                const name = replacement.slice(start, end);
+                const group = /^(?:0|[1-9][0-9]*)$/u.test(name) ? Number(name) : pattern.groupNames.get(name);
+                append(group === undefined ? "" : match.groups[group] ?? "");
+                index = braced ? end : end - 1;
+              }
+            }
+            literalStart = index + 1;
+          }
+          append(replacement.slice(literalStart));
+          copied = match.end;
+        }
+        previousEnd = match.end;
+        cursor = match.end > match.start ? match.end : match.end + ((text.codePointAt(match.end) ?? 0) > 0xffff ? 2 : 1);
+        await budget.checkpoint();
+      }
+      append(text.slice(copied));
+      return parts.join("");
+    } catch (error) {
+      this.work.assertOpen();
+      if (error instanceof ProgramError) throw new MikeError(error.message);
+      throw error;
+    } finally { const tick = this.work.tick(budget.stepsUsed); if (tick) await tick; }
+  }
 
   async match(first: string, pattern: string): Promise<boolean> {
     { const t = this.work.tick(first.length + pattern.length); if (t) await t; }
@@ -756,6 +815,18 @@ export class Evaluator {
         continue;
       }
       let result: unknown;
+      if (name === "sub") {
+        if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot substitute with ${nodeTag(base.node, yaml)}, can only substitute strings. Hint: Most often you'll want to use '|=' over '=' for this operation`);
+        const pattern = (await next(expression.args[0]!, [input], false))[0];
+        const replacement = (await next(expression.args[1]!, [input], false))[0];
+        const text = await this.substitute(String(value(base.node, yaml)),
+          pattern && yaml.isScalar(pattern.node) ? scalarText(pattern.node, yaml) : "",
+          replacement && yaml.isScalar(replacement.node) ? scalarText(replacement.node, yaml) : "");
+        const node = await cloneNode(base.node, yaml, this.work);
+        if (yaml.isScalar(node)) { node.value = text; node.source = text; }
+        output.push(this.child(node, input));
+        continue;
+      }
       if (name === "test" || name === "split") {
         if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot ${name} ${nodeTag(base.node, yaml)}, can only ${name} strings`);
         const text = String(value(base.node, yaml));

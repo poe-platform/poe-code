@@ -98,6 +98,14 @@ export function compileExpression(source: string, security: { readonly disableEn
     else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as boolean | null);
     else if (security.disableEnvOps && ["env", "strenv", "envsubst"].includes(token.text)) throw new MikeError("env operations have been disabled");
     else if (security.disableFileOps && ["load", "load_str", "load_xml", "load_props", "load_base64"].includes(token.text)) throw new MikeError("file operations have been disabled");
+    else if (token.text === "sub") {
+      expect("(");
+      const pattern = parse(3);
+      expect(",");
+      const replacement = parse(3);
+      expect(")");
+      result = { kind: "call", name: token.text, args: [pattern, replacement] };
+    }
     else if (functions.has(token.text)) {
       const args: Expression[] = [];
       if (peek().text === "(") {

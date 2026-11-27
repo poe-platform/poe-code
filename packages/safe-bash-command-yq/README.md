@@ -34,6 +34,10 @@ Pipe binds more tightly than union: `.a | upcase, length` applies `length` to th
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.
+Use `.a |= sub("o", "0")` to replace every regex match in a string while preserving
+its YAML style and comments. Replacements support `$1`, `${name}`, and `$$` for a
+literal dollar sign, using the shared bounded regex engine and configured work
+and scalar-byte limits.
 The package and command entrypoints also export `createMikeYqCommand`,
 `createMikeYqCommands`, and `mikeYqCommands` explicitly.
 `@poe-platform/safe-bash/yq` exports the same Mike-yq profile. Register one profile

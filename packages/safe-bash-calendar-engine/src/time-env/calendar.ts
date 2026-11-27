@@ -205,7 +205,7 @@ export class TimeZone {
     return { ...fields, offset, zone };
   }
 
-  instant(fields: CalendarFields, fraction = 0n, disambiguation: "reject" | "compatible" = "reject"): bigint {
+  instant(fields: CalendarFields, fraction = 0n, gapHandling: "reject" | "compatible" = "reject"): bigint {
     checkCalendar(fields);
     const wall = utcMilliseconds(fields);
     if (this.fixedOffset !== undefined) return boundedInstant(BigInt(wall) * 1000000n - BigInt(this.fixedOffset) * nanosecondsPerSecond + fraction);
@@ -218,16 +218,14 @@ export class TimeZone {
       shifted.push(candidate);
       if (sameFields(this.observedFields(candidate, false), fields)) candidates.push(candidate);
     }
-    if (disambiguation === "compatible") {
-      // Choose the first occurrence in a fold; move forward across a gap.
-      const choices = candidates.length ? candidates : shifted;
-      const selected = choices.reduce((left, right) => candidates.length
-        ? (left < right ? left : right) : (left > right ? left : right));
-      return boundedInstant(selected);
+    if (candidates.length) {
+      // Repeated local times resolve to their first occurrence.
+      return boundedInstant(candidates.reduce((left, right) => left < right ? left : right));
     }
-    if (candidates.length === 0) throw new CommandFailure("nonexistent local time in virtual TZ");
-    if (candidates.length !== 1) throw new CommandFailure("ambiguous local time; specify an explicit UTC offset");
-    return boundedInstant(candidates[0]!);
+    if (gapHandling === "compatible") {
+      return boundedInstant(shifted.reduce((left, right) => left > right ? left : right));
+    }
+    throw new CommandFailure("nonexistent local time in virtual TZ");
   }
 }
 

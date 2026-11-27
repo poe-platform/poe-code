@@ -4,6 +4,12 @@ import { parseDate, TimeZone } from "./time-env/calendar.js";
 import { formatDate } from "./time-env/format.js";
 import { settings } from "./time-env/shared.js";
 
+test("ambiguous New York date selects the first occurrence", () => {
+  const zone = new TimeZone("America/New_York");
+  const instant = parseDate("2024-11-03 01:30", zone, () => 0n);
+  assert.equal(formatDate("%s %Z", instant, zone, settings({}).limits), "1730611800 EDT\n");
+});
+
 for (const [input, format, expected] of [
   ["2024-01-05 10:20:30 EST", "%FT%T", "2024-01-05T15:20:30"],
   ["2024-01-05 10:20:30 PDT", "%FT%T", "2024-01-05T17:20:30"],

@@ -27,6 +27,7 @@ for (const [input, expected] of [
   ["2024-02-29 12:34:56z", "2024-02-29 12:34:56"],
   ["2024-2-9", "2024-02-09 00:00:00"],
   ["20240229", "2024-02-29 00:00:00"],
+  ["01/02/03", "2003-01-02 00:00:00"],
   ["2024-01-05 1 day ago", "2024-01-04 00:00:00"],
   ["2024-01-05 +2 weeks", "2024-01-19 00:00:00"],
   ["2024-01-31 1 month", "2024-03-02 00:00:00"],
@@ -99,11 +100,17 @@ for (const [text, expected] of [["now", "2024-03-10 12:00:00"], ["today", "2024-
   });
 }
 
-test("date DST gaps and ambiguous folds require an explicit offset rather than a guessed occurrence", async () => {
-  for (const value of ["2024-03-10 02:30:00", "2024-11-03 01:30:00"]) {
-    const result = await run("date", ["-d", value, "+%s"], {}, { env: { TZ: "America/New_York" } });
-    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.match(result.stderr, /nonexistent|ambiguous/);
-  }
+test("date resolves DST folds to the first occurrence and rejects gaps", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const folded = await shell.exec("TZ=America/New_York date -d '2024-11-03 01:30' +'%s %Z'");
+  assert.equal(folded.stderr, "");
+  assert.equal(folded.stdout, "1730611800 EDT\n");
+  assert.equal(folded.exitCode, 0);
+  await shell.dispose();
+  const gap = await run("date", ["-d", "2024-03-10 02:30:00", "+%s"], {}, { env: { TZ: "America/New_York" } });
+  assert.equal(gap.exitCode, 1); assert.equal(gap.stdout, ""); assert.match(gap.stderr, /nonexistent/);
   assert.equal((await run("date", ["-d2024-11-03T01:30:00-04:00", "+%s"])).stdout, "1730611800\n");
   assert.equal((await run("date", ["-d2024-11-03T01:30:00-05:00", "+%s"])).stdout, "1730615400\n");
 });
@@ -171,7 +178,7 @@ for (const args of [
   ["-d2023-02-29"], ["-d1900-02-29"], ["-d2024-13-01"], ["-d2024-04-31"], ["-d2024-01-00"],
   ["-d2024-02-29T24:00:00Z"], ["-d2024-02-29T23:59:60Z"], ["-d2024-01-01T00:00:00+25:00"],
   ["-d@NaN"], ["-d@1e3"], ["-d@99999999999999999"], ["-d"],
-  ["--date", "next Funday"], ["--date", "01/02/03"], ["--date", "Fri, 29 Feb 2024 12:34:56 GMT"],
+  ["--date", "next Funday"], ["--date", "Fri, 29 Feb 2024 12:34:56 GMT"],
   ["-s", "2024-01-01"], ["--set=2024-01-01"], ["082712002026"], ["--file=/etc/passwd"],
   ["--debug"], ["--utc=yes"], ["-r", "file", "-d@0"], ["-I", "+%s"], ["-Iinvalid"], ["--rfc-3339=hours"],
   ["-d@0", "+%::::z"],

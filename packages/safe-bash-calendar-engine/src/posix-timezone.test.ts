@@ -48,7 +48,7 @@ test("POSIX zones retain local time gap and fold handling", () => {
   const gap = { year: 2024, month: 3, day: 10, hour: 2, minute: 30, second: 0 };
   const fold = { year: 2024, month: 11, day: 3, hour: 1, minute: 30, second: 0 };
   assert.throws(() => zone.instant(gap), /nonexistent local time/);
-  assert.throws(() => zone.instant(fold), /ambiguous local time/);
+  assert.equal(zone.instant(fold), 1730611800n * nanosecondsPerSecond);
   assert.equal(zone.instant(gap, 0n, "compatible"), 1710055800n * nanosecondsPerSecond);
   assert.equal(zone.instant(fold, 0n, "compatible"), 1730611800n * nanosecondsPerSecond);
 });

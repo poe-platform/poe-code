@@ -916,12 +916,15 @@ export class Pattern {
   private async findJq(text: string, budget: PatternBudget, from: number,
     options: { pc: number; exact?: boolean; end?: number; captures?: number[]; continuation?: number } = { pc: 0 }): Promise<{ match: Match; captures: number[] } | undefined> {
     const continuation = options.continuation ?? from;
+    const longest = this.modifiers.includes("l") && options.pc === 0;
+    let best: { match: Match; captures: number[] } | undefined;
     let trailingStart = text.length;
     if (this.trailingNewlineAnchor) while (trailingStart > 0 && text[trailingStart - 1] === "\n") {
       budget.step(); trailingStart--;
       if (trailingStart % 64 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     }
-    // Prioritized traversal gives jq's leftmost-first (rather than POSIX longest) match.
+    // Prioritized traversal gives jq's leftmost-first match; l keeps the longest
+    // match across starting positions, retaining traversal order for ties.
     for (let start = from; start <= (options.end ?? text.length) && (!options.exact || start === from); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
       const pending = [{ pc: options.pc, position: start, captures: options.captures ?? [] }];
       const visited = new Set<string>();
@@ -952,7 +955,10 @@ export class Pattern {
             budget.step();
             groups.push(captures[index * 2] === undefined ? undefined : text.slice(captures[index * 2], captures[index * 2 + 1]));
           }
-          return { match: { start: matchStart, end: position, groups, captureOffsets: captures }, captures };
+          const result = { match: { start: matchStart, end: position, groups, captureOffsets: captures }, captures };
+          if (!longest) return result;
+          if (!best || position - matchStart > best.match.end - best.match.start) best = result;
+          continue;
         }
         if (instruction.kind === "conditional") {
           const result = await this.findJq(text, budget, position, { pc: instruction.first, exact: true, captures, continuation });
@@ -1009,7 +1015,7 @@ export class Pattern {
         } else throw new ProgramError("unsupported jq regular expression instruction");
       }
     }
-    return undefined;
+    return best;
   }
 
   canFindSync(): boolean {

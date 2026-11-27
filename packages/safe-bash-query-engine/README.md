@@ -5,7 +5,7 @@ the same parser, decimal values, interpreter and bounded query sessions. It
 preserves streaming order, cooperative cancellation and UTF-8 byte accounting
 without requiring the Node.js `Buffer` global. Queries support recursive and
 lexically scoped `def` filters, `test`/`match` regex queries, capture-based
-`sub`/`gsub` replacements, flagged `scan`/`split`/`splits`, membership and `INDEX`
+`sub`/`gsub` replacements (including extended `x`, multiline `p`, and longest-match `l` flags), flagged `scan`/`split`/`splits`, membership and `INDEX`
 lookups, lazy `isempty`/`nth` selection, bounded lazy `repeat` generators, `pick` projections, repeated
 `combinations`, Unicode `explode`/`implode`, whitespace `trim`/`ltrim`/`rtrim`, basic math including `fabs` and `sqrt`, `path` extraction, the jq 1.6
 `leaf_paths` alias for `paths(scalars)`, and UTC

@@ -9,11 +9,11 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
   replacement: (captures: Json) => AsyncIterable<Json>, budget: Budget, global = true): AsyncGenerator<Json> {
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
-  if (typeof flags !== "string" || [...flags].some(flag => !"gimns".includes(flag))) throw new JqError(`${typeof flags === "string" ? flags + "g" : describe(flags, budget)} is not a valid modifier string`);
+  if (typeof flags !== "string" || [...flags].some(flag => !"gimnpsxl".includes(flag))) throw new JqError(`${typeof flags === "string" ? flags + "g" : describe(flags, budget)} is not a valid modifier string`);
   const work = { step: (count = 1) => budget.step(count), checkpoint: () => budget.tick(0), maxBufferBytes: budget.limits.maxValueBytes };
   try {
     budget.step(source.length);
-    const pattern = new Pattern(source, true, flags.includes("i"), "jq", flags);
+    const pattern = new Pattern(flags.includes("x") ? await extendedPattern(source, budget) : source, true, flags.includes("i"), "jq", flags.includes("p") ? flags + "m" : flags);
     let search = 0;
     let copied = 0;
     let results = [""];

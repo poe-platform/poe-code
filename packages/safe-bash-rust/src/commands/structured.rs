@@ -24737,6 +24737,8 @@ fn exec_sql_select_with_mode(
                 " EXCEPT " => left_lines
                     .into_iter()
                     .filter(|l| !right_lines.contains(l))
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
                     .collect(),
                 " UNION ALL " => {
                     let mut v = left_lines;

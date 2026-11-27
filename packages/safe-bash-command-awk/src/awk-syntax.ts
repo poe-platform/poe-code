@@ -71,7 +71,6 @@ class Lexer {
     if (name) { this.offset += name.length; return { kind: "name", text: name, offset }; }
     const number = /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/u.exec(rest)?.[0];
     if (number) {
-      if (!Number.isFinite(Number(number))) throw new ProgramError("non-finite numeric literal");
       this.offset += number.length; return { kind: "number", text: number, offset };
     }
     if (rest[0] === '"') {

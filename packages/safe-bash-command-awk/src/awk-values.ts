@@ -231,8 +231,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       // Charge requested rendering work before numeric formatting or padding.
       budget?.step(1 + (/[fFeEgG]/u.test(conversion) ? precision ?? 6 : 0));
       if (!Number.isFinite(amount)) {
-        if (!"fFeEgG".includes(conversion)) throw new ProgramError("cannot format a non-finite number");
-        part = Number.isNaN(amount) ? "nan" : amount < 0 ? "-inf" : "inf";
+        part = Number.isNaN(amount) ? "+nan" : amount < 0 ? "-inf" : "+inf";
         flags = flags.replaceAll("0", "").replaceAll("#", "");
       } else if (/[fFeEgG]/u.test(conversion) && (precision ?? 6) > 100) {
         part = preciseFloat(amount, precision!, conversion, flags.includes("#"), admit);
@@ -258,7 +257,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       admit(part.length);
       part = part.replace(/e([+-])([0-9])$/u, "e$10$2");
       if (/[XFEG]/u.test(conversion)) { admit(part.length); part = part.toUpperCase(); }
-      if (amount >= 0 && !/[uoxX]/u.test(conversion)) {
+      if (Number.isFinite(amount) && amount >= 0 && !/[uoxX]/u.test(conversion)) {
         const prefix = flags.includes("+") ? "+" : flags.includes(" ") ? " " : "";
         admit(prefix.length + part.length);
         part = prefix + part;

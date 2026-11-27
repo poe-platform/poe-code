@@ -40,13 +40,18 @@ for (const value of [-2, -1, -0.5, 0, 1]) {
 }
 
 for (const [program, expected] of [
-  ['BEGIN { print int("1e999"), int("-1e999"), int(sqrt(-1)) }', "inf -inf nan\n"],
-  ['BEGIN { print sqrt(-1) }', "nan\n"],
+  ['BEGIN { x = 1e300 * 1e300; print x; print log(0) }', "+inf\n-inf\n"],
+  ['BEGIN { print 2 ^ 1024; print exp(1000) }', "+inf\n+inf\n"],
+  ['BEGIN { x=1e300; x*=x; print x, -x, x-x, x/x, 0*x; print "after" }', "+inf -inf +nan +nan +nan\nafter\n"],
+  ['BEGIN { print 1e999, -1e999 }', "+inf -inf\n"],
+  ['BEGIN { printf "%d|%u|%x|%+g\\n", exp(1000), log(0), sqrt(-1), exp(1000) }', "+inf|-inf|+nan|+inf\n"],
+  ['BEGIN { print int("1e999"), int("-1e999"), int(sqrt(-1)) }', "+inf -inf +nan\n"],
+  ['BEGIN { print sqrt(-1) }', "+nan\n"],
   ['BEGIN { print log(0) }', "-inf\n"],
-  ['BEGIN { print log(-1) }', "nan\n"],
-  ['BEGIN { print exp(1000) }', "inf\n"],
-  ['BEGIN { x=exp(1000); print x, "value=" x, log(x), sin(x) }', "inf value=inf inf nan\n"],
-  ['BEGIN { printf "%#f|%010f|%+g|%G|%.101g\\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000) }', "inf|       inf|nan|-INF|inf\n"],
+  ['BEGIN { print log(-1) }', "+nan\n"],
+  ['BEGIN { print exp(1000) }', "+inf\n"],
+  ['BEGIN { x=exp(1000); print x, "value=" x, log(x), sin(x) }', "+inf value=+inf +inf +nan\n"],
+  ['BEGIN { printf "%#f|%010f|%+g|%G|%.101g\\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000) }', "+inf|      +inf|+nan|-INF|+inf\n"],
 ] as const) test(`awk preserves non-finite math results: ${program}`, async () => {
   const result = await run(createAwkCommand(), [program]);
   assert.equal(result.exitCode, 0, result.stderr);

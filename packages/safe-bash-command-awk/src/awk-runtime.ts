@@ -787,9 +787,7 @@ export class AwkRuntime {
   }
   private arithmetic(operator: string, left: number, right: number): number {
     if ((operator === "/" || operator === "%") && right === 0) throw new ProgramError("division by zero");
-    const result = operator === "+" ? left + right : operator === "-" ? left - right : operator === "*" ? left * right : operator === "/" ? left / right : operator === "%" ? left % right : left ** right;
-    if (!Number.isFinite(result)) throw new ProgramError("non-finite arithmetic result");
-    return result;
+    return operator === "+" ? left + right : operator === "-" ? left - right : operator === "*" ? left * right : operator === "/" ? left / right : operator === "%" ? left % right : left ** right;
   }
   private scalarExpression(expression: Expression): Scalar | Promise<Scalar> {
     const val = this.evaluate(expression);

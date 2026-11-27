@@ -153,6 +153,7 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
     horizontal();
     if (source[offset] === "\\") {
       offset++;
+      if (offset === source.length) return "";
       if (source[offset] === "\n") offset++;
     }
     let text = "";

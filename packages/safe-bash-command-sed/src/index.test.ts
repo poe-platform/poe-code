@@ -17,6 +17,37 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
   return { ...result, stdout, stderr };
 }
 
+for (const [program, input, expected] of [
+  ["$a\\", "a\n", "a\n"],
+  ["$a\\", "a", "a\n"],
+  ["c\\", "a\n", ""],
+  ["1i\\", "a\n", "a\n"],
+  ["a\\\n", "a\n", "a\n\n"],
+  ["i\\\n", "a\n", "\na\n"],
+  ["c\\\n", "a\n", "\n"],
+] as const) {
+  test(`sed distinguishes missing text from a blank text line: ${JSON.stringify({ program, input })}`, async () => {
+    const result = await run(createSedCommand(), [program], input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+for (const input of ["a", "a\n"]) {
+  test(`sed empty append makes in-place final newline idempotent: ${JSON.stringify(input)}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from(input));
+    for (let iteration = 0; iteration < 2; iteration++) {
+      const result = await run(createSedCommand(), ["-i", "-e", "$a\\", "/input"], "", fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a\n");
+    }
+  });
+}
+
 for (const suffix of ["", ".bak", ".new"]) {
   for (const fallback of [false, true]) {
     test(`standalone sed edits a nested mount with suffix '${suffix}' and fallback ${fallback}`, async () => {

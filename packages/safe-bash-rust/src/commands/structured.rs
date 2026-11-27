@@ -14893,10 +14893,20 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
             let mut out = format_csv_row(headers, ',');
+            if keep_dups {
+                for row in &rows[1..] {
+                    let key: Vec<String> = selected
+                        .iter()
+                        .map(|&idx| row.get(idx).cloned().unwrap_or_default())
+                        .collect();
+                    if seen.get(&key).is_some_and(|(_, count)| *count > 1) {
+                        out.push_str(&format_csv_row(row, ','));
+                    }
+                }
+                return ok_out(&out);
+            }
             for k in order {
-                if let Some((row, cnt)) = seen.get(&k)
-                    && (!keep_dups || *cnt > 1)
-                {
+                if let Some((row, _)) = seen.get(&k) {
                     out.push_str(&format_csv_row(row, ','));
                 }
             }

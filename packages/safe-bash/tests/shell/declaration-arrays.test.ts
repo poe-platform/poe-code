@@ -2,7 +2,33 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
+import { agentCommands, createMemoryFileSystem, Shell } from "../../src/index.js";
 import { setup } from "./helpers.js";
+
+for (const listing of ["readonly", "readonly -p"]) {
+  for (const [declarations, stdout] of [
+    ['ra=(1 2); readonly ra; readonly r=1', 'declare -r r="1"\ndeclare -ar ra=([0]="1" [1]="2")\n'],
+    [String.raw`ra=([3]="two words" [8]='"$\' [12]=''); readonly ra; empty=(); readonly empty`, 'declare -ar empty=()\n' + String.raw`declare -ar ra=([3]="two words" [8]="\"\$\\" [12]="")` + "\n"],
+  ]) {
+    test(`${listing} lists readonly indexed arrays and scalars: ${declarations}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${declarations}; ${listing}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, 'declare -r BASHOPTS="globskipdots:patsub_replacement:sourcepath"\ndeclare -r SHELLOPTS="braceexpand:hashall"\n' + stdout);
+    });
+  }
+}
+
+test("readonly array listing preserves pipeline status alongside a readonly scalar", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('ra=(1 2); readonly ra; readonly r=1; readonly -p | grep -c \' r\'; echo "rc=${PIPESTATUS[0]}"');
+  assert.equal(result.stdout, "2\nrc=0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
 
 const controlDeclarations = [
   ['IFS=:; declare -a IFS; v="a:b c"; printf "<%s>" $v; IFS=,; v="d,e f"; printf "<%s>" $v; set -- a b; printf "|%s|" "$*"', '<a:b c><d,e f>|ab|'],

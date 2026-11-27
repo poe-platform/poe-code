@@ -9304,7 +9304,7 @@ export class Runtime {
       }
       if (!declarationArgs.length) {
         const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
-        if (command === "readonly" && readonlySyntax) {
+        if (command === "readonly" && (readonlySyntax || state.profile !== "sh")) {
           const allocation = this.budget.values.scope();
           try {
             const count = state.readonlyVariables?.size ?? 0;

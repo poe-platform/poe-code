@@ -80,7 +80,7 @@ test("find pipelines retain recursive contexts and work without Buffer", async c
       assert.equal(result.stdout, "2\n");
     }
     const flat = await shell.exec('true; find /dir/sub -name "*.txt"');
-    assert.equal(flat.stdout, "/dir/sub/\\303\\251.txt\n");
+    assert.equal(flat.stdout, "/dir/sub/é.txt\n");
     assert.equal(flat.stderr, "");
     assert.equal(flat.exitCode, 0);
   } finally { globalThis.Buffer = original; }

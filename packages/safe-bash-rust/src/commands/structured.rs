@@ -19061,7 +19061,22 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 }
                 continue;
             }
-            if cu == "PRIMARY" {
+            if cu == "PRIMARY" || (cu == "CONSTRAINT" && c_up.contains("PRIMARY KEY")) {
+                if let Some(open) = c_norm.find('(')
+                    && let Some(close) = find_matching_paren(&c_norm[open..])
+                {
+                    let key_cols: Vec<String> = split_top_level_comma(&c_norm[open + 1..open + close])
+                        .into_iter()
+                        .map(|col| {
+                            col.split_whitespace()
+                                .next()
+                                .unwrap_or("")
+                                .trim_matches('"')
+                                .to_string()
+                        })
+                        .collect();
+                    unique_indexes.push((String::new(), key_cols));
+                }
                 pk_col_count += 2;
                 continue;
             }
@@ -19134,6 +19149,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 .unwrap_or("")
                 .to_ascii_uppercase();
             if c_up.contains("PRIMARY KEY") {
+                unique_indexes.push((String::new(), vec![cname.clone()]));
                 pk_col_count += 1;
                 if type_tok == "INTEGER" && !upper.contains("WITHOUT ROWID") {
                     rowid_alias_col = Some(cols.len());
@@ -21064,7 +21080,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if upper.starts_with("CREATE TABLE") {
             if let Some(open) = stmt.find('(') {
-                if stmt.rfind(')').is_some() {
+                if stmt.contains(')') {
                     let head = stmt["CREATE TABLE".len()..open].trim();
                     let head = if head.to_ascii_uppercase().starts_with("IF NOT EXISTS ") {
                         head["IF NOT EXISTS".len()..].trim()
@@ -21072,7 +21088,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         head
                     };
                     let tname = head.trim_matches('"').to_string();
-                    let (table, _, _) = parse_create_table_metadata(stmt);
+                    let (mut table, _, _) = parse_create_table_metadata(stmt);
+                    table.imported_csv = false;
                     let tname = resolve_sql_table_name(&tables, &tname).to_owned();
                     tables.entry(tname).or_insert(table);
                 }
@@ -21186,7 +21203,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         );
                     }
                 }
-                Err(e) => return err_out(&e, 1),
+                Err(e) => {
+                    errors.push_str(&e);
+                    break;
+                }
             }
         } else if upper.starts_with("UPDATE ") {
             let ret_chunk = match exec_sql_update(
@@ -21415,7 +21435,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         for cname in &cte_names {
                             tables.remove(cname);
                         }
-                        return err_out(&e, 1);
+                        errors.push_str(&e);
+                        break;
                     }
                 }
             } else if resolved_any_cte && rest.to_ascii_uppercase().starts_with("UPDATE ") {
@@ -22124,11 +22145,7 @@ fn exec_sql_insert(
             return Err(format!("Error: UNIQUE constraint failed: {col_desc}\n"));
         }
 
-        let existing_idx = unique_conflict_idx.map(|(idx, _)| idx).or_else(|| {
-            tables
-                .get(&tname)
-                .and_then(|tbl| tbl.rows.iter().position(|er| er.first() == row.first()))
-        });
+        let existing_idx = unique_conflict_idx.map(|(idx, _)| idx);
         if let Some(e_idx) = existing_idx
             && (is_do_nothing || is_or_replace || is_do_update)
         {

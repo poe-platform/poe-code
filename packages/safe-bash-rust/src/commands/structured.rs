@@ -6358,15 +6358,27 @@ fn parse_nested_yaml(input: &str) -> JVal {
     {
         return first;
     }
+    let mut scalar_parent_indent = None;
     let lines: Vec<(usize, &str)> = input
         .lines()
         .filter_map(|l| {
             let trimmed = l.trim_end();
             let stripped = trimmed.trim_start();
+            let indent = trimmed.len() - stripped.len();
+            if let Some(parent_indent) = scalar_parent_indent {
+                if stripped.is_empty() || indent > parent_indent {
+                    return Some((indent, stripped));
+                }
+                scalar_parent_indent = None;
+            }
             if stripped.is_empty() || stripped.starts_with('#') || trimmed == "---" {
                 None
             } else {
-                let indent = trimmed.len() - stripped.len();
+                if let Some((_, value)) = stripped.split_once(':')
+                    && matches!(value.trim(), "|" | ">")
+                {
+                    scalar_parent_indent = Some(indent);
+                }
                 Some((indent, stripped))
             }
         })
@@ -6541,15 +6553,43 @@ fn parse_yaml_key_value(
     if val_s == "|" || val_s == ">" {
         let mut block_lines = Vec::new();
         let mut block_indent: Option<usize> = None;
-        while *idx < lines.len() && lines[*idx].0 > parent_indent {
+        while *idx < lines.len()
+            && (lines[*idx].1.is_empty() || lines[*idx].0 > parent_indent)
+        {
             let (li, lt) = lines[*idx];
-            let base = *block_indent.get_or_insert(li);
-            let extra = " ".repeat(li.saturating_sub(base));
-            block_lines.push(format!("{extra}{lt}"));
+            if lt.is_empty() {
+                block_lines.push(String::new());
+            } else {
+                let base = *block_indent.get_or_insert(li);
+                let extra = " ".repeat(li.saturating_sub(base));
+                block_lines.push(format!("{extra}{lt}"));
+            }
             *idx += 1;
         }
-        let sep = if val_s == ">" { " " } else { "\n" };
-        return JVal::Str(format!("{}\n", block_lines.join(sep)));
+        // Clip trailing empty lines; fold only ordinary text, preserving paragraph
+        // breaks and the newlines around more-indented content.
+        while block_lines.last().is_some_and(String::is_empty) {
+            block_lines.pop();
+        }
+        let mut text = String::new();
+        for (i, line) in block_lines.iter().enumerate() {
+            text.push_str(line);
+            if val_s == ">"
+                && !line.is_empty()
+                && !line.starts_with(' ')
+                && let Some(next) = block_lines.get(i + 1)
+            {
+                if next.is_empty() {
+                    continue;
+                }
+                if !next.starts_with(' ') {
+                    text.push(' ');
+                    continue;
+                }
+            }
+            text.push('\n');
+        }
+        return JVal::Str(text);
     }
     if val_s.is_empty() || (val_s.starts_with('&') && !val_s.contains(' ')) {
         let anchor = val_s.strip_prefix('&').map(|s| s.trim().to_string());

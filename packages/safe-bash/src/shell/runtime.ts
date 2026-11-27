@@ -73,7 +73,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
 import { dynamicVariableNames, initializeIdentityVariables, readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
-import { shellOptions } from "./options.js";
+import { setOptionFlags, shellOptions } from "./options.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
 import { mapfileHelp } from "./mapfile-help.js";
 import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
@@ -948,10 +948,7 @@ export interface State extends DynamicVariableState {
   loopDepth: number;
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
-  localSetOptions?: {
-    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "physical" | "pipefail" | "xtrace">;
-    readonly extensions: ReadonlyMap<string, boolean>;
-  } | undefined;
+  localSetOptions?: ReadonlyMap<string, boolean> | undefined;
   getopts?: GetoptsBinding | undefined;
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
@@ -982,6 +979,20 @@ export interface State extends DynamicVariableState {
   allexport?: boolean;
   noexec?: boolean;
   physical?: boolean;
+  emacs?: boolean;
+  histexpand?: boolean;
+  history?: boolean;
+  ignoreeof?: boolean;
+  "interactive-comments"?: boolean;
+  keyword?: boolean;
+  monitor?: boolean;
+  nolog?: boolean;
+  notify?: boolean;
+  onecmd?: boolean;
+  posix?: boolean;
+  privileged?: boolean;
+  verbose?: boolean;
+  vi?: boolean;
   pipefail: boolean;
   xtrace?: boolean;
   xtraceDepth?: number;
@@ -5228,7 +5239,7 @@ export class Runtime {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "physical" ? !!state.physical : name === "xtrace" ? !!state.xtrace : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => shellOptions(state, true).get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -6539,7 +6550,7 @@ export class Runtime {
             if (name === "hashall") return state.hashall !== false;
             if (name === "allexport") return !!state.allexport;
             if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail", "xtrace"].includes(name)) return !!state[name as "nounset"];
-            return false;
+            return shellOptions(state, true).get(name)?.enabled ?? false;
           }, terminal: () => false, descriptorStat: async number => {
             const descriptor = io.descriptors?.get(number);
             if (!descriptor || descriptor.closed) return undefined;
@@ -6796,9 +6807,9 @@ export class Runtime {
               state.loopDepth = callerLoopDepth;
               state.depth--;
               if (state.localSetOptions) {
-                Object.assign(state, state.localSetOptions.values);
-                for (const [name, enabled] of state.localSetOptions.extensions) {
-                  const option = state.extensions?.options.get(name);
+                const options = shellOptions(state, true);
+                for (const [name, enabled] of state.localSetOptions) {
+                  const option = options.get(name);
                   if (option) option.enabled = enabled;
                 }
               }
@@ -7991,37 +8002,18 @@ export class Runtime {
       const enabled = option[0] === "-";
       let valid = option.length > 1;
       for (let position = 1; valid && position < option.length; position++) {
-        const flag = option[position];
-        if (flag === "e") state.errexit = enabled;
-        else if (flag === "a") state.allexport = enabled;
-        else if (flag === "u") state.nounset = enabled;
-        else if (flag === "f") state.noglob = enabled;
-        else if (flag === "h") state.hashall = enabled;
-        else if (flag === "C") state.noclobber = enabled;
-        else if (flag === "n") state.noexec = enabled;
-        else if (flag === "P") state.physical = enabled;
+        const flag = option[position]!;
+        if (Object.hasOwn(setOptionFlags, flag)) state[setOptionFlags[flag as keyof typeof setOptionFlags]] = enabled;
         else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
           for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         }
-        else if (flag === "B") state.braceexpand = enabled;
-        else if (flag === "x") state.xtrace = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
             for (const [name, option] of shellOptions(state, true)) await writeText(stdout, enabled ? `${name}\t${option.enabled ? "on" : "off"}\n` : `set ${option.enabled ? "-" : "+"}o ${name}\n`);
           } else {
-            if (name === "errexit") state.errexit = enabled;
-            else if (name === "allexport") state.allexport = enabled;
-            else if (name === "nounset") state.nounset = enabled;
-            else if (name === "pipefail") state.pipefail = enabled;
-            else if (name === "braceexpand") state.braceexpand = enabled;
-            else if (name === "hashall") state.hashall = enabled;
-            else if (name === "noglob") state.noglob = enabled;
-            else if (name === "noclobber") state.noclobber = enabled;
-            else if (name === "noexec") state.noexec = enabled;
-            else if (name === "physical") state.physical = enabled;
-            else if (name === "xtrace") state.xtrace = enabled;
-            else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
+            const named = shellOptions(state, true).get(name);
+            if (named) named.enabled = enabled;
             else if (!compatibilitySetOptionNames.has(name)) {
               await this.diagnostic(context, `set: ${name}: invalid option name`);
               return 2;
@@ -9470,16 +9462,7 @@ export class Runtime {
       for (let declarationIndex = 0; declarationIndex < declarationArgs.length; declarationIndex++) {
         const arg = declarationArgs[declarationIndex]!;
         if (command === "local" && arg === "-") {
-          state.localSetOptions ??= {
-            values: {
-              allexport: !!state.allexport, braceexpand: state.braceexpand !== false,
-              errexit: !!state.errexit, hashall: state.hashall !== false, noclobber: !!state.noclobber,
-              noexec: !!state.noexec, noglob: !!state.noglob,
-              xtrace: !!state.xtrace,
-              nounset: !!state.nounset, physical: !!state.physical, pipefail: state.pipefail,
-            },
-            extensions: new Map([...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled])),
-          };
+          state.localSetOptions ??= new Map([...shellOptions(state, true)].map(([name, option]) => [name, option.enabled]));
           continue;
         }
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
@@ -10660,7 +10643,7 @@ export class Runtime {
     let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
       : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.xtrace ? "x" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}${state.physical ? "P" : ""}`
+      : part.name === "-" ? Object.entries(setOptionFlags).filter(([, name]) => name === "braceexpand" || name === "hashall" ? state[name] !== false : state[name]).map(([flag]) => flag).join("")
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(this.ifs(state) ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

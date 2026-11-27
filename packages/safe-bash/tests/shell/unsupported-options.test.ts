@@ -27,6 +27,63 @@ for (const option of ["v", "m", "b", "k", "p", "t", "H", "E", "T",
   });
 }
 
+test("standard compatibility options succeed without aborting errexit scripts", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const source = 'set -m; echo "m=$?"; set -o posix; echo "posix=$?"; set -v; echo "v=$?"; set +H; echo "H=$?"; set -o emacs; echo "emacs=$?"';
+  for (const prefix of ["", "set -e; "]) {
+    const result = await shell.exec(prefix + source);
+    assert.deepEqual([result.stdout, result.stderr, result.exitCode], ["m=0\nposix=0\nv=0\nH=0\nemacs=0\n", "", 0]);
+  }
+});
+
+for (const [name, flag] of [
+  ["verbose", "v"], ["monitor", "m"], ["notify", "b"], ["keyword", "k"],
+  ["privileged", "p"], ["onecmd", "t"], ["histexpand", "H"],
+  ["posix"], ["vi"], ["emacs"], ["history"], ["ignoreeof"], ["interactive-comments"], ["nolog"],
+] as const) test(`compatibility option ${name} supports toggling, queries and local restoration`, async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  for (const option of [`o ${name}`, ...(flag ? [flag] : [])]) {
+    const result = await shell.exec(`set -e; set -${option}; [[ -o ${name} ]]; test -o ${name}; shopt -oq ${name};
+      case :$SHELLOPTS: in *:${name}:*) echo enabled;; esac
+      f() { local -; set +${option}; }; f; [[ -o ${name} ]];
+      (set +${option}); [[ -o ${name} ]]; set +o; set +${option};
+      if [[ -o ${name} ]] || test -o ${name} || shopt -oq ${name}; then exit 7; fi
+      echo disabled`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.ok(result.stdout.startsWith("enabled\n"));
+    assert.ok(result.stdout.includes(`set -o ${name}\n`));
+    assert.ok(result.stdout.endsWith("disabled\n"));
+    if (flag) {
+      const flags = await shell.exec(`set -${flag}; case $- in *${flag}*) echo enabled;; esac; set +${flag}; case $- in *${flag}*) echo leaked;; esac`);
+      assert.deepEqual([flags.stdout, flags.stderr, flags.exitCode], ["enabled\n", "", 0]);
+    }
+  }
+});
+
+test("compatibility option clusters preserve positional arguments and reject unknown options", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('set -evmbkptH -- one "two words"; set +vmbkptH; printf "<%s>" "$@"');
+  assert.deepEqual([result.stdout, result.stderr, result.exitCode], ["<one><two words>", "", 0]);
+  const invalid = await shell.exec("set -o made_up");
+  assert.equal(invalid.exitCode, 2);
+  assert.ok(invalid.stderr.includes("invalid option name"));
+  assert.notEqual((await shell.exec("set -Z")).exitCode, 0);
+});
+
+test("compatibility options survive session snapshots", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const enabled = await shell.exec("set -mv -o posix", { onState() {} });
+  const restored = await shell.exec("[[ -o monitor ]] && [[ -o verbose ]] && [[ -o posix ]]", { state: enabled.state });
+  assert.deepEqual([restored.stdout, restored.stderr, restored.exitCode], ["", "", 0]);
+});
+
 for (const canonical of [true, false]) for (const option of ["-C", "-o noclobber", "-uC"]) {
   test(`noclobber ${option} preserves existing output with descriptor API ${canonical}`, async () => {
     const fs = createMemoryFileSystem();

@@ -90,6 +90,20 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     pipefail: Boolean(state.pipefail),
     errexit: Boolean(state.errexit),
     nounset: Boolean(state.nounset),
+    emacs: Boolean(state.emacs),
+    histexpand: Boolean(state.histexpand),
+    history: Boolean(state.history),
+    ignoreeof: Boolean(state.ignoreeof),
+    "interactive-comments": Boolean(state["interactive-comments"]),
+    keyword: Boolean(state.keyword),
+    monitor: Boolean(state.monitor),
+    nolog: Boolean(state.nolog),
+    notify: Boolean(state.notify),
+    onecmd: Boolean(state.onecmd),
+    posix: Boolean(state.posix),
+    privileged: Boolean(state.privileged),
+    verbose: Boolean(state.verbose),
+    vi: Boolean(state.vi),
   };
 
   const snapshot: ShellSessionState = {
@@ -259,6 +273,20 @@ export async function restoreShellSessionState(
     if (opts.pipefail !== undefined) state.pipefail = opts.pipefail;
     if (opts.errexit !== undefined) state.errexit = opts.errexit;
     if (opts.nounset !== undefined) state.nounset = opts.nounset;
+    if (opts.emacs !== undefined) state.emacs = opts.emacs;
+    if (opts.histexpand !== undefined) state.histexpand = opts.histexpand;
+    if (opts.history !== undefined) state.history = opts.history;
+    if (opts.ignoreeof !== undefined) state.ignoreeof = opts.ignoreeof;
+    if (opts["interactive-comments"] !== undefined) state["interactive-comments"] = opts["interactive-comments"];
+    if (opts.keyword !== undefined) state.keyword = opts.keyword;
+    if (opts.monitor !== undefined) state.monitor = opts.monitor;
+    if (opts.nolog !== undefined) state.nolog = opts.nolog;
+    if (opts.notify !== undefined) state.notify = opts.notify;
+    if (opts.onecmd !== undefined) state.onecmd = opts.onecmd;
+    if (opts.posix !== undefined) state.posix = opts.posix;
+    if (opts.privileged !== undefined) state.privileged = opts.privileged;
+    if (opts.verbose !== undefined) state.verbose = opts.verbose;
+    if (opts.vi !== undefined) state.vi = opts.vi;
   }
 
   let tracked = state;

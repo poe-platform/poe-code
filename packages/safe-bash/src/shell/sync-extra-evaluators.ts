@@ -2,6 +2,7 @@ import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
 import { descriptorFileSystem } from "./descriptor-filesystem.js";
 import { protectedReadArrays } from "./variable-target.js";
 import { dynamicVariableNames, initializeIdentityVariables } from "./dynamic-variables.js";
+import { shellOptions } from "./options.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { escapeText, writeDiagnostic } from "../escaping.js";
@@ -3578,7 +3579,7 @@ const syncExtraRuntimeMethods = {
         if (name === "hashall") return state.hashall !== false;
         if (name === "allexport") return !!state.allexport;
         if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail"].includes(name)) return !!state[name as "nounset"];
-        return false;
+        return shellOptions(state, true).get(name)?.enabled ?? false;
       }, terminal: () => false, };
     variablePresence.set(predicates, name => this.variablePresent(state, name, io));
     return predicates;

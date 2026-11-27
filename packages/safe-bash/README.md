@@ -245,6 +245,12 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`
   control failures. `set -x` / `set -o xtrace` (also `bash -x`) traces expanded
   commands to stderr using `PS4`; `set +x` disables tracing.
+  `set` also accepts `-/+v`, `m`, `b`, `k`, `p`, `t`, `H` and their named
+  forms, plus `posix`, `vi`, `emacs`, `history`, `ignoreeof`,
+  `interactive-comments`, and `nolog`. These compatibility toggles are tracked
+  in option queries and sessions; they do not enable native job control,
+  terminal editing, history expansion, privilege changes, input echoing,
+  one-command execution, keyword export, or POSIX-mode execution changes.
   `set -a` (or `set -o allexport`) exports subsequent variable
   assignments to child commands, and `set +a` disables automatic export.
   `set +h` disables command hashing; `set -h` (or `set -o hashall`) restores it.

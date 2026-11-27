@@ -129,6 +129,20 @@ export interface ShellSessionOptionsSnapshot {
   readonly pipefail?: boolean | undefined;
   readonly errexit?: boolean | undefined;
   readonly nounset?: boolean | undefined;
+  readonly emacs?: boolean | undefined;
+  readonly histexpand?: boolean | undefined;
+  readonly history?: boolean | undefined;
+  readonly ignoreeof?: boolean | undefined;
+  readonly "interactive-comments"?: boolean | undefined;
+  readonly keyword?: boolean | undefined;
+  readonly monitor?: boolean | undefined;
+  readonly nolog?: boolean | undefined;
+  readonly notify?: boolean | undefined;
+  readonly onecmd?: boolean | undefined;
+  readonly posix?: boolean | undefined;
+  readonly privileged?: boolean | undefined;
+  readonly verbose?: boolean | undefined;
+  readonly vi?: boolean | undefined;
 }
 
 export interface ShellSessionState {

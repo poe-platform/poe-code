@@ -17,6 +17,34 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
   return { ...result, stdout, stderr };
 }
 
+for (const [args, input, stdout, stderr] of [
+  [["-n", "s/a/X/w /dev/stdout"], "ab\ncd\n", "Xb\n", ""],
+  [["w /dev/stderr"], "ab\n", "ab\n", "ab\n"],
+  [["w /dev/stdout"], "ab", "abab", ""],
+  [["-n", "s/a/X/w /dev/stderr"], "ab\ncd\n", "", "Xb\n"],
+  [["-n", "-z", "w /dev/stdout"], "ab\0cd", "ab\0cd", ""],
+  [["-n", "w /dev/stderr\nw /dev/stderr"], "ab", "", "ab\nab"],
+  [["-n", "s/a/X/w /dev/stdout"], "cd\n", "", ""],
+] as const) {
+  test(`sed writes to process streams: ${JSON.stringify({ args, input })}`, async () => {
+    const fs = createReadOnlyFileSystem(createMemoryFileSystem());
+    const result = await run(createSedCommand(), [...args], input, fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, stderr);
+  });
+}
+
+test("sed in-place stream writes use the process stdout", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("ab\ncd\n"));
+  const result = await run(createSedCommand(), ["-i", "s/a/X/w /dev/stdout", "/input"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "Xb\n");
+  assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "Xb\ncd\n");
+});
+
 for (const [program, input, expected] of [
   ["$a\\", "a\n", "a\n"],
   ["$a\\", "a", "a\n"],

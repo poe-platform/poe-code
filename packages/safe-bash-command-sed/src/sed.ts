@@ -36,6 +36,7 @@ interface OutputState {
   inputFailed: boolean;
   stdoutUnterminated: boolean;
   readonly files: Map<string, SedFile>;
+  readonly streams: Map<string, { sink: CommandContext["stdout"]; unterminated: boolean }>;
   readonly unbuffered: boolean;
   flushStdout?: () => Promise<void> | undefined;
 }
@@ -600,6 +601,13 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   const writeFile = async (file: string): Promise<void> => {
     if (stdoutLen > 0) await flushStdout();
+    const stream = outputState.streams.get(file);
+    if (stream) {
+      const text = (stream.unterminated ? separator : "") + pattern + (record.terminated ? separator : "");
+      stream.unterminated = !record.terminated;
+      if (text.length) await writeBytes(stream.sink, bytes(text), context.signal);
+      return;
+    }
     const path = virtualPath(context, file);
     const state = outputState.files.get(path)!;
     const prefix = state.unterminated ? separator : "";
@@ -1170,7 +1178,15 @@ async function executeSedGeneral(
         sedProgramCache.set(cacheKey, cached);
       }
     }
-    const { program, outputFiles, readFiles } = cached;
+    const { program, readFiles } = cached;
+    const outputState: OutputState = {
+      inputFailed: false, stdoutUnterminated: false, files: new Map(), unbuffered,
+      streams: new Map([
+        ["/dev/stdout", { sink: context.stdout, unterminated: false }],
+        ["/dev/stderr", { sink: context.stderr, unterminated: false }],
+      ]),
+    };
+    const outputFiles = cached.outputFiles.filter(file => !outputState.streams.has(file));
     if (outputFiles.length > 0) {
       await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
     }
@@ -1180,7 +1196,6 @@ async function executeSedGeneral(
         await assertPathRequirements(context, sedRequirements, ["script-read"], readFiles);
       }
     }
-    const outputState: OutputState = { inputFailed: false, stdoutUnterminated: false, files: new Map(), unbuffered };
     const prepareOutputs = async (): Promise<void> => {
       for (const file of outputFiles) {
         const path = virtualPath(context, file);

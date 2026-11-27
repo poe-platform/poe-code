@@ -24,6 +24,8 @@ On the memory filesystem, `-i.bak` moves the original file to the backup name,
 including its hard links, symbolic links and open readers. Filesystems without
 atomic backup support use a copy and refuse backups involving known hard links
 or symbolic links.
+The `w` command and `s///w` flag accept `/dev/stdout` and `/dev/stderr` to write
+to the command's output streams, including when redirected by the shell.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

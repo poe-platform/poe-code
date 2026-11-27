@@ -241,8 +241,50 @@ fn parse_html_children(
                 if let Some(st) = stop_tag
                     && matches!(
                         (st, tag_name.as_str()),
-                        ("p", "p")
-                            | ("li", "li")
+                        (
+                            "p",
+                            "address"
+                                | "article"
+                                | "aside"
+                                | "blockquote"
+                                | "center"
+                                | "dd"
+                                | "details"
+                                | "dialog"
+                                | "dir"
+                                | "div"
+                                | "dl"
+                                | "dt"
+                                | "fieldset"
+                                | "figcaption"
+                                | "figure"
+                                | "footer"
+                                | "form"
+                                | "h1"
+                                | "h2"
+                                | "h3"
+                                | "h4"
+                                | "h5"
+                                | "h6"
+                                | "header"
+                                | "hgroup"
+                                | "hr"
+                                | "li"
+                                | "listing"
+                                | "main"
+                                | "menu"
+                                | "nav"
+                                | "ol"
+                                | "p"
+                                | "plaintext"
+                                | "pre"
+                                | "search"
+                                | "section"
+                                | "summary"
+                                | "table"
+                                | "ul"
+                                | "xmp"
+                        ) | ("li", "li")
                             | ("dt" | "dd", "dt" | "dd")
                             | ("td" | "th", "td" | "th" | "tr")
                             | ("tr", "tr")

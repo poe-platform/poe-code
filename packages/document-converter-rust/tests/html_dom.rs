@@ -104,3 +104,30 @@ fn svg_html_integration_points_keep_html_slashes_and_reenter_nested_svg() {
         );
     }
 }
+
+#[test]
+fn block_openers_leave_paragraph_and_trailing_text_as_siblings() {
+    for source in [
+        "<p>first<div>second</div>end",
+        "<p>first<section>second</section>end",
+        "<p>first<h2>second</h2>end",
+    ] {
+        for nodes in [
+            parse_html_dom(source),
+            document_converter_rust::html::dom::bounded_html_dom(source).unwrap(),
+        ] {
+            let [
+                HtmlNode::Element(paragraph),
+                HtmlNode::Element(block),
+                HtmlNode::Text(tail),
+            ] = nodes.as_slice()
+            else {
+                panic!("block swallowed by paragraph: {source}: {nodes:?}");
+            };
+            assert_eq!(paragraph.tag, "p");
+            assert!(matches!(&paragraph.children[..], [HtmlNode::Text(text)] if text == "first"));
+            assert!(matches!(&block.children[..], [HtmlNode::Text(text)] if text == "second"));
+            assert_eq!(tail, "end");
+        }
+    }
+}

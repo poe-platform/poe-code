@@ -2780,7 +2780,9 @@ fn try_eval_jq_builtin(
                 let s: String = arr
                     .iter()
                     .filter_map(|v| match v {
-                        JVal::Number(n, _) => char::from_u32(*n as u32),
+                        JVal::Number(n, _) => {
+                            Some(char::from_u32(*n as u32).unwrap_or(char::REPLACEMENT_CHARACTER))
+                        }
                         _ => None,
                     })
                     .collect();

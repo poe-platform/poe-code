@@ -14,6 +14,7 @@ English names and POSIX format directives; `strftime` takes one format argument,
 as in jq. `strflocaltime` formats timestamps or broken-down local dates in the
 host timezone, including daylight-saving offsets. Zone names use the runtime’s
 English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions.
+`now` returns the current Unix timestamp in seconds, including fractional seconds.
 
 `env` and `$ENV` read only the environment supplied by the command context;
 standalone query sessions default to an empty environment.

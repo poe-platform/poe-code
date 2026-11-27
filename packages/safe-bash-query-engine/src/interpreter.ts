@@ -1167,6 +1167,7 @@ export class Interpreter {
       }
       yield result; return;
     }
+    if (name === "now") { yield Date.now() / 1000; return; }
     if (name === "gmtime") { yield gmtime(input); return; }
     if (name === "mktime") { yield mktime(input); return; }
     if (name === "strftime" || name === "strflocaltime" || name === "strptime") {

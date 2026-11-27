@@ -647,6 +647,21 @@ impl ZeroRegex {
         Self::from_branches([branches], false, false, false)
     }
 
+    pub(super) fn yq(pattern: &str) -> Result<Self, String> {
+        let branches = parse_rx_branches(
+            pattern,
+            false,
+            RxDialect::Rg {
+                flags: RxFlags::default(),
+                dot_nul: true,
+            },
+        )
+        .map_err(|err| err.message)?;
+        let mut rx = Self::from_branches([branches], false, false, false);
+        rx.search = RxSearch::First;
+        Ok(rx)
+    }
+
     pub(super) fn jq(pattern: &str, flags: &str, filter: &str) -> Result<Self, String> {
         let pattern = preprocess_ere_pattern(pattern, flags.contains('x'));
         let branches = parse_rx_branches(&pattern, false, RxDialect::Jq(flags)).map_err(|err| {

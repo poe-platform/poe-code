@@ -22,6 +22,7 @@ mod jq_input;
 mod jq_json;
 pub(super) mod xml;
 mod xpath;
+mod yq_sub;
 use xml::{Element as XmlElement, Node as XmlNode};
 mod jq_number;
 mod jq_parser;
@@ -3148,6 +3149,19 @@ fn try_eval_jq_builtin(
                                 return Err(
                                     format!("{flags}g is not a valid modifier string").into()
                                 );
+                            }
+                            if vars.yq.is_some() && fname == "sub" {
+                                let rx = ZeroRegex::yq(&pat)?;
+                                return eval_jq(repl_e, input, vars)?
+                                    .into_iter()
+                                    .map(|value| match value {
+                                        JVal::Str(replacement) => {
+                                            Ok(JVal::Str(yq_sub::replace(st, &rx, &replacement)))
+                                        }
+                                        _ => Err("sub replacement must be a string".into()),
+                                    })
+                                    .collect::<Result<Vec<_>, JqFault>>()
+                                    .map(Some);
                             }
                             let rx = ZeroRegex::jq(&pat, &flags, fname)?;
                             let global = fname == "gsub" || flags.contains('g');

@@ -589,6 +589,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     };
     const rewritten: string[] = [];
     let ended = false;
+    let traditional = true;
     for (let index = 0; index < context.args.length; index++) {
       const argument = context.args[index]!;
       if (ended || argument === "-" || !argument.startsWith("-")) {
@@ -601,6 +602,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
         continue;
       }
       if (argument.startsWith("--")) {
+        traditional = false;
         if (argument === "--strings") {
           rewritten.push("-S3");
           continue;
@@ -619,11 +621,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       }
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
-        if (flag === "S") {
-          const parameter = argument.slice(offset + 1);
-          rewritten.push(`-S${parameter || "3"}`);
-          break;
-        }
+        if ("AjNtvwS".includes(flag)) traditional = false;
         if (
           flag === "e" &&
           (argument.slice(offset + 1) === "big" ||
@@ -639,7 +637,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           break;
         }
         if (aliases[flag]) rewritten.push(`-t${aliases[flag]}`);
-        else if ("AjNt".includes(flag)) {
+        else if ("AjNtS".includes(flag)) {
           const parameter = argument.slice(offset + 1) || context.args[++index];
           if (parameter === undefined) throw new UsageError(`option '-${flag}' requires an argument`);
           rewritten.push(`-${flag}`, parameter);
@@ -693,7 +691,28 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     if (width !== requestedWidth) {
       await writeDiagnostic(context.stderr, `${context.command}: warning: invalid width ${requestedWidth}; using ${width} instead\n`, context.signal);
     }
-    const skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
+    let skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
+    const lastOperand = parsed.operands.at(-1);
+    if (traditional && parsed.operands.length <= 2 && lastOperand?.startsWith("+")) {
+      let digits = lastOperand.slice(1);
+      const hexadecimal = digits.startsWith("0x") || digits.startsWith("0X");
+      const multiplier = !hexadecimal && digits.endsWith("b") ? 512 : 1;
+      if (multiplier === 512) digits = digits.slice(0, -1);
+      let base = 8;
+      if (hexadecimal) {
+        base = 16;
+        digits = digits.slice(2);
+      } else if (digits.endsWith(".")) {
+        base = 10;
+        digits = digits.slice(0, -1);
+      }
+      const alphabet = "0123456789abcdef".slice(0, base);
+      if (digits.length && [...digits.toLowerCase()].every(character => alphabet.includes(character))) {
+        skip = Number.parseInt(digits, base) * multiplier;
+        if (!Number.isSafeInteger(skip)) throw new UsageError(`number out of range '${lastOperand}'`);
+        parsed.operands.pop();
+      }
+    }
     const count = validatedOption(parsed, "N", text => numeric(text, true), Infinity);
     if (count === 0 && skip === 0 && parsed.operands[0] && parsed.operands[0] !== "-") {
       await context.fs.stat(pathOf(context, parsed.operands[0]), { signal: context.signal });

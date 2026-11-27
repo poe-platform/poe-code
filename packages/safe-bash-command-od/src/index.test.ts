@@ -13,12 +13,12 @@ test("od command definition exports standard contract", () => {
 import { createMemoryFileSystem, createOverlayFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectText, createBytePipe, createCommandArguments } from "safe-bash-contracts";
 
-async function run(args: string[], fs: FileSystem, maxInputBytes = 1024) {
+async function run(args: string[], fs: FileSystem, maxInputBytes = 1024, input = "") {
   const stdout = createBytePipe();
   const stderr = createBytePipe();
   const result = await createOdCommand({ limits: { maxInputBytes } }).execute({
     command: "od", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
-    stdin: (async function* () {})(), stdout: stdout.writable, stderr: stderr.writable,
+    stdin: (async function* () { yield new TextEncoder().encode(input); })(), stdout: stdout.writable, stderr: stderr.writable,
     signal: new AbortController().signal,
   });
   await stdout.close();
@@ -54,7 +54,7 @@ for (const streamingRead of [undefined, false]) {
   });
 }
 
-for (const flag of ["-w", "--width", "-S", "--strings"]) {
+for (const flag of ["-w", "--width", "--strings"]) {
   test(`od ${flag} preserves numeric file operands`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/16", new TextEncoder().encode("hello\0"));
@@ -191,3 +191,40 @@ test("explicit infinite input limits are accepted in both option forms", () => {
     assert.doesNotThrow(() => odCommands(options));
   }
 });
+
+for (const args of [["-S", "3"], ["-S3"], ["--strings"]]) {
+  test(`od lists stdin strings with ${args.join(" ")}`, async () => {
+    assert.deepEqual(await run(args, createMemoryFileSystem(), 1024, "ab\0cdefg\0"), {
+      exitCode: 0, stdout: "0000003 cdefg\n", stderr: "",
+    });
+  });
+}
+
+test("od requires the short string-length argument", async () => {
+  assert.equal((await run(["-S"], createMemoryFileSystem())).exitCode, 2);
+});
+
+for (const [operand, skip] of [["+1", 1], ["+10", 8], ["+10.", 10], ["+0xA", 10], ["+0xb", 11], ["+1b", 512]] as const) {
+  for (const file of [false, true]) {
+    test(`od accepts traditional offset ${operand} from ${file ? "file" : "stdin"}`, async () => {
+      const fs = createMemoryFileSystem();
+      const input = operand === "+1" ? "abc" : "a".repeat(520);
+      if (file) await fs.writeFile("/input", new TextEncoder().encode(input));
+      const operands = file ? ["input"] : [];
+      const expected = await run(["-j", String(skip), ...operands], fs, 1024, input);
+      const result = await run([...operands, operand], fs, 1024, input);
+      assert.deepEqual(result, expected);
+      if (operand === "+1") assert.equal(result.stdout, "0000001 061542\n0000003\n");
+    });
+  }
+}
+
+for (const args of [["-An", "+1"], ["-j0", "+1"], ["-tx1", "+1"], ["-v", "+1"], ["+8"], ["+name"]]) {
+  test(`od preserves filename operand with ${args.join(" ")}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/" + args.at(-1), new TextEncoder().encode("abc"));
+    const result = await run(args, fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.length > 0);
+  });
+}

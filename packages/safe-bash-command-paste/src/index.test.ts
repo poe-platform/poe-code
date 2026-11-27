@@ -118,16 +118,22 @@ for (const separator of ["\n", "\0"]) {
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.split("Is a directory").length - 1, 2);
  });
- test(`serial paste skips empty files with ${JSON.stringify(separator)} records`, async () => {
+ test(`serial paste terminates empty files with ${JSON.stringify(separator)} records`, async () => {
   const result = await run([...options, "-s", "/empty", "/rows", "/empty", "/rows", "/empty"], { "/empty": "", "/rows": rows });
-  assert.equal(result.stdout, `x\ty${separator}x\ty${separator}`);
+  assert.equal(result.stdout, `${separator}x\ty${separator}${separator}x\ty${separator}${separator}`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+ });
+ test(`serial paste terminates each repeated empty file with ${JSON.stringify(separator)} records`, async () => {
+  const result = await run([...options, "-sd,", "e", "e"], { "/e": "" });
+  assert.equal(result.stdout, separator.repeat(2));
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
  });
  for (const operands of [[], ["-"], ["-", "-"]]) {
-  test(`serial paste skips empty stdin operands ${JSON.stringify([...options, ...operands])}`, async () => {
+  test(`serial paste terminates empty stdin operands ${JSON.stringify([...options, ...operands])}`, async () => {
    const result = await run([...options, "-s", ...operands], {});
-   assert.equal(result.stdout, "");
+   assert.equal(result.stdout, separator.repeat(Math.max(1, operands.length)));
    assert.equal(result.exitCode, 0);
    assert.equal(result.stderr, "");
   });

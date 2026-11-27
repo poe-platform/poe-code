@@ -13,6 +13,6 @@ const result = await shell.exec("paste --help");
 
 With `POSIXLY_CORRECT` set, options must precede the first filename or `-` operand. `--` explicitly ends option parsing in either mode. If an input read fails, paste preserves the records already read, including a final partial record and its terminator, and reports the error with exit status 1.
 
-Delimiter lists cycle through UTF-8 Unicode code points regardless of locale. Invalid or incomplete UTF-8 bytes are preserved individually. Empty serial inputs emit no terminator, including exhausted repeated stdin operands; a blank input record still emits its terminator. These behaviors intentionally differ from GNU paste. Filename diagnostics keep printable UTF-8 readable and escape control characters, Unicode line and paragraph separators, and unassigned characters as bytes; file lookup uses the original filename.
+Delimiter lists cycle through UTF-8 Unicode code points regardless of locale. Invalid or incomplete UTF-8 bytes are preserved individually. Empty serial inputs emit one terminator per operand, including exhausted repeated stdin operands: a newline by default or NUL with `-z`. Filename diagnostics keep printable UTF-8 readable and escape control characters, Unicode line and paragraph separators, and unassigned characters as bytes; file lookup uses the original filename.
 
 The module also exports `createPasteCommand`, its command-list factory, and typed options and limits.

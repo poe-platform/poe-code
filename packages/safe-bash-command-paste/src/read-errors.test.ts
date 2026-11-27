@@ -24,7 +24,7 @@ for (const separator of ["\n", "\0"]) {
   for (const [args, expected] of [
    [["-", "A"], `\t1${separator}\t2${separator}`],
    [["A", "-"], `1\t${separator}2\t${separator}`],
-   [["-s", "A", "-", "B"], `1\t2${separator}x${separator}`],
+   [["-s", "A", "-", "B"], `1\t2${separator}${separator}x${separator}`],
   ] as const) {
    test(`paste continues after ${code} reading stdin: ${JSON.stringify(args)}, separator ${JSON.stringify(separator)}`, async () => {
     const stdin = { [Symbol.asyncIterator]() { return { async next() { throw new FsError(code); } }; } };
@@ -75,7 +75,7 @@ for (const serial of [false, true]) {
   const { context, output } = await fixture([...(serial ? ["-s"] : []), "-", "A", "-"], stdin);
   const result = await createPasteCommand().execute(context);
   assert.equal(result.exitCode, 1);
-  assert.equal(output.stdout, serial ? "1\t2\n" : "\t1\t\n\t2\t\n");
+  assert.equal(output.stdout, serial ? "\n1\t2\n\n" : "\t1\t\n\t2\t\n");
   assert.equal(output.stderr.split("EIO").length - 1, 1, output.stderr);
   assert.equal(reads, 1);
  });

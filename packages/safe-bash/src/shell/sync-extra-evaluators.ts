@@ -3647,6 +3647,7 @@ const syncExtraRuntimeMethods = {
     }
   },
   tryResolveSyncDiscovery(mode: "name" | "kind", target: string, rawState: State): { text: string; status: number } | undefined {
+    if (rawState.expand_aliases && rawState.aliases?.has(target)) return undefined;
     if (shellKeywords.has(target)) {
       return { text: mode === "name" ? target : "keyword", status: 0 };
     }

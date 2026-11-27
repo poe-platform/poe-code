@@ -163,7 +163,7 @@ const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
   "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", ]);
 export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
-type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+type Discovery = { kind: "alias" | "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
 export function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
   const cached = (command as unknown as Record<symbol, string | undefined>)[commandSpellingSymbol];
@@ -7114,6 +7114,8 @@ export class Runtime {
       this.signal.throwIfAborted();
       let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
       if (!forcePath && !(all && mode === "path") && shellKeywords.has(name)) matches.unshift({ kind: "keyword", name });
+      const alias = state.expand_aliases ? state.aliases?.get(name) : undefined;
+      if (!forcePath && !(all && mode === "path") && alias !== undefined) matches.unshift({ kind: "alias", name: alias });
       if (!all) matches = matches.slice(0, 1);
       if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
         || matches[0]?.kind === "interpreter")) matches = [];
@@ -7142,7 +7144,10 @@ export class Runtime {
           const kind = match.kind === "command" ? (shellBuiltinNames.has(name) ? "builtin" : "file")
             : match.kind === "interpreter" ? "file" : match.kind;
           text = `${kind}\n`;
-        } else if (mode === "name" || mode === "path") text = `${match.name}\n`;
+        } else if (match.kind === "alias") text = mode === "name"
+          ? `alias ${name}='${match.name.split("'").join("'\\''")}'\n`
+          : `${name} is aliased to \`${match.name}'\n`;
+        else if (mode === "name" || mode === "path") text = `${match.name}\n`;
         else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
         else text = `${name} is ${match.kind === "keyword" ? "a shell keyword" : match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
         await writeText(context.stdout, text);

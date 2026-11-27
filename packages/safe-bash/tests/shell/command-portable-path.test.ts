@@ -51,6 +51,36 @@ test("type -t classifies custom registry commands as files and respects absent c
   assert.equal(result.exitCode, 1);
 });
 
+for (const middleware of [false, true]) for (const { source, stdout, status = 0 } of [
+  { source: "alias ll='ls -l'; type -t ll", stdout: "alias\n" },
+  { source: "alias ll='ls -l'; type ll", stdout: "ll is aliased to `ls -l'\n" },
+  { source: "alias ls='ls -a'; type ls", stdout: "ls is aliased to `ls -a'\n" },
+  { source: "alias ll='ls -l'; type -t ll; type ll; alias ls='ls -a'; type ls", stdout: "alias\nll is aliased to `ls -l'\nls is aliased to `ls -a'\n" },
+  { source: "alias ll='ls -l'; type -a ll", stdout: "ll is aliased to `ls -l'\n" },
+  { source: "alias ls='ls -a'; type -a ls", stdout: "ls is aliased to `ls -a'\nls is a registered command\n" },
+  { source: "alias ls='ls -a'; type -at ls", stdout: "alias\nfile\n" },
+  { source: "true() { :; }; alias true='echo alias'; type -at true; type -aft true", stdout: "alias\nfunction\nbuiltin\nalias\nbuiltin\n" },
+  { source: "alias for='echo alias'; type -at for", stdout: "alias\nkeyword\n" },
+  { source: "alias empty=''; type -t empty; type empty", stdout: "alias\nempty is aliased to `'\n" },
+  { source: "alias ll='ls -l'; type -p ll", stdout: "" },
+  { source: "alias ll='ls -l'; type -P ll", stdout: "", status: 1 },
+  { source: "alias ll='ls -l'; type -ap ll", stdout: "", status: 1 },
+  { source: "alias true='echo alias'; shopt -u expand_aliases; type -t true; type true", stdout: "builtin\ntrue is a shell builtin\n" },
+  { source: "alias ll='ls -l'; unalias ll; type -t ll", stdout: "", status: 1 },
+  { source: "alias true='echo alias'; for i in 1 2; do type -t true; printf '%s\\n' \"$(type -t true)\"; done", stdout: "alias\nalias\nalias\nalias\n" },
+  { source: "alias ll=\"printf 'hello'\"; command -v ll; command -V ll", stdout: "alias ll='printf '\\''hello'\\'''\nll is aliased to `printf 'hello''\n" },
+]) test(`alias discovery (middleware: ${middleware}): ${source}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work", env: { PATH: "" } }).use(agentCommands());
+  context.after(() => shell.dispose());
+  if (middleware) shell.use((_command, next) => next());
+  const result = await shell.exec(`shopt -s expand_aliases; ${source}`);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, status);
+});
+
 const cases = [
   { source: "command -p printf hello", stdout: "hello" },
   { source: "command -pV true", stdout: "true is a shell builtin\n" },

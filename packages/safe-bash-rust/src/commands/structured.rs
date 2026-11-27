@@ -303,7 +303,7 @@ fn extract_yaml_doc_meta(
             full_path.push('.');
             full_path.push_str(&key);
 
-            let mut val_s = v.trim();
+            let mut val_s = strip_yaml_comment(v);
             if let Some(rest) = val_s.strip_prefix('&') {
                 let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
                 let aname = rest[..end].to_string();
@@ -6627,6 +6627,51 @@ fn split_yaml_mapping_entry(text: &str) -> Option<(&str, &str)> {
     None
 }
 
+fn strip_yaml_comment(raw: &str) -> &str {
+    let s = raw.trim();
+    let mut chars = s.char_indices().peekable();
+    let mut quote = None;
+    let mut scalar_start = true;
+    let mut flow_depth = 0usize;
+    while let Some((i, ch)) = chars.next() {
+        if let Some(delimiter) = quote {
+            if delimiter == '"' && ch == '\\' {
+                chars.next();
+            } else if ch == delimiter {
+                if delimiter == '\'' && chars.peek().is_some_and(|(_, next)| *next == '\'') {
+                    chars.next();
+                } else {
+                    quote = None;
+                }
+            }
+            continue;
+        }
+        match ch {
+            '#' if i == 0 || matches!(s.as_bytes()[i - 1], b' ' | b'\t') => {
+                return s[..i].trim_end();
+            }
+            '"' | '\'' if scalar_start => {
+                quote = Some(ch);
+                scalar_start = false;
+            }
+            '&' | '!' if scalar_start => {
+                while chars.peek().is_some_and(|(_, next)| !next.is_whitespace()) {
+                    chars.next();
+                }
+            }
+            '[' | '{' if scalar_start => flow_depth += 1,
+            ',' | ':' if flow_depth > 0 => scalar_start = true,
+            ']' | '}' if flow_depth > 0 => {
+                flow_depth -= 1;
+                scalar_start = false;
+            }
+            ' ' | '\t' => {}
+            _ => scalar_start = false,
+        }
+    }
+    s
+}
+
 fn parse_nested_yaml(input: &str) -> JVal {
     let trimmed = input.trim_start();
     if (trimmed.starts_with('{') || trimmed.starts_with('[') || trimmed.starts_with('"'))
@@ -6654,6 +6699,7 @@ fn parse_nested_yaml(input: &str) -> JVal {
                 let value = stripped.strip_prefix("- ").unwrap_or(stripped);
                 let value =
                     split_yaml_mapping_entry(value).map_or(value, |(_, value)| value.trim());
+                let value = strip_yaml_comment(value);
                 if value == ">" || yaml_literal_header(value).is_some() {
                     scalar_parent_indent = Some(indent);
                 }
@@ -6666,7 +6712,7 @@ fn parse_nested_yaml(input: &str) -> JVal {
     }
     let mut anchors = BTreeMap::new();
     if lines.len() == 1 {
-        let only = lines[0].1;
+        let only = strip_yaml_comment(lines[0].1);
         if only != "-" && !only.starts_with("- ") && split_yaml_mapping_entry(only).is_none() {
             return parse_yaml_scalar(only, &mut anchors);
         }
@@ -6676,7 +6722,7 @@ fn parse_nested_yaml(input: &str) -> JVal {
 }
 
 fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
-    let mut s = raw.trim();
+    let mut s = strip_yaml_comment(raw);
     let mut anchor_name: Option<String> = None;
     if let Some(rest) = s.strip_prefix('&') {
         let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
@@ -6864,6 +6910,7 @@ fn parse_yaml_key_value(
     val_s: &str,
     anchors: &mut BTreeMap<String, JVal>,
 ) -> JVal {
+    let val_s = strip_yaml_comment(val_s);
     if let Some((indent, chomp)) = yaml_literal_header(val_s) {
         let mut base = indent.map(|indent| parent_indent + indent);
         let mut text = String::new();

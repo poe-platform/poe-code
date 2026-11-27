@@ -16,6 +16,7 @@ export interface CompressionOptions {
   statistics?: { inputBytes: number; outputBytes: number };
   decompress: boolean;
   stdout: boolean;
+  output?: string;
   keep: boolean;
   force: boolean;
   passthrough?: boolean;
@@ -227,6 +228,15 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         continue;
       }
       switch (flag) {
+        case "o": {
+          if (profile.format !== "zstd") throw new UsageError(`invalid option -- '${flag}'`);
+          const output = flags.slice(offset + 1) || args[++index];
+          if (output === undefined) throw new UsageError("option '-o' requires an argument");
+          result.output = output;
+          result.stdout = output === "-";
+          offset = flags.length;
+          break;
+        }
         case "C": {
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.xzCheck = parseXzCheck(flags.slice(offset + 1) || args[++index]);

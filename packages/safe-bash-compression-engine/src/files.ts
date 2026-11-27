@@ -117,56 +117,60 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
   while (pending.length) {
     const name = pending.pop()!;
     context.signal.throwIfAborted();
-    if (name === "-") { plans.push({ source: "-" }); continue; }
-    if (!name) throw new FsError("ENOENT", { path: name });
-    if (options.format === "bzip2" && !options.decompress && !options.test
-      && [".bz2", ".bz", ".tbz2", ".tbz"].some(suffix => name.endsWith(suffix))) {
-      throw new FsError("EINVAL", { path: name, message: "already has a bzip2 suffix" });
+    if (name === "-" && (options.output === undefined || options.stdout || options.test)) { plans.push({ source: "-" }); continue; }
+    let source = name === "-" ? "-" : pathOf(context, name);
+    let sourceStat: FileStat | undefined;
+    let realSource: string | undefined;
+    let sourceCapabilities = context.fs.capabilities;
+    if (name !== "-") {
+      if (!name) throw new FsError("ENOENT", { path: name });
+      if (options.format === "bzip2" && !options.decompress && !options.test
+        && [".bz2", ".bz", ".tbz2", ".tbz"].some(suffix => name.endsWith(suffix))) {
+        throw new FsError("EINVAL", { path: name, message: "already has a bzip2 suffix" });
+      }
+      if (options.excludeCompressed && !options.decompress && [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"].some(suffix => source.endsWith(suffix))) continue;
+      try {
+        sourceStat = await context.fs.lstat(source, { signal: context.signal });
+      } catch (error) {
+        if (codeOf(error) === "ENOENT" && options.decompress && options.format === "gzip") {
+          const suffix = options.suffix ?? ".gz";
+          const candidate = `${source}${suffix}`;
+          const fallback = !source.toLowerCase().endsWith(suffix.toLowerCase()) ? await existing(context, candidate) : undefined;
+          if (!fallback) throw error;
+          source = candidate;
+          sourceStat = fallback;
+        } else throw error;
+      }
+      if (options.recursive && sourceStat.type === "directory") {
+        const realDirectory = await context.fs.realpath(source, { signal: context.signal });
+        if (directories.has(realDirectory)) continue;
+        directories.add(realDirectory);
+        const entries = await context.fs.readdir(source, { signal: context.signal });
+        for (const entry of entries.reverse()) pending.push(joinPath(source, entry.name));
+        continue;
+      }
+      if (options.recursive && sourceStat.type === "symlink") continue;
+      sourceCapabilities = await context.fs.capabilitiesFor?.(source, { signal: context.signal }) ?? context.fs.capabilities;
+      if (!context.fs.openReadFile || sourceCapabilities.retainedRead !== true || !identified(sourceStat)) {
+        throw new FsError("ENOTSUP", { path: source, message: "named input requires retained VFS reads with stable scoped identities" });
+      }
+      if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
+      realSource = await context.fs.realpath(source, { signal: context.signal });
+      if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
     }
-    let source = pathOf(context, name);
-    if (options.excludeCompressed && !options.decompress && [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"].some(suffix => source.endsWith(suffix))) continue;
-    let sourceStat: FileStat;
-    try {
-      sourceStat = await context.fs.lstat(source, { signal: context.signal });
-    } catch (error) {
-      if (codeOf(error) === "ENOENT" && options.decompress && options.format === "gzip") {
-        const suffix = options.suffix ?? ".gz";
-        const candidate = `${source}${suffix}`;
-        const fallback = !source.toLowerCase().endsWith(suffix.toLowerCase()) ? await existing(context, candidate) : undefined;
-        if (!fallback) throw error;
-        source = candidate;
-        sourceStat = fallback;
-      } else throw error;
-    }
-    if (options.recursive && sourceStat.type === "directory") {
-      const realDirectory = await context.fs.realpath(source, { signal: context.signal });
-      if (directories.has(realDirectory)) continue;
-      directories.add(realDirectory);
-      const entries = await context.fs.readdir(source, { signal: context.signal });
-      for (const entry of entries.reverse()) pending.push(joinPath(source, entry.name));
-      continue;
-    }
-    if (options.recursive && sourceStat.type === "symlink") continue;
-    const sourceCapabilities = await context.fs.capabilitiesFor?.(source, { signal: context.signal }) ?? context.fs.capabilities;
-    if (!context.fs.openReadFile || sourceCapabilities.retainedRead !== true || !identified(sourceStat)) {
-      throw new FsError("ENOTSUP", { path: source, message: "named input requires retained VFS reads with stable scoped identities" });
-    }
-    if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
-    const realSource = await context.fs.realpath(source, { signal: context.signal });
-    if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
-    const destination = outputPath(realSource, options);
+    const destination = options.output !== undefined ? pathOf(context, options.output) : outputPath(realSource!, options);
     if (options.format === "bzip2" && options.decompress && destination === realSource + ".out" && !options.quiet) {
       await diagnostic(context, new PublicDiagnostic(`Can't guess original name for ${name} -- using ${name}.out`));
     }
     const capabilities = await context.fs.capabilitiesFor?.(destination, { signal: context.signal }) ?? context.fs.capabilities;
     if (context.fs.capabilities.readOnly === true || sourceCapabilities.readOnly === true || capabilities.readOnly === true) {
-      throw new FsError("EROFS", { syscall: context.command, path: capabilities.readOnly === true ? destination : realSource });
+      throw new FsError("EROFS", { syscall: context.command, path: capabilities.readOnly === true ? destination : realSource ?? destination });
     }
-    if (!options.keep && !options.force && (sourceStat.nlink ?? 1) > 1) {
+    if (!options.keep && !options.force && (sourceStat?.nlink ?? 1) > 1) {
       throw new FsError("EINVAL", { path: source, message: "input has multiple links (use -k or -f)" });
     }
     let sourceParent: FileStat | undefined;
-    if (!options.keep) {
+    if (!options.keep && sourceStat && realSource) {
       if (sourceCapabilities.atomicFileMutation !== true || !context.fs.removeFileConditional) {
         throw new FsError("ENOTSUP", { path: source, message: "atomic source removal unavailable (use -k or -c)" });
       }
@@ -179,7 +183,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
       throw new FsError("ENOTSUP", { message: "file output requires VFS streaming writes (use -c for stdout)" });
     }
     const destinationStat = await existing(context, destination);
-    if (!identified(sourceStat) || destinationStat && !identified(destinationStat)) {
+    if (sourceStat && !identified(sourceStat) || destinationStat && !identified(destinationStat)) {
       throw new FsError("ENOTSUP", { path: source, message: "file output requires stable scoped entry identities" });
     }
     if (!context.fs.rmdir || capabilities.exclusiveCreate !== true
@@ -188,7 +192,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     }
     context.signal.throwIfAborted();
     if (destinationStat) {
-      if (destinationStat.type !== "file" || sameIdentity(sourceStat, destinationStat)
+      if (destinationStat.type !== "file" || sourceStat && sameIdentity(sourceStat, destinationStat)
         || realSource === await context.fs.realpath(destination, { signal: context.signal })) {
         throw new FsError("EINVAL", { path: destination, message: "destination is not a distinct regular file" });
       }
@@ -197,7 +201,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
         throw new FsError("ENOTSUP", { path: destination, message: "forced replacement requires VFS atomicRename" });
       }
     }
-    plans.push({ source, sourceStat, ...(sourceParent ? { sourceParent } : {}), realSource, destination, ...(destinationStat ? { destinationStat } : {}) });
+    plans.push({ source, ...(sourceStat ? { sourceStat } : {}), ...(sourceParent ? { sourceParent } : {}), ...(realSource ? { realSource } : {}), destination, ...(destinationStat ? { destinationStat } : {}) });
   }
   const destinations = new Set<string>();
   for (const plan of plans) {
@@ -323,7 +327,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     await operation.run(async () => { await fs.writeFile(staged!, new Uint8Array(), { flag: "wx", mode: 0o600, signal }); stageOwned = true; });
     stageStat = snapshot(await operation.run(() => fs.lstat(staged!, { signal })));
     if (stageStat.type !== "file" || stageStat.size !== 0 || !identified(stageStat)) throw new FsError("EBUSY", { path: staged });
-    warned = await operation.run(() => transform((signal) => operation.ownSource(sourceBytes(active, plan, signal)), async (output, signal) => {
+    warned = await operation.run(() => transform(plan.source === "-" ? context.stdin : (signal) => operation.ownSource(sourceBytes(active, plan, signal)), async (output, signal) => {
       await fs.writeStream!(staged!, output, { flag: "w", mode: 0o600, signal });
     }, { ...options, force: false }, signal, stagingLimit, decodedBudget));
     await operation.run(() => unchangedSource(active, plan));
@@ -339,7 +343,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     try { await retainedCleanup(); }
     catch (error) { cleanupFailed = true; throw error; }
     operation.check();
-    if (!options.keep) {
+    if (!options.keep && plan.source !== "-") {
       await operation.run(() => unchangedSource(active, plan));
       await operation.run(() => fs.removeFileConditional!(plan.realSource!, {
         parent: plan.sourceParent!, expected: plan.sourceStat!, signal,

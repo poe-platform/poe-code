@@ -25,7 +25,7 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
   const command = define(name, async (context) => {
     const options = parseZstdOptions(name, context.args);
     if (options.help) {
-      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n-q, --quiet (repeat to suppress errors)\nDefault compression level: ${options.level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-o FILE (use - for stdout)\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n-q, --quiet (repeat to suppress errors)\nDefault compression level: ${options.level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };
     }
     let plans;

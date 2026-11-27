@@ -349,6 +349,7 @@ function parsePattern(
   function parseSequence(inGroup: boolean): { node: AstNode; ere: string } {
     const nodes: AstNode[] = [];
     const eres: string[] = [];
+    const start = pos;
 
     while (pos < pattern.length) {
       if (bre) {
@@ -367,13 +368,13 @@ function parsePattern(
       let quantifiable = true;
 
       const ch = pattern[pos]!;
-      if (ch === "^") {
+      if (ch === "^" && (!bre || pos === start)) {
         pos++;
         atomNode = { type: "assert", kind: "bol", multiline: anchorMultiline };
         if (multiline && !anchorMultiline) hasCrossLinePotential = true;
         atomEre = "^";
         quantifiable = false;
-      } else if (ch === "$") {
+      } else if (ch === "$" && (!bre || pos + 1 === pattern.length || pattern.startsWith("\\|", pos + 1) || (inGroup && pattern.startsWith("\\)", pos + 1)))) {
         pos++;
         atomNode = { type: "assert", kind: "eol", multiline: anchorMultiline };
         if (multiline && !anchorMultiline) hasCrossLinePotential = true;
@@ -456,7 +457,7 @@ function parsePattern(
       } else if (!bre && (ch === "*" || ch === "+" || ch === "?" || (ch === "{" && !grepEre))) {
         throw new SearchError(`invalid ERE: unexpected quantifier '${ch}'`);
       } else if (bre && ch === "*") {
-        if (nodes.length === 0) {
+        if (pos === start || (pos === start + 1 && pattern[start] === "^")) {
           pos++;
           atomNode = { type: "literal", cp: 42, insensitive };
           atomEre = "\\*";
@@ -582,6 +583,7 @@ function parsePattern(
         let qEre = "";
         if (bre) {
           if (pattern[pos] === "*") {
+            if (!quantifiable && ch === "^") break;
             pos++;
             min = 0; max = Infinity; qEre = "*";
           } else if (pos + 1 < pattern.length && pattern[pos] === "\\") {

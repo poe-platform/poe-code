@@ -23845,6 +23845,40 @@ fn exec_sql_select_ext(
     )
 }
 
+fn parse_sql_order_term(term: &str) -> (&str, bool, bool) {
+    let mut expr = term.trim();
+    let upper = expr.to_ascii_uppercase();
+    let nulls_first = if upper.ends_with(" NULLS FIRST") {
+        expr = expr[..expr.len() - 12].trim_end();
+        Some(true)
+    } else if upper.ends_with(" NULLS LAST") {
+        expr = expr[..expr.len() - 11].trim_end();
+        Some(false)
+    } else {
+        None
+    };
+    let upper = expr.to_ascii_uppercase();
+    let desc = upper.ends_with(" DESC");
+    if desc {
+        expr = expr[..expr.len() - 5].trim_end();
+    } else if upper.ends_with(" ASC") {
+        expr = expr[..expr.len() - 4].trim_end();
+    }
+    (expr, desc, nulls_first.unwrap_or(!desc))
+}
+
+fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> std::cmp::Ordering {
+    if a == SQL_NULL || b == SQL_NULL {
+        let order = (a != SQL_NULL).cmp(&(b != SQL_NULL));
+        return if nulls_first { order } else { order.reverse() };
+    }
+    let order = match (a.parse::<f64>(), b.parse::<f64>()) {
+        (Ok(a), Ok(b)) => a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal),
+        _ => a.cmp(b),
+    };
+    if desc { order.reverse() } else { order }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn exec_sql_select_with_mode(
     stmt: &str,
@@ -24956,21 +24990,12 @@ fn exec_sql_select_with_mode(
 
     if let Some(oc) = order_clause {
         enum OrderKeyLoc {
-            RawCol(usize, bool),
-            ProjCol(usize, bool),
+            RawCol(usize),
+            ProjCol(usize),
         }
-        let mut order_keys: Vec<OrderKeyLoc> = Vec::new();
+        let mut order_keys: Vec<(OrderKeyLoc, bool, bool)> = Vec::new();
         for item in split_top_level_comma(oc) {
-            let trimmed = item.trim();
-            let up = trimmed.to_ascii_uppercase();
-            let desc = up.ends_with(" DESC");
-            let mut col_part = trimmed
-                .strip_suffix(" DESC")
-                .or_else(|| trimmed.strip_suffix(" desc"))
-                .or_else(|| trimmed.strip_suffix(" ASC"))
-                .or_else(|| trimmed.strip_suffix(" asc"))
-                .unwrap_or(trimmed)
-                .trim();
+            let (mut col_part, desc, nulls_first) = parse_sql_order_term(&item);
             if col_part.to_ascii_uppercase().starts_with("CAST(") && col_part.ends_with(')') {
                 let inner = &col_part[5..col_part.len() - 1];
                 if let Some(ap) = inner.to_ascii_uppercase().find(" AS ") {
@@ -24987,33 +25012,25 @@ fn exec_sql_select_with_mode(
                 .iter()
                 .position(|h| h.eq_ignore_ascii_case(col_name))
             {
-                order_keys.push(OrderKeyLoc::ProjCol(p_idx, desc));
+                order_keys.push((OrderKeyLoc::ProjCol(p_idx), desc, nulls_first));
             } else if let Some(c_idx) = find_sql_col(&tbl.columns, col_name) {
-                order_keys.push(OrderKeyLoc::RawCol(c_idx, desc));
+                order_keys.push((OrderKeyLoc::RawCol(c_idx), desc, nulls_first));
             }
         }
         if !order_keys.is_empty() {
             proj_rows.sort_by(|(a, pa), (b, pb)| {
-                for loc in &order_keys {
-                    let (va, vb, desc) = match loc {
-                        OrderKeyLoc::ProjCol(pi, d) => (
+                for (loc, desc, nulls_first) in &order_keys {
+                    let (va, vb) = match loc {
+                        OrderKeyLoc::ProjCol(pi) => (
                             pa.get(*pi).map(|s| s.as_str()).unwrap_or(""),
                             pb.get(*pi).map(|s| s.as_str()).unwrap_or(""),
-                            *d,
                         ),
-                        OrderKeyLoc::RawCol(ci, d) => (
+                        OrderKeyLoc::RawCol(ci) => (
                             a.get(*ci).map(|s| s.as_str()).unwrap_or(""),
                             b.get(*ci).map(|s| s.as_str()).unwrap_or(""),
-                            *d,
                         ),
                     };
-                    let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
-                        (Ok(na), Ok(nb)) => {
-                            na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-                        }
-                        _ => va.cmp(vb),
-                    };
-                    let ord = if desc { ord.reverse() } else { ord };
+                    let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
                     if ord != std::cmp::Ordering::Equal {
                         return ord;
                     }
@@ -25315,18 +25332,9 @@ fn exec_sql_aggregate_select(
             Col(usize),
             Expr(String),
         }
-        let mut ord_specs: Vec<(AggOrdTarget, bool)> = Vec::new();
+        let mut ord_specs: Vec<(AggOrdTarget, bool, bool)> = Vec::new();
         for item in split_top_level_comma(oc) {
-            let mut oc_norm = item.trim();
-            let oc_up = oc_norm.to_ascii_uppercase();
-            let desc = oc_up.ends_with(" DESC");
-            oc_norm = oc_norm
-                .strip_suffix(" DESC")
-                .or_else(|| oc_norm.strip_suffix(" desc"))
-                .or_else(|| oc_norm.strip_suffix(" ASC"))
-                .or_else(|| oc_norm.strip_suffix(" asc"))
-                .unwrap_or(oc_norm)
-                .trim();
+            let (mut oc_norm, desc, nulls_first) = parse_sql_order_term(&item);
             if oc_norm.to_ascii_uppercase().starts_with("CAST(") && oc_norm.ends_with(')') {
                 let inner = &oc_norm[5..oc_norm.len() - 1];
                 if let Some(ap) = inner.to_ascii_uppercase().find(" AS ") {
@@ -25340,16 +25348,16 @@ fn exec_sql_aggregate_select(
                     || e.eq_ignore_ascii_case(col_name)
                     || (!col_name.contains('.') && alias.eq_ignore_ascii_case(c_short))
             }) {
-                ord_specs.push((AggOrdTarget::Proj(c_idx), desc));
+                ord_specs.push((AggOrdTarget::Proj(c_idx), desc, nulls_first));
             } else if let Some(r_idx) = find_sql_col(cols, col_name) {
-                ord_specs.push((AggOrdTarget::Col(r_idx), desc));
+                ord_specs.push((AggOrdTarget::Col(r_idx), desc, nulls_first));
             } else {
-                ord_specs.push((AggOrdTarget::Expr(oc_norm.to_string()), desc));
+                ord_specs.push((AggOrdTarget::Expr(oc_norm.to_string()), desc, nulls_first));
             }
         }
         if !ord_specs.is_empty() {
             out_rows.sort_by(|(ra, pa), (rb, pb)| {
-                for (target, desc) in &ord_specs {
+                for (target, desc, nulls_first) in &ord_specs {
                     let (va_owned, vb_owned) = match target {
                         AggOrdTarget::Proj(idx) => (
                             pa.get(*idx).cloned().unwrap_or_default(),
@@ -25366,13 +25374,7 @@ fn exec_sql_aggregate_select(
                     };
                     let va = va_owned.as_str();
                     let vb = vb_owned.as_str();
-                    let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
-                        (Ok(na), Ok(nb)) => {
-                            na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-                        }
-                        _ => va.cmp(vb),
-                    };
-                    let ord = if *desc { ord.reverse() } else { ord };
+                    let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
                     if ord != std::cmp::Ordering::Equal {
                         return ord;
                     }

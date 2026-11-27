@@ -7493,8 +7493,8 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         ("%=", "%"),
     ] {
         if let Some((lhs, rhs)) = s.split_once(op) {
-            let rv = eval_bc_val(rhs.trim(), bc, depth + 1);
             let key = resolve_bc_lvalue_key(lhs, bc, depth);
+            let rv = eval_bc_val(rhs.trim(), bc, depth + 1);
             let cur = bc.vars.get(&key).cloned().unwrap_or_default();
             let next = apply_bc_binop(&cur, &rv, bin_op, bc);
             bc.vars.insert(key, next);
@@ -7525,6 +7525,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         return BcFlow::None;
     }
     if let Some((lhs, rhs)) = split_top_level_assign(s) {
+        let key = resolve_bc_lvalue_key(lhs, bc, depth);
         bc.last_str_out = None;
         let mut v = eval_bc_val(rhs.trim(), bc, depth + 1);
         if let Some(str_out) = bc.last_str_out.take()
@@ -7550,7 +7551,6 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                 scale: sc,
             };
         }
-        let key = resolve_bc_lvalue_key(lhs, bc, depth);
         if key == "last" {
             bc.last = v.clone();
         }
@@ -7964,6 +7964,20 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         let r = eval_bc_val(&s[idx + 1..], bc, depth);
         return apply_bc_binop(&l, &r, "^", bc);
     }
+    for (op, bin_op) in [("++", "+"), ("--", "-")] {
+        let (operand, postfix) = if let Some(operand) = s.strip_suffix(op) {
+            (operand, true)
+        } else if let Some(operand) = s.strip_prefix(op) {
+            (operand, false)
+        } else {
+            continue;
+        };
+        let key = resolve_bc_lvalue_key(operand, bc, depth);
+        let current = bc.vars.get(&key).cloned().unwrap_or_default();
+        let next = apply_bc_binop(&current, &BcVal::from_i64(1), bin_op, bc);
+        bc.vars.insert(key, next.clone());
+        return if postfix { current } else { next };
+    }
     if let Some(open_p) = s.find('(')
         && s.ends_with(')')
         && s[..open_p]
@@ -8158,26 +8172,31 @@ fn rfind_top_level_any(s: &str, targets: &[char]) -> Option<(usize, char)> {
 fn rfind_top_level_add_sub(s: &str) -> Option<(usize, char)> {
     let mut d = 0i32;
     let mut b = 0i32;
-    let bytes = s.as_bytes();
-    for i in (0..bytes.len()).rev() {
-        match bytes[i] as char {
-            ')' => d += 1,
-            '(' => d -= 1,
-            ']' => b += 1,
-            '[' => b -= 1,
+    let mut last = None;
+    let mut chars = s.char_indices().peekable();
+    while let Some((i, c)) = chars.next() {
+        match c {
+            '(' => d += 1,
+            ')' => d -= 1,
+            '[' => b += 1,
+            ']' => b -= 1,
             c @ ('+' | '-') if d == 0 && b == 0 => {
-                if i == 0 {
-                    return Some((0, c));
+                if chars.next_if(|&(_, next)| next == c).is_some() {
+                    continue;
                 }
                 let prev = s[..i].trim_end();
-                if !prev.is_empty() && !prev.ends_with(['+', '-', '*', '/', '%', '^']) {
-                    return Some((i, c));
+                if i == 0
+                    || prev.ends_with("++")
+                    || prev.ends_with("--")
+                    || (!prev.is_empty() && !prev.ends_with(['+', '-', '*', '/', '%', '^']))
+                {
+                    last = Some((i, c));
                 }
             }
             _ => {}
         }
     }
-    None
+    last
 }
 
 fn cmd_numfmt(

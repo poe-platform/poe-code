@@ -22604,6 +22604,11 @@ fn exec_sql_insert(
 
     let val_end = conflict_pos.or(ret_pos).unwrap_or(norm.len());
     let val_pos_opt = upper[..val_end].find("VALUES");
+    let default_values_pos = upper[..val_end]
+        .trim_end()
+        .strip_suffix("VALUES")
+        .and_then(|head| head.trim_end().strip_suffix(" DEFAULT"))
+        .map(str::len);
     let select_pos_opt = if val_pos_opt.is_none() {
         upper[into_pos..val_end]
             .find("SELECT ")
@@ -22611,7 +22616,10 @@ fn exec_sql_insert(
     } else {
         None
     };
-    let head_end = val_pos_opt.or(select_pos_opt).unwrap_or(val_end);
+    let head_end = default_values_pos
+        .or(val_pos_opt)
+        .or(select_pos_opt)
+        .unwrap_or(val_end);
     let head = norm[into_pos..head_end].trim();
     let (tname, explicit_cols) = if let Some(open) = head.find('(') {
         let name = head[..open].trim().trim_matches('"').to_string();
@@ -22655,7 +22663,9 @@ fn exec_sql_insert(
     }
 
     let mut value_tuples: Vec<Vec<String>> = Vec::new();
-    if let Some(val_pos) = val_pos_opt {
+    if default_values_pos.is_some() {
+        value_tuples.push(Vec::new());
+    } else if let Some(val_pos) = val_pos_opt {
         let tail = &norm[val_pos + 6..val_end];
         let mut rest = tail;
         while let Some(open) = rest.find('(') {

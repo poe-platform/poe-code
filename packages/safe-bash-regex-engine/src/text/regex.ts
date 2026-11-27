@@ -923,8 +923,8 @@ export class Pattern {
       budget.step(); trailingStart--;
       if (trailingStart % 64 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     }
-    // Prioritized traversal gives jq's leftmost-first match; l keeps the longest
-    // match across starting positions, retaining traversal order for ties.
+    // Keep prioritized traversal for ties, comparing longest matches in bytes.
+    let bestLength = -1;
     for (let start = from; start <= (options.end ?? text.length) && (!options.exact || start === from); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
       const pending = [{ pc: options.pc, position: start, captures: options.captures ?? [] }];
       const visited = new Set<string>();
@@ -950,6 +950,18 @@ export class Pattern {
           if (options.end !== undefined && position !== options.end) continue;
           if (this.modifiers.includes("n") && position === start) continue;
           const matchStart = captures[0] ?? start;
+          if (longest) {
+            let length = 0;
+            for (let index = matchStart; index < position;) {
+              budget.step();
+              if (++checkpoints % 64 === 1) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+              const code = text.codePointAt(index)!;
+              length += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
+              index += code > 0xffff ? 2 : 1;
+            }
+            if (length <= bestLength) continue;
+            bestLength = length;
+          }
           const groups: (string | undefined)[] = [text.slice(matchStart, position)];
           for (let index = 1; index <= this.groupCount; index++) {
             budget.step();
@@ -957,7 +969,7 @@ export class Pattern {
           }
           const result = { match: { start: matchStart, end: position, groups, captureOffsets: captures }, captures };
           if (!longest) return result;
-          if (!best || position - matchStart > best.match.end - best.match.start) best = result;
+          best = result;
           continue;
         }
         if (instruction.kind === "conditional") {

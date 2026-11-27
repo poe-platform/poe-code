@@ -8057,20 +8057,23 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
                     "j" => {
                         let n = first_val.val.round() as i32;
                         let x = arg_vals.get(1).map(|v| v.val).unwrap_or(0.0);
-                        if x == 0.0 {
-                            if n == 0 { 1.0 } else { 0.0 }
-                        } else {
-                            // Series expansion for J_n(x)
-                            let mut sum = 0.0f64;
-                            let n_abs = n.unsigned_abs() as usize;
-                            for m in 0..20usize {
-                                let sign = if m % 2 == 0 { 1.0 } else { -1.0 };
-                                let mf: f64 = (1..=m).map(|k| k as f64).product();
-                                let nmf: f64 = (1..=(m + n_abs)).map(|k| k as f64).product();
-                                sum += sign * (x / 2.0).powi((2 * m + n_abs) as i32) / (mf * nmf);
-                            }
-                            sum
+                        if x == 0.0 && n != 0 {
+                            return BcVal {
+                                scale: bc.scale,
+                                ..BcVal::default()
+                            };
                         }
+                        // Series expansion for J_n(x)
+                        let mut sum = 0.0f64;
+                        let n_abs = n.unsigned_abs() as usize;
+                        for m in 0..20usize {
+                            let sign = if m % 2 == 0 { 1.0 } else { -1.0 };
+                            let mf: f64 = (1..=m).map(|k| k as f64).product();
+                            let nmf: f64 = (1..=(m + n_abs)).map(|k| k as f64).product();
+                            sum += sign * (x / 2.0).powi((2 * m + n_abs) as i32) / (mf * nmf);
+                        }
+                        // J_{-n}(x) = (-1)^n J_n(x) for integer orders.
+                        if n < 0 && n_abs % 2 == 1 { -sum } else { sum }
                     }
                     _ => 0.0,
                 };

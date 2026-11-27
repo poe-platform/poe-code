@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { CommandContext } from "safe-bash-contracts";
 import { Budget } from "safe-bash-io-engine/commands/text-programs/shared";
-import { string, inputValue, inputValueFromSlice, formatted, numeric, text } from "./awk-values.js";
+import { string, inputValue, inputValueFromSlice, formatted, numeric, text, number } from "./awk-values.js";
 
 test("dynamic scalars do not share tenant data through module caches", () => {
   for (const value of ["tenant-secret", "\ud800", "\u0100", "a\udfff"]) {
@@ -11,6 +11,15 @@ test("dynamic scalars do not share tenant data through module caches", () => {
   }
   assert.notEqual(inputValue("secret"), inputValue("secret"));
   assert.notEqual(inputValueFromSlice("a secret b", 2, 8), inputValueFromSlice("a secret b", 2, 8));
+});
+
+for (const [text, expected] of [
+  ["0x10", 0], ["0X1A", 0], ["+0x10", 0], ["-0X1A", -0], [" \t0x10", 0],
+  ["12tail", 12], ["-12.5tail", -12.5], ["+.5e2tail", 50], ["1e+tail", 1],
+  ["010", 10], ["text", 0], ["", 0],
+] as const) test(`awk string-to-number conversion reads a decimal prefix: ${JSON.stringify(text)}`, () => {
+  assert.equal(number(string(text)), expected);
+  assert.equal(number(inputValue(text)), expected);
 });
 
 for (const [format, value, expected] of [

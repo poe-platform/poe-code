@@ -26,6 +26,17 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [args, input, expected] of [
+  [["{ print $1 + 0 }"], "0x10\n", "0\n"],
+  [["-v", "m=0x10", "BEGIN { print m + 0 }"], "", "0\n"],
+  [[String.raw`BEGIN { printf "%d\n", "0x1A" }`], "", "0\n"],
+] as const) test(`awk converts hexadecimal-looking strings using decimal prefixes: ${args.join(" ")}`, async () => {
+  const result = await run(createAwkCommand(), [...args], input);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+});
+
 for (const [program, expected] of [
   ['BEGIN { printf "%.0f %.0f %.1f\\n", 0.5, 2.5, 0.25 }', "0 2 0.2\n"],
   ['BEGIN { OFMT="%.0f"; print 2.5 }', "2\n"],

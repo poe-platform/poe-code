@@ -8,7 +8,6 @@ import type { CommandContext } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
-import { agentCommands } from "../../src/plugins/index.js";
 import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
 import { Capture, MemoryRedirectSink, type IO, type State } from "../../src/shell/runtime.js";
 

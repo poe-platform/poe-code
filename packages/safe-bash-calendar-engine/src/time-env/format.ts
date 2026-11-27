@@ -54,7 +54,8 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
     while (format[offset] === ":") { colons++; offset++; }
     const modifier = format[offset] === "E" || format[offset] === "O" ? format[offset++] : undefined;
     const code = format[offset++];
-    if (!code || colons > 3 || (colons && code !== "z")) throw new CommandFailure("unsupported date format directive");
+    if (!code) { append(format.slice(next)); break; }
+    if (colons > 3 || (colons && code !== "z")) throw new CommandFailure("unsupported date format directive");
     if (code === "%" && (padding !== undefined || upper || swap || width !== undefined || modifier)) {
       throw new CommandFailure("only an unmodified %% literal is supported");
     }
@@ -114,7 +115,7 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
       case "Y": value = String(fields.year); defaultWidth = 4; break;
       case "z": { const offset = offsetText(fields.offset, colons); value = offset.value; defaultWidth = offset.width; break; }
       case "Z": value = fields.zone; break;
-      default: throw new CommandFailure(`unsupported date format directive: %${code}`);
+      default: append(format.slice(next, offset)); continue;
     }
     if (code === "P" || (swap && "pZ".includes(code))) value = value.toLowerCase();
     else if (upper || (swap && "aAbBh".includes(code))) value = value.toUpperCase();

@@ -3,6 +3,24 @@ import test from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { dateCases } from "./date-cases.js";
 import { run } from "./helpers.js";
+import { Shell } from "../../../src/shell/index.js";
+import { agentCommands } from "../../../src/plugins/index.js";
+
+test("date prints unknown conversions and trailing percent literally through the shell", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  for (const [script, expected] of [
+    ["date -u -d @0 '+100%'", "100%\n"],
+    ["date -u -d @0 '+%Q|%+|%E'", "%Q|%+|%E\n"],
+    ["date -u -d @0 '+100%'; date -u -d @0 '+%Q|%+|%E'", "100%\n%Q|%+|%E\n"],
+  ] as const) {
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  }
+});
 
 for (const [input, expected] of [
   ["2024-02-29t12:34:56z", "2024-02-29 12:34:56"],
@@ -156,7 +174,7 @@ for (const args of [
   ["--date", "next Funday"], ["--date", "01/02/03"], ["--date", "Fri, 29 Feb 2024 12:34:56 GMT"],
   ["-s", "2024-01-01"], ["--set=2024-01-01"], ["082712002026"], ["--file=/etc/passwd"],
   ["--debug"], ["--utc=yes"], ["-r", "file", "-d@0"], ["-I", "+%s"], ["-Iinvalid"], ["--rfc-3339=hours"],
-  ["-d@0", "+%Q"], ["-d@0", "+%"], ["-d@0", "+%::::z"],
+  ["-d@0", "+%::::z"],
   ["-d@0", "+%5%"],
 ]) {
   test(`date rejects unsupported/invalid input without stdout: ${args.join(" ")}`, async () => {

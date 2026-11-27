@@ -13829,7 +13829,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             return err_out(&format!("xan {sub}: unexpected argument after help\n"), 1);
         }
         return ok_out(
-            "xan: CSV tools for virtual files and byte streams\nCommands: headers (h), count, select, slice, head, tail, sort, search,\n          filter, reverse, rename, drop, stats, freq (frequency), join,\n          dedup, enum, transpose, agg, groupby, to, from, cat, split, table (view), top, map\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection or -e/--evaluate EXPRESSIONS, -f/--evaluate-file PATH;\nslice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nslice bytes: -B/--byte-offset N, --end-byte N, --raw\nslice conditions: -S/--start-condition EXPR, -E/--end-condition EXPR\nConditions: named column comparisons with string/number literals.\nhead/tail: -l/--limit N (default 10)\nsort: -s/--select COLUMNS, -N/--numeric, -R/--reverse, -u/--uniq\nsearch: PATTERN; -s/--select, -e/--exact, -i/--ignore-case, -v/--invert-match\nfilter: COLUMN comparison LITERAL; -v/--invert-match\nrename: NAMES; -s/--select COLUMNS; drop: SELECTION\nstats/freq: -s/--select COLUMNS; freq: -l/--limit N, -A/--all, -N/--no-extra\njoin: COLUMNS LEFT [RIGHT_COLUMNS] RIGHT; --left/--right/--full/--semi/--anti/--cross\n      --drop-key none|left|right|both, --nulls, -i/--ignore-case\nSearch uses literal substrings; filter supports the comparisons above.\nagg/groupby: aggregate calls (count, sum, mean, min, max, first, last) with optional AS names.\nto: json, jsonl, ndjson, txt; from: -f json, jsonl, ndjson, txt, raw.\ncat: rows or cols [--pad]; split: -S SIZE, -O DIRECTORY, -f TEMPLATE.\nselect -e: arithmetic (+ - * / %), parentheses, literals, columns and AS aliases.\nmap: EXPRESSION COLUMN; append one computed column.\ntop: COLUMNS; -l/--limit N (default 10), -R/--reverse (smallest first).\ntable/view: aligned text; -s/--select COLUMNS, -n/--no-headers.\nOther expressions, formats and forced color are unsupported.\nCount execution options use exact sequential counting.\n",
+            "xan: CSV tools for virtual files and byte streams\nCommands: headers (h), count, select, slice, head, tail, sort, search,\n          filter, reverse, rename, drop, stats, freq (frequency), join,\n          dedup, enum, transpose, agg, groupby, to, from, cat, split, table (view), top, map\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection or -e/--evaluate EXPRESSIONS, -f/--evaluate-file PATH;\nslice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nslice bytes: -B/--byte-offset N, --end-byte N, --raw\nslice conditions: -S/--start-condition EXPR, -E/--end-condition EXPR\nConditions: named column metadata with string/number literals.\nhead/tail: -l/--limit N (default 10)\nsort: -s/--select COLUMNS, -N/--numeric, -R/--reverse, -u/--uniq\nsearch: PATTERN; -s/--select, -e/--exact, -i/--ignore-case, -v/--invert-match\nfilter: COLUMN comparison LITERAL; -v/--invert-match\nrename: NAMES; -s/--select COLUMNS; drop: SELECTION\nstats/freq: -s/--select COLUMNS; freq: -l/--limit N, -A/--all, -N/--no-extra\njoin: COLUMNS LEFT [RIGHT_COLUMNS] RIGHT; --left/--right/--full/--semi/--anti/--cross\n      --drop-key none|left|right|both, --nulls, -i/--ignore-case\nSearch uses literal substrings; filter supports the metadata above.\nagg/groupby: aggregate calls (count, sum, mean, min, max, first, last) with optional AS names.\nto: json, jsonl, ndjson, txt; from: -f json, jsonl, ndjson, txt, raw.\ncat: rows or cols [--pad]; split: -S SIZE, -O DIRECTORY, -f TEMPLATE.\nselect -e: arithmetic (+ - * / %), parentheses, literals, columns and AS aliases.\nmap: EXPRESSION COLUMN; append one computed column.\ntop: COLUMNS; -l/--limit N (default 10), -R/--reverse (smallest first).\ntable/view: aligned text; -s/--select COLUMNS, -n/--no-headers.\nOther expressions, formats and forced color are unsupported.\nCount execution options use exact sequential counting.\n",
         );
     }
     match sub {
@@ -17772,22 +17772,22 @@ enum SqlAffinity {
 }
 
 #[derive(Clone, Copy, Default)]
-struct SqlColumnComparison {
+struct SqlColumnMetadata {
     affinity: SqlAffinity,
     nocase: bool,
 }
 
-fn sql_declared_comparison(declaration: &str) -> SqlColumnComparison {
-    let nocase = split_top_level_sql_cmp(&declaration.to_ascii_uppercase(), " COLLATE ")
-        .and_then(|(_, rest)| rest.split_whitespace().next())
-        .is_some_and(|name| name.trim_matches(['\'', '"', '`', '[', ']']) == "NOCASE");
-    SqlColumnComparison {
-        affinity: sql_declared_affinity(declaration),
-        nocase,
-    }
+fn split_sql_collation(expression: &str) -> Option<(&str, bool)> {
+    let upper = expression.to_ascii_uppercase();
+    let (before, after) = split_top_level_sql_cmp(&upper, " COLLATE ")?;
+    let name = after
+        .split_whitespace()
+        .next()?
+        .trim_matches(['\'', '"', '`', '[', ']']);
+    Some((&expression[..before.len()], name == "NOCASE"))
 }
 
-fn sql_declared_affinity(declaration: &str) -> SqlAffinity {
+fn sql_column_metadata(declaration: &str) -> SqlColumnMetadata {
     let declared_type = declaration
         .split_whitespace()
         .skip(1)
@@ -17810,7 +17810,7 @@ fn sql_declared_affinity(declaration: &str) -> SqlAffinity {
         .collect::<Vec<_>>()
         .join(" ")
         .to_ascii_uppercase();
-    if declared_type.contains("INT") {
+    let affinity = if declared_type.contains("INT") {
         SqlAffinity::Numeric
     } else if ["CHAR", "CLOB", "TEXT"]
         .iter()
@@ -17821,6 +17821,10 @@ fn sql_declared_affinity(declaration: &str) -> SqlAffinity {
         SqlAffinity::None
     } else {
         SqlAffinity::Numeric
+    };
+    SqlColumnMetadata {
+        affinity,
+        nocase: split_sql_collation(declaration).is_some_and(|(_, nocase)| nocase),
     }
 }
 
@@ -17829,7 +17833,7 @@ struct SqlTable {
     columns: Vec<String>,
     // USING keys remain addressable by qualified name but are omitted from SELECT *.
     star_hidden_columns: Vec<usize>,
-    comparisons: Vec<SqlColumnComparison>,
+    metadata: Vec<SqlColumnMetadata>,
     rows: Vec<Vec<String>>,
     rowids: Vec<i64>,
     imported_csv: bool,
@@ -17896,11 +17900,11 @@ impl SqlTable {
             return;
         }
         let (_, alias, _) = parse_create_table_metadata(&self.create_sql);
-        self.comparisons
-            .resize(self.columns.len(), SqlColumnComparison::default());
-        self.comparisons.push(SqlColumnComparison {
+        self.metadata
+            .resize(self.columns.len(), SqlColumnMetadata::default());
+        self.metadata.push(SqlColumnMetadata {
             affinity: SqlAffinity::Numeric,
-            ..SqlColumnComparison::default()
+            ..SqlColumnMetadata::default()
         });
         self.star_hidden_columns.push(self.columns.len());
         self.columns.push("rowid".to_string());
@@ -19057,13 +19061,13 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
     let mut parts: Vec<String> = Vec::new();
     for (index, col) in tbl.columns.iter().enumerate() {
         let mut def = col.clone();
-        let comparison = tbl.comparisons.get(index).copied().unwrap_or_default();
-        match comparison.affinity {
+        let metadata = tbl.metadata.get(index).copied().unwrap_or_default();
+        match metadata.affinity {
             SqlAffinity::Text => def.push_str(" TEXT"),
             SqlAffinity::Numeric => def.push_str(" NUMERIC"),
             SqlAffinity::None => {}
         }
-        if comparison.nocase {
+        if metadata.nocase {
             def.push_str(" COLLATE NOCASE");
         }
         if let Some(gexpr) = tbl.generated.get(&col.to_ascii_lowercase()) {
@@ -19158,7 +19162,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     let mut unique_indexes = Vec::new();
     let mut rowid_alias_col: Option<usize> = None;
     let mut is_text_cols: Vec<bool> = Vec::new();
-    let mut comparisons = Vec::new();
+    let mut metadata = Vec::new();
     let mut pk_col_count = 0usize;
 
     if let Some(open) = stmt.find('(')
@@ -19288,7 +19292,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             let is_text =
                 type_tok.contains("TEXT") || type_tok.contains("CHAR") || type_tok.contains("CLOB");
             is_text_cols.push(is_text);
-            comparisons.push(sql_declared_comparison(&c_norm));
+            metadata.push(sql_column_metadata(&c_norm));
             cols.push(cname);
         }
     }
@@ -19299,7 +19303,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
         SqlTable {
             columns: cols,
             star_hidden_columns: Vec::new(),
-            comparisons,
+            metadata,
             rows: Vec::new(),
             rowids: Vec::new(),
             imported_csv: is_imported_csv,
@@ -21105,8 +21109,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         .position(|c| c.eq_ignore_ascii_case(col_name))
                     {
                         tbl.columns.remove(c_idx);
-                        if c_idx < tbl.comparisons.len() {
-                            tbl.comparisons.remove(c_idx);
+                        if c_idx < tbl.metadata.len() {
+                            tbl.metadata.remove(c_idx);
                         }
                         for r in &mut tbl.rows {
                             if c_idx < r.len() {
@@ -21141,9 +21145,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         tbl.defaults
                             .insert(col_name.to_ascii_lowercase(), def_val.clone());
                     }
-                    tbl.comparisons
-                        .resize(tbl.columns.len(), SqlColumnComparison::default());
-                    tbl.comparisons.push(sql_declared_comparison(col_spec));
+                    tbl.metadata
+                        .resize(tbl.columns.len(), SqlColumnMetadata::default());
+                    tbl.metadata.push(sql_column_metadata(col_spec));
                     tbl.columns.push(col_name);
                     for r in &mut tbl.rows {
                         r.push(def_val.clone());
@@ -21916,7 +21920,7 @@ fn fire_sql_triggers(
         .collect();
     for tr in matching {
         let mut trig_cols = Vec::new();
-        let mut trig_comparisons = Vec::new();
+        let mut trig_metadata = Vec::new();
         let mut trig_row = Vec::new();
         if let Some(nrow) = new_row {
             for (c, v) in cols.iter().zip(nrow.iter()) {
@@ -21932,11 +21936,11 @@ fn fire_sql_triggers(
         }
         if let Some(table) = tables.get(tname) {
             for _ in 0..usize::from(new_row.is_some()) + usize::from(old_row.is_some()) {
-                trig_comparisons.extend_from_slice(&table.comparisons);
+                trig_metadata.extend_from_slice(&table.metadata);
             }
         }
         if let Some(ref we) = tr.when_expr {
-            if !eval_sql_where(we, &trig_cols, &trig_comparisons, &trig_row, tables) {
+            if !eval_sql_where(we, &trig_cols, &trig_metadata, &trig_row, tables) {
                 continue;
             }
         }
@@ -22373,7 +22377,7 @@ fn exec_sql_insert(
             }
         }
         for chk in &chk_clone {
-            if !eval_sql_where(chk, &t_cols, &tables[&tname].comparisons, &row, tables) {
+            if !eval_sql_where(chk, &t_cols, &tables[&tname].metadata, &row, tables) {
                 *tables = stmt_snap;
                 return Err(format!("Error: CHECK constraint failed: {chk}\n"));
             }
@@ -22455,11 +22459,11 @@ fn exec_sql_insert(
                     u_cols.push(format!("excluded.{c}"));
                     u_row.push(v.clone());
                 }
-                let mut u_comparisons = Vec::new();
-                for comparison in &tables[&tname].comparisons {
-                    u_comparisons.extend([*comparison, *comparison]);
+                let mut u_metadata = Vec::new();
+                for affinity in &tables[&tname].metadata {
+                    u_metadata.extend([*affinity, *affinity]);
                 }
-                u_comparisons.extend_from_slice(&tables[&tname].comparisons);
+                u_metadata.extend_from_slice(&tables[&tname].metadata);
                 let du_up = du_str.to_ascii_uppercase();
                 let (set_part, where_part) = if let Some(wp) = du_up.find(" WHERE ") {
                     (du_str[..wp].trim(), Some(du_str[wp + 7..].trim()))
@@ -22467,7 +22471,7 @@ fn exec_sql_insert(
                     (du_str.as_str(), None)
                 };
                 let cond_ok = match where_part {
-                    Some(wc) => eval_sql_where(wc, &u_cols, &u_comparisons, &u_row, tables),
+                    Some(wc) => eval_sql_where(wc, &u_cols, &u_metadata, &u_row, tables),
                     None => true,
                 };
                 if cond_ok {
@@ -22611,8 +22615,8 @@ fn exec_sql_update(
         .collect();
     let gen_clone = target.generated.clone();
     let checks = target.check_exprs.clone();
-    let mut eval_comparisons = target.comparisons.clone();
-    eval_comparisons.extend_from_within(..);
+    let mut eval_metadata = target.metadata.clone();
+    eval_metadata.extend_from_within(..);
     let mut eval_cols = t_cols.clone();
     for c in &t_cols {
         eval_cols.push(format!("{tname}.{c}"));
@@ -22632,7 +22636,7 @@ fn exec_sql_update(
             }
         }
         eval_cols.extend(source.columns.iter().cloned());
-        eval_comparisons.extend_from_slice(&source.comparisons);
+        eval_metadata.extend_from_slice(&source.metadata);
         Some(source)
     } else {
         None
@@ -22657,12 +22661,12 @@ fn exec_sql_update(
                 eval_r.truncate(r.len() * 2);
                 eval_r.extend_from_slice(source_row);
                 where_clause.is_none_or(|wc| {
-                    eval_sql_where(wc, &eval_cols, &eval_comparisons, &eval_r, &tables_snap)
+                    eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)
                 })
             })
         } else {
             where_clause.is_none_or(|wc| {
-                eval_sql_where(wc, &eval_cols, &eval_comparisons, &eval_r, &tables_snap)
+                eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)
             })
         };
         if matches {
@@ -22732,7 +22736,7 @@ fn exec_sql_update(
             }
         }
         for check in &checks {
-            if !eval_sql_where(check, &t_cols, &tables[&tname].comparisons, &ur, tables) {
+            if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables) {
                 *tables = tables_snap;
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
@@ -22906,15 +22910,14 @@ fn exec_sql_delete(
             .rows
             .into_iter()
             .filter(|r| {
-                where_clause.is_none_or(|wc| {
-                    eval_sql_where(wc, &t_cols, &target.comparisons, r, &tables_snap)
-                })
+                where_clause
+                    .is_none_or(|wc| eval_sql_where(wc, &t_cols, &target.metadata, r, &tables_snap))
             })
             .collect();
     } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
             tbl.retain_rows(|r| {
-                if eval_sql_where(wc, &t_cols, &tables_snap[&tname].comparisons, r, &tables_snap) {
+                if eval_sql_where(wc, &t_cols, &tables_snap[&tname].metadata, r, &tables_snap) {
                     deleted_rows.push(r.clone());
                     false
                 } else {
@@ -23325,7 +23328,7 @@ fn resolve_sql_from_table(
             }
             return Some(SqlTable {
                 columns: out_cols,
-                comparisons: left_tbl.comparisons,
+                metadata: left_tbl.metadata,
                 rows: out_rows,
                 imported_csv: left_tbl.imported_csv,
                 ..SqlTable::default()
@@ -23446,12 +23449,12 @@ fn resolve_sql_from_table(
                         on_cond_owned = Some(conditions.join(" AND "));
                     }
                 }
-                let mut combined_comparisons = acc_tbl.comparisons.clone();
-                combined_comparisons.resize(acc_tbl.columns.len(), SqlColumnComparison::default());
-                combined_comparisons.extend_from_slice(&right_tbl.comparisons);
-                combined_comparisons.resize(
+                let mut combined_metadata = acc_tbl.metadata.clone();
+                combined_metadata.resize(acc_tbl.columns.len(), SqlColumnMetadata::default());
+                combined_metadata.extend_from_slice(&right_tbl.metadata);
+                combined_metadata.resize(
                     acc_tbl.columns.len() + right_tbl.columns.len(),
-                    SqlColumnComparison::default(),
+                    SqlColumnMetadata::default(),
                 );
                 let mut star_hidden_columns = acc_tbl.star_hidden_columns.clone();
                 star_hidden_columns.extend(
@@ -23482,13 +23485,9 @@ fn resolve_sql_from_table(
                         let mut cr = lr.clone();
                         cr.extend(rr.iter().cloned());
                         let ok = match on_cond_owned.as_deref() {
-                            Some(oc) => eval_sql_where(
-                                oc,
-                                &combined_cols,
-                                &combined_comparisons,
-                                &cr,
-                                tables,
-                            ),
+                            Some(oc) => {
+                                eval_sql_where(oc, &combined_cols, &combined_metadata, &cr, tables)
+                            }
                             None => true,
                         };
                         if ok {
@@ -23515,7 +23514,7 @@ fn resolve_sql_from_table(
                 acc_tbl = SqlTable {
                     columns: combined_cols,
                     star_hidden_columns,
-                    comparisons: combined_comparisons,
+                    metadata: combined_metadata,
                     rows: combined_rows,
                     imported_csv: acc_tbl.imported_csv && right_tbl.imported_csv,
                     ..SqlTable::default()
@@ -24397,7 +24396,7 @@ fn exec_sql_select_with_mode(
         .rows
         .iter()
         .filter(|r| match where_clause {
-            Some(wc) => eval_sql_where(wc, &tbl.columns, &tbl.comparisons, r, tables),
+            Some(wc) => eval_sql_where(wc, &tbl.columns, &tbl.metadata, r, tables),
             None => true,
         })
         .collect();
@@ -26217,6 +26216,9 @@ fn eval_sql_row_expr(
             return (res.round() as i64).to_string();
         }
         return res.to_string();
+    }
+    if let Some((inner, _)) = split_sql_collation(s) {
+        return eval_sql_row_expr(inner, cols, row, tables);
     }
     if (s.starts_with('\'') && s.ends_with('\'')) || (s.starts_with('"') && s.ends_with('"')) {
         return s[1..s.len() - 1].replace("''", "'");
@@ -28138,30 +28140,42 @@ fn compare_sql_values(
     lhs: (&str, &str),
     rhs: (&str, &str),
     columns: &[String],
-    comparisons: &[SqlColumnComparison],
+    metadata: &[SqlColumnMetadata],
 ) -> std::cmp::Ordering {
-    let comparison = |expression: &str| {
+    let operand = |expression: &str| {
         let mut expression = expression.trim();
-        while expression.starts_with('(')
-            && find_matching_paren(expression) == Some(expression.len() - 1)
-        {
-            expression = expression[1..expression.len() - 1].trim();
+        let mut explicit_collation = None;
+        loop {
+            if expression.starts_with('(')
+                && find_matching_paren(expression) == Some(expression.len() - 1)
+            {
+                expression = expression[1..expression.len() - 1].trim();
+            } else if let Some((inner, nocase)) = split_sql_collation(expression) {
+                explicit_collation.get_or_insert(nocase);
+                expression = inner.trim();
+            } else {
+                break;
+            }
         }
-        find_sql_col(columns, expression)
-            .and_then(|index| comparisons.get(index))
-            .copied()
+        let column = find_sql_col(columns, expression)
+            .map(|index| metadata.get(index).copied().unwrap_or_default());
+        (column, explicit_collation)
     };
-    let left = comparison(lhs.0);
-    let right = comparison(rhs.0);
+    let (left, left_collation) = operand(lhs.0);
+    let (right, right_collation) = operand(rhs.0);
     let la = left.unwrap_or_default().affinity;
     let ra = right.unwrap_or_default().affinity;
-    // SQLite uses the left column's collation when both operands are columns.
+    // Explicit COLLATE wins over column defaults; the left operand wins ties.
+    let nocase = left_collation
+        .or(right_collation)
+        .or_else(|| left.or(right).map(|column| column.nocase))
+        .unwrap_or(false);
     let compare_text = || {
-        if left.or(right).is_some_and(|column| column.nocase) {
+        if nocase {
             lhs.1
                 .bytes()
-                .map(|byte| byte.to_ascii_lowercase())
-                .cmp(rhs.1.bytes().map(|byte| byte.to_ascii_lowercase()))
+                .map(|b| b.to_ascii_lowercase())
+                .cmp(rhs.1.bytes().map(|b| b.to_ascii_lowercase()))
         } else {
             lhs.1.cmp(rhs.1)
         }
@@ -28183,7 +28197,7 @@ fn compare_sql_values(
 fn eval_sql_where(
     clause: &str,
     columns: &[String],
-    comparisons: &[SqlColumnComparison],
+    metadata: &[SqlColumnMetadata],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
 ) -> bool {
@@ -28192,7 +28206,7 @@ fn eval_sql_where(
         return eval_sql_where(
             &trimmed[1..trimmed.len() - 1],
             columns,
-            comparisons,
+            metadata,
             row,
             tables,
         );
@@ -28201,8 +28215,8 @@ fn eval_sql_where(
 
     // Top-level OR (lower precedence than AND)
     if let Some(or_p) = find_top_sql_bool_kw(&upper, " OR ") {
-        return eval_sql_where(&trimmed[..or_p], columns, comparisons, row, tables)
-            || eval_sql_where(&trimmed[or_p + 4..], columns, comparisons, row, tables);
+        return eval_sql_where(&trimmed[..or_p], columns, metadata, row, tables)
+            || eval_sql_where(&trimmed[or_p + 4..], columns, metadata, row, tables);
     }
 
     // Top-level AND (skipping the AND of BETWEEN ... AND ...)
@@ -28220,8 +28234,8 @@ fn eval_sql_where(
                 scan_from = and_p + 5;
                 continue;
             }
-            return eval_sql_where(&trimmed[..and_p], columns, comparisons, row, tables)
-                && eval_sql_where(&trimmed[and_p + 5..], columns, comparisons, row, tables);
+            return eval_sql_where(&trimmed[..and_p], columns, metadata, row, tables)
+                && eval_sql_where(&trimmed[and_p + 5..], columns, metadata, row, tables);
         }
     }
 
@@ -28234,13 +28248,13 @@ fn eval_sql_where(
             let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables);
             let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables);
             let inside =
-                compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, comparisons)
+                compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, metadata)
                     != std::cmp::Ordering::Less
                     && compare_sql_values(
                         (lhs, &lv),
                         (&rest_b[and_p + 5..], &high),
                         columns,
-                        comparisons,
+                        metadata,
                     ) != std::cmp::Ordering::Greater;
             return !inside;
         }
@@ -28254,19 +28268,19 @@ fn eval_sql_where(
             let lv = eval_sql_row_expr(lhs, columns, row, tables);
             let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables);
             let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables);
-            return compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, comparisons)
+            return compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, metadata)
                 != std::cmp::Ordering::Less
                 && compare_sql_values(
                     (lhs, &lv),
                     (&rest_b[and_p + 5..], &high),
                     columns,
-                    comparisons,
+                    metadata,
                 ) != std::cmp::Ordering::Greater;
         }
     }
 
     if upper.starts_with("NOT EXISTS") {
-        return !eval_sql_where(&trimmed[4..], columns, comparisons, row, tables);
+        return !eval_sql_where(&trimmed[4..], columns, metadata, row, tables);
     }
 
     if upper.starts_with("EXISTS") {
@@ -28465,7 +28479,7 @@ fn eval_sql_where(
             if lv == SQL_NULL || rv == SQL_NULL {
                 return false;
             }
-            let ord = compare_sql_values((lhs, &lv), (rhs, &rv), columns, comparisons);
+            let ord = compare_sql_values((lhs, &lv), (rhs, &rv), columns, metadata);
             return match op {
                 "=" => ord == std::cmp::Ordering::Equal,
                 "!=" | "<>" => ord != std::cmp::Ordering::Equal,

@@ -82,6 +82,11 @@ fn failed_global_declarations_restore_local_bindings() {
             "",
             "division by 0",
         ),
+        (
+            r#"x=orig; f(){ local x=local; declare -gr x=new; declare -g x=invalid; status=$?; echo "$x"; return "$status"; }; f; status=$?; echo "$x"; exit "$status""#,
+            "local\nnew\n",
+            "x: readonly variable",
+        ),
     ] {
         let (mut shell, _) = Shell::with_memory_fs();
         let result = shell

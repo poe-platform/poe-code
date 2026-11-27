@@ -236,7 +236,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the
   remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`
-  control failures; `set -a` (or `set -o allexport`) exports subsequent variable
+  control failures. `set -x` / `set -o xtrace` (also `bash -x`) traces expanded
+  commands to stderr using `PS4`; `set +x` disables tracing.
+  `set -a` (or `set -o allexport`) exports subsequent variable
   assignments to child commands, and `set +a` disables automatic export.
   `set +h` disables command hashing; `set -h` (or `set -o hashall`) restores it.
   `set -P` (or `set -o physical`) makes `cd` resolve symlinks before `..`;

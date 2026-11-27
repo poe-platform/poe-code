@@ -161,7 +161,7 @@ export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval
 export const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
-  "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", "xtrace", ]);
+  "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", ]);
 export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
@@ -948,7 +948,7 @@ export interface State extends DynamicVariableState {
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
   localSetOptions?: {
-    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "physical" | "pipefail">;
+    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "physical" | "pipefail" | "xtrace">;
     readonly extensions: ReadonlyMap<string, boolean>;
   } | undefined;
   getopts?: GetoptsBinding | undefined;
@@ -982,6 +982,8 @@ export interface State extends DynamicVariableState {
   noexec?: boolean;
   physical?: boolean;
   pipefail: boolean;
+  xtrace?: boolean;
+  xtraceDepth?: number;
   errexit?: boolean;
   nounset?: boolean;
   commandString?: boolean;
@@ -5175,7 +5177,7 @@ export class Runtime {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "physical" ? !!state.physical : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "physical" ? !!state.physical : name === "xtrace" ? !!state.xtrace : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -6005,6 +6007,37 @@ export class Runtime {
           if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
         }
       }
+  private async trace(words: readonly string[], state: State, io: IO, assignment?: string): Promise<void> {
+    const quote = (value: string): string => {
+      if (value.length && [...value].every(character => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@%+=:,./-".includes(character))) return value;
+      if (!value.includes("'")) return `'${value}'`;
+      return `'${value.split("'").join("'\\''")}'`;
+    };
+    // Expanding PS4 must not recursively trace its own command substitutions.
+    const status = state.status;
+    const substitutionStatus = state.substitutionStatus;
+    state.xtrace = false;
+    let prefix: string;
+    try {
+      const word = parseArithmeticExpansion(state.variables.PS4 ?? "", this.budget.parsing, byteLocale(state.variables), state.depth, io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
+      prefix = shellValueText(concatShellValues(await this.valueWord(word, state, io, false, false, true), io[valueScope]));
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (!(error instanceof ExpansionFailure)) throw error;
+      await this.diagnostic(io, error.message);
+      prefix = state.variables.PS4 ?? "";
+    } finally {
+      state.xtrace = true;
+      state.status = status;
+      state.substitutionStatus = substitutionStatus;
+    }
+    try {
+      await writeText(io.stderr, `${(prefix[0] ?? "").repeat(state.xtraceDepth ?? 0)}${prefix}${assignment === undefined ? "" : `${assignment}=`}${words.map(quote).join(" ")}\n`);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (!(error instanceof PublicDiagnostic || error instanceof FsError) || (error as { code?: string }).code !== "EBADF") throw error;
+    }
+  }
       const declarationName = commandWords[declarationIndex]?.plain ?? "";
       const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
       const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : declarationIndex === 0 && ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
@@ -6045,6 +6078,7 @@ export class Runtime {
             this.signal.throwIfAborted();
             const original = error instanceof ExecutionFailure ? error.original : error;
             if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : originalIO, error instanceof ExecutionFailure ? error.diagnostic : undefined);
+          if (state.xtrace) await this.trace(words, state, originalIO);
             if (error instanceof ExecutionFailure) throw error;
             throw new ExecutionFailure(error, originalIO);
           }
@@ -6165,6 +6199,7 @@ export class Runtime {
       }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && previous?.size) {
+        if (state.xtrace) await this.trace([shellValueText(value)], state, io, assignment.name);
         if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
         const redirectState = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         const variables = redirectState.variables;
@@ -6253,6 +6288,7 @@ export class Runtime {
         if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
         if (!functionCommand && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
           rawState.lastArgument = words.at(-1) ?? "";
+      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
           state.lastArgument = rawState.lastArgument;
         }
       }
@@ -6451,7 +6487,7 @@ export class Runtime {
             if (name === "braceexpand") return state.braceexpand !== false;
             if (name === "hashall") return state.hashall !== false;
             if (name === "allexport") return !!state.allexport;
-            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail"].includes(name)) return !!state[name as "nounset"];
+            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail", "xtrace"].includes(name)) return !!state[name as "nounset"];
             return false;
           }, terminal: () => false, descriptorStat: async number => {
             const descriptor = io.descriptors?.get(number);
@@ -7152,6 +7188,7 @@ export class Runtime {
         delete child.variables[key];
         child.exported.delete(key);
       }
+    variables.PS4 ??= "+ ";
     }
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
     publishVariable(child, "BASH_ARGV0", arg0);
@@ -7162,8 +7199,8 @@ export class Runtime {
     const shoptArguments: string[][] = [];
     let commandString = false;
     let standardInput = false;
-    const options = { allexport: false, braceexpand: true, errexit: false, hashall: true, noclobber: false, noexec: false, noglob: false, nounset: false, physical: false, pipefail: false };
-    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", h: "hashall", C: "noclobber", n: "noexec", f: "noglob", u: "nounset", P: "physical" } as const;
+    const options = { allexport: false, braceexpand: true, errexit: false, hashall: true, noclobber: false, noexec: false, noglob: false, nounset: false, physical: false, pipefail: false, xtrace: false };
+    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", h: "hashall", C: "noclobber", n: "noexec", f: "noglob", u: "nounset", P: "physical", x: "xtrace" } as const;
     while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
@@ -7892,6 +7929,7 @@ export class Runtime {
         else if (flag === "B") state.braceexpand = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
+        else if (flag === "x") state.xtrace = enabled;
           if (name === undefined) {
             for (const [name, option] of shellOptions(state, true)) await writeText(stdout, enabled ? `${name}\t${option.enabled ? "on" : "off"}\n` : `set ${option.enabled ? "-" : "+"}o ${name}\n`);
           } else {
@@ -7909,6 +7947,7 @@ export class Runtime {
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
               await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
+            else if (name === "xtrace") state.xtrace = enabled;
               return unsupported ? 1 : 2;
             }
             index++;
@@ -7916,7 +7955,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, physical, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P/x clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, physical, pipefail, errexit, nounset or xtrace\n");
         return 1;
       }
       index++;
@@ -9047,7 +9086,7 @@ export class Runtime {
           continue;
         }
         if (/^[+-]/u.test(option)) {
-          await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+          await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit, nounset or xtrace\n");
           if (state.profile === "sh" && suppressSpecial) return 2;
           throw new Flow("exit", 2);
         }
@@ -9374,6 +9413,7 @@ export class Runtime {
         // ownership and assignment rules as an unshadowed global.
         const globalFrame = command === "declare" && enabled.has("g") ? stateMonitor(state)!.globalVariableFrame(name) : undefined;
         let visibleLocal: SavedVariable | undefined;
+              xtrace: !!state.xtrace,
         if (globalFrame) {
           visibleLocal = saveVariable(state, name);
           await this.prepareVariable(state, name, visibleLocal);
@@ -10439,6 +10479,7 @@ export class Runtime {
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<" && command.redirects[0]!.descriptor === 0;
       const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;
+      child.xtraceDepth = (state.xtraceDepth ?? 0) + 1;
       let substitutionDiagnosticLines: Map<Command, number> | undefined;
       if (part.script.printedLines?.size) {
         substitutionDiagnosticLines = new Map<Command, number>();
@@ -10535,7 +10576,7 @@ export class Runtime {
     let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
       : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}${state.physical ? "P" : ""}`
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.xtrace ? "x" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}${state.physical ? "P" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(this.ifs(state) ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

@@ -4231,6 +4231,7 @@ const syncExtraRuntimeMethods = {
     return entries ? entries[index] !== undefined : binding ? binding.getValue(index) !== undefined : index === 0 && this.variable(state, base) !== undefined;
   },
   tryFastExecuteCommandSync(this: any, command: Command, state: State, originalIO: IO, fileShortcut: boolean, terminal: any, diagnosticLine: number): number | Promise<number> | undefined {
+    if (state.xtrace) return undefined;
     if (command.kind === "simple") {
       const _pendingFnList = ((stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: Array<Parameters<NonNullable<Runtime["dispatchFastFunction"]>>[5]> })._syncPendingFunctionResumes;
       if ((_pendingFnList?.length ?? 0) > 0 && command.words[0]?.plain === _pendingFnList![_pendingFnList!.length - 1]!.name) {
@@ -7034,6 +7035,7 @@ const syncExtraRuntimeMethods = {
     return false;
   },
   tryRunCachedSyncForScript( script: Script, monitor: ReturnType<typeof ensureStateMonitor>, io: IO, ): { exitCode: number; terminated: boolean } | undefined {
+    if (monitor.raw.xtrace) return undefined;
     type SyncForScriptPlan = {
       initAssigns: { name: string; strVal: string; intVal: number }[];
       forCmd: Extract<Command, { kind: "for" }>;
@@ -7212,6 +7214,7 @@ const syncExtraRuntimeMethods = {
     return SYNC_UNIT_ZERO;
   },
   tryFastSinglePipelineUnit( pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (state.xtrace) return undefined;
     // Cached argv bypasses word admission. Keep finite budgets on the standard
     // evaluator, before speculative expansion or redirect acquisition can occur.
     if (this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
@@ -7651,6 +7654,7 @@ const syncExtraRuntimeMethods = {
   },
   trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
     io = this.persistentIO(state, io);
+    if (state.xtrace) return undefined;
     const _rawSt = (stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: unknown[]; _syncPendingEvalResume?: unknown };
     if ((_rawSt._syncPendingFunctionResumes?.length ?? 0) > 0 || _rawSt._syncPendingEvalResume !== undefined) return undefined;
     if (this.budget.limits.maxExpansionBytes < 65536 || this.budget.limits.maxCommands < 1000 || this.script !== Runtime.prototype.script) return undefined;
@@ -17937,6 +17941,7 @@ const syncExtraRuntimeMethods = {
       for (const [name, saved] of locals) {
         if (saved.exported && saved.value !== undefined &&
             (!rawState.exported.has(name) || rawState.variables[name] === undefined)) return undefined;
+    if (state.xtrace) return undefined;
       }
     }
     // Cached and pipeline substitutions may contain echo as well as direct calls.

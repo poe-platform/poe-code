@@ -1,8 +1,74 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { spawnSync } from "node:child_process";
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 
 const names = ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"];
+for (const source of [
+  "set -ex; echo hello; echo world",
+  "set -euxo pipefail; echo hello; echo world",
+  "set -o xtrace; echo hello; echo world",
+  "bash -x -c 'echo hello; echo world'",
+  "bash -o xtrace -c 'echo hello; echo world'",
+  "bash -euxo pipefail -c 'echo hello; echo world'",
+  "bash -x /trace.sh",
+]) test(`xtrace: ${source}`, async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/trace.sh", new TextEncoder().encode("echo hello; echo world"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "hello\nworld\n");
+  assert.equal(result.stderr, "+ echo hello\n+ echo world\n");
+});
+
+test("xtrace expands arguments, traces assignments and redirects, and can be disabled", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`set -x; VALUE='hello world'; echo "$VALUE" 2>/trace; set +o xtrace; echo quiet; cat /trace`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "hello world\nquiet\n+ echo 'hello world'\n");
+  assert.equal(result.stderr, "+ VALUE='hello world'\n+ set +o xtrace\n");
+});
+
+test("xtrace uses PS4 and restores local options", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`PS4='trace: '; f() { local -; set -x; echo inside; }; f; echo outside; set -x; echo "$-"; set +x; [[ -o xtrace ]]`);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "inside\noutside\nhxB\n");
+  assert.equal(result.stderr, "trace: echo inside\ntrace: echo hxB\ntrace: set +x\n");
+});
+
+for (const source of [
+  `set -x; echo "$(echo inner)"; set +x`,
+  `PS4='line $LINENO: '; set -x; echo hello; set +x`,
+  `set -x; f() { echo "$1"; }; f 'hello world'; (echo subshell); set +x`,
+  `set -x; echo '' 'a"b' "a'b" 'a$b'; set +x`,
+  `set -ex; false; echo unreachable`,
+  `set -x; shopt -oq xtrace; echo "\${SHELLOPTS##*:}"; set +x`,
+  `set -x; PS4='> '; echo hello; set +x`,
+  `set -x; echo hello 2>&-; echo after`,
+  `unset PS4; set -x; echo hello; (echo subshell)`,
+]) test(`xtrace matches Bash: ${source}`, { skip: modernBashSkip }, async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" } });
+  assert.ifError(expected.error);
+  const actual = await shell.exec(source);
+  assert.deepEqual({ stdout: actual.stdout, stderr: actual.stderr, exitCode: actual.exitCode }, { stdout: expected.stdout, stderr: expected.stderr, exitCode: expected.status });
+});
+
+test("PS4 expansion failures do not prevent command execution", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`PS4='\${MISSING} '; set -ux; echo hi; echo bye`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "hi\nbye\n");
+  assert.equal(result.stderr, "shell: line 1: MISSING: unbound variable\n${MISSING} echo hi\nshell: line 1: MISSING: unbound variable\n${MISSING} echo bye\n");
+});
 for (const command of ["bash", "sh"]) for (const [name, flag] of [["allexport", "a"], ["noglob", "f"], ["noclobber", "C"], ["errexit", "e"], ["nounset", "u"], ["braceexpand", "B"], ["pipefail", undefined]] as const) {
   for (const mode of ["string", "stdin", "file"]) test(`${command} ${name} via ${mode}`, async context => {
     const fs = createMemoryFileSystem();

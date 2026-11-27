@@ -827,6 +827,7 @@ export class Shell implements PluginHost {
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         variables.IFS ??= " \t\n";
+        variables.PS4 ??= "+ ";
         currentState = new RootShellState(
           cwd,
           variables,

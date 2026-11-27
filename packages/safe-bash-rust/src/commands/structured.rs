@@ -15339,6 +15339,14 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                                     }
                                 } else if let Ok(n) = value.parse::<f64>() {
                                     *float_sum.get_or_insert(integer_sum as f64) += n;
+                                } else if !value.is_empty() {
+                                    return BuiltinOutcome {
+                                        stdout: format_csv_row(&out_hdr, ','),
+                                        stderr: format!(
+                                            "xan {sub}: <agg-expr> cannot safely cast Bytes({value:?}) from type \"bytes\" to type \"number\"\n"
+                                        ),
+                                        exit_code: 1,
+                                    };
                                 }
                             }
                             match float_sum {

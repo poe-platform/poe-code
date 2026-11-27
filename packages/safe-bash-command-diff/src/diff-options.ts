@@ -1,9 +1,12 @@
+import type { CustomFormats } from "./custom-format.js";
 import type { DisplayOptions } from "./diff-output.js";
 import { ToolError } from "safe-bash-diff-engine/shared";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 
 export interface DiffFlags extends DisplayOptions {
-  format: "normal" | "unified" | "context" | "side" | "ed" | "rcs" | "ifdef";
+  format: "normal" | "unified" | "context" | "side" | "ed" | "rcs" | "ifdef" | "custom";
+  lineFormats: Partial<Record<"old" | "new" | "unchanged", string>>;
+  groupFormats: CustomFormats;
   whitespace: "exact" | "change" | "all";
   context: number;
   brief: boolean;
@@ -40,7 +43,7 @@ function contextLength(value: string): number {
 }
 
 export function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, unidirectionalNewFile: false, stripTrailingCr: false, ignoreFileNameCase: false, labels: [], files: [], optionArgs: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
+  const result: DiffFlags = { format: "normal", lineFormats: {}, groupFormats: {}, whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, unidirectionalNewFile: false, stripTrailingCr: false, ignoreFileNameCase: false, labels: [], files: [], optionArgs: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
@@ -70,6 +73,20 @@ export function flags(args: readonly string[]): DiffFlags {
     };
     if (operands || arg === "-" || !arg.startsWith("-")) result.files.push(arg);
     else if (arg === "--") operands = true;
+    else if (["--line-format", "--old-line-format", "--new-line-format", "--unchanged-line-format", "--old-group-format", "--new-group-format", "--unchanged-group-format", "--changed-group-format"].some(name => arg === name || arg.startsWith(`${name}=`))) {
+      const equal = arg.indexOf("=");
+      const name = equal < 0 ? arg : arg.slice(0, equal);
+      const parameter = value(equal < 0 ? undefined : arg.slice(equal + 1), name);
+      selectFormat("custom");
+      const formats: CustomFormats = name.endsWith("-group-format") ? result.groupFormats : result.lineFormats;
+      const kinds = name === "--line-format" ? ["old", "new", "unchanged"] as const
+        : [name.slice(2, name.indexOf("-", 2)) as keyof CustomFormats];
+      for (const kind of kinds) {
+        const previous = formats[kind];
+        if (previous !== undefined && previous !== parameter) throw new ToolError(`conflicting ${name} option value '${parameter}'`);
+        formats[kind] = parameter;
+      }
+    }
     else if (arg === "--brief") result.brief = true;
     else if (arg === "--recursive") result.recursive = true;
     else if (arg === "--new-file") result.newFile = true;

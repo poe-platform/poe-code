@@ -1,3 +1,4 @@
+import { customFormat } from "./custom-format.js";
 import { StoredExclusions } from "./stored-exclusions.js";
 import { directoryMatches } from "./stored-directory.js";
 import { closeDocumentResources } from "safe-bash-diff-engine/document";
@@ -179,7 +180,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
     let leftStat = pair.leftEntry === false ? undefined : isStdin(left) ? { type: "file" as const } : await inspectOperand(left);
     let rightStat = pair.rightEntry === false ? undefined : isStdin(right) ? { type: "file" as const } : await inspectOperand(right);
     if (inspectionFailed) continue;
-    if (options.format === "ifdef" && (leftStat?.type === "directory" || rightStat?.type === "directory")) {
+    if ((options.format === "ifdef" || options.format === "custom") && (leftStat?.type === "directory" || rightStat?.type === "directory")) {
       throw new ToolError("-D option not supported with directories");
     }
     if (!pair.nested && leftStat && rightStat && (leftStat.type === "directory") !== (rightStat.type === "directory")) {
@@ -304,7 +305,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       }
     }
     // Detect binary data before decoding; invalid UTF-8 without NUL is byte text.
-    if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" || oldBytes.includes("\0"))) { await reportSame(); continue; }
+    if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" && options.format !== "custom" || oldBytes.includes("\0"))) { await reportSame(); continue; }
     if (!options.text && (oldBytes.includes("\0") || newBytes.includes("\0"))) {
       await append(`${options.brief ? "Files" : "Binary files"} ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
       different = true;
@@ -329,13 +330,13 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       if (oldText && !oldText.endsWith("\n")) oldText += "\n";
       if (newText && !newText.endsWith("\n")) newText += "\n";
     }
-    if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { await reportSame(); continue; }
+    if (oldText === newText && options.format !== "side" && options.format !== "ifdef" && options.format !== "custom") { await reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);
     const oldKeys = await comparisonLines(oldLines, options, budget);
     const newKeys = await comparisonLines(newLines, options, budget);
     const same = oldText === newText || await equivalent(oldKeys, newKeys, budget);
-    if (same && options.format !== "side" && options.format !== "ifdef") { await reportSame(); continue; }
+    if (same && options.format !== "side" && options.format !== "ifdef" && options.format !== "custom") { await reportSame(); continue; }
     if (options.brief && !options.ignoreBlank && options.ignorePatterns.length === 0) {
       if (!same) {
         different = true;
@@ -354,6 +355,32 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
     if (options.brief) { if (changed) await append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, label(options.symbol), budget, append);
+    else if (options.format === "custom") {
+      const groups = (async function* () {
+        let oldStart = 0, newStart = 0;
+        for (let index = 0; index < changes.length;) {
+          budget.step();
+          const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+          if (changes[index]!.kind === " ") { oldStart++; newStart++; index++; continue; }
+          let oldCount = 0, newCount = 0, ignored = false;
+          while (index < changes.length && changes[index]!.kind !== " ") {
+            const edit = changes[index++]!;
+            if (edit.kind === "-") oldCount++; else newCount++;
+            ignored = !!edit.ignored;
+            budget.step();
+            const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+          }
+          yield { oldStart, newStart, oldCount, newCount, ignored };
+          oldStart += oldCount; newStart += newCount;
+        }
+      })();
+      await customFormat(groups, oldLines.length, newLines.length, options, budget, appendBytes, async (side, position, omitNewline) => {
+        let line = (side === "old" ? oldLines : newLines)[position]!;
+        if (omitNewline && line.endsWith("\n")) line = line.slice(0, -1);
+        budget.step(line.length);
+        await append(options.expand ? expandTabs(line) : line);
+      });
+    }
     else if (changed) {
       if (options.format === "normal") {
         await normal(changes, budget, append, options);

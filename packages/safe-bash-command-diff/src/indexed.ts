@@ -1,3 +1,4 @@
+import { customFormat } from "./custom-format.js";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { renderEd, renderSideBySide, type IndexedGroup as Group } from "./indexed-output.js";
 import { comparisonSource, documentText, expandedSource, stripTrailingCr, terminatedSource } from "./indexed-normalization.js";
@@ -171,7 +172,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       sameRaw = old.size === next.size && old.length === next.length;
       for (let index = 0; sameRaw && index < old.length; index++) sameRaw = await old.equal(index, next, index);
     }
-    const counted = options.format === "ifdef" || options.format === "side" || normalize && !sameRaw;
+    const counted = options.format === "ifdef" || options.format === "side" || options.format === "custom" || normalize && !sameRaw;
     if (counted) budget.countLines(old.length + next.length);
     if (normalize && !sameRaw) {
       oldKeys = new IndexedDocument(budget); nextKeys = new IndexedDocument(budget);
@@ -213,6 +214,21 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
     if (options.brief) {
       if (visible) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
       else if (options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: visible > 0, trouble };
+    }
+    if (options.format === "custom") {
+      const changes = (async function* () {
+        for (let index = 0; index < count; index++) yield await group(index);
+      })();
+      await customFormat(changes, old.length, next.length, options, budget, append, async (side, position, omitNewline) => {
+        const document = side === "old" ? old : next;
+        const bounds = await document.line(position);
+        const terminated = (await document.data.read(8 + bounds.end - 1, 1))[0] === 10;
+        const end = bounds.end - Number(omitNewline && terminated);
+        const source = options.expand ? expandedSource(document, bounds.start, end, render.utf8, "") : document.range(bounds.start, end);
+        for await (const bytes of source) await append(bytes);
+      });
+      if (!visible && options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       return { different: visible > 0, trouble };
     }
     if (options.format === "side") {

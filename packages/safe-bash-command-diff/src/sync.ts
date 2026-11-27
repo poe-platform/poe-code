@@ -64,7 +64,8 @@ export function evalSyncDiff(
     opts.paginate ||
     opts.noDereference ||
     (opts.format === "side" && !opts.suppressCommon) ||
-    opts.format === "ifdef"
+    opts.format === "ifdef" ||
+    opts.format === "custom"
   ) {
     return undefined;
   }

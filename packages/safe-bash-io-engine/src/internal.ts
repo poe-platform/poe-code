@@ -301,7 +301,7 @@ function inputFileSlow(context: CommandContext, name: string): ByteSource {
     const resolvedPath = pathOf(context, name);
     const backing = getRuntimeBackingFileSystem(context.fs);
     const skipCapsFor = !context.fs.capabilitiesFor || (
-      backing?.capabilitiesFor === undefined &&
+      backing !== undefined && backing.capabilitiesFor === undefined &&
       resolvedPath !== "/dev" &&
       !resolvedPath.startsWith("/dev/")
     );

@@ -27448,6 +27448,15 @@ fn apply_sql_datetime_modifiers(base: &str, modifiers: &[&str]) -> Option<(i32, 
         } else if md == "start of year" {
             m = 1;
             d = 1;
+        } else if let Some(v) = md.strip_prefix("weekday ") {
+            if let Ok(target) = v.trim().parse::<i64>()
+                && (0..=6).contains(&target)
+            {
+                let days = super::coreutils::days_from_civil(y.into(), m.into(), d.into());
+                // The Unix epoch was Thursday; SQLite numbers Sunday as zero.
+                let weekday = (days + 4).rem_euclid(7);
+                d += (target - weekday).rem_euclid(7) as i32;
+            }
         } else if let Some(v) = md
             .strip_suffix(" months")
             .or_else(|| md.strip_suffix(" month"))

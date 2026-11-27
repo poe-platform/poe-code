@@ -100,18 +100,7 @@ export function truth(value: Scalar): boolean {
   return value.kind === "unset" ? false : value.kind === "number" || value.kind === "numeric" ? value.number !== 0 : value.text !== "";
 }
 
-function general(value: number, precision: number, alternate: boolean): string {
-  precision = Math.max(1, precision);
-  if (value === 0) return alternate ? (0).toFixed(precision - 1) : "0";
-  const rounded = Number(value.toPrecision(precision));
-  const exponent = Math.floor(Math.log10(Math.abs(rounded)));
-  let result = exponent < -4 || exponent >= precision ? rounded.toExponential(precision - 1) : rounded.toFixed(Math.max(0, precision - exponent - 1));
-  if (!alternate) result = result.replace(/(\.[0-9]*?)0+(?=e|$)/u, "$1").replace(/\.(?=e|$)/u, "");
-  return result;
-}
-
-// A binary64 value has a finite exact decimal expansion. Use it when the
-// requested precision exceeds Number's formatting API, then pad only after admission.
+// Round the finite exact decimal expansion of binary64, then pad only after admission.
 function preciseFloat(value: number, precision: number, conversion: string, alternate: boolean, admit: (length: number) => void): string {
   const buffer = new ArrayBuffer(8);
   const view = new DataView(buffer);
@@ -122,32 +111,40 @@ function preciseFloat(value: number, precision: number, conversion: string, alte
   if (exponentBits) mantissa += 1n << 52n;
   const power = (exponentBits || 1) - 1023 - 52;
   const digits = (power >= 0 ? mantissa << BigInt(power) : mantissa * 5n ** BigInt(-power)).toString();
-  const point = digits.length + Math.min(0, power);
-  const negative = value < 0 ? "-" : "";
+  const point = value === 0 ? 1 : digits.length + Math.min(0, power);
+  const negative = value < 0 || Object.is(value, -0) ? "-" : "";
+  const round = (count: number): string => {
+    let rounded = count <= 0 ? "0" : digits.slice(0, count);
+    const next = digits[count];
+    if (next !== undefined && (next > "5" || next === "5" &&
+      (Number(rounded.at(-1)) % 2 !== 0 || digits.slice(count + 1).replaceAll("0", "") !== ""))) {
+      rounded = (BigInt(rounded) + 1n).toString();
+    }
+    return rounded;
+  };
   if (conversion.toLowerCase() === "f") {
-    admit(Math.max(1, value === 0 ? 1 : point) + precision + 1 + negative.length);
+    admit(Math.max(1, point) + precision + Number(precision > 0) + negative.length);
     const count = point + precision;
-    let scaled = count >= digits.length ? digits.padEnd(count, "0") : count <= 0 ? "0" : digits.slice(0, count);
-    if (count >= 0 && count < digits.length && Number(digits[count]) >= 5) scaled = (BigInt(scaled) + 1n).toString();
+    let scaled = count >= digits.length ? digits.padEnd(count, "0") : round(count);
     scaled = scaled.padStart(precision + 1, "0");
-    return negative + scaled.slice(0, -precision) + "." + scaled.slice(-precision);
+    return negative + (precision === 0 ? scaled : scaled.slice(0, -precision) + "." + scaled.slice(-precision));
   }
-  const significant = conversion.toLowerCase() === "g" ? precision : precision + 1;
-  const exact = digits.replace(/^0+/u, "") || "0";
-  const exponent = value === 0 ? 0 : point - 1;
-  // Above 100 significant digits there can be no carry that changes binary64's
-  // decimal exponent, but the remaining exact digits still require rounding.
-  let rounded = exact.slice(0, significant);
-  if (exact.length > significant && Number(exact[significant]) >= 5) rounded = (BigInt(rounded) + 1n).toString();
+  const significant = conversion.toLowerCase() === "g" ? Math.max(1, precision) : precision + 1;
+  let exponent = point - 1;
+  let rounded = round(significant);
+  if (rounded.length > significant) {
+    exponent++;
+    rounded = rounded.slice(0, significant);
+  }
   const exponential = conversion.toLowerCase() === "e" || exponent < -4 || exponent >= significant;
   const padded = conversion.toLowerCase() !== "g" || alternate;
   if (padded) {
-    admit(negative.length + (exponential ? significant + 3 + Math.max(2, String(Math.abs(exponent)).length) : significant + 1 + Math.max(0, -exponent)));
+    admit(negative.length + (exponential ? significant + Number(significant > 1 || alternate) + 2 + Math.max(2, String(Math.abs(exponent)).length) : significant + 1 + Math.max(0, -exponent)));
     rounded = rounded.padEnd(significant, "0");
   } else rounded = rounded.replace(/0+$/u, "") || "0";
   let result: string;
   if (exponential) {
-    result = rounded[0] + "." + rounded.slice(1) + "e" + (exponent < 0 ? "-" : "+") + Math.abs(exponent);
+    result = rounded[0] + (rounded.length > 1 || alternate ? "." + rounded.slice(1) : "") + "e" + (exponent < 0 ? "-" : "+") + Math.abs(exponent);
   } else {
     const decimalPoint = exponent + 1;
     result = decimalPoint <= 0 ? "0." + "0".repeat(-decimalPoint) + rounded : rounded.slice(0, decimalPoint).padEnd(decimalPoint, "0") + "." + rounded.slice(decimalPoint);
@@ -233,12 +230,9 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       if (!Number.isFinite(amount)) {
         part = Number.isNaN(amount) ? "+nan" : amount < 0 ? "-inf" : "+inf";
         flags = flags.replaceAll("0", "").replaceAll("#", "");
-      } else if (/[fFeEgG]/u.test(conversion) && (precision ?? 6) > 100) {
-        part = preciseFloat(amount, precision!, conversion, flags.includes("#"), admit);
-      } else if (conversion === "f" || conversion === "F") part = amount.toFixed(precision ?? 6);
-      else if (conversion === "e" || conversion === "E") part = amount.toExponential(precision ?? 6);
-      else if (conversion === "g" || conversion === "G") part = general(amount, precision ?? 6, flags.includes("#"));
-      else {
+      } else if ("fFeEgG".includes(conversion)) {
+        part = preciseFloat(amount, precision ?? 6, conversion, flags.includes("#"), admit);
+      } else {
         if (amount < 0 && "uoxX".includes(conversion)) amount = 0;
         const radix = conversion === "o" ? 8 : conversion === "x" || conversion === "X" ? 16 : 10;
         const integer = BigInt(Math.trunc(amount));
@@ -257,7 +251,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
       admit(part.length);
       part = part.replace(/e([+-])([0-9])$/u, "e$10$2");
       if (/[XFEG]/u.test(conversion)) { admit(part.length); part = part.toUpperCase(); }
-      if (Number.isFinite(amount) && amount >= 0 && !/[uoxX]/u.test(conversion)) {
+      if (Number.isFinite(amount) && amount >= 0 && !part.startsWith("-") && !/[uoxX]/u.test(conversion)) {
         const prefix = flags.includes("+") ? "+" : flags.includes(" ") ? " " : "";
         admit(prefix.length + part.length);
         part = prefix + part;

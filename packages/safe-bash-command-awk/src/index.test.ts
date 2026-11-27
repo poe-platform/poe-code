@@ -26,6 +26,18 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [program, expected] of [
+  ['BEGIN { printf "%.0f %.0f %.1f\\n", 0.5, 2.5, 0.25 }', "0 2 0.2\n"],
+  ['BEGIN { OFMT="%.0f"; print 2.5 }', "2\n"],
+  ['BEGIN { CONVFMT="%.1f"; x=0.25 ""; print x }', "0.2\n"],
+  ['BEGIN { print sprintf("%.0e %.1g %.0E %.1G", 2.5, 2.5, 2.5, 2.5) }', "2e+00 2 2E+00 2\n"],
+] as const) test(`awk rounds exact floating-point ties to even: ${program}`, async () => {
+  const result = await run(createAwkCommand(), [program]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+});
+
 for (const value of [-2, -1, -0.5, 0, 1]) {
   for (const output of ['printf format, x, x, x, x, x, x, x, x, x', 'print sprintf(format, x, x, x, x, x, x, x, x, x)']) {
     test(`unsigned formatting clamps negatives: ${output}, ${value}`, async () => {

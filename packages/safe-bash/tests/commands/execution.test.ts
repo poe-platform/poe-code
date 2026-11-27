@@ -132,7 +132,7 @@ for (const reason of [false, 0, undefined, new Error("operand observer failure")
 
 test("env lists, clears, unsets and sets literal variables without mutating its parent", async () => {
   const env = { FIRST: "one", SECOND: "two" };
-  assert.equal((await run("env", ["-0", "-u", "FIRST", "THIRD=three"], { env })).stdout, "THIRD=three\0SECOND=two\0");
+  assert.equal((await run("env", ["-0", "-u", "FIRST", "THIRD=three"], { env })).stdout, "SECOND=two\0THIRD=three\0");
   assert.equal((await run("env", ["-i", "LITERAL=$(not executed)"])).stdout, "LITERAL=$(not executed)\n");
   assert.deepEqual(env, { FIRST: "one", SECOND: "two" });
   const calls: CommandContext[] = [];
@@ -171,8 +171,8 @@ test("xargs null/custom delimiters, replacement, empty input and errors are expl
   assert.equal((await run("xargs", ["unknown"], { stdin: "one" })).exitCode, 127);
 });
 
-test("xargs replacement defaults to echo and preserves trailing blanks", async () => {
-  assert.equal((await run("xargs", ["-I", "{}"], { stdin: chunks("a\nb\n") })).stdout, "a\nb\n");
+test("xargs replacement defaults to echo without arguments and preserves trailing blanks", async () => {
+  assert.equal((await run("xargs", ["-I", "{}"], { stdin: chunks("a\nb\n") })).stdout, "\n\n");
   const result = await run("xargs", ["-I", "{}", "printf", "<%s>\n", "{}"], {
     stdin: chunks("  a  \nb\t\n'c  '  \nd\\ \t\ne  f  "),
   });

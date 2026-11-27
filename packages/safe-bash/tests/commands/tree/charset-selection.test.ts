@@ -273,8 +273,8 @@ test("default registry forwards charset through a real pipeline without leaking 
   const fs = await fixture();
   const shell = new Shell({ fs, env: { LANG: "C", LC_ALL: "C" } }).use(agentCommands());
   try {
-    const deviceUnicode = ".\n├── dev\n│   └── null\n└── file\n";
-    const deviceAscii = ".\n|-- dev\n|   `-- null\n`-- file\n";
+    const deviceUnicode = ".\n├── dev\n│   ├── null\n│   ├── random\n│   ├── urandom\n│   └── zero\n└── file\n";
+    const deviceAscii = ".\n|-- dev\n|   |-- null\n|   |-- random\n|   |-- urandom\n|   `-- zero\n`-- file\n";
     const result = await shell.exec("TREE_CHARSET=UTF8 tree --noreport -I listing | cat > /listing; cat /listing; tree --noreport -I listing");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, deviceUnicode + deviceAscii);

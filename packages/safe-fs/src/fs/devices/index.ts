@@ -12,9 +12,9 @@ import type {
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, type EntryLocation } from "../mount/comparison.js";
-import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
+import { deviceDirectory, deviceNames, isDevicePath, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
 import { tryResolveMemoryDevicePath } from "../../runtime-core.js";
-import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
+import { readDeviceBytes, createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
 import { runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "../staging-ancestry.js";
@@ -71,7 +71,7 @@ function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   return Object.freeze(capabilities);
 }
 
-function reserved(path: string): boolean { return path === "/" || path === deviceDirectory || path === nullPath; }
+function reserved(path: string): boolean { return path === "/" || path === deviceDirectory || isDevicePath(path); }
 function nonnegative(value: number | undefined, path: string): void {
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new FsError("EINVAL", { path });
 }
@@ -82,20 +82,23 @@ export class DeviceFileSystem implements FileSystem {
   readonly #filesystem: FileSystem;
   readonly capabilities: FileSystemCapabilities;
   #identityScopeObj: object | undefined;
-  #nullStatObj: FileStat | undefined;
+  #deviceStats = new Map<string, FileStat>();
   #directoryStatObj: FileStat | undefined;
 
   get [pathNamespace]() {
     return Reflect.get(this.#filesystem, pathNamespace);
   }
 
-  get #nullStat(): FileStat {
-    if (this.#nullStatObj) return this.#nullStatObj;
+  #deviceStat(path: string): FileStat {
+    const cached = this.#deviceStats.get(path);
+    if (cached) return cached;
     const identityScope = (this.#identityScopeObj ??= Object.freeze({}));
-    return (this.#nullStatObj = Object.freeze({
+    const stat: FileStat = Object.freeze({
       type: "character", mode: 0o020666, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
-      mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1, preferredIoBlockSize: 4096,
-    }));
+      mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: path === nullPath ? 1 : deviceNames.findIndex(name => path === `/dev/${name}`) + 2, dev: 0, nlink: 1, preferredIoBlockSize: 4096,
+    });
+    this.#deviceStats.set(path, stat);
+    return stat;
   }
 
   get #directoryStat(): FileStat {
@@ -109,8 +112,8 @@ export class DeviceFileSystem implements FileSystem {
 
   _resolveEntryView = async (path: string, options: FsOptions): Promise<EntryLocation> => {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath || resolved === deviceDirectory) {
-      return { filesystem: this, path: resolved, stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
+    if (isDevicePath(resolved) || resolved === deviceDirectory) {
+      return { filesystem: this, path: resolved, stat: isDevicePath(resolved) ? this.#deviceStat(resolved) : this.#directoryStat, readOnly: false };
     }
     return { filesystem: this.#filesystem, path };
   };
@@ -165,7 +168,7 @@ export class DeviceFileSystem implements FileSystem {
       if ((options.flag === "wx" || options.flag === "ax") && isFsError(error, "ELOOP")) return false;
       throw error;
     }
-    if (resolved === nullPath) {
+    if (isDevicePath(resolved)) {
       if (options.flag === "wx" || options.flag === "ax") throw new FsError("EEXIST", { path });
       if (options.flag !== undefined && options.flag !== "w" && options.flag !== "a") throw new FsError("EINVAL", { path });
       return true;
@@ -203,7 +206,7 @@ export class DeviceFileSystem implements FileSystem {
     }
     options.signal?.throwIfAborted();
     if (options.create !== undefined && (resolved === deviceDirectory || resolved === "/")) throw new FsError("EISDIR", { syscall: "capabilitiesFor", path });
-    if (resolved === nullPath) return deviceCapabilities;
+    if (isDevicePath(resolved)) return deviceCapabilities;
     if (resolved === deviceDirectory) return { ...deviceCapabilities, open: false, readdir: true, write: false, append: false,
       exclusiveCreate: false, streamingWrite: false, streamingAppend: false, independentWriteStreams: false, descriptorWriteStream: false,
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
@@ -268,7 +271,7 @@ export class DeviceFileSystem implements FileSystem {
   async #statSlow(path: string, options: FsOptions): Promise<FileStat> {
     const resolved = await this.#resolve(path, options);
     options.signal?.throwIfAborted();
-    if (resolved === nullPath) return { ...this.#nullStat };
+    if (isDevicePath(resolved)) return { ...this.#deviceStat(resolved) };
     if (resolved === deviceDirectory) return { ...this.#directoryStat };
     const stat = this.#filesystem.stat;
     options.signal?.throwIfAborted();
@@ -287,7 +290,7 @@ export class DeviceFileSystem implements FileSystem {
   async #lstatSlow(path: string, options: FsOptions): Promise<FileStat> {
     const resolved = await this.#resolve(path, options, false);
     options.signal?.throwIfAborted();
-    if (resolved === nullPath) return { ...this.#nullStat };
+    if (isDevicePath(resolved)) return { ...this.#deviceStat(resolved) };
     if (resolved === deviceDirectory) return { ...this.#directoryStat };
     const lstat = this.#filesystem.lstat;
     options.signal?.throwIfAborted();
@@ -321,8 +324,9 @@ export class DeviceFileSystem implements FileSystem {
 
   async #readFileSlow(path: string, options: ReadFileOptions): Promise<Uint8Array> {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath) {
+    if (isDevicePath(resolved)) {
       if (options.maxBytes !== Infinity) nonnegative(options.maxBytes, path);
+      if (resolved !== nullPath) throw new FsError("EFBIG", { path, message: "device input has no end; use bounded stream or descriptor reads" });
       return new Uint8Array();
     }
     if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
@@ -332,10 +336,22 @@ export class DeviceFileSystem implements FileSystem {
   readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
     return deviceReadStream(async () => {
       const resolved = await this.#resolve(path, options);
-      if (resolved === nullPath) {
+      if (isDevicePath(resolved)) {
         nonnegative(options.start, path); nonnegative(options.endExclusive, path); nonnegative(options.chunkSize, path);
         if (options.chunkSize === 0 || (options.endExclusive !== undefined && options.endExclusive < (options.start ?? 0))) throw new FsError("EINVAL", { path });
-        return { [Symbol.asyncIterator]: () => ({ next: async () => ({ done: true, value: undefined }) }) };
+        return { async *[Symbol.asyncIterator]() {
+          if (resolved === nullPath) return;
+          let remaining = options.endExclusive === undefined ? Infinity : options.endExclusive - (options.start ?? 0);
+          const chunkSize = Math.min(options.chunkSize ?? 65536, 65536);
+          const yieldAfterRead = createDeviceYield();
+          while (remaining > 0) {
+            options.signal?.throwIfAborted();
+            const chunk = readDeviceBytes(resolved, Math.min(chunkSize, remaining));
+            remaining -= chunk.byteLength;
+            yield chunk;
+            await yieldAfterRead(chunk.byteLength, options.signal);
+          }
+        } };
       }
       if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
       if (!this.#filesystem.readStream) throw new FsError("ENOTSUP", { path });
@@ -345,16 +361,24 @@ export class DeviceFileSystem implements FileSystem {
 
   async openReadFile(path: string, options: OpenReadFileOptions = {}): Promise<FileReadHandle> {
     const resolved = await this.#resolve(path, options);
-    if (resolved !== nullPath) {
+    if (!isDevicePath(resolved)) {
       if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
       return openRetainedReadFile(this.#filesystem, path, options);
     }
-    const stat = this.#nullStat;
+    const stat = this.#deviceStat(resolved);
+    const yieldAfterRead = createDeviceYield();
     let closed = false;
     const check = (settings: FsOptions) => { settings.signal?.throwIfAborted(); if (closed) throw new FsError("EBADF", { path }); };
     return {
       async stat(settings = {}) { check(settings); return { ...stat }; },
-      async read(position, maxBytes, settings = {}) { check(settings); nonnegative(position, path); nonnegative(maxBytes, path); return new Uint8Array(); },
+      async read(position, maxBytes, settings = {}) {
+        check(settings); nonnegative(position, path); nonnegative(maxBytes, path);
+        if (resolved === nullPath) return new Uint8Array();
+        const length = Math.min(maxBytes, 65536);
+        await yieldAfterRead(length, settings.signal);
+        check(settings);
+        return readDeviceBytes(resolved, length);
+      },
       async seekEnd(settings = {}) { check(settings); return 0n; },
       async close() { closed = true; },
     };
@@ -365,17 +389,23 @@ export class DeviceFileSystem implements FileSystem {
     if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
     const resolved = await this.#resolve(path, options, !options.noFollow && options.creation !== "exclusive");
     options.signal?.throwIfAborted();
-    if (resolved === nullPath) return openFileDescriptor<FileStat>(path, options, {
+    if (isDevicePath(resolved)) return openFileDescriptor<FileStat>(path, options, {
       noFollow: true, position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
       openTruncate: true, delegateZeroLengthWrite: true, truncate: false, synchronization: "none",
     }, async admitted => {
       if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
       const yieldAfterWrite = createDeviceYield();
       return {
-        resource: this.#nullStat,
+        resource: this.#deviceStat(resolved),
         getPosition: async () => 0,
         stat: async stat => ({ ...stat }),
-        read: async () => 0,
+        read: async (_stat, buffer, _position, forwarded) => {
+          if (resolved === nullPath) return 0;
+          const length = Math.min(buffer.byteLength, 65536);
+          await yieldAfterWrite(length, forwarded.signal);
+          buffer.set(readDeviceBytes(resolved, length));
+          return length;
+        },
         write: async (_stat, buffer, _position, forwarded) => {
           await yieldAfterWrite(buffer.byteLength, forwarded.signal);
           return buffer.byteLength;
@@ -433,8 +463,8 @@ export class DeviceFileSystem implements FileSystem {
     }) : resolution);
     options.signal?.throwIfAborted();
     if (resolved === deviceDirectory || resolved === "/") throw new FsError("EISDIR", { syscall: "openResizeFile", path });
-    if (resolved !== nullPath) return openRetainedResizeFile(this.#filesystem, path, options);
-    const stat = this.#nullStat;
+    if (!isDevicePath(resolved)) return openRetainedResizeFile(this.#filesystem, path, options);
+    const stat = this.#deviceStat(resolved);
     let closing: Promise<void> | undefined;
     const check = (settings: FsOptions, syscall: string): void => {
       settings.signal?.throwIfAborted();
@@ -475,27 +505,27 @@ export class DeviceFileSystem implements FileSystem {
 
   async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath) throw new FsError("ENOTDIR", { syscall: "iterateDirectory", path });
-    const virtual = resolved === "/" ? "dev" : resolved === deviceDirectory ? "null" : undefined;
+    if (isDevicePath(resolved)) throw new FsError("ENOTDIR", { syscall: "iterateDirectory", path });
+    const virtual: readonly string[] = resolved === "/" ? ["dev"] : resolved === deviceDirectory ? deviceNames : [];
     if (!this.#filesystem.iterateDirectory) throw new FsError("ENOTSUP", { syscall: "iterateDirectory", path });
-    let seen = false;
+    const seen = new Set<string>();
     try {
-      for await (const entry of this.#filesystem.iterateDirectory(virtual ? resolved : path, options)) {
+      for await (const entry of this.#filesystem.iterateDirectory(virtual.length ? resolved : path, options)) {
         options.signal?.throwIfAborted();
         if (entry.name === "." || entry.name === "..") continue;
         if (!entry.name || entry.name.includes("/") || entry.name.includes("\0")) throw new FsError("EIO", { path, message: "invalid directory entry" });
-        if (entry.name === virtual) {
-          if (seen) continue;
-          seen = true;
-          yield { name: virtual, type: virtual === "dev" ? "directory" : "character" };
+        if (virtual.includes(entry.name)) {
+          if (seen.has(entry.name)) continue;
+          seen.add(entry.name);
+          yield { name: entry.name, type: resolved === "/" ? "directory" : "character" };
         } else yield { name: entry.name, type: entry.type };
       }
     } catch (error) {
       options.signal?.throwIfAborted();
-      if (!virtual || !isFsError(error, "ENOENT") && !isFsError(error, "ENOTDIR")) throw error;
+      if (!virtual.length || !isFsError(error, "ENOENT") && !isFsError(error, "ENOTDIR")) throw error;
     }
     options.signal?.throwIfAborted();
-    if (virtual && !seen) yield { name: virtual, type: virtual === "dev" ? "directory" : "character" };
+    for (const name of virtual) if (!seen.has(name)) yield { name, type: resolved === "/" ? "directory" : "character" };
   }
 
   readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
@@ -508,7 +538,7 @@ export class DeviceFileSystem implements FileSystem {
 
   async #readdirSlow(path: string, options: ReadDirectoryOptions): Promise<DirectoryEntry[]> {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath) throw new FsError("ENOTDIR", { path });
+    if (isDevicePath(resolved)) throw new FsError("ENOTDIR", { path });
     if (resolved !== "/" && resolved !== deviceDirectory) return this.#filesystem.readdir(path, options);
     const limit = directoryEntryLimit(options, path);
     let entries: DirectoryEntry[];
@@ -526,9 +556,10 @@ export class DeviceFileSystem implements FileSystem {
       merged.set(entry.name, { name: entry.name, type: entry.type });
       admitDirectoryEntries(merged.size, limit, path);
     }
-    const name = resolved === "/" ? "dev" : "null";
-    merged.set(name, { name, type: resolved === "/" ? "directory" : "character" });
-    admitDirectoryEntries(merged.size, limit, path);
+    for (const name of resolved === "/" ? ["dev"] : deviceNames) {
+      merged.set(name, { name, type: resolved === "/" ? "directory" : "character" });
+      admitDirectoryEntries(merged.size, limit, path);
+    }
     return [...merged.values()];
   }
 
@@ -542,7 +573,7 @@ export class DeviceFileSystem implements FileSystem {
   async #mkdirSlow(path: string, options: MkdirOptions): Promise<void> {
     const resolved = await this.#resolve(path, options);
     if (reserved(resolved)) {
-      if (resolved !== nullPath && options.recursive) return;
+      if (!isDevicePath(resolved) && options.recursive) return;
       throw new FsError("EEXIST", { path });
     }
     await this.#filesystem.mkdir(path, options);
@@ -583,7 +614,7 @@ export class DeviceFileSystem implements FileSystem {
 
   async rmdir(path: string, options: FsOptions = {}): Promise<void> {
     const resolved = await this.#resolve(path, options, false);
-    if (resolved === nullPath) throw new FsError("ENOTDIR", { path });
+    if (isDevicePath(resolved)) throw new FsError("ENOTDIR", { path });
     if (reserved(resolved)) throw new FsError("EBUSY", { path });
     if (!this.#filesystem.rmdir) throw new FsError("ENOTSUP", { path });
     await this.#filesystem.rmdir(path, options);
@@ -673,7 +704,7 @@ export class DeviceFileSystem implements FileSystem {
     // The parent is an identity guard, not an entry being replaced. Root is a
     // valid parent; the synthetic device directory still cannot own staging.
     const parentPath = await this.#resolve(staging.parent.path, options, false);
-    if (parentPath === deviceDirectory || parentPath === nullPath) throw new FsError("EBUSY", { path: staging.parent.path });
+    if (parentPath === deviceDirectory || isDevicePath(parentPath)) throw new FsError("EBUSY", { path: staging.parent.path });
     await this.#mutable(staging.directory.path, options, false);
     const guards: (() => true)[] = [];
     if (options.ancestors) guards.push(await this.prepareDirectoryAncestry(options.ancestors, options));
@@ -775,15 +806,16 @@ export class DeviceFileSystem implements FileSystem {
 
   async copyFile(source: string, destination: string, options: CopyFileOptions = {}): Promise<void> {
     const target = await this.#resolve(destination, options);
-    if (target === nullPath && options.exclusive) throw new FsError("EEXIST", { path: destination });
+    if (isDevicePath(target) && options.exclusive) throw new FsError("EEXIST", { path: destination });
     const origin = await this.#resolve(source, options);
-    if (target !== nullPath && origin !== nullPath) {
+    if (!isDevicePath(target) && !isDevicePath(origin)) {
       if (target === "/" || target === deviceDirectory) throw new FsError("EISDIR", { path: destination });
       await this.#filesystem.copyFile(source, destination, options);
       return;
     }
-    if (target === nullPath) {
+    if (isDevicePath(target)) {
       if (origin === nullPath) return;
+      if (isDevicePath(origin)) return drainDeviceInput(this.readStream(source, options), options.signal);
       if (origin === "/" || origin === deviceDirectory) throw new FsError("EISDIR", { path: source });
       const capabilities = await this.capabilitiesFor(source, options);
       if (this.#filesystem.readStream && capabilities.streamingRead !== false) {
@@ -794,7 +826,10 @@ export class DeviceFileSystem implements FileSystem {
       return;
     }
     if (reserved(target)) throw new FsError("EISDIR", { path: destination });
-    await this.#filesystem.writeFile(destination, new Uint8Array(), { ...options, flag: options.exclusive ? "wx" : "w" });
+    if (origin !== nullPath) {
+      if (!this.#filesystem.writeStream) throw new FsError("ENOTSUP", { path: destination });
+      await this.#filesystem.writeStream(destination, this.readStream(source, options), { ...options, flag: options.exclusive ? "wx" : "w" });
+    } else await this.#filesystem.writeFile(destination, new Uint8Array(), { ...options, flag: options.exclusive ? "wx" : "w" });
   }
 
   access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
@@ -806,9 +841,9 @@ export class DeviceFileSystem implements FileSystem {
 
   async #accessSlow(path: string, mode: number, options: FsOptions): Promise<void> {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath || resolved === deviceDirectory) {
+    if (isDevicePath(resolved) || resolved === deviceDirectory) {
       if (!Number.isInteger(mode) || mode < 0 || mode > 7) throw new FsError("EINVAL", { path });
-      if ((resolved === nullPath && (mode & 1)) || (resolved === deviceDirectory && (mode & 2))) throw new FsError("EACCES", { path });
+      if ((isDevicePath(resolved) && (mode & 1)) || (resolved === deviceDirectory && (mode & 2))) throw new FsError("EACCES", { path });
       return;
     }
     await this.#filesystem.access(path, mode, options);

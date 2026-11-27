@@ -60,11 +60,13 @@ test("TREE-WORK-001: actual Shell many-entry matching exhausts one invocation bu
 
 test("one name fits but many names share cumulative work for both include and exclude", async () => {
   const single = createMemoryFileSystem(), many = createMemoryFileSystem();
-  await single.writeFile(`/${names[0]!}`, new Uint8Array());
-  for (const name of names) await many.writeFile(`/${name}`, new Uint8Array());
+  await single.mkdir("/work");
+  await many.mkdir("/work");
+  await single.writeFile(`/work/${names[0]!}`, new Uint8Array());
+  for (const name of names) await many.writeFile(`/work/${name}`, new Uint8Array());
   for (const flag of ["-P", "-I"]) {
-    assert.equal((await shellRun(single, [flag, emptyAlternatives, "--noreport"], { limits: { maxSteps: 256 } })).exitCode, 0);
-    const result = await shellRun(many, [flag, emptyAlternatives, "--noreport"], { limits: { maxSteps: 256 } });
+    assert.equal((await shellRun(single, [flag, emptyAlternatives, "--noreport"], { limits: { maxSteps: 256 } }, "/work")).exitCode, 0);
+    const result = await shellRun(many, [flag, emptyAlternatives, "--noreport"], { limits: { maxSteps: 256 } }, "/work");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
     assert.match(result.stderr, /tree work limit exceeded \(256\)/u);

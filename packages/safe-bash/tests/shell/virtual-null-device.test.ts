@@ -1,5 +1,22 @@
 import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
+
+for (const [script, expected] of [
+  ["head -c 4 /dev/zero | od -An -tx1", " 00 00 00 00\n"],
+  ["head -c 8 /dev/urandom | wc -c", "8\n"],
+  ["shuf --random-source=/dev/zero -i 1-3 | wc -l", "3\n"],
+  ["head -c 8 /dev/random | wc -c", "8\n"],
+  ["head -c 4 </dev/zero | od -An -tx1", " 00 00 00 00\n"],
+] as const) test(`generated device input: ${script}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`set -o pipefail; ${script}`);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, expected);
+});
 import { gunzipSync } from "node:zlib";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
@@ -158,18 +175,18 @@ test("null device has character metadata and is never classified as a regular fi
   const result = await shell.exec("test -c /dev/null && test ! -f /dev/null && test -r /dev/null && test -w /dev/null && test ! -x /dev/null && stat -c '%F|%A|%a|%f|%s' /dev/null; find /dev -type c; find /dev -type f; file -b /dev/null; file -b --mime-type /dev/null; ls -l /dev/null");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
-  assert.ok(result.stdout.startsWith("character special file|crw-rw-rw-|666|21b6|0\n/dev/null\ncharacter special\ninode/chardevice\n"), result.stdout);
+  assert.ok(result.stdout.startsWith("character special file|crw-rw-rw-|666|21b6|0\n/dev/null\n/dev/random\n/dev/urandom\n/dev/zero\ncharacter special\ninode/chardevice\n"), result.stdout);
   assert.ok(result.stdout.split("\n").some(line => line.startsWith("crw-rw-rw- ")), result.stdout);
 });
 
 test("null directory listings merge siblings without duplicates or backing allocation", async context => {
   const { shell, fs } = fixture(context);
-  assert.equal((await shell.exec("ls /dev")).stdout, "null\n");
+  assert.equal((await shell.exec("ls /dev")).stdout, "null\nrandom\nurandom\nzero\n");
   await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
   await fs.mkdir("/dev");
   await fs.writeFile("/dev/null", new Uint8Array([1]));
   await fs.writeFile("/dev/sibling", new Uint8Array([2]));
-  assert.equal((await shell.exec("ls /dev")).stdout, "null\nsibling\n");
+  assert.equal((await shell.exec("ls /dev")).stdout, "null\nrandom\nsibling\nurandom\nzero\n");
   assert.equal((await shell.exec("ls /")).stdout, "dev\n");
 });
 

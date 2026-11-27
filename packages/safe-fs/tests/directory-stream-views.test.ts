@@ -7,7 +7,7 @@ it('device view streams ordinary directories and merges virtual entries once',as
  const view=createDeviceFileSystem(fs),root=[];for await(const entry of view.iterateDirectory!('/'))root.push(entry);
  expect(root).toEqual([{name:'docs',type:'directory'},{name:'dev',type:'directory'}]);
  const docs=[];for await(const entry of view.iterateDirectory!('/docs'))docs.push(entry.name);expect(docs).toEqual(['a']);
- const dev=[];for await(const entry of view.iterateDirectory!('/dev'))dev.push(entry);expect(dev).toEqual([{name:'null',type:'character'}]);
+ const dev=[];for await(const entry of view.iterateDirectory!('/dev'))dev.push(entry);expect(dev).toEqual(['null','zero','random','urandom'].map(name=>({name,type:'character'})));
  await expect(view.iterateDirectory!('/dev/null')[Symbol.asyncIterator]().next()).rejects.toMatchObject({code:'ENOTDIR'});
 });
 it('scoped streams charge admission and advancement and retire on scope cancellation',async()=>{

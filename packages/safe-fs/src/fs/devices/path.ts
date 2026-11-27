@@ -7,17 +7,22 @@ import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../../runtime-c
 
 export const nullPath = "/dev/null";
 export const deviceDirectory = "/dev";
+export const deviceNames = ["null", "zero", "random", "urandom"] as const;
 
-function isNullParts(parts: readonly string[]): boolean {
-  return parts.length === 2 && parts[0] === "dev" && parts[1] === "null";
+export function isDevicePath(path: string): boolean {
+  return deviceNames.some(name => path === `/dev/${name}`);
+}
+
+function isDeviceParts(parts: readonly string[]): boolean {
+  return parts.length === 2 && parts[0] === "dev" && deviceNames.some(name => parts[1] === name);
 }
 
 export function lexicalDevicePath(path: string): string {
   validatePath(path);
-  if (isCleanAbsolutePath(path) && !path.startsWith("/dev/null/")) return path;
+  if (isCleanAbsolutePath(path) && !deviceNames.some(name => path.startsWith(`/dev/${name}/`))) return path;
   const parts: string[] = [];
   for (const component of path.split("/")) {
-    if (isNullParts(parts)) throw new FsError("ENOTDIR", { path });
+    if (isDeviceParts(parts)) throw new FsError("ENOTDIR", { path });
     if (component === "..") parts.pop();
     else if (component && component !== ".") parts.push(component);
   }
@@ -42,7 +47,7 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
     options.signal?.throwIfAborted();
     const component = pending.shift()!;
     const current = `/${parts.join("/")}`;
-    if (current === nullPath) throw new FsError("ENOTDIR", { path });
+    if (isDevicePath(current)) throw new FsError("ENOTDIR", { path });
     if (current !== deviceDirectory) {
       const observe = filesystem.stat;
       options.signal?.throwIfAborted();
@@ -64,11 +69,11 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
     }
     if (exceedsComponentByteLimit(component)) throw new FsError("ENAMETOOLONG", { path });
     const candidate = `/${[...parts, component].join("/")}`;
-    const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
+    const selected = namespace === undefined ? undefined : candidate === deviceDirectory || isDevicePath(candidate) ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
-    if (traversal && (candidate === deviceDirectory || candidate === nullPath)) traversal.virtual = true;
+    if (traversal && (candidate === deviceDirectory || isDevicePath(candidate))) traversal.virtual = true;
     if (create && pending.length === 1 && pending[0] === "") throw new FsError("EISDIR", { path });
-    if (candidate !== deviceDirectory && candidate !== nullPath) {
+    if (candidate !== deviceDirectory && !isDevicePath(candidate)) {
       let stat: FileStat | undefined;
       const lstat = filesystem.lstat;
       options.signal?.throwIfAborted();
@@ -138,7 +143,7 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
   const lstat = filesystem.lstat;
   options.signal?.throwIfAborted();
   const aliases = typeof lstat === "function";
-  if (!aliases && lexical !== nullPath && lexical !== deviceDirectory && lexical !== "/") return lexical;
+  if (!aliases && !isDevicePath(lexical) && lexical !== deviceDirectory && lexical !== "/") return lexical;
   let pending = path.split("/");
   let remainingComponents = (options.pathLimits?.maxPathComponents ?? Infinity) - pending.filter(Boolean).length;
   if (remainingComponents < 0) throw new FsError("ENAMETOOLONG", { path });
@@ -151,7 +156,7 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
   let boundary: string | undefined;
   while (pending.length) {
     options.signal?.throwIfAborted();
-    if (isNullParts(parts)) throw new FsError("ENOTDIR", { path });
+    if (isDeviceParts(parts)) throw new FsError("ENOTDIR", { path });
     const component = pending.shift()!;
     if (!component || component === ".") continue;
     if (component === "..") {
@@ -163,10 +168,10 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
       continue;
     }
     const candidate = `/${[...parts, component].join("/")}`;
-    const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
+    const selected = namespace === undefined ? undefined : candidate === deviceDirectory || isDevicePath(candidate) ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
-    if (traversal && (candidate === deviceDirectory || candidate === nullPath)) traversal.virtual = true;
-    if (parts.length < failedDepth && candidate !== deviceDirectory && candidate !== nullPath && ((followFinal && aliases) || pending.length)) {
+    if (traversal && (candidate === deviceDirectory || isDevicePath(candidate))) traversal.virtual = true;
+    if (parts.length < failedDepth && candidate !== deviceDirectory && !isDevicePath(candidate) && ((followFinal && aliases) || pending.length)) {
       const lookup = absolute ? candidate : candidate.slice(1);
       let stat: FileStat | undefined;
       try {
@@ -174,7 +179,7 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
         stat = await Reflect.apply(lstat, filesystem, [lookup, options]);
       } catch (error) {
         options.signal?.throwIfAborted();
-        if (isFsError(error, "ENOTSUP") && links === 0 && lexical !== nullPath && lexical !== deviceDirectory && lexical !== "/") return lexical;
+        if (isFsError(error, "ENOTSUP") && links === 0 && !isDevicePath(lexical) && lexical !== deviceDirectory && lexical !== "/") return lexical;
         if (!isFsError(error, "ENOENT")) throw error;
         if (pending.length) {
           traversalFailure ??= error;
@@ -213,6 +218,6 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
     parts.push(component);
   }
   const resolved = `/${parts.join("/")}`;
-  if (traversalFailure && (resolved === nullPath || resolved === deviceDirectory || resolved === "/")) throw traversalFailure;
+  if (traversalFailure && (isDevicePath(resolved) || resolved === deviceDirectory || resolved === "/")) throw traversalFailure;
   return resolved;
 }

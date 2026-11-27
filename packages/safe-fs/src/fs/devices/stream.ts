@@ -2,6 +2,12 @@ import type { ByteSource } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import type { FileReadHandle } from "../../contracts/filesystem.js";
 
+export function readDeviceBytes(path: string, length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  if (path !== "/dev/zero") globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+}
+
 export function deviceReadStream(open: () => Promise<ByteSource>, signal?: AbortSignal): ByteSource {
   return { [Symbol.asyncIterator]() {
     let opened: Promise<AsyncIterator<Uint8Array>> | undefined;

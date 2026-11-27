@@ -121,14 +121,15 @@ describe("virtual null device", () => {
   it("synthesizes dev, merges siblings, masks historical types and enforces listing admission", async () => {
     const { view } = await fixture();
     expect(await view.readdir("/")).toEqual([{ name: "ordinary", type: "file" }, { name: "dev", type: "directory" }]);
-    expect(await view.readdir("/dev", { maxEntries: 1 })).toEqual([{ name: "null", type: "character" }]);
+    const devices = ["null", "zero", "random", "urandom"].map(name => ({ name, type: "character" }));
+    expect(await view.readdir("/dev", { maxEntries: 4 })).toEqual(devices);
     await expect(view.readdir("/dev", { maxEntries: 0 })).rejects.toMatchObject({ code: "EFBIG" });
     await expect(view.readdir("/", { maxEntries: 1 })).rejects.toMatchObject({ code: "EFBIG" });
     await expect(view.readdir("/dev", { maxEntries: -1 })).rejects.toMatchObject({ code: "EINVAL" });
     const historical = await fixture(true);
-    expect(await historical.view.readdir("/dev", { maxEntries: 2 })).toEqual([{ name: "null", type: "character" }, { name: "sibling", type: "file" }]);
+    expect(await historical.view.readdir("/dev", { maxEntries: 5 })).toEqual([devices[0], { name: "sibling", type: "file" }, ...devices.slice(1)]);
     vi.spyOn(historical.backing, "readdir").mockResolvedValue([{ name: "null", type: "file" }, { name: "null", type: "file" }]);
-    expect(await historical.view.readdir("/dev", { maxEntries: 1 })).toEqual([{ name: "null", type: "character" }]);
+    expect(await historical.view.readdir("/dev", { maxEntries: 4 })).toEqual(devices);
   });
 
   for (const path of ["/", "/dev"]) it(`ignores provider dot entries while retaining merged order and admission at ${path}`, async () => {
@@ -138,16 +139,16 @@ describe("virtual null device", () => {
       { name: "z", type: "file" }, { name: "a", type: "file" },
     ]);
     const signal = new AbortController().signal;
-    expect(await view.readdir(path, { signal, maxEntries: 3 })).toEqual([
+    const devices = path === "/" ? [{ name: "dev", type: "directory" }] : ["null", "zero", "random", "urandom"].map(name => ({ name, type: "character" }));
+    const maxEntries = 2 + devices.length;
+    expect(await view.readdir(path, { signal, maxEntries })).toEqual([
       { name: "z", type: "file" }, { name: "a", type: "file" },
-      { name: path === "/" ? "dev" : "null", type: path === "/" ? "directory" : "character" },
+      ...devices,
     ]);
-    expect(readdir).toHaveBeenLastCalledWith(path, { signal, maxEntries: 3 });
+    expect(readdir).toHaveBeenLastCalledWith(path, { signal, maxEntries });
     await expect(view.readdir(path, { maxEntries: 2 })).rejects.toMatchObject({ code: "EFBIG" });
     readdir.mockResolvedValue([{ name: ".", type: "directory" }, { name: "..", type: "directory" }]);
-    expect(await view.readdir(path, { maxEntries: 1 })).toEqual([
-      { name: path === "/" ? "dev" : "null", type: path === "/" ? "directory" : "character" },
-    ]);
+    expect(await view.readdir(path, { maxEntries: devices.length })).toEqual(devices);
     await expect(view.readdir(path, { maxEntries: 0 })).rejects.toMatchObject({ code: "EFBIG" });
   });
 

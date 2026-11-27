@@ -9184,6 +9184,37 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn swap_saved_binding(&mut self, name: &str, frame: usize) {
+        let array_prefix = format!("{name}[");
+        let metadata = [
+            "\0attr__",
+            "\0assoc__",
+            "\0nameref__",
+            "\0declared__",
+            "\0keys__",
+            "\0unexported__",
+        ];
+        let frame = &mut self.local_scopes[frame];
+        let keys: BTreeSet<String> = frame
+            .keys()
+            .chain(self.env.keys())
+            .filter(|key| {
+                key.as_str() == name
+                    || key.starts_with(&array_prefix)
+                    || metadata
+                        .iter()
+                        .any(|prefix| key.strip_prefix(prefix) == Some(name))
+            })
+            .cloned()
+            .collect();
+        for key in keys {
+            let saved = frame.insert(key.clone(), self.env.remove(&key)).flatten();
+            if let Some(value) = saved {
+                self.env.insert(key, value);
+            }
+        }
+    }
+
     fn builtin_declare(&mut self, cmd: &str, args: &[String]) -> Result<BuiltinOutcome, EvalError> {
         let mut enabled: BTreeSet<char> = BTreeSet::new();
         let mut disabled: BTreeSet<char> = BTreeSet::new();
@@ -9536,300 +9567,322 @@ impl<'a> EvalState<'a> {
             });
         }
 
-        let mut decl_stderr = String::new();
-        let mut decl_status = 0;
-        for op in operands {
-            if cmd == "local" && op == "-" {
-                // Function cleanup already restores local bindings. Keep the first
-                // snapshot there, including options held in dedicated state fields.
-                for option in SET_OPTIONS.iter().copied().chain(["xtrace", "posix"]) {
-                    let enabled = self.get_shopt_enabled(option, true);
-                    self.local_scopes
-                        .last_mut()
-                        .unwrap()
-                        .entry(format!("\0set_{option}"))
-                        .or_insert_with(|| Some(if enabled { "1" } else { "0" }.to_string()));
+        let mut global_binding: Option<(String, usize)> = None;
+        let result = (|| {
+            let mut decl_stderr = String::new();
+            let mut decl_status = 0;
+            for op in operands {
+                if let Some((name, frame)) = global_binding.take() {
+                    self.swap_saved_binding(&name, frame);
                 }
-                continue;
-            }
-            let (base_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
-                Some((k, v, app)) => (k.to_string(), Some(v.to_string()), app),
-                None => (op.clone(), None, false),
-            };
-            if !is_valid_shell_ident(&base_name) {
-                let label = if cmd == "typeset" { "declare" } else { cmd };
-                decl_stderr.push_str(&format!(
-                    "{}{label}: `{op}': not a valid identifier\n",
-                    self.diag_prefix()
-                ));
-                decl_status = 1;
-                continue;
-            }
-
-            if self
-                .env
-                .get(&format!("\0attr__{base_name}"))
-                .is_some_and(|a| a.contains('r'))
-                && (val_opt.is_some() || is_local)
-            {
-                if val_opt
-                    .as_deref()
-                    .is_some_and(|value| value.starts_with("\0__ARRAY_LITERAL__("))
-                {
-                    let context = if self
-                        .local_scopes
-                        .iter()
-                        .any(|scope| scope.contains_key(&base_name))
-                    {
-                        None
-                    } else if self
-                        .syntax_contexts
-                        .last()
-                        .is_some_and(|(name, _, _)| name.ends_with(": eval"))
-                    {
-                        Some("eval")
-                    } else if self.source_depth == 0 {
-                        self.func_stack.first().map(String::as_str)
-                    } else {
-                        None
-                    };
-                    decl_stderr.push_str(&self.diag_prefix());
-                    if let Some(context) = context {
-                        decl_stderr.push_str(context);
-                        decl_stderr.push_str(": ");
+                if cmd == "local" && op == "-" {
+                    // Function cleanup already restores local bindings. Keep the first
+                    // snapshot there, including options held in dedicated state fields.
+                    for option in SET_OPTIONS.iter().copied().chain(["xtrace", "posix"]) {
+                        let enabled = self.get_shopt_enabled(option, true);
+                        self.local_scopes
+                            .last_mut()
+                            .unwrap()
+                            .entry(format!("\0set_{option}"))
+                            .or_insert_with(|| Some(if enabled { "1" } else { "0" }.to_string()));
                     }
-                    decl_stderr.push_str(&format!("{base_name}: readonly variable\n"));
-                    self.exit_requested = Some(1);
-                    self.discard_requested = !self.subshell_environment;
-                    decl_status = 1;
-                    break;
+                    continue;
                 }
-                let provenance = if matches!(base_name.as_str(), "SHELLOPTS" | "BASHOPTS")
-                    || cmd == "readonly" && !enabled.contains(&'a')
-                {
-                    String::new()
-                } else {
-                    format!("{cmd}: ")
+                let (base_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
+                    Some((k, v, app)) => (k.to_string(), Some(v.to_string()), app),
+                    None => (op.clone(), None, false),
                 };
-                decl_stderr.push_str(&format!(
-                    "{}{provenance}{base_name}: readonly variable\n",
-                    self.diag_prefix()
-                ));
-                decl_status = 1;
-                continue;
-            }
-
-            if is_local
-                && let Some(frame) = self.local_scopes.last_mut()
-                && !frame.contains_key(&base_name)
-            {
-                frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
-                for meta_prefix in [
-                    "\0attr__",
-                    "\0assoc__",
-                    "\0nameref__",
-                    "\0declared__",
-                    "\0keys__",
-                    "\0unexported__",
-                ] {
-                    let mk = format!("{meta_prefix}{base_name}");
-                    frame.insert(mk.clone(), self.env.get(&mk).cloned());
-                }
-                if base_name == "OPTIND" {
-                    for gk in [
-                        "\0getopts_index",
-                        "\0getopts_active_arg",
-                        "\0getopts_active_off",
-                        "\0getopts_int",
-                    ] {
-                        frame.insert(gk.to_string(), self.env.get(gk).cloned());
-                    }
-                }
-                let arr_prefix = format!("{base_name}[");
-                let existing_arr_keys: Vec<(String, String)> = self
-                    .env
-                    .iter()
-                    .filter(|(ek, _)| ek.starts_with(&arr_prefix))
-                    .map(|(ek, ev)| (ek.clone(), ev.clone()))
-                    .collect();
-                for (ak, av) in existing_arr_keys {
-                    frame.insert(ak.clone(), Some(av));
-                    if !inherit_prev {
-                        self.env.remove(&ak);
-                    }
-                }
-                if !inherit_prev {
-                    let exported = self.env.get(&format!("\0attr__{base_name}")).is_some_and(|a| a.contains('x'))
-                        || (self.env.contains_key(&base_name) && super::is_exported_scalar(self.env, &base_name));
-                    self.env.remove(&format!("\0attr__{base_name}"));
-                    if exported {
-                        self.env.insert(format!("\0attr__{base_name}"), "x".into());
-                    }
-                    self.env.remove(&format!("\0assoc__{base_name}"));
-                    self.env.remove(&format!("\0nameref__{base_name}"));
-                    self.env.remove(&format!("\0declared__{base_name}"));
-                    self.env.remove(&format!("\0keys__{base_name}"));
-                    self.env.remove(&base_name);
-                }
-                if base_name == "OPTIND" {
-                    self.env
-                        .insert("\0getopts_int".to_string(), "0".to_string());
-                }
-            }
-
-            let new_assoc = is_assoc
-                && !self.env.contains_key(&format!("\0assoc__{base_name}"))
-                && !self
-                    .env
-                    .get(&format!("\0attr__{base_name}"))
-                    .is_some_and(|a| a.contains('A'));
-            if is_assoc {
-                let arr_prefix = format!("{base_name}[");
-                let was_indexed = !self.env.contains_key(&format!("\0assoc__{base_name}"))
-                    && (self
-                        .env
-                        .get(&format!("\0attr__{base_name}"))
-                        .is_some_and(|a| a.contains('a'))
-                        || self.env.contains_key(&format!("\0keys__{base_name}"))
-                        || self.env.keys().any(|k| k.starts_with(&arr_prefix)));
-                if was_indexed {
+                if !is_valid_shell_ident(&base_name) {
+                    let label = if cmd == "typeset" { "declare" } else { cmd };
                     decl_stderr.push_str(&format!(
-                        "{cmd}: {base_name}: cannot convert indexed to associative array\n"
+                        "{}{label}: `{op}': not a valid identifier\n",
+                        self.diag_prefix()
                     ));
                     decl_status = 1;
                     continue;
                 }
-                self.env
-                    .insert(format!("\0assoc__{base_name}"), "1".to_string());
-            }
-            if is_indexed
-                && (self.env.contains_key(&format!("\0assoc__{base_name}"))
-                    || self
+
+                if is_global
+                    && let Some(frame) = self
+                        .local_scopes
+                        .iter()
+                        .position(|scope| scope.contains_key(&base_name))
+                {
+                    // The first local frame holds the hidden global, even when
+                    // several nested functions have shadowed the same name.
+                    self.swap_saved_binding(&base_name, frame);
+                    global_binding = Some((base_name.clone(), frame));
+                }
+
+                if self
+                    .env
+                    .get(&format!("\0attr__{base_name}"))
+                    .is_some_and(|a| a.contains('r'))
+                    && (val_opt.is_some() || is_local)
+                {
+                    if val_opt
+                        .as_deref()
+                        .is_some_and(|value| value.starts_with("\0__ARRAY_LITERAL__("))
+                    {
+                        let context = if self
+                            .local_scopes
+                            .iter()
+                            .any(|scope| scope.contains_key(&base_name))
+                        {
+                            None
+                        } else if self
+                            .syntax_contexts
+                            .last()
+                            .is_some_and(|(name, _, _)| name.ends_with(": eval"))
+                        {
+                            Some("eval")
+                        } else if self.source_depth == 0 {
+                            self.func_stack.first().map(String::as_str)
+                        } else {
+                            None
+                        };
+                        decl_stderr.push_str(&self.diag_prefix());
+                        if let Some(context) = context {
+                            decl_stderr.push_str(context);
+                            decl_stderr.push_str(": ");
+                        }
+                        decl_stderr.push_str(&format!("{base_name}: readonly variable\n"));
+                        self.exit_requested = Some(1);
+                        self.discard_requested = !self.subshell_environment;
+                        decl_status = 1;
+                        break;
+                    }
+                    let provenance = if matches!(base_name.as_str(), "SHELLOPTS" | "BASHOPTS")
+                        || cmd == "readonly" && !enabled.contains(&'a')
+                    {
+                        String::new()
+                    } else {
+                        format!("{cmd}: ")
+                    };
+                    decl_stderr.push_str(&format!(
+                        "{}{provenance}{base_name}: readonly variable\n",
+                        self.diag_prefix()
+                    ));
+                    decl_status = 1;
+                    continue;
+                }
+
+                if is_local
+                    && let Some(frame) = self.local_scopes.last_mut()
+                    && !frame.contains_key(&base_name)
+                {
+                    frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
+                    for meta_prefix in [
+                        "\0attr__",
+                        "\0assoc__",
+                        "\0nameref__",
+                        "\0declared__",
+                        "\0keys__",
+                        "\0unexported__",
+                    ] {
+                        let mk = format!("{meta_prefix}{base_name}");
+                        frame.insert(mk.clone(), self.env.get(&mk).cloned());
+                    }
+                    if base_name == "OPTIND" {
+                        for gk in [
+                            "\0getopts_index",
+                            "\0getopts_active_arg",
+                            "\0getopts_active_off",
+                            "\0getopts_int",
+                        ] {
+                            frame.insert(gk.to_string(), self.env.get(gk).cloned());
+                        }
+                    }
+                    let arr_prefix = format!("{base_name}[");
+                    let existing_arr_keys: Vec<(String, String)> = self
+                        .env
+                        .iter()
+                        .filter(|(ek, _)| ek.starts_with(&arr_prefix))
+                        .map(|(ek, ev)| (ek.clone(), ev.clone()))
+                        .collect();
+                    for (ak, av) in existing_arr_keys {
+                        frame.insert(ak.clone(), Some(av));
+                        if !inherit_prev {
+                            self.env.remove(&ak);
+                        }
+                    }
+                    if !inherit_prev {
+                        let exported = self.env.get(&format!("\0attr__{base_name}")).is_some_and(|a| a.contains('x'))
+                            || (self.env.contains_key(&base_name) && super::is_exported_scalar(self.env, &base_name));
+                        self.env.remove(&format!("\0attr__{base_name}"));
+                        if exported {
+                            self.env.insert(format!("\0attr__{base_name}"), "x".into());
+                        }
+                        self.env.remove(&format!("\0assoc__{base_name}"));
+                        self.env.remove(&format!("\0nameref__{base_name}"));
+                        self.env.remove(&format!("\0declared__{base_name}"));
+                        self.env.remove(&format!("\0keys__{base_name}"));
+                        self.env.remove(&base_name);
+                    }
+                    if base_name == "OPTIND" {
+                        self.env
+                            .insert("\0getopts_int".to_string(), "0".to_string());
+                    }
+                }
+
+                let new_assoc = is_assoc
+                    && !self.env.contains_key(&format!("\0assoc__{base_name}"))
+                    && !self
                         .env
                         .get(&format!("\0attr__{base_name}"))
-                        .is_some_and(|a| a.contains('A')))
-            {
-                decl_stderr.push_str(&format!(
-                    "{cmd}: {base_name}: cannot convert associative to indexed array\n"
-                ));
-                decl_status = 1;
-                continue;
-            }
-            if is_export {
-                self.env.remove(&format!("\0unexported__{base_name}"));
-            }
-            if disabled.contains(&'x') {
-                self.env
-                    .insert(format!("\0unexported__{base_name}"), "1".to_string());
-            }
-            if disabled.contains(&'n') {
-                self.env.remove(&format!("\0nameref__{base_name}"));
-            }
-            if base_name == "OPTIND" && disabled.contains(&'i') {
-                self.env.insert("\0getopts_int".into(), "0".into());
-            }
-
-            if is_nameref {
-                if let Some(target) = val_opt {
-                    let target_base = target.split_once('[').map(|(b, _)| b).unwrap_or(&target);
-                    if target == base_name || !is_valid_shell_ident(target_base) {
-                        decl_stderr.push_str(&format!("{cmd}: {target}: invalid name reference\n"));
+                        .is_some_and(|a| a.contains('A'));
+                if is_assoc {
+                    let arr_prefix = format!("{base_name}[");
+                    let was_indexed = !self.env.contains_key(&format!("\0assoc__{base_name}"))
+                        && (self
+                            .env
+                            .get(&format!("\0attr__{base_name}"))
+                            .is_some_and(|a| a.contains('a'))
+                            || self.env.contains_key(&format!("\0keys__{base_name}"))
+                            || self.env.keys().any(|k| k.starts_with(&arr_prefix)));
+                    if was_indexed {
+                        decl_stderr.push_str(&format!(
+                            "{cmd}: {base_name}: cannot convert indexed to associative array\n"
+                        ));
                         decl_status = 1;
                         continue;
                     }
-                    self.env.insert(format!("\0nameref__{base_name}"), target);
-                }
-                continue;
-            }
-
-            let mut cur_attr = self
-                .env
-                .get(&format!("\0attr__{base_name}"))
-                .cloned()
-                .unwrap_or_default();
-            for &d in &disabled {
-                cur_attr = cur_attr.chars().filter(|&c| c != d).collect();
-            }
-            for &e in &enabled {
-                if "aAilnrux".contains(e) && !cur_attr.contains(e) {
-                    cur_attr.push(e);
-                }
-            }
-            let pre_attr: String = cur_attr.chars().filter(|&c| c != 'r').collect();
-            if pre_attr.is_empty() {
-                self.env.remove(&format!("\0attr__{base_name}"));
-            } else {
-                self.env.insert(format!("\0attr__{base_name}"), pre_attr);
-            }
-
-            if let Some(v) = val_opt {
-                if let Some(msg) = self.assign_value(&base_name, &v, append)? {
-                    if new_assoc
-                        || (is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}")))
-                    {
-                        if new_assoc {
-                            self.env.remove(&format!("\0assoc__{base_name}"));
-                        }
-                        let key = format!("\0attr__{base_name}");
-                        if let Some(attr) = self.env.get_mut(&key) {
-                            attr.retain(|c| c != if new_assoc { 'A' } else { 'a' });
-                            if attr.is_empty() {
-                                self.env.remove(&key);
-                            }
-                        }
-                    }
                     self.env
-                        .insert(format!("\0declared__{base_name}"), "1".into());
-                    decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
-                    decl_status = 1;
-                    break;
+                        .insert(format!("\0assoc__{base_name}"), "1".to_string());
                 }
-            } else if is_indexed || is_assoc {
                 if is_indexed
-                    && !self.env.contains_key(&format!("\0keys__{base_name}"))
-                    && let Some(value) = self.env.get(&base_name).cloned()
+                    && (self.env.contains_key(&format!("\0assoc__{base_name}"))
+                        || self
+                            .env
+                            .get(&format!("\0attr__{base_name}"))
+                            .is_some_and(|a| a.contains('A')))
                 {
-                    self.env.insert(format!("{base_name}[0]"), value);
+                    decl_stderr.push_str(&format!(
+                        "{cmd}: {base_name}: cannot convert associative to indexed array\n"
+                    ));
+                    decl_status = 1;
+                    continue;
                 }
-                // A bare declaration has no assigned key list until the first write.
-                if self.env.contains_key(&format!("\0keys__{base_name}"))
-                    || self.env.contains_key(&base_name)
-                {
-                    sync_array_metadata(&base_name, self.env);
+                if is_export {
+                    self.env.remove(&format!("\0unexported__{base_name}"));
                 }
-            } else if is_local
-                && base_name == "PIPESTATUS"
-                && !inherit_prev
-                && !self.env.contains_key(&base_name)
-            {
-                self.env.insert(base_name.clone(), String::new());
-            } else if !self.env.contains_key(&base_name) {
-                self.env
-                    .insert(format!("\0declared__{base_name}"), "1".to_string());
-            }
-            if cmd == "local" && base_name == "OPTIND" {
-                sync_getopts_env(self.env);
-            }
+                if disabled.contains(&'x') {
+                    self.env
+                        .insert(format!("\0unexported__{base_name}"), "1".to_string());
+                }
+                if disabled.contains(&'n') {
+                    self.env.remove(&format!("\0nameref__{base_name}"));
+                }
+                if base_name == "OPTIND" && disabled.contains(&'i') {
+                    self.env.insert("\0getopts_int".into(), "0".into());
+                }
 
-            if cur_attr.contains('r') {
-                let mut post_attr = self
+                if is_nameref {
+                    if let Some(target) = val_opt {
+                        let target_base = target.split_once('[').map(|(b, _)| b).unwrap_or(&target);
+                        if target == base_name || !is_valid_shell_ident(target_base) {
+                            decl_stderr.push_str(&format!("{cmd}: {target}: invalid name reference\n"));
+                            decl_status = 1;
+                            continue;
+                        }
+                        self.env.insert(format!("\0nameref__{base_name}"), target);
+                    }
+                    continue;
+                }
+
+                let mut cur_attr = self
                     .env
                     .get(&format!("\0attr__{base_name}"))
                     .cloned()
                     .unwrap_or_default();
-                if !post_attr.contains('r') {
-                    post_attr.push('r');
+                for &d in &disabled {
+                    cur_attr = cur_attr.chars().filter(|&c| c != d).collect();
                 }
-                self.env.insert(format!("\0attr__{base_name}"), post_attr);
-            }
-            self.retained_prefix_vars.push(base_name);
-        }
+                for &e in &enabled {
+                    if "aAilnrux".contains(e) && !cur_attr.contains(e) {
+                        cur_attr.push(e);
+                    }
+                }
+                let pre_attr: String = cur_attr.chars().filter(|&c| c != 'r').collect();
+                if pre_attr.is_empty() {
+                    self.env.remove(&format!("\0attr__{base_name}"));
+                } else {
+                    self.env.insert(format!("\0attr__{base_name}"), pre_attr);
+                }
 
-        Ok(BuiltinOutcome {
-            stdout: String::new(),
-            stderr: decl_stderr,
-            exit_code: decl_status,
-        })
+                if let Some(v) = val_opt {
+                    if let Some(msg) = self.assign_value(&base_name, &v, append)? {
+                        if new_assoc
+                            || (is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}")))
+                        {
+                            if new_assoc {
+                                self.env.remove(&format!("\0assoc__{base_name}"));
+                            }
+                            let key = format!("\0attr__{base_name}");
+                            if let Some(attr) = self.env.get_mut(&key) {
+                                attr.retain(|c| c != if new_assoc { 'A' } else { 'a' });
+                                if attr.is_empty() {
+                                    self.env.remove(&key);
+                                }
+                            }
+                        }
+                        self.env
+                            .insert(format!("\0declared__{base_name}"), "1".into());
+                        decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                        decl_status = 1;
+                        break;
+                    }
+                } else if is_indexed || is_assoc {
+                    if is_indexed
+                        && !self.env.contains_key(&format!("\0keys__{base_name}"))
+                        && let Some(value) = self.env.get(&base_name).cloned()
+                    {
+                        self.env.insert(format!("{base_name}[0]"), value);
+                    }
+                    // A bare declaration has no assigned key list until the first write.
+                    if self.env.contains_key(&format!("\0keys__{base_name}"))
+                        || self.env.contains_key(&base_name)
+                    {
+                        sync_array_metadata(&base_name, self.env);
+                    }
+                } else if is_local
+                    && base_name == "PIPESTATUS"
+                    && !inherit_prev
+                    && !self.env.contains_key(&base_name)
+                {
+                    self.env.insert(base_name.clone(), String::new());
+                } else if !self.env.contains_key(&base_name) {
+                    self.env
+                        .insert(format!("\0declared__{base_name}"), "1".to_string());
+                }
+                if cmd == "local" && base_name == "OPTIND" {
+                    sync_getopts_env(self.env);
+                }
+
+                if cur_attr.contains('r') {
+                    let mut post_attr = self
+                        .env
+                        .get(&format!("\0attr__{base_name}"))
+                        .cloned()
+                        .unwrap_or_default();
+                    if !post_attr.contains('r') {
+                        post_attr.push('r');
+                    }
+                    self.env.insert(format!("\0attr__{base_name}"), post_attr);
+                }
+                self.retained_prefix_vars.push(base_name);
+            }
+
+            Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: decl_stderr,
+                exit_code: decl_status,
+            })
+        })();
+        if let Some((name, frame)) = global_binding {
+            self.swap_saved_binding(&name, frame);
+        }
+        result
     }
 
     fn builtin_unset(&mut self, args: &[String]) -> BuiltinOutcome {

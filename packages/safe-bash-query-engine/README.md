@@ -15,6 +15,8 @@ as in jq. `strflocaltime` formats timestamps or broken-down local dates in the
 host timezone, including daylight-saving offsets. Zone names use the runtime’s
 English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions;
 `todate` accepts timestamps and broken-down arrays from `gmtime` or `strptime`.
+`localtime` returns a broken-down date using the command's IANA `TZ` timezone,
+or the host timezone when `TZ` is absent, retaining fractional seconds.
 `now` returns the current Unix timestamp in seconds, including fractional seconds.
 
 `env` and `$ENV` read only the environment supplied by the command context;

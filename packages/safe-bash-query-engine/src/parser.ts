@@ -50,7 +50,7 @@ export const functions: Readonly<Record<string, readonly number[]>> = Object.fre
   path: [1], leaf_paths: [0], fabs: [0], env: [0], input: [0], inputs: [0], input_filename: [0], input_line_number: [0], fromstream: [1], tostream: [0], truncate_stream: [1],
   walk: [1], test: [1, 2], match: [1, 2], in: [1], IN: [1, 2], INDEX: [1, 2], isempty: [1], nth: [1, 2], pick: [1], sqrt: [0], todate: [0], fromdate: [0],
   explode: [0], implode: [0], utf8bytelength: [0], floor: [0], ceil: [0], round: [0], abs: [0], index: [1], rindex: [1],
-  while: [2], until: [2], now: [0], fromdateiso8601: [0], todateiso8601: [0], strftime: [1], strflocaltime: [1], strptime: [1], gmtime: [0], mktime: [0],
+  while: [2], until: [2], now: [0], fromdateiso8601: [0], todateiso8601: [0], strftime: [1], strflocaltime: [1], strptime: [1], gmtime: [0], localtime: [0], mktime: [0],
   scan: [1, 2], paths: [0, 1], getpath: [1], flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   debug: [0, 1], stderr: [0], halt: [0], halt_error: [0, 1], setpath: [2], delpaths: [1], empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], inside: [1], bsearch: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],

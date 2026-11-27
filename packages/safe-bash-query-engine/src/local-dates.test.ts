@@ -2,6 +2,33 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createYqQuerySession } from "./query-core.js";
 
+test("localtime defaults to the host timezone for standalone sessions", async () => {
+  const previous = process.env.TZ;
+  process.env.TZ = "Asia/Tokyo";
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  try {
+    session.compileOnce("localtime");
+    assert.deepEqual((await session.run(1700000000).next()).value, [2023, 10, 15, 7, 13, 20, 3, 318]);
+  } finally {
+    await session.close();
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+});
+
+for (const [filter, message] of [
+  ["null | localtime", "localtime() requires numeric inputs"],
+  ["1e20 | localtime", "error converting number of seconds since epoch to datetime"],
+] as const) {
+  test(`localtime rejects invalid input: ${filter}`, async () => {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    try {
+      session.compileOnce(filter);
+      await assert.rejects(session.run(null).next(), { message });
+    } finally { await session.close(); }
+  });
+}
+
 for (const [zone, input, expected] of [
   ["UTC", 0, "1970-01-01 00:00:00 +0000 UTC 0"],
   ["America/New_York", 0, "1969-12-31 19:00:00 -0500 EST 0"],

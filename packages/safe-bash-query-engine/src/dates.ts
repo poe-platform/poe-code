@@ -56,6 +56,26 @@ export function gmtime(input: Json): number[] {
   return fields;
 }
 
+export function localtime(input: Json, timeZone?: string): number[] {
+  if (!isNumber(input)) throw new JqError("localtime() requires numeric inputs");
+  const seconds = numberValue(input);
+  const date = new Date(Math.trunc(seconds) * 1000);
+  if (!Number.isFinite(date.getTime())) throw new JqError("error converting number of seconds since epoch to datetime");
+  const formatter = new Intl.DateTimeFormat("en-US-u-ca-gregory-nu-latn", {
+    timeZone, year: "numeric", month: "numeric", day: "numeric",
+    hour: "numeric", minute: "numeric", second: "numeric", era: "short", hourCycle: "h23",
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(date).map(part => [part.type, part.value]));
+  const year = Number(parts.year);
+  const calendar = utcDate([
+    parts.era === "BC" ? 1 - year : year, Number(parts.month) - 1, Number(parts.day),
+    Number(parts.hour), Number(parts.minute), Number(parts.second),
+  ]);
+  const fields = gmtime(calendar.getTime() / 1000);
+  fields[5]! += seconds - Math.floor(seconds);
+  return fields;
+}
+
 export function mktime(input: Json): number {
   const fields = datetime(input, "mktime");
   const seconds = utcDate(fields).getTime() / 1000;

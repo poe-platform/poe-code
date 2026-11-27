@@ -8,7 +8,7 @@ import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex, matchRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { indices } from "./indices.js";
-import { fromDateIso8601, toDateIso8601, gmtime, mktime, strftime, strptime } from "./dates.js";
+import { fromDateIso8601, toDateIso8601, gmtime, localtime, mktime, strftime, strptime } from "./dates.js";
 import { capture } from "./capture.js";
 import { recurse } from "./recurse.js";
 import { delpaths } from "./delpaths.js";
@@ -1170,6 +1170,7 @@ export class Interpreter {
     }
     if (name === "now") { yield Date.now() / 1000; return; }
     if (name === "gmtime") { yield gmtime(input); return; }
+    if (name === "localtime") { yield localtime(input, Object.hasOwn(this.environment, "TZ") ? this.environment.TZ : undefined); return; }
     if (name === "mktime") { yield mktime(input); return; }
     if (name === "strftime" || name === "strflocaltime" || name === "strptime") {
       for await (const format of this.run(args[0]!, input)) yield name === "strptime" ? strptime(input, format, budget) : strftime(input, format, budget, name === "strflocaltime");

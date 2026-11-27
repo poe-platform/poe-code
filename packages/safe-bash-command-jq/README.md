@@ -4,7 +4,10 @@ Portable Safe Bash command for virtual filesystems.
 
 Run jq filters against JSON in the virtual filesystem, including unary-minus
 filters such as `jq -c '-.a'` without an extra `--`. `env` and `$ENV` expose the
-Safe Bash command environment, never the host process environment. Use
+Safe Bash command environment, never the host process environment.
+`strflocaltime` uses the command's `TZ` timezone, defaulting to UTC when unset;
+for example, `TZ=Asia/Tokyo jq -nc '1700000000 | strflocaltime("%H:%M %Z")'`
+prints `"07:13 JST"`. Use
 `jq -Rn '[inputs | split(",")]'` to collect raw input lines; `inputs` consumes
 the remaining values from the same input stream, including virtual files.
 `input` reads just the next value from that stream and raises `"break"` at end of input.

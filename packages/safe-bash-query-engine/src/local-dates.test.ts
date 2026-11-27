@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createYqQuerySession } from "./query-core.js";
+import { Interpreter } from "./interpreter.js";
+import { Budget, resolveJqLimits } from "./limits.js";
+import { parse } from "./parser.js";
 
 test("localtime defaults to the host timezone for standalone sessions", async () => {
   const previous = process.env.TZ;
@@ -33,24 +36,18 @@ for (const [zone, input, expected] of [
   ["UTC", 0, "1970-01-01 00:00:00 +0000 UTC 0"],
   ["America/New_York", 0, "1969-12-31 19:00:00 -0500 EST 0"],
   ["America/New_York", 1719835200, "2024-07-01 08:00:00 -0400 EDT 1719835200"],
-  ["Asia/Kolkata", 0, "1970-01-01 05:30:00 +0530 GMT+5:30 0"],
+  ["Asia/Kolkata", 0, "1970-01-01 05:30:00 +0530 IST 0"],
   ["America/New_York", [1970, 0, 1, 0, 0, 0, 4, 0], "1970-01-01 00:00:00 -0500 EST 18000"],
   ["UTC", [1970, 0, 1, 0, 0, 0, 4, 0], "1970-01-01 00:00:00 +0000 UTC 0"],
 ] as const) {
   test(`strflocaltime formats ${JSON.stringify(input)} in ${zone}`, async () => {
-    const previous = process.env.TZ;
-    process.env.TZ = zone;
-    const session = createYqQuerySession({ signal: new AbortController().signal });
-    try {
-      session.compileOnce('strflocaltime("%F %T %z %Z %s")');
-      const values = [];
-      for await (const value of session.run(JSON.parse(JSON.stringify(input)))) values.push(value);
-      assert.deepEqual(values, [expected]);
-    } finally {
-      await session.close();
-      if (previous === undefined) delete process.env.TZ;
-      else process.env.TZ = previous;
-    }
+    const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+    const variables = new Map();
+    const interpreter = new Interpreter(budget, variables, undefined, { TZ: zone });
+    const ast = parse('strflocaltime("%F %T %z %Z %s")', variables, budget);
+    const values = [];
+    for await (const value of interpreter.run(ast, JSON.parse(JSON.stringify(input)))) values.push(value);
+    assert.deepEqual(values, [expected]);
   });
 }
 

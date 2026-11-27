@@ -3077,7 +3077,7 @@ export class Runtime {
               this.rethrowArithmeticControl(error);
               throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine);
             } finally { depth--; resolving.delete(identity); }
-            if (number < 0n) number += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
+            if (number < 0n) number += BigInt((binding?.maximum ?? ((this.presenceArrayEntries(state, name)?.length ?? (state.variables[name] === undefined ? 0 : 1)) - 1)) + 1);
             if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");
             index = Number(number);
           }
@@ -3088,7 +3088,8 @@ export class Runtime {
         if (!reference.startsWith("[")) return resolvedVariables[reference];
         const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
         const binding = arrayStore(state)?.get(name);
-        const value = binding ? binding.get(index ?? -1) : index === 0 ? state.variables[name] : undefined;
+        const entries = this.presenceArrayEntries(state, name);
+        const value = binding ? binding.get(index ?? -1) : entries ? entries[index ?? -1] : index === 0 ? state.variables[name] : undefined;
         if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
         if (value !== undefined && shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         return value;
@@ -3153,8 +3154,9 @@ export class Runtime {
         const value = (typeof name === "string" && dynamicVariableNames.has(name) ? this.variable(state, name) : Reflect.get(target, name))
           ?? (name === "LINENO" ? String(line ?? 1)
             : name === "_" ? state.lastArgument ?? ""
-            : name === "FUNCNAME" ? state.functionNames?.[0]
+            : name === "FUNCNAME" ? this.variable(state, name)
             : name === "BASH_SOURCE" ? state.sourceNames?.[0]
+            : name === "BASH_LINENO" ? this.variable(state, name)
             : undefined);
         if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
         return value;
@@ -3191,8 +3193,9 @@ export class Runtime {
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
     if (name === "DIRSTACK") return state.logicalCwd ?? state.cwd;
     if (name === "BASH_SUBSHELL") return state.variables.BASH_SUBSHELL ?? "0";
-    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
+    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.length ? state.callerFrames?.[0]?.routine : undefined;
     if (name === "BASH_SOURCE") return state.sourceNames?.[0];
+    if (name === "BASH_LINENO") return this.presenceArrayEntries(state, name)?.[0];
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
   }
@@ -3225,7 +3228,15 @@ export class Runtime {
   }
   presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
     if (name === "DIRSTACK") return [state.logicalCwd ?? state.cwd, ...state.directoryStack?.entries ?? []];
-    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
+    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) {
+      if (!state.functionNames?.length) return [];
+      const names = state.callerFrames?.map(frame => frame.routine) ?? [];
+      return state.callerTopLevel === false ? names : [...names, "main"];
+    }
+    if (name === "BASH_LINENO") {
+      const lines = state.callerFrames?.map(frame => String(frame.line)) ?? [];
+      return state.callerTopLevel === false ? lines : [...lines, "0"];
+    }
     if (name === "BASH_SOURCE") return state.sourceNames ?? [];
     return undefined;
   }
@@ -7291,6 +7302,7 @@ export class Runtime {
     }
     if (script !== undefined) return this.scriptFile(context, state, io, script, args, false, loadedSource, child);
     child.commandString = commandString;
+    child.callerTopLevel = false;
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
@@ -10044,6 +10056,7 @@ export class Runtime {
       await consider("DIRSTACK", true);
       if (state.functionNames?.length) await consider("FUNCNAME", true);
       await consider("BASH_SOURCE", true);
+      await consider("BASH_LINENO", true);
       for (const name in state.variables) if (Object.hasOwn(state.variables, name)) await consider(name, state.variables[name] !== undefined);
       if (store) for (const [name, entry] of store.bindings) await consider(name, entry.binding.assigned);
       for (const frame of state.locals) for (const [name, saved] of frame) {

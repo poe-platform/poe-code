@@ -140,7 +140,7 @@ test("$_ tracks last argument of previous command, $LINENO tracks current line, 
 
   const funcname = await shell.exec('inner() { echo "$FUNCNAME:${FUNCNAME[0]}:${FUNCNAME[1]}:${#FUNCNAME[@]}:${FUNCNAME[*]}"; }; outer() { inner; }; outer');
   assert.equal(funcname.exitCode, 0);
-  assert.equal(funcname.stdout, "inner:inner:outer:2:inner outer\n");
+  assert.equal(funcname.stdout, "inner:inner:outer:3:inner outer main\n");
 
   const letVar = await shell.exec('a=5; let "b = $a + 1"; let \'c = $b + $a\'; echo "$b:$c"');
   assert.equal(letVar.exitCode, 0);

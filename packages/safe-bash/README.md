@@ -233,6 +233,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `shopt -u sourcepath` disables normal `PATH` lookup; explicit `-p` still searches.
   `BASH_SOURCE` tracks script and function
   definition paths, so `${BASH_SOURCE[0]%/*}` locates sibling files.
+  `FUNCNAME` includes the script's `main` frame during function calls, and
+  `BASH_LINENO` provides the corresponding call-site line numbers.
   `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the
   remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`

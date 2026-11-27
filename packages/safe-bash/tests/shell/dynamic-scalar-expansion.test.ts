@@ -63,10 +63,10 @@ for (const maxExpansionBytes of [undefined, 65536]) {
 
 for (const maxExpansionBytes of [undefined, 65536]) {
   for (const [name, source, expected] of [
-    ["negative slices", 'g() { echo "<${FUNCNAME[@]: -1}>:<${FUNCNAME[*]: -1}>:<${FUNCNAME[@]: -2}>:<${FUNCNAME[@]: -5}>:<${FUNCNAME[*]: -5}>"; }; f() { g; }; f', "<f>:<f>:<g f>:<>:<>\n"],
-    ["slice limits", 'g() { set -- "${FUNCNAME[@]: -2:1}" "${FUNCNAME[*]: -1:0}" "${FUNCNAME[@]: 2}"; echo "$#:<$1><$2><$3>"; }; f() { g; }; f', "2:<g><><>\n"],
-    ["negative elements", 'g() { echo "<${FUNCNAME[-1]}>:<${FUNCNAME[-2]}>"; }; f() { g; }; f', "<f>:<g>\n"],
-    ["negative caller operators", 'g() { echo "<${FUNCNAME[-1]:-missing}>"; set -- ${FUNCNAME[-1]:+"a" "b"}; echo "$#:<$1><$2>"; }; f() { g; }; f', "<f>\n2:<a><b>\n"],
+    ["negative slices", 'g() { echo "<${FUNCNAME[@]: -1}>:<${FUNCNAME[*]: -1}>:<${FUNCNAME[@]: -2}>:<${FUNCNAME[@]: -5}>:<${FUNCNAME[*]: -5}>"; }; f() { g; }; f', "<main>:<main>:<f main>:<>:<>\n"],
+    ["slice limits", 'g() { set -- "${FUNCNAME[@]: -2:1}" "${FUNCNAME[*]: -1:0}" "${FUNCNAME[@]: 2}"; echo "$#:<$1><$2><$3>"; }; f() { g; }; f', "3:<f><><main>\n"],
+    ["negative elements", 'g() { echo "<${FUNCNAME[-1]}>:<${FUNCNAME[-2]}>"; }; f() { g; }; f', "<main>:<f>\n"],
+    ["negative caller operators", 'g() { echo "<${FUNCNAME[-1]:-missing}>"; set -- ${FUNCNAME[-1]:+"a" "b"}; echo "$#:<$1><$2>"; }; f() { g; }; f', "<main>\n2:<a><b>\n"],
     ["caller operators", 'g() { echo "<${FUNCNAME[1]:-missing}>:<${FUNCNAME[1]-missing}>"; set -- ${FUNCNAME[1]:+"a" "b"}; echo "$#:<$1><$2>"; set -- ${FUNCNAME[1]+"a" "b"}; echo "$#:<$1><$2>"; echo "<${FUNCNAME[5]:-missing}>"; }; f() { g; }; f', "<f>:<f>\n2:<a><b>\n2:<a><b>\n<missing>\n"],
   ] as const) {
     test(`FUNCNAME ${name}, budget ${maxExpansionBytes}`, async context => {

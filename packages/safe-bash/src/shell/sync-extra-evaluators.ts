@@ -1040,7 +1040,7 @@ export function resolveSimpleArithOperand(tok: string, rawState: State, monitor:
   if (dynamicVariableNames.has(tok)) return undefined;
   // These values come from execution context or lazy shell bindings, not raw variables.
   // Decline after resolving namerefs so aliases use the same full evaluator.
-  if (tok === "LINENO" || tok === "_" || tok === "FUNCNAME" || tok === "BASH_SOURCE" || tok === "PIPESTATUS") return undefined;
+  if (tok === "LINENO" || tok === "_" || tok === "FUNCNAME" || tok === "BASH_SOURCE" || tok === "BASH_LINENO" || tok === "PIPESTATUS") return undefined;
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
   if (raw === undefined || raw === "") return 0;
@@ -3515,6 +3515,7 @@ const syncExtraRuntimeMethods = {
     consider("DIRSTACK", true);
     if (rawState.functionNames?.length) consider("FUNCNAME", true);
     consider("BASH_SOURCE", true);
+    consider("BASH_LINENO", true);
     for (const name in rawState.variables) {
       if (Object.hasOwn(rawState.variables, name)) consider(name, rawState.variables[name] !== undefined);
     }
@@ -3999,8 +4000,9 @@ const syncExtraRuntimeMethods = {
         const value = this._syncArithRawVars![reference]
           ?? (reference === "LINENO" ? String(this._syncArithLine ?? 1)
             : reference === "_" ? this._syncArithState!.lastArgument ?? ""
-            : reference === "FUNCNAME" ? this._syncArithState!.functionNames?.[0]
+            : reference === "FUNCNAME" ? this.variable(this._syncArithState!, reference)
             : reference === "BASH_SOURCE" ? this._syncArithState!.sourceNames?.[0]
+            : reference === "BASH_LINENO" ? this.variable(this._syncArithState!, reference)
             : undefined);
         if (this._syncArithState!.nounset && value === undefined) {
           throw new NounsetFailure(`${reference}: unbound variable`, this._syncArithLine);
@@ -4115,7 +4117,7 @@ const syncExtraRuntimeMethods = {
         const value = state.variables[tree.name]
           ?? (tree.name === "LINENO" ? String(line ?? 1)
             : tree.name === "_" ? state.lastArgument ?? ""
-            : tree.name === "FUNCNAME" ? state.functionNames?.[0] : tree.name === "BASH_SOURCE" ? state.sourceNames?.[0] : undefined);
+            : tree.name === "FUNCNAME" ? this.variable(state, tree.name) : tree.name === "BASH_SOURCE" ? state.sourceNames?.[0] : tree.name === "BASH_LINENO" ? this.variable(state, tree.name) : undefined);
         const text = value === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(tree.name) ? value : monitor?.values.get(tree.name, value) ?? value);
         if (text === undefined || text === "") return true;
         if (typeof text !== "string") return false;
@@ -4750,7 +4752,7 @@ const syncExtraRuntimeMethods = {
           let targetVal: ShellValue | undefined;
           if (isShellIdentifier(refName)) {
             if (dynamicVariableNames.has(refName)) return undefined;
-            if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "DIRSTACK") {
+            if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "BASH_LINENO" || refName === "DIRSTACK") {
               return undefined;
             }
             const targetRaw = rawVars[refName];
@@ -4775,7 +4777,7 @@ const syncExtraRuntimeMethods = {
                 arrName !== "PIPESTATUS" &&
                 arrName !== "LINENO" &&
                 arrName !== "_" &&
-                arrName !== "FUNCNAME" && arrName !== "BASH_SOURCE" &&
+                arrName !== "FUNCNAME" && arrName !== "BASH_SOURCE" && arrName !== "BASH_LINENO" &&
                 arrName !== "DIRSTACK"
               ) {
                 const binding = activeArrayStore?.get(arrName);
@@ -4815,7 +4817,7 @@ const syncExtraRuntimeMethods = {
           continue;
         }
         if (part.transform !== undefined) {
-          if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || (part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || this.budget.limits.maxExpansionBytes !== Infinity || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "DIRSTACK") {
+          if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || (part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || this.budget.limits.maxExpansionBytes !== Infinity || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "BASH_LINENO" || part.name === "DIRSTACK") {
             return undefined;
           }
           const raw = rawVars[part.name];
@@ -4880,12 +4882,12 @@ const syncExtraRuntimeMethods = {
           continue;
         }
         if (part.indirect || part.specialParameter) return undefined;
-        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "BASH_SUBSHELL" || part.name === "BASHPID" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "DIRSTACK") return undefined;
+        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "BASH_SUBSHELL" || part.name === "BASHPID" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "BASH_LINENO" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
         if (selector !== undefined || arrayBinding !== undefined) {
-          if (!arrayBinding && selector !== undefined && (selector.kind === "members" || selector.kind === "keys") && !part.substring && part.length && part.operator === undefined && !rawState.nounset && !activeArrayStore?.watches.has(part.name) && !monitor?.hasOverlay(part.name) && part.name !== "FUNCNAME" && part.name !== "BASH_SOURCE" && part.name !== "PIPESTATUS" && part.name !== "DIRSTACK" && part.name !== "BASH_REMATCH") {
+          if (!arrayBinding && selector !== undefined && (selector.kind === "members" || selector.kind === "keys") && !part.substring && part.length && part.operator === undefined && !rawState.nounset && !activeArrayStore?.watches.has(part.name) && !monitor?.hasOverlay(part.name) && part.name !== "FUNCNAME" && part.name !== "BASH_SOURCE" && part.name !== "BASH_LINENO" && part.name !== "PIPESTATUS" && part.name !== "DIRSTACK" && part.name !== "BASH_REMATCH") {
             out += rawVars[part.name] === undefined ? "0" : "1";
             continue;
           }
@@ -5508,7 +5510,7 @@ const syncExtraRuntimeMethods = {
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( p.prefixNames || p.specialParameter || p.transform || p.name === "@" || p.name === "*" || p.name === "PIPESTATUS" || p.name === "LINENO" || p.name === "_" || p.name === "FUNCNAME" || p.name === "BASH_SOURCE" || p.name === "DIRSTACK" || !isShellIdentifier(p.name)) {
+        if ( p.prefixNames || p.specialParameter || p.transform || p.name === "@" || p.name === "*" || p.name === "PIPESTATUS" || p.name === "LINENO" || p.name === "_" || p.name === "FUNCNAME" || p.name === "BASH_SOURCE" || p.name === "BASH_LINENO" || p.name === "DIRSTACK" || !isShellIdentifier(p.name)) {
           return false;
         }
         if (p.operator !== undefined && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) return false;
@@ -7103,7 +7105,7 @@ const syncExtraRuntimeMethods = {
         }
         const vName = w0.plain.slice(0, eq);
         const vStr = w0.plain.slice(eq + 1);
-        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(vName) || vName === "_" || vName === "LINENO" || vName === "FUNCNAME" || vName === "BASH_SOURCE" || !/^-?[0-9]{1,8}$/.test(vStr)) {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(vName) || vName === "_" || vName === "LINENO" || vName === "FUNCNAME" || vName === "BASH_SOURCE" || vName === "BASH_LINENO" || !/^-?[0-9]{1,8}$/.test(vStr)) {
           rawScript._cachedSyncForScriptPlan = null;
           return undefined;
         }
@@ -12263,7 +12265,7 @@ const syncExtraRuntimeMethods = {
             pt.transform !== undefined || pt.operator !== undefined || getArraySelector(pt) !== undefined ||
             !isShellIdentifier(pt.name) || (assigned.has(pt.name) && !isInd) || controlNames.has(pt.name) ||
             pt.name === "OPTIND" || pt.name === "PIPESTATUS" || pt.name === "LINENO" || pt.name === "_" ||
-            pt.name === "FUNCNAME" || pt.name === "BASH_SOURCE" || pt.name === "DIRSTACK" ||
+            pt.name === "FUNCNAME" || pt.name === "BASH_SOURCE" || pt.name === "BASH_LINENO" || pt.name === "DIRSTACK" ||
             stateMonitor(rawState)?.store?.get(pt.name) || rawState.variableAttributes?.get(pt.name) ||
             stateMonitor(rawState)?.hasOverlay(pt.name) || hasUnpreparedLocal(rawState, pt.name) ||
             (rawState.nounset && !isInd && rawState.variables[pt.name] === undefined)
@@ -12383,7 +12385,7 @@ const syncExtraRuntimeMethods = {
       command.expressions[1].tree.right.value <= 100000n &&
       command.expressions[2]?.tree?.kind === "unary" &&
       command.expressions[2].tree.operator === "++";
-    const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "BASH_SOURCE", "DIRSTACK", "BASH_SUBSHELL", "BASHPID"]);
+    const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "BASH_SOURCE", "BASH_LINENO", "DIRSTACK", "BASH_SUBSHELL", "BASHPID"]);
     type Assignment = { name: string; value: Word; append: boolean } | ArrayAssignment;
     const assignments: Assignment[] = [];
     const appends = new Map<string, number>();
@@ -12567,7 +12569,7 @@ const syncExtraRuntimeMethods = {
           part.operator === undefined &&
           !rawState.nounset &&
           isShellIdentifier(part.name) &&
-          part.name !== "FUNCNAME" && part.name !== "BASH_SOURCE" &&
+          part.name !== "FUNCNAME" && part.name !== "BASH_SOURCE" && part.name !== "BASH_LINENO" &&
           part.name !== "PIPESTATUS" &&
           part.name !== "DIRSTACK" &&
           !stateMonitor(rawState)?.hasOverlay(part.name) &&
@@ -12616,7 +12618,7 @@ const syncExtraRuntimeMethods = {
             part.name === "PIPESTATUS" ||
             part.name === "LINENO" ||
             part.name === "_" ||
-            part.name === "FUNCNAME" || part.name === "BASH_SOURCE" ||
+            part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "BASH_LINENO" ||
             part.name === "DIRSTACK" ||
             (rawState.nounset && rawState.variables[part.name] === undefined)
           ) {
@@ -12628,7 +12630,7 @@ const syncExtraRuntimeMethods = {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( part.specialParameter || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
+        if ( part.specialParameter || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "BASH_SOURCE" || part.name === "BASH_LINENO" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
@@ -15141,11 +15143,11 @@ const syncExtraRuntimeMethods = {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
         // Empty loops must evaluate the header without publishing unexecuted body registers or command state.
-        let canUseIntRegisters = !prevRawWrite && iterations > 0 && allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME" && inductionName !== "BASH_SOURCE";
+        let canUseIntRegisters = !prevRawWrite && iterations > 0 && allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME" && inductionName !== "BASH_SOURCE" && inductionName !== "BASH_LINENO";
         if (canUseIntRegisters && arithNamesList.length > 0) {
           for (let a = 0; a < arithNamesList.length; a++) {
             const refName = arithNamesList[a]!;
-            if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || (rawState.nounset && refName !== inductionName && rawState.variables[refName] === undefined)) {
+            if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "BASH_LINENO" || (rawState.nounset && refName !== inductionName && rawState.variables[refName] === undefined)) {
               canUseIntRegisters = false;
               break;
             }
@@ -15894,11 +15896,11 @@ const syncExtraRuntimeMethods = {
       const arithNamesList = [...arithNames];
       const touchedIntNamesList = [...touchedSet];
       const regNames: string[] = [command.name];
-      let regOk = command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME" && command.name !== "BASH_SOURCE";
+      let regOk = command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME" && command.name !== "BASH_SOURCE" && command.name !== "BASH_LINENO";
       for (let a = 0; a < arithNamesList.length; a++) {
         const refName = arithNamesList[a]!;
         if (refName === command.name) continue;
-        if (refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || regNames.length >= 32) { regOk = false; break; }
+        if (refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "BASH_LINENO" || regNames.length >= 32) { regOk = false; break; }
         regNames.push(refName);
       }
       if (regOk && allIntStepsReady) {
@@ -15906,7 +15908,7 @@ const syncExtraRuntimeMethods = {
           const st = intSteps[b]!;
           let tIdx = regNames.indexOf(st.name);
           if (tIdx === -1) {
-            if (st.name === "LINENO" || st.name === "_" || st.name === "FUNCNAME" || st.name === "BASH_SOURCE" || regNames.length >= 32) { regOk = false; break; }
+            if (st.name === "LINENO" || st.name === "_" || st.name === "FUNCNAME" || st.name === "BASH_SOURCE" || st.name === "BASH_LINENO" || regNames.length >= 32) { regOk = false; break; }
             tIdx = regNames.length;
             regNames.push(st.name);
           }
@@ -15926,7 +15928,7 @@ const syncExtraRuntimeMethods = {
     let loopStatus = 0;
     try {
       const intBudgetSnapshot = this.budget.parsing.snapshot();
-      let canUseIntRegisters = fastLoopWords.length > 0 && forPlan.allIntStepsReady && (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME" && command.name !== "BASH_SOURCE";
+      let canUseIntRegisters = fastLoopWords.length > 0 && forPlan.allIntStepsReady && (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME" && command.name !== "BASH_SOURCE" && command.name !== "BASH_LINENO";
       const intSteps = canUseIntRegisters ? forPlan.intSteps : undefined;
       const regNames = sharedSyncLoopRegNames;
       regNames.length = 0;
@@ -15936,7 +15938,7 @@ const syncExtraRuntimeMethods = {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
           if (refName === command.name) continue;
-          if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || (rawState.nounset && rawState.variables[refName] === undefined)) {
+          if ( store?.get(refName) || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "BASH_SOURCE" || refName === "BASH_LINENO" || (rawState.nounset && rawState.variables[refName] === undefined)) {
             canUseIntRegisters = false;
             break;
           }

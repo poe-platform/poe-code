@@ -51,11 +51,11 @@ for (const extension of [false, true]) {
         for (const definition of basicCommands()) shell.register(definition);
         const body = `${command} -t FUNCNAME <<< "X Y"; echo "$?:\${FUNCNAME[*]}"`;
         const source = `f(){ ${loop ? `for i in 1 2; do ${body}; done` : body}; }; f`;
-        const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { env: { LC_ALL: "C" }, timeout: 2000 });
+        const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'exec "$BASH" /dev/stdin <<< "$1"', "bash", source], { env: { LC_ALL: "C" }, timeout: 2000 });
         assert.ifError(native.error);
         assert.equal(native.status, 0);
         assert.equal(native.stderr.toString(), "");
-        assert.equal(native.stdout.toString(), "1:f\n".repeat(loop ? 2 : 1));
+        assert.equal(native.stdout.toString(), "1:f main\n".repeat(loop ? 2 : 1));
         const result = await shell.exec(source, { env: { LC_ALL: "C" } });
         assert.equal(result.exitCode, native.status);
         assert.deepEqual(Buffer.from(result.stdout), native.stdout);

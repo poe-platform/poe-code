@@ -55,10 +55,10 @@ for (const loop of [false, true]) test(`read -a FUNCNAME keeps the active functi
   try {
     const body = 'read -r -a FUNCNAME <<< "X Y"; echo "$?:${FUNCNAME[*]}";';
     const source = `f(){ ${loop ? `for ((i=0; i<3; i++)); do ${body} done;` : body} }; f`;
-    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'exec "$BASH" /dev/stdin <<< "$1"', "bash", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
     assert.ifError(native.error);
     assert.equal(native.status, 0);
-    assert.equal(native.stdout, "1:f\n".repeat(loop ? 3 : 1));
+    assert.equal(native.stdout, "1:f main\n".repeat(loop ? 3 : 1));
     assert.equal(native.stderr, "");
     const result = await shell.exec(source);
     assert.equal(result.stdout, native.stdout);

@@ -719,6 +719,7 @@ inspect the resulting state before repeating the action.
             fixed: parsed.flags.has("F"),
             binaryText: parsed.flags.has("a"),
             extended: effectiveExtended,
+            perl: parsed.flags.has("P"),
             caseMode: ignoreCase ? "insensitive" : "sensitive",
             whole: parsed.flags.has("x"),
             word: parsed.flags.has("w"),

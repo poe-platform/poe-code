@@ -10,6 +10,7 @@ export interface ErgonomicRegexConfig {
   readonly kind: "rg" | "grep";
   readonly fixed: boolean;
   readonly extended?: boolean | undefined;
+  readonly perl?: boolean;
   readonly caseMode: "sensitive" | "insensitive" | "smart";
   readonly whole: boolean;
   readonly word: boolean;
@@ -41,6 +42,7 @@ type ClassItem =
 
 type AstNode =
   | { readonly type: "empty" }
+  | { readonly type: "reset" }
   | { readonly type: "literal"; readonly cp: number; readonly insensitive: boolean }
   | { readonly type: "dot"; readonly dotall: boolean; readonly nullData: boolean }
   | { readonly type: "class"; readonly negated: boolean; readonly items: readonly ClassItem[]; readonly insensitive: boolean; readonly multiline: boolean }
@@ -168,6 +170,7 @@ function parsePattern(
   nullData: boolean,
   captures = false,
   captureOffset = 0,
+  perl = false,
 ): ParseOutcome {
   let pos = 0;
   let anchorMultiline = multiline;
@@ -183,6 +186,19 @@ function parsePattern(
   if (pattern.includes("\n")) {
     needsVm = true;
     hasCrossLinePotential = true;
+  }
+
+  function readHexEscape(): number {
+    const digits = pattern.slice(pos, pos + 2);
+    if (digits.length !== 2 || [...digits].some(ch => !"0123456789abcdefABCDEF".includes(ch))) {
+      throw new SearchError("invalid hexadecimal escape: expected two hex digits");
+    }
+    pos += 2;
+    needsVm = true;
+    const cp = Number.parseInt(digits, 16);
+    if (cp >= 65 && cp <= 90) hasUppercaseLiteral = true;
+    if (cp === 10) hasCrossLinePotential = true;
+    return cp;
   }
 
   function parseBracket(): { node: AstNode; ere: string } {
@@ -216,6 +232,10 @@ function parsePattern(
         pos++;
         if (pos >= pattern.length) throw new SearchError("invalid ERE: trailing backslash in bracket expression");
         const esc = pattern[pos++]!;
+        if (perl && esc === "x") {
+          const cp = readHexEscape();
+          return { item: { kind: "char", cp }, ereText: "", isSingleChar: true, cp };
+        }
         if (esc === "d") return { item: { kind: "shorthand", id: "d" }, ereText: "0-9", isSingleChar: false };
         if (esc === "w") return { item: { kind: "shorthand", id: "w" }, ereText: "[:alnum:]_", isSingleChar: false };
         if (esc === "s") {
@@ -440,6 +460,32 @@ function parsePattern(
           atomEre = `(${inner.ere})`;
         } else if (bre && esc === ")") {
           throw new SearchError("invalid BRE: unmatched '\\)'");
+        } else if (perl && esc === "K") {
+          needsVm = true;
+          atomNode = { type: "reset" };
+          atomEre = "";
+          quantifiable = false;
+        } else if (perl && esc === "x") {
+          atomNode = { type: "literal", cp: readHexEscape(), insensitive };
+          atomEre = "";
+        } else if (perl && esc === "Q") {
+          needsVm = true;
+          const literals: AstNode[] = [];
+          while (pos < pattern.length && !pattern.startsWith("\\E", pos)) {
+            const cp = pattern.codePointAt(pos)!;
+            pos += String.fromCodePoint(cp).length;
+            if (cp >= 65 && cp <= 90) hasUppercaseLiteral = true;
+            if (cp === 10) hasCrossLinePotential = true;
+            literals.push({ type: "literal", cp, insensitive });
+          }
+          if (pattern.startsWith("\\E", pos)) pos += 2;
+          const last = literals.pop();
+          if (!last) continue;
+          for (const literal of literals) nodes.push(literal);
+          atomNode = last;
+          atomEre = "";
+        } else if (perl && esc === "E") {
+          continue;
         } else if (esc === "d") {
           atomNode = { type: "class", negated: false, items: [{ kind: "shorthand", id: "d" }], insensitive: false, multiline };
           atomEre = "[0-9]";
@@ -586,6 +632,7 @@ function parsePattern(
 }
 
 type NfaInst =
+  | { readonly op: "reset"; readonly out: number }
   | { readonly op: "accept" }
   | { readonly op: "jump"; readonly out: number }
   | { readonly op: "split"; readonly out1: number; readonly out2: number }
@@ -608,6 +655,8 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
     switch (node.type) {
       case "empty":
         return next;
+      case "reset":
+        return emit({ op: "reset", out: next });
       case "literal":
         return emit({ op: "literal", cp: node.cp, insensitive: node.insensitive, out: next });
       case "dot":
@@ -671,6 +720,9 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
       switch (inst.op) {
         case "accept":
           reordered.push(inst);
+          break;
+        case "reset":
+          reordered.push({ op: "reset", out: inst.out + 1 });
           break;
         case "jump":
           reordered.push({ op: "jump", out: inst.out + 1 });
@@ -852,6 +904,9 @@ export class ErgonomicVmMatcher {
       if (visited[stateId] === stamp) return false;
       visited[stateId] = stamp;
       const inst = insts[stateId]!;
+      if (inst.op === "reset") {
+        return addThread(inst.out, pos, pos, stamp, slots);
+      }
       if (inst.op === "jump") {
         return addThread(inst.out, startPos, pos, stamp, slots);
       }
@@ -1066,12 +1121,12 @@ export function prepareErgonomicRegex(
 
   for (const pat of patterns) {
     const provisionalInsensitive = config.caseMode === "insensitive";
-    const firstParse = parsePattern(pat, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount);
+    const firstParse = parsePattern(pat, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl);
     const effectiveInsensitive =
       config.caseMode === "insensitive" || (config.caseMode === "smart" && !firstParse.hasUppercaseLiteral);
     const outcome =
       effectiveInsensitive !== provisionalInsensitive
-        ? parsePattern(pat, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount)
+        ? parsePattern(pat, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount, config.perl)
         : firstParse;
     captureCount = outcome.captureCount;
     for (const [name, index] of outcome.captureNames) {

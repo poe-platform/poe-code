@@ -2,6 +2,8 @@
 
 Search virtual files and pipelines with basic, extended, or fixed patterns,
 recursive include/exclude selection, context lines, and explicit resource limits.
+`grep -P` also supports `\K` match-start resets, `\xHH` hexadecimal characters,
+and `\Q...\E` literal quoting (for example, `grep -oP 'version: \K.*'`).
 `egrep` and `fgrep` select extended and fixed matching; `rgrep` enables recursive search (`grep -r`).
 
 ```ts

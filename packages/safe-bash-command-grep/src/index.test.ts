@@ -103,3 +103,24 @@ for (const flags of [["-n"], ["-n", "--line-buffered"]]) {
     }));
   });
 }
+
+for (const [pattern, input, expected] of [
+  [String.raw`version: \K.*`, "version: 1.2.3\n", "1.2.3\n"],
+  [String.raw`\x61`, "a1\n", "a\n"],
+  [String.raw`\Q.\E`, "a.b\n", ".\n"],
+  [String.raw`(?:ab\Kc|ab)d`, "abd abcd\n", "abd\ncd\n"],
+  [String.raw`a\Kb\Kc`, "abc abc\n", "c\nc\n"],
+  [String.raw`[\x61-\x63]+`, "abc xyz\n", "abc\n"],
+  [String.raw`\Q[a].*\E+`, "[a].**\n", "[a].**\n"],
+  [String.raw`\Q.*`, "a.*b\n", ".*\n"],
+] as const) test(`grep -oP supports ${pattern}`, async () => {
+  let stdout = "", stderr = "";
+  const result = await createGrepCommands()[0]!.execute({
+    command: "grep", args: ["-oP", pattern], cwd: "/work", env: {},
+    fs: createMemoryFileSystem(), stdin: toByteSource(input), stdinIsDefault: false,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    signal: new AbortController().signal,
+  });
+  assert.deepEqual({ ...result, stdout, stderr }, { exitCode: 0, stdout: expected, stderr: "" });
+});

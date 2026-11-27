@@ -4,6 +4,7 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 
 for (const mode of ["plain", "arrays", "middleware"]) {
   for (const command of ["break", "continue"]) {
@@ -18,7 +19,7 @@ for (const mode of ["plain", "arrays", "middleware"]) {
       ["source inside function", ". /control; echo helper", "f", "helper\nitem:1\nhelper\nitem:2\nend\n", 2],
       ["source inside caller loop", ":", ". /control", "end\n", 0],
     ] as const) {
-      test(`${command} respects function boundaries: ${name}, ${mode}`, async context => {
+      test(`${command} respects function boundaries: ${name}, ${mode}`, { skip: mode === "plain" ? modernBashSkip : false }, async context => {
         const { shell, fs } = setup({ extensions: mode === "arrays" ? [arraysExtension()] : [] });
         context.after(() => shell.dispose());
         for (const builtin of basicCommands()) shell.commands.register(builtin);
@@ -26,7 +27,7 @@ for (const mode of ["plain", "arrays", "middleware"]) {
         await fs.writeFile("/control", new TextEncoder().encode(command));
         const source = `f() { ${body}; }; for i in 1 2; do ${call}; echo item:$i; done; echo end`;
         if (mode === "plain") {
-          const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source.replaceAll(". /control", `. <(printf '%s' '${command}')`)], { encoding: "utf8", timeout: 2000 });
+          const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source.replaceAll(". /control", `. <(printf '%s' '${command}')`)], { encoding: "utf8", timeout: 2000 });
           assert.equal(native.error, undefined);
           assert.equal(native.status, 0, native.stderr);
           assert.equal(native.stdout, expected);

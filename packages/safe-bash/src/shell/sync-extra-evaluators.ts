@@ -10661,17 +10661,20 @@ const syncExtraRuntimeMethods = {
               if (rawState.variables._ !== undefined) delete rawState.variables._;
               rawState.lastArgument = lastArg;
               if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-              if (!existing) {
+              // Argument expansion can materialize the lazy PIPESTATUS binding.
+              const activeStore = monitor.store;
+              const activeExisting = activeStore?.get("PIPESTATUS");
+              if (!activeExisting) {
                 monitor.lazyPipeStatus = singleStatusZero;
                 monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
               } else {
-                this.setSyncPipeStatusCell(existing!, "0");
-                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                this.setSyncPipeStatusCell(activeExisting, "0");
+                activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               const finalStatus = pipeline.negate ? 1 : 0;
               rawState.status = finalStatus;
               monitor.epoch = restEpoch;
-              if (store) store.epoch = restEpoch;
+              if (activeStore) activeStore.epoch = restEpoch;
               return finalStatus;
             }
           }

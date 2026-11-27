@@ -365,7 +365,7 @@ function headTailArguments(name: "head" | "tail", arguments_: readonly string[])
     }
     args.push(argument);
     // Keep option values intact, especially modern negative counts.
-    if (!ended && (["--lines", "--bytes", "--max-idle", "--sleep-interval", "--max-unchanged-stats"].includes(argument)
+    if (!ended && (argument.length > 2 && ["--lines", "--bytes", "--max-idle", "--sleep-interval", "--max-unchanged-stats"].some(option => option.startsWith(argument))
       || argument.startsWith("-") && !argument.startsWith("--") && (argument.endsWith("n") || argument.endsWith("c") || argument.endsWith("s")))) {
       if (arguments_[index + 1] !== undefined) args.push(arguments_[++index]!);
     }

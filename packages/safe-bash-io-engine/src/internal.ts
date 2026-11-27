@@ -95,7 +95,12 @@ export function options(
     if (argument === "--") { ended = true; continue; }
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
-      const name = argument.slice(2, equals < 0 ? undefined : equals);
+      let name = argument.slice(2, equals < 0 ? undefined : equals);
+      if (name && !Object.hasOwn(long, name)) {
+        const matches = Object.keys(long).filter(option => option.startsWith(name));
+        if (matches.length > 1) throw new UsageError(`option '${argument}' is ambiguous`);
+        if (matches.length === 1) name = matches[0]!;
+      }
       const alias = long[name];
       const longValue = typeof alias === "string" && alias.endsWith(":");
       const key = alias === false ? name : longValue ? alias.slice(0, -1) : alias;

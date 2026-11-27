@@ -587,11 +587,22 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       x: "x2",
       X: "x4",
     };
+    const longOptions = {
+      "address-radix": "A",
+      "skip-bytes": "j",
+      "read-bytes": "N",
+      format: "t",
+      type: "t",
+      width: "w",
+      endian: "endian:",
+      "output-duplicates": "v",
+      strings: "S",
+    };
     const rewritten: string[] = [];
     let ended = false;
     let traditional = true;
     for (let index = 0; index < context.args.length; index++) {
-      const argument = context.args[index]!;
+      let argument = context.args[index]!;
       if (ended || argument === "-" || !argument.startsWith("-")) {
         rewritten.push(argument);
         continue;
@@ -603,6 +614,13 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       }
       if (argument.startsWith("--")) {
         traditional = false;
+        const equals = argument.indexOf("=");
+        const name = argument.slice(2, equals < 0 ? undefined : equals);
+        if (name && !Object.hasOwn(longOptions, name)) {
+          const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
+          if (matches.length > 1) throw new UsageError(`option '${argument}' is ambiguous`);
+          if (matches.length === 1) argument = `--${matches[0]}${equals < 0 ? "" : argument.slice(equals)}`;
+        }
         if (argument === "--strings") {
           rewritten.push("-S3");
           continue;
@@ -645,17 +663,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
         } else rewritten.push(`-${flag}`);
       }
     }
-    const parsed = parseOptions(rewritten, "vA:j:N:t:w:S:", {
-      "address-radix": "A",
-      "skip-bytes": "j",
-      "read-bytes": "N",
-      format: "t",
-      type: "t",
-      width: "w",
-      endian: "endian:",
-      "output-duplicates": "v",
-      strings: "S",
-    });
+    const parsed = parseOptions(rewritten, "vA:j:N:t:w:S:", longOptions);
     const radix = validatedOption(
       parsed,
       "A",

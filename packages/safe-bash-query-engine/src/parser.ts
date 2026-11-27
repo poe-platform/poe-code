@@ -212,6 +212,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   const literal = (value: Json): Ast => ({ kind: "literal", value });
   const variable = (name: Token): Ast => {
     if (name.kind !== "name") fail("expected variable name");
+    if (name.text === "__loc__") return literal({ file: "<top-level>", line: source.slice(0, name.offset).split("\n").length });
     if (name.text === "ENV" && !bindings.has(name.text) && !variables.has(name.text)) return { kind: "variable", name: "ENV" };
     if (!bindings.has(name.text) && !variables.has(name.text)) fail(`undefined variable $${name.text}`);
     return defining && !bindings.has(name.text) ? literal(variables.get(name.text)!) : { kind: "variable", name: name.text };

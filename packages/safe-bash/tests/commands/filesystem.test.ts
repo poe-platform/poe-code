@@ -97,6 +97,69 @@ test("ls totals use reported allocation, including zero and partial KiB blocks",
   assert.equal(result.stdout.split("\n")[0], "total 1");
 });
 
+test("cp, mv and implicit ln accept the current directory as destination", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("mkdir d; touch d/a d/b d/c; cp d/a .; echo $?; mv d/b .; echo $?; ln -s d/c; echo $?; ls");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "0\n0\n0\na\nb\nc\nd\n");
+  assert.equal(await fs.readlink("/work/c"), "d/c");
+  await assert.rejects(fs.stat("/work/d/b"), { code: "ENOENT" });
+});
+
+for (const command of ["cp", "mv", "ln", "ln -s", "install"]) {
+  for (const [destination, directory] of [
+    [".", "/work"], ["./", "/work"], ["..", "/"], ["../", "/"],
+    ["target/.", "/work/target"], ["target/./", "/work/target"],
+    ["target/..", "/work"], ["target/../", "/work"],
+  ]) {
+    test(`${command} recognizes directory destination ${destination}`, async context => {
+      const fs = await fixture({ "source/file": "contents" });
+      await fs.mkdir("/work/target");
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${command} /work/source/file ${destination}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile(`${directory}/file`)), "contents");
+      if (command === "mv") await assert.rejects(fs.stat("/work/source/file"), { code: "ENOENT" });
+      if (command === "ln") assert.equal((await fs.stat(`${directory}/file`)).ino, (await fs.stat("/work/source/file")).ino);
+      if (command === "ln -s") assert.equal(await fs.readlink(`${directory}/file`), "/work/source/file");
+    });
+  }
+}
+
+for (const script of ["cp -t . source/file", "cp -r source/. .", "ln source/file", "cd source; mv * .."]) {
+  test(`directory destination works with ${script}`, async context => {
+    const fs = await fixture({ "source/file": "contents" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/file")), "contents");
+  });
+}
+
+for (const command of ["cp", "mv", "ln", "install"]) {
+  for (const destination of ["missing/.", "missing/..", "file/.", "file/.."]) {
+    test(`${command} rejects invalid directory prefix in ${destination}`, async context => {
+      const fs = await fixture({ "source/input": "contents", file: "keep" });
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${command} source/input ${destination}`);
+      assert.equal(result.exitCode, 1);
+      assert.notEqual(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/source/input")), "contents");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/file")), "keep");
+      await assert.rejects(fs.stat("/work/input"), { code: "ENOENT" });
+    });
+  }
+}
+
 for (const command of ["cp", "mv", "ln"]) {
   test(`${command} rejects the undocumented -B option before changing files`, async () => {
     const fs = await fixture({ source: "new", target: "old" });

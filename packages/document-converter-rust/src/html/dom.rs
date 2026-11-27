@@ -353,6 +353,11 @@ fn parse_html_children(
                     // the table, while cell and caption content stays in place.
                     foster_table_text(&mut children, &mut out);
                 }
+                if tag_name == "template" && !svg_element {
+                    // HTML template contents belong to a detached fragment, not
+                    // the document tree used for traversal and serialization.
+                    children.clear();
+                }
                 if tag_name == "table"
                     && children
                         .iter()

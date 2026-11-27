@@ -27332,7 +27332,8 @@ fn eval_sql_group_expr(
         } else {
             (false, raw_inner)
         };
-        let mut nums: Vec<f64> = Vec::new();
+        let mut sum = 0.0;
+        let mut count = 0usize;
         let mut seen_raw: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         for r in grp {
             let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
@@ -27342,15 +27343,40 @@ fn eval_sql_group_expr(
             if is_distinct && !seen_raw.insert(v.clone()) {
                 continue;
             }
-            if let Ok(n) = v.parse::<f64>() {
-                nums.push(n);
+            // SQLite counts every non-NULL value and uses its numeric prefix,
+            // or zero when the text does not begin with a number.
+            let text = v.trim_start_matches(|c: char| c.is_ascii_whitespace());
+            let bytes = text.as_bytes();
+            let mut end = usize::from(matches!(bytes.first(), Some(b'+' | b'-')));
+            while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+                end += 1;
             }
+            if bytes.get(end) == Some(&b'.') {
+                end += 1;
+                while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+                    end += 1;
+                }
+            }
+            if matches!(bytes.get(end), Some(b'e' | b'E')) {
+                let mut exponent_end = end + 1;
+                if matches!(bytes.get(exponent_end), Some(b'+' | b'-')) {
+                    exponent_end += 1;
+                }
+                let digits_start = exponent_end;
+                while bytes.get(exponent_end).is_some_and(u8::is_ascii_digit) {
+                    exponent_end += 1;
+                }
+                if exponent_end > digits_start {
+                    end = exponent_end;
+                }
+            }
+            sum += text[..end].parse::<f64>().unwrap_or(0.0);
+            count += 1;
         }
-        if nums.is_empty() {
+        if count == 0 {
             return SQL_NULL.to_string();
         }
-        let sum: f64 = nums.iter().sum();
-        let avg = sum / (nums.len() as f64);
+        let avg = sum / count as f64;
         if (avg - avg.round()).abs() < 1e-9 {
             return format!("{avg:.1}");
         }

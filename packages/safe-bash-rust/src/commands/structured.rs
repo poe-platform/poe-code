@@ -6532,6 +6532,27 @@ fn parse_toml_value(s: &str) -> Result<JVal, String> {
     if s == "false" {
         return Ok(JVal::Bool(false));
     }
+    let (digits, radix) = if let Some(digits) = s.strip_prefix("0x") {
+        (digits, 16)
+    } else if let Some(digits) = s.strip_prefix("0o") {
+        (digits, 8)
+    } else if let Some(digits) = s.strip_prefix("0b") {
+        (digits, 2)
+    } else {
+        (s, 10)
+    };
+    let unsigned = if radix == 10 {
+        digits.strip_prefix(['+', '-']).unwrap_or(digits)
+    } else {
+        digits
+    };
+    if unsigned
+        .split('_')
+        .all(|part| !part.is_empty() && part.chars().all(|c| c.is_digit(radix)))
+        && let Ok(n) = i64::from_str_radix(&digits.replace('_', ""), radix)
+    {
+        return Ok(JVal::Number(n as f64, Some(n.to_string().into_boxed_str())));
+    }
     if let Ok(n) = s.parse::<f64>() {
         return Ok(JVal::Number(n, None));
     }

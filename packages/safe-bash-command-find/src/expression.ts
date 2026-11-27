@@ -221,15 +221,15 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         explicitAction = true;
         return async entry => { await render!(entry); return true; };
       }
-      if (token === "-exec") {
+      if (token === "-exec" || token === "-execdir") {
         explicitAction = true;
         const command: string[] = [];
         const start = offset;
         while (args[offset] !== undefined && args[offset] !== ";" && !(args[offset] === "+" && args[offset - 1] === "{}")) command.push(args[offset++]!);
         const commandArguments = (rawArgumentValues ?? getCommandArguments(context)).withValues(values.slice(start, offset));
         const terminator = args[offset++];
-        if (!command.length || terminator === undefined) throw new UsageError("-exec requires a command terminated by ';' or '+'");
-        return createFindInvocation(context, execute, commandArguments, command, terminator, flushes, () => { status.exitCode = 1; });
+        if (!command.length || terminator === undefined) throw new UsageError(`${token} requires a command terminated by ';' or '+'`);
+        return createFindInvocation(context, execute, commandArguments, command, terminator, flushes, () => { status.exitCode = 1; }, token === "-execdir");
       }
       throw new UsageError(`unsupported expression '${token}'`);
     };

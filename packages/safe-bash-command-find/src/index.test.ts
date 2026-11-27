@@ -213,6 +213,31 @@ for (const mutation of ["unlink", "rename", "replace"] as const) {
   }
 }
 
+for (const terminator of [";", "+"]) {
+  test(`find -execdir runs in each match directory with ${terminator}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work/d", { recursive: true });
+    await fs.mkdir("/work/e");
+    for (const path of ["/work/d/a", "/work/d/b", "/work/e/a"]) await fs.writeFile(path, new Uint8Array());
+    const calls: unknown[] = [];
+    let stderr = "";
+    const result = await createFindCommand().execute({
+      command: "find", args: [".", "-type", "f", "-execdir", "echo", "{}", terminator],
+      cwd: "/work", env: {}, fs, stdin: toByteSource(""), signal: new AbortController().signal,
+      stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+      async invoke(command, args, options) {
+        calls.push([command, await fs.realpath(options!.cwd!), [...args]]);
+        return { exitCode: 0 };
+      },
+    });
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.deepEqual(calls, terminator === ";" ? [
+      ["echo", "/work/d", ["./a"]], ["echo", "/work/d", ["./b"]], ["echo", "/work/e", ["./a"]],
+    ] : [["echo", "/work/d", ["./a", "./b"]], ["echo", "/work/e", ["./a"]]]);
+  });
+}
+
 test("find -exec preserves raw argument bytes through host invocation", async () => {
   const raw = new Uint8Array([0xff]);
   const values = createCommandArguments([".", "-maxdepth", "0", "-exec", "echo", shellValueFromBytes(raw), ";"]);

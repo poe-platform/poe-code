@@ -12491,7 +12491,7 @@ fn cmd_magick(
         Gamma(f64),
         Trim(f64),
         Clear,
-        Morph(String, (usize, usize)),
+        Morph(String, magick_morphology::Kernel),
         Convolve(Vec<f64>, f64),
         Blur(f64),
         Sharpen(f64),
@@ -12891,7 +12891,7 @@ fn cmd_magick(
                 ops.push(if size.is_nan() {
                     PixelOp::Clear
                 } else {
-                    PixelOp::Morph("median".into(), (r, r))
+                    PixelOp::Morph("median".into(), magick_morphology::Kernel::Rectangle(r, r))
                 });
                 i += 1;
             }
@@ -12922,7 +12922,7 @@ fn cmd_magick(
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
                     }
                 } else {
-                    ops.push(PixelOp::Morph(method, magick_morphology::radii(spec)));
+                    ops.push(PixelOp::Morph(method, magick_morphology::kernel(spec)));
                 }
             }
             "-contrast" | "+contrast" => {
@@ -13174,8 +13174,8 @@ fn cmd_magick(
                     PixelOp::Gamma(g) => image.gamma(*g),
                     PixelOp::Trim(fuzz) => image.trim(*fuzz, fs.max_input_bytes())?,
                     PixelOp::Clear => image.pixels.fill([0; 4]),
-                    PixelOp::Morph(method, radii) => {
-                        image.morphology(method, *radii, fs.max_input_bytes())?
+                    PixelOp::Morph(method, kernel) => {
+                        image.morphology(method, *kernel, fs.max_input_bytes())?
                     }
                     PixelOp::Convolve(weights, bias) => {
                         image.convolve_rgb(weights, *bias, fs.max_input_bytes())?

@@ -1,6 +1,12 @@
 use super::{js_number, png_pixels::Raster};
 
-pub(super) fn radii(spec: &str) -> (usize, usize) {
+#[derive(Clone, Copy)]
+pub(super) enum Kernel {
+    Rectangle(usize, usize),
+    Diamond(usize),
+}
+
+pub(super) fn kernel(spec: &str) -> Kernel {
     let size = spec.split_once(':').map_or(spec, |(_, v)| v);
     if size.contains('x') {
         let mut dims = size.split('x').map(|s| {
@@ -9,14 +15,23 @@ pub(super) fn radii(spec: &str) -> (usize, usize) {
                 .floor()
                 .max(1.) as usize
         });
-        return (dims.next().unwrap(), dims.next().unwrap());
+        return Kernel::Rectangle(dims.next().unwrap(), dims.next().unwrap());
     }
     let r = js_number(size, 1.).round().max(1.) as usize;
-    (r, r)
+    if spec
+        .split(':')
+        .next()
+        .unwrap_or("")
+        .eq_ignore_ascii_case("diamond")
+    {
+        Kernel::Diamond(r)
+    } else {
+        Kernel::Rectangle(r, r)
+    }
 }
 
 // Count repeated edge pixels without iterating outside the image.
-fn span(center: usize, radius: usize, last: usize) -> impl Iterator<Item = (usize, u64)> {
+fn span(center: usize, radius: usize, last: usize) -> impl Iterator<Item = (usize, u64)> + Clone {
     (center.saturating_sub(radius)..=center.saturating_add(radius).min(last)).map(move |v| {
         let left = if v == 0 {
             radius.saturating_sub(center)
@@ -42,25 +57,46 @@ enum Rank {
 fn neighborhood(
     source: &[[u8; 4]],
     w: usize,
-    (rx, ry): (usize, usize),
+    kernel: Kernel,
     mode: Rank,
     limit: usize,
 ) -> Result<Vec<[u8; 4]>, &'static str> {
     let h = source.len() / w;
-    let (rx, ry) = if matches!(mode, Rank::Median) {
+    let (rx, ry) = match kernel {
+        Kernel::Rectangle(rx, ry) => (rx, ry),
+        Kernel::Diamond(r) => {
+            // Once the diamond covers the image, larger radii cannot change extrema.
+            let r = if matches!(mode, Rank::Median) {
+                r
+            } else {
+                r.min(w.saturating_add(h).saturating_sub(2))
+            };
+            (r, r)
+        }
+    };
+    let diamond = matches!(kernel, Kernel::Diamond(_));
+    let (rx, ry) = if diamond || matches!(mode, Rank::Median) {
         (rx, ry)
     } else {
         (rx.min(w), ry.min(h))
     };
     let side = |r: usize| (r as u64).checked_mul(2)?.checked_add(1);
-    let area = side(rx)
-        .and_then(|x| side(ry)?.checked_mul(x))
-        .ok_or("image exceeds work budget")?;
-    if source
-        .len()
-        .saturating_mul(ry.saturating_mul(2).saturating_add(1).min(h))
-        > limit.saturating_mul(64)
-    {
+    let area = if diamond {
+        (rx as u64)
+            .checked_add(1)
+            .and_then(|r| r.checked_mul(rx as u64))
+            .and_then(|n| n.checked_mul(2))
+            .and_then(|n| n.checked_add(1))
+    } else {
+        side(rx).and_then(|x| side(ry)?.checked_mul(x))
+    }
+    .ok_or("image exceeds work budget")?;
+    let row_count = if diamond {
+        ry.saturating_mul(2).saturating_add(1)
+    } else {
+        ry.saturating_mul(2).saturating_add(1).min(h)
+    };
+    if source.len().saturating_mul(row_count) > limit.saturating_mul(64) {
         return Err("image exceeds work budget");
     }
     let rank = match mode {
@@ -70,12 +106,24 @@ fn neighborhood(
     };
     let mut output = Vec::with_capacity(source.len());
     for y in 0..h {
+        // Each row carries its own horizontal radius. Keep virtual edge rows:
+        // their widths differ in a diamond and their repetitions matter for ranks.
+        let rows = (0..if diamond { row_count } else { 0 })
+            .map(|row| {
+                let sy = y.saturating_add(row).saturating_sub(ry).min(h - 1);
+                (sy, 1, rx - row.abs_diff(ry))
+            })
+            .chain(
+                span(y, ry, h - 1)
+                    .take(if diamond { 0 } else { usize::MAX })
+                    .map(|(sy, count)| (sy, count, rx)),
+            );
         let mut hist = [[0u64; 256]; 4];
-        for (sy, rows) in span(y, ry, h - 1) {
-            for (sx, cols) in span(0, rx, w - 1) {
+        for (sy, count, radius) in rows.clone() {
+            for (sx, cols) in span(0, radius, w - 1) {
                 let p = source[sy * w + sx];
                 for c in 0..4 {
-                    hist[c][usize::from(p[c])] += rows * cols;
+                    hist[c][usize::from(p[c])] += count * cols;
                 }
             }
         }
@@ -93,9 +141,9 @@ fn neighborhood(
             if x + 1 == w {
                 break;
             }
-            let leaving = x.saturating_sub(rx);
-            let entering = (x + 1).saturating_add(rx).min(w - 1);
-            for (sy, count) in span(y, ry, h - 1) {
+            for (sy, count, radius) in rows.clone() {
+                let leaving = x.saturating_sub(radius);
+                let entering = (x + 1).saturating_add(radius).min(w - 1);
                 let a = source[sy * w + leaving];
                 let b = source[sy * w + entering];
                 for c in 0..4 {
@@ -114,7 +162,13 @@ impl Raster {
         let detection = if self.width < 3 || self.height < 3 {
             &self.pixels
         } else {
-            filtered = neighborhood(&self.pixels, self.width, (1, 1), Rank::Median, limit)?;
+            filtered = neighborhood(
+                &self.pixels,
+                self.width,
+                Kernel::Rectangle(1, 1),
+                Rank::Median,
+                limit,
+            )?;
             &filtered
         };
         let premul = |[r, g, b, a]: [u8; 4]| {
@@ -152,11 +206,11 @@ impl Raster {
     pub(super) fn morphology(
         &mut self,
         method: &str,
-        (rx, ry): (usize, usize),
+        kernel: Kernel,
         limit: usize,
     ) -> Result<(), &'static str> {
         let filter =
-            |source: &[[u8; 4]], mode| neighborhood(source, self.width, (rx, ry), mode, limit);
+            |source: &[[u8; 4]], mode| neighborhood(source, self.width, kernel, mode, limit);
         let subtract = |a: &mut [[u8; 4]], b: &[[u8; 4]], reverse: bool| {
             for (a, b) in a.iter_mut().zip(b) {
                 for c in 0..4 {

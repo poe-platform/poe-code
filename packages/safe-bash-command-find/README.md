@@ -12,3 +12,5 @@ const plugin = findCommands();
 Use the command with a `CommandContext`, or install the plugin in a Safe Bash shell. `createFindCommands()` returns the command definitions without registering them. Limits are optional; omitted quotas are unbounded. Set finite limits for untrusted input.
 
 `find -exec` uses the context’s `invoke` capability, or an explicit `execute` handler. It never starts host processes. `limits.maxDirectoryEntries` bounds directory admission.
+
+Use `find . -regextype posix-extended -regex '.*/(src|test)'` to match whole paths with alternation, or `-iregex` for case-insensitive matching. `posix-extended` is the supported explicit regex type; other type names are rejected.

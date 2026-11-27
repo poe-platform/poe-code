@@ -3,6 +3,34 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { createFindCommand } from "./index.js";
+import { evalSyncFind } from "./find.js";
+
+for (const predicate of ["-regex", "-iregex"]) test(`find -regextype posix-extended supports ${predicate} alternation`, async () => {
+  const fs = await fixture({ "a/b/g.txt": "", "a/b/gXtxt": "" });
+  const pattern = predicate === "-iregex" ? ".*/(B|G\\.TXT)" : ".*/(b|g\\.txt)";
+  const args = [".", "-regextype", "posix-extended", predicate, pattern];
+  const result = await run("find", args, { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "./a/b\n./a/b/g.txt\n");
+  assert.equal(evalSyncFind(args, "/work", path => {
+    if (path.startsWith("/work/a/b/")) return { type: "file", size: 0, mode: 0o644 };
+    const children = path === "/work" ? ["a"] : path === "/work/a" ? ["b"] : ["g.txt", "gXtxt"];
+    return { type: "directory", size: 0, mode: 0o755, children: children.map(name => ({
+      name, type: path === "/work/a/b" ? "file" : "directory", size: 0, mode: 0o644,
+    })) };
+  }), result.stdout);
+});
+
+for (const operand of [[], ["unknown"]]) test(`find validates -regextype ${operand.join(" ")} before actions`, async () => {
+  const fs = await fixture({ keep: "" });
+  const args = ["keep", "-delete", "-regextype", ...operand];
+  const result = await run("find", args, { fs });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /-regextype/);
+  assert.ok(await fs.lstat("/work/keep"));
+  assert.equal(evalSyncFind(["keep", "-regextype", ...operand], "/work", () => ({ type: "file", size: 0, mode: 0o644 })), undefined);
+});
 
 async function fixture(files: Record<string, string> = {}) {
   const fs = createMemoryFileSystem();

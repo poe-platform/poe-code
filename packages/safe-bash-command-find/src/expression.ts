@@ -78,6 +78,12 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         explicitDepth = true;
         return () => true;
       }
+      if (token === "-regextype") {
+        const operand = args[offset++];
+        if (operand === undefined) throw new UsageError("-regextype requires an argument");
+        if (operand !== "posix-extended") throw new UsageError(`unsupported -regextype '${operand}' (supported: posix-extended)`);
+        return () => true;
+      }
       if (token === "-maxdepth" || token === "-mindepth") {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires a number`);

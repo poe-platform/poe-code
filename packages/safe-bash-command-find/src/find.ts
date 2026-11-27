@@ -522,6 +522,10 @@ export function evalSyncFind(
         depthFirst = true;
         return () => true;
       }
+      if (token === "-regextype") {
+        if (args[offset++] !== "posix-extended") throw new Error("regextype");
+        return () => true;
+      }
       if (token === "-maxdepth" || token === "-mindepth") {
         const operand = args[offset++];
         if (operand === undefined || !/^[0-9]+$/.test(operand)) throw new Error("depth");

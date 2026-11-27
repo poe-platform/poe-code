@@ -5,6 +5,31 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { agentCommands } from "../../src/core.js";
 
+for (const [producer, firstLine] of [
+  ["seq 10000", "1\n"],
+  ["sort f", "1\n"],
+  ["tac f", "10000\n"],
+  ["nl f", "     1\t1\n"],
+] as const) {
+  test(`${producer} exits silently with SIGPIPE when head closes the reader`, async context => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/f", new TextEncoder().encode(
+      Array.from({ length: 10000 }, (_, index) => `${index + 1}\n`).join(""),
+    ));
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`${producer} | head -1; echo "\${PIPESTATUS[@]}"`);
+    assert.equal(result.stdout, `${firstLine}141 0\n`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    const pipefail = await shell.exec(`set -o pipefail; ${producer} | head -1`);
+    assert.equal(pipefail.stdout, firstLine);
+    assert.equal(pipefail.stderr, "");
+    assert.equal(pipefail.exitCode, 141);
+  });
+}
+
 test("find counts follow middle filenames across tenants and in-place renames", async context => {
   const tenants: { fs: MemoryFileSystem; shell: Shell }[] = [];
   for (const middleExtension of ["ts", "txt"]) {

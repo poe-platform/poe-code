@@ -179,6 +179,7 @@ export function command(name: string, limits: StreamInspectionLimits, run: (sess
       return { exitCode: session.failed ? 1 : 0 };
     } catch (error) {
       context.signal.throwIfAborted();
+      if (error instanceof FsError && error.code === "EPIPE") return { exitCode: 141 };
       await diagnostic(context, error);
       return { exitCode: 1 };
     } finally { await session?.close(); }

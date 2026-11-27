@@ -38,6 +38,7 @@ async function handleDefineError(
   usageFailureCode: number,
 ): Promise<CommandResult> {
   context.signal.throwIfAborted();
+  if (error instanceof FsError && error.code === "EPIPE") return { exitCode: 141 };
   await diagnostic(context, error);
   return { exitCode: error instanceof UsageError ? usageFailureCode : failureCode };
 }

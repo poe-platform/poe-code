@@ -6078,7 +6078,8 @@ fn parse_yq_input_docs_with_meta(
         docs.push((json(parse_nested_yaml(doc)), meta));
         doc.clear();
     };
-    for line in input.lines() {
+    for raw_line in input.split_inclusive('\n') {
+        let line = raw_line.trim_end_matches(['\r', '\n']);
         let marker_tail = |prefix| {
             line.strip_prefix(prefix)
                 .filter(|rest| rest.is_empty() || rest.starts_with([' ', '\t']))
@@ -6102,7 +6103,9 @@ fn parse_yq_input_docs_with_meta(
         let trimmed = content.trim();
         started |= !trimmed.is_empty() && !trimmed.starts_with('#');
         current_doc.push_str(content);
-        current_doc.push('\n');
+        if raw_line.ends_with('\n') {
+            current_doc.push('\n');
+        }
     }
     if started || docs.is_empty() {
         finish(&mut current_doc, &mut docs);
@@ -6360,23 +6363,25 @@ fn parse_nested_yaml(input: &str) -> JVal {
     }
     let mut scalar_parent_indent = None;
     let lines: Vec<(usize, &str)> = input
-        .lines()
+        .split_inclusive('\n')
         .filter_map(|l| {
-            let trimmed = l.trim_end();
-            let stripped = trimmed.trim_start();
-            let indent = trimmed.len() - stripped.len();
+            let stripped = l.trim_start_matches(' ');
+            let indent = l.len() - stripped.len();
             if let Some(parent_indent) = scalar_parent_indent {
-                if stripped.is_empty() || indent > parent_indent {
+                if stripped.trim().is_empty() || indent > parent_indent {
                     return Some((indent, stripped));
                 }
                 scalar_parent_indent = None;
             }
-            if stripped.is_empty() || stripped.starts_with('#') || trimmed == "---" {
+            let stripped = stripped.trim();
+            if stripped.is_empty() || stripped.starts_with('#') || stripped == "---" {
                 None
             } else {
-                if let Some((_, value)) = stripped.split_once(':')
-                    && matches!(value.trim(), "|" | ">")
-                {
+                let value = stripped.strip_prefix("- ").unwrap_or(stripped);
+                let value = value
+                    .split_once(':')
+                    .map_or(value, |(_, value)| value.trim());
+                if value == ">" || yaml_literal_header(value).is_some() {
                     scalar_parent_indent = Some(indent);
                 }
                 Some((indent, stripped))
@@ -6505,7 +6510,7 @@ fn parse_yaml_block(
                     let mut item_map = Vec::new();
                     let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
                     let val_s = v.trim();
-                    let first_val = parse_yaml_key_value(lines, idx, indent, val_s, anchors);
+                    let first_val = parse_yaml_key_value(lines, idx, indent + 2, val_s, anchors);
                     item_map.push((key, first_val));
                     if *idx < lines.len() && lines[*idx].0 > indent {
                         let child_indent = lines[*idx].0;
@@ -6517,7 +6522,9 @@ fn parse_yaml_block(
                     }
                     arr.push(JVal::Object(item_map));
                 } else {
-                    arr.push(parse_yaml_scalar(after_dash, anchors));
+                    arr.push(parse_yaml_key_value(
+                        lines, idx, indent, after_dash, anchors,
+                    ));
                 }
             }
             return JVal::Array(arr);
@@ -6543,6 +6550,24 @@ fn parse_yaml_block(
     JVal::Object(map)
 }
 
+fn yaml_literal_header(value: &str) -> Option<(Option<usize>, char)> {
+    let rest = value.strip_prefix('|')?;
+    let (header, comment) = rest.split_once([' ', '\t']).unwrap_or((rest, ""));
+    if !comment.trim().is_empty() && !comment.trim_start().starts_with('#') {
+        return None;
+    }
+    let mut indent = None;
+    let mut chomp = ' ';
+    for c in header.chars() {
+        match c {
+            '1'..='9' if indent.is_none() => indent = c.to_digit(10).map(|n| n as usize),
+            '+' | '-' if chomp == ' ' => chomp = c,
+            _ => return None,
+        }
+    }
+    Some((indent, chomp))
+}
+
 fn parse_yaml_key_value(
     lines: &[(usize, &str)],
     idx: &mut usize,
@@ -6550,13 +6575,43 @@ fn parse_yaml_key_value(
     val_s: &str,
     anchors: &mut BTreeMap<String, JVal>,
 ) -> JVal {
-    if val_s == "|" || val_s == ">" {
+    if let Some((indent, chomp)) = yaml_literal_header(val_s) {
+        let mut base = indent.map(|indent| parent_indent + indent);
+        let mut text = String::new();
+        while let Some(&(indent, line)) = lines.get(*idx) {
+            let blank = line.trim().is_empty();
+            if !blank && indent < base.unwrap_or(parent_indent + 1) {
+                break;
+            }
+            if !blank {
+                let base = *base.get_or_insert(indent);
+                text.push_str(&" ".repeat(indent - base));
+                text.push_str(line.trim_end_matches(['\r', '\n']));
+            } else if let Some(base) = base {
+                text.push_str(&" ".repeat(indent.saturating_sub(base)));
+            }
+            if line.ends_with('\n') {
+                text.push('\n');
+            }
+            *idx += 1;
+        }
+        if chomp != '+' {
+            let clipped = text.ends_with('\n') && text.chars().any(|c| c != '\n');
+            text.truncate(text.trim_end_matches('\n').len());
+            if chomp != '-' && clipped {
+                text.push('\n');
+            }
+        }
+        return JVal::Str(text);
+    }
+    if val_s == ">" {
         let mut block_lines = Vec::new();
         let mut block_indent: Option<usize> = None;
         while *idx < lines.len()
-            && (lines[*idx].1.is_empty() || lines[*idx].0 > parent_indent)
+            && (lines[*idx].1.trim().is_empty() || lines[*idx].0 > parent_indent)
         {
             let (li, lt) = lines[*idx];
+            let lt = lt.trim_end_matches(['\r', '\n']);
             if lt.is_empty() {
                 block_lines.push(String::new());
             } else {
@@ -6593,7 +6648,10 @@ fn parse_yaml_key_value(
     }
     if val_s.is_empty() || (val_s.starts_with('&') && !val_s.contains(' ')) {
         let anchor = val_s.strip_prefix('&').map(|s| s.trim().to_string());
-        let child = if *idx < lines.len() && lines[*idx].0 > parent_indent {
+        let child = if *idx < lines.len()
+            && (lines[*idx].0 > parent_indent
+                || (lines[*idx].0 == parent_indent && lines[*idx].1.starts_with("- ")))
+        {
             let child_indent = lines[*idx].0;
             parse_yaml_block(lines, idx, child_indent, anchors)
         } else {

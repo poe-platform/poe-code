@@ -28675,7 +28675,12 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 return std::cmp::Ordering::Less;
             }
             let ord = if !no_inference {
-                if let (Ok(na), Ok(nb)) = (va.trim().parse::<f64>(), vb.trim().parse::<f64>()) {
+                if let (Some(na), Some(nb)) = (
+                    csvkit_decimal::Decimal::parse(va.trim(), false),
+                    csvkit_decimal::Decimal::parse(vb.trim(), false),
+                ) {
+                    na.cmp(&nb)
+                } else if let (Ok(na), Ok(nb)) = (va.trim().parse::<f64>(), vb.trim().parse::<f64>()) {
                     na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                 } else if ignore_case {
                     va.to_uppercase().cmp(&vb.to_uppercase())

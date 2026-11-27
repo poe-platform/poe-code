@@ -60,6 +60,43 @@ impl Decimal {
         })
     }
 
+    pub(super) fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let sign = |d: &Self| {
+            if d.digits == "0" {
+                0
+            } else if d.negative {
+                -1
+            } else {
+                1
+            }
+        };
+        let ordering = sign(self).cmp(&sign(other));
+        if ordering != std::cmp::Ordering::Equal || self.digits == "0" {
+            return ordering;
+        }
+        let adjusted = self.scale + (self.digits.len() as i128 - 1);
+        let other_adjusted = other.scale + (other.digits.len() as i128 - 1);
+        let ordering = adjusted.cmp(&other_adjusted).then_with(|| {
+            let width = self.digits.len().max(other.digits.len());
+            self.digits
+                .bytes()
+                .chain(std::iter::repeat(b'0'))
+                .take(width)
+                .cmp(
+                    other
+                        .digits
+                        .bytes()
+                        .chain(std::iter::repeat(b'0'))
+                        .take(width),
+                )
+        });
+        if self.negative {
+            ordering.reverse()
+        } else {
+            ordering
+        }
+    }
+
     pub(super) fn normalized_key(&self) -> String {
         if self.digits == "0" {
             return "0".into();

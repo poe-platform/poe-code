@@ -1512,6 +1512,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));
   assert.ok(files.includes("tests/commands/recursive-directory-admission.test.ts"));
   assert.ok(files.includes("tests/commands/recursive-filesystem-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/rm-verbose.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-retention.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-reader-retention.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-direct-output.test.ts"));

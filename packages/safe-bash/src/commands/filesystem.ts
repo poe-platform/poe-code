@@ -542,11 +542,12 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
-      const recursiveTraversal = recursive && (interactive === "always" || maxRecursiveDirectoryDepth !== Infinity);
+      const recursiveTraversal = recursive && (parsed.flags.has("v") || interactive === "always" || maxRecursiveDirectoryDepth !== Infinity);
       const backingMem = getRuntimeBackingFileSystem(context.fs) as (FileSystem & { symlinkCount?: number }) | undefined;
       const caps = context.fs.capabilities;
       const fastStockMemory =
         interactive === "never" &&
+        !parsed.flags.has("v") &&
         !recursiveTraversal &&
         backingMem !== undefined &&
         backingMem.capabilitiesFor === undefined &&
@@ -563,7 +564,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         !Object.prototype.hasOwnProperty.call(backingMem, "realpath") &&
         !Object.prototype.hasOwnProperty.call(backingMem, "rm") &&
         !Object.prototype.hasOwnProperty.call(backingMem, "rmdir");
-      if (fastStockMemory && parsed.operands.length === 1 && !parsed.flags.has("v") && (recursive || !parsed.flags.has("d"))) {
+      if (fastStockMemory && parsed.operands.length === 1 && (recursive || !parsed.flags.has("d"))) {
         const operand = parsed.operands[0]!;
         const path = pathOf(context, operand);
         if (path !== "/" && path !== "/dev" && !path.startsWith("/dev/") && !operand.endsWith(".") && !operand.endsWith("/")) {
@@ -610,12 +611,10 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
               }
               if (stat.type === "directory") {
                 await context.fs.rmdir!(path, { signal: context.signal });
-                if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
                 return true;
               }
             }
             await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
-            if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
             return true;
           }
           const stat = await maybeStat(context, path, false);
@@ -657,6 +656,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             catch (error) {
               context.signal.throwIfAborted();
               if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
+              return true;
             }
           } else {
             const parentDir = await context.fs.realpath(dirname(path), { signal: context.signal });
@@ -684,7 +684,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
               context.fs.rm(canonicalPath, { recursive, force: parsed.flags.has("f"), signal: context.signal, parent: parentStat, expected: currentStat, ancestors } as never),
             );
           }
-          if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
+          if (parsed.flags.has("v")) await output(context, `removed ${stat.type === "directory" ? "directory " : ""}'${escapeText(operand, "display")}'\n`);
           return true;
         };
         return await eachOperand(context, parsed.operands, async operand => { await remove(operand); });

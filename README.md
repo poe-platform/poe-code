@@ -162,7 +162,7 @@ poe-code models --search claude
 
 ## SDK
 
-Safe Bash expands home paths in assignment arguments such as `env X=~/dir printenv X` and `echo PATH=x:~`. Its `time` keyword measures pipelines, with portable output through `time -p`. Long `ls` listings use GNU-style month/day/time-or-year fields, keeping filenames in field 9. `dos2unix -c mac` and `unix2dos -c mac` convert classic Mac CR line endings to and from Unix LF while preserving CRLF. It offers opt-in [trash commands](packages/safe-bash-command-trash/README.md) backed by atomic filesystem operations. Native providers can route `rm` through the same recoverable deletion policy.
+Safe Bash expands home paths in assignment arguments such as `env X=~/dir printenv X` and `echo PATH=x:~`. Its `time` keyword measures pipelines, with portable output through `time -p`. Long `ls` listings use GNU-style month/day/time-or-year fields, keeping filenames in field 9. `dos2unix -c mac` and `unix2dos -c mac` convert classic Mac CR line endings to and from Unix LF while preserving CRLF. It offers opt-in [trash commands](packages/safe-bash-command-trash/README.md) backed by atomic filesystem operations. Native providers can route `rm` through the same recoverable deletion policy. Recursive `rm -v` reports each deleted file and directory.
 
 The Rust [spreadsheet API](packages/safe-bash-rust/README.md) supports batch editing, formula recalculation, sparse tables, editable pivot tables, JSON persistence, and XLSX import/export in native applications and WebAssembly. Formula parsing and reference updates share the workbook engine; rejected edit batches preserve the previous workbook.
 

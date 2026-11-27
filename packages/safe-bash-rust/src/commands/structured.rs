@@ -6184,13 +6184,34 @@ fn jval_to_yaml(val: &JVal, indent: usize, quote_all: bool) -> String {
     }
 }
 
+fn strip_toml_comment(line: &str) -> &str {
+    let mut quote = None;
+    let mut escaped = false;
+    for (index, c) in line.char_indices() {
+        if escaped {
+            escaped = false;
+        } else if c == '\\' && quote == Some('"') {
+            escaped = true;
+        } else if Some(c) == quote {
+            quote = None;
+        } else if quote.is_none() {
+            match c {
+                '\'' | '"' => quote = Some(c),
+                '#' => return &line[..index],
+                _ => {}
+            }
+        }
+    }
+    line
+}
+
 fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
     let mut root: Vec<(String, JVal)> = Vec::new();
     let mut cur_section: Option<(String, bool)> = None;
 
     let mut lines = input.split_inclusive('\n');
     while let Some(raw_line) = lines.next() {
-        let line = raw_line.trim();
+        let line = strip_toml_comment(raw_line).trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
@@ -6222,7 +6243,7 @@ fn parse_toml_to_jval(input: &str) -> Result<JVal, String> {
             let val = if v.starts_with("\"\"\"") || v.starts_with("'''") {
                 parse_toml_multiline(v, &mut lines)?
             } else {
-                parse_toml_value(v.trim())?
+                parse_toml_value(strip_toml_comment(v).trim())?
             };
             match &cur_section {
                 None => insert_toml_dotted(&mut root, &key_segs, val),

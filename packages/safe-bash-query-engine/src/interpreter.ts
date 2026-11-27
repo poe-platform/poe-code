@@ -1,4 +1,5 @@
 import { utf8ByteLength } from "./bytes.js";
+import { unaryMath, binaryMath } from "./math.js";
 import { Budget, invalidateCachedValueMetrics, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
@@ -1380,6 +1381,28 @@ export class Interpreter {
         const found = await indices(input, value, budget);
         if (name === "indices") yield found;
         else yield indexValue(found, name === "index" ? 0 : -1);
+      }
+      return;
+    }
+    if (name === "isnormal") {
+      const value = isNumber(input) ? numberValue(input) : NaN;
+      yield Number.isFinite(value) && Math.abs(value) >= 2 ** -1022;
+      return;
+    }
+    if (Object.hasOwn(unaryMath, name)) {
+      if (!isNumber(input)) throw new JqError(`${describe(input, budget)} cannot be ${name}ed`);
+      budget.step();
+      yield unaryMath[name]!(numberValue(input));
+      return;
+    }
+    if (Object.hasOwn(binaryMath, name)) {
+      // jq evaluates native function arguments from right to left.
+      for await (const right of this.run(args[1]!, input)) {
+        for await (const left of this.run(args[0]!, input)) {
+          if (!isNumber(left) || !isNumber(right)) throw new JqError(`${name} requires numeric arguments`);
+          budget.step();
+          yield binaryMath[name]!(numberValue(left), numberValue(right));
+        }
       }
       return;
     }

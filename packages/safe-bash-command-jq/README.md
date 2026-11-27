@@ -13,6 +13,9 @@ or `null` before reading an input source. `input_line_number` returns the curren
 input line count, or `0` before reading input.
 `debug` writes `["DEBUG:", value]` as compact JSON to stderr and passes the value through.
 Use `jq -cn 'builtins'` to list supported functions as `name/arity` strings.
+Numeric filters include `pow(2;10)`, logarithms (`log`, `log2`, `log10`, `log1p`),
+exponentials, trigonometric and hyperbolic functions, `cbrt`, `trunc`, `isnormal`,
+and two-argument `atan2`, `hypot`, `fmin`, `fmax`, and `fmod`.
 
 This private implementation ships inside Safe Bash; no separate installation is
 needed. Use the public command export to register jq explicitly:

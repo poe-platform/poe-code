@@ -1,6 +1,7 @@
 import { utf8ByteLength } from "./bytes.js";
 import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./limits.js";
 import { decimalNumber } from "./numbers.js";
+import { unaryMath, binaryMath } from "./math.js";
 
 export type BindingPattern =
   | { kind: "variable"; name: string; pattern?: BindingPattern }
@@ -41,6 +42,9 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  ...Object.fromEntries(Object.keys(unaryMath).map(name => [name, [0]])),
+  ...Object.fromEntries(Object.keys(binaryMath).map(name => [name, [2]])),
+  isnormal: [0],
   builtins: [0],
   trim: [0], ltrim: [0], rtrim: [0],
   path: [1], leaf_paths: [0], fabs: [0], env: [0], input: [0], inputs: [0], input_filename: [0], input_line_number: [0], fromstream: [1], tostream: [0], truncate_stream: [1],

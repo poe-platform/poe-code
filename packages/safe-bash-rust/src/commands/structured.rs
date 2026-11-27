@@ -17863,14 +17863,42 @@ enum SqlTriggerOp {
     Delete,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SqlTriggerTiming {
+    Before,
+    After,
+    InsteadOf,
+}
+
 #[derive(Clone)]
 struct SqlTrigger {
     table: String,
     op: SqlTriggerOp,
-    update_columns: Vec<String>,
-    before: bool,
+    update_of: Vec<String>,
+    timing: SqlTriggerTiming,
     when_expr: Option<String>,
     body: String,
+}
+
+fn sql_trigger_update_columns(header: &str) -> Vec<String> {
+    let upper = header.to_ascii_uppercase();
+    let Some(update) = upper.find(" UPDATE ") else {
+        return Vec::new();
+    };
+    let clause = &header[update + 8..];
+    let Some(on) = upper[update + 8..].find(" ON ") else {
+        return Vec::new();
+    };
+    let Some((keyword, columns)) = clause[..on].trim().split_once(char::is_whitespace) else {
+        return Vec::new();
+    };
+    if !keyword.eq_ignore_ascii_case("OF") {
+        return Vec::new();
+    }
+    split_top_level_comma(columns)
+        .into_iter()
+        .map(|column| column.trim().to_string())
+        .collect()
 }
 
 #[derive(Clone)]
@@ -19387,12 +19415,16 @@ fn serialize_sql_db(
             SqlTriggerOp::Update => "UPDATE",
             SqlTriggerOp::Delete => "DELETE",
         };
-        let update_of = if tr.update_columns.is_empty() {
+        let update_of = if tr.update_of.is_empty() {
             String::new()
         } else {
-            format!(" OF {}", tr.update_columns.join(", "))
+            format!(" OF {}", tr.update_of.join(", "))
         };
-        let timing_s = if tr.before { "BEFORE" } else { "AFTER" };
+        let timing_s = match tr.timing {
+            SqlTriggerTiming::Before => "BEFORE",
+            SqlTriggerTiming::After => "AFTER",
+            SqlTriggerTiming::InsteadOf => "INSTEAD OF",
+        };
         let when_s = match &tr.when_expr {
             Some(w) if !w.trim().is_empty() => format!(" WHEN {}", w.trim()),
             _ => String::new(),
@@ -19626,7 +19658,13 @@ fn deserialize_sql_db(
                 if let Some(bp) = norm_up.find(" BEGIN ") {
                     let hdr = &norm[..bp];
                     let hdr_up = &norm_up[..bp];
-                    let before = hdr_up.contains(" BEFORE ");
+                    let timing = if hdr_up.contains(" INSTEAD OF ") {
+                        SqlTriggerTiming::InsteadOf
+                    } else if hdr_up.contains(" BEFORE ") {
+                        SqlTriggerTiming::Before
+                    } else {
+                        SqlTriggerTiming::After
+                    };
                     let op = if hdr_up.contains(" UPDATE ") {
                         SqlTriggerOp::Update
                     } else if hdr_up.contains(" DELETE ") {
@@ -19635,10 +19673,6 @@ fn deserialize_sql_db(
                         SqlTriggerOp::Insert
                     };
                     if let Some(on_p) = hdr_up.find(" ON ") {
-                        let update_columns = hdr_up[..on_p]
-                            .find(" UPDATE OF ")
-                            .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]).into_iter().map(str::to_string).collect())
-                            .unwrap_or_default();
                         let after_on = hdr[on_p + 4..].trim();
                         let tname = after_on
                             .split_whitespace()
@@ -19659,8 +19693,8 @@ fn deserialize_sql_db(
                         triggers.push(SqlTrigger {
                             table: tname,
                             op,
-                            update_columns,
-                            before,
+                            update_of: sql_trigger_update_columns(hdr),
+                            timing,
                             when_expr,
                             body,
                         });
@@ -19795,8 +19829,12 @@ fn deserialize_sql_db(
                         triggers.push(SqlTrigger {
                             table,
                             op,
-                            update_columns: Vec::new(),
-                            before,
+                            update_of: Vec::new(),
+                            timing: if before {
+                                SqlTriggerTiming::Before
+                            } else {
+                                SqlTriggerTiming::After
+                            },
                             when_expr,
                             body,
                         });
@@ -19922,7 +19960,11 @@ fn deserialize_sql_db(
 fn resolve_sql_table_name<'a>(tables: &'a BTreeMap<String, SqlTable>, name: &'a str) -> &'a str {
     tables
         .get_key_value(name)
-        .or_else(|| tables.iter().find(|(key, _)| key.eq_ignore_ascii_case(name)))
+        .or_else(|| {
+            tables
+                .iter()
+                .find(|(key, _)| key.eq_ignore_ascii_case(name))
+        })
         .map_or(name, |(key, _)| key.as_str())
 }
 
@@ -20585,12 +20627,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                 let allow = fire_sql_triggers(
                                     &tname,
                                     SqlTriggerOp::Insert,
-                                    true,
-                                    &tbl_cols,
                                     &[],
+                                    SqlTriggerTiming::Before,
+                                    &tbl_cols,
                                     None,
                                     Some(&cells),
                                     &mut tables,
+                                    &views,
                                     &triggers,
                                 )
                                 .unwrap_or(true);
@@ -20601,12 +20644,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                     let _ = fire_sql_triggers(
                                         &tname,
                                         SqlTriggerOp::Insert,
-                                        false,
-                                        &tbl_cols,
                                         &[],
+                                        SqlTriggerTiming::After,
+                                        &tbl_cols,
                                         None,
                                         Some(&cells),
                                         &mut tables,
+                                        &views,
                                         &triggers,
                                     );
                                 }
@@ -21005,6 +21049,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let ret_chunk = match exec_sql_delete(
                 stmt,
                 &mut tables,
+                &views,
                 &triggers,
                 foreign_keys_enabled,
                 tx_snapshot.is_some() || !savepoints.is_empty(),
@@ -21128,7 +21173,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             if let Some(bp) = norm_up.find(" BEGIN ") {
                 let hdr = &norm[..bp];
                 let hdr_up = &norm_up[..bp];
-                let before = hdr_up.contains(" BEFORE ");
+                let timing = if hdr_up.contains(" INSTEAD OF ") {
+                    SqlTriggerTiming::InsteadOf
+                } else if hdr_up.contains(" BEFORE ") {
+                    SqlTriggerTiming::Before
+                } else {
+                    SqlTriggerTiming::After
+                };
                 let op = if hdr_up.contains(" UPDATE ") {
                     SqlTriggerOp::Update
                 } else if hdr_up.contains(" DELETE ") {
@@ -21137,10 +21188,6 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     SqlTriggerOp::Insert
                 };
                 if let Some(on_p) = hdr_up.find(" ON ") {
-                    let update_columns = hdr_up[..on_p]
-                        .find(" UPDATE OF ")
-                        .map(|pos| split_top_level_comma(&hdr[pos + 11..on_p]).into_iter().map(str::to_string).collect())
-                        .unwrap_or_default();
                     let after_on = hdr[on_p + 4..].trim();
                     let tname = after_on
                         .split_whitespace()
@@ -21161,8 +21208,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     triggers.push(SqlTrigger {
                         table: tname,
                         op,
-                        update_columns,
-                        before,
+                        update_of: sql_trigger_update_columns(hdr),
+                        timing,
                         when_expr,
                         body,
                     });
@@ -21212,6 +21259,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             match exec_sql_insert(
                 stmt,
                 &mut tables,
+                &views,
                 &triggers,
                 foreign_keys_enabled,
                 tx_snapshot.is_some() || !savepoints.is_empty(),
@@ -21240,6 +21288,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let ret_chunk = match exec_sql_update(
                 stmt,
                 &mut tables,
+                &views,
                 &triggers,
                 foreign_keys_enabled,
                 json_mode,
@@ -21444,6 +21493,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 match exec_sql_insert(
                     rest,
                     &mut tables,
+                    &views,
                     &triggers,
                     foreign_keys_enabled,
                     tx_snapshot.is_some() || !savepoints.is_empty(),
@@ -21475,6 +21525,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 let ret_chunk = match exec_sql_update(
                     rest,
                     &mut tables,
+                    &views,
                     &triggers,
                     foreign_keys_enabled,
                     json_mode,
@@ -21695,12 +21746,13 @@ fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
 fn fire_sql_triggers(
     tname: &str,
     op: SqlTriggerOp,
-    before: bool,
+    updated_cols: &[usize],
+    timing: SqlTriggerTiming,
     cols: &[String],
-    updated_columns: &[usize],
     old_row: Option<&[String]>,
     new_row: Option<&[String]>,
     tables: &mut BTreeMap<String, SqlTable>,
+    views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
 ) -> Result<bool, String> {
     let matching: Vec<SqlTrigger> = triggers
@@ -21708,11 +21760,11 @@ fn fire_sql_triggers(
         .filter(|tr| {
             tr.table.eq_ignore_ascii_case(tname)
                 && tr.op == op
-                && tr.before == before
-                && (tr.update_columns.is_empty()
-                    || tr.update_columns.iter().any(|column| {
+                && tr.timing == timing
+                && (tr.update_of.is_empty()
+                    || tr.update_of.iter().any(|column| {
                         find_sql_col(cols, column)
-                            .is_some_and(|index| updated_columns.contains(&index))
+                            .is_some_and(|index| updated_cols.contains(&index))
                     }))
         })
         .cloned()
@@ -21791,32 +21843,25 @@ fn fire_sql_triggers(
             let sub = sub_stmt.trim();
             let sub_up = sub.to_ascii_uppercase();
             if sub_up.starts_with("INSERT ") || sub_up.starts_with("REPLACE ") {
-                exec_sql_insert(sub, tables, triggers, false, false, false, false, "|")?;
+                exec_sql_insert(
+                    sub, tables, views, triggers, false, false, false, false, "|",
+                )?;
             } else if sub_up.starts_with("DELETE FROM ") {
-                exec_sql_delete(sub, tables, triggers, false, false, false, false, "|")?;
+                exec_sql_delete(
+                    sub, tables, views, triggers, false, false, false, false, "|",
+                )?;
             } else if sub_up.starts_with("UPDATE ") {
-                exec_sql_update(sub, tables, triggers, false, false, false, "|")?;
+                exec_sql_update(sub, tables, views, triggers, false, false, false, "|")?;
             } else if sub_up.starts_with("SELECT ") {
                 let sel_out = exec_sql_select_ext(
-                    sub,
-                    tables,
-                    &BTreeMap::new(),
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    None,
-                    false,
-                    "|",
-                    "",
+                    sub, tables, views, false, false, false, false, false, None, false, "|", "",
                 );
                 if let Some(err_pos) = sel_out.find("\x00RAISE_ERR:") {
                     let after = &sel_out[err_pos + 11..];
                     let msg = after.lines().next().unwrap_or("ABORT").trim();
                     return Err(format!("Error: {msg}\n"));
                 }
-                if sel_out.contains("\x00RAISE_IGNORE") && before {
+                if sel_out.contains("\x00RAISE_IGNORE") {
                     return Ok(false);
                 }
             }
@@ -21931,6 +21976,7 @@ fn format_sql_returning(
 fn exec_sql_insert(
     stmt: &str,
     tables: &mut BTreeMap<String, SqlTable>,
+    views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
     foreign_keys_enabled: bool,
     in_transaction: bool,
@@ -21987,9 +22033,25 @@ fn exec_sql_insert(
     };
 
     let tname = resolve_sql_table_name(tables, &tname).to_owned();
-    let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()) else {
+    let is_view = views.contains_key(&tname);
+    let Some(t_cols) = tables
+        .get(&tname)
+        .map(|t| t.columns.clone())
+        .or_else(|| resolve_sql_from_table(&tname, tables, views).map(|t| t.columns))
+    else {
         return Ok(String::new());
     };
+    if is_view
+        && !triggers.iter().any(|tr| {
+            tr.table.eq_ignore_ascii_case(&tname)
+                && tr.op == SqlTriggerOp::Insert
+                && tr.timing == SqlTriggerTiming::InsteadOf
+        })
+    {
+        return Err(format!(
+            "Error: cannot modify {tname} because it is a view\n"
+        ));
+    }
 
     let mut value_tuples: Vec<Vec<String>> = Vec::new();
     if let Some(val_pos) = val_pos_opt {
@@ -22023,17 +22085,7 @@ fn exec_sql_insert(
     } else if let Some(sel_pos) = select_pos_opt {
         let sel_sql = norm[sel_pos..val_end].trim();
         let sel_out = exec_sql_select_ext(
-            sel_sql,
-            tables,
-            &BTreeMap::new(),
-            false,
-            false,
-            false,
-            false,
-            false,
-            None,
-            false,
-            "\x1f",
+            sel_sql, tables, views, false, false, false, false, false, None, false, "\x1f",
             SQL_NULL,
         );
         for line in sel_out.lines() {
@@ -22111,15 +22163,38 @@ fn exec_sql_insert(
                 row[gpos] = eval_sql_row_expr(gexpr, &t_cols, &row, tables);
             }
         }
+        if is_view {
+            match fire_sql_triggers(
+                &tname,
+                SqlTriggerOp::Insert,
+                &[],
+                SqlTriggerTiming::InsteadOf,
+                &t_cols,
+                None,
+                Some(&row),
+                tables,
+                views,
+                triggers,
+            ) {
+                Ok(true) => affected_rows.push(row),
+                Ok(false) => {}
+                Err(e) => {
+                    *tables = stmt_snap;
+                    return Err(e);
+                }
+            }
+            continue;
+        }
         match fire_sql_triggers(
             &tname,
             SqlTriggerOp::Insert,
-            true,
-            &t_cols,
             &[],
+            SqlTriggerTiming::Before,
+            &t_cols,
             None,
             Some(&row),
             tables,
+            views,
             triggers,
         ) {
             Ok(false) => continue,
@@ -22244,11 +22319,11 @@ fn exec_sql_insert(
                 };
                 if cond_ok {
                     let mut updated_row = old_copy.clone();
-                    let mut updated_columns = Vec::new();
+                    let mut updated_cols = Vec::new();
                     for assign in split_top_level_comma(set_part) {
                         if let Some((lhs, rhs)) = assign.split_once('=') {
                             if let Some(c_idx) = find_sql_col(&t_cols, lhs.trim()) {
-                                updated_columns.push(c_idx);
+                                updated_cols.push(c_idx);
                                 updated_row[c_idx] =
                                     eval_sql_row_expr(rhs.trim(), &u_cols, &u_row, tables);
                             }
@@ -22263,12 +22338,13 @@ fn exec_sql_insert(
                     if !fire_sql_triggers(
                         &tname,
                         SqlTriggerOp::Update,
-                        true,
+                        &updated_cols,
+                        SqlTriggerTiming::Before,
                         &t_cols,
-                        &updated_columns,
                         Some(&old_copy),
                         Some(&updated_row),
                         tables,
+                        views,
                         triggers,
                     )? {
                         continue;
@@ -22280,12 +22356,13 @@ fn exec_sql_insert(
                     fire_sql_triggers(
                         &tname,
                         SqlTriggerOp::Update,
-                        false,
+                        &updated_cols,
+                        SqlTriggerTiming::After,
                         &t_cols,
-                        &updated_columns,
                         Some(&old_copy),
                         Some(&updated_row),
                         tables,
+                        views,
                         triggers,
                     )?;
                 }
@@ -22300,12 +22377,13 @@ fn exec_sql_insert(
         fire_sql_triggers(
             &tname,
             SqlTriggerOp::Insert,
-            false,
-            &t_cols,
             &[],
+            SqlTriggerTiming::After,
+            &t_cols,
             None,
             Some(&row),
             tables,
+            views,
             triggers,
         )?;
     }
@@ -22328,6 +22406,7 @@ fn exec_sql_insert(
 fn exec_sql_update(
     stmt: &str,
     tables: &mut BTreeMap<String, SqlTable>,
+    views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
     foreign_keys_enabled: bool,
     json_mode: bool,
@@ -22349,59 +22428,47 @@ fn exec_sql_update(
             .collect()
     });
     let where_pos = find_top_sql_bool_kw(&upper[set_pos + 5..], " WHERE ").map(|p| set_pos + 5 + p);
-    let from_pos = find_top_sql_bool_kw(
-        &upper[set_pos + 5..where_pos.or(ret_pos).unwrap_or(stmt_norm.len())],
-        " FROM ",
-    )
-    .map(|p| set_pos + 5 + p);
-    let set_end = from_pos
-        .or(where_pos)
-        .or(ret_pos)
-        .unwrap_or(stmt_norm.len());
-    let set_clause = stmt_norm[set_pos + 5..set_end].trim();
+    let set_end = where_pos.or(ret_pos).unwrap_or(stmt_norm.len());
+    let from_pos =
+        find_top_sql_bool_kw(&upper[set_pos + 5..set_end], " FROM ").map(|p| set_pos + 5 + p);
+    let set_clause = stmt_norm[set_pos + 5..from_pos.unwrap_or(set_end)].trim();
     let where_clause = where_pos.map(|wp| {
         let w_end = ret_pos.unwrap_or(stmt_norm.len());
         stmt_norm[wp + 7..w_end].trim()
     });
-    let Some((t_cols, gen_clone, checks)) = tables.get(&tname).map(|t| {
-        (
-            t.columns.clone(),
-            t.generated.clone(),
-            t.check_exprs.clone(),
-        )
-    }) else {
+    let is_view = views.contains_key(&tname);
+    let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
         return Ok(String::new());
     };
-    let mut eval_affinities = tables[&tname].affinities.clone();
+    let t_cols = target.columns.clone();
+    let gen_clone = target.generated.clone();
+    let checks = target.check_exprs.clone();
+    let mut eval_affinities = target.affinities.clone();
     eval_affinities.extend_from_within(..);
     let mut eval_cols = t_cols.clone();
     for c in &t_cols {
         eval_cols.push(format!("{tname}.{c}"));
     }
-    let source = if let Some(fp) = from_pos {
-        let from_clause =
-            stmt_norm[fp + 6..where_pos.or(ret_pos).unwrap_or(stmt_norm.len())].trim();
+    let from_table = if let Some(fp) = from_pos {
+        let from_clause = stmt_norm[fp + 6..set_end].trim();
         let mut source = resolve_sql_from_table(from_clause, tables, &BTreeMap::new())
             .ok_or_else(|| format!("Error: no such table: {from_clause}\n"))?;
-        let qualifier = from_clause
+        let source_name = from_clause
             .split_whitespace()
             .next()
             .unwrap_or("")
             .trim_matches('"');
-        for column in &mut source.columns {
-            if !column.contains('.') {
-                *column = format!("{qualifier}.{column}");
+        for col in &mut source.columns {
+            if !col.contains('.') {
+                *col = format!("{source_name}.{col}");
             }
         }
-        source
+        eval_cols.extend(source.columns.iter().cloned());
+        eval_affinities.extend_from_slice(&source.affinities);
+        Some(source)
     } else {
-        SqlTable {
-            rows: vec![Vec::new()],
-            ..SqlTable::default()
-        }
+        None
     };
-    eval_cols.extend_from_slice(&source.columns);
-    eval_affinities.extend_from_slice(&source.affinities);
     let assigns: Vec<(usize, String)> = split_top_level_comma(set_clause)
         .into_iter()
         .filter_map(|item| {
@@ -22410,46 +22477,74 @@ fn exec_sql_update(
             Some((idx, rhs.trim().to_string()))
         })
         .collect();
-    let updated_columns: Vec<usize> = assigns.iter().map(|(index, _)| *index).collect();
+    let updated_cols: Vec<usize> = assigns.iter().map(|(index, _)| *index).collect();
     let mut updated_pairs: Vec<(usize, Vec<String>, Vec<String>)> = Vec::new();
     let tables_snap = tables.clone();
-    if let Some(tbl) = tables.get(&tname) {
-        for (r_idx, r) in tbl.rows.iter().enumerate() {
-            let mut eval_r = r.clone();
-            eval_r.extend_from_slice(r);
-            let matches = source.rows.iter().any(|source_row| {
+    for (r_idx, r) in target.rows.iter().enumerate() {
+        let mut eval_r = r.clone();
+        eval_r.extend_from_slice(r);
+        let matches = if let Some(source) = &from_table {
+            // Select one source row before mutating any target rows.
+            source.rows.iter().any(|source_row| {
                 eval_r.truncate(r.len() * 2);
                 eval_r.extend_from_slice(source_row);
                 where_clause.is_none_or(|wc| {
                     eval_sql_where(wc, &eval_cols, &eval_affinities, &eval_r, &tables_snap)
                 })
-            });
-            if matches {
-                let old_r = r.clone();
-                let mut new_r = r.clone();
-                for (c_idx, rhs_expr) in &assigns {
-                    new_r[*c_idx] = eval_sql_row_expr(rhs_expr, &eval_cols, &eval_r, &tables_snap);
-                }
-                for (gcol, gexpr) in &gen_clone {
-                    if let Some(gpos) = find_sql_col(&t_cols, gcol) {
-                        new_r[gpos] = eval_sql_row_expr(gexpr, &t_cols, &new_r, &tables_snap);
-                    }
-                }
-                updated_pairs.push((r_idx, old_r, new_r));
+            })
+        } else {
+            where_clause.is_none_or(|wc| {
+                eval_sql_where(wc, &eval_cols, &eval_affinities, &eval_r, &tables_snap)
+            })
+        };
+        if matches {
+            let old_r = r.clone();
+            let mut new_r = r.clone();
+            for (c_idx, rhs_expr) in &assigns {
+                new_r[*c_idx] = eval_sql_row_expr(rhs_expr, &eval_cols, &eval_r, &tables_snap);
             }
+            for (gcol, gexpr) in &gen_clone {
+                if let Some(gpos) = find_sql_col(&t_cols, gcol) {
+                    new_r[gpos] = eval_sql_row_expr(gexpr, &t_cols, &new_r, &tables_snap);
+                }
+            }
+            updated_pairs.push((r_idx, old_r, new_r));
         }
     }
     let mut affected_rows = Vec::new();
     for (r_idx, old_r, ur) in updated_pairs {
+        if is_view {
+            match fire_sql_triggers(
+                &tname,
+                SqlTriggerOp::Update,
+                &updated_cols,
+                SqlTriggerTiming::InsteadOf,
+                &t_cols,
+                Some(&old_r),
+                Some(&ur),
+                tables,
+                views,
+                triggers,
+            ) {
+                Ok(true) => affected_rows.push(ur),
+                Ok(false) => {}
+                Err(e) => {
+                    *tables = tables_snap;
+                    return Err(e);
+                }
+            }
+            continue;
+        }
         match fire_sql_triggers(
             &tname,
             SqlTriggerOp::Update,
-            true,
+            &updated_cols,
+            SqlTriggerTiming::Before,
             &t_cols,
-            &updated_columns,
             Some(&old_r),
             Some(&ur),
             tables,
+            views,
             triggers,
         ) {
             Ok(false) => continue,
@@ -22534,23 +22629,25 @@ fn exec_sql_update(
                         let _ = fire_sql_triggers(
                             &ctname,
                             SqlTriggerOp::Update,
-                            true,
-                            &c_cols,
                             &[c_idx],
+                            SqlTriggerTiming::Before,
+                            &c_cols,
                             Some(&old_cr),
                             Some(&new_cr),
                             tables,
+                            views,
                             triggers,
                         );
                         let _ = fire_sql_triggers(
                             &ctname,
                             SqlTriggerOp::Update,
-                            false,
-                            &c_cols,
                             &[c_idx],
+                            SqlTriggerTiming::After,
+                            &c_cols,
                             Some(&old_cr),
                             Some(&new_cr),
                             tables,
+                            views,
                             triggers,
                         );
                     }
@@ -22561,12 +22658,13 @@ fn exec_sql_update(
         if let Err(e) = fire_sql_triggers(
             &tname,
             SqlTriggerOp::Update,
-            false,
+            &updated_cols,
+            SqlTriggerTiming::After,
             &t_cols,
-            &updated_columns,
             Some(&old_r),
             Some(&ur),
             tables,
+            views,
             triggers,
         ) {
             *tables = tables_snap;
@@ -22591,6 +22689,7 @@ fn exec_sql_update(
 fn exec_sql_delete(
     stmt: &str,
     tables: &mut BTreeMap<String, SqlTable>,
+    views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
     foreign_keys_enabled: bool,
     in_transaction: bool,
@@ -22618,12 +22717,24 @@ fn exec_sql_delete(
         norm[wp + 7..w_end].trim()
     });
     let tname = resolve_sql_table_name(tables, &tname).to_owned();
-    let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()) else {
+    let is_view = views.contains_key(&tname);
+    let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
         return Ok(String::new());
     };
+    let t_cols = target.columns.clone();
     let tables_snap = tables.clone();
     let mut deleted_rows: Vec<Vec<String>> = Vec::new();
-    if let Some(tbl) = tables.get_mut(&tname) {
+    if is_view {
+        deleted_rows = target
+            .rows
+            .into_iter()
+            .filter(|r| {
+                where_clause.is_none_or(|wc| {
+                    eval_sql_where(wc, &t_cols, &target.affinities, r, &tables_snap)
+                })
+            })
+            .collect();
+    } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
             let mut kept = Vec::new();
             for r in tbl.rows.drain(..) {
@@ -22639,15 +22750,34 @@ fn exec_sql_delete(
         }
     }
     for dr in &deleted_rows {
+        if is_view {
+            if let Err(e) = fire_sql_triggers(
+                &tname,
+                SqlTriggerOp::Delete,
+                &[],
+                SqlTriggerTiming::InsteadOf,
+                &t_cols,
+                Some(dr),
+                None,
+                tables,
+                views,
+                triggers,
+            ) {
+                *tables = tables_snap;
+                return Err(e);
+            }
+            continue;
+        }
         let _ = fire_sql_triggers(
             &tname,
             SqlTriggerOp::Delete,
-            true,
-            &t_cols,
             &[],
+            SqlTriggerTiming::Before,
+            &t_cols,
             Some(dr),
             None,
             tables,
+            views,
             triggers,
         );
         if foreign_keys_enabled {
@@ -22724,12 +22854,13 @@ fn exec_sql_delete(
         let _ = fire_sql_triggers(
             &tname,
             SqlTriggerOp::Delete,
-            false,
-            &t_cols,
             &[],
+            SqlTriggerTiming::After,
+            &t_cols,
             Some(dr),
             None,
             tables,
+            views,
             triggers,
         );
     }
@@ -42334,6 +42465,7 @@ mod tests {
         let result = exec_sql_update(
             "UPDATE t SET k=replacement RETURNING k",
             &mut tables,
+            &BTreeMap::new(),
             &[],
             false,
             false,
@@ -42362,6 +42494,7 @@ mod tests {
         let result = exec_sql_update(
             "UPDATE t SET n=n-2",
             &mut tables,
+            &BTreeMap::new(),
             &[],
             false,
             false,

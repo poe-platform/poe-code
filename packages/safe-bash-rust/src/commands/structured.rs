@@ -21708,34 +21708,49 @@ fn fire_sql_triggers(
                 continue;
             }
         }
-        let mut body = tr.body.clone();
-        if let Some(nrow) = new_row {
-            for (c, v) in cols.iter().zip(nrow.iter()) {
-                let repl = if v == SQL_NULL {
-                    "NULL".to_string()
-                } else if v.parse::<f64>().is_ok() {
-                    v.clone()
-                } else {
-                    format!("'{}'", v.replace('\'', "''"))
-                };
-                for pfx in ["NEW", "new"] {
-                    body = body.replace(&format!("{pfx}.{c}"), &repl);
+        // Scan the original SQL once so identifiers and inserted values cannot
+        // be partially replaced or substituted again by a later column.
+        let mut body = String::with_capacity(tr.body.len());
+        let mut chars = tr.body.char_indices().peekable();
+        while let Some((start, ch)) = chars.next() {
+            match ch {
+                '\'' | '"' | '`' | '[' => {
+                    let end = if ch == '[' { ']' } else { ch };
+                    while let Some((_, c)) = chars.next() {
+                        if c == end && chars.next_if(|(_, c)| *c == end).is_none() {
+                            break;
+                        }
+                    }
                 }
-            }
-        }
-        if let Some(orow) = old_row {
-            for (c, v) in cols.iter().zip(orow.iter()) {
-                let repl = if v == SQL_NULL {
-                    "NULL".to_string()
-                } else if v.parse::<f64>().is_ok() {
-                    v.clone()
-                } else {
-                    format!("'{}'", v.replace('\'', "''"))
-                };
-                for pfx in ["OLD", "old"] {
-                    body = body.replace(&format!("{pfx}.{c}"), &repl);
+                c if c.is_ascii_alphanumeric() || !c.is_ascii() || matches!(c, '_' | '$' | '.') => {
+                    while chars
+                        .next_if(|(_, c)| {
+                            c.is_ascii_alphanumeric() || !c.is_ascii() || matches!(c, '_' | '$' | '.')
+                        })
+                        .is_some()
+                    {}
+                    let end = chars.peek().map_or(tr.body.len(), |(i, _)| *i);
+                    if let Some(i) = trig_cols
+                        .iter()
+                        .position(|c| c.eq_ignore_ascii_case(&tr.body[start..end]))
+                    {
+                        let v = &trig_row[i];
+                        if v == SQL_NULL {
+                            body.push_str("NULL");
+                        } else if v.parse::<f64>().is_ok() {
+                            body.push_str(v);
+                        } else {
+                            body.push('\'');
+                            body.push_str(&v.replace('\'', "''"));
+                            body.push('\'');
+                        }
+                        continue;
+                    }
                 }
+                _ => {}
             }
+            let end = chars.peek().map_or(tr.body.len(), |(i, _)| *i);
+            body.push_str(&tr.body[start..end]);
         }
         for sub_stmt in body.split(';') {
             let sub = sub_stmt.trim();

@@ -19878,6 +19878,10 @@ fn deserialize_sql_db(
                                             "on_update" => {
                                                 fk_def.on_update = v.to_raw_string(true, false)
                                             }
+                                            "initially_deferred" => {
+                                                fk_def.initially_deferred =
+                                                    matches!(v, JVal::Bool(true));
+                                            }
                                             _ => {}
                                         }
                                     }
@@ -20634,8 +20638,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             || upper == "END"
             || upper == "END TRANSACTION"
         {
-            if foreign_keys_enabled && !sql_deferred_foreign_keys_satisfied(&tables) {
-                return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+            if foreign_keys_enabled
+                && (tx_snapshot.is_some() || !savepoints.is_empty())
+                && !sql_deferred_foreign_keys_valid(&tables)
+            {
+                errors.push_str("Error: FOREIGN KEY constraint failed\n");
+                if bail || positional.len() >= 2 {
+                    break;
+                }
+                continue;
             }
             tx_snapshot = None;
             savepoints.clear();
@@ -20653,15 +20664,19 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .unwrap_or(rest.trim())
                 .trim()
                 .to_ascii_lowercase();
-            if let Some(index) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
-                if tx_snapshot.is_none()
-                    && index == 0
+            if let Some(pos) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
+                if pos == 0
+                    && tx_snapshot.is_none()
                     && foreign_keys_enabled
-                    && !sql_deferred_foreign_keys_satisfied(&tables)
+                    && !sql_deferred_foreign_keys_valid(&tables)
                 {
-                    return err_out("Error: FOREIGN KEY constraint failed\n", 1);
+                    errors.push_str("Error: FOREIGN KEY constraint failed\n");
+                    if bail || positional.len() >= 2 {
+                        break;
+                    }
+                    continue;
                 }
-                savepoints.truncate(index);
+                savepoints.truncate(pos);
             }
             continue;
         }
@@ -20674,9 +20689,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or(after_to.trim())
                     .trim()
                     .to_ascii_lowercase();
-                if let Some(index) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
-                    tables = savepoints[index].1.clone();
-                    savepoints.truncate(index + 1);
+                if let Some(pos) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
+                    tables = savepoints[pos].1.clone();
+                    savepoints.truncate(pos + 1);
                 }
             } else {
                 if let Some(snap) = tx_snapshot
@@ -20697,7 +20712,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     user_version = rhs.trim().parse::<i64>().unwrap_or(0);
                 } else if lhs.trim().eq_ignore_ascii_case("application_id") {
                     application_id = rhs.trim().parse::<i64>().unwrap_or(0);
-                } else if lhs.trim().eq_ignore_ascii_case("foreign_keys") {
+                } else if lhs.trim().eq_ignore_ascii_case("foreign_keys")
+                    && tx_snapshot.is_none()
+                    && savepoints.is_empty()
+                {
                     let rv = rhs.trim().to_ascii_uppercase();
                     foreign_keys_enabled = matches!(rv.as_str(), "ON" | "1" | "TRUE" | "YES");
                 }
@@ -21518,13 +21536,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     }
 
-    // Closing a connection rolls back any transaction that was never committed.
-    if let Some(snapshot) =
-        tx_snapshot.or_else(|| savepoints.into_iter().next().map(|(_, snap)| snap))
+    // Closing the connection rolls back any transaction that did not commit.
+    if let Some(snap) = tx_snapshot.or_else(|| savepoints.into_iter().next().map(|(_, snap)| snap))
     {
-        tables = snapshot;
+        tables = snap;
     }
-
     if dirty && !readonly_mode && db_path != ":memory:" {
         if tables.values().any(|t| t.is_fts5) {
             return err_out(
@@ -21551,40 +21567,43 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
 }
 
-fn sql_foreign_key_parent_exists(
+fn sql_foreign_key_satisfied(
     fk: &SqlForeignKey,
-    value: &str,
+    columns: &[String],
+    row: &[String],
     tables: &BTreeMap<String, SqlTable>,
 ) -> bool {
-    tables
-        .get(resolve_sql_table_name(tables, &fk.parent_table))
-        .is_some_and(|parent| {
-            let index = if fk.parent_col.is_empty() {
-                0
-            } else {
-                find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
-            };
-            parent
-                .rows
-                .iter()
-                .any(|row| row.get(index).map(String::as_str) == Some(value))
-        })
+    let Some(c_idx) = find_sql_col(columns, &fk.child_col) else {
+        return true;
+    };
+    let cval = row.get(c_idx).map(|s| s.as_str()).unwrap_or(SQL_NULL);
+    if cval == SQL_NULL {
+        return true;
+    }
+    tables.get(resolve_sql_table_name(tables, &fk.parent_table)).is_some_and(|parent| {
+        let p_idx = if fk.parent_col.is_empty() {
+            0
+        } else {
+            find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
+        };
+        parent
+            .rows
+            .iter()
+            .any(|r| r.get(p_idx).map(|s| s.as_str()) == Some(cval))
+    })
 }
 
-fn sql_deferred_foreign_keys_satisfied(tables: &BTreeMap<String, SqlTable>) -> bool {
+fn sql_deferred_foreign_keys_valid(tables: &BTreeMap<String, SqlTable>) -> bool {
     tables.values().all(|table| {
         table
             .foreign_keys
             .iter()
             .filter(|fk| fk.initially_deferred)
             .all(|fk| {
-                let Some(index) = find_sql_col(&table.columns, &fk.child_col) else {
-                    return true;
-                };
-                table.rows.iter().all(|row| {
-                    let value = row.get(index).map(String::as_str).unwrap_or(SQL_NULL);
-                    value == SQL_NULL || sql_foreign_key_parent_exists(fk, value, tables)
-                })
+                table
+                    .rows
+                    .iter()
+                    .all(|row| sql_foreign_key_satisfied(fk, &table.columns, row, tables))
             })
     })
 }
@@ -22111,18 +22130,11 @@ fn exec_sql_insert(
         }
         if foreign_keys_enabled {
             for fk in &fk_clone {
-                if in_transaction && fk.initially_deferred {
-                    continue;
-                }
-                if let Some(c_idx) = find_sql_col(&t_cols, &fk.child_col) {
-                    let cval = row.get(c_idx).map(|s| s.as_str()).unwrap_or("");
-                    if cval != SQL_NULL {
-                        let parent_ok = sql_foreign_key_parent_exists(fk, cval, tables);
-                        if !parent_ok {
-                            *tables = stmt_snap;
-                            return Err("Error: FOREIGN KEY constraint failed\n".to_string());
-                        }
-                    }
+                if !(in_transaction && fk.initially_deferred)
+                    && !sql_foreign_key_satisfied(fk, &t_cols, &row, tables)
+                {
+                    *tables = stmt_snap;
+                    return Err("Error: FOREIGN KEY constraint failed\n".to_string());
                 }
             }
         }

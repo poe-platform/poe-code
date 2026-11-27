@@ -2889,16 +2889,21 @@ fn try_eval_jq_builtin(
             match fname {
                 "delpaths" => {
                     let mut updated = input.clone();
-                    if let Some(JVal::Array(path_list)) =
-                        eval_jq(arg_expr, input, vars)?.into_iter().next()
-                    {
-                        let seg_paths: Vec<Vec<JVal>> = path_list
-                            .into_iter()
-                            .filter_map(|p| match p {
-                                JVal::Array(segs) => Some(segs),
-                                _ => None,
-                            })
-                            .collect();
+                    if let Some(paths) = eval_jq(arg_expr, input, vars)?.into_iter().next() {
+                        let JVal::Array(path_list) = paths else {
+                            return Err("Paths must be specified as an array".into());
+                        };
+                        let mut seg_paths = Vec::new();
+                        for path in path_list {
+                            let JVal::Array(segs) = path else {
+                                return Err(format!(
+                                    "Path must be specified as array, not {}",
+                                    path.type_name()
+                                )
+                                .into());
+                            };
+                            seg_paths.push(segs);
+                        }
                         delete_jq_paths_sorted(&mut updated, seg_paths);
                     }
                     return Ok(Some(vec![updated]));

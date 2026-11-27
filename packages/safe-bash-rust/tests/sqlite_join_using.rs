@@ -80,3 +80,93 @@ fn sqlite_join_using_left_join_headers_and_view() {
         "1|one|two\n2|other|\n"
     );
 }
+
+#[test]
+fn using_star_suppresses_the_right_join_key() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); SELECT * FROM a JOIN b USING(k);"
+        ),
+        "1|one|two\n"
+    );
+}
+
+#[test]
+fn using_preserves_explicit_columns_and_on_join_star() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); SELECT a.k,b.k,v,w FROM a JOIN b USING(k) WHERE b.k=1; SELECT * FROM a JOIN b ON a.k=b.k;"
+        ),
+        "1|1|one|two\n1|one|1|two\n"
+    );
+}
+
+#[test]
+fn using_left_join_preserves_unmatched_rows_and_qualified_nulls() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'),(2,'other'); INSERT INTO b VALUES(1,'two'); SELECT * FROM a LEFT JOIN b USING(k) ORDER BY a.k; SELECT a.k,b.k FROM a LEFT JOIN b USING(k) ORDER BY a.k;"
+        ),
+        "1|one|two\n2|other|\n1|1\n2|\n"
+    );
+}
+
+#[test]
+fn using_star_keeps_suppression_across_chained_joins() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); CREATE TABLE c(k,z); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); INSERT INTO c VALUES(1,'three'); SELECT * FROM a AS x JOIN b AS y USING(k) JOIN c AS z USING(k); SELECT * FROM a JOIN b USING(k) JOIN c ON c.k=a.k;"
+        ),
+        "1|one|two|three\n1|one|two|1|three\n"
+    );
+}
+
+#[test]
+fn using_star_matches_every_key_and_preserves_other_duplicate_names() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,n,v); CREATE TABLE b(n,k,v); INSERT INTO a VALUES(1,2,'one'); INSERT INTO b VALUES(2,1,'two'),(3,1,'wrong'); SELECT * FROM a JOIN b USING(k,n);"
+        ),
+        "1|2|one|two\n"
+    );
+}
+
+#[test]
+fn using_star_exposes_only_projected_columns_to_subqueries() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); SELECT * FROM (SELECT * FROM a JOIN b USING(k));"
+        ),
+        "1|one|two\n"
+    );
+}
+
+#[test]
+fn using_star_projects_matching_headers() {
+    assert_eq!(
+        run_sql(
+            ".headers on\nCREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); SELECT * FROM a JOIN b USING(k);"
+        ),
+        "k|v|w\n1|one|two\n"
+    );
+}
+
+#[test]
+fn using_star_suppression_survives_json_each_join() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(k,w); INSERT INTO a VALUES(1,'one'); INSERT INTO b VALUES(1,'two'); SELECT * FROM a JOIN b USING(k), json_each('[3]') AS j;"
+        ),
+        "1|one|two|0|3\n"
+    );
+}
+
+#[test]
+fn using_star_handles_quoted_case_insensitive_keys_and_nulls() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k,v); CREATE TABLE b(K,w); INSERT INTO a VALUES(1,'one'),(NULL,'null-left'); INSERT INTO b VALUES(1,'two'),(NULL,'null-right'); SELECT * FROM a JOIN b USING(\"K\");"
+        ),
+        "1|one|two\n"
+    );
+}

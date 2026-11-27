@@ -24215,12 +24215,26 @@ fn exec_sql_select_with_mode(
         after_from[op + 10..end].trim()
     });
 
-    let limit_val = limit_pos.and_then(|lp| {
-        after_from[lp + 7..]
-            .split_whitespace()
-            .next()
-            .and_then(|s| s.parse::<usize>().ok())
-    });
+    let (limit_val, offset_val) = limit_pos
+        .map(|lp| {
+            let clause = after_from[lp + 7..].trim();
+            let (count, offset) = if let Some((offset, count)) = clause.split_once(',') {
+                (count.trim(), Some(offset.trim()))
+            } else {
+                let mut words = clause.split_whitespace();
+                let count = words.next().unwrap_or("");
+                let offset = words
+                    .next()
+                    .filter(|word| word.eq_ignore_ascii_case("OFFSET"))
+                    .and_then(|_| words.next());
+                (count, offset)
+            };
+            (
+                count.parse::<usize>().ok(),
+                offset.and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
+            )
+        })
+        .unwrap_or((None, 0));
 
     let filtered: Vec<&Vec<String>> = tbl
         .rows
@@ -25104,6 +25118,7 @@ fn exec_sql_select_with_mode(
         }
     }
 
+    proj_rows.drain(..offset_val.min(proj_rows.len()));
     if let Some(lim) = limit_val {
         proj_rows.truncate(lim);
     }

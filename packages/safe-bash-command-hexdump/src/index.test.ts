@@ -3,6 +3,19 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createHexdumpCommand } from "./index.js";
+import { run } from "./test-helpers.js";
+
+for (const dialect of [undefined, "bsd", "util-linux"] as const) {
+ for (const [args, expected] of [
+  [["-C"], "00000000  61 61 61 61 61 61 61 61  61 61 61 61 61 61 61 61  |aaaaaaaaaaaaaaaa|\n*\n00000030  61 61 61 61 61 61 61 61                           |aaaaaaaa|\n00000038\n"],
+  [[], "0000000 6161 6161 6161 6161 6161 6161 6161 6161\n*\n0000030 6161 6161 6161 6161                    \n0000038\n"],
+ ] as const) test(`hexdump ${args.join(" ")} preserves a partial row after squeezed rows (${dialect ?? "default"})`, async () => {
+  const result = await run([...args], Buffer.from("a".repeat(56)), dialect ? { dialect } : {});
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(result.stdout, "hex").toString(), expected);
+ });
+}
 
 test("hexdump behavior works through the standalone portable factory", async () => {
  const values = createCommandArguments(["-C"]);

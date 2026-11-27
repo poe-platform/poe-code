@@ -53,7 +53,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     used = 0;
   };
   const emit = (): void | Promise<void> => {
-    let same = hasPrevious && (options.dialect !== "util-linux" || used === blockSize);
+    let same = hasPrevious && used === blockSize;
     for (let index = 0; same && index < used; index++) if (block[index] !== previous[index]) same = false;
     budget.charge(used);
     if (!options.verbose && same) {

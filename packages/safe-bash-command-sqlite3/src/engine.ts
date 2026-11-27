@@ -5722,10 +5722,13 @@ export class SqliteDatabase {
         const p = new ExprParser(ot, windows);
         const expr = p.parseExpression();
         let desc = false;
-        let collation = "BINARY";
-        if (expr.kind === "collate") {
-          collation = expr.collation;
-        }
+        // Result aliases and column positions inherit the projected expression's collation.
+        const target = expr.kind === "literal" && typeof expr.value === "number" && Number.isInteger(expr.value)
+          ? selectTargets[expr.value - 1]
+          : expr.kind === "column" && !expr.table
+            ? selectTargets.find(target => target.alias.toLowerCase() === expr.name.toLowerCase())
+            : undefined;
+        const collation = this.expressionCollation(target?.expr ?? expr, collationContext);
         if (p.matchWord("DESC")) {
           desc = true;
         } else {

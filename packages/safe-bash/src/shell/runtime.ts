@@ -1881,6 +1881,14 @@ export async function restoreVariable(state: State, name: string, saved: SavedVa
 
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
+function descriptorPath(target: string): number | undefined {
+  if (target === "/dev/stdin") return 0;
+  if (target === "/dev/stdout") return 1;
+  if (target === "/dev/stderr") return 2;
+  const name = target.startsWith("/dev/fd/") ? target.slice(8) : "";
+  return name.length > 0 && [...name].every(character => character >= "0" && character <= "9") ? Number(name) : undefined;
+}
+
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -5752,6 +5760,19 @@ export class Runtime {
           }
         }
       } else {
+        const sourceDescriptor = descriptorPath(target);
+        if (sourceDescriptor !== undefined) {
+          const descriptor = descriptors.get(sourceDescriptor);
+          if (!descriptor || descriptor.closed) throw new PublicDiagnostic(`${target}: Bad file descriptor`);
+          const pipe = descriptor.pipe && references.acquire(descriptor.pipe);
+          await replaceDescriptor(number, { ...descriptor, ...(pipe ? { pipe } : {}) });
+          if (bothOutput) {
+            replaced.add(2);
+            const errorPipe = descriptor.pipe && references.acquire(descriptor.pipe);
+            await replaceDescriptor(2, { ...descriptor, ...(errorPipe ? { pipe: errorPipe } : {}) });
+          }
+          continue;
+        }
         const path = pathOf(state, target);
         const options = { signal: this.commandSignal };
         if (redirect.operator === "<" || redirect.operator === "<>") {
@@ -7679,9 +7700,7 @@ export class Runtime {
       }
       if (!filename) throw new CommandFailure(": No such file or directory", 1);
       const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
-      const descriptorName = target.startsWith("/dev/fd/") ? target.slice(8) : "";
-      const descriptor = target === "/dev/stdin" ? 0 : target === "/dev/stdout" ? 1 : target === "/dev/stderr" ? 2
-        : descriptorName.length > 0 && [...descriptorName].every(character => character >= "0" && character <= "9") ? Number(descriptorName) : undefined;
+      const descriptor = descriptorPath(target);
       let bytes: Uint8Array;
       if (descriptor !== undefined) {
         const entry = io.descriptors?.get(descriptor);

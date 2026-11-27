@@ -10,6 +10,36 @@ import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
 import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
 import { Capture, MemoryRedirectSink, type IO } from "../../src/shell/runtime.js";
 
+for (const [source, expected] of [
+  ['{ f() { echo err > /dev/stderr; }; f 2>&1 | tr a-z A-Z; echo out > /dev/stdout; echo $?; read x < /dev/stdin <<< hi; echo "$x"; echo fd > /dev/fd/1; } | cat', 'ERR\nout\n0\nhi\nfd\n'],
+  ['echo err > /dev/stderr 2>&1', ''],
+  ['echo err 2>&1 > /dev/stderr', 'err\n'],
+  ['exec 3>out; echo first >/dev/fd/3; echo second >>/dev/fd/3; exec 3>&-; cat <out', 'first\nsecond\n'],
+  ['exec 3<<<hello; read x </dev/fd/3; echo "$x"; exec 3<&-', 'hello\n'],
+  ['exec 3>out; exec 4>/dev/fd/3; exec 3>&-; echo kept >&4; exec 4>&-; cat <out', 'kept\n'],
+  ['set -C; echo hello >/dev/stdout', 'hello\n'],
+  ['{ echo out; echo err >&2; } &>/dev/stdout | cat', 'out\nerr\n'],
+  ['{ echo out; echo err >&2; } &>>/dev/stdout | cat', 'out\nerr\n'],
+] as const) {
+  test(`descriptor path redirection: ${source}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, source === 'echo err > /dev/stderr 2>&1' ? 'err\n' : '');
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+test("descriptor path redirection rejects a closed descriptor", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec('echo lost >/dev/fd/9');
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, '');
+  assert.ok(result.stderr.includes('Bad file descriptor'));
+});
+
 test("fast redirected commands share effective IO on new and reused contexts", async t => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs });

@@ -17846,6 +17846,7 @@ struct SqlTable {
     star_hidden_columns: Vec<usize>,
     affinities: Vec<SqlAffinity>,
     rows: Vec<Vec<String>>,
+    rowids: Vec<i64>,
     imported_csv: bool,
     defaults: BTreeMap<String, String>,
     generated: BTreeMap<String, String>,
@@ -17857,6 +17858,28 @@ struct SqlTable {
     is_fts5: bool,
     next_seq: usize,
     create_sql: String,
+}
+
+impl SqlTable {
+    fn push_row(&mut self, row: Vec<String>) {
+        if self.rowids.len() < self.rows.len() {
+            self.rowids = (1..=self.rows.len() as i64).collect();
+        }
+        let rowid = self
+            .rowids
+            .iter()
+            .copied()
+            .max()
+            .unwrap_or(0)
+            .checked_add(1)
+            .unwrap_or_else(|| {
+                (1..=self.rowids.len() as i64 + 1)
+                    .find(|id| !self.rowids.contains(id))
+                    .unwrap()
+            });
+        self.rowids.push(rowid);
+        self.rows.push(row);
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -18457,7 +18480,7 @@ fn sqlite_read_varint(buf: &[u8], offset: usize) -> (i64, usize) {
 }
 
 fn sqlite_encode_varint(value: i64) -> Vec<u8> {
-    if value < 0 {
+    if value as u64 >= (1 << 56) {
         let mut bytes = [0u8; 9];
         let mut rem = value as u64;
         bytes[8] = (rem & 0xff) as u8;
@@ -19212,6 +19235,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             star_hidden_columns: Vec::new(),
             affinities,
             rows: Vec::new(),
+            rowids: Vec::new(),
             imported_csv: is_imported_csv,
             defaults,
             generated,
@@ -19282,7 +19306,7 @@ fn serialize_sql_db(
                     .and_then(|s| s.parse::<i64>().ok())
                     .unwrap_or((row_i + 1) as i64)
             } else {
-                (row_i + 1) as i64
+                tbl.rowids.get(row_i).copied().unwrap_or((row_i + 1) as i64)
             };
             if rowid > max_rowid {
                 max_rowid = rowid;
@@ -19614,6 +19638,7 @@ fn deserialize_sql_db(
                             };
                             row_strs.push(cell_s);
                         }
+                        tbl.rowids.push(rowid);
                         tbl.rows.push(row_strs);
                     }
                     tbl.next_seq = (max_rowid.max(0) as usize).max(tbl.rows.len());
@@ -19882,7 +19907,7 @@ fn deserialize_sql_db(
                         if let JVal::Array(arr) = fv {
                             for r in arr {
                                 if let JVal::Array(cells) = r {
-                                    tbl.rows.push(
+                                    tbl.push_row(
                                         cells
                                             .into_iter()
                                             .map(|c| c.to_raw_string(true, false))
@@ -20661,7 +20686,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             .unwrap_or(true);
                             if allow {
                                 if let Some(tbl) = tables.get_mut(&tname) {
-                                    tbl.rows.push(cells.clone());
+                                    tbl.push_row(cells.clone());
                                 }
                                 let _ = fire_sql_triggers(
                                     &tname,
@@ -22298,13 +22323,8 @@ fn exec_sql_insert(
         }
 
         let existing_idx = unique_conflict_idx.map(|(idx, _)| idx);
-        if is_or_replace {
-            if let Some(tbl) = tables.get_mut(&tname) {
-                for idx in replace_conflicts.into_iter().rev() {
-                    tbl.rows.remove(idx);
-                }
-            }
-        } else if let Some(e_idx) = existing_idx
+        if let Some(e_idx) = existing_idx
+            && !is_or_replace
             && (is_do_nothing || is_do_update)
         {
             if is_do_nothing {
@@ -22393,7 +22413,13 @@ fn exec_sql_insert(
         }
 
         if let Some(tbl) = tables.get_mut(&tname) {
-            tbl.rows.push(row.clone());
+            tbl.push_row(row.clone());
+            if is_or_replace {
+                for idx in replace_conflicts.into_iter().rev() {
+                    tbl.rows.remove(idx);
+                    tbl.rowids.remove(idx);
+                }
+            }
         }
         affected_rows.push(row.clone());
         fire_sql_triggers(
@@ -22759,16 +22785,20 @@ fn exec_sql_delete(
     } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
             let mut kept = Vec::new();
-            for r in tbl.rows.drain(..) {
+            let mut kept_rowids = Vec::new();
+            for (i, r) in tbl.rows.drain(..).enumerate() {
                 if eval_sql_where(wc, &t_cols, &tbl.affinities, &r, &tables_snap) {
                     deleted_rows.push(r);
                 } else {
                     kept.push(r);
+                    kept_rowids.push(tbl.rowids.get(i).copied().unwrap_or((i + 1) as i64));
                 }
             }
             tbl.rows = kept;
+            tbl.rowids = kept_rowids;
         } else {
             deleted_rows = std::mem::take(&mut tbl.rows);
+            tbl.rowids.clear();
         }
     }
     for dr in &deleted_rows {
@@ -22845,9 +22875,20 @@ fn exec_sql_delete(
                                 }
                             }
                             "CASCADE" => {
+                                let mut kept_rowids = Vec::new();
+                                let mut i = 0;
                                 ctbl.rows.retain(|cr| {
-                                    cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str())
+                                    let keep =
+                                        cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str());
+                                    if keep {
+                                        kept_rowids.push(
+                                            ctbl.rowids.get(i).copied().unwrap_or((i + 1) as i64),
+                                        );
+                                    }
+                                    i += 1;
+                                    keep
                                 });
+                                ctbl.rowids = kept_rowids;
                             }
                             "SET NULL" => {
                                 for cr in &mut ctbl.rows {
@@ -23462,10 +23503,7 @@ fn resolve_sql_from_table(
             .collect();
         Some(SqlTable {
             columns: qual_cols,
-            affinities: base_tbl.affinities,
-            rows: base_tbl.rows,
-            imported_csv: base_tbl.imported_csv,
-            ..SqlTable::default()
+            ..base_tbl
         })
     } else {
         Some(base_tbl)
@@ -24176,9 +24214,28 @@ fn exec_sql_select_with_mode(
         .min()
         .unwrap_or(after_from.len());
     let from_spec = after_from[..table_end].trim();
-    let Some(tbl) = resolve_sql_from_table(from_spec, tables, views) else {
+    let Some(mut tbl) = resolve_sql_from_table(from_spec, tables, views) else {
         return String::new();
     };
+    if !tbl.create_sql.is_empty()
+        && !tbl
+            .create_sql
+            .to_ascii_uppercase()
+            .contains("WITHOUT ROWID")
+        && find_sql_col(&tbl.columns, "rowid").is_none()
+    {
+        let (_, alias_col, _) = parse_create_table_metadata(&tbl.create_sql);
+        tbl.star_hidden_columns.push(tbl.columns.len());
+        tbl.columns.push("rowid".into());
+        tbl.affinities.push(SqlAffinity::Numeric);
+        for (i, row) in tbl.rows.iter_mut().enumerate() {
+            let rowid = alias_col
+                .and_then(|col| row.get(col))
+                .and_then(|value| value.parse::<i64>().ok())
+                .unwrap_or_else(|| tbl.rowids.get(i).copied().unwrap_or((i + 1) as i64));
+            row.push(rowid.to_string());
+        }
+    }
 
     let where_clause = where_pos.map(|wp| {
         let end = [group_pos, having_pos, order_pos, limit_pos]

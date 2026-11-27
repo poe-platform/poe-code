@@ -362,6 +362,14 @@ function parseAbsoluteDate(value: string, zone: TimeZone, now: () => bigint): { 
     const fields: CalendarFields = { year, month, day, hour, minute: Number(time[2] ?? 0), second: Number(time[3] ?? 0) };
     return { instant: sourceZone.instant(fields, BigInt((time[4] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
   }
+  const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{4})$/.exec(value);
+  if (rfc) {
+    const fields: CalendarFields = { year: Number(rfc[4]), month: monthNames.findIndex(name => name.startsWith(rfc[3]!)) + 1,
+      day: Number(rfc[2]), hour: Number(rfc[5]), minute: Number(rfc[6]), second: Number(rfc[7]) };
+    if (rfc[1] && !weekdayNames[new Date(utcMilliseconds(fields)).getUTCDay()]!.startsWith(rfc[1])) throw new CommandFailure("weekday does not match calendar date");
+    const sourceZone = parsedZone(rfc[8], zone);
+    return { instant: sourceZone.instant(fields), zone: sourceZone };
+  }
   const named = /^(?<month>[A-Za-z]+)\s+(?<day>\d{1,2}),?\s+(?<year>\d{4})(?:\s+(?<hour>\d{1,2})(?::(?<minute>\d{2})(?::(?<second>\d{2}))?)?\s*(?<period>am|pm)?)?(?:\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value)?.groups
     ?? /^(?:(?<weekday>Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(?<day>\d{1,2})(?:\s+|-)(?<month>[A-Za-z]+)(?:\s+|-)(?<year>\d{4})(?:\s+(?<hour>\d{1,2})(?::(?<minute>\d{2})(?::(?<second>\d{2}))?)?\s*(?<period>am|pm)?)?(?:\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value)?.groups
     ?? /^(?<weekday>Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(?<month>[A-Za-z]+)\s+(?<day>\d{1,2})\s+(?<hour>\d{2}):(?<minute>\d{2}):(?<second>\d{2})\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?)\s+(?<year>\d{4})$/i.exec(value)?.groups;

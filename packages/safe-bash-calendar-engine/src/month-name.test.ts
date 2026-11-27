@@ -45,7 +45,7 @@ test("month-name dates use virtual TZ unless an explicit zone is supplied", () =
   assert.equal(parseDate("Jan 5 2024", zone, () => 0n), 1704430800000000000n);
   assert.equal(parseDate("Jan 5 2024 00:00 UTC", zone, () => 0n), 1704412800000000000n);
   assert.throws(() => parseDate("March 10 2024 02:30", zone, () => 0n), /nonexistent local time/);
-  assert.throws(() => parseDate("November 3 2024 01:30", zone, () => 0n), /ambiguous local time/);
+  assert.equal(parseDate("November 3 2024 01:30", zone, () => 0n), 1730611800000000000n);
 });
 
 for (const input of ["Feb 30 2024", "February 29 2023", "Jan 0 2024", "Jan 32 2024", "Janu 5 2024",

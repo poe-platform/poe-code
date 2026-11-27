@@ -33,7 +33,20 @@ async function run(args: string[], fs = createMemoryFileSystem(), env: Record<st
 import { FsError } from "safe-bash-contracts";
 import { evalSyncDate } from "./date.js";
 
+test("date parses its own default output", async () => {
+  const original = await run(["-u", "-d", "@1704450030"]);
+  assert.equal(original.exitCode, 0);
+  assert.deepEqual(await run(["-u", "-d", original.stdout.trim(), "+%s"]), {
+    exitCode: 0, stdout: "1704450030\n", stderr: ""
+  });
+});
+
 for (const [input, format, expected] of [
+  ["Jan 5 2024", "%F", "2024-01-05\n"],
+  ["5 Jan 2024", "%F", "2024-01-05\n"],
+  ["5-Jan-2024", "%F", "2024-01-05\n"],
+  ["January 5, 2024 3pm", "%FT%T", "2024-01-05T15:00:00\n"],
+  ["Fri Jan  5 10:20:30 UTC 2024", "%s", "1704450030\n"],
   ["2024-01-05 next week", "%F", "2024-01-12\n"],
   ["2024-01-05 last month", "%F", "2023-12-05\n"],
   ["2024-01-05 next year", "%F", "2025-01-05\n"],

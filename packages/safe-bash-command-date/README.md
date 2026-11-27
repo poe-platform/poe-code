@@ -17,4 +17,6 @@ The module also exports `createDateCommand`, its command-list factory, and typed
 
 `date -d '10:20'`, `date -d '10am'`, and `date -d 'today 00:00'` use today's date in the virtual timezone. Times accept `am`/`pm` and `a.m.`/`p.m.`, including after an explicit date.
 
+Month-name dates accept `Jan 5 2024`, `5 Jan 2024`, `5-Jan-2024`, and `January 5, 2024 3pm`. You can also pass the default `date` output back to `date -d`.
+
 Relative dates accept multiple items, attached units, and case-insensitive units: `date -u -d '2024-01-05 +1day +2 hours' +%FT%T` prints `2024-01-06T02:00:00`. Use `sec`, `min`, `hr`, or `fortnight` (including plurals); `ago` negates the item immediately before it.

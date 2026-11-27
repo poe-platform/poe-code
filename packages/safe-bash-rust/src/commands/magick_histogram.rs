@@ -3,7 +3,7 @@ use super::{parse_float_prefix, png_pixels::Raster};
 pub(super) enum Adjustment<'a> {
     AutoLevel(Option<[bool; 4]>),
     AutoGamma,
-    Equalize,
+    Equalize(Option<[bool; 4]>),
     Stretch(&'a str),
 }
 
@@ -62,15 +62,37 @@ impl Adjustment<'_> {
                     }));
                 }
             }
-            Self::Equalize => {
-                for (h, table) in hist.iter().zip(&mut tables[..3]) {
-                    let first = h.iter().copied().find(|&n| n != 0).unwrap_or(0);
+            Self::Equalize(mask) => {
+                // Default equalization shares a Q16 intensity histogram across channels.
+                let intensity_hist = mask.is_none().then(|| {
+                    let mut bins = vec![0usize; 65536];
+                    for pixel in &image.pixels {
+                        let value = (super::magick_color::intensity(pixel) * 257.).round() as usize;
+                        bins[value.min(65535)] += 1;
+                    }
+                    bins
+                });
+                let active = mask.unwrap_or([true, true, true, image.alpha]);
+                let scale = if intensity_hist.is_some() { 257 } else { 1 };
+                for (c, table) in tables.iter_mut().enumerate() {
+                    if !active[c] {
+                        continue;
+                    }
+                    let h = intensity_hist.as_deref().unwrap_or(&hist[c]);
+                    // Subtract the zero bin, not the first occupied bin.
+                    let black = h[0];
+                    if count == black {
+                        continue;
+                    }
                     let mut sum = 0;
-                    for (&n, value) in h.iter().zip(table) {
-                        sum += n;
-                        *value = (sum.saturating_sub(first) as f64 / (count - first).max(1) as f64
-                            * 255.)
-                            .round() as u8;
+                    let mut bin = 0;
+                    for (value, mapped) in table.iter_mut().enumerate() {
+                        while bin <= value * scale {
+                            sum += h[bin];
+                            bin += 1;
+                        }
+                        *mapped =
+                            ((sum - black) as f64 / (count - black) as f64 * 255.).round() as u8;
                     }
                 }
             }

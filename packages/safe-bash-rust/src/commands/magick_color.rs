@@ -114,7 +114,7 @@ pub(super) fn threshold_value(raw: &str) -> f64 {
     }
 }
 
-fn intensity(p: &[u8; 4]) -> f64 {
+pub(super) fn intensity(p: &[u8; 4]) -> f64 {
     0.212656 * f64::from(p[0]) + 0.715158 * f64::from(p[1]) + 0.072186 * f64::from(p[2])
 }
 

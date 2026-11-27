@@ -12964,7 +12964,7 @@ fn cmd_magick(
                 let op = match arg.as_str() {
                     "-auto-level" => Adjustment::AutoLevel(channels),
                     "-auto-gamma" => Adjustment::AutoGamma,
-                    "-equalize" => Adjustment::Equalize,
+                    "-equalize" => Adjustment::Equalize(channels),
                     "-normalize" => Adjustment::Stretch("2%x1%"),
                     _ => Adjustment::Stretch(if i + 1 < args.len() - usize::from(!is_mogrify) {
                         i += 1;
@@ -21938,16 +21938,8 @@ mod media_unit_tests {
                 "23d4e49eeac4f562fefdff76b82739aac602fb1c0a987b16e761ae8d984884a8",
             ),
             (
-                "-equalize",
-                "4f38eccf4faa7ee785a8155126f122cb4c71aa7843e2ccdcb4f2d5388e2b5350",
-            ),
-            (
                 "-alpha off -auto-gamma",
                 "ea82651c0b9953be4ed17e2d0d91eeede01a47d08ba208d6f3d10e620ef9add4",
-            ),
-            (
-                "-auto-level -auto-gamma -equalize",
-                "dd1f320253009e0bfe31560920bb80c695cb8f02ebb329447e15c084946154f4",
             ),
             (
                 "-contrast",

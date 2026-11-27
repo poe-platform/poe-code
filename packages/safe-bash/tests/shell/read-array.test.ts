@@ -7,6 +7,26 @@ import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js"
 import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
+for (const options of ["-e", "-e -i dflt -p '> '", "-eiattached", "-i ''", "-re -i ignored"]) {
+  test(`read ${options} ignores readline options on piped input`, async t => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`printf 'line\\n' | { read ${options} value; echo "[$value] $?"; }`);
+    assert.equal(result.stdout, "[line] 0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+test("read accepts readline prompt helpers with piped input", async t => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`printf 'line\\n' | { read -e x; echo "[$x] $?"; }; printf 'abc\\n' | { read -e -i dflt -p '> ' y; echo "[$y] $?"; }`);
+  assert.equal(result.stdout, "[line] 0\n[abc] 0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
 for (const name of ["FUNCNAME", "BASH_ARGV", "BASH_ARGC", "BASH_SOURCE", "BASH_LINENO", "GROUPS", "arr", "PIPESTATUS"]) {
   for (const option of ["-ra", "-r -a", "-u0 -ra"]) {
     test(`read ${option} ${name} preserves protected arrays and consumes one record`, async () => {
@@ -200,10 +220,10 @@ test("ordinary read assigns partial EOF input before rejecting a later destinati
   } finally { await shell.dispose(); }
 });
 
-test("ordinary read rejects invalid options before consuming input or assigning destinations", async () => {
+for (const option of ["-p", "-i"]) test(`ordinary read rejects missing ${option} argument before consuming input or assigning destinations`, async () => {
   const { shell } = setup();
   try {
-    const result = await shell.exec('x=old; read -p; args "$?" "$x"; pass', { stdin: "one two\nnext\n" });
+    const result = await shell.exec(`x=old; read ${option}; args "$?" "$x"; pass`, { stdin: "one two\nnext\n" });
     assert.equal(result.stdout, '["2","old"]one two\nnext\n');
     assert.equal(result.stderr, "read: invalid variable name or unsupported option\n");
     assert.equal(result.exitCode, 0);

@@ -9815,12 +9815,12 @@ export class Runtime {
         for (let index = 1; index < option.length; index++) {
           const flag = option[index];
           if (flag === "r") { raw = true; continue; }
-          if (flag === "s") continue;
-          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
+          if (flag === "s" || flag === "e") continue;
+          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u" && flag !== "i") { invalid = true; break; }
           if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
-          else if (flag === "p") { /* Consume the prompt without terminal output. */ } else if (flag === "u") {
+          else if (flag === "p" || flag === "i") { /* Consume terminal text without using it on non-terminal input. */ } else if (flag === "u") {
             const descriptor = value.trim();
             const digits = descriptor.startsWith("+") || descriptor.startsWith("-") ? descriptor.slice(1) : descriptor;
             if (!digits.length || [...digits].some(character => character !== "0")) invalid = true;

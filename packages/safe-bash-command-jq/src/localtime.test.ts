@@ -3,6 +3,10 @@ import { test } from "node:test";
 import { run } from "./test-helpers.js";
 
 for (const [zone, filter, expected] of [
+  ["UTC", '1700000000 | strflocaltime("%H:%M %Z")', '"22:13 UTC"\n'],
+  ["Asia/Tokyo", '1700000000 | strflocaltime("%H:%M %Z")', '"07:13 JST"\n'],
+  ["America/New_York", '1719835200 | strflocaltime("%F %T %z %Z %s")', '"2024-07-01 08:00:00 -0400 EDT 1719835200"\n'],
+  ["America/New_York", '[1970,0,1,0,0,0,4,0] | strflocaltime("%F %T %z %Z %s")', '"1970-01-01 00:00:00 -0500 EST 18000"\n'],
   ["Asia/Tokyo", "1700000000 | localtime", "[2023,10,15,7,13,20,3,318]\n"],
   ["Asia/Tokyo", '1700000000 | localtime | strftime("%F %T")', '"2023-11-15 07:13:20"\n'],
   ["Asia/Tokyo", "1700000000 | localtime | mktime", "1700032400\n"],

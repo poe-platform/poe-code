@@ -12,7 +12,7 @@ lookups, lazy `isempty`/`nth` selection, bounded lazy `repeat` generators, `pick
 `gmtime`, `mktime`, `strftime`, and `strptime` date conversions. Date formats use
 English names and POSIX format directives; `strftime` takes one format argument,
 as in jq. `strflocaltime` formats timestamps or broken-down local dates in the
-host timezone, including daylight-saving offsets. Zone names use the runtime’s
+command's `TZ` timezone (or the host timezone when absent), including daylight-saving offsets. Zone names use the runtime’s
 English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions;
 `todate` accepts timestamps and broken-down arrays from `gmtime` or `strptime`.
 `localtime` returns a broken-down date using the command's IANA `TZ` timezone,

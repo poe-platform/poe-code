@@ -103,6 +103,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "safe-bash-regex-engine": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "safe-bash-calendar-engine": "*"
   }
 }

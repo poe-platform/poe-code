@@ -1,5 +1,6 @@
 import { JqError, JqLimitError, type Budget, type Json } from "./limits.js";
 import { isNumber, numberValue } from "./numbers.js";
+import { TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 
 export function fromDateIso8601(input: Json): number {
   if (typeof input !== "string") throw new JqError("strptime/1 requires string inputs and arguments");
@@ -84,12 +85,24 @@ export function mktime(input: Json): number {
   return seconds;
 }
 
-export function strftime(input: Json, format: Json, budget: Budget, local = false): string {
+export function strftime(input: Json, format: Json, budget: Budget, local = false, timeZone?: string): string {
   const name = local ? "strflocaltime/1" : "strftime/1";
   if (typeof format !== "string") throw new JqError(`${name} requires a string format`);
   let fields = isNumber(input) ? gmtime(input) : datetime(input, name);
   let localDate: Date | undefined;
-  if (local) {
+  let localOffset: number | undefined;
+  let localZone: string | undefined;
+  if (local && timeZone !== undefined) {
+    const zone = new TimeZone(timeZone);
+    const instant = isNumber(input) ? BigInt(Math.trunc(numberValue(input))) * 1000000000n
+      : zone.instant({ year: fields[0]!, month: fields[1]! + 1, day: fields[2]!,
+        hour: fields[3]!, minute: fields[4]!, second: fields[5]! }, 0n, "compatible");
+    const observed = zone.fields(instant);
+    localDate = new Date(Number(instant / 1000000n));
+    localOffset = observed.offset / 60;
+    localZone = observed.zone;
+    if (isNumber(input)) fields = gmtime(localDate.getTime() / 1000 + observed.offset);
+  } else if (local) {
     if (isNumber(input)) {
       localDate = new Date(Math.trunc(numberValue(input)) * 1000);
       const calendar = utcDate([localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), localDate.getHours(), localDate.getMinutes(), localDate.getSeconds()]);
@@ -108,8 +121,8 @@ export function strftime(input: Json, format: Json, budget: Budget, local = fals
   thursday.setUTCDate(date.getUTCDate() + 3 - ((date.getUTCDay() + 6) % 7));
   const isoYear = thursday.getUTCFullYear();
   const isoWeek = 1 + Math.floor((thursday.getTime() - utcDate([isoYear, 0, 1, 0, 0, 0]).getTime()) / 604800000);
-  const offset = localDate ? -localDate.getTimezoneOffset() : 0;
-  const zone = localDate ? new Intl.DateTimeFormat("en-US", { timeZoneName: "short" }).formatToParts(localDate).find(part => part.type === "timeZoneName")!.value : "UTC";
+  const offset = localOffset ?? (localDate ? -localDate.getTimezoneOffset() : 0);
+  const zone = localZone ?? (localDate ? new Intl.DateTimeFormat("en-US", { timeZoneName: "short" }).formatToParts(localDate).find(part => part.type === "timeZoneName")!.value : "UTC");
   const directives: Readonly<Record<string, string>> = {
     Y: pad(year, 4), y: pad(year % 100), C: pad(Math.floor(year / 100)), m: pad(month + 1), d: pad(day), e: pad(day, 2, " "),
     H: pad(hour), k: pad(hour, 2, " "), I: pad(hour % 12 || 12), l: pad(hour % 12 || 12, 2, " "), M: pad(minute), S: pad(second),

@@ -58,6 +58,34 @@ interface CachedSedProgram {
 const sedProgramCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
 
+function normalizeEscapes(source: string, replacement = false): string {
+  let result = "";
+  for (let index = 0; index < source.length; index++) {
+    const character = source[index]!;
+    if (character !== "\\" || index + 1 === source.length) { result += character; continue; }
+    const escaped = source[++index]!;
+    let decoded: string;
+    if (escaped === "c" && index + 1 < source.length) {
+      let code = source.charCodeAt(++index);
+      if (code >= 97 && code <= 122) code -= 32;
+      decoded = String.fromCharCode(code ^ 64);
+    } else if (escaped === "x" || escaped === "o" || escaped === "d") {
+      const radix = escaped === "x" ? 16 : escaped === "o" ? 8 : 10;
+      const alphabet = "0123456789abcdef".slice(0, radix);
+      let digits = "";
+      while (digits.length < (radix === 16 ? 2 : 3) && index + 1 < source.length && alphabet.includes(source[index + 1]!.toLowerCase())) digits += source[++index];
+      decoded = digits ? String.fromCharCode(parseInt(digits, radix) & 255) : escaped;
+    } else {
+      result += `\\${escaped}`;
+      continue;
+    }
+    // Numeric replacement escapes produce literals, never backreferences or & expansions.
+    if (replacement && (decoded === "\\" || decoded === "&")) result += "\\";
+    result += decoded;
+  }
+  return result;
+}
+
 async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
   const groups: number[] = [];
@@ -132,7 +160,7 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
     if (source[offset] === "/") delimiter = source[offset++];
     else if (source[offset] === "\\" && source[offset + 1] && source[offset + 1] !== "\n") { offset++; delimiter = source[offset++]; }
     if (delimiter !== undefined) {
-      const pattern = delimited(delimiter, true);
+      const pattern = normalizeEscapes(delimited(delimiter, true));
       const ignoreCase = source[offset] === "I";
       if (ignoreCase) offset++;
       if (!pattern && ignoreCase) throw new ProgramError("flags on an empty regex are not supported");
@@ -215,8 +243,8 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
     } else if (kind === "s") {
       const delimiter = source[offset++];
       if (!delimiter || delimiter === "\\" || delimiter === "\n") throw new ProgramError("invalid substitution delimiter");
-      const pattern = delimited(delimiter, true);
-      instruction.replacement = delimited(delimiter);
+      const pattern = normalizeEscapes(delimited(delimiter, true));
+      instruction.replacement = normalizeEscapes(delimited(delimiter), true);
       instruction.replacementGroupCount = 0;
       for (let index = 0; index < instruction.replacement.length; index++) {
         if (instruction.replacement[index] !== "\\") continue;

@@ -161,7 +161,7 @@ const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown
 export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 export const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
-const unsupportedSetOptionNames = new Set([
+const compatibilitySetOptionNames = new Set([
   "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", ]);
 export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "alias" | "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
@@ -8005,17 +8005,16 @@ export class Runtime {
             else if (name === "physical") state.physical = enabled;
             else if (name === "xtrace") state.xtrace = enabled;
             else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
-            else {
-              const unsupported = unsupportedSetOptionNames.has(name);
-              await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
-              return unsupported ? 1 : 2;
+            else if (!compatibilitySetOptionNames.has(name)) {
+              await this.diagnostic(context, `set: ${name}: invalid option name`);
+              return 2;
             }
             index++;
           }
-        } else valid = false;
+        } else if (!"vmbkptHET".includes(flag!)) valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P/x clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, physical, pipefail, errexit, nounset or xtrace\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P/x/v/m/b/k/p/t/H/E/T clusters, -- arguments and terminal o with standard shell option names\n");
         return 1;
       }
       index++;

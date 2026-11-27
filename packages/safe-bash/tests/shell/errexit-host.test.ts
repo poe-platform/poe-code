@@ -280,14 +280,14 @@ test("set named braceexpand option toggles B without changing errexit", async ()
 });
 
 for (const name of ["emacs", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", "xtrace"]) {
-  test(`set named option retains explicit capability denial for valid name: ${name}`, async () => {
+  test(`set accepts standard named option: ${name}`, async () => {
     const { shell } = setup();
     try {
       for (const option of ["-o", "+o"]) {
         const result = await shell.exec(`set ${option} ${name}`);
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 0);
         assert.equal(result.stdout, "");
-        assert.equal(result.stderr, `shell: line 1: set: ${name}: unsupported shell option\n`);
+        assert.equal(result.stderr, "");
       }
     } finally { await shell.dispose(); }
   });
@@ -317,6 +317,6 @@ test("set named option failure retains preceding options and does not replace po
   } finally { await shell.dispose(); }
 });
 
-for (const command of ["bash -x -c true", "bash +c true"]) test(`unimplemented switch stays rejected ${command}`, async () => {
+for (const command of ["bash -Z -c true", "bash +c true"]) test(`unimplemented switch stays rejected ${command}`, async () => {
   const { shell } = setup(); const result = await shell.exec(command); assert.equal(result.exitCode, 2); assert.match(result.stderr, /unsupported/u);
 });

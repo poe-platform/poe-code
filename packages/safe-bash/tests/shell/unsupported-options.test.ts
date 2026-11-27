@@ -4,6 +4,29 @@ import { spawnSync } from "node:child_process";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import { setup } from "./helpers.js";
 
+test("standard compatibility set options succeed", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('set -m; echo "m=$?"; set -o posix; echo "posix=$?"; set -v; echo "v=$?"; set +H; echo "H=$?"; set -o emacs; echo "emacs=$?"');
+  assert.equal(result.stdout, "m=0\nposix=0\nv=0\nH=0\nemacs=0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+for (const option of ["v", "m", "b", "k", "p", "t", "H", "E", "T",
+  "o posix", "o monitor", "o verbose", "o vi", "o emacs", "o notify",
+  "o keyword", "o privileged", "o onecmd", "o histexpand", "o history",
+  "o ignoreeof", "o interactive-comments", "o nolog", "o errtrace", "o functrace"]) {
+  test(`set accepts +/-${option} under errexit`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`set -e; set -${option}; set +${option}; say survived`);
+    assert.equal(result.stdout, "survived\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
 for (const canonical of [true, false]) for (const option of ["-C", "-o noclobber", "-uC"]) {
   test(`noclobber ${option} preserves existing output with descriptor API ${canonical}`, async () => {
     const fs = createMemoryFileSystem();

@@ -248,6 +248,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `set -a` (or `set -o allexport`) exports subsequent variable
   assignments to child commands, and `set +a` disables automatic export.
   `set +h` disables command hashing; `set -h` (or `set -o hashall`) restores it.
+  Standard compatibility options such as `set -m`, `set +H`, `set -v`, and
+  `set -o posix`, `vi`, or `emacs` are accepted as no-ops; they do not enable
+  job control, history expansion, input tracing, or a different shell dialect.
   `time pipeline` executes and measures a pipeline, writing timing to stderr;
   `time -p pipeline` uses portable `real`, `user`, and `sys` lines. Wall time is
   measured; CPU fields are zero because virtual commands have no separate process.

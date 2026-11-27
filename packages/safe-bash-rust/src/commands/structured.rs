@@ -25726,11 +25726,18 @@ fn parse_sql_json_path(path_s: &str, document: &JVal) -> Option<Vec<JVal>> {
             while let Some(ob) = rem.find('[')
                 && let Some(cb) = rem.find(']')
             {
-                if &rem[ob + 1..cb] == "#" {
+                if let Some(offset) = rem[ob + 1..cb].strip_prefix('#') {
                     let JVal::Array(items) = get_jq_jval_path(document, &segs) else {
                         return None;
                     };
-                    segs.push(JVal::Number(items.len() as f64, None));
+                    let index = if offset.is_empty() {
+                        items.len()
+                    } else {
+                        items
+                            .len()
+                            .checked_sub(offset.strip_prefix('-')?.parse().ok()?)?
+                    };
+                    segs.push(JVal::Number(index as f64, None));
                 } else if let Ok(idx) = rem[ob + 1..cb].parse::<f64>() {
                     segs.push(JVal::Number(idx, None));
                 }
@@ -25741,6 +25748,38 @@ fn parse_sql_json_path(path_s: &str, document: &JVal) -> Option<Vec<JVal>> {
         }
     }
     Some(segs)
+}
+
+fn eval_sql_json_extract(
+    args: &[&str],
+    cols: &[String],
+    row: &[String],
+    tables: &BTreeMap<String, SqlTable>,
+) -> JVal {
+    let Some(doc_arg) = args.first() else {
+        return JVal::Null;
+    };
+    let doc = eval_sql_row_expr(doc_arg, cols, row, tables);
+    let Some(value) = parse_json_stream(&doc)
+        .ok()
+        .and_then(|mut values| values.pop())
+    else {
+        return JVal::Null;
+    };
+    let mut values = Vec::with_capacity(args.len().saturating_sub(1));
+    for path in &args[1..] {
+        let path = eval_sql_row_expr(path, cols, row, tables);
+        values.push(
+            parse_sql_json_path(&path, &value)
+                .map(|segs| get_jq_jval_path(&value, &segs))
+                .unwrap_or(JVal::Null),
+        );
+    }
+    match values.len() {
+        0 => value,
+        1 => values.pop().unwrap(),
+        _ => JVal::Array(values),
+    }
 }
 
 fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
@@ -26282,6 +26321,28 @@ fn eval_sql_row_expr(
         {
             return "text".to_string();
         }
+        let mut inner = inner_raw;
+        while inner.starts_with('(') && find_matching_paren(inner) == Some(inner.len() - 1) {
+            inner = inner[1..inner.len() - 1].trim();
+        }
+        if inner.to_ascii_uppercase().starts_with("JSON_EXTRACT(")
+            && find_matching_paren(&inner[12..]) == Some(inner.len() - 13)
+        {
+            let args = split_top_level_comma(&inner[13..inner.len() - 1]);
+            let value = eval_sql_json_extract(&args, cols, row, tables);
+            return match value {
+                JVal::Null => "null",
+                JVal::Bool(_) => "integer",
+                JVal::Number(_, ref literal)
+                    if literal.as_deref().is_some_and(|n| n.parse::<i64>().is_ok()) =>
+                {
+                    "integer"
+                }
+                JVal::Number(_, _) => "real",
+                JVal::Str(_) | JVal::Array(_) | JVal::Object(_) => "text",
+            }
+            .to_string();
+        }
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
         if v.starts_with(SQL_BLOB) {
             return "blob".to_string();
@@ -26686,27 +26747,23 @@ fn eval_sql_row_expr(
             return val;
         }
     }
-    if (upper.starts_with("JSON_EXTRACT(") || upper.starts_with("JSON_TYPE(")) && s.ends_with(')') {
-        let is_type = upper.starts_with("JSON_TYPE(");
-        let prefix_len = if is_type { 10 } else { 13 };
-        let args = split_top_level_comma(&s[prefix_len..s.len() - 1]);
+    if upper.starts_with("JSON_EXTRACT(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[13..s.len() - 1]);
+        let value = eval_sql_json_extract(&args, cols, row, tables);
+        return match value {
+            JVal::Null => SQL_NULL.to_string(),
+            JVal::Bool(true) => "1".to_string(),
+            JVal::Bool(false) => "0".to_string(),
+            _ => value.to_raw_string(true, false),
+        };
+    }
+    if upper.starts_with("JSON_TYPE(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[10..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
             let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
-                if !is_type && args.len() > 2 {
-                    let mut items = Vec::with_capacity(args.len() - 1);
-                    for p_arg in &args[1..] {
-                        let ps = eval_sql_row_expr(p_arg, cols, row, tables);
-                        items.push(
-                            parse_sql_json_path(&ps, &jval)
-                                .map(|segs| get_jq_jval_path(&jval, &segs))
-                                .unwrap_or(JVal::Null),
-                        );
-                    }
-                    return JVal::Array(items).to_json_string(true, false, 0);
-                }
                 let path_s = args
                     .get(1)
                     .map(|a| eval_sql_row_expr(a, cols, row, tables))
@@ -26715,31 +26772,21 @@ fn eval_sql_row_expr(
                     return SQL_NULL.to_string();
                 };
                 let found = get_jq_jval_path(&jval, &segs);
-                if is_type {
-                    return match found {
-                        JVal::Object(_) => "object".to_string(),
-                        JVal::Array(_) => "array".to_string(),
-                        JVal::Str(_) => "text".to_string(),
-                        JVal::Number(n, _) => {
-                            if (n - n.round()).abs() < 1e-9 {
-                                "integer".to_string()
-                            } else {
-                                "real".to_string()
-                            }
+                return match found {
+                    JVal::Object(_) => "object".to_string(),
+                    JVal::Array(_) => "array".to_string(),
+                    JVal::Str(_) => "text".to_string(),
+                    JVal::Number(n, _) => {
+                        if (n - n.round()).abs() < 1e-9 {
+                            "integer".to_string()
+                        } else {
+                            "real".to_string()
                         }
-                        JVal::Bool(true) => "true".to_string(),
-                        JVal::Bool(false) => "false".to_string(),
-                        JVal::Null => SQL_NULL.to_string(),
-                    };
-                } else {
-                    return match found {
-                        JVal::Null => SQL_NULL.to_string(),
-                        JVal::Bool(true) => "1".to_string(),
-                        JVal::Bool(false) => "0".to_string(),
-                        JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
-                        _ => found.to_raw_string(true, false),
-                    };
-                }
+                    }
+                    JVal::Bool(true) => "true".to_string(),
+                    JVal::Bool(false) => "false".to_string(),
+                    JVal::Null => SQL_NULL.to_string(),
+                };
             }
         }
         return SQL_NULL.to_string();

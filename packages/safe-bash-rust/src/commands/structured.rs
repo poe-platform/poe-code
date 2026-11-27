@@ -27288,6 +27288,12 @@ fn eval_sql_group_expr(
             }
             return format!("{lv_s}{rv_s}");
         }
+        if op == "+"
+            && let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>())
+            && let Some(sum) = lv.checked_add(rv)
+        {
+            return sum.to_string();
+        }
         let lv = lv_s.parse::<f64>().unwrap_or(0.0);
         let rv = rv_s.parse::<f64>().unwrap_or(0.0);
         if op == "/"

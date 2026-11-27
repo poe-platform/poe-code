@@ -12567,7 +12567,7 @@ fn cmd_magick(
                 ops.push(PixelOp::Resize(
                     &args[i + 1],
                     if arg == "-sample" {
-                        Kernel::Sample
+                        Kernel::Nearest
                     } else {
                         kernel
                     },

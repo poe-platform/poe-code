@@ -7542,6 +7542,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         ("*=", "*"),
         ("/=", "/"),
         ("%=", "%"),
+        ("^=", "^"),
     ] {
         if let Some((lhs, rhs)) = s.split_once(op) {
             let key = resolve_bc_lvalue_key(lhs, bc, depth);

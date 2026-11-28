@@ -67,9 +67,27 @@ const modernReplacementCases = [
   })),
   { source: 'HOME=/home/user; p=/home/user/X; printf "<%s>\\n" "${p/~/~}"', stdout: '</home/user/X>\n' },
 ];
+// GNU ERE extensions have fixed expectations because macOS Bash uses a different libc.
+const gnuEreCases = [
+  { source: String.raw`re='^\s*$'; [[ '  ' =~ $re ]] && echo ws; re='^\w+$'; [[ ab_1 =~ $re ]] && echo w; re='\bfoo\b'; [[ 'a foo b' =~ $re ]] && echo b; re='^\S+$'; [[ a.b =~ $re ]] && echo S; echo "st=$?"`, stdout: 'ws\nw\nb\nS\nst=0\n' },
+  ...[
+    [String.raw`\s+`, ' \t', 'x', ' \t'],
+    [String.raw`\S+`, 'a.b', ' ', 'a.b'],
+    [String.raw`\w+`, 'ab_1', '.', 'ab_1'],
+    [String.raw`\W+`, '. ', '_', '. '],
+    [String.raw`\bfoo\b`, 'foo', '_foo_', 'foo'],
+    [String.raw`\Bfoo\B`, '_foo_', 'foo', 'foo'],
+    [String.raw`\<foo`, 'foo_', '_foo', 'foo'],
+    [String.raw`foo\>`, '_foo', 'foo_', 'foo'],
+  ].map(([pattern, matching, missing, capture]) => ({
+    source: `re='${pattern}'; for i in 1 2; do [[ '${matching}' =~ ($re) ]]; echo "$?:\${BASH_REMATCH[0]}:\${BASH_REMATCH[1]}"; [[ '${missing}' =~ $re ]]; echo "$?"; [[ '${matching}' =~ "$re" ]]; echo "$?"; done`,
+    stdout: `0:${capture}:${capture}\n1\n1\n`.repeat(2),
+  })),
+];
 for (const maxExpansionBytes of [undefined, 65536]) for (const { source, stdout } of [
-  ...cases.map(source => ({ source, stdout: undefined })), ...modernReplacementCases,
-]) test(`${stdout === undefined ? 'Bash parity' : 'Modern Bash replacement'} (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
+  ...cases.map(source => ({ source, stdout: undefined })), ...modernReplacementCases, ...gnuEreCases,
+  ...gnuEreCases.map(({ source, stdout }) => ({ source: `LC_ALL=C.UTF-8; ${source}`, stdout })),
+]) test(`${stdout === undefined ? 'Bash parity' : 'Modern Bash behavior'} (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
   const env = { HOME: '/home/user', LC_ALL: 'C' };
   const expected = stdout === undefined ? execFileSync('/bin/bash', ['-c', source], { env: { ...process.env, ...env } }) : Buffer.from(stdout);
   const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });

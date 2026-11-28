@@ -5,6 +5,8 @@ algorithms used by Safe Bash commands. It preserves capture behavior, explicit
 work limits and cooperative cancellation without executing host utilities. Grep and rg alternations and repetitions accept Unicode
 literals, preserve UTF-8 byte offsets, and retain work limits and cancellation.
 ASCII case-insensitive searches also accept Unicode subjects.
+Shell EREs accept GNU `\s`, `\S`, `\w`, `\W`, `\b`, `\B`, `\<` and `\>`
+escapes with C/POSIX character classes, including patterns expanded from variables.
 Shell ERE captures follow the recorded Darwin Bash 3.2 profile: an inner group
 skipped in the last parent repetition is empty. For `(a(b)?)+` on `aba`, the
 captures are `a` and `""`; GNU Bash on Linux/glibc instead retains the earlier `b`.

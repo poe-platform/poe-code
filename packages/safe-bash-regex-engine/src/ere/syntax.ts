@@ -1,4 +1,5 @@
 import { EreSyntaxError, EreUnsupportedError } from "./errors.js";
+import { isAsciiWord } from "../ascii.js";
 import { EreLedger } from "./limits.js";
 import type { EreFragment, EreNode, EreProgram } from "./types.js";
 
@@ -207,6 +208,20 @@ class Parser {
     if (character === "\\") {
       const escaped = this.pattern[this.offset++];
       if (escaped === undefined) throw new EreSyntaxError("trailing escape", begin);
+      if (escaped === "s" || escaped === "S" || escaped === "w" || escaped === "W") {
+        this.ledger.charge("allocationUnits", 128, this.signal);
+        const members: boolean[] = new Array<boolean>(128).fill(false);
+        const negate = escaped === "S" || escaped === "W";
+        for (let code = 1; code < 128; code++) {
+          this.ledger.charge("work", 1, this.signal);
+          { const c = this.ledger.checkpoint(this.signal); if (c) await c; }
+          members[code] = (escaped === "s" || escaped === "S" ? classMember("space", code) : isAsciiWord(code)) !== negate;
+        }
+        return this.node(() => ({ kind: "set", members: Object.freeze(members), nonAscii: negate, nullable: false, captured: false }));
+      }
+      if (escaped === "b" || escaped === "B" || escaped === "<" || escaped === ">") {
+        return this.node(() => ({ kind: "wordBoundary", assertion: escaped, nullable: true, captured: false }));
+      }
       if (!special.includes(escaped)) throw new EreUnsupportedError("backreference or escape extension", begin);
       return this.node(() => ({ kind: "literal", code: escaped.charCodeAt(0), insensitive: this.insensitive, nullable: false, captured: false }));
     }

@@ -10,6 +10,15 @@ interface History {
   readonly count: number;
 }
 
+function matchesWordBoundary(assertion: "b" | "B" | "<" | ">", before: boolean, after: boolean): boolean {
+  switch (assertion) {
+    case "b": return before !== after;
+    case "B": return before === after;
+    case "<": return !before && after;
+    case ">": return before && !after;
+  }
+}
+
 type Task =
   | { readonly kind: "node"; readonly node: EreNode; readonly next: Task | null }
   | { readonly kind: "close"; readonly group: number; readonly start: number; readonly next: Task | null }
@@ -461,6 +470,9 @@ function tryMatchEreAsciiRangeNfaSync(
           case "empty": push(statePos, current.next); break;
           case "start": if (statePos === 0) push(statePos, current.next); break;
           case "end": if (statePos === rLen) push(statePos, current.next); break;
+          case "wordBoundary":
+            if (matchesWordBoundary(node.assertion, statePos > 0 && isAsciiWord(buf[rStart + statePos - 1]!), statePos < rLen && isAsciiWord(buf[rStart + statePos]!))) push(statePos, current.next);
+            break;
           case "dot":
           case "literal":
           case "set": {
@@ -573,6 +585,9 @@ function tryMatchEreAsciiRangeNfaSync(
         case "empty": push(state.position, current.next); break;
         case "start": if (state.position === 0) push(state.position, current.next); break;
         case "end": if (state.position === rLen) push(state.position, current.next); break;
+        case "wordBoundary":
+          if (matchesWordBoundary(node.assertion, state.position > 0 && isAsciiWord(buf[rStart + state.position - 1]!), state.position < rLen && isAsciiWord(buf[rStart + state.position]!))) push(state.position, current.next);
+          break;
         case "dot":
         case "literal":
         case "set": {
@@ -1240,6 +1255,9 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
         case "empty": push(state.position, current.next, state.captures, state.histories); break;
         case "start": if (state.position === 0) push(state.position, current.next, state.captures, state.histories); break;
         case "end": if (state.position === subject.length) push(state.position, current.next, state.captures, state.histories); break;
+        case "wordBoundary":
+          if (matchesWordBoundary(node.assertion, isAsciiWord(subject.charCodeAt(state.position - 1)), isAsciiWord(subject.charCodeAt(state.position)))) push(state.position, current.next, state.captures, state.histories);
+          break;
         case "dot":
         case "literal":
         case "set": {

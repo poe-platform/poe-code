@@ -138,3 +138,50 @@ fn correlated_empty_scalar_subquery_uses_fallback_per_row() {
         "1|27\n2|9\n"
     );
 }
+
+#[test]
+fn scalar_subquery_without_rows_is_null_inside_coalesce() {
+    assert_eq!(
+        run_sql("CREATE TABLE t(n); SELECT coalesce((SELECT n FROM t),27),coalesce(NULL,27);"),
+        "27|27\n"
+    );
+}
+
+#[test]
+fn scalar_subquery_preserves_null_and_non_null_values_in_functions() {
+    for (value, expected) in [
+        ("NULL", "27|27|null\n"),
+        ("''", "||text\n"),
+        ("'  value  '", "  value  |  value  |text\n"),
+        ("0", "0|0|integer\n"),
+        ("X'4142'", "AB|AB|blob\n"),
+    ] {
+        assert_eq!(
+            run_sql(&format!(
+                "CREATE TABLE t(n); INSERT INTO t VALUES({value}); SELECT coalesce((SELECT n FROM t),27),ifnull((SELECT n FROM t),27),typeof((SELECT n FROM t));"
+            )),
+            expected,
+            "{value}"
+        );
+    }
+}
+
+#[test]
+fn coalesce_scalar_subquery_uses_the_first_row_and_current_outer_row() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k); CREATE TABLE b(k,n); INSERT INTO a VALUES(1),(2),(3); INSERT INTO b VALUES(2,NULL),(2,9),(3,0); SELECT k,coalesce((SELECT n FROM b WHERE b.k=a.k),27) FROM a ORDER BY k;"
+        ),
+        "1|27\n2|27\n3|0\n"
+    );
+}
+
+#[test]
+fn nested_functions_preserve_null_from_empty_scalar_subqueries() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE t(n); SELECT coalesce(length((SELECT n FROM t)),27),ifnull((SELECT n FROM t),27),typeof((SELECT n FROM t));"
+        ),
+        "27|27|null\n"
+    );
+}

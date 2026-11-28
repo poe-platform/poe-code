@@ -2085,7 +2085,7 @@ test("Wave 238: ssconvert CSV/TSV/XLSX conversion and op completion in sync subs
   );
 });
 
-test("Wave 239: in2csv xlsx/explicit geojson conversion and dos2unix ascii conversion reject unsupported Mac mode", async () => {
+test("Wave 239: in2csv xlsx/explicit geojson conversion and dos2unix ascii and Mac conversion", async () => {
   const memFs = new MemoryFileSystem();
   await memFs.mkdir("/tmp", { recursive: true });
   for (const i of [1, 2]) {
@@ -2128,8 +2128,8 @@ test("Wave 239: in2csv xlsx/explicit geojson conversion and dos2unix ascii conve
     "1:w239_1.csv:Austin,100:Site-1,Point,-97.7,30.2:lineA:lineB\n2:w239_2.csv:Austin,200:Site-2,Point,-97.7,30.2:lineA:lineB"
   );
   assert.equal(r.stderr, "");
-  const unsupported = await sh.exec("value=$(printf 'lineA\\rlineB' | dos2unix -c mac)");
-  assert.equal(unsupported.exitCode, 1);
-  assert.equal(unsupported.stdout, "");
-  assert.equal(unsupported.stderr, "dos2unix: invalid mac conversion mode specified\n");
+  const converted = await sh.exec("value=$(printf 'lineA\\rlineB' | dos2unix -c mac); code=$?; printf '%s' \"$value\"; exit \"$code\"");
+  assert.equal(converted.exitCode, 0);
+  assert.equal(converted.stdout, "lineA\nlineB");
+  assert.equal(converted.stderr, "");
 });

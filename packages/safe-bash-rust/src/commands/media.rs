@@ -12684,6 +12684,13 @@ fn cmd_magick(
                 channels = None;
                 i += 1;
             }
+            "-remap" => {
+                if i + 1 >= args.len() - usize::from(!is_mogrify) {
+                    return err_out("magick: missing palette filename for '-remap'\n", 1);
+                }
+                stack_steps.push((ops.len(), magick_stack::Step::Remap(&args[i + 1])));
+                i += 2;
+            }
             "-clut" => {
                 stack_steps.push((
                     ops.len(),
@@ -13166,6 +13173,7 @@ fn cmd_magick(
                 magick_stack::Step::Edit(..)
                     | magick_stack::Step::Separate(..)
                     | magick_stack::Step::Clut(..)
+                    | magick_stack::Step::Remap(..)
             )
         });
     let apply_pixels =
@@ -13353,6 +13361,7 @@ fn cmd_magick(
                             s,
                             magick_stack::Step::Edit(..)
                                 | magick_stack::Step::Clut(..)
+                                | magick_stack::Step::Remap(..)
                                 | magick_stack::Step::Separate(..)
                                 | magick_stack::Step::Append(..)
                                 | magick_stack::Step::Write(..)

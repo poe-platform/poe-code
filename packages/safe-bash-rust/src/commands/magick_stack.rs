@@ -120,6 +120,7 @@ pub(super) enum Step<'a> {
     Append(bool, Gravity, [u8; 4]),
     Separate([bool; 4]),
     Clut([bool; 4]),
+    Remap(&'a str),
 }
 
 struct SourceTiming {
@@ -693,6 +694,44 @@ pub(super) fn evaluate(
                 ));
             }
             Step::Append(..) => {}
+            Step::Remap(token) => {
+                let path = super::png_pixels::destination(token).map_or(*token, |(_, path)| path);
+                let from_disk;
+                let bytes = if let Some((_, data)) = snapshots.files.get(path) {
+                    data
+                } else {
+                    from_disk = read_file(path)
+                        .map_err(|e| format!("unable to open image '{token}': {e}"))?;
+                    &from_disk
+                };
+                let palette = Raster::decode(bytes, limit.saturating_sub(retained))?;
+                if palette.pixels.is_empty() {
+                    return Err("Invalid palette image dimensions".into());
+                }
+                for (scene, start) in &mut stack {
+                    let scene = Rc::make_mut(scene);
+                    let (keep, alpha) =
+                        transform(&mut scene.image, *start..*at, scene.timing.is_some())?;
+                    scene.png_alpha = alpha;
+                    if !keep {
+                        scene.timing = None;
+                    }
+                    *start = *at;
+                    for pixel in &mut scene.image.pixels {
+                        let nearest = palette
+                            .pixels
+                            .iter()
+                            .min_by_key(|color| {
+                                (0..3)
+                                    .map(|c| (i32::from(pixel[c]) - i32::from(color[c])).pow(2))
+                                    .sum::<i32>()
+                            })
+                            .unwrap();
+                        pixel[..3].copy_from_slice(&nearest[..3]);
+                    }
+                    scene.image.gray = false;
+                }
+            }
             Step::Clut(channels) => {
                 if stack.len() < 2 {
                     return Err("image sequence is required `-clut'".into());

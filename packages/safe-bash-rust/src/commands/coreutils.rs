@@ -6946,19 +6946,42 @@ struct BcEnv {
     runtime_err: Option<String>,
 }
 
-fn format_bc_base(mut n: u128, obase: u32) -> String {
-    if n == 0 {
+fn format_bc_base(digits: &[u8], scale: usize, obase: u32) -> String {
+    if digits.iter().all(|&d| d == 0) {
         return "0".to_string();
     }
-    let digits = b"0123456789ABCDEF";
+    let alphabet = b"0123456789ABCDEF";
+    let base = obase
+        .to_string()
+        .bytes()
+        .map(|b| b - b'0')
+        .collect::<Vec<_>>();
+    let split = digits.len().saturating_sub(scale);
+    let mut integer = digits[..split].to_vec();
+    big_trim(&mut integer);
     let mut chars = Vec::new();
-    let b = u128::from(obase.clamp(2, 16));
-    while n > 0 {
-        let rem = (n % b) as usize;
-        chars.push(digits[rem] as char);
-        n /= b;
+    while integer != [0] {
+        let (quotient, remainder) = big_div_rem(&integer, &base);
+        let digit = remainder.iter().fold(0, |n, &d| n * 10 + usize::from(d));
+        chars.push(alphabet[digit] as char);
+        integer = quotient;
     }
     chars.reverse();
+    if scale > 0 {
+        chars.push('.');
+        let mut denominator = vec![1];
+        denominator.extend(std::iter::repeat_n(0, scale));
+        let mut remainder = digits[split..].to_vec();
+        let mut precision = vec![1];
+        // Emit the least number of base digits that retain the decimal scale.
+        while precision.len() <= scale {
+            precision = big_mul(&precision, &base);
+            let (digit, rest) = big_div_rem(&big_mul(&remainder, &base), &denominator);
+            let digit = digit.iter().fold(0, |n, &d| n * 10 + usize::from(d));
+            chars.push(alphabet[digit] as char);
+            remainder = rest;
+        }
+    }
     chars.into_iter().collect()
 }
 
@@ -7249,25 +7272,36 @@ fn resolve_bc_lvalue_key(lhs: &str, bc: &mut BcEnv, depth: usize) -> String {
 }
 
 fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
-    if let Some(ref exact_s) = bc.last_str_out {
-        return exact_s.clone();
-    }
     if bc.obase != 10 {
-        let n = if let Some(ref d) = v.coefficient {
-            let mut acc = 0u128;
-            for &dig in &d[..d.len().saturating_sub(v.scale)] {
-                acc = acc.saturating_mul(10).saturating_add(u128::from(dig));
-            }
-            acc
+        let digits = if let Some(ref exact_s) = bc.last_str_out {
+            exact_s
+                .bytes()
+                .filter(u8::is_ascii_digit)
+                .map(|b| b - b'0')
+                .collect()
+        } else if let Some(ref digits) = v.coefficient {
+            digits.clone()
         } else {
-            v.val.trunc().abs() as u128
+            let magnitude = if v.scale == 0 {
+                v.val.abs().trunc()
+            } else {
+                v.val.abs()
+            };
+            format!("{:.*}", v.scale, magnitude)
+                .bytes()
+                .filter(u8::is_ascii_digit)
+                .map(|b| b - b'0')
+                .collect()
         };
-        let magnitude = format_bc_base(n, bc.obase);
-        return if v.neg && n != 0 {
+        let magnitude = format_bc_base(&digits, v.scale, bc.obase);
+        return if v.neg && magnitude != "0" {
             format!("-{magnitude}")
         } else {
             magnitude
         };
+    }
+    if let Some(ref exact_s) = bc.last_str_out {
+        return exact_s.clone();
     }
     if let Some(ref d) = v.coefficient {
         return format_big_with_scale(d, v.scale, v.neg);

@@ -23251,24 +23251,14 @@ fn exec_sql_insert(
     let is_or_replace =
         upper.starts_with("INSERT OR REPLACE INTO ") || upper.starts_with("REPLACE INTO ");
     let into_pos = upper.find(" INTO ").map(|p| p + 6).unwrap_or(11);
-    let conflict_pos = upper.find("ON CONFLICT");
-    let ret_pos = upper.rfind("RETURNING ");
+    let conflict_pos = find_top_sql_bool_kw(&upper, " ON CONFLICT").map(|p| p + 1);
+    let ret_pos = find_top_sql_bool_kw(&upper, " RETURNING ").map(|p| p + 1);
     let returning_cols: Option<Vec<String>> = ret_pos.map(|rp| {
         split_top_level_comma(&norm[rp + 10..])
             .into_iter()
             .map(|c| c.trim().to_string())
             .collect()
     });
-    let is_do_nothing = is_or_ignore || (conflict_pos.is_some() && upper.contains("DO NOTHING"));
-    let is_do_update = conflict_pos.is_some() && upper.contains("DO UPDATE SET");
-    let do_update_clause = if is_do_update {
-        upper.find("DO UPDATE SET").map(|dp| {
-            let end = ret_pos.unwrap_or(norm.len());
-            norm[dp + 13..end].trim().to_string()
-        })
-    } else {
-        None
-    };
 
     let val_end = conflict_pos.or(ret_pos).unwrap_or(norm.len());
     let val_pos_opt = upper[..val_end].find("VALUES");
@@ -23345,6 +23335,57 @@ fn exec_sql_insert(
                     "Error: in prepare, cannot INSERT into generated column \"{name}\"\n"
                 ));
             }
+        }
+    }
+
+    // Resolve targets once, preserving SQL clause order rather than index order.
+    // None as an action means DO NOTHING; None as a target is the final catch-all.
+    let mut upserts = Vec::new();
+    if let Some(start) = conflict_pos {
+        let mut rest = &norm[start..ret_pos.unwrap_or(norm.len())];
+        while !rest.is_empty() {
+            let body = rest[11..].trim_start();
+            let next = find_top_sql_bool_kw(&body.to_ascii_uppercase(), " ON CONFLICT");
+            let clause = body[..next.unwrap_or(body.len())].trim();
+            let (target, action) = if clause.starts_with('(') {
+                let close = find_matching_paren(clause)
+                    .ok_or_else(|| "Error: malformed ON CONFLICT target\n".to_string())?;
+                let target_terms = split_top_level_comma(&clause[1..close]);
+                let index = tables.get(&tname).and_then(|table| {
+                    table.unique_indexes.iter().position(|(_, terms, _)| {
+                        terms.len() == target_terms.len()
+                            && target_terms.iter().all(|target| {
+                                let target = parse_sql_order_term(target).0;
+                                terms.iter().any(|term| {
+                                    let term = parse_sql_order_term(term).0;
+                                    term.eq_ignore_ascii_case(target)
+                                        || find_sql_col(&t_cols, term).is_some_and(|column| {
+                                            find_sql_col(&t_cols, target) == Some(column)
+                                        })
+                                })
+                            })
+                    })
+                }).ok_or_else(|| "Error: ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint\n".to_string())?;
+                (Some(index), clause[close + 1..].trim())
+            } else {
+                if next.is_some() {
+                    return Err(
+                        "Error: only the final ON CONFLICT clause may omit its target\n"
+                            .to_string(),
+                    );
+                }
+                (None, clause)
+            };
+            let action_upper = action.to_ascii_uppercase();
+            let update = if action_upper == "DO NOTHING" {
+                None
+            } else if action_upper.starts_with("DO UPDATE SET ") {
+                Some(action[14..].trim())
+            } else {
+                return Err("Error: malformed ON CONFLICT action\n".to_string());
+            };
+            upserts.push((target, update));
+            rest = next.map_or("", |pos| body[pos..].trim_start());
         }
     }
 
@@ -23523,39 +23564,41 @@ fn exec_sql_insert(
             }
         }
 
-        let mut unique_conflict_idx = None;
-        let mut replace_conflicts = BTreeSet::new();
-        let mut ignore_conflict = is_do_nothing;
-        for (name, terms, declared_ignore) in &unique_idx_clone {
+        let mut conflicts_by_index = Vec::new();
+        for (index, (_, terms, _)) in unique_idx_clone.iter().enumerate() {
             let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables)
                 .inspect_err(|_| *tables = stmt_snap.clone())?;
-            if let Some(&index) = conflicts.first() {
-                if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
-                    ignore_conflict |= *declared_ignore;
-                }
-                if !(ignore_conflict || is_or_replace || is_do_update) {
+            if !conflicts.is_empty() {
+                conflicts_by_index.push((index, conflicts));
+            }
+        }
+        let matching_upsert = upserts.iter().find_map(|(target, update)| {
+            conflicts_by_index
+                .iter()
+                .find(|(index, _)| target.is_none_or(|target| target == *index))
+                .map(|(_, conflicts)| (conflicts[0], *update))
+        });
+        let mut replace_conflicts = BTreeSet::new();
+        if matching_upsert.is_none() {
+            for (index, conflicts) in &conflicts_by_index {
+                let (name, terms, declared_ignore) = &unique_idx_clone[*index];
+                if is_or_replace {
+                    replace_conflicts.extend(conflicts.iter().copied());
+                } else if is_or_ignore || (!upper.starts_with("INSERT OR ") && *declared_ignore) {
+                    break;
+                } else {
                     let error = sql_unique_error(&tname, &tables[&tname], name, terms);
                     *tables = stmt_snap;
                     return Err(error);
                 }
-                unique_conflict_idx.get_or_insert(index);
-                if is_or_replace {
-                    replace_conflicts.extend(conflicts);
-                } else {
-                    break;
-                }
+            }
+            if !conflicts_by_index.is_empty() && !is_or_replace {
+                continue;
             }
         }
 
-        let existing_idx = unique_conflict_idx;
-        if let Some(e_idx) = existing_idx
-            && !is_or_replace
-            && (ignore_conflict || is_do_update)
-        {
-            if ignore_conflict {
-                continue;
-            }
-            if let Some(ref du_str) = do_update_clause {
+        if let Some((e_idx, update)) = matching_upsert {
+            if let Some(du_str) = update {
                 let old_copy = tables.get(&tname).unwrap().rows[e_idx].clone();
                 let mut u_cols = Vec::new();
                 let mut u_row = Vec::new();
@@ -23578,7 +23621,7 @@ fn exec_sql_insert(
                 let (set_part, where_part) = if let Some(wp) = du_up.find(" WHERE ") {
                     (du_str[..wp].trim(), Some(du_str[wp + 7..].trim()))
                 } else {
-                    (du_str.as_str(), None)
+                    (du_str, None)
                 };
                 let cond_ok = match where_part {
                     Some(wc) => eval_sql_where(wc, &u_cols, &u_metadata, &u_row, tables)
@@ -23661,8 +23704,8 @@ fn exec_sql_insert(
                     )
                     .inspect_err(|_| *tables = stmt_snap.clone())?;
                 }
-                continue;
             }
+            continue;
         }
 
         if let Some(tbl) = tables.get_mut(&tname) {

@@ -2713,7 +2713,8 @@ pub fn execute_git_cli_with_input(
             }
         }
         "ls-files" => {
-            let stage_mode = sub_args.contains(&"-s") || sub_args.contains(&"--stage");
+            let unmerged_mode = sub_args.contains(&"-u") || sub_args.contains(&"--unmerged");
+            let stage_mode = unmerged_mode || sub_args.contains(&"-s") || sub_args.contains(&"--stage");
             let others_mode = sub_args.contains(&"-o") || sub_args.contains(&"--others");
             let exclude_std = sub_args.contains(&"--exclude-standard");
             let modified_mode = sub_args.contains(&"-m") || sub_args.contains(&"--modified");
@@ -2731,6 +2732,9 @@ pub fn execute_git_cli_with_input(
                 .unwrap_or_default();
                 let mut out = String::new();
                 for e in entries {
+                    if unmerged_mode && e.flags.stage == 0 {
+                        continue;
+                    }
                     if !filter_paths.is_empty()
                         && !crate::cli_history::matches_path(&e.path, &filter_paths)
                     {

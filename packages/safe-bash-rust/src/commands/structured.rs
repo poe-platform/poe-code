@@ -26720,6 +26720,7 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
     let mut depth = 0usize;
     let mut case_depth = 0usize;
     let mut quote = None;
+    let mut bitwise = None;
     let mut additive = None;
     let mut multiplicative = None;
     let mut concat = None;
@@ -26768,6 +26769,8 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
                 case_depth = case_depth.saturating_sub(1);
             }
             continue;
+        } else if depth == 0 && case_depth == 0 && b == b'&' {
+            bitwise = Some((i, &s[i..i + 1]));
         } else if depth == 0 && case_depth == 0 && b == b'|' && bytes.get(i + 1) == Some(&b'|') {
             concat = Some((i, &s[i..i + 2]));
             i += 1;
@@ -26776,7 +26779,7 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
             if matches!(b, b'+' | b'-') {
                 if matches!(
                     prev,
-                    None | Some(b'+' | b'-' | b'*' | b'/' | b'%' | b'(' | b'|')
+                    None | Some(b'+' | b'-' | b'*' | b'/' | b'%' | b'(' | b'|' | b'&')
                 ) || (b == b'-' && bytes.get(i + 1) == Some(&b'>'))
                 {
                     i += 1;
@@ -26789,7 +26792,19 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
         }
         i += 1;
     }
-    additive.or(multiplicative).or(concat)
+    bitwise.or(additive).or(multiplicative).or(concat)
+}
+
+fn sql_bitwise_and(left: &str, right: &str) -> String {
+    if left == SQL_NULL || right == SQL_NULL {
+        return SQL_NULL.to_string();
+    }
+    let integer = |value: &str| {
+        value
+            .parse::<i64>()
+            .unwrap_or_else(|_| value.parse::<f64>().unwrap_or(0.0) as i64)
+    };
+    (integer(left) & integer(right)).to_string()
 }
 
 fn eval_sql_row_expr(
@@ -26846,6 +26861,9 @@ fn eval_sql_row_expr(
     if let Some((sp, op)) = find_sql_binary_operator(s) {
         let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
         let rv_s = eval_sql_row_expr(&s[sp + op.len()..], cols, row, tables);
+        if op == "&" {
+            return sql_bitwise_and(&lv_s, &rv_s);
+        }
         if op == "||" {
             if lv_s == SQL_NULL || rv_s == SQL_NULL {
                 return SQL_NULL.to_string();
@@ -27982,6 +28000,9 @@ fn eval_sql_group_expr(
         let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row, overflow);
         let rv_s =
             eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row, overflow);
+        if op == "&" {
+            return sql_bitwise_and(&lv_s, &rv_s);
+        }
         if op == "||" {
             if lv_s == SQL_NULL || rv_s == SQL_NULL {
                 return SQL_NULL.to_string();

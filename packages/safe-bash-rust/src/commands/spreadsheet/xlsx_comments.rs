@@ -72,7 +72,132 @@ pub(super) fn write(comments: &[Comment], limit: usize) -> Option<(String, Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::spreadsheet::{
+        Spreadsheet, xml_attribute as attr, xml_elements as elements, xml_text as text,
+    };
+    use crate::commands::structured::{read_office_archive, xml};
     use std::sync::Arc;
+
+    fn workbook_with_comments(target: &str, mode: &str, comments: &str) -> Vec<u8> {
+        let relationships = format!(
+            r#"<Relationships><Relationship Id="notes" Type="{}/comments" Target="{target}" TargetMode="{mode}"/></Relationships>"#,
+            super::super::REL
+        );
+        office_package_rust::write_zip_stored(&[
+            ("xl/workbook.xml", br#"<workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Ledger" sheetId="1" r:id="s1"/><sheet name="Other" sheetId="2" r:id="s2"/></sheets></workbook>"#),
+            ("xl/_rels/workbook.xml.rels", br#"<Relationships><Relationship Id="s1" Target="worksheets/ledger.xml"/><Relationship Id="s2" Target="worksheets/other.xml"/></Relationships>"#),
+            ("xl/worksheets/ledger.xml", br#"<worksheet><sheetData><row r="2"><c r="D2"><v>42</v></c></row></sheetData></worksheet>"#),
+            ("xl/worksheets/other.xml", b"<worksheet><sheetData/></worksheet>"),
+            ("xl/worksheets/_rels/ledger.xml.rels", relationships.as_bytes()),
+            ("xl/notes/review.xml", comments.as_bytes()),
+        ])
+    }
+
+    #[test]
+    fn imported_comments_round_trip_authors_addresses_and_multiline_text() {
+        let source = r#"<comments><authors><author>Audit Team</author><author/><author>Zoe &amp; Co</author></authors><commentList>
+            <comment ref="D2" authorId="0"><text><t>Approval required
+Second line</t></text></comment>
+            <comment ref="B8" authorId="2"><text><r><t> Check &lt;total&gt;</t></r><r><t>_x000A_下一行 </t></r></text></comment>
+            <comment ref="A9" authorId="1"><text><t>Anonymous</t></text></comment>
+            </commentList></comments>"#;
+        for target in ["/xl/notes/review.xml", "../notes/review.xml"] {
+            let input = workbook_with_comments(target, "Internal", source);
+            let mut book = Spreadsheet::import_xlsx(&input, 10_000_000).unwrap();
+            assert_eq!(book.display(0, 1, 3, 1_000_000).unwrap(), "42");
+            book.edit(&[(0, 1, 3, "43")], 1_000_000).unwrap();
+            let parts = read_office_archive(&book.export_xlsx(10_000_000).unwrap());
+            // Inspect the exported parts directly, independently of XLSX import.
+            let comments = parts.get("xl/comments1.xml").expect("comments preserved");
+            let nodes = xml::parse(std::str::from_utf8(comments).unwrap(), None, None)
+                .unwrap()
+                .nodes;
+            let authors: Vec<_> = elements(&nodes, "author").into_iter().map(text).collect();
+            let actual: Vec<_> = elements(&nodes, "comment")
+                .into_iter()
+                .map(|comment| {
+                    let author = attr(comment, "authorId").unwrap().parse::<usize>().unwrap();
+                    (
+                        attr(comment, "ref").unwrap().to_owned(),
+                        authors[author].clone(),
+                        text(comment),
+                    )
+                })
+                .collect();
+            assert_eq!(
+                actual,
+                vec![
+                    (
+                        "D2".into(),
+                        "Audit Team".into(),
+                        "Approval required\nSecond line".into()
+                    ),
+                    (
+                        "B8".into(),
+                        "Zoe & Co".into(),
+                        " Check <total>\n下一行 ".into()
+                    ),
+                    ("A9".into(), "".into(), "Anonymous".into()),
+                ]
+            );
+            assert!(!parts.contains_key("xl/comments2.xml"));
+            let rels = xml::parse(
+                std::str::from_utf8(&parts["xl/worksheets/_rels/sheet1.xml.rels"]).unwrap(),
+                None,
+                None,
+            )
+            .unwrap()
+            .nodes;
+            assert!(elements(&rels, "Relationship").iter().any(|rel| {
+                attr(rel, "Type").is_some_and(|t| t.ends_with("/comments"))
+                    && attr(rel, "Target") == Some("../comments1.xml")
+            }));
+            assert!(
+                std::str::from_utf8(&parts["[Content_Types].xml"])
+                    .unwrap()
+                    .contains("/xl/comments1.xml")
+            );
+        }
+    }
+
+    #[test]
+    fn imported_comments_reject_invalid_addresses_and_author_ids() {
+        for (address, author) in [("XFE1", "0"), ("A0", "0"), ("A1", "1"), ("A1", "-1")] {
+            let comments = format!(
+                r#"<comments><authors><author>Reviewer</author></authors><commentList><comment ref="{address}" authorId="{author}"><text><t>Note</t></text></comment></commentList></comments>"#
+            );
+            let input = workbook_with_comments("../notes/review.xml", "Internal", &comments);
+            assert!(
+                Spreadsheet::import_xlsx(&input, 1_000_000).is_err(),
+                "{address}, {author}"
+            );
+        }
+    }
+
+    #[test]
+    fn imported_comments_charge_repeated_authors_to_the_byte_limit() {
+        let author = "Reviewer".repeat(500);
+        let comments = (1..=100)
+            .map(|row| {
+                format!(r#"<comment ref="A{row}" authorId="0"><text><t>Note</t></text></comment>"#)
+            })
+            .collect::<String>();
+        let source = format!(
+            "<comments><authors><author>{author}</author></authors><commentList>{comments}</commentList></comments>"
+        );
+        let input = workbook_with_comments("../notes/review.xml", "Internal", &source);
+        assert!(Spreadsheet::import_xlsx(&input, 200_000).is_err());
+        assert!(Spreadsheet::import_xlsx(&input, 10_000_000).is_ok());
+    }
+
+    #[test]
+    fn external_comment_relationships_are_not_imported() {
+        let input = workbook_with_comments("../notes/review.xml", "External", "not XML");
+        let book = Spreadsheet::import_xlsx(&input, 1_000_000).unwrap();
+        let parts = read_office_archive(&book.export_xlsx(1_000_000).unwrap());
+        assert!(!parts.contains_key("xl/comments1.xml"));
+    }
+
     #[test]
     fn comments_without_authors_do_not_inherit_a_named_author() {
         use crate::commands::structured::xml::{self, Node};

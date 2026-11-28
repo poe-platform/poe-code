@@ -1,7 +1,7 @@
 //! Appearance and worksheet metadata for editable XLSX workbooks.
 use super::super::model::{
-    Axis, CalculatedColumn, ColorFilter, DynamicFilter, Filter, FilterField, Style, Table,
-    TableStyle, TopFilter,
+    Axis, CalculatedColumn, ColorFilter, Comment, DynamicFilter, Filter, FilterField, Style, Table,
+    TableStyle, TextRun, TopFilter,
 };
 use super::{Imported, LIMIT, attr, coordinate, elements, xml};
 use std::{
@@ -691,13 +691,57 @@ pub(super) fn retain(
             if attr(relation, "TargetMode") == Some("External") {
                 continue;
             }
-            if !attr(relation, "Type").is_some_and(|s| s.ends_with("/table")) {
+            let kind = attr(relation, "Type").and_then(|s| s.rsplit('/').next());
+            if !matches!(kind, Some("table" | "comments")) {
                 continue;
             }
             let Some(target) = attr(relation, "Target") else {
                 continue;
             };
             let target = crate::vfs::resolve_posix_path(&format!("/{directory}"), target);
+            if kind == Some("comments") {
+                let bytes = entries
+                    .get(target.trim_start_matches('/'))
+                    .ok_or("Missing XLSX comments part")?;
+                // Account for the XML tree and text traversal before parsing.
+                imported.remaining = imported
+                    .remaining
+                    .checked_sub(bytes.len().checked_mul(16).ok_or(LIMIT)?)
+                    .ok_or(LIMIT)?;
+                let nodes = load(entries, &target)?;
+                let authors: Vec<_> = elements(&nodes, "author")
+                    .into_iter()
+                    .map(super::text)
+                    .collect();
+                for comment in elements(&nodes, "comment") {
+                    let (row, column) = attr(comment, "ref")
+                        .and_then(coordinate)
+                        .ok_or("Invalid XLSX comment cell reference")?;
+                    let author = attr(comment, "authorId")
+                        .and_then(|id| id.parse::<usize>().ok())
+                        .and_then(|id| authors.get(id))
+                        .ok_or("Invalid XLSX comment author")?;
+                    imported.remaining = imported
+                        .remaining
+                        .checked_sub(
+                            author.len()
+                                + std::mem::size_of::<Comment>()
+                                + std::mem::size_of::<TextRun>(),
+                        )
+                        .ok_or(LIMIT)?;
+                    let text = child(comment, "text").ok_or("Missing XLSX comment text")?;
+                    sheet.comments.push(Comment {
+                        row,
+                        column,
+                        author: author.clone(),
+                        runs: vec![TextRun {
+                            text: super::string_content(&text.children).0,
+                            attributes: Arc::default(),
+                        }],
+                    });
+                }
+                continue;
+            }
             let nodes = load(entries, &target)?;
             let table = elements(&nodes, "table")
                 .first()

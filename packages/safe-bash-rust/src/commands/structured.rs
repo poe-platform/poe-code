@@ -28754,28 +28754,75 @@ fn apply_sql_datetime_modifiers(
     base: &str,
     modifiers: &[&str],
 ) -> Option<(i32, i32, i32, i32, i32, i32)> {
-    let norm = base.replace('T', " ");
-    let mut parts = norm.split_whitespace();
-    let date_part = parts.next()?;
-    let time_part = parts.next().unwrap_or("00:00:00");
-    let mut ymd = date_part.split('-');
-    let mut y = ymd.next()?.parse::<i32>().ok()?;
-    let mut m = ymd.next()?.parse::<i32>().ok()?;
-    let mut d = ymd.next()?.parse::<i32>().ok()?;
-    if ymd.next().is_some()
-        || !(0..=9999).contains(&y)
-        || !(1..=12).contains(&m)
-        || !(1..=31).contains(&d)
-    {
-        return None;
-    }
-    let hms: Vec<i32> = time_part
-        .split(':')
-        .filter_map(|p| p.parse::<i32>().ok())
-        .collect();
-    let mut hh = hms.first().copied().unwrap_or(0);
-    let mut mm = hms.get(1).copied().unwrap_or(0);
-    let ss = hms.get(2).copied().unwrap_or(0);
+    let (mut y, mut m, mut d, mut hh, mut mm, ss) = {
+        let norm = base.replace('T', " ");
+        let mut parts = norm.split_whitespace();
+        let date_part = parts.next()?;
+        let time_part = parts.next().unwrap_or("00:00:00");
+        let mut ymd = date_part.split('-');
+        let y = ymd.next()?.parse::<i32>().ok()?;
+        let m = ymd.next()?.parse::<i32>().ok()?;
+        let d = ymd.next()?.parse::<i32>().ok()?;
+        if ymd.next().is_some()
+            || !(0..=9999).contains(&y)
+            || !(1..=12).contains(&m)
+            || !(1..=31).contains(&d)
+        {
+            return None;
+        }
+        let (time_part, offset) = if let Some(index) = time_part.find(['+', '-']) {
+            let (time, zone) = time_part.split_at(index);
+            let bytes = zone.as_bytes();
+            if bytes.len() != 6
+                || bytes[3] != b':'
+                || !bytes[1..3].iter().all(u8::is_ascii_digit)
+                || !bytes[4..6].iter().all(u8::is_ascii_digit)
+            {
+                return None;
+            }
+            let hours = zone[1..3].parse::<i32>().ok()?;
+            let minutes = zone[4..6].parse::<i32>().ok()?;
+            if hours > 14 || minutes > 59 {
+                return None;
+            }
+            let sign = if bytes[0] == b'-' { -1 } else { 1 };
+            (time, sign * (hours * 60 + minutes))
+        } else {
+            (time_part.trim_end_matches(['Z', 'z']), 0)
+        };
+        let mut hms = time_part.split(':');
+        let hh = hms.next()?.parse::<i32>().ok()?;
+        let mm = hms.next()?.parse::<i32>().ok()?;
+        let seconds = hms.next().unwrap_or("0");
+        let ss = seconds.split('.').next()?.parse::<i32>().ok()?;
+        if hms.next().is_some()
+            || !(0..=24).contains(&hh)
+            || !(0..=59).contains(&mm)
+            || !(0..=59).contains(&ss)
+        {
+            return None;
+        }
+        if offset == 0 {
+            (y, m, d, hh, mm, ss)
+        } else {
+            // Normalize to UTC before modifiers can truncate or shift the date.
+            let minutes = hh * 60 + mm - offset;
+            let days = super::coreutils::days_from_civil(y.into(), m.into(), d.into())
+                + i64::from(minutes.div_euclid(1440));
+            let (year, month, day) = super::coreutils::civil_from_days(days);
+            if !(0..=9999).contains(&year) {
+                return None;
+            }
+            (
+                year as i32,
+                month as i32,
+                day as i32,
+                minutes.rem_euclid(1440) / 60,
+                minutes.rem_euclid(60),
+                ss,
+            )
+        }
+    };
 
     for raw_mod in modifiers {
         let md = raw_mod

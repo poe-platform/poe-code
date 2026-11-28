@@ -51,6 +51,11 @@ Use `.a |= sub("o", "0")` to replace every regex match in a string while preserv
 its YAML style and comments. Replacements support `$1`, `${name}`, and `$$` for a
 literal dollar sign, using the shared bounded regex engine and configured work
 and scalar-byte limits.
+Clean surrounding whitespace with `.a |= trim`. Extract regex matches with
+`.a | match("b.")`, including UTF-8 byte offsets and capture metadata, or use
+`.a | capture("(?P<name>[a-z]+)")` to return captured groups as a map. Both
+extraction operators accept `"g"` as a second argument for all matches and use
+inline flags such as `(?i)` for case-insensitive patterns.
 The package and command entrypoints also export `createMikeYqCommand`,
 `createMikeYqCommands`, and `mikeYqCommands` explicitly.
 `@poe-platform/safe-bash/yq` exports the same Mike-yq profile. Register one profile

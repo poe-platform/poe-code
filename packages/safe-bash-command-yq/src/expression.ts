@@ -19,7 +19,7 @@ export type Expression =
 
 interface Token { text: string; offset: number; kind: "symbol" | "string" | "number" | "name" | "end" }
 const priorities: Readonly<Record<string, number>> = { ",": 1, "|": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
-const functions = new Set(["path", "parent", "key", "select", "map", "contains", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "from_json", "from_yaml", "with_entries", "pick", "upcase", "downcase", "test", "split", "join"]);
+const functions = new Set(["path", "parent", "key", "select", "map", "contains", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "from_json", "from_yaml", "with_entries", "pick", "upcase", "downcase", "trim", "test", "split", "join"]);
 
 export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean; readonly maxExpressionBytes?: number; readonly maxExpressionDepth?: number } = {}): Expression {
   if (utf8ByteLength(source) > (security.maxExpressionBytes ?? Infinity)) throw new MikeError("yq limit exceeded: expression bytes");
@@ -131,6 +131,13 @@ export function compileExpression(source: string, security: { readonly disableEn
     else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as boolean | null);
     else if (security.disableEnvOps && ["env", "strenv", "envsubst"].includes(token.text)) throw new MikeError("env operations have been disabled");
     else if (security.disableFileOps && ["load", "load_str", "load_xml", "load_props", "load_base64"].includes(token.text)) throw new MikeError("file operations have been disabled");
+    else if (token.text === "match" || token.text === "capture") {
+      expect("(");
+      const args = [parse(3)];
+      if (peek().text === ",") { take(); args.push(parse(3)); }
+      expect(")");
+      result = { kind: "call", name: token.text, args };
+    }
     else if (token.text === "sub") {
       expect("(");
       const pattern = parse(3);

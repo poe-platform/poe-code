@@ -928,6 +928,15 @@ export class Evaluator {
         }
         continue;
       }
+      if (name === "trim") {
+        if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot trim ${nodeTag(base.node, yaml)}, can only operate on strings. `);
+        const text = String(value(base.node, yaml));
+        { const t = this.work.tick(text.length); if (t) await t; }
+        const trimmed = text.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, "");
+        const node = await cloneNode(base.node, yaml, this.work);
+        if (yaml.isScalar(node)) { node.value = trimmed; node.source = trimmed; }
+        output.push(this.child(node, input)); continue;
+      }
       if (name === "upcase" || name === "downcase") {
         const text = value(base.node, yaml);
         if (typeof text !== "string") throw new MikeError(`${name} only supports strings`);
@@ -981,6 +990,64 @@ export class Evaluator {
         continue;
       }
       let result: unknown;
+      if (name === "match" || name === "capture") {
+        if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot match with ${nodeTag(base.node, yaml)}, can only match strings. Hint: Most often you'll want to use '|=' over '=' for this operation`);
+        const argument = (await next(expression.args[0]!, [input], false))[0];
+        const flags = expression.args[1] && (await next(expression.args[1], [input], false))[0];
+        const params = flags && yaml.isScalar(flags.node) ? scalarText(flags.node, yaml) : "";
+        if (params.includes("i")) throw new MikeError("'i' is not a valid option for match. To ignore case, use an expression like match(\"(?i)cat\")");
+        const remaining = params.split("g").join("");
+        if (remaining) throw new MikeError(`unrecognised match params '${remaining}', please see docs at https://mikefarah.gitbook.io/yq/operators/string-operators`);
+        const text = String(value(base.node, yaml));
+        const source = argument && yaml.isScalar(argument.node) ? scalarText(argument.node, yaml) : "";
+        const budget = new Budget({ ...this.work.context, signal: this.work.signal }, { maxSteps: this.work.limits.maxSteps });
+        try {
+          const pattern = new Pattern(source, true, false, "rust", "", { maxPatternInstructions: this.work.limits.maxSteps });
+          const names = new Map([...pattern.groupNames].map(([key, index]) => [index, key]));
+          let cursor = 0, previousEnd = -1, byteCursor = 0, byteOffset = 0;
+          while (cursor <= text.length) {
+            const matched = await pattern.find(text, budget, cursor);
+            if (!matched) break;
+            if (matched.start !== matched.end || matched.start !== previousEnd) {
+              budget.step(matched.start - byteCursor + 1);
+              byteOffset += utf8ByteLength(text.slice(byteCursor, matched.start));
+              byteCursor = matched.start;
+              const node = new yaml.YAMLMap(); this.work.node();
+              const captures = new yaml.YAMLSeq(); this.work.node();
+              for (let group = name === "capture" ? 1 : 0; group <= pattern.groupCount; group++) {
+                budget.step();
+                const captured = matched.groups[group] ?? null;
+                const groupName = names.get(group) ?? "";
+                if (name === "capture") {
+                  node.items.push(new yaml.Pair(scalar(yaml, this.work, groupName), scalar(yaml, this.work, captured)));
+                  continue;
+                }
+                const start = group === 0 ? matched.start : matched.captureOffsets?.[group * 2];
+                budget.step((captured?.length ?? 0) + (start === undefined ? 0 : start - matched.start));
+                const offset = start === undefined ? -1 : byteOffset + utf8ByteLength(text.slice(matched.start, start));
+                const entry = group === 0 ? node : new yaml.YAMLMap();
+                if (group !== 0) this.work.node();
+                for (const [key, field] of [["string", captured], ["offset", offset], ["length", utf8ByteLength(captured ?? "")]] as const) {
+                  entry.items.push(new yaml.Pair(scalar(yaml, this.work, key), scalar(yaml, this.work, field)));
+                }
+                if (groupName) entry.items.push(new yaml.Pair(scalar(yaml, this.work, "name"), scalar(yaml, this.work, groupName)));
+                if (group !== 0) captures.items.push(entry);
+              }
+              if (name === "match") node.items.push(new yaml.Pair(scalar(yaml, this.work, "captures"), captures));
+              output.push(this.child(node, input));
+              if (!params.includes("g")) break;
+            }
+            previousEnd = matched.end;
+            cursor = matched.end > matched.start ? matched.end : matched.end + ((text.codePointAt(matched.end) ?? 0) > 0xffff ? 2 : 1);
+            await budget.checkpoint();
+          }
+        } catch (error) {
+          this.work.assertOpen();
+          if (error instanceof ProgramError) throw new MikeError(error.message);
+          throw error;
+        } finally { const tick = this.work.tick(budget.stepsUsed); if (tick) await tick; }
+        continue;
+      }
       if (name === "sub") {
         if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot substitute with ${nodeTag(base.node, yaml)}, can only substitute strings. Hint: Most often you'll want to use '|=' over '=' for this operation`);
         const pattern = (await next(expression.args[0]!, [input], false))[0];

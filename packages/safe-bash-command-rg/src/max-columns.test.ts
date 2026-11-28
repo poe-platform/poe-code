@@ -13,6 +13,8 @@ test("max-columns validates values and resets reused arguments", () => {
   const target = new ParsedArguments();
   assert.equal(parse(["-M3", "--max-columns=7", "x"], target).maxColumns, 7);
   assert.equal(parse(["x"], target).maxColumns, 0);
+  assert.equal(parse(["--max-columns-preview", "x"], target).maxColumnsPreview, true);
+  assert.equal(parse(["x"], target).maxColumnsPreview, false);
 });
 
 test("max-columns preserves file prefixes, match limits and JSON records", async () => {

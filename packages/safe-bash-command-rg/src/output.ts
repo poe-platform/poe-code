@@ -100,9 +100,16 @@ export class Printer {
           // Ripgrep includes the input terminator, except when printing only a match.
           const lineEndingBytes = match ? 0 : delimiter >= 0 ? 1 : line.rawLength - line.content.length;
           if (chunk.length + lineEndingBytes > this.args.maxColumns) {
-            chunk = bytesFrom(this.replacement && selected && !this.args.invert
-              ? `[Omitted long line with ${match ? 1 : matches.length} matches]`
-              : `[Omitted long ${selected ? "matching" : "context"} line]`);
+            if (this.args.maxColumnsPreview) {
+              let end = Math.min(this.args.maxColumns, chunk.length);
+              // Keep a UTF-8 code point whole when the byte limit splits it.
+              while (end < chunk.length && (chunk[end]! & 0xc0) === 0x80) end++;
+              chunk = concatBytes([chunk.subarray(0, end), bytesFrom(" [... omitted end of long line]")]);
+            } else {
+              chunk = bytesFrom(this.replacement && selected && !this.args.invert
+                ? `[Omitted long line with ${match ? 1 : matches.length} matches]`
+                : `[Omitted long ${selected ? "matching" : "context"} line]`);
+            }
             outputTerminator = this.args.nullData ? "\0" : this.args.crlf ? "\r\n" : "\n";
           }
         }

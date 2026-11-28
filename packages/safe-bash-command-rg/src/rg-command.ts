@@ -922,6 +922,7 @@ Default input depends on shell configuration.
   -B, --before-context=NUM Print NUM lines before matches
   -C, --context=NUM        Print NUM lines before and after matches
   -M, --max-columns=NUM   Omit output lines longer than NUM bytes (0 disables)
+      --max-columns-preview  Show the start of omitted long lines
   -m, --max-count=NUM      Limit matching lines per file
   -d, --max-depth=NUM     Limit directory traversal depth
       --column            Print columns

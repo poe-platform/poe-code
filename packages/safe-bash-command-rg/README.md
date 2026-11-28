@@ -25,7 +25,9 @@ inside `/dir`. Depth `0` skips directory contents.
 
 Use `rg -n -m 18 -M 240 pattern file.log` to replace output lines longer than
 240 bytes with an omission marker. `--max-columns` is the long form; `0`
-disables the limit. Matches, counts, exit status and JSON output are unchanged.
+disables the limit. Add `--max-columns-preview` to show the beginning of long
+lines followed by an omission marker. Matches, counts, exit status and JSON
+output are unchanged.
 
 Word matching (`\w`, `\W`, `\b`, `\B`, and `-w`) recognizes Unicode letters,
 combining marks, decimal digits, connector punctuation and join controls.

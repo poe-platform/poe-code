@@ -228,3 +228,52 @@ for (const args of [["-An", "+1"], ["-j0", "+1"], ["-tx1", "+1"], ["-v", "+1"], 
     assert.ok(result.stdout.length > 0);
   });
 }
+
+for (const [args, stdout] of [
+  [["-c", "f", "2"], "0000002   c   d   e   f   g   h\n0000010\n"],
+  [["--traditional", "f", "4"], "0000004 063145 064147\n0000010\n"],
+  [["f", "0x2"], "0000002 062143 063145 064147\n0000010\n"],
+] as const) {
+  test(`od handles trailing offset in ${args.join(" ")}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/f", new TextEncoder().encode("abcdefgh"));
+    assert.deepEqual(await run([...args], fs), { exitCode: 0, stdout, stderr: "" });
+  });
+}
+
+for (const operand of ["2", "2.", "0x2", "0X2", "+2", "0b"]) {
+  test(`od accepts bare file offset ${operand}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/f", new TextEncoder().encode("abcdefgh"));
+    const expected = await run(["-j", operand === "0b" ? "0" : "2", "f"], fs);
+    assert.deepEqual(await run(["f", operand], fs), expected);
+  });
+}
+
+for (const args of [
+  ["--traditional", "2"],
+  ["--traditional", "-tc", "2"],
+  ["-tc", "--traditional", "2"],
+  ["--trad", "-tc", "-", "2"],
+  ["--traditional", "-j1", "-", "2"],
+]) {
+  test(`od forces offset syntax with ${args.join(" ")}`, async () => {
+    const fs = createMemoryFileSystem();
+    const expected = await run([...(args.includes("-tc") ? ["-tc"] : []), "-j2"], fs, 1024, "abcdefgh");
+    assert.deepEqual(await run(args, fs, 1024, "abcdefgh"), expected);
+  });
+}
+
+for (const args of [["2"], ["f", "8"], ["f", "0xno"], ["f", "2", "4"], ["-tc", "f", "2"], ["-j0", "f", "2"]]) {
+  test(`od preserves numeric filenames in ${args.join(" ")}`, async () => {
+    const fs = createMemoryFileSystem();
+    for (const name of ["f", "2", "4", "8", "0xno"]) await fs.writeFile("/" + name, new TextEncoder().encode("ab"));
+    const expected = await run(args.map(arg => arg.startsWith("-") ? arg : "./" + arg), fs);
+    assert.deepEqual(await run(args, fs), expected);
+  });
+}
+
+test("od rejects an overflowing trailing offset", async () => {
+  const result = await run(["f", "9007199254740992."], createMemoryFileSystem());
+  assert.deepEqual(result, { exitCode: 2, stdout: "", stderr: "od: number out of range '9007199254740992.'\n" });
+});

@@ -67,7 +67,7 @@ test("od: issue 228 NUL-terminated strings from a file", async () => {
 });
 
 test("od: strings span chunks, require NUL and respect byte ranges", async () => {
-  for (const args of [["--strings"], ["-S"], ["-S3"]]) {
+  for (const args of [["--strings"], ["-S", "3"], ["-S3"]]) {
     const result = await run("od", args, sliced(Buffer.from("ab\0abc\0\xffdef\0tail")));
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "0000003 abc\n0000011 def\n");
@@ -528,7 +528,7 @@ for (const args of [["-S5"], ["--strings=5"], ["-vS5"]]) test(`od: issue 928 str
   } finally { await shell.dispose(); }
 });
 
-for (const option of ["-S", "-vS"]) test(`od: ${option} keeps a following number as a filename`, async () => {
+for (const option of ["-S3", "-vS3", "--strings"]) test(`od: ${option} keeps a following number as a filename`, async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/5", Buffer.from("abc\0defgh\0"));
   const shell = new Shell({ fs }).use(agentCommands());
@@ -542,7 +542,7 @@ for (const option of ["-S", "-vS"]) test(`od: ${option} keeps a following number
 
 for (let control = 7; control <= 13; control++) test(`od: issue 928 control byte ${control} resets strings`, async () => {
   const input = Buffer.concat([Buffer.from("abc"), Buffer.from([control]), Buffer.from("de\0xyz\0")]);
-  for (const args of [["-S"], ["--strings"], ["-An", "-S3"]]) {
+  for (const args of [["-S", "3"], ["--strings"], ["-An", "-S3"]]) {
     const result = await run("od", args, sliced(input));
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, args.includes("-An") ? "xyz\n" : "0000007 xyz\n");

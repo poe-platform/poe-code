@@ -333,6 +333,7 @@ const OD_OPTIONS = [
   "-w, --width=NUM",
   "--endian=ORDER",
   "-v, --output-duplicates",
+  "--traditional",
 ];
 
 async function handleOdGnuInfo(context: CommandContext): Promise<CommandResult | undefined> {
@@ -597,7 +598,8 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       endian: "endian:",
       "output-duplicates": "v",
       strings: "S",
-    };
+      traditional: false,
+    } as const;
     const rewritten: string[] = [];
     let ended = false;
     let traditional = true;
@@ -701,8 +703,12 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     }
     let skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
     const lastOperand = parsed.operands.at(-1);
-    if (traditional && parsed.operands.length <= 2 && lastOperand?.startsWith("+")) {
-      let digits = lastOperand.slice(1);
+    const forceTraditional = parsed.flags.has("traditional");
+    if (
+      (traditional || forceTraditional) && parsed.operands.length <= 2 && lastOperand &&
+      (lastOperand.startsWith("+") || parsed.operands.length === 2 || forceTraditional)
+    ) {
+      let digits = lastOperand.startsWith("+") ? lastOperand.slice(1) : lastOperand;
       const hexadecimal = digits.startsWith("0x") || digits.startsWith("0X");
       const multiplier = !hexadecimal && digits.endsWith("b") ? 512 : 1;
       if (multiplier === 512) digits = digits.slice(0, -1);

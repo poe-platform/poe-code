@@ -16,18 +16,18 @@ GNU buffer anchors ``\` `` and `\'` match the start and end of the entire patter
 space, including after `N` joins lines, in both basic and extended expressions.
 Supported operations include addressed substitutions, print/delete, hold space,
 branches, program files (`-f`), extended regular expressions (`-E`), null-delimited
-records (`-z`), and in-place edits with optional backups (`-i.bak`). Each `*` in
-the backup suffix expands to the input filename: `-i'bak_*'` prefixes it, and
-`-i'bk/*.orig'` writes the backup under an existing `bk` directory. In-place
+records (`-z`), and in-place edits with optional backups (`-i.bak`). Every `*` in
+a backup suffix expands to the input filename: `-i'bak_*'` adds a prefix and
+`-i'bk/*.orig'` writes to an existing backup directory. In-place
 editing replaces the named file, leaving other hard links to its previous contents
 intact. It replaces a symbolic link with an edited regular file by default;
 `--follow-symlinks` edits the resolved target and keeps the link. The new file
 inherits the input file's permissions. It requires filesystem support for guarded
 staging and cleanup.
-On the memory filesystem, `-i.bak` moves the original file to the backup name,
-including its hard links, symbolic links and open readers. Filesystems without
-atomic backup support, and backups in another directory, use a copy and refuse backups involving known hard links
-or symbolic links.
+On the memory filesystem, backups in the same directory move the original file
+to the backup name, including its hard links, symbolic links and open readers.
+Backups in another directory and filesystems without atomic backup support use
+a copy and refuse backups involving known hard links or symbolic links.
 The `w` command and `s///w` flag accept `/dev/stdout` and `/dev/stderr` to write
 to the command's output streams, including when redirected by the shell.
 

@@ -1,9 +1,10 @@
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname,FsError,joinPath,writeText,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
+import { dirname,FsError,joinPath,relativePath,writeText,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { Budget,bytes,virtualPath } from "safe-bash-io-engine/commands/text-programs/shared";
+import { assertPathRequirements,sedRequirements } from "safe-bash-io-engine/commands/search/requirements";
 
 interface Target {
   readonly file: string;
@@ -30,12 +31,19 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     // Retained views reject symlink ancestry and dot-dot traversal. Remove only
     // redundant separators and '.' so ordinary './file' operands still work.
     let operand = virtualPath(context, file);
+    let backupName = file;
     let path: string;
     let parent: FileStat;
     let original: FileStat;
     let input: FileStat;
     try {
-      if (followSymlinks) operand = await fs.realpath(operand, { signal: context.signal });
+      if (followSymlinks) {
+        const resolved = await fs.realpath(operand, { signal: context.signal });
+        if (resolved !== "/" + operand.split("/").filter(part => part && part !== ".").join("/")) {
+          backupName = file.startsWith("/") ? resolved : relativePath(context.cwd, resolved);
+        }
+        operand = resolved;
+      }
       path = "/" + operand.split("/").filter(part => part && part !== ".").join("/");
       parent = await fs.lstat(dirname(path), { signal: context.signal });
       original = await fs.lstat(operand, { signal: context.signal });
@@ -51,13 +59,15 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     }
     if (parent.type !== "directory" || input.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
     let backup: FileStat | null = null;
-    const backupName = followSymlinks ? operand : file;
-    const backupPath = suffix ? "/" + virtualPath(context, suffix.includes("*") ? suffix.split("*").join(backupName) : backupName + suffix).split("/").filter(part => part && part !== ".").join("/") : path;
+    const backupOperand = suffix.includes("*") ? virtualPath(context, suffix.split("*").join(backupName)) : operand + suffix;
+    const backupPath = "/" + backupOperand.split("/").filter(part => part && part !== ".").join("/");
     const backupParent = dirname(backupPath) === dirname(path) ? parent : await fs.lstat(dirname(backupPath), { signal: context.signal });
+    if (backupParent.type !== "directory") throw new FsError("ENOTDIR", { path: dirname(backupPath) });
     let moveBackup = false;
     const ancestors: FileStagingEntry[] = [];
-    const backupAncestors: FileStagingEntry[] = dirname(backupPath) === dirname(path) ? ancestors : [];
+    const backupAncestors: FileStagingEntry[] = [];
     if (suffix) {
+      await assertPathRequirements(context, sedRequirements, ["backup"], [path, backupPath]);
       try { backup = await fs.lstat(backupPath, { signal: context.signal }); }
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
       if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: backupPath, message: "in-place backups require regular files" });
@@ -77,17 +87,13 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
       throw new FsError("ENOTSUP", { path, message: "in-place editing requires atomic staging with ancestry verification" });
     }
-    for (let directory = dirname(path);; directory = dirname(directory)) {
-      const stat = directory === dirname(path) ? parent : await fs.lstat(directory, { signal: context.signal });
-      if (stat.type !== "directory") throw new FsError("ENOTSUP", { path: directory, message: "in-place editing requires directory ancestry" });
-      ancestors.unshift({ path: directory, stat });
-      if (directory === "/") break;
-    }
-    for (let directory = dirname(backupPath); backupAncestors !== ancestors; directory = dirname(directory)) {
-      const stat = directory === dirname(backupPath) ? backupParent : await fs.lstat(directory, { signal: context.signal });
-      if (stat.type !== "directory") throw new FsError("ENOTSUP", { path: directory, message: "in-place backups require directory ancestry" });
-      backupAncestors.unshift({ path: directory, stat });
-      if (directory === "/") break;
+    for (const [entryPath, entryParent, entries] of [[path, parent, ancestors], [backupPath, backupParent, backupAncestors]] as const) {
+      for (let directory = dirname(entryPath);; directory = dirname(directory)) {
+        const stat = directory === dirname(entryPath) ? entryParent : await fs.lstat(directory, { signal: context.signal });
+        if (stat.type !== "directory") throw new FsError("ENOTSUP", { path: directory, message: "in-place editing requires directory ancestry" });
+        entries.unshift({ path: directory, stat });
+        if (directory === "/") break;
+      }
     }
     targets.push({ file, path, parent, original, input, backup, backupPath, backupParent, backupAncestors, moveBackup, ancestors });
   }
@@ -97,10 +103,10 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
   return targets.map(target => ({ ...target, fs: view }));
 }
 
-async function replaceEntry(context: CommandContext, target: Target, suffix: string, data: Uint8Array): Promise<void> {
-  const backupOnly = !!suffix && !target.moveBackup;
-  const path = backupOnly ? target.backupPath : target.path;
-  const parent = backupOnly ? target.backupParent : target.parent;
+async function replaceEntry(context: CommandContext, target: Target, backup: boolean, data: Uint8Array): Promise<void> {
+  const path = backup ? target.backupPath : target.path;
+  const parent = backup ? target.backupParent : target.parent;
+  const ancestors = backup ? target.backupAncestors : target.ancestors;
   let staging: FileStaging | undefined;
   let operation: Promise<void> | undefined;
   let failure: { reason: unknown } | undefined;
@@ -121,10 +127,10 @@ async function replaceEntry(context: CommandContext, target: Target, suffix: str
       // additionally verifies every retained ancestor of the destination.
       staging = await context.fs.createStagedFile!(joinPath(dirname(path), `.sed-${globalThis.crypto.randomUUID()}`), "file", {
         type: "file", data,
-      }, { parent, retainCleanup: target.moveBackup || !suffix, mode: target.input.mode & 0o7777, signal: context.signal });
+      }, { parent, retainCleanup: target.moveBackup || !backup, mode: target.input.mode & 0o7777, signal: context.signal });
       context.signal.throwIfAborted();
       if (closed) throw new FsError("EPIPE", { message: "in-place publication is closed" });
-      const publication = { parent, ancestors: backupOnly ? target.backupAncestors : target.ancestors, signal: context.signal };
+      const publication = { parent, ancestors, signal: context.signal };
       if (target.moveBackup) {
         await context.fs.publishStagedFileSet!(staging, target.path, {
           ...publication, destination: target.original,
@@ -132,7 +138,7 @@ async function replaceEntry(context: CommandContext, target: Target, suffix: str
         });
       } else {
         await context.fs.publishStagedFile!(staging, path, {
-          ...publication, destination: suffix ? target.backup : target.original,
+          ...publication, destination: backup ? target.backup : target.original,
         });
       }
       context.signal.throwIfAborted();
@@ -176,14 +182,14 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
       // Backups preserve the existing copy semantics: only rewritten output
       // consumes the Shell output budget. The text buffer budget still applies.
       context.signal.throwIfAborted();
-      if (target.backup?.type === "file" && (target.backup.mode & 0o7777) !== (target.original.mode & 0o7777)) await replaceEntry(context, target, suffix, bytes(original));
+      if (target.backup?.type === "file" && (target.backup.mode & 0o7777) !== (target.original.mode & 0o7777)) await replaceEntry(context, target, true, bytes(original));
       else await target.fs.writeFileConditional!(target.backupPath, bytes(original), {
         parent: target.backupParent, expected: target.backup, mode: target.original.mode & 0o7777, signal: context.signal,
       });
       context.signal.throwIfAborted();
     }
     await writeFileOutput(context, data, async chunk => {
-      await replaceEntry(context, target, target.moveBackup ? suffix : "", chunk);
+      await replaceEntry(context, target, false, chunk);
     });
     return result;
   } finally { await close(); }

@@ -39,22 +39,60 @@ export async function* readXmlChunks(
   }
   budget.inputEncoding = "UTF-8";
   let decoder: TextDecoder | undefined;
-  let firstByte: number | undefined;
+  let pending = "";
+  let latin1 = false;
   const decode = (bytes?: Uint8Array) => {
     try {
-      let prefix = "";
+      let offset = 0;
       if (!decoder) {
-        if (firstByte === undefined && bytes?.length) {
-          firstByte = bytes[0]!;
-          bytes = bytes.subarray(1);
+        while (offset < (bytes?.length ?? 0)) {
+          pending += String.fromCharCode(bytes![offset++]!);
+          if (pending.length === 1 && (pending.charCodeAt(0) === 0xff || pending.charCodeAt(0) === 0xfe)) continue;
+          if (pending.charCodeAt(0) === 0xff && pending.charCodeAt(1) === 0xfe) {
+            budget.inputEncoding = "UTF-16LE";
+            break;
+          }
+          if (pending.charCodeAt(0) === 0xfe && pending.charCodeAt(1) === 0xff) {
+            budget.inputEncoding = "UTF-16BE";
+            break;
+          }
+          if ("<?xml".startsWith(pending)) continue;
+          if (!pending.startsWith("<?xml") || !" \t\r\n".includes(pending[5]!)) break;
+          if (!pending.endsWith("?>")) continue;
+          // Read declaration attributes before decoding any document content.
+          let at = 5;
+          while (at < pending.length - 2) {
+            while (" \t\r\n".includes(pending[at] ?? "") && at < pending.length) at++;
+            const start = at;
+            while (at < pending.length && !"= \t\r\n?".includes(pending[at]!)) at++;
+            const name = pending.slice(start, at);
+            while (" \t\r\n".includes(pending[at] ?? "") && at < pending.length) at++;
+            if (pending[at++] !== "=") break;
+            while (" \t\r\n".includes(pending[at] ?? "") && at < pending.length) at++;
+            const quote = pending[at++];
+            if (quote !== "'" && quote !== '"') break;
+            const end = pending.indexOf(quote, at);
+            if (end < 0) break;
+            if (name === "encoding") budget.inputEncoding = pending.slice(at, end);
+            at = end + 1;
+          }
+          break;
         }
-        if (bytes && !bytes.length && (firstByte === 0xff || firstByte === 0xfe)) return "";
-        if (firstByte === 0xff && bytes?.[0] === 0xfe) budget.inputEncoding = "UTF-16LE";
-        else if (firstByte === 0xfe && bytes?.[0] === 0xff) budget.inputEncoding = "UTF-16BE";
+        if (bytes && offset === bytes.length &&
+          ("<?xml".startsWith(pending) ||
+           (pending.startsWith("<?xml") && " \t\r\n".includes(pending[5]!) && !pending.endsWith("?>")) ||
+           (pending.length === 1 && (pending.charCodeAt(0) === 0xff || pending.charCodeAt(0) === 0xfe)))) return "";
         decoder = new TextDecoder(budget.inputEncoding, { fatal: true });
-        if (firstByte !== undefined) prefix = decoder.decode(Uint8Array.of(firstByte), { stream: true });
+        // WHATWG maps Latin-1 to Windows-1252; XML needs the actual byte values.
+        latin1 = ["iso-8859-1", "latin1"].includes(budget.inputEncoding.toLowerCase());
+        const prefix = latin1 ? pending : decoder.decode(Uint8Array.from(pending, c => c.charCodeAt(0)), { stream: true });
+        pending = "";
+        const rest = bytes?.subarray(offset);
+        return prefix + (latin1 ? (rest ? String.fromCharCode(...rest) : "")
+          : rest ? decoder.decode(rest, { stream: true }) : decoder.decode());
       }
-      return prefix + (bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode());
+      return latin1 ? (bytes ? String.fromCharCode(...bytes) : "")
+        : bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode();
     } catch { throw new XmlQueryError(`XML input must be valid ${budget.inputEncoding}`, 1); }
   };
   let chunksSinceYield = 0;

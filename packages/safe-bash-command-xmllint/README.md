@@ -1,6 +1,6 @@
 # XML validation and XPath
 
-Use xmllint through Safe Bash to validate UTF-8 XML, format documents, canonicalize
+Use xmllint through Safe Bash to validate XML, format documents, canonicalize
 XML, or select nodes and scalar values with bounded XPath queries.
 
 ```ts
@@ -40,7 +40,9 @@ Other backends use a 64 KiB caller-backed spool and replay after serialization a
 output-budget admission, with that backend's normal write guarantees. `--recover` repairs truncated elements, mismatched end
 tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
-from stdin or one or more files in the configured virtual filesystem. Normal input
+from stdin or one or more files in the configured virtual filesystem. Input decoding
+honors XML encoding declarations, including ISO-8859-1, and UTF-16 byte-order marks;
+undeclared input defaults to UTF-8. Normal input
 is decoded and parsed incrementally. `--noout` without XPath discards the document
 tree. Formatting and canonicalization, including `--noblanks` and `--encode`, keep document nodes in a 1 MiB
 page cache and spill through the supplied filesystem under `TMPDIR` or the working

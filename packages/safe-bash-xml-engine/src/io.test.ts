@@ -164,3 +164,24 @@ for (const failure of [new Error("consumer failed"), null, false]) test(`XML dec
   await assert.rejects(reader.throw(failure), error => error === failure);
   assert.equal(closed, true);
 });
+
+for (const encoding of ["ISO-8859-1", "latin1"]) test(`XML decodes declared ${encoding} across reused single-byte chunks`, async () => {
+  const text = `<?xml version='1.0' encoding = '${encoding}'?><r>é\u0080</r>`;
+  const context = {
+    signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      const reused = new Uint8Array(1);
+      for (const character of text) { reused[0] = character.charCodeAt(0); yield reused; }
+    } }
+  } as unknown as CommandContext;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+  assert.equal(await readXmlInput(context, undefined, budget, runtime), text);
+  assert.equal(budget.inputBytes, text.length);
+});
+
+test("XML rejects unsupported declared encodings", async () => {
+  const context = { signal: new AbortController().signal,
+    stdin: toByteSource('<?xml version="1.0" encoding="unknown"?><r/>') } as CommandContext;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+  await assert.rejects(readXmlInput(context, undefined, budget, runtime));
+});

@@ -167,3 +167,11 @@ it.each([1, 512])('streams nested selections in closing order with %i-unit chunk
   expect(seen).toEqual([['row', 'before', ''], ['row', 'inner', ''], ['group', 'between', 'end'], ['group', 'start', 'tail']]);
   expect(root.children).toEqual([]); expect(root.text).toBe('finish');
 });
+
+it("parses decoded Latin-1 declarations consistently and rejects encoding mismatches", async () => {
+  const xml = '<?xml version="1.0" encoding="ISO-8859-1"?><r>é</r>';
+  expect((await parseXmlStream(chunks(xml, 1))).text).toBe("é");
+  expect(parseXml(xml).text).toBe("é");
+  expect(() => parseXml(xml, { expectedEncoding: "UTF-8" })).toThrow("unsupported XML declaration");
+  await expect(parseXmlStream(chunks(xml, 1), { expectedEncoding: "UTF-8" })).rejects.toThrow("unsupported XML declaration");
+});

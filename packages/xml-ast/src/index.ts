@@ -40,7 +40,7 @@ export interface XmlElement extends XmlName {
 export interface XmlLimits {
   /** Opt-in best-effort parsing; each repaired syntax error is reported. DTDs remain forbidden. */
   readonly recover?: (message: string) => void;
-  readonly expectedEncoding?: "UTF-8" | "UTF-16" | "UTF-16LE" | "UTF-16BE";
+  readonly expectedEncoding?: string;
   readonly retainContent?: boolean;
   readonly maxDepth?: number;
   readonly maxNodes?: number;
@@ -282,8 +282,8 @@ function* readDeclaration(source: XmlSource, offset: number, end: number,
   let spacing = yield* whitespace();
   if ((yield* source.slice(offset, Math.min(end, offset + 8))) === "encoding") {
     if (!spacing) return undefined;
-    const encoding = yield* field("encoding", 8);
-    if (encoding === undefined || !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(encoding.toLowerCase())) return undefined;
+    const encoding = yield* field("encoding", 10);
+    if (encoding === undefined || !["utf-8", "utf-16", "utf-16le", "utf-16be", "iso-8859-1", "latin1"].includes(encoding.toLowerCase())) return undefined;
     if (expectedEncoding !== undefined && encoding.toLowerCase() !== expectedEncoding.toLowerCase()
       && !(encoding.toLowerCase() === "utf-16" && (expectedEncoding === "UTF-16LE" || expectedEncoding === "UTF-16BE"))) return undefined;
     result += ` encoding="${encoding}"`;

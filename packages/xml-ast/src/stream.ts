@@ -63,8 +63,8 @@ export async function parseXmlStream(
   parser.on("xmldecl", value => {
     const encoding = value.encoding?.toUpperCase();
     if (value.version !== "1.0" || encoding !== undefined &&
-      (!["UTF-8", "UTF-16", "UTF-16LE", "UTF-16BE"].includes(encoding) ||
-       limits.expectedEncoding !== undefined && encoding !== limits.expectedEncoding &&
+      (!["UTF-8", "UTF-16", "UTF-16LE", "UTF-16BE", "ISO-8859-1", "LATIN1"].includes(encoding) ||
+       limits.expectedEncoding !== undefined && encoding !== limits.expectedEncoding.toUpperCase() &&
        !(encoding === "UTF-16" && ["UTF-16LE", "UTF-16BE"].includes(limits.expectedEncoding))))
       throw new SyntaxError("Invalid XML: unsupported XML declaration");
     if (describe) declaration = prefix.slice(0, prefix.indexOf("?>") + 2);

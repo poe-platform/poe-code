@@ -6,6 +6,46 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("ls supports escape, shell, C and literal quoting in shell scripts", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch 'a b' c; ls -b; ls --quoting-style=shell; ls --quoting-style=c; ls --quoting-style=literal; ls -N");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "a\\ b\nc\n'a b'\nc\n\"a b\"\n\"c\"\na b\nc\na b\nc\n");
+  for (const [args, expected] of [
+    [["--escape"], "a\\ b\nc\n"],
+    [["--quoting-style", "shell"], "'a b'\nc\n"],
+    [["-Qb"], "a\\ b\nc\n"],
+    [["-bN"], "a b\nc\n"],
+    [["--quoting-style=c", "-N"], "a b\nc\n"],
+    [["-N", "--quoting-style=c"], "\"a b\"\n\"c\"\n"],
+  ] as const) {
+    const listed = await run("ls", [...args], { fs });
+    assert.equal(listed.stderr, "");
+    assert.equal(listed.exitCode, 0);
+    assert.equal(listed.stdout, expected);
+  }
+});
+
+test("ls applies quoting to recursive headings, indicators and link targets", async context => {
+  const fs = await fixture({ "a b/child name": "" });
+  await fs.symlink("child name", "/work/a b/link name");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const recursive = await shell.exec("ls -RF --quoting-style=shell 'a b'");
+  assert.equal(recursive.exitCode, 0);
+  assert.equal(recursive.stderr, "");
+  assert.equal(recursive.stdout, "'a b':\n'child name'\n'link name'@\n");
+  const link = await shell.exec("ls -l --quoting-style=c 'a b/link name'");
+  assert.equal(link.exitCode, 0);
+  assert.equal(link.stderr, "");
+  assert.ok(link.stdout.endsWith(' "a b/link name" -> "child name"\n'));
+  const directory = await shell.exec("ls -dbF 'a b'");
+  assert.equal(directory.stdout, "a\\ b/\n");
+});
+
 test("ls and find preserve literal filenames in captured output", async context => {
   const fs = await fixture();
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

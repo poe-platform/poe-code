@@ -115,6 +115,31 @@ fn coupon_dates_preserve_maturity_month_ends_and_day_count_bases() {
 }
 
 #[test]
+fn coupdays_on_coupon_dates_uses_the_following_maturity_anchored_period() {
+    for date1904 in [false, true] {
+        let mut book = Spreadsheet::new();
+        book.options.date1904 = date1904;
+        for (settlement, frequency, want) in [
+            ("DATE(2023,2,28)", 4, 92.),
+            ("DATE(2024,2,29)", 4, 92.),
+            ("DATE(2023,5,31)", 4, 92.),
+            ("DATE(2023,8,31)", 4, 91.),
+            ("DATE(2023,11,30)", 4, 91.),
+            ("DATE(2023,2,28)", 2, 184.),
+            ("DATE(2024,2,29)", 2, 184.),
+        ] {
+            let formula = format!("=COUPDAYS({settlement},DATE(2025,8,31),{frequency},1)");
+            book.edit(&[(0, 0, 0, &formula)], 2_000_000).unwrap();
+            assert!(
+                (numeric(&book, 0, 0) - want).abs() <= 1e-8,
+                "{date1904}: {formula}: {} != {want}",
+                numeric(&book, 0, 0)
+            );
+        }
+    }
+}
+
+#[test]
 fn bond_contracts_reject_invalid_dates_rates_and_types() {
     let mut book = Spreadsheet::new();
     for (formula, want) in [

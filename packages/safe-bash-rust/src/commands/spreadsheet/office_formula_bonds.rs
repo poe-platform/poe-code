@@ -185,9 +185,10 @@ pub(super) fn calculate(
                 }
             }
             "COUPDAYS" => {
-                if basis == 1 {
+                if basis == 1 && prev != settlement {
                     // Excel's COUPDAYS actual/actual deliberately uses a drifting
-                    // schedule, unlike the anchored period used by PRICE/DURATION.
+                    // schedule between coupon dates. On a coupon date, use the
+                    // following maturity-anchored period so February cannot shift it.
                     let mut date = maturity;
                     loop {
                         *work = work.checked_sub(64)?;

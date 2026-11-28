@@ -18,14 +18,14 @@ export interface SearchOptions {
 
 
 export interface Arguments {
-  sort?: "none" | "path" | "modified" | "accessed" | "created";
-  sortReverse?: boolean;
   noConfig?: boolean;
   help?: boolean | undefined;
   version?: "short" | "long" | undefined;
   patterns: string[];
   patternFiles: string[];
   paths: string[];
+  sort: "none" | "path" | "modified" | "accessed" | "created";
+  sortReverse: boolean;
   explicitPatterns: boolean;
   mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
   case: "sensitive" | "insensitive" | "smart";
@@ -95,14 +95,14 @@ const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
 const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
 
 export class ParsedArguments implements Arguments {
-  declare sort: NonNullable<Arguments["sort"]>;
-  declare sortReverse: boolean;
   declare noConfig: boolean;
   declare help?: boolean | undefined;
   declare version?: "short" | "long" | undefined;
   patterns: string[] = [];
   declare patternFiles: string[];
   paths: string[] = [];
+  declare sort: Arguments["sort"];
+  declare sortReverse: boolean;
   declare explicitPatterns: boolean;
   declare mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
   declare case: "sensitive" | "insensitive" | "smart";
@@ -438,10 +438,10 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-pcre2": result.perl = false; break;
         case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "sort": case "sortr": {
-          const value = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)));
-          if (value !== "none" && value !== "path" && value !== "modified" && value !== "accessed" && value !== "created") throw new SearchError(`invalid sort value '${value}'`);
+          const value = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal));
+          if (value !== "none" && value !== "path" && value !== "modified" && value !== "accessed" && value !== "created") throw new SearchError(`invalid sort value '${value}': expected none, path, modified, accessed or created`);
           result.sort = value;
-          result.sortReverse = flag === "sortr" && value !== "none";
+          result.sortReverse = flag === "sortr";
           break;
         }
         case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;

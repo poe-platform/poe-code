@@ -23,6 +23,11 @@ spanning lines. Output retains UTF-8 bytes and obeys `maxOutputBytes`.
 Use `rg -d 1 pattern /dir` (or `--max-depth 1`) to search only files directly
 inside `/dir`. Depth `0` skips directory contents.
 
+Use `--sort modified` to search older files first or `--sortr modified` for
+newer files first. Both flags accept `none`, `path`, `modified`, `accessed`, and
+`created`, ordering entries within each directory. `none` uses the default
+traversal order; creation-time sorting requires filesystem birth times.
+
 Use `rg -n -m 18 -M 240 pattern file.log` to replace output lines longer than
 240 bytes with an omission marker. `--max-columns` is the long form; `0`
 disables the limit. Add `--max-columns-preview` to show the beginning of long

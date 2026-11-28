@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
 import { parse, ParsedArguments } from "./options.js";
 
@@ -86,3 +86,85 @@ test("timestamp sorting preserves recursive traversal, filters and file limits",
     }
   }
 });
+
+for (const flag of ["--sort", "--sortr"]) {
+  for (const key of ["none", "path", "modified", "accessed", "created"]) {
+    for (const inline of [false, true]) {
+      test(`${flag} ${key}, inline=${inline}`, async (t) => {
+        const fs = createMemoryFileSystem();
+        await fs.mkdir("/work");
+        const clock = t.mock.method(Date, "now");
+        for (const [name, created, accessed, modified] of [
+          ["b", 3000, 1000, 2000], ["a", 2000, 3000, 1000], ["c", 1000, 2000, 3000],
+        ] as const) {
+          clock.mock.mockImplementation(() => created);
+          await fs.writeFile(`/work/${name}`, new TextEncoder().encode("x\n"));
+          await fs.utimes(`/work/${name}`, accessed, modified);
+        }
+        clock.mock.restore();
+        const values = createCommandArguments([...(inline ? [`${flag}=${key}`] : [flag, key]), "-c", "x"]);
+        let stdout = "", stderr = "";
+        const context: CommandContext & { _fastMemoryBackingFs: typeof fs; _hasInfiniteFsOpsLimit: boolean } = {
+          command: "rg", args: values.args, argumentValues: values, fs, cwd: "/work", env: {},
+          _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true,
+          stdin: toByteSource(""), signal: new AbortController().signal,
+          stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+          stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        };
+        const result = await createRgCommand().execute(context);
+        assert.equal(stderr, "");
+        assert.equal(result.exitCode, 0);
+        const expected = key === "accessed" ? ["b", "c", "a"] : key === "created" ? ["c", "a", "b"] : ["a", "b", "c"];
+        if (flag === "--sortr" && key !== "none") expected.reverse();
+        const actual = stdout.trim().split("\n");
+        assert.deepEqual(key === "none" ? actual.sort() : actual, expected.map(name => `${name}:1`));
+      });
+    }
+  }
+}
+
+test("sort flags override one another and reset between invocations", () => {
+  assert.equal(parse(["x"]).sort, "none");
+  assert.equal(parse(["x"]).sortReverse, false);
+  const target = new ParsedArguments();
+  parse(["--sortr=created", "--sort=modified", "x"], target);
+  assert.equal(target.sort, "modified");
+  assert.equal(target.sortReverse, false);
+  parse(["--sort=modified", "--sortr=path", "x"], target);
+  assert.equal(target.sort, "path");
+  assert.equal(target.sortReverse, true);
+  parse(["x"], target);
+  assert.equal(target.sort, "none");
+  assert.equal(target.sortReverse, false);
+  for (const flag of ["--sort", "--sortr"]) {
+    assert.throws(() => parse([`${flag}=bogus`, "x"]), /sort/);
+    assert.throws(() => parse(["x", flag]), /requires a value/);
+  }
+});
+
+for (const missingBirthTime of [false, true]) {
+  test(`timestamp sorting rejects unavailable metadata and obeys file limits (missingBirthTime=${missingBirthTime})`, async (t) => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work");
+    for (const name of ["a", "b"]) await fs.writeFile(`/work/${name}`, new Uint8Array());
+    if (missingBirthTime) {
+      const stat = fs.stat.bind(fs);
+      t.mock.method(fs, "stat", async (...args: Parameters<typeof stat>) => {
+        const result = await stat(...args);
+        Reflect.deleteProperty(result, "birthtimeMs");
+        return result;
+      });
+    }
+    const values = createCommandArguments(["--files", "--sort=created"]);
+    let stdout = "", stderr = "";
+    const result = await createRgCommand(missingBirthTime ? {} : { maxFiles: 2 }).execute({
+      command: "rg", args: values.args, argumentValues: values, fs, cwd: "/work", env: {},
+      stdin: toByteSource(""), signal: new AbortController().signal,
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    assert.equal(result.exitCode, 2);
+    assert.equal(stdout, "");
+    assert.match(stderr, missingBirthTime ? /created time is unavailable/ : /filesystem entry limit exceeded/);
+  });
+}

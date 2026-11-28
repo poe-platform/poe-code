@@ -24,6 +24,33 @@ async function context(args: readonly string[] = []): Promise<CommandContext & {
   };
 }
 
+for (const [args, stdin, stdout] of [
+  [["-n", "-T", "/tmp"], "3\n1\n2\n", "1\n2\n3\n"],
+  [["--temporary-directory=/tmp"], "b\na\n", "a\nb\n"],
+  [["--compress-program=gzip"], "b\na\n", "a\nb\n"],
+  [["-T/scratch"], "b\na\n", "a\nb\n"],
+  [["--temporary-directory", "/scratch"], "b\na\n", "a\nb\n"],
+  [["--compress-program", "gzip"], "b\na\n", "a\nb\n"],
+] as const) {
+  test(`accepts GNU scratch options: ${args.join(" ")}`, async () => {
+    const ctx = await context(args);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource(stdin) });
+    assert.equal(result.exitCode, 0, Buffer.concat(ctx.errors).toString());
+    assert.equal(Buffer.concat(ctx.output).toString(), stdout);
+    assert.equal(Buffer.concat(ctx.errors).toString(), "");
+  });
+}
+
+for (const option of ["-T", "--temporary-directory", "--compress-program"]) {
+  test(`requires a value for ${option}`, async () => {
+    const ctx = await context([option]);
+    const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource("b\na\n") });
+    assert.equal(result.exitCode, 2);
+    assert.equal(Buffer.concat(ctx.output).toString(), "");
+    assert.match(Buffer.concat(ctx.errors).toString(), /requires an argument/);
+  });
+}
+
 test("spilled runs use caller handles with bounded I/O and a slow sink", async t => {
   const ctx = await context(["-S", "1M"]);
   const fs = ctx.fs as MemoryFileSystem;

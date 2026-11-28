@@ -360,6 +360,8 @@ const SORT_LONG_OPTIONS = Object.freeze({
   merge: "m",
   sort: "mode:",
   "buffer-size": "S",
+  "temporary-directory": "T",
+  "compress-program": "compress-program:",
   "max-input-bytes": "max-input-bytes:",
   "max-records": "max-records:",
   "batch-size": "batch-size:",
@@ -470,7 +472,7 @@ async function executeSort(context: CommandContext, settings: SortCommandsOption
         return argument;
       })
     : context.args;
-  const parsed = options(args, "hngMRVdimrfbuszt:k:o:cCS:", SORT_LONG_OPTIONS);
+  const parsed = options(args, "hngMRVdimrfbuszt:k:o:cCS:T:", SORT_LONG_OPTIONS);
   if (parsed.flags.has("c") && parsed.flags.has("C")) throw new UsageError("options '-cC' are incompatible");
   const checking = parsed.flags.has("c") || parsed.flags.has("C");
   if (checking && parsed.operands.length > 1) throw new UsageError(`extra operand '${parsed.operands[1]}' not allowed with -${parsed.flags.has("C") ? "C" : "c"}`);

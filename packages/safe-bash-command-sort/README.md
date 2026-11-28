@@ -38,6 +38,9 @@ Records larger than the budget use paged storage, including byte, key, numeric,
 human numeric and version comparisons. Spill storage requires caller-authorized
 scratch storage and retained positioned I/O. Use an external backend for large
 Worker inputs: a memory filesystem still keeps its stored contents in RAM.
+`-T` / `--temporary-directory` and `--compress-program` accept their required
+arguments for script compatibility; they do not change scratch storage or run
+external compression programs.
 
 Locale ordering preserves the host `Intl.Collator` behavior. Oversized locale
 comparisons still materialize whole strings and therefore do **not** have bounded

@@ -44,6 +44,6 @@ for (const input of [
 
 test('empty ID selection preserves the empty-set exit status', async () => {
   const { result, output } = await run('id("missing")', input);
-  assert.equal(result.exitCode, 11);
+  assert.equal(result.exitCode, 10);
   assert.equal(output, '');
 });

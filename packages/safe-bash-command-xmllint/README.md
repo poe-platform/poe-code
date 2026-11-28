@@ -27,7 +27,8 @@ Explicit XPath axes support child, parent, self, attribute, ancestor,
 ancestor-or-self, descendant, descendant-or-self, preceding, following, and
 sibling traversal. Reverse-axis predicates select nearest nodes first:
 `preceding-sibling::*[1]` selects the immediately preceding element sibling.
-Results are deduplicated and returned in document order.
+Results are deduplicated and returned in document order. Empty XPath node sets
+exit with status 10 and report `XPath set is empty` on stderr.
 Use `/*/namespace::*` to inspect in-scope namespace bindings, including `xml`;
 `/*/namespace::prefix` selects one binding. Namespace declarations are excluded from `@*`.
 

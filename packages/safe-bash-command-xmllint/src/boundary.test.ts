@@ -31,7 +31,7 @@ for (const [args, input, output, exitCode] of [
   [["--xpath", "/root/@xml:lang"], '<root xml:lang="en"/>', ' xml:lang="en"\n', 0],
   [["--xpath", '//*[local-name()="item"]'], '<root xmlns:ns="urn:x"><ns:item>val</ns:item></root>', '<ns:item>val</ns:item>\n', 0],
   [["--c14n"], '<root b="2" a="1"/>', '<root a="1" b="2"></root>', 0],
-  [["--xpath", "/root/missing"], "<root/>", "", 11],
+  [["--xpath", "/root/missing"], "<root/>", "", 10],
   [["--noout"], "<root>", "", 1]
 ] as const)
   test(`private command executes ${args.join(" ")} with canonical argv`, async () => {

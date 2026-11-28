@@ -274,7 +274,7 @@ async function executeDocument(
     }
     const selection = stored ? await new StoredXPath(stored, budget, stored.document).select(options.query) : await evaluate(options.query, root, budget);
     const nodes = Array.isArray(selection) ? selection : selection.nodes();
-    if ((Array.isArray(selection) ? selection.length : selection.size) === 0) throw new XmlQueryError("XPath set is empty", 11);
+    if ((Array.isArray(selection) ? selection.length : selection.size) === 0) throw new XmlQueryError("XPath set is empty", 10);
     let pendingText = "";
     for await (const node of nodes) {
       const simple = writesCount >= 2 ? serializeSimpleSync(node, budget) : undefined;

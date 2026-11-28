@@ -1550,8 +1550,19 @@ function formatStrftime(fmt: string, { date: d, seconds }: { date: Date; seconds
   const dow = d.getUTCDay();
   const jd = d.getTime() / 86400000 + 2440587.5;
 
-  return fmt.replace(/%[dHjmMSwWYuFTRsJ%f]/g, (spec) => {
+  return fmt.replace(/%[dHjmMSwWYuFTRsJ%fGV]/g, (spec) => {
     switch (spec) {
+      case "%G":
+      case "%V": {
+        // The Thursday in an ISO week determines its year.
+        const thursday = new Date(d.getTime());
+        thursday.setUTCDate(day + 3 - ((dow + 6) % 7));
+        const isoYear = thursday.getUTCFullYear();
+        if (spec === "%G") return pad4(isoYear);
+        const january = new Date(thursday.getTime());
+        january.setUTCMonth(0, 1);
+        return pad2(Math.floor((thursday.getTime() - january.getTime()) / 604800000) + 1);
+      }
       case "%Y":
         return pad4(Y);
       case "%m":

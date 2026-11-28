@@ -28736,7 +28736,15 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
             let Some((y, m, d, hh, mm, ss)) = apply_sql_datetime_modifiers(ts, &args[2..]) else {
                 return SQL_NULL.to_string();
             };
+            let days = super::coreutils::days_from_civil(y.into(), m.into(), d.into());
+            // The Thursday in an ISO week determines its year.
+            let thursday = days + 3 - (days + 3).rem_euclid(7);
+            let (iso_year, _, _) = super::coreutils::civil_from_days(thursday);
+            let iso_january = super::coreutils::days_from_civil(iso_year, 1, 1);
+            let iso_week = (thursday - iso_january) / 7 + 1;
             return fmt
+                .replace("%G", &format!("{iso_year:04}"))
+                .replace("%V", &format!("{iso_week:02}"))
                 .replace("%Y", &format!("{y:04}"))
                 .replace("%m", &format!("{m:02}"))
                 .replace("%d", &format!("{d:02}"))

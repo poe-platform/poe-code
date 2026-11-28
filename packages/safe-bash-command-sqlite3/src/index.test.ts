@@ -4,6 +4,26 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+for (const [date, expected] of [
+  ["2021-01-01", "2020-W53"],
+  ["2021-01-03", "2020-W53"],
+  ["2021-01-04", "2021-W01"],
+  ["2018-12-31", "2019-W01"],
+  ["2016-01-01", "2015-W53"],
+  ["2022-01-01", "2021-W52"],
+  ["2024-02-29", "2024-W09"],
+  ["1969-12-29", "1970-W01"],
+  ["0099-01-01", "0099-W01"]
+]) {
+  test(`sqlite3 ISO week year for ${date}`, async () => {
+    const sql = `SELECT strftime('%G-W%V', '${date}');`;
+    assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+      code: 0, stdout: `${expected}\n`, stderr: ""
+    });
+    assert.equal(evalSyncSqlite3(new Uint8Array(), [":memory:", sql]), `${expected}\n`);
+  });
+}
+
 for (const rhs of ["('A','B',NULL)", "(SELECT 'A' UNION ALL SELECT 'B' UNION ALL SELECT NULL)"]) {
   test(`sqlite3 IN respects left operand collation with ${rhs}`, async () => {
     const sql = `CREATE TABLE t(v TEXT COLLATE NOCASE); INSERT INTO t VALUES('a');

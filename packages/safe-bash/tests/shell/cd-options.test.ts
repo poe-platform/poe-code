@@ -106,6 +106,21 @@ async function fixture() {
   return { fs, shell };
 }
 
+for (const remove of ["rmdir ../d", 'rm -rf "$PWD"']) {
+  for (const cd of ["cd ..", "cd -L .."]) {
+    test(`${cd} leaves a current directory removed by ${remove}`, async context => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work");
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`mkdir d; cd d; ${remove}; ${cd}; echo "$? $PWD"; pwd; echo recovered > result; cat result; echo "$OLDPWD"`);
+      assert.equal(result.stdout, "0 /work\n/work\nrecovered\n/work/d\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
 for (const option of ["", "-L", "-P"]) {
   for (const operand of ["''", '"$empty"', "-- ''"]) {
     test(`cd ${option} ${operand} rejects an explicit empty directory`, async context => {

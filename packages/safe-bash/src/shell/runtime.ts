@@ -2020,15 +2020,20 @@ class CdLookup {
       const operand = physical ? raw : path;
       if (!physical) {
         const components: string[] = [];
+        let inherited = absolute || component.startsWith("/") ? 0 : cwd.split("/").filter(Boolean).length;
         for (const component of raw.split("/")) {
           await this.charge(1);
           if (component === "..") {
             await this.charge(rawBytes);
-            const parent = `/${components.join("/")}`;
-            const stat = await fs.stat(parent, { signal: this.signal });
-            this.signal.throwIfAborted();
-            if (stat.type !== "directory") throw new FsError("ENOTDIR", { path: parent });
+            // Logical .. can leave a removed cwd; only validate components added by the operand.
+            if (components.length > inherited) {
+              const parent = `/${components.join("/")}`;
+              const stat = await fs.stat(parent, { signal: this.signal });
+              this.signal.throwIfAborted();
+              if (stat.type !== "directory") throw new FsError("ENOTDIR", { path: parent });
+            }
             components.pop();
+            inherited = Math.min(inherited, components.length);
           } else if (component && component !== ".") components.push(component);
         }
       }

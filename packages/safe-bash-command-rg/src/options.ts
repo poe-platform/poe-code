@@ -275,6 +275,7 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
   let opLen = 0;
   let unrestricted = 0;
   let explicitLineNumber = false;
+  let globCaseInsensitive = false;
   let ended = false;
   let _tmpVal = "";
   for (let index = 0; index < args.length; index++) {
@@ -335,6 +336,7 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "f": case "file": result.explicitPatterns = true; if (result.patternFiles === EMPTY_STRINGS) result.patternFiles = []; result.patternFiles.push(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); break;
         case "g": case "glob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: false }); break;
         case "iglob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: true }); break;
+        case "glob-case-insensitive": globCaseInsensitive = true; break;
         case "t": case "type": case "T": case "type-not": {
           const name = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)));
           if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
@@ -442,5 +444,8 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
   if (patterns.length !== patLen) patterns.length = patLen;
   if (operands.length !== opLen) operands.length = opLen;
   if (!explicitLineNumber) result.lineNumber = result.column;
+  if (globCaseInsensitive) {
+    for (const glob of result.globs) glob.insensitive = true;
+  }
   return result;
 }

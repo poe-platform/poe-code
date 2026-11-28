@@ -446,7 +446,29 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       }
       const { result, outcomes, reversed, autoReversed, reverseMismatch, deletion } = applied;
       if (applied.skipped) {
-        await status(`Reversed (or previously applied) patch detected!  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+        const destination = rejectName(outputToStdout ? "-" : name, paths);
+        const rejectPath = options.dryRun || destination === undefined ? undefined : resolvePath(context.cwd, destination);
+        if (rejectPath !== undefined) {
+          await authorizeOutputs([rejectPath], targets, paths.input, budget);
+          if (backupPaths.has(rejectPath)) throw new ToolError("reject path aliases another section's backup");
+          const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
+          const ignored = { async *[Symbol.asyncIterator]() {
+            for await (const [index, hunk] of patchHunks(patch)) yield { hunk, index: index + 1, failed: true, misordered: false,
+              line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 };
+          } };
+          const reject = await documents.load(rejectBytes(sourcePatch, ignored, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat));
+          const item: Prepared = { path, original, result: current, remove: false, skipWrite: true, parents: [], ...prior, rejectPath, reject };
+          if (options.atomic) staged.set(path, item);
+          else {
+            publishing = true;
+            await publish(item, budget, rejects, publication, documents);
+            committed++;
+            publishing = false;
+          }
+          rejectPaths.add(rejectPath);
+        }
+        if (!options.quiet) await status(`${options.dryRun ? "checking" : "patching"} file ${quotePatchName(name, options.quotingStyle)}\n`);
+        await status(`Reversed (or previously applied) patch detected!  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} ${sourcePatch.hunks.length === 1 ? "hunk" : "hunks"} ignored${rejectPath === undefined ? "" : ` -- saving rejects to file ${destination}`}\n`);
         exitCode = 1;
         return;
       }

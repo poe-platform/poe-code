@@ -22743,6 +22743,22 @@ fn exec_sql_insert(
         ));
     }
 
+    if let Some(cols) = &explicit_cols
+        && let Some(table) = tables.get(&tname)
+    {
+        for column in cols {
+            if table.generated.contains_key(&column.to_ascii_lowercase()) {
+                let name = t_cols
+                    .iter()
+                    .find(|name| name.eq_ignore_ascii_case(column))
+                    .unwrap_or(column);
+                return Err(format!(
+                    "Error: in prepare, cannot INSERT into generated column \"{name}\"\n"
+                ));
+            }
+        }
+    }
+
     let mut value_tuples: Vec<Vec<String>> = Vec::new();
     if default_values_pos.is_some() {
         value_tuples.push(Vec::new());

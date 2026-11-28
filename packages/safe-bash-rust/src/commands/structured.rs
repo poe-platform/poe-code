@@ -3417,13 +3417,12 @@ fn bind_jq_alternatives(pat_expr: &str, val: &JVal, vars: &mut BTreeMap<String, 
     for vn in &all_vars {
         vars.insert(vn.clone(), JVal::Null);
     }
-    let strict = alts.len() > 1;
     for alt in alts {
         let mut trial = BTreeMap::new();
         for vn in &all_vars {
             trial.insert(vn.clone(), JVal::Null);
         }
-        if try_bind_jq_pattern(alt, val, &mut trial, strict) {
+        if try_bind_jq_pattern(alt, val, &mut trial) {
             for (k, v) in trial {
                 vars.insert(k, v);
             }
@@ -3432,12 +3431,7 @@ fn bind_jq_alternatives(pat_expr: &str, val: &JVal, vars: &mut BTreeMap<String, 
     }
 }
 
-fn try_bind_jq_pattern(
-    pat: &str,
-    val: &JVal,
-    vars: &mut BTreeMap<String, JVal>,
-    strict: bool,
-) -> bool {
+fn try_bind_jq_pattern(pat: &str, val: &JVal, vars: &mut BTreeMap<String, JVal>) -> bool {
     let p = pat.trim();
     if let Some(vname) = p.strip_prefix('$') {
         vars.insert(vname.trim().to_string(), val.clone());
@@ -3457,7 +3451,7 @@ fn try_bind_jq_pattern(
         });
         for (idx, ep) in elems.iter().enumerate() {
             let sub_val = arr.get(idx).unwrap_or(&JVal::Null);
-            if !try_bind_jq_pattern(ep, sub_val, vars, strict) {
+            if !try_bind_jq_pattern(ep, sub_val, vars) {
                 return false;
             }
         }
@@ -3480,23 +3474,19 @@ fn try_bind_jq_pattern(
             if let Some((k_raw, sub_pat)) = split_jq_binary(et, ":") {
                 let key = k_raw.trim().trim_start_matches('$').trim_matches('"');
                 if let Some((_, sub_val)) = obj.iter().find(|(ek, _)| ek == key) {
-                    if !try_bind_jq_pattern(&sub_pat, sub_val, vars, strict) {
+                    if !try_bind_jq_pattern(&sub_pat, sub_val, vars) {
                         return false;
                     }
                     if k_raw.trim().starts_with('$') {
                         vars.insert(key.to_string(), sub_val.clone());
                     }
-                } else if strict {
-                    return false;
                 } else {
-                    let _ = try_bind_jq_pattern(&sub_pat, &JVal::Null, vars, false);
+                    let _ = try_bind_jq_pattern(&sub_pat, &JVal::Null, vars);
                 }
             } else if let Some(vname) = et.strip_prefix('$') {
                 let key = vname.trim();
                 if let Some((_, sub_val)) = obj.iter().find(|(ek, _)| ek == key) {
                     vars.insert(key.to_string(), sub_val.clone());
-                } else if strict {
-                    return false;
                 } else {
                     vars.insert(key.to_string(), JVal::Null);
                 }

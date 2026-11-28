@@ -1,8 +1,7 @@
 // Depreciation schedules adapted from IronCalc financial_depreciation.rs
 // (f93662006b8fb1c401dc870bbda26c5d60ac6037, MIT, LICENSE.IronCalc) and Univer
 // financial/{vdb,amorlinc,amordegrc}/index.ts (4767b3b309467c283bbd52b725536ca73861e0fc,
-// Apache-2.0, LICENSE.Univer). French degressive depreciation follows Univer's
-// Excel regressions for asset lives, salvage thresholds and rounding.
+// Apache-2.0, LICENSE.Univer).
 use super::Value;
 use crate::commands::coreutils::{civil_from_days, days_from_civil};
 
@@ -228,9 +227,6 @@ pub(super) fn calculate(
         return Some(Value::number(result));
     }
     let life = (1. / rate).ceil();
-    if period > life {
-        return Some(Value::Number(0.));
-    }
     let factor = if life <= 4. {
         1.5
     } else if life <= 6. {
@@ -255,31 +251,29 @@ pub(super) fn calculate(
     if period == 0. {
         return Some(Value::Number(0.));
     }
-    // Regular periods form a geometric series. Compute the book value directly
-    // rather than looping millions of times for a very small depreciation rate.
-    let half = life + if prorated == 0. { 0. } else { 1. } - 3.;
-    let elapsed = if half >= 1. {
-        period.min(half) - 1.
-    } else {
-        period - 1.
-    };
-    let mut balance = (cost - first) * (elapsed * (-rate).ln_1p()).exp();
-    let share = if half >= 1. && period >= half {
-        if period > half + 1. {
+    // Round each charge before reducing the book value. The final half-balance
+    // charge is triggered by crossing salvage, not by a fixed asset-life cutoff.
+    let mut balance = cost - first;
+    if balance < salvage {
+        return Some(Value::Number(0.));
+    }
+    let mut charge = 0.;
+    let mut index = 0.;
+    while index < period {
+        *work = work.checked_sub(64)?;
+        charge = rounded(balance * rate);
+        if balance - charge < salvage {
+            return Some(Value::number(if period - index == 1. {
+                rounded(balance / 2.)
+            } else {
+                0.
+            }));
+        }
+        if charge == 0. {
             return Some(Value::Number(0.));
         }
-        if period > half {
-            balance *= 0.5;
-            1.
-        } else {
-            0.5
-        }
-    } else {
-        rate
-    };
-    Some(Value::number(if balance < salvage {
-        0.
-    } else {
-        rounded(balance * share)
-    }))
+        balance -= charge;
+        index += 1.;
+    }
+    Some(Value::number(charge))
 }

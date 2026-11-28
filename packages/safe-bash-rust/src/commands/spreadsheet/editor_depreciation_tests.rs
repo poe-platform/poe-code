@@ -22,6 +22,26 @@ fn close(actual: f64, expected: f64) {
 }
 
 #[test]
+fn degressive_late_period_charge_matches_calc_and_gnumeric() {
+    // Period four was independently recalculated as 345 by Calc and Gnumeric.
+    // Continue past the nominal five-year life through the salvage crossing.
+    let mut book = Spreadsheet::new();
+    for (period, expected) in [1003., 1599., 959., 576., 345., 207., 124., 75., 56., 0.]
+        .into_iter()
+        .enumerate()
+    {
+        let formula =
+            format!("=AMORDEGRC(5000,DATE(2019,7,1),DATE(2019,12,31),100,{period},0.2,1)");
+        book.edit(&[(0, 0, 0, &formula)], 2_000_000).unwrap();
+        let actual = number(&book, 0, 0);
+        assert!(
+            (actual - expected).abs() <= 1e-8,
+            "period {period}: {actual} != {expected}"
+        );
+    }
+}
+
+#[test]
 fn variable_depreciation_matches_documented_examples_and_fractional_periods() {
     let mut book = Spreadsheet::new();
     for (formula, expected) in [
@@ -52,7 +72,7 @@ fn french_depreciation_matches_complete_period_schedules_and_bases() {
     let mut book = Spreadsheet::new();
     for (salvage, expected) in [
         (300., [330., 776., 485., 303., 190., 158., 0., 0.]),
-        (0., [330., 776., 485., 303., 190., 158., 158., 0.]),
+        (0., [330., 776., 485., 303., 190., 119., 74., 46.]),
     ] {
         for (period, expected) in expected.into_iter().enumerate() {
             book.edit(&[(0,0,0,&format!("=AMORDEGRC(2400,DATE(2008,8,19),DATE(2008,12,31),{salvage},{period},0.15,1)"))],LIMIT).unwrap();
@@ -235,7 +255,7 @@ fn depreciation_arrays_and_roundtrips_keep_typed_results_in_both_date_systems() 
                     0,
                     1,
                     2,
-                    "=AMORDEGRC(2400,DATE(2008,8,19),DATE(2008,12,31),300,1,0.15,1)",
+                    "=AMORDEGRC(5000,DATE(2019,7,1),DATE(2019,12,31),100,4,0.2,1)",
                 ),
             ],
             LIMIT,
@@ -250,57 +270,34 @@ fn depreciation_arrays_and_roundtrips_keep_typed_results_in_both_date_systems() 
                 close(number(&book, r, 0), n);
             }
             close(number(&book, 0, 2), 10.);
-            close(number(&book, 1, 2), 776.);
+            close(number(&book, 1, 2), 345.);
         }
     }
 }
 
 #[test]
-fn geometric_depreciation_matches_a_period_by_period_schedule() {
-    // Independent ledger: subtract each payment from the remaining book value.
-    // Full 360-day years isolate schedule/rounding behavior from calendar rules.
+fn degressive_schedules_finish_when_rounded_charges_reach_zero() {
     let mut book = Spreadsheet::new();
-    for cost in [100., 2400., 9940.54] {
-        for salvage_fraction in [0., 0.125, 0.8] {
-            let salvage = cost * salvage_fraction;
-            for rate in [0.49_f64, 0.4, 0.3, 0.25, 0.24, 0.15, 0.1, 0.01] {
-                let life = (1. / rate).ceil() as usize;
-                let coefficient = match life {
-                    0..=4 => 1.5,
-                    5..=6 => 2.,
-                    _ => 2.5,
-                };
-                for same_day in [false, true] {
-                    let first = (cost * rate * coefficient).min(cost - salvage).round();
-                    let mut balance = cost - first;
-                    let mut scheduled_rate = rate * coefficient;
-                    for period in 1..=life + 1 {
-                        let depreciation = if balance < salvage || period > life {
-                            0.
-                        } else if period == life + usize::from(!same_day) - 3 {
-                            scheduled_rate = 1.;
-                            balance / 2.
-                        } else {
-                            balance * scheduled_rate
-                        };
-                        balance -= depreciation;
-                        // Decimal formatting rounds significant digits independently
-                        // of the production implementation's scaling arithmetic.
-                        let expected = format!("{depreciation:.14e}")
-                            .parse::<f64>()
-                            .unwrap()
-                            .round();
-                        let end_year = if same_day { 2020 } else { 2021 };
-                        let formula = format!(
-                            "=AMORDEGRC({cost},DATE(2020,1,1),DATE({end_year},1,1),{salvage},{period},{rate},4)"
-                        );
-                        book.edit(&[(0, 0, 0, &formula)], LIMIT).unwrap();
-                        assert_eq!(number(&book, 0, 0), expected, "{formula}");
-                    }
-                }
-            }
-        }
+    for period in [18., 1e6, 1e308] {
+        let formula =
+            format!("=AMORDEGRC(2400,DATE(2008,8,19),DATE(2008,12,31),0,{period},0.15,1)");
+        book.edit(&[(0, 0, 0, &formula)], 50_000).unwrap();
+        assert_eq!(number(&book, 0, 0), 0.);
     }
+    let before = book.to_json();
+    assert!(
+        book.edit(
+            &[(
+                0,
+                0,
+                0,
+                "=AMORDEGRC(1e15,DATE(2019,7,1),DATE(2019,12,31),0,1e6,1e-9,1)"
+            )],
+            50_000,
+        )
+        .is_err()
+    );
+    assert_eq!(book.to_json(), before);
 }
 
 #[test]

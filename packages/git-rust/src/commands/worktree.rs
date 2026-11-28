@@ -886,7 +886,19 @@ pub fn checkout(
 
             GitIndexManager::acquire(fs, &gdir, |index| {
                 if filepaths.is_none() {
-                    index.clear();
+                    if force {
+                        index.clear();
+                    } else {
+                        // Staged additions outside both trees belong to the user,
+                        // not the branch being replaced.
+                        for entry in index.entries() {
+                            if head_map.contains_key(&entry.path)
+                                || target_map.contains_key(&entry.path)
+                            {
+                                index.delete(&entry.path);
+                            }
+                        }
+                    }
                 }
                 for (path, entry) in &target_map {
                     if let Some(filters) = filepaths

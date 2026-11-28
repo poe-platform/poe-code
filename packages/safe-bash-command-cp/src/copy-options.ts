@@ -3,15 +3,28 @@ import { options, UsageError, value } from "safe-bash-io-engine/internal";
 import { matchBackupMode, normalizeBackupSuffix, type CopyBackup } from "safe-bash-io-engine/commands/copy-backup";
 import type { CopyAttribute } from "./copy-preserve.js";
 export function copyOptions(context: CommandContext) {
-  // GNU's optional long backup argument only consumes an attached value.
+  // Optional long arguments only consume attached values.
   const args: string[] = [];
   const preserve = new Set<CopyAttribute>();
+  let update: "none" | "older" | "all" = "all";
   let ended = false;
   let overwrite: "i" | "n" | undefined;
   let dereference: "H" | "L" | "P" | undefined;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
-    if (!ended && argument.startsWith("--preserve=")) {
+    if (!ended && argument.startsWith("--update=")) {
+      const when = argument.slice("--update=".length);
+      if (when !== "none" && when !== "older" && when !== "all") throw new UsageError(`invalid argument '${when}' for 'update'`);
+      update = when;
+    } else if (!ended && (argument === "--no-preserve" || argument.startsWith("--no-preserve="))) {
+      const list = argument === "--no-preserve" ? context.args[++index] : argument.slice("--no-preserve=".length);
+      if (list === undefined) throw new UsageError("option '--no-preserve' requires an argument");
+      for (const attribute of list.split(",")) {
+        if (attribute === "all") preserve.clear();
+        else if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") preserve.delete(attribute);
+        else if (attribute !== "context" && attribute !== "xattr") throw new UsageError(`invalid argument '${attribute}' for 'no-preserve'`);
+      }
+    } else if (!ended && argument.startsWith("--preserve=")) {
       for (const attribute of argument.slice("--preserve=".length).split(",")) {
         if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") {
           preserve.add(attribute);
@@ -24,11 +37,21 @@ export function copyOptions(context: CommandContext) {
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
       ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
     if (!ended) {
+      if (argument === "--update") update = "older";
+      if (argument === "--preserve" || argument === "--archive") {
+        for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
+        if (argument === "--archive") preserve.add("links");
+      }
       if (argument === "--interactive") overwrite = "i";
       else if (argument === "--no-clobber") overwrite = "n";
       else if (argument.startsWith("-") && !argument.startsWith("--")) {
         for (const flag of argument.slice(1, valueOffset > 0 ? valueOffset : undefined)) {
           if (flag === "i" || flag === "n") overwrite = flag;
+          if (flag === "u") update = "older";
+          if (flag === "a" || flag === "p") {
+            for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
+          }
+          if (flag === "a" || flag === "d") preserve.add("links");
         }
       }
     }
@@ -49,10 +72,7 @@ export function copyOptions(context: CommandContext) {
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");
     parsed.flags.add("p");
-    preserve.add("links");
   }
-  if (parsed.flags.has("p")) for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
-  if (parsed.flags.has("d")) preserve.add("links");
   for (const flag of ["H", "L", "P"]) parsed.flags.delete(flag);
   parsed.flags.add(dereference ?? (parsed.flags.has("R") || parsed.flags.has("r") ? "P" : "H"));
   let backup: CopyBackup | undefined;
@@ -65,5 +85,5 @@ export function copyOptions(context: CommandContext) {
   const copiedLinks = new Map<object | symbol, Map<string, { path: string; stat?: FileStat }>>();
   const sourceMetadata = new Map<string, FileStat>();
   const copiedTargets = new Map<string, FileStat>();
-  return { ...parsed, backup, preserve, copiedLinks, sourceMetadata, copiedTargets };
+  return { ...parsed, backup, preserve, update, copiedLinks, sourceMetadata, copiedTargets };
 }

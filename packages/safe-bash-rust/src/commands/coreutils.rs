@@ -7666,7 +7666,9 @@ fn split_bc_args(s: &str) -> Vec<String> {
 }
 
 fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
-    if matches!(op, "/" | "%") && (r.val == 0.0 || r.coefficient.as_deref() == Some(&[0])) {
+    if (matches!(op, "/" | "%") && (r.val == 0.0 || r.coefficient.as_deref() == Some(&[0])))
+        || (op == "^" && r.val.trunc() < 0.0 && !l.is_truthy())
+    {
         if bc.runtime_err.is_none() {
             bc.runtime_err = Some("Runtime error (func=(main), adr=0): Divide by zero".to_string());
         }
@@ -7702,15 +7704,22 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
         };
     }
     if op == "^"
-        && r.val >= 0.0
         && let Some(la) = &l.coefficient
     {
-        let exp = r.val.trunc() as u32;
+        let exp = r.val.abs().trunc() as u32;
         let raw_scale = l.scale * exp as usize;
-        let scale = raw_scale.min(bc.scale.max(l.scale));
         let mut digits = big_pow(la, exp);
-        digits.truncate(digits.len().saturating_sub(raw_scale - scale));
-        big_trim(&mut digits);
+        let scale = if r.val.trunc() < 0.0 {
+            let mut numerator = vec![1];
+            numerator.extend(std::iter::repeat_n(0, bc.scale + raw_scale));
+            (digits, _) = big_div_rem(&numerator, &digits);
+            bc.scale
+        } else {
+            let scale = raw_scale.min(bc.scale.max(l.scale));
+            digits.truncate(digits.len().saturating_sub(raw_scale - scale));
+            big_trim(&mut digits);
+            scale
+        };
         let neg = l.neg && exp % 2 == 1 && digits != [0];
         let val = format_big_with_scale(&digits, scale, neg)
             .parse::<f64>()

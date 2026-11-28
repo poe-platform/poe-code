@@ -55,6 +55,38 @@ fn pdf_string(text: &str) -> String {
 }
 
 #[test]
+fn html_coauthors_survive_shell_pipeline_in_source_order() {
+    let (mut sh, _) = shell();
+    let result = sh.exec_with_options(
+        r#"LC_ALL=C TZ=UTC; printf %s '<html><head><meta name="author" content="Ada"><meta name="author" content="Grace"></head><body><p>Body</p></body></html>' | pandoc -f html -t json | jq -c .meta.author"#,
+        ExecOptions::default(),
+    ).unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stderr, "");
+    assert_eq!(
+        result.stdout,
+        "{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Ada\"}]},{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Grace\"}]}]}\n"
+    );
+}
+
+#[test]
+fn html_coauthors_keep_duplicates_and_allow_cli_override() {
+    let source = "<head><meta name=author content=Ada><title>Title</title><meta name=AUTHOR content=Grace><meta name=author content=Ada></head><p>Body</p>";
+    let (mut sh, _) = shell();
+    let result = run(&mut sh, source, "-t json");
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let document = json::parse(result.stdout.as_bytes(), Default::default()).unwrap();
+    let expected = json::parse(br#"{"t":"MetaList","c":[{"t":"MetaInlines","c":[{"t":"Str","c":"Ada"}]},{"t":"MetaInlines","c":[{"t":"Str","c":"Grace"}]},{"t":"MetaInlines","c":[{"t":"Str","c":"Ada"}]}]}"#, Default::default()).unwrap();
+    assert_eq!(document.get("meta").unwrap().get("author"), Some(&expected));
+    let result = run(&mut sh, source, "-t json -M author=Override");
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let document = json::parse(result.stdout.as_bytes(), Default::default()).unwrap();
+    let expected =
+        json::parse(br#"{"t":"MetaString","c":"Override"}"#, Default::default()).unwrap();
+    assert_eq!(document.get("meta").unwrap().get("author"), Some(&expected));
+}
+
+#[test]
 fn html_base_resolves_links_through_shell_pipeline() {
     let (mut sh, _) = shell();
     let result = sh.exec_with_options(

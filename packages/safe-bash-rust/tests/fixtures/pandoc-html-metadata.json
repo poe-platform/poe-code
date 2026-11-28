@@ -111,11 +111,25 @@
         ]
       },
       "author": {
-        "t": "MetaInlines",
+        "t": "MetaList",
         "c": [
           {
-            "t": "Str",
-            "c": "Bob"
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
           }
         ]
       }
@@ -166,8 +180,22 @@
         "c": []
       },
       "author": {
-        "t": "MetaInlines",
-        "c": []
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": []
+          }
+        ]
       }
     },
     "blocks": [

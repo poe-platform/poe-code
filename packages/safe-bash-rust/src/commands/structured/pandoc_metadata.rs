@@ -259,7 +259,7 @@ pub(super) fn html(
     fn envelope(
         nodes: Vec<HtmlNode>,
         head: &mut bool,
-        values: &mut Vec<(String, String)>,
+        values: &mut Vec<(String, Vec<String>)>,
         base: &mut Option<String>,
     ) -> Vec<HtmlNode> {
         let mut body = Vec::new();
@@ -330,9 +330,12 @@ pub(super) fn html(
                     };
                     if let Some((key, value)) = value {
                         if let Some((_, prior)) = values.iter_mut().find(|(name, _)| name == key) {
-                            *prior = value;
+                            if key != "author" {
+                                prior.clear();
+                            }
+                            prior.push(value);
                         } else {
-                            values.push((key.into(), value));
+                            values.push((key.into(), vec![value]));
                         }
                     }
                 }
@@ -397,19 +400,28 @@ pub(super) fn html(
         }
     }
     let mut metadata = Vec::new();
-    for (key, value) in values {
-        let mut inlines = Vec::new();
-        pandoc_blocks::html_inline(&HtmlNode::Text(value), &mut inlines, None, false)
-            .ok_or("E_CAPABILITY: Unsupported HTML metadata")?;
-        while matches!(inlines.last(), Some(PandocInline::Space)) {
-            inlines.pop();
+    for (key, values) in values {
+        let mut items = Vec::new();
+        for value in values {
+            let mut inlines = Vec::new();
+            pandoc_blocks::html_inline(&HtmlNode::Text(value), &mut inlines, None, false)
+                .ok_or("E_CAPABILITY: Unsupported HTML metadata")?;
+            while matches!(inlines.last(), Some(PandocInline::Space)) {
+                inlines.pop();
+            }
+            let start = inlines
+                .iter()
+                .position(|node| !matches!(node, PandocInline::Space))
+                .unwrap_or(inlines.len());
+            inlines.drain(..start);
+            let value = tag("MetaInlines", pandoc_inlines_to_json(&inlines));
+            items.push(value);
         }
-        let start = inlines
-            .iter()
-            .position(|node| !matches!(node, PandocInline::Space))
-            .unwrap_or(inlines.len());
-        inlines.drain(..start);
-        let value = tag("MetaInlines", pandoc_inlines_to_json(&inlines));
+        let value = if items.len() == 1 {
+            items.pop().unwrap()
+        } else {
+            tag("MetaList", JVal::Array(items))
+        };
         charge(&value, &mut count, &mut bytes, 0)?;
         metadata.push((key, value));
     }

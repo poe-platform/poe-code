@@ -26439,6 +26439,27 @@ fn parse_sql_json_path(path_s: &str, document: &JVal) -> Option<Vec<JVal>> {
     Some(segs)
 }
 
+fn get_sql_json_path<'a>(value: &'a JVal, segments: &[JVal]) -> Option<&'a JVal> {
+    segments
+        .iter()
+        .try_fold(value, |value, segment| match (value, segment) {
+            (JVal::Object(entries), JVal::Str(key)) => entries
+                .iter()
+                .find(|(name, _)| name == key)
+                .map(|(_, value)| value),
+            (JVal::Array(items), JVal::Number(index, _)) => {
+                let index = *index as isize;
+                let index = if index < 0 {
+                    items.len().checked_sub(index.unsigned_abs())?
+                } else {
+                    index as usize
+                };
+                items.get(index)
+            }
+            _ => None,
+        })
+}
+
 fn eval_sql_json_extract(
     args: &[&str],
     cols: &[String],
@@ -27555,7 +27576,9 @@ fn eval_sql_row_expr(
                 let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
                     return SQL_NULL.to_string();
                 };
-                let found = get_jq_jval_path(&jval, &segs);
+                let Some(found) = get_sql_json_path(&jval, &segs) else {
+                    return SQL_NULL.to_string();
+                };
                 return match found {
                     JVal::Object(_) => "object".to_string(),
                     JVal::Array(_) => "array".to_string(),
@@ -27569,7 +27592,7 @@ fn eval_sql_row_expr(
                     }
                     JVal::Bool(true) => "true".to_string(),
                     JVal::Bool(false) => "false".to_string(),
-                    JVal::Null => SQL_NULL.to_string(),
+                    JVal::Null => "null".to_string(),
                 };
             }
         }
@@ -27950,7 +27973,9 @@ fn eval_sql_group_expr(
                 let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
                     return SQL_NULL.to_string();
                 };
-                let found = get_jq_jval_path(&jval, &segs);
+                let Some(found) = get_sql_json_path(&jval, &segs) else {
+                    return SQL_NULL.to_string();
+                };
                 return if is_type {
                     match found {
                         JVal::Object(_) => "object".to_string(),
@@ -27965,7 +27990,7 @@ fn eval_sql_group_expr(
                         }
                         JVal::Bool(true) => "true".to_string(),
                         JVal::Bool(false) => "false".to_string(),
-                        JVal::Null => SQL_NULL.to_string(),
+                        JVal::Null => "null".to_string(),
                     }
                 } else {
                     match found {

@@ -30,6 +30,8 @@ The default factories support `-i`, `-n`, `-e`, `ea`, `-P`, and `-I`. Both profi
 accept attached format flags such as `-p=yaml`, `-p=toml`, and `-o=json`.
 The profile also supports maps with quoted or identifier keys (`{name: .name, count: 5}`),
 or select fields with shorthand (`{name}` means `{name: .name}`).
+Use optional traversal such as `.a?`, `.a.b.c?`, or `.["a"]?` to skip incompatible
+values. Missing map keys still produce `null`; optional iteration uses `.[]?`.
 Pipe binds more tightly than union: `.a | upcase, length` applies `length` to the
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,

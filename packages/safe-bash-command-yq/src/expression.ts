@@ -10,7 +10,7 @@ export type Expression =
   | { kind: "bind"; name: string; source: Expression; body: Expression }
   | { kind: "reduce"; name: string; source: Expression; initial: Expression; body: Expression }
   | { kind: "group"; body: Expression }
-  | { kind: "field"; base: Expression; key: Expression }
+  | { kind: "field"; base: Expression; key: Expression; optional?: boolean }
   | { kind: "slice"; base: Expression; start: Expression; end: Expression }
   | { kind: "pipe" | "binary"; operator: string; left: Expression; right: Expression }
   | { kind: "call"; name: string; args: Expression[] }
@@ -41,7 +41,7 @@ export function compileExpression(source: string, security: { readonly disableEn
       tokens.push({ text, offset: start, kind: "string" });
       continue;
     }
-    if (character === "$" || character === ";") {
+    if (character === "$" || character === ";" || character === "?") {
       tokens.push({ text: character, offset, kind: "symbol" }); offset++; continue;
     }
     const number = /^(?:[0-9]+(?:\.[0-9]+)?)(?:[eE][+-]?[0-9]+)?/u.exec(source.slice(offset));
@@ -154,6 +154,9 @@ export function compileExpression(source: string, security: { readonly disableEn
     } else if (token.kind === "end" && tokens.some(item => item.text === "[")) throw new MikeError("bad expression, could not find matching `]`");
     else throw new MikeError(`1:${token.offset + 1}: lexer: invalid input text ${JSON.stringify(source.slice(token.offset))}`);
     while (true) {
+      if (peek().text === "?" && result.kind === "field" && peek().offset === tokens[position - 1]!.offset + tokens[position - 1]!.text.length) {
+        take(); result.optional = true; continue;
+      }
       if (peek().text === ".") {
         take(); const key = take();
         if (key.kind !== "name" && key.kind !== "string") throw new MikeError("bad expression, please check expression syntax");
@@ -170,7 +173,12 @@ export function compileExpression(source: string, security: { readonly disableEn
             result = { kind: "slice", base: result, start, end };
           } else result = { kind: "field", base: result, key: start };
         }
-        expect("]"); continue;
+        expect("]");
+        if (peek().text === "?" && peek().offset === tokens[position - 1]!.offset + 1) {
+          take();
+          if (result.kind === "field") result.optional = true;
+        }
+        continue;
       }
       if ((peek().text === "tag" || peek().text === "style") && minimum <= 3) {
         result = { kind: "pipe", operator: "|", left: result, right: { kind: "call", name: take().text, args: [] } }; continue;

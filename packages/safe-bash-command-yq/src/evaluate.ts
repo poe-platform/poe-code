@@ -412,7 +412,7 @@ export class Evaluator {
     return entries;
   }
 
-  async field(input: Candidate, key: string | number | bigint | boolean | null, create: boolean, omitMissing = false): Promise<Candidate[]> {
+  async field(input: Candidate, key: string | number | bigint | boolean | null, create: boolean, omitMissing = false, optional = false): Promise<Candidate[]> {
     let base = dereference(input, this.yaml, this.work);
     if (this.yaml.isScalar(base.node) && base.node.value == null && create) {
       const collection = typeof key === "string" ? new this.yaml.YAMLMap() : new this.yaml.YAMLSeq();
@@ -441,7 +441,10 @@ export class Evaluator {
       const digits = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
       const integer = (typeof key === "bigint" || typeof key === "string") && digits.length > 0
         && [...digits].every(character => character >= "0" && character <= "9");
-      if (!integer) throw new MikeError(`cannot index array with '${text}' (strconv.ParseInt: parsing ${JSON.stringify(text)}: invalid syntax)`);
+      if (!integer) {
+        if (optional) return [];
+        throw new MikeError(`cannot index array with '${text}' (strconv.ParseInt: parsing ${JSON.stringify(text)}: invalid syntax)`);
+      }
       let index = Number(key);
       if (!Number.isSafeInteger(index)) throw new MikeError(`cannot index array with '${String(key)}' (strconv.ParseInt: parsing ${JSON.stringify(String(key))}: invalid syntax)`);
       if (index < 0) index += node.items.length;
@@ -649,7 +652,7 @@ export class Evaluator {
     }
     if (expression.kind === "field") {
       const output: Candidate[] = [];
-      for (const base of await next(expression.base)) for (const key of await next(expression.key, [base], false)) output.push(...await this.field(base, value(key.node, yaml), create, omitMissing));
+      for (const base of await next(expression.base)) for (const key of await next(expression.key, [base], false)) output.push(...await this.field(base, value(key.node, yaml), create, omitMissing, expression.optional));
       return output;
     }
     if (expression.kind === "slice") {

@@ -7089,6 +7089,7 @@ enum RtfEvent {
         name: String,
         parameter: Option<i32>,
     },
+    FieldInstruction(String),
     Font(RtfFont),
     Color {
         index: i32,
@@ -7551,6 +7552,7 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
         skip: bool,
         starred: bool,
         declaration: Option<RtfFontDecl>,
+        instruction_start: Option<usize>,
     }
 
     let inert = [
@@ -7558,7 +7560,6 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
         "object",
         "objdata",
         "pict",
-        "fldinst",
         "filetbl",
         "datastore",
         "datafield",
@@ -7578,6 +7579,7 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
         skip: false,
         starred: false,
         declaration: None,
+        instruction_start: None,
     };
     let mut color_index = 0i32;
     let mut color: (Option<i32>, Option<i32>, Option<i32>) = (None, None, None);
@@ -7673,6 +7675,7 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
                     stack.push(state.clone());
                     state.starred = false;
                     state.declaration = None;
+                    state.instruction_start = None;
                     if stack.len() == 1 {
                         pending_root = Some(RtfEvent::Open);
                     } else {
@@ -7684,6 +7687,15 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
                     {
                         events.push(finish_font(decl, &mut fonts)?);
                     }
+                    if let Some(start) = state.instruction_start {
+                        let mut instruction = String::new();
+                        for event in events.drain(start..) {
+                            if let RtfEvent::Text { text, .. } = event {
+                                instruction.push_str(&text);
+                            }
+                        }
+                        events.push(RtfEvent::FieldInstruction(instruction));
+                    }
                     state = stack
                         .pop()
                         .ok_or_else(|| "E_PARSE: Unexpected RTF closing group".to_string())?;
@@ -7693,6 +7705,12 @@ fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
             RtfToken::Control { name, parameter } => {
                 let parameter = *parameter;
                 if state.skip {
+                    continue;
+                }
+                if name == "fldinst" {
+                    state.starred = false;
+                    state.destination = name.clone();
+                    state.instruction_start = Some(events.len());
                     continue;
                 }
                 if state.starred || inert.contains(&name.as_str()) {
@@ -8708,7 +8726,7 @@ fn render_rtf_events(
                     _ => {}
                 }
             }
-            RtfEvent::Skipped => {}
+            RtfEvent::Skipped | RtfEvent::FieldInstruction(_) => {}
         }
     }
     out.push_str(&flush(
@@ -37467,6 +37485,12 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
 fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let tokens = tokenize_rtf_bytes(input.as_bytes()).ok()?;
     let events = extract_rtf_events(&tokens).ok()?;
+    struct Field {
+        block: usize,
+        start: usize,
+        target: Option<String>,
+    }
+    let mut field: Option<Field> = None;
     let mut blocks = Vec::new();
     let mut paragraph = Vec::new();
     let mut table = pandoc_table::Table::default();
@@ -37526,9 +37550,52 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
         }
         flush(&mut text, style, &mut paragraph, &mut space);
         match event {
-            RtfEvent::Open => stack.push(style),
-            RtfEvent::Close => style = stack.pop()?,
+            RtfEvent::Open => stack.push((style, field.take())),
+            RtfEvent::Close => {
+                if let Some(Field {
+                    block,
+                    start,
+                    target: Some(target),
+                }) = field.take()
+                    && block == blocks.len()
+                {
+                    let start = start
+                        + usize::from(matches!(paragraph.get(start), Some(PandocInline::Space)));
+                    let label = paragraph.split_off(start);
+                    paragraph.push(PandocInline::Link(
+                        PandocAttr::default(),
+                        label,
+                        target,
+                        String::new(),
+                    ));
+                }
+                (style, field) = stack.pop()?;
+            }
+            RtfEvent::FieldInstruction(instruction) => {
+                if let Some(field) = stack.iter_mut().rev().find_map(|(_, field)| field.as_mut()) {
+                    let mut parts = instruction.trim().splitn(2, char::is_whitespace);
+                    if parts
+                        .next()
+                        .is_some_and(|name| name.eq_ignore_ascii_case("HYPERLINK"))
+                        && let Some(target) = parts.next()
+                    {
+                        let target = target.trim();
+                        field.target = if let Some(quoted) = target.strip_prefix('"') {
+                            quoted.split_once('"').map(|(target, _)| target.to_string())
+                        } else {
+                            target.split_whitespace().next().map(str::to_string)
+                        };
+                    }
+                }
+            }
             RtfEvent::Control { name, parameter } => match name.as_str() {
+                "field" => {
+                    field = Some(Field {
+                        block: blocks.len(),
+                        start: paragraph.len(),
+                        target: None,
+                    });
+                }
                 "b" => style.0 = parameter != Some(0),
                 "i" => style.1 = parameter != Some(0),
                 "sub" => style.2 = Some(false),

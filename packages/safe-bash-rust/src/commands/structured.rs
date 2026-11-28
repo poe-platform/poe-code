@@ -37448,6 +37448,9 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let events = extract_rtf_events(&tokens).ok()?;
     let mut blocks = Vec::new();
     let mut paragraph = Vec::new();
+    let mut table = pandoc_table::Table::default();
+    let mut row = None::<Vec<pandoc_table::Cell>>;
+    let mut cell = Vec::new();
     let mut text = String::new();
     let mut style = (false, false, None);
     let mut stack = Vec::new();
@@ -37494,6 +37497,9 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
             boundary: None,
         } = &event
         {
+            if row.is_none() && !table.body.is_empty() && !value.trim().is_empty() {
+                blocks.push(PandocBlock::Table(std::mem::take(&mut table)));
+            }
             text.push_str(value);
             continue;
         }
@@ -37508,13 +37514,47 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                 "super" => style.2 = Some(true),
                 "nosupersub" => style.2 = None,
                 "plain" => style = (false, false, None),
+                "trowd" => {
+                    if !paragraph.is_empty() {
+                        blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                    }
+                    row = Some(Vec::new());
+                    space = false;
+                }
+                "cell" | "row" if row.is_some() => {
+                    if !paragraph.is_empty() {
+                        cell.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                    }
+                    let cells = row.as_mut()?;
+                    if name == "cell" || !cell.is_empty() {
+                        cells.push(pandoc_table::Cell {
+                            column: cells.len(),
+                            span: (1, 1),
+                            blocks: std::mem::take(&mut cell),
+                            ..Default::default()
+                        });
+                    }
+                    if name == "row" {
+                        let cells = row.take()?;
+                        table
+                            .cols
+                            .resize(table.cols.len().max(cells.len()), (None, 0.));
+                        table.body.push(cells);
+                    }
+                    space = false;
+                }
                 _ => {}
             },
             RtfEvent::Text { boundary, .. } => {
                 if boundary == Some("line") {
                     paragraph.push(PandocInline::LineBreak);
                 } else if !paragraph.is_empty() {
-                    blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                    let target = if row.is_some() {
+                        &mut cell
+                    } else {
+                        &mut blocks
+                    };
+                    target.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
                 }
                 space = false;
             }
@@ -37522,6 +37562,9 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
         }
     }
     flush(&mut text, style, &mut paragraph, &mut space);
+    if !table.body.is_empty() {
+        blocks.push(PandocBlock::Table(table));
+    }
     if !paragraph.is_empty() {
         blocks.push(PandocBlock::Para(paragraph));
     }

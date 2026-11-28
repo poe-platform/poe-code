@@ -18505,12 +18505,12 @@ enum SqlWinFn {
     Lag {
         col_idx: usize,
         offset: usize,
-        default_val: String,
+        default_expr: String,
     },
     Lead {
         col_idx: usize,
         offset: usize,
-        default_val: String,
+        default_expr: String,
     },
     FirstValue {
         col_idx: usize,
@@ -25262,7 +25262,10 @@ fn exec_sql_select_with_mode(
                         SqlWinFn::Ntile(n)
                     } else if fn_up.starts_with("LAG(") || fn_up.starts_with("LEAD(") {
                         let is_lag = fn_up.starts_with("LAG(");
-                        let args: Vec<&str> = inner.split(',').map(|s| s.trim()).collect();
+                        let args: Vec<&str> = split_top_level_comma(inner)
+                            .into_iter()
+                            .map(str::trim)
+                            .collect();
                         let col_idx = args
                             .first()
                             .and_then(|cn| find_sql_col(&tbl.columns, cn))
@@ -25271,21 +25274,21 @@ fn exec_sql_select_with_mode(
                             .get(1)
                             .and_then(|s| s.parse::<usize>().ok())
                             .unwrap_or(1);
-                        let default_val = args
+                        let default_expr = args
                             .get(2)
-                            .map(|s| eval_sql_scalar_expr(s))
-                            .unwrap_or_else(|| SQL_NULL.to_string());
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| "NULL".to_string());
                         if is_lag {
                             SqlWinFn::Lag {
                                 col_idx,
                                 offset,
-                                default_val,
+                                default_expr,
                             }
                         } else {
                             SqlWinFn::Lead {
                                 col_idx,
                                 offset,
-                                default_val,
+                                default_expr,
                             }
                         }
                     } else if fn_up.starts_with("FIRST_VALUE(") {
@@ -25665,7 +25668,10 @@ fn exec_sql_select_with_mode(
                                 }
                             } else if fn_up.starts_with("LAG(") || fn_up.starts_with("LEAD(") {
                                 let is_lag = fn_up.starts_with("LAG(");
-                                let args: Vec<&str> = inner.split(',').map(|s| s.trim()).collect();
+                                let args: Vec<&str> = split_top_level_comma(inner)
+                                    .into_iter()
+                                    .map(str::trim)
+                                    .collect();
                                 let col_idx = args
                                     .first()
                                     .and_then(|cn| find_sql_col(&tbl.columns, cn))
@@ -25676,7 +25682,7 @@ fn exec_sql_select_with_mode(
                                     .unwrap_or(1);
                                 let default_val = args
                                     .get(2)
-                                    .map(|s| eval_sql_scalar_expr(s))
+                                    .map(|s| eval_sql_row_expr(s, &tbl.columns, r, tables))
                                     .unwrap_or_else(|| SQL_NULL.to_string());
                                 if is_lag {
                                     if my_pos >= offset {
@@ -25812,31 +25818,29 @@ fn exec_sql_select_with_mode(
                             SqlWinFn::Lag {
                                 col_idx,
                                 offset,
-                                default_val,
+                                default_expr,
                             } => {
                                 if my_pos >= *offset {
                                     let prev_i = p_indices[my_pos - *offset];
-                                    filtered[prev_i]
-                                        .get(*col_idx)
-                                        .cloned()
-                                        .unwrap_or_else(|| default_val.clone())
+                                    filtered[prev_i].get(*col_idx).cloned().unwrap_or_else(|| {
+                                        eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
+                                    })
                                 } else {
-                                    default_val.clone()
+                                    eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
                                 }
                             }
                             SqlWinFn::Lead {
                                 col_idx,
                                 offset,
-                                default_val,
+                                default_expr,
                             } => {
                                 if my_pos + *offset < p_indices.len() {
                                     let next_i = p_indices[my_pos + *offset];
-                                    filtered[next_i]
-                                        .get(*col_idx)
-                                        .cloned()
-                                        .unwrap_or_else(|| default_val.clone())
+                                    filtered[next_i].get(*col_idx).cloned().unwrap_or_else(|| {
+                                        eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
+                                    })
                                 } else {
-                                    default_val.clone()
+                                    eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
                                 }
                             }
                             SqlWinFn::FirstValue { col_idx } => p_indices

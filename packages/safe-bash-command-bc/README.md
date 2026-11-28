@@ -1,6 +1,7 @@
 # safe-bash-command-bc
 
 Evaluate decimal arithmetic with `bc` inside `@poe-platform/safe-bash`.
+File operands are evaluated before standard input, so `echo 'f(3)' | bc -l lib.bc` can call functions from the file. A file executing `quit` stops before standard input is read.
 Functions support scalar and array parameters (`define f(a[])` / `f(x[])`). Array parameters are local copies; `auto a[]` declares a local array, so neither changes the caller’s array.
 
 Input, output, work, scale, exponent, recursion and output-base limits default to `Infinity`. Configure finite

@@ -774,7 +774,6 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
     }
 
-    const stmts = new BcParser(tokenizeBc(fullProgram)).parseProgram();
     let scale = mathlib ? 20 : 0;
     let ibase = 10;
     let obase = 10n;
@@ -1125,9 +1124,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       }
     };
 
-    let executionFailure: { error: unknown } | undefined;
-    try {
-      for (const s of stmts) {
+    const executeProgram = async (program: string): Promise<void> => {
+      for (const s of new BcParser(tokenizeBc(program)).parseProgram()) {
         try {
           await execStmt(s);
         } catch (error) {
@@ -1136,6 +1134,18 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           await writeText(context.stderr, `bc: ${error.message}\n`);
           context.signal.throwIfAborted();
         }
+      }
+    };
+
+    let executionFailure: { error: unknown } | undefined;
+    try {
+      await executeProgram(fullProgram);
+      if (files.length > 0 && !files.includes("-")) {
+        const input = await collectSourceBytes(context.stdin, context.signal, maxInputBytes, admit);
+        if (encoder.encode(fullProgram).byteLength + input.byteLength > maxInputBytes) {
+          throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
+        }
+        await executeProgram(decoder.decode(input));
       }
     } catch (sig) {
       if (!(sig instanceof FlowSignal && sig.kind === "halt")) {

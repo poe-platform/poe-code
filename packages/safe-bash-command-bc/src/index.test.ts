@@ -70,6 +70,29 @@ async function evaluate(
   return { exitCode: result.exitCode, stdout: await read(stdout.readable), stderr: await read(stderr.readable) };
 }
 
+for (const [args, file, input, stdout] of [
+  [["f"], "2+2\n", "3+3\n", "4\n6\n"],
+  [["-l", "f"], "2+2\n", "4+4\n", "4\n8\n"],
+  [["f"], "1+1\nquit\n", "5+5\n", "2\n"],
+  [["-l", "f"], "define f(x) { return(x*x) }\n", "f(3)\n", "9\n"],
+] as const) {
+  test(`bc processes file then stdin: ${args.join(" ")} with ${input.trim()}`, async () => {
+    const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/f", new TextEncoder().encode(file));
+    assert.deepEqual(await evaluate(input, {}, [...args], { fs }), { exitCode: 0, stdout, stderr: "" });
+  });
+}
+
+test("bc does not read stdin after a file quits", async () => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/f", new TextEncoder().encode("1+1\nquit\n"));
+  assert.deepEqual(await evaluate("", {}, ["f"], {
+    fs, stdin: { [Symbol.asyncIterator]() { throw new Error("stdin must not be read"); } },
+  }), { exitCode: 0, stdout: "2\n", stderr: "" });
+});
+
 test("bc rejects pre-aborted execution before input access or output", async (t) => {
   const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
   const fs = createMemoryFileSystem();

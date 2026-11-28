@@ -17,7 +17,7 @@ for (const factory of [createBcCommand]) {
         const context: CommandContext = {
           command: "bc", args: createCommandArguments([...[], ...(mode === "stdin" ? [] : ["/input"])]).args,
           cwd: "/", env: {}, fs, signal: new AbortController().signal,
-          stdin: (async function* () { yield bytes.subarray(0, 2); yield bytes.subarray(2); })(),
+          stdin: (async function* () { if (mode === "stdin") { yield bytes.subarray(0, 2); yield bytes.subarray(2); } })(),
           stdout: { async write() {} }, stderr: { async write() {} },
           inputBudget: { maxBytes: maximum, check(total) { totals.push(total); if (total > maximum) throw failure; } },
         };
@@ -47,19 +47,21 @@ for (const factory of [createBcCommand]) {
 }
 
 for (const factory of [createBcCommand]) {
-  test(`${factory.name} combines stdin and file input in one budget`, async () => {
-    const fs = createMemoryFileSystem();
-    await fs.writeFile("/input", bytes);
-    const failure = Object.assign(new Error("combined input exceeds budget"), { name: "BudgetExceededError" });
-    const totals: number[] = [];
-    await assert.rejects(async () => factory().execute({
-      command: "bc", args: createCommandArguments(["-", "/input"]).args,
-      cwd: "/", env: {}, fs, signal: new AbortController().signal,
-      stdin: (async function* () { yield bytes; })(),
-      stdout: { async write() {} }, stderr: { async write() {} },
-      inputBudget: { maxBytes: bytes.length, check(total) { totals.push(total); if (total > bytes.length) throw failure; } },
-    }), error => error === failure);
-    assert.deepEqual(totals, [bytes.length, bytes.length * 2]);
-    assert.deepEqual(await fs.readFile("/input"), bytes);
-  });
+  for (const args of [["-", "/input"], ["/input"]]) {
+    test(`${factory.name} combines stdin and file input in one budget: ${args.join(" ")}`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/input", bytes);
+      const failure = Object.assign(new Error("combined input exceeds budget"), { name: "BudgetExceededError" });
+      const totals: number[] = [];
+      await assert.rejects(async () => factory().execute({
+        command: "bc", args: createCommandArguments(args).args,
+        cwd: "/", env: {}, fs, signal: new AbortController().signal,
+        stdin: (async function* () { yield bytes; })(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+        inputBudget: { maxBytes: bytes.length, check(total) { totals.push(total); if (total > bytes.length) throw failure; } },
+      }), error => error === failure);
+      assert.deepEqual(totals, [bytes.length, bytes.length * 2]);
+      assert.deepEqual(await fs.readFile("/input"), bytes);
+    });
+  }
 }

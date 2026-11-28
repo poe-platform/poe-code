@@ -21274,8 +21274,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut once_path: Option<String> = None;
     let mut output_path: Option<String> = None;
     let mut params: BTreeMap<String, String> = BTreeMap::new();
-    let mut tx_snapshot: Option<BTreeMap<String, SqlTable>> = None;
-    let mut savepoints: Vec<(String, BTreeMap<String, SqlTable>)> = Vec::new();
+    let mut tx_snapshot = None;
+    let mut savepoints = Vec::new();
 
     fn expand_dot_reads(input: &str, cwd: &str, fs: &dyn SafeBashFs, out: &mut String) {
         for line in input.lines() {
@@ -21782,7 +21782,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             continue;
         }
         if upper.starts_with("BEGIN") {
-            tx_snapshot = Some(tables.clone());
+            tx_snapshot = Some((tables.clone(), indexes.clone()));
             continue;
         }
         if upper == "COMMIT"
@@ -21806,7 +21806,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if let Some(rest) = upper.strip_prefix("SAVEPOINT ") {
             let sp_name = rest.trim().to_ascii_lowercase();
-            savepoints.push((sp_name, tables.clone()));
+            savepoints.push((sp_name, (tables.clone(), indexes.clone())));
             continue;
         }
         if let Some(rest) = upper.strip_prefix("RELEASE ") {
@@ -21842,7 +21842,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .trim()
                     .to_ascii_lowercase();
                 if let Some(pos) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
-                    tables = savepoints[pos].1.clone();
+                    (tables, indexes) = savepoints[pos].1.clone();
                     savepoints.truncate(pos + 1);
                 }
             } else {
@@ -21850,7 +21850,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .take()
                     .or_else(|| savepoints.first().map(|(_, snap)| snap.clone()))
                 {
-                    tables = snap;
+                    (tables, indexes) = snap;
                 }
                 savepoints.clear();
             }
@@ -22830,7 +22830,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     // Closing the connection rolls back any transaction that did not commit.
     if let Some(snap) = tx_snapshot.or_else(|| savepoints.into_iter().next().map(|(_, snap)| snap))
     {
-        tables = snap;
+        (tables, indexes) = snap;
     }
     if dirty && !readonly_mode && db_path != ":memory:" {
         if tables.values().any(|t| t.is_fts5) {

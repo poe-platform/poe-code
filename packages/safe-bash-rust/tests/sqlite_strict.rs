@@ -31,6 +31,9 @@ fn sqlite_strict_failed_writes_preserve_persisted_rows() {
         "UPDATE t SET n='wrong' RETURNING n",
         "INSERT INTO t VALUES(1,2) ON CONFLICT(id) DO UPDATE SET n='wrong'",
         "CREATE TRIGGER bad AFTER INSERT ON source BEGIN INSERT INTO t VALUES(2,'wrong'); END; INSERT INTO source VALUES(1)",
+        "CREATE TRIGGER bad AFTER UPDATE ON t BEGIN INSERT INTO t VALUES(2,'wrong'); END; UPDATE t SET n=2",
+        "CREATE TRIGGER bad AFTER UPDATE ON t BEGIN INSERT INTO t VALUES(2,'wrong'); END; INSERT INTO t VALUES(1,2) ON CONFLICT(id) DO UPDATE SET n=2",
+        "CREATE TRIGGER bad BEFORE UPDATE ON t BEGIN INSERT INTO source VALUES(1); INSERT INTO t VALUES(2,'wrong'); END; INSERT INTO t VALUES(1,2) ON CONFLICT(id) DO UPDATE SET n=2",
     ] {
         let (mut shell, _) = Shell::with_memory_fs();
         let setup = shell.exec("sqlite3 /db 'CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER) STRICT; INSERT INTO t VALUES(1,1); CREATE TABLE source(n);'").unwrap();

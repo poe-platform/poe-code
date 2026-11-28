@@ -2575,6 +2575,7 @@ export class Runtime {
   declare readonly _isMemoryBackingFs: boolean;
   declare _fileWrites: Map<string, Promise<void>> | undefined;
   declare _outputFiles: Map<string, OutputFile> | undefined;
+  declare private _outputProcessSubstitutions: Map<string, DescriptorLifetime> | undefined;
   declare private _syncArithState: State | undefined;
   declare private _canFastMemoryRedirect: boolean | undefined;
   declare private _syncArithRawVars: Record<string, string | undefined> | undefined;
@@ -5992,6 +5993,7 @@ export class Runtime {
             if (flag === "wx" && error instanceof FsError && error.code === "EEXIST") throw new PublicDiagnostic(`${errorTarget}: cannot overwrite existing file`);
             throw error;
           }
+          const releaseSubstitution = this._outputProcessSubstitutions?.get(path)?.acquire();
           const finalize: OutputFinalizer = async completion => {
             try {
               if (this.commandSignal.aborted) await target.abort(this.commandSignal.reason);
@@ -6008,7 +6010,10 @@ export class Runtime {
               }
             } finally {
               try { await outputScope?.close(); }
-              finally { release(); }
+              finally {
+                release();
+                await releaseSubstitution?.();
+              }
             }};
           let completion: Parameters<OutputFinalizer>[0] | undefined;
           const substitutionIndex = io.processSubstitutions?.findIndex(pending => pending.path === path) ?? -1;
@@ -10476,7 +10481,9 @@ export class Runtime {
       await this.sourceFs.mkdir(directory, { recursive: true, signal: this.signal });
       let tempPath = "";
       let owned = false;
-      io[invocationScope].register(async () => {
+      let owner = io[invocationScope];
+      if (part.direction === ">") while (owner.parent) owner = owner.parent;
+      owner.register(async () => {
         if (owned) try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
       while (!owned) {
         this.budget.tick();
@@ -10523,11 +10530,24 @@ export class Runtime {
         return tempPath;
       }
       await this.sourceFs.writeFile(tempPath, new Uint8Array(0));
-      // Retain inherited pipes before the parent command redirects or closes them.
-      const references = new PipeDescriptorFrame(io[invocationScope]);
+      const child = await cloneState(state, this.signal, owner);
+      child.isolated = true;
+      child.commandString = false;
+      child.subshellEnvironment = true;
+      child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+      child.extensions = forkExtensions(state.extensions, "substitution");
+      if (state.profile !== "sh") child.errexit = false;
+      delete child.redirectAssignments;
+      child.depth++;
+      // Exec can retain this substitution after the creating function returns.
+      const references = new PipeDescriptorFrame(owner);
       const inheritedIO = isolateIO({
-        ...io, stdin: closedSource, stdinIsDefault: false, processSubstitutions: undefined, }, references);
-      io.processSubstitutions?.push(Object.assign(async () => {
+        ...io, [invocationScope]: owner, [valueScope]: undefined, stdin: closedSource, stdinIsDefault: false, processSubstitutions: undefined, }, references);
+      const inheritedDescriptors = new PreparedDescriptorFrame(references, this.budget);
+      inheritedDescriptors.acquire(inheritedIO.descriptors!);
+      const runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, this.commandSignal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile);
+      const substitution = new DescriptorLifetime(async () => {
+        this._outputProcessSubstitutions!.delete(tempPath);
         let bytes: Uint8Array = new Uint8Array(0);
         try {
           bytes = await this.sourceFs.readFile(tempPath);
@@ -10535,15 +10555,6 @@ export class Runtime {
         finally {
           try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
         }
-        const child = await cloneState(state, this.signal);
-        child.isolated = true;
-        child.commandString = false;
-        child.subshellEnvironment = true;
-        child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
-        child.extensions = forkExtensions(state.extensions, "substitution");
-        if (state.profile !== "sh") child.errexit = false;
-        delete child.redirectAssignments;
-        child.depth++;
         const prepared = prepareBytesInput(bytes, this.budget);
         const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
         const lifetime = new DescriptorLifetime(async () => {
@@ -10552,15 +10563,18 @@ export class Runtime {
         const childIO = { ...inheritedIO, stdin: input };
         (childIO.descriptors as Map<number, Descriptor>).set(0, { input, stdinIsDefault: false, lifetime });
         try {
-          await this.run(part.script, child, childIO);
+          await runtime.run(part.script, child, childIO);
         } finally {
           try {
+            await inheritedDescriptors.close();
             if (!references.closeSyncIfEmpty()) await references.close();
             if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
           } finally {
             stateMonitor(child)?.closeValues();
           }
-        }}, { path: tempPath }));
+        }});
+      (this._outputProcessSubstitutions ??= new Map()).set(tempPath, substitution);
+      io.processSubstitutions?.push(Object.assign(() => substitution.release(), { path: tempPath }));
       return tempPath;
     }
     if (part.kind === "substitution") {

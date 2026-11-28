@@ -43,6 +43,48 @@ describe("process substitution", () => {
   });
 
   for (const [script, stdout] of [
+    ["exec 3> >(tr a-z A-Z); echo via3 >&3; exec 3>&-", "VIA3\n"],
+    ["exec > >(tr a-z A-Z) 2>&1; echo hello; echo err >&2", "HELLO\nERR\n"],
+    ["exec 3> >(tr a-z A-Z); echo via3 >&3; exec 3>&-; sleep 0.1; exec > >(tr a-z A-Z) 2>&1; echo hello; echo err >&2; sleep 0.1", "VIA3\nHELLO\nERR\n"],
+    ["exec 3> >(tr a-z A-Z); exec 4>&3; exec 3>&-; echo alias >&4; exec 4>&-", "ALIAS\n"],
+    ["exec 3> >(tr a-z A-Z); echo first >&3; exec 3>/dev/null; echo second >&3", "FIRST\n"],
+    ['exec {out}> >(tr a-z A-Z); echo named >&"$out"; exec {out}>&-', "NAMED\n"],
+    ["(exec > >(tr a-z A-Z); echo inner) | cat", "INNER\n"],
+    ["f(){ exec 3> >(tr a-z A-Z); }; f; echo function >&3; exec 3>&-", "FUNCTION\n"],
+    ['f(){ local label=before; exec 3> >(read -r line; echo "$label:$line"); }; f; label=after; echo payload >&3; exec 3>&-', "before:payload\n"],
+    ["exec > >(tr a-z A-Z); echo first; exec > >(tr A-Z a-z); echo SECOND", "FIRST\nSECOND\n"],
+  ] as const) {
+    it(`retains exec process substitutions until their descriptors close: ${script}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+      const result = await shell.exec(script);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.exitCode, 0);
+    });
+  }
+
+  it("flushes exec process substitutions on explicit shell exit", async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+    const result = await shell.exec("exec > >(tr a-z A-Z); echo before; exit 7");
+    assert.equal(result.stdout, "BEFORE\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 7);
+  });
+
+  it("logs later stdout and stderr through exec and tee", async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work", { recursive: true });
+    await fs.writeFile("/work/log", new TextEncoder().encode("existing\n"));
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec('exec > >(tee -a log) 2>&1; echo hello; echo err >&2');
+    assert.equal(result.stdout, "hello\nerr\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/log")), "existing\nhello\nerr\n");
+    assert.deepEqual(await fs.readdir("/tmp"), []);
+  });
+
+  for (const [script, stdout] of [
     ["echo a > >(cat) | cat; echo st=$?", "a\nst=0\n"],
     ["echo a | tee >(sed s/a/b/) >/dev/null | cat; echo st=$?", "b\nst=0\n"],
   ] as const) {

@@ -40,6 +40,7 @@ mod pandoc_docx;
 mod pandoc_epub;
 mod pandoc_headings;
 mod pandoc_inlines;
+mod pandoc_latex;
 mod pandoc_latex_table;
 mod pandoc_list;
 mod pandoc_lua;
@@ -37426,7 +37427,13 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
             }
             '\\' => {
                 text.push(ch);
-                if let Some(escaped) = chars.next() {
+                let rest = chars.as_str();
+                if let Some(after) = rest.strip_prefix("verb")
+                    && let Some((_, consumed)) = pandoc_latex::verbatim(after)
+                {
+                    text.push_str(&rest[..4 + consumed]);
+                    chars = rest[4 + consumed..].chars();
+                } else if let Some(escaped) = chars.next() {
                     text.push(escaped);
                 }
             }
@@ -37445,71 +37452,38 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
         blocks.extend(parse_pandoc_latex(rest)?);
         return Some(blocks);
     }
-    let mut md_lines = Vec::new();
+    let mut blocks = Vec::new();
+    let mut paragraph = Vec::new();
     for line in text.lines() {
-        let mut s = line.trim().to_string();
-        for (command, heading) in [("\\section{", "#"), ("\\subsection{", "##")] {
-            if let Some(rest) = s.strip_prefix(command) {
-                let mut depth = 1;
-                let mut chars = rest.char_indices();
-                while let Some((end, ch)) = chars.next() {
-                    match ch {
-                        '\\' => {
-                            chars.next();
-                        }
-                        '{' => depth += 1,
-                        '}' => {
-                            depth -= 1;
-                            if depth == 0 {
-                                s = format!("{heading} {}\n\n{}", &rest[..end], &rest[end + 1..]);
-                                break;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-                break;
-            }
+        let line = line.trim();
+        let heading = line
+            .strip_prefix("\\section{")
+            .map(|text| (1, text))
+            .or_else(|| line.strip_prefix("\\subsection{").map(|text| (2, text)));
+        if (line.is_empty() || heading.is_some()) && !paragraph.is_empty() {
+            blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
         }
-        while let Some(pos) = s.find("\\textbf{") {
-            let after = &s[pos + 8..];
-            if let Some(end) = after.find('}') {
-                s = format!("{}**{}**{}", &s[..pos], &after[..end], &after[end + 1..]);
-            } else {
-                break;
+        if let Some((level, text)) = heading {
+            let (children, consumed) = pandoc_latex::inlines(text, true, 0)?;
+            blocks.push(PandocBlock::Header(level, PandocAttr::default(), children));
+            let rest = text[consumed..].trim();
+            if !rest.is_empty() {
+                paragraph.extend(pandoc_latex::inlines(rest, false, 0)?.0);
             }
-        }
-        while let Some(pos) = s.find("\\emph{") {
-            let after = &s[pos + 6..];
-            if let Some(end) = after.find('}') {
-                s = format!("{}*{}*{}", &s[..pos], &after[..end], &after[end + 1..]);
-            } else {
-                break;
+        } else if !line.is_empty() {
+            if !paragraph.is_empty() {
+                paragraph.push(PandocInline::SoftBreak);
             }
+            paragraph.extend(pandoc_latex::inlines(line, false, 0)?.0);
         }
-        while let Some(pos) = s.find("\\texttt{") {
-            let after = &s[pos + 8..];
-            if let Some(end) = after.find('}') {
-                s = format!("{}`{}`{}", &s[..pos], &after[..end], &after[end + 1..]);
-            } else {
-                break;
-            }
-        }
-        md_lines.push(s);
+    }
+    if !paragraph.is_empty() {
+        blocks.push(PandocBlock::Para(paragraph));
     }
     let mut defs = MdqDefinitions::default();
-    defs.last_link_wins = true;
     defs.pandoc_auto_identifiers = true;
-    defs.pandoc_strikeout = true;
-    parse_pandoc_markdown(
-        &md_lines.join("\n"),
-        PandocPipeTables::Markdown,
-        0,
-        pandoc_list::Tasks::Markdown,
-        defs,
-        false,
-        &Default::default(),
-    )
+    pandoc_headings::assign(&mut blocks, &defs);
+    Some(blocks)
 }
 
 fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {

@@ -29,11 +29,14 @@ disable repeated-row squeezing. Long aliases are also accepted: `--canonical`,
 `--one-byte-octal`, `--one-byte-char`, `--one-byte-hex`,
 `--two-bytes-decimal`, `--two-bytes-octal`, `--two-bytes-hex`,
 `--skip`, `--length`, `--format` and `--no-squeezing`. Value options
-accept both `--length 2` and `--length=2` forms. Multiple files form one input stream. `hd`
+accept both `--length 2` and `--length=2` forms. By default, lengths and offsets accept decimal,
+octal (`04`), hexadecimal (`0x4`), and `b`/`k`/`m` suffixes (512/1024/1048576 bytes).
+Multiple files form one input stream. `hd`
 selects canonical display by default. The plugin registers both names and
 rejects collisions before registration; pass `replace: true` to replace both.
 
-The `dialect` option selects `bsd` or `util-linux`. Command limits are opt-in
+The `dialect` option selects `bsd` or `util-linux`; explicit `bsd` preserves its
+decimal-only `-n` parsing. Command limits are opt-in
 and default to `Infinity`; finite positive integer limits bound arguments,
 argument bytes, input, buffered memory, output, diagnostics, format count, work
 and empty input chunks. Shell limits and cancellation still apply. Both aliases

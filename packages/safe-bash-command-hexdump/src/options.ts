@@ -29,7 +29,7 @@ function number(text: string, skip: boolean, dialect: HexdumpCommandsOptions["di
   const negative = text[offset] === "-";
   if (negative || text[offset] === "+") offset++;
   let base = 10;
-  if ((skip || dialect === "util-linux") && text[offset] === "0") {
+  if ((skip || dialect !== "bsd") && text[offset] === "0") {
     base = 8;
     if ((text[offset + 1] === "x" || text[offset + 1] === "X") && "0123456789abcdef".includes((text[offset + 2] ?? "!").toLowerCase())) { base = 16; offset += 2; }
   }
@@ -53,7 +53,7 @@ function number(text: string, skip: boolean, dialect: HexdumpCommandsOptions["di
     }
     if (offset === start || negative) throw new HexdumpError(`${text}: bad ${skip ? "skip" : "length"} value`);
     value *= multiplier;
-  } else if (skip) value *= ({ b: 512, k: 1024, m: 1_048_576 } as Record<string, number>)[text[offset] ?? ""] ?? 1;
+  } else if (skip || dialect !== "bsd") value *= ({ b: 512, k: 1024, m: 1_048_576 } as Record<string, number>)[text[offset] ?? ""] ?? 1;
   if (!Number.isSafeInteger(value)) throw new HexdumpError(`${text}: numeric value exceeds safe integer range`);
   return value;
 }

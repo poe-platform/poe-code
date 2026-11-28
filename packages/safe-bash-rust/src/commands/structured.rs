@@ -70,6 +70,7 @@ struct JqScope<'a> {
     call_depth: usize,
     stack_origin: usize,
     max_value_bytes: usize,
+    remaining_loop_iterations: Rc<Cell<usize>>,
     env: &'a BTreeMap<String, String>,
     functions: BTreeMap<String, BTreeMap<usize, Rc<JqFilter<'a>>>>,
     bindings: BTreeMap<String, JVal>,
@@ -1370,6 +1371,7 @@ fn cmd_jq_core(
         call_depth: 0,
         stack_origin: (&raw const inputs).addr(),
         max_value_bytes: fs.shell_limits().max_memory_bytes,
+        remaining_loop_iterations: Rc::new(Cell::new(fs.shell_limits().max_loop_iterations)),
         labels: Default::default(),
         next_label: Default::default(),
         env,
@@ -3271,7 +3273,7 @@ fn try_eval_jq_builtin(
                     if let Some((cond_e, step_e)) = split_jq_binary(arg_expr, ";") {
                         let mut cur = input.clone();
                         let mut out = Vec::new();
-                        for _ in 0..10000 {
+                        loop {
                             let cond_ok = eval_jq(cond_e.trim(), &cur, vars)?
                                 .first()
                                 .map(|v| v.is_truthy())
@@ -3285,6 +3287,12 @@ fn try_eval_jq_builtin(
                                 out.push(cur);
                                 break;
                             }
+                            let remaining = vars
+                                .remaining_loop_iterations
+                                .get()
+                                .checked_sub(1)
+                                .ok_or(JqFault::Limit("maxLoopIterations"))?;
+                            vars.remaining_loop_iterations.set(remaining);
                             cur = eval_jq(step_e.trim(), &cur, vars)?
                                 .into_iter()
                                 .next()
@@ -5472,6 +5480,7 @@ fn cmd_yq(
             call_depth: 0,
             stack_origin: (&raw const inputs).addr(),
             max_value_bytes: fs.shell_limits().max_memory_bytes,
+            remaining_loop_iterations: Rc::new(Cell::new(fs.shell_limits().max_loop_iterations)),
             labels: Default::default(),
             next_label: Default::default(),
             env,

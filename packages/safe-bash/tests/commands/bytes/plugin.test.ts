@@ -14,7 +14,7 @@ import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { baseAgentCommands } from "../../../src/registry-entry.js";
 import type { DdCommandsOptions } from "../../../src/dd.js";
 
-const names = ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "dd"];
+const names = ["base64", "base32", "basenc", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "dd"];
 const binary = Uint8Array.from({ length: 1025 }, (_, index) => index % 256);
 
 for (const flag of ["-l", "--list"]) {

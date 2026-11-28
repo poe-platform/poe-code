@@ -737,7 +737,8 @@
     "safe-bash-command-tesseract": "*",
     "safe-bash-command-ocrmypdf": "*",
     "safe-bash-command-trash": "*",
-    "safe-bash-command-enable": "*"
+    "safe-bash-command-enable": "*",
+    "safe-bash-command-basenc": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

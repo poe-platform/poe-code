@@ -12,7 +12,7 @@ export interface ByteCommandsOptions {
   readonly replace?: boolean;
   /** Finite cumulative decoded-byte budget for all decompression modes and operands. */
   readonly compression?: CompressionCommandOptions;
-  /** Input limits for base64, base32, xxd and od only; ignored/skipped bytes count. */
+  /** Input limits for base64, base32, basenc, xxd and od only; ignored/skipped bytes count. */
   readonly encoding?: ByteInputOptions;
   /** Input limits for checksum commands only; manifests and referenced files share one invocation budget. */
   readonly checksums?: ByteInputOptions;

@@ -93,3 +93,6 @@ export { createGrepCommand, createGrepCommands, grepCommands } from "./commands/
 export type { GrepCommandsOptions, GrepLimits } from "./commands/grep/index.js";
 export { createJqCommand, createJqCommands, jqCommands } from "./commands/jq/index.js";
 export type { JqCommandsOptions, JqLimits } from "./commands/jq/index.js";
+
+export { createBasencCommand, createBasencCommands, basencCommands } from "./commands/basenc/index.js";
+export type { BasencCommandsOptions, BasencLimits } from "./commands/basenc/index.js";

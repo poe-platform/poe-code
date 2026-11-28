@@ -2240,6 +2240,17 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-basenc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-base-encoding-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3577,6 +3588,12 @@
       "workerd": "./dist/commands/enable/index.browser.js",
       "browser": "./dist/commands/enable/index.browser.js",
       "import": "./dist/commands/enable/index.js"
+    },
+    "./commands/basenc": {
+      "types": "./dist/commands/basenc/index.d.ts",
+      "workerd": "./dist/commands/basenc/index.js",
+      "browser": "./dist/commands/basenc/index.js",
+      "import": "./dist/commands/basenc/index.js"
     }
   },
   "sideEffects": [
@@ -3851,7 +3868,8 @@
     "safe-bash-command-tesseract": "*",
     "safe-bash-command-ocrmypdf": "*",
     "safe-bash-command-trash": "*",
-    "safe-bash-command-enable": "*"
+    "safe-bash-command-enable": "*",
+    "safe-bash-command-basenc": "*"
   },
   "main": "./dist/index.js",
   "imports": {

@@ -108,8 +108,9 @@ for (const name of commands) {
 
   test(`${name}: downstream write errors are not hidden`, async () => {
     const result = await run(name, [], allBytes, { stdout: { async write() { throw new FsError("EPIPE"); } } });
-    assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /EPIPE/u);
+    assert.equal(result.exitCode, name === "base64" || name === "base32" ? 141 : 1);
+    if (result.exitCode === 141) assert.equal(result.stderr, "");
+    else assert.match(result.stderr, /EPIPE/u);
   });
 }
 

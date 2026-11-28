@@ -5686,7 +5686,29 @@ export class SqliteDatabase {
         }
         groupedRows = Array.from(groups.values());
       } else {
-        groupedRows = [{ representative: workingRows[0] ?? {}, group: workingRows }];
+        groupedRows = [{ representative: workingRows[0] ?? { ...bindings }, group: workingRows }];
+      }
+
+      // SQLite binds bare columns to a row supplying a MIN/MAX aggregate.
+      // With multiple extrema, any one of their supplying rows is permitted.
+      const pending = selectTargets.map(target => target.expr);
+      if (havingTokens?.length) pending.push(new ExprParser(havingTokens).parseExpression());
+      let extremum: Extract<ExprNode, { kind: "func" }> | undefined;
+      while (pending.length > 0) {
+        yield;
+        const expr = pending.pop()!;
+        if (expr.kind === "func" && isAggregateFunction(expr) &&
+          ["MIN", "MAX"].includes(expr.name.toUpperCase())) {
+          extremum = expr;
+          break;
+        }
+        pending.push(...expressionChildren(expr));
+      }
+      if (extremum) {
+        for (const g of groupedRows) {
+          yield;
+          yield* this.evalAggregateFunction(extremum, g.group, positionalParams, cteScope, g);
+        }
       }
 
       if (havingTokens && havingTokens.length > 0) {
@@ -7398,7 +7420,8 @@ export class SqliteDatabase {
     expr: Extract<ExprNode, { kind: "func" }>,
     group: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
-    cteScope: CteScope
+    cteScope: CteScope,
+    representative?: { representative: Record<string, SqlValue> }
   ): SqlSteps<SqlValue> {
     const u = expr.name.toUpperCase();
     let filteredGroup = group;
@@ -7451,6 +7474,22 @@ export class SqliteDatabase {
         }
       }
       return new JsonText(`{${entries.join(",")}}`);
+    }
+
+    if (u === "MIN" || u === "MAX") {
+      const collation = this.expressionCollation(expr.args[0]!, filteredGroup[0] ?? {});
+      let extreme: SqlValue = null;
+      for (const row of filteredGroup) {
+        yield;
+        const value = yield* this.evalExprSteps(expr.args[0]!, row, positionalParams, cteScope);
+        if (value === null || value === undefined) continue;
+        const comparison = compareSqlValues(value, extreme, collation);
+        if (extreme === null || (u === "MIN" ? comparison < 0 : comparison > 0)) {
+          extreme = value;
+          if (representative) representative.representative = row;
+        }
+      }
+      return extreme;
     }
 
     let vals = yield* stepMap(filteredGroup, function* (r) {
@@ -7530,20 +7569,6 @@ export class SqliteDatabase {
         0
       , this);
       return new Number(sum / activeVals.length);
-    }
-    if (u === "MIN" || u === "MAX") {
-      if (activeVals.length === 0) {
-        return null;
-      }
-      const collation = this.expressionCollation(expr.args[0]!, filteredGroup[0] ?? {});
-      return yield* stepReduce<SqlValue, SqlValue>(
-        activeVals,
-        function* (extreme, v) { yield;
-          const comparison = compareSqlValues(v, extreme, collation);
-          return (u === "MIN" ? comparison < 0 : comparison > 0) ? v : extreme;
-        },
-        activeVals[0]!
-      , this);
     }
     if (u === "GROUP_CONCAT" || u === "STRING_AGG") {
       if (activeVals.length === 0) {

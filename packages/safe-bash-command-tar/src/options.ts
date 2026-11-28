@@ -1,3 +1,5 @@
+import { parseDate, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
+import { ownEnvironment } from "safe-bash-calendar-engine/time-env/shared";
 import { parseTransform,type NameTransform } from "./transform.js";
 import { collectBytes,type CommandContext } from "safe-bash-contracts";
 import { byteLength,encodeBytes } from "safe-bash-io-engine/byte-encoding";
@@ -197,7 +199,12 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       else if (flag === "group") metadata.gid = number;
       else metadata.mode = number;
     } else if (flag === "mtime") {
-      const seconds = value!.startsWith("@") ? Number(value!.slice(1)) : Date.parse(value!) / 1000;
+      if (!value?.trim()) fail(`invalid mtime: ${value}`);
+      let seconds: number;
+      try {
+        seconds = value!.startsWith("@") ? Number(value!.slice(1))
+          : Number(parseDate(value!, new TimeZone(ownEnvironment(context, "TZ") ?? "UTC"), () => BigInt(Date.now()) * 1000000n)) / 1e9;
+      } catch { fail(`invalid mtime: ${value}`); }
       if (!value || value === "@" || !Number.isFinite(seconds) || Math.abs(seconds * 1000) > 8.64e15) fail(`invalid mtime: ${value}`);
       metadata.mtime = seconds;
     }

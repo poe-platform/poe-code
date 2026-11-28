@@ -242,11 +242,11 @@ test("tar reads WebDAV sources without retained identity", async () => {
   assert.ok(result.stdout.includes("hello"));
 });
 
-async function run(command: CommandDefinition, args: string[], input = "", fs: FileSystem = createMemoryFileSystem()) {
+async function run(command: CommandDefinition, args: string[], input = "", fs: FileSystem = createMemoryFileSystem(), env: Record<string, string> = {}) {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "";
   const result = await command.execute({
-    command: command.name, args: values.args, argumentValues: values, cwd: "/", env: {},
+    command: command.name, args: values.args, argumentValues: values, cwd: "/", env,
     fs, stdin: toByteSource(input),
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
@@ -601,4 +601,32 @@ for (const flags of [["-I"], ["--use-compress-program"], ["-I", ""], ["-I", "unk
   const result = await run(createTarCommand(), ["-cf", "archive", "a", ...flags]);
   assert.equal(result.exitCode, 2);
   assert.ok(!result.stderr.includes("Cannot stat"), result.stderr);
+});
+
+for (const [env, date, expected] of [
+  [{}, "2020-01-02 03:04:05", "2020-01-02T03:04:05Z"],
+  [{ TZ: "UTC" }, "2020-01-02 03:04:05", "2020-01-02T03:04:05Z"],
+  [{ TZ: "America/New_York" }, "2020-01-02 03:04:05", "2020-01-02T08:04:05Z"],
+  [{ TZ: "America/New_York" }, "2020-07-02 03:04:05", "2020-07-02T07:04:05Z"],
+  [{ TZ: "America/New_York" }, "2020-01-02T03:04:05+02:00", "2020-01-02T01:04:05Z"],
+  [{ TZ: "America/New_York" }, "Thu, 02 Jan 2020 03:04:05 GMT", "2020-01-02T03:04:05Z"],
+  [{ TZ: "America/New_York" }, "@1577934245", "2020-01-02T03:04:05Z"],
+] as const) test(`tar mtime ${date} uses shell TZ ${env.TZ ?? "default"}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new TextEncoder().encode("hi\n"));
+  assert.deepEqual(await run(createTarCommand(), ["cf", "t.tar", `--mtime=${date}`, "a"], "", fs, env),
+    { exitCode: 0, stdout: "", stderr: "" });
+  const listed = await run(createTarCommand(), ["tvf", "t.tar"], "", fs, env);
+  assert.equal(listed.exitCode, 0);
+  assert.equal(listed.stderr, "");
+  assert.equal(listed.stdout.trim().split(" ").filter(Boolean).slice(3, 5).join(" "), expected.slice(0, 16).split("T").join(" "));
+  await fs.mkdir("/extracted");
+  assert.equal((await run(createTarCommand(), ["xf", "t.tar", "-C", "/extracted"], "", fs, env)).exitCode, 0);
+  assert.equal((await fs.stat("/extracted/a")).mtimeMs, Date.parse(expected));
+});
+
+for (const date of ["", " ", "@", "not-a-date"]) test(`tar rejects invalid mtime ${JSON.stringify(date)}`, async () => {
+  const result = await run(createTarCommand(), ["cf", "t.tar", `--mtime=${date}`, "a"]);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes("invalid mtime:"));
 });

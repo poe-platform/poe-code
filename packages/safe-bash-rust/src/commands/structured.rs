@@ -24305,107 +24305,111 @@ fn exec_sql_delete(
         )
         .inspect_err(|_| *tables = tables_snap.clone())?;
         if foreign_keys_enabled {
-            let child_table_names: Vec<String> = tables.keys().cloned().collect();
-            for ctname in child_table_names {
-                let Some((c_cols, c_fks, c_defs)) = tables.get(&ctname).map(|ct| {
-                    (
-                        ct.columns.clone(),
-                        ct.foreign_keys.clone(),
-                        ct.defaults.clone(),
-                    )
-                }) else {
-                    continue;
-                };
-                for fk in c_fks {
-                    if !fk.parent_table.eq_ignore_ascii_case(&tname) {
-                        continue;
-                    }
-                    let p_idx = if fk.parent_col.is_empty() {
-                        0
-                    } else {
-                        find_sql_col(&t_cols, &fk.parent_col).unwrap_or(0)
-                    };
-                    let pval = dr.get(p_idx).cloned().unwrap_or_default();
-                    let Some(c_idx) = find_sql_col(&c_cols, &fk.child_col) else {
+            let mut pending_deletes = vec![(tname.clone(), t_cols.clone(), dr.clone())];
+            while let Some((tname, t_cols, dr)) = pending_deletes.pop() {
+                let child_table_names: Vec<String> = tables.keys().cloned().collect();
+                for ctname in child_table_names {
+                    let Some((c_cols, c_fks, c_defs)) = tables.get(&ctname).map(|ct| {
+                        (
+                            ct.columns.clone(),
+                            ct.foreign_keys.clone(),
+                            ct.defaults.clone(),
+                        )
+                    }) else {
                         continue;
                     };
-                    let mut cascaded_rows = Vec::new();
-                    if let Some(ctbl) = tables.get_mut(&ctname) {
-                        match fk.on_delete.as_str() {
-                            "NO ACTION" | "RESTRICT" => {
-                                if !(in_transaction
-                                    && fk.initially_deferred
-                                    && fk.on_delete == "NO ACTION")
-                                    && pval != SQL_NULL
-                                    && ctbl.rows.iter().any(|cr| {
-                                        cr.get(c_idx).map(|s| sql_value_text(s))
+                    for fk in c_fks {
+                        if !fk.parent_table.eq_ignore_ascii_case(&tname) {
+                            continue;
+                        }
+                        let p_idx = if fk.parent_col.is_empty() {
+                            0
+                        } else {
+                            find_sql_col(&t_cols, &fk.parent_col).unwrap_or(0)
+                        };
+                        let pval = dr.get(p_idx).cloned().unwrap_or_default();
+                        let Some(c_idx) = find_sql_col(&c_cols, &fk.child_col) else {
+                            continue;
+                        };
+                        let mut cascaded_rows = Vec::new();
+                        if let Some(ctbl) = tables.get_mut(&ctname) {
+                            match fk.on_delete.as_str() {
+                                "NO ACTION" | "RESTRICT" => {
+                                    if !(in_transaction
+                                        && fk.initially_deferred
+                                        && fk.on_delete == "NO ACTION")
+                                        && pval != SQL_NULL
+                                        && ctbl.rows.iter().any(|cr| {
+                                            cr.get(c_idx).map(|s| sql_value_text(s))
+                                                == Some(sql_value_text(&pval))
+                                        })
+                                    {
+                                        *tables = tables_snap;
+                                        return Err(
+                                            "Error: FOREIGN KEY constraint failed\n".to_string()
+                                        );
+                                    }
+                                }
+                                "CASCADE" => {
+                                    ctbl.retain_rows(|cr| {
+                                        let keep = cr.get(c_idx).map(|s| sql_value_text(s))
+                                            != Some(sql_value_text(&pval));
+                                        if !keep {
+                                            cascaded_rows.push(cr.clone());
+                                        }
+                                        keep
+                                    });
+                                }
+                                "SET NULL" => {
+                                    for cr in &mut ctbl.rows {
+                                        if cr.get(c_idx).map(|s| sql_value_text(s))
                                             == Some(sql_value_text(&pval))
-                                    })
-                                {
-                                    *tables = tables_snap;
-                                    return Err(
-                                        "Error: FOREIGN KEY constraint failed\n".to_string()
-                                    );
-                                }
-                            }
-                            "CASCADE" => {
-                                ctbl.retain_rows(|cr| {
-                                    let keep = cr.get(c_idx).map(|s| sql_value_text(s))
-                                        != Some(sql_value_text(&pval));
-                                    if !keep {
-                                        cascaded_rows.push(cr.clone());
-                                    }
-                                    keep
-                                });
-                            }
-                            "SET NULL" => {
-                                for cr in &mut ctbl.rows {
-                                    if cr.get(c_idx).map(|s| sql_value_text(s))
-                                        == Some(sql_value_text(&pval))
-                                    {
-                                        cr[c_idx] = SQL_NULL.to_string();
-                                    }
-                                }
-                            }
-                            "SET DEFAULT" => {
-                                let def_v = c_defs
-                                    .get(&fk.child_col.to_ascii_lowercase())
-                                    .cloned()
-                                    .unwrap_or_else(|| SQL_NULL.to_string());
-                                for cr in &mut ctbl.rows {
-                                    if cr.get(c_idx).map(|s| sql_value_text(s))
-                                        == Some(sql_value_text(&pval))
-                                    {
-                                        cr[c_idx] = def_v.clone();
-                                        if let Err(error) = apply_sql_row_affinity(
-                                            cr,
-                                            &ctbl.metadata,
-                                            &c_cols,
-                                            &ctname,
-                                        ) {
-                                            *tables = tables_snap;
-                                            return Err(error);
+                                        {
+                                            cr[c_idx] = SQL_NULL.to_string();
                                         }
                                     }
                                 }
+                                "SET DEFAULT" => {
+                                    let def_v = c_defs
+                                        .get(&fk.child_col.to_ascii_lowercase())
+                                        .cloned()
+                                        .unwrap_or_else(|| SQL_NULL.to_string());
+                                    for cr in &mut ctbl.rows {
+                                        if cr.get(c_idx).map(|s| sql_value_text(s))
+                                            == Some(sql_value_text(&pval))
+                                        {
+                                            cr[c_idx] = def_v.clone();
+                                            if let Err(error) = apply_sql_row_affinity(
+                                                cr,
+                                                &ctbl.metadata,
+                                                &c_cols,
+                                                &ctname,
+                                            ) {
+                                                *tables = tables_snap;
+                                                return Err(error);
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => {}
                             }
-                            _ => {}
                         }
-                    }
-                    for row in cascaded_rows {
-                        fire_sql_triggers(
-                            &ctname,
-                            SqlTriggerOp::Delete,
-                            &[],
-                            SqlTriggerTiming::After,
-                            &c_cols,
-                            Some(&row),
-                            None,
-                            tables,
-                            views,
-                            triggers,
-                        )
-                        .inspect_err(|_| *tables = tables_snap.clone())?;
+                        for row in cascaded_rows {
+                            fire_sql_triggers(
+                                &ctname,
+                                SqlTriggerOp::Delete,
+                                &[],
+                                SqlTriggerTiming::After,
+                                &c_cols,
+                                Some(&row),
+                                None,
+                                tables,
+                                views,
+                                triggers,
+                            )
+                            .inspect_err(|_| *tables = tables_snap.clone())?;
+                            pending_deletes.push((ctname.clone(), c_cols.clone(), row));
+                        }
                     }
                 }
             }

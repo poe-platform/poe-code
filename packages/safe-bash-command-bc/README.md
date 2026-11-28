@@ -13,7 +13,7 @@ explicit `Infinity` disables an individual quota. `maxExponent` bounds the absol
 
 Cancellation rejects with the original abort reason instead of returning an error exit code or writing a diagnostic.
 
-Division by zero and square roots of negative numbers report a diagnostic, abandon the current top-level statement, and continue evaluating with exit status zero. Resource-limit failures still stop evaluation and return a nonzero status.
+Division by zero and square roots of negative numbers report a diagnostic, abandon the current top-level statement, and continue evaluating with exit status zero. Parser syntax errors report a line number and resume at the next newline, also with exit status zero. Resource-limit failures still stop evaluation and return a nonzero status.
 
 Use `bc -l` for decimal sine, cosine, arctangent, logarithm, exponential and integer-order Bessel functions. Results truncate to `scale` (20 by default with `-l`), using BigInt series with work-budget accounting and cooperative cancellation.
 

@@ -304,6 +304,8 @@ function formatDecimalInBase(val: DecimalValue, obase: bigint): string {
 
 interface Token {
   type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
+  line: number;
+  newline?: boolean;
   raw?: string;
   value?: string;
   name?: string;
@@ -317,6 +319,7 @@ function tokenizeBc(source: string): Token[] {
     : source;
   const tokens: Token[] = [];
   let i = 0;
+  let line = 1;
   while (i < clean.length) {
     const ch = clean[i]!;
     if (ch === " " || ch === "\t" || ch === "\r") {
@@ -326,6 +329,7 @@ function tokenizeBc(source: string): Token[] {
     if (ch === "/" && clean[i + 1] === "*") {
       const end = clean.indexOf("*/", i + 2);
       if (end < 0) throw new Error("unterminated comment");
+      for (let j = i; j < end + 2; j++) if (clean[j] === "\n") line++;
       i = end + 2;
       continue;
     }
@@ -335,13 +339,14 @@ function tokenizeBc(source: string): Token[] {
       continue;
     }
     if (ch === "\n" || ch === ";") {
-      tokens.push({ type: "punct", value: ";" });
+      tokens.push({ type: "punct", value: ";", line: ch === "\n" ? ++line : line, newline: ch === "\n" });
       i++;
       continue;
     }
     if (ch === '"') {
       const end = clean.indexOf('"', i + 1);
-      tokens.push({ type: "string", value: clean.slice(i + 1, end < 0 ? clean.length : end) });
+      tokens.push({ type: "string", value: clean.slice(i + 1, end < 0 ? clean.length : end), line });
+      for (let j = i; j < (end < 0 ? clean.length : end); j++) if (clean[j] === "\n") line++;
       i = end < 0 ? clean.length : end + 1;
       continue;
     }
@@ -361,7 +366,7 @@ function tokenizeBc(source: string): Token[] {
           break;
         }
       }
-      tokens.push({ type: "number", raw });
+      tokens.push({ type: "number", raw, line });
       continue;
     }
     if ((ch >= "a" && ch <= "z") || ch === "_") {
@@ -369,23 +374,23 @@ function tokenizeBc(source: string): Token[] {
       while (i < clean.length && ((clean[i]! >= "a" && clean[i]! <= "z") || (clean[i]! >= "0" && clean[i]! <= "9") || clean[i] === "_")) {
         name += clean[i++]!;
       }
-      tokens.push({ type: "id", name });
+      tokens.push({ type: "id", name, line });
       if (name === "quit") break;
       continue;
     }
     const two = clean.slice(i, i + 2);
     if (["++", "--", "+=", "-=", "*=", "/=", "%=", "^=", "==", "!=", "<=", ">=", "&&", "||"].includes(two)) {
-      tokens.push({ type: "op", value: two });
+      tokens.push({ type: "op", value: two, line });
       i += 2;
       continue;
     }
     if ("+-*/%^=<>!".includes(ch)) {
-      tokens.push({ type: "op", value: ch });
+      tokens.push({ type: "op", value: ch, line });
       i++;
       continue;
     }
     if ("(){}[],.".includes(ch)) {
-      tokens.push({ type: "punct", value: ch });
+      tokens.push({ type: "punct", value: ch, line });
       i++;
       continue;
     }
@@ -405,6 +410,7 @@ type Expr =
   | { kind: "call"; name: string; args: Expr[] };
 
 type Stmt =
+  | { kind: "syntax-error"; line: number }
   | { kind: "expr"; expr: Expr }
   | { kind: "print"; items: Expr[] }
   | { kind: "block"; stmts: Stmt[] }
@@ -452,7 +458,19 @@ class BcParser {
     while (this.pos < this.tokens.length) {
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       if (this.pos >= this.tokens.length) break;
-      yield this.parseStmt();
+      let stmt: Stmt;
+      try {
+        stmt = this.parseStmt();
+      } catch (error) {
+        if (!(error instanceof Error) || error instanceof RangeError) throw error;
+        const token = this.tokens[Math.min(this.pos, this.tokens.length) - 1];
+        stmt = { kind: "syntax-error", line: token?.line ?? 1 };
+        // A consumed newline already is the recovery boundary.
+        if (!token?.newline) {
+          while (this.pos < this.tokens.length && !this.next()?.newline) { /* Discard the malformed line. */ }
+        }
+      }
+      yield stmt;
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
     }
   }
@@ -1026,6 +1044,10 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const execStmt = async (stmt: Stmt): Promise<void> => {
       { const p = tick(); if (p) await p; }
       switch (stmt.kind) {
+        case "syntax-error":
+          await writeText(context.stderr, `(standard_in) ${stmt.line}: syntax error\n`);
+          context.signal.throwIfAborted();
+          return;
         case "define":
           funcs.set(stmt.name, { params: stmt.params, body: stmt.body });
           return;

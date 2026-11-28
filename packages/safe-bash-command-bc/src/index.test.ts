@@ -70,6 +70,19 @@ async function evaluate(
   return { exitCode: result.exitCode, stdout: await read(stdout.readable), stderr: await read(stderr.readable) };
 }
 
+for (const [program, stdout, line] of [
+  ["1+\n2+2\n3+3\n", "4\n6\n", 2],
+  ["1 +* 2\n3\n", "3\n", 1],
+  ["7\n1 +* 2; 9\n3\n", "7\n3\n", 2],
+  ["1+", "", 1],
+] as const) {
+  test(`bc recovers from syntax errors: ${JSON.stringify(program)}`, async () => {
+    assert.deepEqual(await evaluate(program), {
+      exitCode: 0, stdout, stderr: `(standard_in) ${line}: syntax error\n`,
+    });
+  });
+}
+
 for (const [args, file, input, stdout] of [
   [["f"], "2+2\n", "3+3\n", "4\n6\n"],
   [["-l", "f"], "2+2\n", "4+4\n", "4\n8\n"],

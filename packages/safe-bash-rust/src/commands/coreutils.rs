@@ -7976,16 +7976,41 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
     }
     for cmp_op in ["==", "!=", "<=", ">=", "<", ">"] {
         if let Some((lhs, rhs)) = s.split_once(cmp_op) {
-            let l = eval_bc_val(lhs, bc, depth).val;
-            let r = eval_bc_val(rhs, bc, depth).val;
-            let ok = match cmp_op {
-                "==" => (l - r).abs() < 1e-12,
-                "!=" => (l - r).abs() >= 1e-12,
-                "<=" => l <= r + 1e-12,
-                ">=" => l + 1e-12 >= r,
-                "<" => l < r,
-                ">" => l > r,
-                _ => false,
+            let l = eval_bc_val(lhs, bc, depth);
+            let r = eval_bc_val(rhs, bc, depth);
+            let ok = if let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient) {
+                let scale = l.scale.max(r.scale);
+                let mut la = la.clone();
+                let mut ra = ra.clone();
+                la.extend(std::iter::repeat_n(0, scale - l.scale));
+                ra.extend(std::iter::repeat_n(0, scale - r.scale));
+                let l_neg = l.neg && la.iter().any(|&d| d != 0);
+                let r_neg = r.neg && ra.iter().any(|&d| d != 0);
+                let ordering = match (l_neg, r_neg) {
+                    (true, false) => std::cmp::Ordering::Less,
+                    (false, true) => std::cmp::Ordering::Greater,
+                    (true, true) => big_cmp(&ra, &la),
+                    (false, false) => big_cmp(&la, &ra),
+                };
+                match cmp_op {
+                    "==" => ordering.is_eq(),
+                    "!=" => !ordering.is_eq(),
+                    "<=" => ordering.is_le(),
+                    ">=" => ordering.is_ge(),
+                    "<" => ordering.is_lt(),
+                    ">" => ordering.is_gt(),
+                    _ => false,
+                }
+            } else {
+                match cmp_op {
+                    "==" => (l.val - r.val).abs() < 1e-12,
+                    "!=" => (l.val - r.val).abs() >= 1e-12,
+                    "<=" => l.val <= r.val + 1e-12,
+                    ">=" => l.val + 1e-12 >= r.val,
+                    "<" => l.val < r.val,
+                    ">" => l.val > r.val,
+                    _ => false,
+                }
             };
             return BcVal::from_i64(if ok { 1 } else { 0 });
         }

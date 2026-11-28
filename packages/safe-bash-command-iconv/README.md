@@ -11,7 +11,7 @@ shell.use(iconvCommands());
 const result = await shell.exec("iconv --help");
 ```
 
-`-c` and `//IGNORE` discard invalid or unrepresentable input while preserving valid output. If any input is discarded, the command returns status 1 even when later output succeeds.
+`-c` and `//IGNORE` on the target encoding discard invalid or unrepresentable input while preserving valid output. If any input is discarded, the command returns status 1 even when later output succeeds. Source encoding suffixes such as `-f latin1//IGNORE` and `-f utf-8//TRANSLIT` are accepted and ignored, matching GNU iconv.
 
 Supported encodings are ASCII, ISO-8859-1/2/15, Windows-1252 (CP1252), UTF-8, UTF-16/LE/BE, UTF-32/LE/BE, Shift_JIS, and EUC-JP. Use `iconv --list` for aliases. UTF-16 and UTF-32 consume an input byte-order mark and emit a little-endian byte-order mark; explicit LE/BE variants do not add or strip one.
 

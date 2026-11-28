@@ -119,5 +119,6 @@ export function parse(budget: Budget): Parsed | { readonly information: string }
     else throw new IconvError(`unsupported default encoding locale: ${locale}; specify -f and -t`);
     from ??= fallback; to ??= fallback;
   }
-  return { from: encoding(from), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"], output, verbose };
+  // GNU iconv ignores source suffixes; only target suffixes affect conversion.
+  return { from: encoding(from.split("//", 1)[0]!), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"], output, verbose };
 }

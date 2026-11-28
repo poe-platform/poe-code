@@ -29,12 +29,6 @@ function foldedEnd(text: string, position: number, expected: string, budget: Pat
   return position;
 }
 
-function isWordChar(ch: string | undefined): boolean {
-  if (ch === undefined) return false;
-  const code = ch.charCodeAt(0);
-  return (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
-}
-
 function matchesBoundary(instruction: Extract<Instruction, { kind: "boundary" }>, text: string, position: number): boolean {
   const previous = position > 1 && text.codePointAt(position - 2)! > 0xffff ? text.slice(position - 2, position) : text.slice(position - 1, position);
   const next = text.codePointAt(position);
@@ -207,6 +201,23 @@ const classes: Record<string, (character: string) => boolean> = {
   graph: character => character.charCodeAt(0) >= 33 && character.charCodeAt(0) <= 126,
   print: character => character.charCodeAt(0) >= 32 && character.charCodeAt(0) <= 126,
   punct: character => /^[!-/:-@[-`{-~]$/u.test(character),
+};
+
+// glibc C.UTF-8 keeps digit/xdigit ASCII and excludes non-breaking spaces
+// from space/blank. Non-ASCII decimal digits count as alpha/alnum;
+// symbols, like punctuation, belong to punct.
+const unicodeClasses: Record<string, (character: string) => boolean> = {
+  ...classes,
+  alpha: character => /^[\p{Alphabetic}\p{Nd}]$/u.test(character) && !classes.digit!(character),
+  alnum: character => /^[\p{Alphabetic}\p{Nd}]$/u.test(character),
+  lower: character => /^\p{Lowercase}$/u.test(character),
+  upper: character => /^\p{Uppercase}$/u.test(character),
+  space: character => /^[ \t\n\r\v\f\u1680\u2000-\u2006\u2008-\u200a\u2028\u2029\u205f\u3000]$/u.test(character),
+  blank: character => /^[ \t\u1680\u2000-\u2006\u2008-\u200a\u205f\u3000]$/u.test(character),
+  cntrl: character => /^[\p{Cc}\u2028\u2029]$/u.test(character),
+  graph: character => /^[^\p{Cc}\p{Cs}\p{Cn}\p{Z}]$/u.test(character) || /^[\u00a0\u2007\u202f]$/u.test(character),
+  print: character => /^[^\p{Cc}\p{Cs}\p{Cn}\u2028\u2029]$/u.test(character),
+  punct: character => unicodeClasses.graph!(character) && !unicodeClasses.alnum!(character),
 };
 
 function extendedSource(source: string): string {
@@ -461,7 +472,7 @@ export class Pattern {
   private trailingNewlineAnchor = false;
   private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
-  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" | "rust" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
+  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" | "rust" = "sed", private readonly modifiers = "", limits: PatternLimits = {}, unicode = false) {
     this.sourceLength = source.length;
     const prefix = dialect === "jq" || dialect === "rust" ? dialect + " " : "";
     const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
@@ -491,12 +502,13 @@ export class Pattern {
       return { type: "character", ...(fold ? {} : { literal: character }),
         accepts: candidate => fold ? candidate.toLowerCase() === character.toLowerCase() : candidate === character };
     };
-    const wordChar = dialect === "jq" ? (character: string) => /^[\p{L}\p{M}\p{N}\p{Pc}]$/u.test(character) : isWordChar;
+    const characterClasses = unicode && dialect === "sed" ? unicodeClasses : classes;
+    const wordChar = dialect === "jq" ? (character: string) => /^[\p{L}\p{M}\p{N}\p{Pc}]$/u.test(character) : (character: string) => character === "_" || characterClasses.alnum!(character);
     const shorthand = (reference: string): ((character: string) => boolean) => {
       const alphabet = reference.toLowerCase();
       return character => {
         const accepted = alphabet === "d" ? (dialect === "jq" ? /^\p{Nd}$/u.test(character) : character >= "0" && character <= "9")
-          : alphabet === "s" ? (dialect === "jq" ? /^[\p{Z}\t\n\r\f\v\u0085]$/u.test(character) : " \t\n\r\f\v".includes(character))
+          : alphabet === "s" ? (dialect === "jq" ? /^[\p{Z}\t\n\r\f\v\u0085]$/u.test(character) : characterClasses.space!(character))
           : wordChar(character);
         return reference === alphabet ? accepted : !accepted;
       };
@@ -541,8 +553,8 @@ export class Pattern {
         if (source.startsWith("[:", offset)) {
           const end = source.indexOf(":]", offset + 2);
           const name = end < 0 ? "" : source.slice(offset + 2, end);
-          if (!classes[name]) throw new ProgramError(`unsupported character class '${name}'`);
-          const accepts = classes[name]!;
+          if (!characterClasses[name]) throw new ProgramError(`unsupported character class '${name}'`);
+          const accepts = characterClasses[name]!;
           tests.push(character => accepts(character) || fold && dialect === "jq" && character !== "ı"
             && (accepts(character.toLowerCase()) || accepts(character.toUpperCase())));
           offset = end + 2; continue;
@@ -2633,8 +2645,8 @@ export class BytePattern extends Pattern {
 
   constructor(...args: ConstructorParameters<typeof Pattern>) {
     super(...args);
-    const [source, ...settings] = args;
-    this.unicode = new Pattern(decodeByteText(source).text, ...settings);
+    const [source, extended, ignoreCase, dialect, modifiers, limits] = args;
+    this.unicode = new Pattern(decodeByteText(source).text, extended, ignoreCase, dialect, modifiers, limits, true);
   }
 
   usesUnicode(budget: object): boolean {

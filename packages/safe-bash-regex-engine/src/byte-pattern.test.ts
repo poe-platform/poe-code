@@ -63,3 +63,22 @@ test("UTF-8 decoding preserves malformed bytes and checks every caller's budget"
   limits.maxBufferBytes = 8;
   await assert.rejects(pattern.find(bytes("a😀b"), limits), /buffer limit/);
 });
+
+for (const source of ["\\w+", "[[:alpha:]]+", "[[:upper:]]+", "\\bÉ𐐀\\b"]) {
+  test(`sed Unicode classes preserve locale and byte offsets: ${source}`, async () => {
+    const pattern = new BytePattern(bytes(source));
+    const input = bytes("!É𐐀!");
+    for (const locale of ["C.UTF-8", "C", "POSIX", "C.UTF-8"]) {
+      const limits = budget({ LC_ALL: locale });
+      await pattern.prepare(limits);
+      const expected = locale === "C.UTF-8" ? bytes("É𐐀") : undefined;
+      assert.equal((await pattern.find(input, limits))?.groups[0], expected);
+      assert.equal((await pattern.tryFindSync(input, limits))?.groups[0], expected);
+      if (pattern.canFindSync()) {
+        const offsets = new Int32Array(2);
+        assert.equal(pattern.findSyncFastInto(input, limits, 0, offsets), expected !== undefined);
+        if (expected !== undefined) assert.deepEqual([...offsets], [1, 7]);
+      }
+    }
+  });
+}

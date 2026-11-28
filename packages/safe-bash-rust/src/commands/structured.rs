@@ -18300,8 +18300,76 @@ fn sql_value_text(value: &str) -> &str {
     value.strip_prefix(SQL_TEXT_PREFIX).unwrap_or(value)
 }
 
-fn sql_apply_row_affinity(row: &mut [String], metadata: &[SqlColumnMetadata]) {
-    for (value, column) in row.iter_mut().zip(metadata) {
+fn apply_sql_row_affinity(
+    row: &mut [String],
+    metadata: &[SqlColumnMetadata],
+    columns: &[String],
+    table: &str,
+) -> Result<(), String> {
+    for ((value, column), name) in row.iter_mut().zip(metadata).zip(columns) {
+        if let Some(declared_type) = column.strict_type {
+            if value == SQL_NULL || declared_type == "ANY" {
+                continue;
+            }
+            let text = sql_value_text(value).trim_matches(|ch: char| ch.is_ascii_whitespace());
+            let integer = text.parse::<i64>().ok();
+            let real = text
+                .parse::<f64>()
+                .ok()
+                .filter(|_| text.bytes().any(|byte| byte.is_ascii_digit()));
+            let blob = value.starts_with(SQL_BLOB_PREFIX);
+            let valid = match declared_type {
+                "INT" | "INTEGER" => {
+                    let integer = integer.or_else(|| {
+                        real.filter(|number| {
+                            number.fract() == 0.0
+                                && *number >= i64::MIN as f64
+                                && *number < -(i64::MIN as f64)
+                        })
+                        .map(|number| number as i64)
+                    });
+                    if let Some(integer) = integer {
+                        *value = integer.to_string();
+                        true
+                    } else {
+                        false
+                    }
+                }
+                "REAL" => {
+                    if let Some(real) = real {
+                        *value = format!("{real:?}");
+                        true
+                    } else {
+                        false
+                    }
+                }
+                "TEXT" => {
+                    if !blob {
+                        *value = sql_text_value(sql_value_text(value));
+                    }
+                    !blob
+                }
+                "BLOB" => blob,
+                _ => unreachable!(),
+            };
+            if !valid {
+                let storage_class = if blob {
+                    "BLOB"
+                } else if declared_type == "BLOB" && value.parse::<f64>().is_err() {
+                    "TEXT"
+                } else if integer.is_some() {
+                    "INTEGER"
+                } else if real.is_some() {
+                    "REAL"
+                } else {
+                    "TEXT"
+                };
+                return Err(format!(
+                    "Error: stepping, cannot store {storage_class} value in {declared_type} column {table}.{name} (19)\n"
+                ));
+            }
+            continue;
+        }
         if value == SQL_NULL || value.starts_with(SQL_BLOB_PREFIX) {
             continue;
         }
@@ -18323,6 +18391,7 @@ fn sql_apply_row_affinity(row: &mut [String], metadata: &[SqlColumnMetadata]) {
             }
         }
     }
+    Ok(())
 }
 #[derive(Default, Clone)]
 struct SqlForeignKey {
@@ -18344,6 +18413,7 @@ enum SqlAffinity {
 
 #[derive(Clone, Copy, Default)]
 struct SqlColumnMetadata {
+    strict_type: Option<&'static str>,
     affinity: SqlAffinity,
     nocase: bool,
 }
@@ -18358,7 +18428,7 @@ fn split_sql_collation(expression: &str) -> Option<(&str, bool)> {
     Some((&expression[..before.len()], name == "NOCASE"))
 }
 
-fn sql_column_metadata(declaration: &str) -> SqlColumnMetadata {
+fn sql_column_metadata(declaration: &str, strict: bool) -> SqlColumnMetadata {
     let declared_type = declaration
         .split_whitespace()
         .skip(1)
@@ -18388,12 +18458,28 @@ fn sql_column_metadata(declaration: &str) -> SqlColumnMetadata {
         .any(|kind| declared_type.contains(kind))
     {
         SqlAffinity::Text
-    } else if declared_type.is_empty() || declared_type.contains("BLOB") {
+    } else if declared_type.is_empty()
+        || declared_type.contains("BLOB")
+        || (strict && declared_type == "ANY")
+    {
         SqlAffinity::None
     } else {
         SqlAffinity::Numeric
     };
     SqlColumnMetadata {
+        strict_type: if strict {
+            match declared_type.as_str() {
+                "INT" => Some("INT"),
+                "INTEGER" => Some("INTEGER"),
+                "REAL" => Some("REAL"),
+                "TEXT" => Some("TEXT"),
+                "BLOB" => Some("BLOB"),
+                "ANY" => Some("ANY"),
+                _ => None,
+            }
+        } else {
+            None
+        },
         affinity,
         nocase: split_sql_collation(declaration).is_some_and(|(_, nocase)| nocase),
     }
@@ -19693,10 +19779,15 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
     for (index, col) in tbl.columns.iter().enumerate() {
         let mut def = col.clone();
         let metadata = tbl.metadata.get(index).copied().unwrap_or_default();
-        match metadata.affinity {
-            SqlAffinity::Text => def.push_str(" TEXT"),
-            SqlAffinity::Numeric => def.push_str(" NUMERIC"),
-            SqlAffinity::None => {}
+        if let Some(declared_type) = metadata.strict_type {
+            def.push(' ');
+            def.push_str(declared_type);
+        } else {
+            match metadata.affinity {
+                SqlAffinity::Text => def.push_str(" TEXT"),
+                SqlAffinity::Numeric => def.push_str(" NUMERIC"),
+                SqlAffinity::None => {}
+            }
         }
         if metadata.nocase {
             def.push_str(" COLLATE NOCASE");
@@ -19746,7 +19837,16 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
         }
         parts.push(fk_s);
     }
-    format!("CREATE TABLE {tname} ({})", parts.join(", "))
+    let strict = if tbl
+        .metadata
+        .iter()
+        .any(|column| column.strict_type.is_some())
+    {
+        " STRICT"
+    } else {
+        ""
+    };
+    format!("CREATE TABLE {tname} ({}){strict}", parts.join(", "))
 }
 
 fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Vec<bool>) {
@@ -19804,6 +19904,9 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     if let Some(open) = stmt.find('(')
         && let Some(close) = stmt.rfind(')')
     {
+        let strict = stmt[close + 1..]
+            .split(',')
+            .any(|option| option.trim().eq_ignore_ascii_case("STRICT"));
         let cols_def = &stmt[open + 1..close];
         for c in split_top_level_comma(cols_def) {
             let c_norm = c.replace(['\r', '\n', '\t'], " ");
@@ -19943,7 +20046,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             let is_text =
                 type_tok.contains("TEXT") || type_tok.contains("CHAR") || type_tok.contains("CLOB");
             is_text_cols.push(is_text);
-            metadata.push(sql_column_metadata(&c_norm));
+            metadata.push(sql_column_metadata(&c_norm, strict));
             cols.push(cname);
         }
     }
@@ -21892,7 +21995,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                     tbl.metadata
                         .resize(tbl.columns.len(), SqlColumnMetadata::default());
-                    tbl.metadata.push(sql_column_metadata(col_spec));
+                    let strict = tbl
+                        .metadata
+                        .iter()
+                        .any(|column| column.strict_type.is_some());
+                    tbl.metadata.push(sql_column_metadata(col_spec, strict));
                     tbl.columns.push(col_name);
                     for r in &mut tbl.rows {
                         r.push(def_val.clone());
@@ -22032,6 +22139,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if let Some(mut table) =
                     resolve_sql_from_table(&format!("({query})"), &tables, &views)
                 {
+                    for column in &mut table.metadata {
+                        column.strict_type = None;
+                    }
                     table.create_sql = synthesize_table_create_sql(&tname, &table);
                     tables.insert(tname, table);
                 }
@@ -22519,7 +22629,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     BuiltinOutcome {
         stdout: out,
-        exit_code: if errors.starts_with("Error: stepping, UNIQUE constraint failed:") {
+        exit_code: if errors.starts_with("Error: stepping, cannot store ")
+            || errors.starts_with("Error: stepping, UNIQUE constraint failed:")
+        {
             19
         } else {
             i32::from(!errors.is_empty())
@@ -23122,7 +23234,8 @@ fn exec_sql_insert(
             }
         }
         if let Some(table) = tables.get(&tname) {
-            sql_apply_row_affinity(&mut row, &table.metadata);
+            apply_sql_row_affinity(&mut row, &table.metadata, &t_cols, &tname)
+                .inspect_err(|_| *tables = stmt_snap.clone())?;
         }
         if is_view {
             match fire_sql_triggers(
@@ -23270,7 +23383,13 @@ fn exec_sql_insert(
                                 eval_sql_row_value(gexpr, &t_cols, &updated_row, tables);
                         }
                     }
-                    sql_apply_row_affinity(&mut updated_row, &tables[&tname].metadata);
+                    apply_sql_row_affinity(
+                        &mut updated_row,
+                        &tables[&tname].metadata,
+                        &t_cols,
+                        &tname,
+                    )
+                    .inspect_err(|_| *tables = stmt_snap.clone())?;
                     if !fire_sql_triggers(
                         &tname,
                         SqlTriggerOp::Update,
@@ -23477,9 +23596,7 @@ fn exec_sql_update(
                     new_r[gpos] = eval_sql_row_value(gexpr, &t_cols, &new_r, &tables_snap);
                 }
             }
-            if let Some(table) = tables_snap.get(&tname) {
-                sql_apply_row_affinity(&mut new_r, &table.metadata);
-            }
+            apply_sql_row_affinity(&mut new_r, &target.metadata, &t_cols, &tname)?;
             updated_pairs.push((r_idx, old_r, new_r));
         }
     }
@@ -23614,7 +23731,12 @@ fn exec_sql_update(
                                     }
                                     _ => {}
                                 }
-                                sql_apply_row_affinity(cr, &ctbl.metadata);
+                                if let Err(error) =
+                                    apply_sql_row_affinity(cr, &ctbl.metadata, &c_cols, &ctname)
+                                {
+                                    *tables = tables_snap;
+                                    return Err(error);
+                                }
                                 if cr != &old_cr {
                                     child_updates.push((old_cr, cr.clone()));
                                 }
@@ -23853,7 +23975,15 @@ fn exec_sql_delete(
                                         == Some(sql_value_text(&pval))
                                     {
                                         cr[c_idx] = def_v.clone();
-                                        sql_apply_row_affinity(cr, &ctbl.metadata);
+                                        if let Err(error) = apply_sql_row_affinity(
+                                            cr,
+                                            &ctbl.metadata,
+                                            &c_cols,
+                                            &ctname,
+                                        ) {
+                                            *tables = tables_snap;
+                                            return Err(error);
+                                        }
                                     }
                                 }
                             }

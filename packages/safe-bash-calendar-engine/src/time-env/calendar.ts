@@ -147,7 +147,7 @@ export class TimeZone {
             year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
             era: "short", hourCycle: "h23", timeZoneName: "short" });
           this.ianaZone = moment.tz.zone(name) ?? moment.tz.zone(this.formatter.resolvedOptions().timeZone);
-        } catch { throw new CommandFailure(`unsupported virtual TZ: ${input}`); }
+        } catch { this.fixedOffset = 0; }
       }
     }
   }

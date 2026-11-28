@@ -4095,6 +4095,20 @@ fn jq_strftime(val: &JVal, fmt: &str) -> Result<String, String> {
     while i < chars.len() {
         if chars[i] == '%' && i + 1 < chars.len() {
             match chars[i + 1] {
+                'G' | 'V' => {
+                    let days = epoch.div_euclid(86400);
+                    // The Thursday in an ISO week determines its year.
+                    let thursday = days + 3 - (days + 3).rem_euclid(7);
+                    let (iso_year, _, _) = super::coreutils::civil_from_days(thursday);
+                    if chars[i + 1] == 'G' {
+                        out.push_str(&format!("{iso_year:04}"));
+                    } else {
+                        let january = super::coreutils::days_from_civil(iso_year, 1, 1);
+                        let week = (thursday - january) / 7 + 1;
+                        out.push_str(&format!("{week:02}"));
+                    }
+                }
+                'u' => out.push_str(&((wday + 6) % 7 + 1).to_string()),
                 'Y' => out.push_str(&format!("{year:04}")),
                 'm' => out.push_str(&format!("{:02}", month_0 + 1)),
                 'd' => out.push_str(&format!("{mday:02}")),
@@ -22676,8 +22690,11 @@ fn sql_foreign_key_satisfied(
     let child_values: Option<Vec<_>> = split_top_level_comma(&fk.child_col)
         .into_iter()
         .map(|col| {
-            find_sql_col(columns, col)
-                .map(|index| row.get(index).map(|value| sql_value_text(value)).unwrap_or(SQL_NULL))
+            find_sql_col(columns, col).map(|index| {
+                row.get(index)
+                    .map(|value| sql_value_text(value))
+                    .unwrap_or(SQL_NULL)
+            })
         })
         .collect();
     let Some(child_values) = child_values else {
@@ -22707,7 +22724,8 @@ fn sql_foreign_key_satisfied(
                         .iter()
                         .zip(&child_values)
                         .all(|(index, value)| {
-                            parent_row.get(*index).map(|value| sql_value_text(value)) == Some(*value)
+                            parent_row.get(*index).map(|value| sql_value_text(value))
+                                == Some(*value)
                         })
                 })
         })
@@ -23326,7 +23344,8 @@ fn exec_sql_insert(
         let mut replace_conflicts = BTreeSet::new();
         let mut ignore_conflict = is_do_nothing;
         for (name, terms, declared_ignore) in &unique_idx_clone {
-            let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables).inspect_err(|_| *tables = stmt_snap.clone())?;
+            let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables)
+                .inspect_err(|_| *tables = stmt_snap.clone())?;
             if let Some(&index) = conflicts.first() {
                 if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
                     ignore_conflict |= *declared_ignore;
@@ -23433,7 +23452,8 @@ fn exec_sql_insert(
                             &updated_row,
                             Some(e_idx),
                             tables,
-                        ).inspect_err(|_| *tables = stmt_snap.clone())?;
+                        )
+                        .inspect_err(|_| *tables = stmt_snap.clone())?;
                         if !conflicts.is_empty() {
                             let error = sql_unique_error(&tname, &tables[&tname], name, terms);
                             *tables = stmt_snap;
@@ -25153,7 +25173,10 @@ fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> 
     if desc { order.reverse() } else { order }
 }
 
-fn parse_sql_limit(clause: &str, tables: &BTreeMap<String, SqlTable>) -> Result<(usize, usize), String> {
+fn parse_sql_limit(
+    clause: &str,
+    tables: &BTreeMap<String, SqlTable>,
+) -> Result<(usize, usize), String> {
     let parts = split_top_level_comma(clause);
     let (count, offset) = if parts.len() == 2 {
         // SQLite's comma form reverses the LIMIT count OFFSET offset order.
@@ -29998,7 +30021,9 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     csvkit_decimal::Decimal::parse(vb.trim(), false),
                 ) {
                     na.cmp(&nb)
-                } else if let (Ok(na), Ok(nb)) = (va.trim().parse::<f64>(), vb.trim().parse::<f64>()) {
+                } else if let (Ok(na), Ok(nb)) =
+                    (va.trim().parse::<f64>(), vb.trim().parse::<f64>())
+                {
                     na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                 } else if ignore_case {
                     va.to_uppercase().cmp(&vb.to_uppercase())
@@ -31116,7 +31141,10 @@ fn match_css_attr(expr: &str, anc: &HtmlAnc) -> bool {
             {
                 (stripped.trim().trim_matches('"').trim_matches('\''), false)
             } else {
-                (v_trim.trim_matches('"').trim_matches('\''), default_insensitive)
+                (
+                    v_trim.trim_matches('"').trim_matches('\''),
+                    default_insensitive,
+                )
             };
             let Some((_, actual)) = anc
                 .attrs

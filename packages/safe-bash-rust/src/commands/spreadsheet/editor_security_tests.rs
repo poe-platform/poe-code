@@ -72,6 +72,69 @@ fn security_formulas_match_documented_examples() {
 }
 
 #[test]
+fn intrate_uses_security_day_counts_at_month_ends() {
+    // LibreOffice GetYearDiff: calendar days are not clamped to day 30.
+    // The January-to-leap-day result also agrees with Gnumeric 1.12.62.
+    for date1904 in [false, true] {
+        let mut book = Spreadsheet::new();
+        book.options.date1904 = date1904;
+        for (start, end, fractions) in [
+            (
+                "2024,1,31",
+                "2024,2,29",
+                [28. / 360., 29. / 366., 29. / 360., 29. / 365., 28. / 360.],
+            ),
+            (
+                "2023,1,31",
+                "2023,2,28",
+                [27. / 360., 28. / 365., 28. / 360., 28. / 365., 27. / 360.],
+            ),
+            (
+                "2024,2,29",
+                "2024,3,31",
+                [31. / 360., 31. / 366., 31. / 360., 31. / 365., 32. / 360.],
+            ),
+            (
+                "2023,2,28",
+                "2023,3,31",
+                [31. / 360., 31. / 365., 31. / 360., 31. / 365., 33. / 360.],
+            ),
+            (
+                "2023,2,28",
+                "2024,3,31",
+                [
+                    393. / 360.,
+                    397. / 365.,
+                    397. / 360.,
+                    397. / 365.,
+                    393. / 360.,
+                ],
+            ),
+        ] {
+            for (basis, fraction) in fractions.into_iter().enumerate() {
+                book.edit(
+                    &[(
+                        0,
+                        0,
+                        0,
+                        &format!("=INTRATE(DATE({start}),DATE({end}),94,100,{basis})"),
+                    )],
+                    LIMIT,
+                )
+                .unwrap();
+                near(number(&book, 0, 0), (6. / 94.) / fraction);
+            }
+        }
+        book.edit(
+            &[(0, 0, 0, "=INTRATE(DATE(2024,1,31),DATE(2024,2,29),94,100)")],
+            LIMIT,
+        )
+        .unwrap();
+        near(number(&book, 0, 0), 0.8206686930091185);
+    }
+}
+
+#[test]
 fn accrued_maturity_interest_reuses_all_year_fraction_bases() {
     let mut book = Spreadsheet::new();
     for (year, month, day, endyear, endmonth, endday) in [
@@ -360,7 +423,15 @@ fn upstream_security_basis_examples() {
         (
             "INTRATE",
             "\"2008-2-15\",\"2008-5-15\",10000000,10144200",
-            [0.05768, 0.0586413333333, 0.05768, 0.0584811111111, 0.05768],
+            // US security day count subtracts one day when leaving February
+            // in a leap year: 89 days, rather than YEARFRAC's 90 days.
+            [
+                0.05832808988764045,
+                0.0586413333333,
+                0.05768,
+                0.0584811111111,
+                0.05768,
+            ],
         ),
         (
             "YIELDDISC",

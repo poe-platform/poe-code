@@ -142,7 +142,29 @@ pub(super) fn calculate(
             if a <= 0. || b <= 0. {
                 return Some(Value::Error("#NUM!"));
             }
-            let fraction = year_fraction(start, end, basis, date1904);
+            let fraction = if name == "INTRATE" {
+                // INTRATE uses unadjusted calendar days in 30-day months,
+                // unlike YEARFRAC, and anchors actual/actual to settlement.
+                let (y1, m1, d1) = calendar(start, date1904);
+                let (y2, m2, d2) = calendar(end, date1904);
+                let leap = y1 % 4 == 0 && (y1 % 100 != 0 || y1 % 400 == 0);
+                match basis {
+                    0 | 4 => {
+                        let mut days =
+                            (y2 - y1) * 360 + (i64::from(m2) - i64::from(m1)) * 30 + i64::from(d2)
+                                - i64::from(d1);
+                        if basis == 0 && m1 == 2 && m2 != 2 && y1 == y2 {
+                            days -= if leap { 1 } else { 2 };
+                        }
+                        days as f64 / 360.
+                    }
+                    1 => (end - start) as f64 / if leap { 366. } else { 365. },
+                    2 => (end - start) as f64 / 360.,
+                    _ => (end - start) as f64 / 365.,
+                }
+            } else {
+                year_fraction(start, end, basis, date1904)
+            };
             match name {
                 "ACCRINTM" => product(a, b, fraction),
                 "PRICEDISC" => {

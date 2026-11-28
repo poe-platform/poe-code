@@ -16,7 +16,8 @@ struct View<'a> {
 }
 
 fn blank(byte: u8) -> bool {
-    matches!(byte, b' ' | b'\t')
+    // GNU sort includes embedded newlines when records are NUL-terminated.
+    matches!(byte, b' ' | b'\t' | b'\n')
 }
 fn space(byte: u8) -> bool {
     matches!(byte, b' ' | 9..=13)

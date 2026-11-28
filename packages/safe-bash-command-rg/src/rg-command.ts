@@ -931,7 +931,8 @@ Default input depends on shell configuration.
       --null-data         Use NUL-delimited records
       --crlf              Handle CRLF line endings
       --heading           Group output by filename
-      --sort=path         Sort paths
+      --sort=SORT         Sort by none, path, modified, accessed or created
+      --sortr=SORT        Reverse the selected sort order
       --color=never       Disable color
   -h, --help              Display this help and exit
   -V, --version           Display implementation information and exit

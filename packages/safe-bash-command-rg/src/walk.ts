@@ -332,6 +332,7 @@ export class Walker {
   private readonly reusableTarget = new ReusableFileTarget();
   private walkDirectory(path: string, label: string, depth: number, ancestors: Map<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): boolean | Promise<boolean> {
     if (depth >= this.args.maxDepth) return true;
+    if (this.args.sortReverse || (this.args.sort && this.args.sort !== "none" && this.args.sort !== "path")) return this.walkDirectoryAsync(path, label, depth, ancestors, rules, repository, onTarget);
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
     if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !this.args.hasFiniteMaxFileSize) {
@@ -518,7 +519,7 @@ export class Walker {
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return true; }
     ancestors.set(canonical, label || ".");
     try {
-    const canFastMemReaddir = memDirEntries !== undefined && uniformCanonical && (this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false));
+    const canFastMemReaddir = !this.args.sortReverse && (!this.args.sort || this.args.sort === "none" || this.args.sort === "path") && memDirEntries !== undefined && uniformCanonical && (this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false));
     let localRules: IgnoreRule[] | undefined;
     let localRepository = repository;
     if (canFastMemReaddir && (!this.args.ignore || (!memDirEntries.has(".git") && !memDirEntries.has(".gitignore") && !memDirEntries.has(".ignore") && !memDirEntries.has(".rgignore")))) {
@@ -570,7 +571,27 @@ export class Walker {
         if (!localRules) await this.load(path, rules, repository, entries);
         throw new SearchError("filesystem entry limit exceeded");
       }
-      entries.sort((left, right) => compareEntryNames(left.name, right.name));
+      const field = this.args.sort === "modified" ? "mtimeMs" : this.args.sort === "accessed" ? "atimeMs" : this.args.sort === "created" ? "birthtimeMs" : undefined;
+      const times = new Map<string, number>();
+      if (field) {
+        for (const entry of entries) {
+          await this.limits.tick();
+          const child = resolvePath(path, entry.name);
+          try {
+            await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
+            const stat = await this.context.fs.lstat(child, { signal: this.context.signal });
+            times.set(entry.name, stat[field] ?? 0);
+          } catch (error) {
+            this.context.signal.throwIfAborted();
+            if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+            await this.report(error);
+          }
+        }
+      }
+      const direction = this.args.sortReverse ? -1 : 1;
+      entries.sort((left, right) => direction * (field
+        ? (times.get(left.name) ?? 0) - (times.get(right.name) ?? 0)
+        : compareEntryNames(left.name, right.name)));
     }
     if (!localRules) {
       const loaded = await this.load(path, rules, repository, entries);
@@ -740,6 +761,8 @@ export class Walker {
   ): boolean | Promise<boolean> | null {
     if (depth >= this.args.maxDepth) return true;
     if (
+      this.args.sortReverse ||
+      (this.args.sort !== undefined && this.args.sort !== "none" && this.args.sort !== "path") ||
       path === "/dev" ||
       path.startsWith("/dev/") ||
       this.globs.length !== 0 ||

@@ -54,6 +54,9 @@ escapes and invalid Unicode scalar values fail with exit status 2.
 Search recursively with `rg -t ts needle /src`, select paths with `-g`, or list
 selected files with `--files`. Add `--glob-case-insensitive` to match all `-g`
 patterns without case sensitivity, or use `--iglob` for an individual pattern.
+`--sort` and `--sortr` order directory entries by `path`, `modified`,
+`accessed`, or `created` (oldest first; `--sortr` reverses the order).
+Use `none` to restore the default traversal order.
 Hidden files, ignore rules, symlinks and traversal
 depth retain the Safe Bash search profile. `rg` is already included by
 `baseAgentCommands()` and `agentCommands()`; use `{ replace: true }` when replacing

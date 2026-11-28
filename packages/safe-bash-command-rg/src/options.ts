@@ -18,6 +18,8 @@ export interface SearchOptions {
 
 
 export interface Arguments {
+  sort?: "none" | "path" | "modified" | "accessed" | "created";
+  sortReverse?: boolean;
   noConfig?: boolean;
   help?: boolean | undefined;
   version?: "short" | "long" | undefined;
@@ -93,6 +95,8 @@ const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
 const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
 
 export class ParsedArguments implements Arguments {
+  declare sort: NonNullable<Arguments["sort"]>;
+  declare sortReverse: boolean;
   declare noConfig: boolean;
   declare help?: boolean | undefined;
   declare version?: "short" | "long" | undefined;
@@ -149,6 +153,8 @@ export class ParsedArguments implements Arguments {
   declare globs: { source: string; insensitive: boolean }[];
   declare types: { name: string; include: boolean }[];
   reset(): void {
+    this.sort = "none";
+    this.sortReverse = false;
     this.noConfig = false;
     this.help = undefined;
     this.version = undefined;
@@ -211,6 +217,8 @@ export class ParsedArguments implements Arguments {
   }
   static {
     Object.assign(ParsedArguments.prototype, {
+      sort: "none",
+      sortReverse: false,
       noConfig: false,
       patternFiles: EMPTY_STRINGS,
       explicitPatterns: false,
@@ -429,7 +437,13 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "P": case "pcre2": result.perl = true; break;
         case "no-pcre2": result.perl = false; break;
         case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
-        case "sort": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "path") throw new SearchError("only --sort=path is supported"); break;
+        case "sort": case "sortr": {
+          const value = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)));
+          if (value !== "none" && value !== "path" && value !== "modified" && value !== "accessed" && value !== "created") throw new SearchError(`invalid sort value '${value}'`);
+          result.sort = value;
+          result.sortReverse = flag === "sortr" && value !== "none";
+          break;
+        }
         case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;
         default: throw new SearchError(`unsupported option '${long ? "--" : "-"}${flag}'`);
       }

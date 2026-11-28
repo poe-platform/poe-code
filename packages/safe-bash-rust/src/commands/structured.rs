@@ -27939,6 +27939,13 @@ fn eval_sql_row_expr(
                         ai += 2;
                         continue;
                     };
+                    let exists = get_sql_json_path(&jval, &segs).is_some();
+                    if (upper.starts_with("JSON_INSERT(") && exists)
+                        || (upper.starts_with("JSON_REPLACE(") && !exists)
+                    {
+                        ai += 2;
+                        continue;
+                    }
                     let new_jv = parse_sql_arg_to_jval(&val_s, args[ai + 1]);
                     if set_jq_jval_path(&mut jval, &segs, new_jv).is_err() {
                         return SQL_NULL.to_string();

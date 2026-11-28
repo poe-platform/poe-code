@@ -17,6 +17,46 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
   return { ...result, stdout, stderr };
 }
 
+for (const [suffix, backup] of [["bak_*", "bak_f1"], ["bk/*.orig", "bk/f1.orig"], ["*-copy-*", "f1-copy-f1"], [".bak", "f1.bak"]]) {
+  test(`sed expands in-place backup suffix ${suffix}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/bk");
+    await fs.writeFile("/f1", Buffer.from("a\n"));
+    const result = await run(createSedCommand(), [`-i${suffix}`, "s/a/b/", "f1"], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "");
+    assert.equal(Buffer.from(await fs.readFile("/" + backup)).toString(), "a\n");
+    assert.equal(Buffer.from(await fs.readFile("/f1")).toString(), "b\n");
+  });
+}
+
+test("sed directory backups preserve permissions and replace an existing backup", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/bk/dir", { recursive: true });
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/f1", Buffer.from("a\n"), { mode: 0o640 });
+  await fs.writeFile("/bk/dir/f1.orig", Buffer.from("previous\n"), { mode: 0o600 });
+  const result = await run(createSedCommand(), ["-ibk/*.orig", "s/a/b/", "dir/f1"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(Buffer.from(await fs.readFile("/bk/dir/f1.orig")).toString(), "a\n");
+  assert.equal((await fs.stat("/bk/dir/f1.orig")).mode & 0o777, 0o640);
+  assert.equal(Buffer.from(await fs.readFile("/dir/f1")).toString(), "b\n");
+});
+
+for (const suffix of ["missing/*.orig", "*", "bk/*.orig"]) {
+  test(`sed refuses unsafe backup ${suffix} without editing the input`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/f1", Buffer.from("a\n"));
+    await fs.mkdir("/real");
+    await fs.symlink!("real", "/bk");
+    const result = await run(createSedCommand(), [`-i${suffix}`, "s/a/b/", "f1"], "", fs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(Buffer.from(await fs.readFile("/f1")).toString(), "a\n");
+    assert.deepEqual(await fs.readdir("/real"), []);
+  });
+}
+
 for (const [program, input, expected] of [
   ["y/é/e/", "aéb\n", "aeb\n"],
   ["y/ÀÉ/ae/", "ÀÉ x\n", "ae x\n"],

@@ -1216,10 +1216,10 @@ async function executeSedGeneral(
     try {
       if (inPlace !== undefined) {
         if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
-        if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
+        if (inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain NUL");
         await assertPathRequirements(context, sedRequirements, ["in-place"], files);
-        if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
         const targets = await prepareInPlace(context, files, inPlace, followSymlinks);
+        if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], targets.flatMap(target => [target.path, target.backupPath]));
         outputState.inputFailed = targets.length !== files.length;
         if (outputFiles.length > 0) await prepareOutputs();
         for (const target of targets) {

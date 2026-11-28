@@ -12,6 +12,9 @@ interface Target {
   readonly original: FileStat;
   readonly input: FileStat;
   readonly backup: FileStat | null;
+  readonly backupPath: string;
+  readonly backupParent: FileStat;
+  readonly backupAncestors: readonly FileStagingEntry[];
   readonly moveBackup: boolean;
   readonly ancestors: readonly FileStagingEntry[];
   readonly fs: FileSystem;
@@ -48,22 +51,26 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     }
     if (parent.type !== "directory" || input.type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files and directory parents" });
     let backup: FileStat | null = null;
+    const backupName = followSymlinks ? operand : file;
+    const backupPath = suffix ? "/" + virtualPath(context, suffix.includes("*") ? suffix.split("*").join(backupName) : backupName + suffix).split("/").filter(part => part && part !== ".").join("/") : path;
+    const backupParent = dirname(backupPath) === dirname(path) ? parent : await fs.lstat(dirname(backupPath), { signal: context.signal });
     let moveBackup = false;
     const ancestors: FileStagingEntry[] = [];
+    const backupAncestors: FileStagingEntry[] = dirname(backupPath) === dirname(path) ? ancestors : [];
     if (suffix) {
-      try { backup = await fs.lstat(path + suffix, { signal: context.signal }); }
+      try { backup = await fs.lstat(backupPath, { signal: context.signal }); }
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
-      if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: path + suffix, message: "in-place backups require regular files" });
+      if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: backupPath, message: "in-place backups require regular files" });
       if (backup && compareCopyIdentity(original, backup) === "same") throw new FsError("EINVAL", { path, message: "backup aliases the edited file" });
-      const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal, create: !backup, stagingAncestry: true }) ?? fs.capabilities;
-      moveBackup = capabilities.atomicStagedFileBackup === true && caps.atomicStagedFileBackup === true && !!fs.publishStagedFileSet;
+      const caps = await fs.capabilitiesFor?.(backupPath, { signal: context.signal, create: !backup, stagingAncestry: true }) ?? fs.capabilities;
+      moveBackup = dirname(backupPath) === dirname(path) && capabilities.atomicStagedFileBackup === true && caps.atomicStagedFileBackup === true && !!fs.publishStagedFileSet;
       if (!moveBackup && original.type === "symlink") throw new FsError("ENOTSUP", { path, message: "preserving symlinks in backups requires atomic backup publication" });
       if (!moveBackup && ((original.nlink ?? 1) > 1 || (backup?.nlink ?? 1) > 1) && backup?.type !== "directory") {
         throw new FsError("ENOTSUP", { path, message: "preserving hard links in backups requires atomic backup publication" });
       }
       if (!moveBackup && backup?.type === "file" && (backup.mode & 0o7777) !== (original.mode & 0o7777)
         && (!caps.atomicFileStaging || !caps.atomicStagingAncestry)) {
-        throw new FsError("ENOTSUP", { path: path + suffix, message: "preserving backup permissions requires atomic staging with ancestry verification" });
+        throw new FsError("ENOTSUP", { path: backupPath, message: "preserving backup permissions requires atomic staging with ancestry verification" });
       }
     }
     if (!capabilities.atomicFileStaging || !capabilities.atomicStagingAncestry || !capabilities.retainedStagingCleanup
@@ -76,15 +83,24 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       ancestors.unshift({ path: directory, stat });
       if (directory === "/") break;
     }
-    targets.push({ file, path, parent, original, input, backup, moveBackup, ancestors });
+    for (let directory = dirname(backupPath); backupAncestors !== ancestors; directory = dirname(directory)) {
+      const stat = directory === dirname(backupPath) ? backupParent : await fs.lstat(directory, { signal: context.signal });
+      if (stat.type !== "directory") throw new FsError("ENOTSUP", { path: directory, message: "in-place backups require directory ancestry" });
+      backupAncestors.unshift({ path: directory, stat });
+      if (directory === "/") break;
+    }
+    targets.push({ file, path, parent, original, input, backup, backupPath, backupParent, backupAncestors, moveBackup, ancestors });
   }
   if (!targets.length) return [];
-  const view = await fs.confineExtraction([...new Set(targets.map(target => dirname(target.path)))], { signal: context.signal });
+  const view = await fs.confineExtraction([...new Set(targets.flatMap(target => [dirname(target.path), dirname(target.backupPath)]))], { signal: context.signal });
   if (!view.writeFileConditional) throw new FsError("ENOTSUP", { message: "in-place editing requires atomic conditional writes" });
   return targets.map(target => ({ ...target, fs: view }));
 }
 
 async function replaceEntry(context: CommandContext, target: Target, suffix: string, data: Uint8Array): Promise<void> {
+  const backupOnly = !!suffix && !target.moveBackup;
+  const path = backupOnly ? target.backupPath : target.path;
+  const parent = backupOnly ? target.backupParent : target.parent;
   let staging: FileStaging | undefined;
   let operation: Promise<void> | undefined;
   let failure: { reason: unknown } | undefined;
@@ -103,19 +119,19 @@ async function replaceEntry(context: CommandContext, target: Target, suffix: str
       if (closed) throw new FsError("EPIPE", { message: "in-place publication is closed" });
       // Creation binds the private stage to this parent; publication below
       // additionally verifies every retained ancestor of the destination.
-      staging = await context.fs.createStagedFile!(joinPath(dirname(target.path), `.sed-${globalThis.crypto.randomUUID()}`), "file", {
+      staging = await context.fs.createStagedFile!(joinPath(dirname(path), `.sed-${globalThis.crypto.randomUUID()}`), "file", {
         type: "file", data,
-      }, { parent: target.parent, retainCleanup: target.moveBackup || !suffix, mode: target.input.mode & 0o7777, signal: context.signal });
+      }, { parent, retainCleanup: target.moveBackup || !suffix, mode: target.input.mode & 0o7777, signal: context.signal });
       context.signal.throwIfAborted();
       if (closed) throw new FsError("EPIPE", { message: "in-place publication is closed" });
-      const publication = { parent: target.parent, ancestors: target.ancestors, signal: context.signal };
+      const publication = { parent, ancestors: backupOnly ? target.backupAncestors : target.ancestors, signal: context.signal };
       if (target.moveBackup) {
         await context.fs.publishStagedFileSet!(staging, target.path, {
           ...publication, destination: target.original,
-          companions: [{ path: target.path + suffix, expected: target.backup, remove: false, keepDestination: true }],
+          companions: [{ path: target.backupPath, expected: target.backup, remove: false, keepDestination: true }],
         });
       } else {
-        await context.fs.publishStagedFile!(staging, target.path + suffix, {
+        await context.fs.publishStagedFile!(staging, path, {
           ...publication, destination: suffix ? target.backup : target.original,
         });
       }
@@ -161,8 +177,8 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
       // consumes the Shell output budget. The text buffer budget still applies.
       context.signal.throwIfAborted();
       if (target.backup?.type === "file" && (target.backup.mode & 0o7777) !== (target.original.mode & 0o7777)) await replaceEntry(context, target, suffix, bytes(original));
-      else await target.fs.writeFileConditional!(target.path + suffix, bytes(original), {
-        parent: target.parent, expected: target.backup, mode: target.original.mode & 0o7777, signal: context.signal,
+      else await target.fs.writeFileConditional!(target.backupPath, bytes(original), {
+        parent: target.backupParent, expected: target.backup, mode: target.original.mode & 0o7777, signal: context.signal,
       });
       context.signal.throwIfAborted();
     }

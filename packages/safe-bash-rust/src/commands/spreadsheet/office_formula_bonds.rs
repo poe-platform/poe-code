@@ -223,7 +223,12 @@ pub(super) fn calculate(
         return Some(Value::Error("#NUM!"));
     }
     let f = frequency as f64;
-    let q = (e - a) / e;
+    // Actual/360 fixes the denominator, not the calendar length of the coupon.
+    let q = if basis == 2 {
+        (next - settlement) as f64 / e
+    } else {
+        (e - a) / e
+    };
     // Scale coupon/redemption before multiplying by par; duration and yield
     // ratios remain finite even when an intermediate unscaled price overflows.
     let scale = rate
@@ -269,7 +274,7 @@ pub(super) fn calculate(
         } else {
             let (mut lo, mut hi) = (-36., 710.);
             if q < 0. && coupon > 0. {
-                // Actual/360 can put the next payment a little before time
+                // Actual/365 can put the next payment a little before time
                 // zero. Price is then convex but no longer decreasing at all
                 // yields. Locate its minimum and solve on the decreasing side.
                 let (mut left, mut right) = (0., hi);

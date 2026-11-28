@@ -23,6 +23,39 @@ fn near(actual: f64, expected: f64) {
 }
 
 #[test]
+fn actual_360_price_uses_remaining_days_across_leap_coupon() {
+    let mut book = Spreadsheet::new();
+    // First price independently recalculated by Calc and Gnumeric. The adjacent
+    // dates use the same maturity-anchored cash flows and actual/360 fractions.
+    for (settlement, expected) in [
+        ("DATE(2020,2,28)", 94.2775045869529),
+        ("DATE(2020,2,29)", 94.27448031280868),
+        ("DATE(2020,3,1)", 94.27778512906332),
+    ] {
+        book.edit(
+            &[
+                (
+                    0,
+                    0,
+                    0,
+                    &format!("=PRICE({settlement},DATE(2024,2,29),0.035,0.051,100,1,2)"),
+                ),
+                (
+                    0,
+                    0,
+                    1,
+                    &format!("=YIELD({settlement},DATE(2024,2,29),0.035,A1,100,1,2)"),
+                ),
+            ],
+            LIMIT,
+        )
+        .unwrap();
+        near(numeric(&book, 0, 0), expected);
+        near(numeric(&book, 0, 1), 0.051);
+    }
+}
+
+#[test]
 fn regular_bonds_match_upstream_prices_yields_and_duration() {
     let mut book = Spreadsheet::new();
     for (formula, want) in [
@@ -44,7 +77,7 @@ fn regular_bonds_match_upstream_prices_yields_and_duration() {
         ),
         (
             "=PRICE(DATE(2008,11,11),DATE(2021,3,1),0.0785,0.0625,100,2,2)",
-            113.57920636475,
+            113.55952659651275,
         ),
         (
             "=PRICE(DATE(2008,11,11),DATE(2021,3,1),0.0785,0.0625,100,2,3)",
@@ -209,7 +242,7 @@ fn price_matches_independent_cash_flows_and_yield_recovers_input() {
         }
     }
     // Actual/360 can make the accrued fraction exceed one near a coupon.
-    // A valid small yield still exists even when price rises again at huge yields.
+    // The next coupon remains in the future and PRICE/YIELD must agree.
     book.edit(
         &[
             (
@@ -474,7 +507,7 @@ fn upstream_duration_and_yield_frequency_basis_examples() {
         (1, 1, 0.0804467519494),
         (4, 1, 0.0804921326093),
         (2, 0, 0.0804841133636),
-        (2, 2, 0.0804842576475),
+        (2, 2, 0.08045558312606604),
         (2, 3, 0.0804841172323),
         (2, 4, 0.0804841133636),
     ] {

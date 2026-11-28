@@ -4,6 +4,41 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { command, evalSyncChecksum } from "./index.js";
 
+for (const [algorithm, checksum] of [
+  ["md5", "60b725f10c9c85c70d97880dfe8191b3"],
+  ["sha256", "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7"],
+] as const) {
+  for (const separator of [" ", "  ", " *", "\t"]) {
+    for (const manifest of ["sums", "-"]) {
+      test(`${algorithm} verifies ${JSON.stringify(separator)} separated checksums from ${manifest}`, async () => {
+        const fs = createMemoryFileSystem();
+        await fs.mkdir("/work");
+        await fs.writeFile("/work/f", new TextEncoder().encode("a\n"));
+        const contents = `${checksum}${separator}f\n`;
+        if (manifest !== "-") await fs.writeFile("/work/sums", new TextEncoder().encode(contents));
+        let stdout = "";
+        let stderr = "";
+        const definition = command(`${algorithm}sum`, algorithm, Infinity);
+        const result = await definition.execute({
+          command: definition.name, args: manifest === "-" ? ["-c"] : ["-c", manifest],
+          cwd: "/work", env: {}, fs, stdin: toByteSource(manifest === "-" ? contents : ""),
+          stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+          stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+          signal: new AbortController().signal,
+        });
+        assert.equal(stderr, "");
+        assert.equal(result.exitCode, 0);
+        assert.equal(stdout, "f: OK\n");
+        assert.equal(evalSyncChecksum(
+          definition.name, new TextEncoder().encode(contents), ["-c"],
+          name => name === "f" ? new TextEncoder().encode("a\n") : undefined,
+          manifest === "-" ? undefined : manifest,
+        ), stdout);
+      });
+    }
+  }
+}
+
 test("checksums report cumulative source bytes to the host input budget", async () => {
   const seen: number[] = [];
   const fs = createMemoryFileSystem();

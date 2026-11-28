@@ -297,9 +297,10 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm, allowBase64: boolea
   } else {
     if (algorithm === "crc" || numericAlgorithms.has(algorithm)) return undefined;
     const separator = [...line].findIndex(c => c === " " || c === "\t");
-    if (separator < 0 || ![" ", "*"].includes(line[separator + 1]!)) return undefined;
+    if (separator < 0) return undefined;
     encoded = line.slice(0, separator);
-    filename = line.slice(separator + 2);
+    const modeMarker = line[separator + 1] === " " || line[separator + 1] === "*";
+    filename = line.slice(separator + (modeMarker ? 2 : 1));
     if (algorithm !== "blake2b" && algorithm !== "sha3") bits = hashBits[algorithm as keyof typeof hashBits];
   }
   // Require canonical encodings and the size declared by the tag. Never let

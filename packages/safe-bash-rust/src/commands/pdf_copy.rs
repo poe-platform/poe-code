@@ -628,6 +628,10 @@ impl PageOutput {
             }).map_err(|e| format!("parsing numeric range for {key}: {e}"))?;
             let mut seen = BTreeSet::new();
             if batch.is_none() {
+                if edits.qpdf {
+                    output.copy_selected_labels(source, indices.iter().copied())
+                        .ok_or("could not copy selected PDF page labels")?;
+                }
                 let offset = output.pages.len();
                 output
                     .copy_pages(source, indices.iter().copied(), false, |_| None, Some(&mut seen), None)
@@ -651,6 +655,10 @@ impl PageOutput {
                     }
                     let selected = indices.as_slice()[..n].iter().copied();
                     let source = sources.get_mut(key).unwrap();
+                    if edits.qpdf {
+                        output.copy_selected_labels(source, selected.clone())
+                            .ok_or("could not copy selected PDF page labels")?;
+                    }
                     let offset = output.pages.len();
                     output
                         .copy_pages(
@@ -834,6 +842,51 @@ impl PageOutput {
             }
         }
         super::pdf_rewrite::encode(&Value::Dict(info), &mut self.bodies[2]).ok()?;
+        Some(())
+    }
+
+    fn copy_selected_labels(
+        &mut self,
+        source: &mut PageSource<'_>,
+        selection: impl Iterator<Item = usize>,
+    ) -> Option<()> {
+        let labels: BTreeMap<_, _> = source.objects
+            .labels(source.catalog.get(b"PageLabels"))?.into_iter().collect();
+        if labels.is_empty() && self.labels.is_empty() {
+            return Some(());
+        }
+        // Unlabelled pages before the first labelled input retain decimal numbering.
+        if self.labels.is_empty() && !self.pages.is_empty() {
+            let default = b"0 << /S /D >> ";
+            self.remaining = self.remaining.checked_sub(default.len())?;
+            self.labels.extend_from_slice(default);
+        }
+        let mut previous = None;
+        for (position, index) in selection.enumerate() {
+            let range = labels.range(..=index).next_back();
+            let start_index = range.map(|(&start, _)| start).unwrap_or(0);
+            let contiguous = previous == index.checked_sub(1).map(|i| (i, start_index));
+            previous = Some((index, start_index));
+            if position > 0 && contiguous {
+                continue;
+            }
+            let mut fields = match range {
+                Some((_, Value::Dict(fields))) => fields.clone(),
+                _ => vec![(b"S".into(), Value::Word(b"/D".as_slice().into()))],
+            };
+            if fields.iter().any(|(key, _)| key.as_ref() == b"S") {
+                let start = fields.iter().find(|(key, _)| key.as_ref() == b"St")
+                    .and_then(|(_, value)| super::uint(value.word()?)).unwrap_or(1);
+                let start = start.checked_add(index.checked_sub(start_index)?)?;
+                set(&mut fields, b"St", Value::Word(start.to_string().into_bytes().into()));
+            }
+            let mut pair = Vec::new();
+            write!(pair, "{} ", self.pages.len().checked_add(position)?).ok()?;
+            super::pdf_rewrite::encode(&Value::Dict(fields), &mut pair).ok()?;
+            pair.push(b' ');
+            self.remaining = self.remaining.checked_sub(pair.len())?;
+            self.labels.extend_from_slice(&pair);
+        }
         Some(())
     }
 

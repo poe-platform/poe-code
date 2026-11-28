@@ -112,3 +112,25 @@ test("sed admits whole-match replacement size before writing", async () => {
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout.length, 0);
 });
+
+for (const extended of [false, true]) {
+  for (const [program, input, expected] of [
+    ["N;s/\\`a/X/;s/b\\'/Y/", "a\nb\n", "X\nY\n"],
+    [extended ? "s/\\`a|b\\'/-/g" : "s/\\`a\\|b\\'/-/g", "ab\n", "--\n"],
+    ["N;s/\\na\\'/!/", "a\na\n", "a!\n"],
+    ["N;s/\\`b/X/;s/a\\'/Y/", "a\nb\n", "a\nb\n"],
+    [extended ? "N;s/(a|b)\\'/X/" : "N;s/\\(a\\|b\\)\\'/X/", "a\n\n", "a\n\n"],
+    ["N;s/\\'/!/g", "a\n\n", "a\n!\n"],
+    ["N;/\\`a/s/b\\'/Y/", "a\nb\n", "a\nY\n"],
+    ["s/[\\`']/X/g", "`'\\\n", "XXX\n"],
+    ["s/`'/X/", "`'\n", "X\n"],
+    ["s/\\\\`/X/;s/\\\\'/Y/", "\\`\\'\n", "XY\n"],
+  ] as const) {
+    test(`sed buffer anchors (${extended ? "ERE" : "BRE"}): ${program}`, async () => {
+      const result = await runSed({ args: [...(extended ? ["-E"] : []), program], stdin: input });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.equal(result.stdout.toString(), expected);
+      assert.equal(result.stderr.length, 0);
+    });
+  }
+}

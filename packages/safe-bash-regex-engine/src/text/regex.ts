@@ -625,6 +625,10 @@ export class Pattern {
         const accepts = propertyEscape();
         if (accepts) return { type: "character", accepts };
         const reference = source[offset];
+        if (dialect === "sed" && (reference === "`" || reference === "'")) {
+          offset++;
+          return reference === "`" ? { type: "begin" } : { type: "end", strict: true };
+        }
         if (dialect === "jq" && (reference === "A" || reference === "z" || reference === "Z")) {
           offset++;
           return reference === "A" ? { type: "begin" } : { type: "end", strict: reference === "z" };

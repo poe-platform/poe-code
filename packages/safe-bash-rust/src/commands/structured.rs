@@ -11448,10 +11448,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut geom_col: Option<String> = None;
     let mut no_bbox = false;
     let mut stream = false;
-    let mut no_inference = false;
-    let mut no_leading_zeroes = false;
-    let mut blanks = false;
-    let mut null_values: Vec<String> = Vec::new();
+    let mut inference = csvkit_cell::Inference::default();
     let mut no_header_row = false;
     let mut zero_based = false;
     let mut skip_lines = 0usize;
@@ -11465,9 +11462,9 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         match args[i].as_str() {
             "--stream" => stream = true,
             "--no-bbox" => no_bbox = true,
-            "-I" | "--no-inference" => no_inference = true,
-            "--no-leading-zeroes" => no_leading_zeroes = true,
-            "--blanks" => blanks = true,
+            "-I" | "--no-inference" => inference.no_inference = true,
+            "--no-leading-zeroes" => inference.no_leading_zeroes = true,
+            "--blanks" => inference.blanks = true,
             "-H" | "--no-header-row" => no_header_row = true,
             "--zero" => zero_based = true,
             "-S" | "--skipinitialspace" => skip_initial_space = true,
@@ -11502,7 +11499,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             "--null-value" if i + 1 < args.len() => {
                 i += 1;
-                null_values.push(args[i].clone());
+                inference.nulls.push(&args[i]);
             }
             "-K" | "--skip-lines" if i + 1 < args.len() => {
                 i += 1;
@@ -11529,7 +11526,6 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         i += 1;
     }
 
-    let _ = no_leading_zeroes;
     let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&e, 1),
@@ -11550,42 +11546,38 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         (normalize_csvkit_headers(&rows[0]), &rows[1..])
     };
 
-    let cell_to_jval = |raw: &str| -> JVal {
-        let t = raw.trim();
-        if null_values.iter().any(|nv| nv.eq_ignore_ascii_case(t)) {
+    let column_types: Vec<_> = (0..headers.len())
+        .map(|idx| {
+            let mut boolean = !inference.no_inference;
+            let mut numeric = !inference.no_inference;
+            for row in data {
+                if !boolean && !numeric {
+                    break;
+                }
+                if let Some(cell) = row
+                    .get(idx)
+                    .and_then(|raw| inference.text_cell(raw.clone()))
+                {
+                    boolean &= cell.boolean.is_some();
+                    numeric &= cell.number.is_some();
+                }
+            }
+            (boolean, numeric)
+        })
+        .collect();
+    let cell_to_jval = |idx: usize, raw: Option<&String>| -> JVal {
+        let Some(cell) = raw.and_then(|raw| inference.text_cell(raw.clone())) else {
             return JVal::Null;
+        };
+        let (boolean, numeric) = column_types[idx];
+        if boolean && let Some(value) = cell.boolean {
+            return JVal::Bool(value);
         }
-        if raw.is_empty() {
-            return if blanks {
-                JVal::Str(String::new())
-            } else {
-                JVal::Null
-            };
-        }
-        if !blanks
-            && (t.eq_ignore_ascii_case("null")
-                || t.eq_ignore_ascii_case("none")
-                || t.eq_ignore_ascii_case("na")
-                || t.eq_ignore_ascii_case("n/a"))
-        {
-            return JVal::Null;
-        }
-        if no_inference {
-            return JVal::Str(raw.to_string());
-        }
-        if t.eq_ignore_ascii_case("true") {
-            return JVal::Bool(true);
-        }
-        if t.eq_ignore_ascii_case("false") {
-            return JVal::Bool(false);
-        }
-        if is_csvkit_num_str(t, false)
-            && let Ok(n) = t.parse::<f64>()
-        {
+        if numeric && let Some(n) = cell.number.as_deref().and_then(|n| n.parse::<f64>().ok()) {
             let text = (n.fract() == 0.0).then(|| format!("{n:.1}").into_boxed_str());
             return JVal::Number(n, text);
         }
-        JVal::Str(raw.to_string())
+        JVal::Str(cell.text)
     };
 
     let resolve_one = |spec: &str| -> Option<usize> {
@@ -11627,8 +11619,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if Some(idx) == geom_idx {
                     continue;
                 }
-                let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
-                props.push((h.clone(), cell_to_jval(cell)));
+                props.push((h.clone(), cell_to_jval(idx, row.get(idx))));
             }
             let _ = type_idx;
             let geom = if let Some(gi) = geom_idx
@@ -11648,8 +11639,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             };
             let mut feat_entries = vec![("type".to_string(), JVal::Str("Feature".to_string()))];
             if let Some(ki) = key_idx {
-                let kv = row.get(ki).map(|s| s.as_str()).unwrap_or("");
-                feat_entries.push(("id".to_string(), cell_to_jval(kv)));
+                feat_entries.push(("id".to_string(), cell_to_jval(ki, row.get(ki))));
             }
             feat_entries.push(("properties".to_string(), JVal::Object(props)));
             feat_entries.push(("geometry".to_string(), geom));
@@ -11712,8 +11702,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             let mut rec = Vec::new();
             for (idx, h) in headers.iter().enumerate() {
-                let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
-                rec.push((h.clone(), cell_to_jval(cell)));
+                rec.push((h.clone(), cell_to_jval(idx, row.get(idx))));
             }
             obj_entries.push((k_str.to_string(), JVal::Object(rec)));
         }
@@ -11730,10 +11719,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let entries: Vec<(String, JVal)> = headers
                 .iter()
                 .enumerate()
-                .map(|(idx, h)| {
-                    let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
-                    (h.clone(), cell_to_jval(cell))
-                })
+                .map(|(idx, h)| (h.clone(), cell_to_jval(idx, row.get(idx))))
                 .collect();
             JVal::Object(entries)
         })

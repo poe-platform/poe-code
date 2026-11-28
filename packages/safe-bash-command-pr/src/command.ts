@@ -23,7 +23,7 @@ export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinit
       lifecycle = new Lifecycle(budget, output);
       const parsed = parseOptions(budget.arguments(), budget);
       if (parsed.information) {
-        await lifecycle.write(parsed.information === "version" ? "pr (virtual-bash)\n" : "Usage: pr [OPTION]... [FILE]...\nPaginate or columnate files for printing.\nOptions: -COLUMNS -h HEADER -l LENGTH -w WIDTH -t -n[SEP[DIGITS]] -m -s[SEP]\n  --date-format=FORMAT  format the header date\n");
+        await lifecycle.write(parsed.information === "version" ? "pr (virtual-bash)\n" : "Usage: pr [OPTION]... [FILE]...\nPaginate or columnate files for printing.\nOptions: -COLUMNS -h HEADER -l LENGTH -w WIDTH -t -n[SEP[DIGITS]] -m -s[SEP]\n  -D, --date-format=FORMAT  format the header date\n");
         await lifecycle.flush();
       } else {
         const ctype = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";

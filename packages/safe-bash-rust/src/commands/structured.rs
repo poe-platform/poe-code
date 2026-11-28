@@ -20172,16 +20172,18 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 .nth(1)
                 .unwrap_or("")
                 .to_ascii_uppercase();
-            if c_up.contains("PRIMARY KEY") {
-                let ignore =
-                    split_top_level_sql_cmp(&c_up, " PRIMARY KEY").is_some_and(|(_, rest)| {
-                        rest.split_whitespace()
-                            .take(3)
-                            .eq(["ON", "CONFLICT", "IGNORE"])
-                    });
+            if let Some((_, rest)) = split_top_level_sql_cmp(&c_up, " PRIMARY KEY") {
+                let ignore = rest
+                    .split_whitespace()
+                    .take(3)
+                    .eq(["ON", "CONFLICT", "IGNORE"]);
                 unique_indexes.push((String::new(), vec![cname.clone()], ignore));
                 pk_col_count += 1;
-                if type_tok == "INTEGER" && !upper.contains("WITHOUT ROWID") {
+                // SQLite's column-level INTEGER PRIMARY KEY DESC is not a rowid alias.
+                if type_tok == "INTEGER"
+                    && rest.split_whitespace().next() != Some("DESC")
+                    && !upper.contains("WITHOUT ROWID")
+                {
                     rowid_alias_col = Some(cols.len());
                 }
             }

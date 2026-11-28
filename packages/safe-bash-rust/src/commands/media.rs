@@ -12488,6 +12488,7 @@ fn cmd_magick(
         Sepia(f64),
         Solarize(f64),
         Posterize(f64),
+        UniqueColors,
         Raise(Geometry, bool),
         Vignette([u8; 4]),
         Shadow(Geometry, [u8; 4]),
@@ -13002,6 +13003,10 @@ fn cmd_magick(
                 ops.push(PixelOp::Histogram(op));
                 i += 1;
             }
+            "-unique-colors" => {
+                ops.push(PixelOp::UniqueColors);
+                i += 1;
+            }
             "-sepia-tone" | "-solarize" | "-posterize" | "-colors" => {
                 let value = if i + 1 < args.len() - usize::from(!is_mogrify) {
                     i += 1;
@@ -13231,6 +13236,34 @@ fn cmd_magick(
                                 }
                             }
                         }
+                    }
+                    PixelOp::UniqueColors => {
+                        let mut seen = std::collections::HashSet::new();
+                        image.pixels.retain(|pixel| {
+                            let mut color = *pixel;
+                            if !image.alpha {
+                                color[3] = 255;
+                            }
+                            seen.insert(color)
+                        });
+                        // ImageMagick visits color-tree bits 7 through 1, with R
+                        // in the low bit. Colors in the same leaf keep input order.
+                        image.pixels.sort_by_key(|pixel| {
+                            let mut order = 0u32;
+                            for bit in (1..=7).rev() {
+                                let mut child = 0u8;
+                                for (channel, sample) in pixel[..if image.alpha { 4 } else { 3 }]
+                                    .iter()
+                                    .enumerate()
+                                {
+                                    child |= ((sample >> bit) & 1) << channel;
+                                }
+                                order = (order << 4) | u32::from(child);
+                            }
+                            order
+                        });
+                        image.width = image.pixels.len();
+                        image.height = 1;
                     }
                     PixelOp::Posterize(levels) => image.posterize(*levels),
                     PixelOp::Raise(g, raised) => image.raise(*g, *raised),

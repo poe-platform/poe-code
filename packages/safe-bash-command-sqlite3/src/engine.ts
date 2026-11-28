@@ -1826,7 +1826,13 @@ function removeByJsonPath(root: any, path: string): any {
 }
 
 function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
-  if (v === undefined || v === null) {
+  if (v === undefined) {
+    return null;
+  }
+  if (!unquoteScalar) {
+    return serializeSqlJson(v);
+  }
+  if (v === null) {
     return null;
   }
   if (typeof v === "boolean") {
@@ -1836,7 +1842,7 @@ function jsonValueToSql(v: unknown, unquoteScalar: boolean): SqlValue {
     return v;
   }
   if (typeof v === "string") {
-    return unquoteScalar ? v : serializeSqlJson(v);
+    return v;
   }
   return serializeSqlJson(v);
 }

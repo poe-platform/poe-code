@@ -7,6 +7,23 @@ import { createCommandArguments, toByteSource, type CommandDefinition, type File
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
 import { headerBytes, paxRecord, parseHeader } from "./format.js";
 
+for (const trailing of ["junk", "padding", "archive"] as const) {
+  for (const mode of ["tf", "xOf"]) test(`tar ${mode} ignores trailing ${trailing} after the end marker`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/a", new TextEncoder().encode("hi\n"));
+    const created = await run(createTarCommand(), ["cf", "t.tar", "a"], "", fs);
+    assert.equal(created.exitCode, 0, created.stderr);
+    const archive = await fs.readFile("/t.tar");
+    const suffix = trailing === "archive" ? archive
+      : trailing === "padding" ? new Uint8Array(3) : new TextEncoder().encode("junk");
+    await fs.writeFile("/t.tar", Buffer.concat([archive, suffix]));
+    const result = await run(createTarCommand(), [mode, "t.tar"], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, mode === "tf" ? "a\n" : "hi\n");
+  });
+}
+
 for (const members of [["f", "nope"], ["nope", "f"], ["nope"]]) test(`tar publishes valid members despite missing inputs: ${members.join(" ")}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/f", new TextEncoder().encode("1\n"));

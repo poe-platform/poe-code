@@ -155,14 +155,11 @@ export class Reader {
   }
   async padding(size: number): Promise<void> { await this.discard((512 - size % 512) % 512); }
   async finish(): Promise<void> {
-    let trailing = 0;
+    // Ignore bytes after the end marker, but drain for codec and source checks.
     while (true) {
       const bytes = await this.take(64 * 1024);
       if (!bytes) break;
-      if (bytes.some(byte => byte !== 0)) fail("nonzero trailing archive data or concatenated archive is unsupported");
-      trailing += bytes.length;
     }
-    if (trailing % 512 !== 0) fail("truncated archive trailing record");
   }
   async close(): Promise<void> {
     if (this.iterator.return) await this.iterator.return();

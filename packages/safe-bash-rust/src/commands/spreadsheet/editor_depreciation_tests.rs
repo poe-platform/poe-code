@@ -53,7 +53,8 @@ fn variable_depreciation_matches_documented_examples_and_fractional_periods() {
         ("=VDB(2400,300,10,0,10,1,TRUE)", 1563.17174376),
         ("=VDB(24000,3000,10,1,2)", 3840.),
         ("=VDB(24000,3000,10,1,2,,TRUE)", 3840.),
-        ("=VDB(24000,3000,10,6.1,6.2)", 123.3125376),
+        // One tenth of period seven: 24000 * 0.8^6 * 0.2 * 0.1.
+        ("=VDB(24000,3000,10,6.1,6.2)", 125.82912),
         ("=VDB(2400,3000,10,1,2)", 0.),
         ("=VDB(2400,3000,10,0.1,2)", -600.),
         ("=VDB(2400,3000,10,0.1,0.2)", -60.),
@@ -64,6 +65,29 @@ fn variable_depreciation_matches_documented_examples_and_fractional_periods() {
     ] {
         book.edit(&[(0, 0, 0, formula)], LIMIT).unwrap();
         close(number(&book, 0, 0), expected);
+    }
+}
+
+#[test]
+fn variable_depreciation_prorates_the_original_schedule() {
+    let mut book = Spreadsheet::new();
+    for (formula, expected) in [
+        ("=VDB(12000,200,6,1.75,2,2,0)", 666.666666666667),
+        ("=VDB(12000,200,6,1.75,2,2,1)", 666.666666666667),
+        ("=VDB(12000,200,6,1,1.75)", 2000.),
+        ("=VDB(12000,200,6,1.75,2.5)", 1555.555555555556),
+        ("=VDB(12000,200,6,0.25,0.75)", 2000.),
+        // Factor one switches immediately to a constant straight-line rate.
+        ("=VDB(12000,0,6,1.75,2.25,1)", 1000.),
+        // The final two periods use straight-line depreciation.
+        ("=VDB(12000,200,6,4.75,6)", 1356.481481481481),
+    ] {
+        book.edit(&[(0, 0, 0, formula)], LIMIT).unwrap();
+        let actual = number(&book, 0, 0);
+        assert!(
+            (actual - expected).abs() < 1e-8,
+            "{formula}: {actual} != {expected}"
+        );
     }
 }
 

@@ -21,26 +21,25 @@ fn total(
     cost: f64,
     salvage: f64,
     life: f64,
-    remaining_life: f64,
-    periods: f64,
+    start: f64,
+    end: f64,
     factor: f64,
     work: &mut usize,
 ) -> Option<f64> {
-    if periods == 0. {
-        return Some(0.);
-    }
     let mut result = 0.;
     let mut rest = cost - salvage;
-    for period in 0..periods.ceil() as usize {
+    for period in 0..end.ceil() as usize {
         *work = work.checked_sub(64)?;
         let elapsed = period as f64;
         let ddb = declining(cost, salvage, life, elapsed + 1., factor);
-        let straight = rest / (remaining_life - elapsed);
+        let straight = rest / (life - elapsed);
         if straight > ddb {
             // The straight-line rate is constant after switching.
-            return Some(result + straight * (periods - elapsed));
+            return Some(result + straight * (end - start.max(elapsed)));
         }
-        result += ddb * (periods - elapsed).min(1.);
+        // Partial periods retain the original schedule's depreciation rate.
+        let share = (end.min(elapsed + 1.) - start.max(elapsed)).max(0.);
+        result += ddb * share;
         rest -= ddb;
     }
     Some(result)
@@ -74,15 +73,8 @@ fn vdb(
         }));
     }
     if no_switch == 0. {
-        let balance = cost - total(cost, salvage, life, life, start, factor, work)?;
         return Some(Value::number(total(
-            balance,
-            salvage,
-            life,
-            life - start,
-            end - start,
-            factor,
-            work,
+            cost, salvage, life, start, end, factor, work,
         )?));
     }
     let count = end.ceil() - start.floor();

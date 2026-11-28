@@ -4,7 +4,7 @@ import { ToolError } from "safe-bash-diff-engine/shared";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 
 export interface DiffFlags extends DisplayOptions {
-  format: "normal" | "unified" | "context" | "side" | "ed" | "rcs" | "ifdef" | "custom";
+  format: "normal" | "unified" | "context" | "side" | "ed" | "forward-ed" | "rcs" | "ifdef" | "custom";
   lineFormats: Partial<Record<"old" | "new" | "unchanged", string>>;
   groupFormats: CustomFormats;
   whitespace: "exact" | "change" | "all";
@@ -104,6 +104,7 @@ export function flags(args: readonly string[], allowSingleFile = false): DiffFla
     else if (arg === "--minimal") { /* The bounded LCS already minimizes edits. */ }
     else if (arg === "--side-by-side") selectFormat("side");
     else if (arg === "--ed") selectFormat("ed");
+    else if (arg === "--forward-ed") selectFormat("forward-ed");
     else if (arg === "--rcs") selectFormat("rcs");
     else if (arg === "--expand-tabs") result.expand = true;
     else if (arg === "--initial-tab") result.initialTab = true;
@@ -164,6 +165,7 @@ export function flags(args: readonly string[], allowSingleFile = false): DiffFla
         else if (flag === "d") { /* LCS minimizes the edit count. */ }
         else if (flag === "y") selectFormat("side");
         else if (flag === "e") selectFormat("ed");
+        else if (flag === "f") selectFormat("forward-ed");
         else if (flag === "n") selectFormat("rcs");
         else if (flag === "t") result.expand = true;
         else if (flag === "T") result.initialTab = true;

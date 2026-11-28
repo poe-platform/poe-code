@@ -164,7 +164,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
   }
 }
 
-export async function script(changes: readonly Edit[], format: "ed" | "rcs", budget: Budget, append: (text: string) => void | Promise<void>): Promise<void> {
+export async function script(changes: readonly Edit[], format: "ed" | "forward-ed" | "rcs", budget: Budget, append: (text: string) => void | Promise<void>): Promise<void> {
   const groups: { position: number; old: string[]; next: string[] }[] = [];
   let scan = 0, position = 0;
   while (scan < changes.length) {
@@ -189,20 +189,22 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
       if (group.next.length) await append(`a${group.position + group.old.length} ${group.next.length}\n${group.next.join("")}`);
     } else {
       const start = group.position + 1, end = group.position + group.old.length;
-      const range = group.old.length > 1 ? `${start},${end}` : `${start}`;
-      await append(`${group.old.length ? range : group.position}${group.old.length ? group.next.length ? "c" : "d" : "a"}\n`);
+      const range = group.old.length > 1 ? `${start}${format === "forward-ed" ? " " : ","}${end}` : `${start}`;
+      const address = group.old.length ? range : group.position;
+      const command = group.old.length ? group.next.length ? "c" : "d" : "a";
+      await append(format === "forward-ed" ? `${command}${address}\n` : `${address}${command}\n`);
       if (group.next.length) {
         let inserted = 0;
         for (const line of group.next) {
           inserted++;
-          if (line === ".\n") {
+          if (format === "ed" && line === ".\n") {
             await append("..\n.\ns/.//\n");
             if (inserted < group.next.length) await append("a\n");
           } else await append(line);
           budget.step(1 + line.length);
           { const c = budget.checkpoint(); if (c) await c; }
         }
-        if (group.next.at(-1) !== ".\n") await append(".\n");
+        if (format === "forward-ed" || group.next.at(-1) !== ".\n") await append(".\n");
       }
     }
     budget.step();

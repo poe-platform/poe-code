@@ -295,7 +295,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
     const label = (name: string) => encoding === "latin1" ? decodeBytes(encodeBytes(name), "latin1") : name;
     let incompleteEdLine = false;
     const reportSame = async () => { if (options.reportSame && !incompleteEdLine) await append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
-    if (options.format === "ed" && !options.brief && (options.text || !oldBytes.includes("\0") && !newBytes.includes("\0"))) {
+    if ((options.format === "ed" || options.format === "forward-ed") && !options.brief && (options.text || !oldBytes.includes("\0") && !newBytes.includes("\0"))) {
       for (const [path, text] of [[left, oldBytes], [right, newBytes]] as const) {
         if (text && !text.endsWith("\n")) {
           await writeDiagnostic(context.stderr, `diff: ${path}: No newline at end of file\n\n`, context.signal);
@@ -326,7 +326,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       oldText = oldText.replaceAll("\r\n", "\n");
       newText = newText.replaceAll("\r\n", "\n");
     }
-    if (options.format === "ed" && !options.brief) {
+    if ((options.format === "ed" || options.format === "forward-ed") && !options.brief) {
       if (oldText && !oldText.endsWith("\n")) oldText += "\n";
       if (newText && !newText.endsWith("\n")) newText += "\n";
     }
@@ -385,7 +385,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       if (options.format === "normal") {
         await normal(changes, budget, append, options);
       }
-      else if (options.format === "ed" || options.format === "rcs") await script(changes, options.format, budget, append);
+      else if (options.format === "ed" || options.format === "forward-ed" || options.format === "rcs") await script(changes, options.format, budget, append);
       else await contextual(changes, options.format, label(options.labels[0] ?? quoteDiffName(leftStat ? left : "/dev/null")), label(options.labels[1] ?? quoteDiffName(rightStat ? right : "/dev/null")), options.context, budget, append, options, options.functions.length ? async position => {
         for (let index = position - 1; index >= 0; index--) {
           for (const pattern of options.functions) if (await pattern.find(oldLines[index]!, budget)) return oldLines[index]!.replace(/\n$/u, "").slice(0, 40);

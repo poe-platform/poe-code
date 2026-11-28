@@ -3,7 +3,7 @@
 Compare files and directories in a virtual filesystem, with byte-preserving
 output and explicit resource limits.
 
-- Normal, unified, context, side-by-side, ed, RCS, conditional and custom output.
+- Normal, unified, context, side-by-side, ed, forward-ed (`-f` / `--forward-ed`), RCS, conditional and custom output.
 - GNU `--line-format`, `--old-line-format`, `--new-line-format`,
   `--unchanged-line-format` and `--{old,new,changed,unchanged}-group-format`
   select lines and groups with content, line-number, character and conditional substitutions.
@@ -14,7 +14,7 @@ output and explicit resource limits.
 - Optional input, output, line, work, matrix, file, hunk and exclusion limits.
 - Exact `--brief` comparisons of regular files use retained 64 KiB reads,
   including binary files and arbitrarily long lines.
-- Normal, unified, context, RCS, conditional, custom, ed and side-by-side output uses
+- Normal, unified, context, RCS, conditional, custom, ed, forward-ed and side-by-side output uses
   bounded document, line-index and LCS caches backed by your filesystem, including
   stdin, streaming FIFO/character operands, whitespace/case normalization and
   display transformations.

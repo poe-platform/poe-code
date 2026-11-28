@@ -145,7 +145,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       else if (options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       return { different: !same, trouble };
     }
-    if (options.format === "ed" && !options.brief) {
+    if ((options.format === "ed" || options.format === "forward-ed") && !options.brief) {
       for (const [document, path] of [[old, left], [next, right]] as const) {
         if (document.size && (await document.data.read(8 + document.size - 1, 1))[0] !== 10) {
           trouble = true;
@@ -159,7 +159,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       await old.load(stripTrailingCr(rawOld.range(0, rawOld.size), budget.context.signal));
       await next.load(stripTrailingCr(rawNext.range(0, rawNext.size), budget.context.signal));
     }
-    if (options.format === "ed" && !options.brief && trouble) {
+    if ((options.format === "ed" || options.format === "forward-ed") && !options.brief && trouble) {
       const before = old, after = next;
       old = new IndexedDocument(budget); next = new IndexedDocument(budget);
       keys.push(old, next);
@@ -243,8 +243,8 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       return { different: false, trouble };
     }
     if (nested && visible) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
-    if (options.format === "ed") {
-      await renderEd(next, count, group, budget, append);
+    if (options.format === "ed" || options.format === "forward-ed") {
+      await renderEd(next, count, group, budget, append, options.format === "forward-ed");
       return { different: true, trouble };
     }
     if (options.format === "normal") {

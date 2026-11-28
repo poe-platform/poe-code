@@ -9,18 +9,20 @@ export interface IndexedGroup { oldStart: number; newStart: number; oldCount: nu
 type GroupReader = (index: number) => Promise<IndexedGroup>;
 type Append = (bytes: Uint8Array) => Promise<void>;
 
-export async function renderEd(next: IndexedDocument, count: number, group: GroupReader, budget: Budget, append: Append): Promise<void> {
-  for (let index = count - 1; index >= 0; index--) {
-    const change = await group(index);
+export async function renderEd(next: IndexedDocument, count: number, group: GroupReader, budget: Budget, append: Append, forward = false): Promise<void> {
+  for (let index = 0; index < count; index++) {
+    const change = await group(forward ? index : count - 1 - index);
     budget.hunk();
     if (change.ignored) continue;
     const start = change.oldStart + 1, end = change.oldStart + change.oldCount;
-    const range = change.oldCount > 1 ? `${start},${end}` : `${start}`;
-    await append(encodeBytes(`${change.oldCount ? range : change.oldStart}${change.oldCount ? change.newCount ? "c" : "d" : "a"}\n`));
+    const range = change.oldCount > 1 ? `${start}${forward ? " " : ","}${end}` : `${start}`;
+    const address = change.oldCount ? range : change.oldStart;
+    const command = change.oldCount ? change.newCount ? "c" : "d" : "a";
+    await append(encodeBytes(forward ? `${command}${address}\n` : `${address}${command}\n`));
     let dot = false;
     for (let row = 0; row < change.newCount; row++) {
       const bounds = await next.line(change.newStart + row);
-      dot = bounds.end - bounds.start === 2 && (await next.data.read(8 + bounds.start, 1))[0] === 46;
+      dot = !forward && bounds.end - bounds.start === 2 && (await next.data.read(8 + bounds.start, 1))[0] === 46;
       if (dot) {
         await append(encodeBytes("..\n.\ns/.//\n"));
         if (row + 1 < change.newCount) await append(encodeBytes("a\n"));

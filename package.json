@@ -748,7 +748,8 @@
     "safe-bash-command-zdiff": "*",
     "safe-bash-command-zcmp": "*",
     "safe-bash-command-zless": "*",
-    "safe-bash-command-zmore": "*"
+    "safe-bash-command-zmore": "*",
+    "safe-bash-command-ls": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

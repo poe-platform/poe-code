@@ -1483,6 +1483,13 @@
       "safe-bash-command-zmore/*": [
         "../safe-bash-command-zmore/src/*.ts",
         "../safe-bash-command-zmore/src/*"
+      ],
+      "safe-bash-command-ls": [
+        "../safe-bash-command-ls/src/index.ts"
+      ],
+      "safe-bash-command-ls/*": [
+        "../safe-bash-command-ls/src/*.ts",
+        "../safe-bash-command-ls/src/*"
       ]
     },
     "baseUrl": "."

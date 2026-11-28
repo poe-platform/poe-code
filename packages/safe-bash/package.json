@@ -2369,6 +2369,17 @@
             "@poe-code/safe-fs": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-ls": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-calendar-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3772,6 +3783,12 @@
       "workerd": "./dist/commands/stdbuf/index.js",
       "browser": "./dist/commands/stdbuf/index.js",
       "import": "./dist/commands/stdbuf/index.js"
+    },
+    "./commands/ls": {
+      "types": "./dist/commands/ls/index.d.ts",
+      "workerd": "./dist/commands/ls/index.js",
+      "browser": "./dist/commands/ls/index.js",
+      "import": "./dist/commands/ls/index.js"
     }
   },
   "sideEffects": [
@@ -4057,7 +4074,8 @@
     "safe-bash-command-zcmp": "*",
     "safe-bash-command-zless": "*",
     "safe-bash-command-zmore": "*",
-    "safe-bash-command-stdbuf": "*"
+    "safe-bash-command-stdbuf": "*",
+    "safe-bash-command-ls": "*"
   },
   "main": "./dist/index.js",
   "imports": {

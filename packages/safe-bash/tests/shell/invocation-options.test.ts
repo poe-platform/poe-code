@@ -55,6 +55,7 @@ for (const source of [
   `set -x; x=1; [[ $x == 1 ]]; (( x++ )); for i in a b; do :; done; case $x in 2) :;; esac`,
   `set -x; [[ -n foo && ! -z bar ]]; [[ '' && $(echo unreachable) ]]; [[ a == b || a == a ]]`,
   `set -x; x='a b'; for i in "$x" c; do [[ $i == "$x" ]]; done; case "$x" in *) :;; esac`,
+  `LC_ALL=C.UTF-8; set -x; [[ abc == "ab"* ]]; [[ ab == a\\b ]]; [[ é == "é" ]]; [[ x != "y" ]]`,
   `PS4='trace: '; set -x; x=1; (( $x + 2 )); (( x++ )); [[ $x -eq 2 ]]; for i; do :; done`,
   `set -x; [[ abc =~ a.c ]]; [[ abc =~ "abc" ]]`,
   `set -x; [[ ! abc =~ x ]]; [[ $(echo once) == once ]]; (( $(echo 1) )); for i in; do :; done; case $(echo x) in y) :;; esac`,

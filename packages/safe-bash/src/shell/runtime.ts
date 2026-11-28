@@ -11068,14 +11068,14 @@ export class Runtime {
       let escapes = 0;
       if (!glob) {
         const special = (conditionalPattern || state.extglob) ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:";
-        for (const character of text) if (special.includes(character)) escapes++;
+        for (const character of text) if (conditionalPattern && state.xtrace || special.includes(character)) escapes++;
       }
       scratch?.reserve(32, 0);
       if (owner) owner.reserve({ payload: size + (escapes ? size + escapes : 0), metadata: 64, work: text.length + 8 });
       if (escapes) {
         scratch?.reserve((field.patterns ? 32 : 32 * (field.fragments.length + 1)) + (text.length + escapes) * 2, 0);
         field.patterns ??= field.fragments.map(shellValueText);
-        field.patterns.push(text.replace((conditionalPattern || state.extglob) ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
+        field.patterns.push(text.replace(conditionalPattern && state.xtrace ? /./gsu : (conditionalPattern || state.extglob) ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
       } else if (field.patterns) {
         scratch?.reserve(32, 0);
         field.patterns.push(text);

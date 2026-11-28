@@ -1546,6 +1546,26 @@ function parseSqliteDateTime(args: SqlValue[]): { date: Date; seconds: number } 
       }
       continue;
     }
+    const shift = /^([+-])(?:(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?)?|(\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?)$/.exec(modRaw);
+    if (shift) {
+      const sign = shift[1] === "-" ? -1 : 1;
+      const years = Number(shift[2] ?? 0);
+      const months = Number(shift[3] ?? 0);
+      const days = Number(shift[4] ?? 0);
+      const hours = Number(shift[5] ?? shift[9] ?? 0);
+      const minutes = Number(shift[6] ?? shift[10] ?? 0);
+      const wholeSeconds = Number(shift[7] ?? shift[11] ?? 0);
+      const fraction = Math.min(Number(shift[8] ?? shift[12] ?? 0), 0.999);
+      if (months > 11 || days > 30 || hours > 24 || minutes > 59 || wholeSeconds > 59) {
+        return null;
+      }
+      // Normalize once after shifting both calendar fields, preserving leap days
+      // until the target year and month have both been selected.
+      d.setUTCFullYear(d.getUTCFullYear() + sign * years, d.getUTCMonth() + sign * months);
+      const milliseconds = Math.round((wholeSeconds + fraction) * 1000);
+      d = new Date(d.getTime() + sign * (days * 86400000 + (hours % 24) * 3600000 + minutes * 60000 + milliseconds));
+      continue;
+    }
     const relMatch = /^([+-]?\d+(?:\.\d+)?)\s*(year|month|day|hour|minute|second)s?$/.exec(modRaw);
     if (relMatch) {
       const amt = Number(relMatch[1]);
@@ -1563,7 +1583,9 @@ function parseSqliteDateTime(args: SqlValue[]): { date: Date; seconds: number } 
       } else if (unit === "second") {
         d = new Date(d.getTime() + amt * 1000);
       }
+      continue;
     }
+    return null;
   }
   return { date: d, seconds: seconds ?? d.getUTCSeconds() + d.getUTCMilliseconds() / 1000 };
 }

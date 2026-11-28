@@ -3,8 +3,10 @@
 Shared portable implementation used by Safe Bash command workspaces.
 
 Calendar formatting and parsing use virtual timezones: UTC, fixed offsets, IANA
-zones, and explicit POSIX daylight-saving rules such as
-`EST5EDT,M3.2.0/2,M11.1.0/2`. POSIX rules support month/week/weekday, Julian-day,
+zones, and POSIX daylight-saving rules such as
+`EST5EDT,M3.2.0/2,M11.1.0/2`. A DST name without rules, such as `CET-1CEST`,
+uses `M3.2.0,M11.1.0` (02:00 on the second Sunday in March and first Sunday
+in November). POSIX rules support month/week/weekday, Julian-day,
 and zero-based day-of-year transitions, including southern-hemisphere seasons.
 Unknown timezone names fall back to UTC.
 Date parsing supports next/last/this units, fortnights, weekday names, and

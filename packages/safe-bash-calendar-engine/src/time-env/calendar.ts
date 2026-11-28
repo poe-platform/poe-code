@@ -122,17 +122,16 @@ export class TimeZone {
 
   constructor(input: string, numericOffset = false) {
     const name = input.startsWith(":") ? input.slice(1) : input;
+    const seasonal = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})?(?:,([^,]+),([^,]+))?$/.exec(name);
     this.label = name.startsWith("GMT") || name === "Etc/GMT" ? "GMT" : "UTC";
     if (numericOffset) this.fixedOffset = signedOffset(name);
     else if (["", "UTC", "UTC0", "GMT", "GMT0", "Etc/UTC", "Etc/GMT", "Z"].includes(name)) this.fixedOffset = 0;
-    else if (name.includes(",")) {
-      const seasonal = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})?,([^,]+),([^,]+)$/.exec(name);
-      if (!seasonal) throw new CommandFailure(`unsupported virtual TZ: ${input}`);
+    else if (seasonal) {
       this.label = seasonal[1]!.startsWith("<") ? seasonal[1]!.slice(1, -1) : seasonal[1]!;
       const standardOffset = -posixSeconds(seasonal[2]!, 24, input);
       this.daylight = { standardOffset, offset: seasonal[4] === undefined ? standardOffset + 3600 : -posixSeconds(seasonal[4], 24, input),
         label: seasonal[3]!.startsWith("<") ? seasonal[3]!.slice(1, -1) : seasonal[3]!,
-        start: transitionRule(seasonal[5]!, input), end: transitionRule(seasonal[6]!, input) };
+        start: transitionRule(seasonal[5] ?? "M3.2.0", input), end: transitionRule(seasonal[6] ?? "M11.1.0", input) };
     }
     else {
       const fixed = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?)(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/.exec(name);

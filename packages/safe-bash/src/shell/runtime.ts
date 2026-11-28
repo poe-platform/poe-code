@@ -1035,6 +1035,10 @@ async function closeExecDescriptors(state: State): Promise<void> {
   frame.releases.clear();
   throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
 }
+interface ProcessSubstitutionFinalizer {
+  (): Promise<void>;
+  readonly path?: string;
+}
 export interface IO {
   readonly execVersion?: number;
   readonly execFrame?: ExecDescriptorFrame;
@@ -1061,7 +1065,7 @@ export interface IO {
   readonly functionCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly diagnosticCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly substitutionDiagnosticLine?: number;
-  readonly processSubstitutions?: (() => Promise<void>)[] | undefined;
+  readonly processSubstitutions?: ProcessSubstitutionFinalizer[] | undefined;
   readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number> | undefined;
   readonly scriptName?: string;
   readonly terminal?: {
@@ -5108,7 +5112,7 @@ export class Runtime {
     const hasRedirects = command.redirects.length > 0 || fileShortcut || command.kind === "subshell";
     const inputs = hasRedirects ? new Set<{ close(): void | Promise<void> }>() : emptyInputs;
     const outputs = hasRedirects ? new Set<OutputFinalizer>() : emptyOutputs;
-    const processSubstitutions: (() => Promise<void>)[] = [];
+    const processSubstitutions: ProcessSubstitutionFinalizer[] = [];
     const allocation = this.budget.values.scope();
     originalIO = {
       ...originalIO, terminal: undefined, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine, [valueScope]: allocation, processSubstitutions, };
@@ -6007,7 +6011,12 @@ export class Runtime {
               finally { release(); }
             }};
           let completion: Parameters<OutputFinalizer>[0] | undefined;
-          const lifetime = new DescriptorLifetime(() => finalize(completion ?? { status: 0 }));
+          const substitutionIndex = io.processSubstitutions?.findIndex(pending => pending.path === path) ?? -1;
+          const substitution = substitutionIndex < 0 ? undefined : io.processSubstitutions!.splice(substitutionIndex, 1)[0];
+          const lifetime = new DescriptorLifetime(async () => {
+            try { await finalize(completion ?? { status: 0 }); }
+            finally { await substitution?.(); }
+          });
           const ownerFinalize: OutputFinalizer = value => { completion ??= value; return lifetime.release(); };
           outputs.add(Object.assign(ownerFinalize, target.descriptor ? { descriptor: target.descriptor } : {}));
           const output = canonical ? target.sink : this.budget.sink(target.sink, this.commandSignal);
@@ -10518,7 +10527,7 @@ export class Runtime {
       const references = new PipeDescriptorFrame(io[invocationScope]);
       const inheritedIO = isolateIO({
         ...io, stdin: closedSource, stdinIsDefault: false, processSubstitutions: undefined, }, references);
-      io.processSubstitutions?.push(async () => {
+      io.processSubstitutions?.push(Object.assign(async () => {
         let bytes: Uint8Array = new Uint8Array(0);
         try {
           bytes = await this.sourceFs.readFile(tempPath);
@@ -10551,7 +10560,7 @@ export class Runtime {
           } finally {
             stateMonitor(child)?.closeValues();
           }
-        }});
+        }}, { path: tempPath }));
       return tempPath;
     }
     if (part.kind === "substitution") {

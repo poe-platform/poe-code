@@ -38,6 +38,7 @@ type ClassItem =
   | { readonly kind: "char"; readonly cp: number }
   | { readonly kind: "range"; readonly lo: number; readonly hi: number }
   | { readonly kind: "shorthand"; readonly id: "d" | "D" | "w" | "W" | "s" | "S" }
+  | { readonly kind: "unicode"; readonly matcher: RegExp; readonly negated: boolean }
   | { readonly kind: "posix"; readonly name: string };
 
 type AstNode =
@@ -139,6 +140,11 @@ function evalClassNode(
         matched = true;
         break;
       }
+    } else if (item.kind === "unicode") {
+      if (item.matcher.test(String.fromCodePoint(cp)) !== item.negated) {
+        matched = true;
+        break;
+      }
     } else if (item.kind === "posix") {
       if (matchPosixClass(item.name, cp, node.insensitive)) {
         matched = true;
@@ -217,6 +223,30 @@ function parsePattern(
     return cp;
   }
 
+  function readUnicodeProperty(negated: boolean): ClassItem {
+    const braced = pattern[pos] === "{";
+    const end = braced ? pattern.indexOf("}", pos + 1) : pos + 1;
+    const name = pattern.slice(pos + (braced ? 1 : 0), end);
+    // Only property identifiers reach the host engine, never regex syntax.
+    if (end < 0 || name.length === 0 || [...name].some(ch =>
+      !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_=".includes(ch))) {
+      throw new SearchError("invalid Unicode property escape");
+    }
+    pos = end + (braced ? 1 : 0);
+    for (const property of [name, `Script=${name}`]) {
+      try {
+        // The host regex classifies a single scalar; the bounded VM handles repetition.
+        const matcher = new RegExp(`\\p{${property}}`, insensitive ? "iu" : "u");
+        needsVm = true;
+        if (matcher.test("\n") !== negated) hasCrossLinePotential = true;
+        return { kind: "unicode", matcher, negated };
+      } catch {
+        // Bare script names (e.g. Greek) need an explicit Script property in JS.
+      }
+    }
+    throw new SearchError(`unknown Unicode property '${name}'`);
+  }
+
   function parseBracket(): { node: AstNode; ere: string } {
     let negated = false;
     let ereInner = "";
@@ -251,6 +281,9 @@ function parsePattern(
         if ((kind === "rg" || perl) && esc === "x") {
           const cp = readHexEscape();
           return { item: { kind: "char", cp }, ereText: "", isSingleChar: true, cp };
+        }
+        if ((kind === "rg" || perl) && (esc === "p" || esc === "P")) {
+          return { item: readUnicodeProperty(esc === "P"), ereText: "", isSingleChar: false };
         }
         if (esc === "d") return { item: { kind: "shorthand", id: "d" }, ereText: "0-9", isSingleChar: false };
         if (esc === "w") return { item: { kind: "shorthand", id: "w" }, ereText: "[:alnum:]_", isSingleChar: false };
@@ -496,6 +529,9 @@ function parsePattern(
           quantifiable = false;
         } else if ((kind === "rg" || perl) && esc === "x") {
           atomNode = { type: "literal", cp: readHexEscape(), insensitive };
+          atomEre = "";
+        } else if ((kind === "rg" || perl) && (esc === "p" || esc === "P")) {
+          atomNode = { type: "class", negated: false, items: [readUnicodeProperty(esc === "P")], insensitive, multiline };
           atomEre = "";
         } else if (perl && esc === "Q") {
           needsVm = true;

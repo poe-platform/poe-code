@@ -31,6 +31,7 @@ output are unchanged.
 
 Word matching (`\w`, `\W`, `\b`, `\B`, and `-w`) recognizes Unicode letters,
 combining marks, decimal digits, connector punctuation and join controls.
+Unicode property classes include `\p{L}`, `\p{Lu}`, `\pN`, and scripts such as `\p{Greek}`; `\P` negates the property. They also work inside bracket classes.
 Matches retain their original UTF-8 byte offsets.
 
 The module also exports `createRgCommand`, its command-list factory, and typed options and limits.

@@ -5661,7 +5661,7 @@ export class SqliteDatabase {
         const collations = groupExprs.map(expr => this.expressionCollation(expr, workingRows[0] ?? {}).toUpperCase());
         const groups = new Map<
           string,
-          { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }
+          { keys: SqlValue[]; representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }
         >();
         for (const row of workingRows) {
           yield;
@@ -5687,10 +5687,19 @@ export class SqliteDatabase {
           if (existing) {
             existing.group.push(row);
           } else {
-            groups.set(keyStr, { representative: row, group: [row] });
+            groups.set(keyStr, { keys: keyVals, representative: row, group: [row] });
           }
         }
-        groupedRows = Array.from(groups.values());
+        const orderedGroups = Array.from(groups.values());
+        yield* stepSort(orderedGroups, function* (a, b) {
+          for (let i = 0; i < groupExprs.length; i += 1) {
+            yield;
+            const comparison = compareSqlValues(a.keys[i]!, b.keys[i]!, collations[i]);
+            if (comparison !== 0) return comparison;
+          }
+          return 0;
+        }, this);
+        groupedRows = orderedGroups;
       } else {
         groupedRows = [{ representative: workingRows[0] ?? { ...bindings }, group: workingRows }];
       }

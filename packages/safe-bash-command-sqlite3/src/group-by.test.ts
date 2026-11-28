@@ -2,7 +2,50 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, createBytePipe, createCommandArguments } from "safe-bash-contracts";
-import { createSqlite3Command } from "./index.js";
+import { createSqlite3Command, evalSyncSqlite3 } from "./index.js";
+
+test("GROUP BY emits groups in key order through async and sync sqlite3 commands", async () => {
+  const args = [":memory:", "create table t(a); insert into t values('b'),('a'),('c'),('a'); select a, count(*) from t group by a;"];
+  const result = await runSqlite3(createMemoryFileSystem(), args);
+  assert.deepEqual(result, { code: 0, stdout: "a|2\nb|1\nc|1\n", stderr: "" });
+  assert.equal(evalSyncSqlite3(undefined, args), result.stdout);
+});
+
+for (const { sql, stdout } of [
+  {
+    sql: "CREATE TABLE t(a); INSERT INTO t VALUES(x'62'),('2'),(10),(NULL),(2),(1.5),(x'61'),(NULL); SELECT typeof(a), a, count(*) FROM t GROUP BY a;",
+    stdout: "null||2\nreal|1.5|1\ninteger|2|1\ninteger|10|1\ntext|2|1\nblob|a|1\nblob|b|1\n"
+  },
+  {
+    sql: "CREATE TABLE t(a TEXT COLLATE NOCASE, b); INSERT INTO t VALUES('B',2),('a',10),('A',2),('b',1),('a',2); SELECT a, b, count(*) FROM t GROUP BY a, b;",
+    stdout: "A|2|2\na|10|1\nb|1|1\nB|2|1\n"
+  },
+  {
+    sql: "CREATE TABLE t(a); INSERT INTO t VALUES('b'),('a '),('a'),('A'); SELECT a, count(*) FROM t GROUP BY a COLLATE RTRIM;",
+    stdout: "A|1\na |2\nb|1\n"
+  },
+  {
+    sql: "CREATE TABLE t(a TEXT COLLATE NOCASE); INSERT INTO t VALUES('b'),('a'),('B'); SELECT a, count(*) FROM t GROUP BY a COLLATE BINARY;",
+    stdout: "B|1\na|1\nb|1\n"
+  },
+  ...["label", "1"].map(group => ({
+    sql: `CREATE TABLE t(a); INSERT INTO t VALUES('B'),('a'),('C'); SELECT lower(a) AS label, count(*) FROM t GROUP BY ${group};`,
+    stdout: "a|1\nb|1\nc|1\n"
+  })),
+  {
+    sql: "CREATE TABLE t(a); INSERT INTO t VALUES('c'),('b'),('a'),('a'),('b'); SELECT a, count(*) AS n FROM t GROUP BY a HAVING n > 1 LIMIT 1;",
+    stdout: "a|2\n"
+  },
+  {
+    sql: "CREATE TABLE t(a); INSERT INTO t VALUES('b'),('a'),('c'),('a'); SELECT a, count(*) FROM t GROUP BY a ORDER BY a DESC;",
+    stdout: "c|1\nb|1\na|2\n"
+  }
+]) {
+  test(`GROUP BY key ordering: ${sql}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+    assert.deepEqual(result, { code: 0, stdout, stderr: "" });
+  });
+}
 
 
 for (const { declaration, target, group, counts } of [

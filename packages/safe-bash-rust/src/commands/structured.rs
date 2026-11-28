@@ -26520,7 +26520,8 @@ fn eval_sql_printf(fmt: &str, args: &[String]) -> String {
         } else {
             's'
         };
-        let raw_arg = args.get(arg_i).map(|s| s.as_str()).unwrap_or("");
+        let arg = args.get(arg_i).map(|s| s.as_str());
+        let raw_arg = arg.unwrap_or("");
         arg_i += 1;
         let width = width_s.parse::<usize>().unwrap_or(0);
         let prec = prec_s.parse::<usize>().ok();
@@ -26547,7 +26548,15 @@ fn eval_sql_printf(fmt: &str, args: &[String]) -> String {
                 format!("{n:.p$}")
             }
             _ => {
-                let s = raw_arg.to_string();
+                let s = if spec == 'Q' {
+                    if arg.is_none() || raw_arg == SQL_NULL {
+                        "NULL".to_string()
+                    } else {
+                        format!("'{}'", raw_arg.replace('\'', "''"))
+                    }
+                } else {
+                    raw_arg.to_string()
+                };
                 if width > s.len() {
                     let pad = width - s.len();
                     if left_align {

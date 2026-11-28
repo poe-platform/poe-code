@@ -64,8 +64,8 @@ function isSyncResolved(promise: unknown): boolean {
 const NEWLINE_BYTES = new Uint8Array([10]);
 const NUL_BYTES = new Uint8Array([0]);
 const SINGLE_STDIN_FILE: readonly { name: string; nested: boolean }[] = Object.freeze([Object.freeze({ name: "-", nested: false })]);
-const GREP_SHORT_OPTIONS = "GEFPivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT";
-const GREP_LONG_OPTIONS: Readonly<Record<string, string | false>> = Object.freeze({
+export const GREP_SHORT_OPTIONS = "GEFPivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT";
+export const GREP_LONG_OPTIONS: Readonly<Record<string, string | false>> = Object.freeze({
   color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false,
   label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false,
   "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "perl-regexp": "P", "ignore-case": "i",

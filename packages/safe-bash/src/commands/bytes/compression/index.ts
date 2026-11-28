@@ -1,3 +1,10 @@
+import { createZgrepCommands } from "safe-bash-command-zgrep";
+import { createZegrepCommands } from "safe-bash-command-zegrep";
+import { createZfgrepCommands } from "safe-bash-command-zfgrep";
+import { createZdiffCommands } from "safe-bash-command-zdiff";
+import { createZcmpCommands } from "safe-bash-command-zcmp";
+import { createZlessCommands } from "safe-bash-command-zless";
+import { createZmoreCommands } from "safe-bash-command-zmore";
 import { createZstdCommands } from "safe-bash-command-zstd";
 import { createGzipCommands } from "safe-bash-command-gzip";
 import { gzip as pakoGzip, ungzip as pakoUngzip } from "pako";
@@ -24,6 +31,13 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
   }
   const commands = [
     ...createGzipCommands(config),
+    ...createZgrepCommands(config),
+    ...createZegrepCommands(config),
+    ...createZfgrepCommands(config),
+    ...createZdiffCommands(config),
+    ...createZcmpCommands(config),
+    ...createZlessCommands(config),
+    ...createZmoreCommands(config),
     ...createBzip2Commands(config),
     ...createXzCommands(config),
     ...createZstdCommands(config),

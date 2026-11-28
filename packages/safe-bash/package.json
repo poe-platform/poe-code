@@ -1274,7 +1274,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "@poe-code/compression": "*"
+            "@poe-code/compression": "*",
+            "safe-bash-io-engine": "*"
           },
           "assets": [
             "./dist/native/sources.json",
@@ -2273,6 +2274,90 @@
             "safe-bash-text-stream-engine": "*",
             "safe-bash-io-engine": "*",
             "safe-bash-command-fold": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-grep": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zegrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-zgrep": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zfgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-zgrep": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zdiff": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-diff": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zcmp": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-cmp": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zless": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-less": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zmore": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-command-more": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },
@@ -3640,6 +3725,48 @@
       "browser": "./dist/commands/colrm/index.js",
       "import": "./dist/commands/colrm/index.js"
     },
+    "./commands/zgrep": {
+      "types": "./dist/commands/zgrep/index.d.ts",
+      "workerd": "./dist/commands/zgrep/index.js",
+      "browser": "./dist/commands/zgrep/index.js",
+      "import": "./dist/commands/zgrep/index.js"
+    },
+    "./commands/zegrep": {
+      "types": "./dist/commands/zegrep/index.d.ts",
+      "workerd": "./dist/commands/zegrep/index.js",
+      "browser": "./dist/commands/zegrep/index.js",
+      "import": "./dist/commands/zegrep/index.js"
+    },
+    "./commands/zfgrep": {
+      "types": "./dist/commands/zfgrep/index.d.ts",
+      "workerd": "./dist/commands/zfgrep/index.js",
+      "browser": "./dist/commands/zfgrep/index.js",
+      "import": "./dist/commands/zfgrep/index.js"
+    },
+    "./commands/zdiff": {
+      "types": "./dist/commands/zdiff/index.d.ts",
+      "workerd": "./dist/commands/zdiff/index.js",
+      "browser": "./dist/commands/zdiff/index.js",
+      "import": "./dist/commands/zdiff/index.js"
+    },
+    "./commands/zcmp": {
+      "types": "./dist/commands/zcmp/index.d.ts",
+      "workerd": "./dist/commands/zcmp/index.js",
+      "browser": "./dist/commands/zcmp/index.js",
+      "import": "./dist/commands/zcmp/index.js"
+    },
+    "./commands/zless": {
+      "types": "./dist/commands/zless/index.d.ts",
+      "workerd": "./dist/commands/zless/index.js",
+      "browser": "./dist/commands/zless/index.js",
+      "import": "./dist/commands/zless/index.js"
+    },
+    "./commands/zmore": {
+      "types": "./dist/commands/zmore/index.d.ts",
+      "workerd": "./dist/commands/zmore/index.js",
+      "browser": "./dist/commands/zmore/index.js",
+      "import": "./dist/commands/zmore/index.js"
+    },
     "./commands/stdbuf": {
       "types": "./dist/commands/stdbuf/index.d.ts",
       "workerd": "./dist/commands/stdbuf/index.js",
@@ -3923,6 +4050,13 @@
     "safe-bash-command-basenc": "*",
     "safe-bash-command-col": "*",
     "safe-bash-command-colrm": "*",
+    "safe-bash-command-zgrep": "*",
+    "safe-bash-command-zegrep": "*",
+    "safe-bash-command-zfgrep": "*",
+    "safe-bash-command-zdiff": "*",
+    "safe-bash-command-zcmp": "*",
+    "safe-bash-command-zless": "*",
+    "safe-bash-command-zmore": "*",
     "safe-bash-command-stdbuf": "*"
   },
   "main": "./dist/index.js",

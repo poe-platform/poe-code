@@ -339,9 +339,9 @@ for (const duration of ["0", "1s"]) {
 
 test("public aggregate includes timeout and the other approved commands", () => {
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 190);
-  assert.equal(new Set(names).size, 190);
+  assert.equal(names.length, 204);
+  assert.equal(new Set(names).size, 204);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(names.includes(name));
-  for (const name of ["which", "timeout", "apply_patch", "xq", "xmllint", "mdq"]) assert.ok(names.includes(name));
+  for (const name of ["basenc", "trash-put", "trash-list", "trash-restore", "which", "stdbuf", "zgrep", "zegrep", "zfgrep", "zdiff", "zcmp", "zless", "zmore", "timeout", "apply_patch", "xq", "xmllint", "mdq"]) assert.ok(names.includes(name));
   for (const name of ["curl", "safejs", "node", "npm", "npx"]) assert.equal(names.includes(name), false);
 });

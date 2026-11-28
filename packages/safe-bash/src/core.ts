@@ -230,5 +230,12 @@ export { createSortCommand, createSortCommands, sortCommands, defaultSortLimits,
 
 export * from "./commands/col/index.js";
 export * from "./commands/colrm/index.js";
+export * from "./commands/zgrep/index.js";
+export * from "./commands/zegrep/index.js";
+export * from "./commands/zfgrep/index.js";
+export * from "./commands/zdiff/index.js";
+export * from "./commands/zcmp/index.js";
+export * from "./commands/zless/index.js";
+export * from "./commands/zmore/index.js";
 
 export * from "./commands/stdbuf/index.js";

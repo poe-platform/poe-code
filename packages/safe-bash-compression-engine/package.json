@@ -78,6 +78,10 @@
     "./native/generated/zstd": {
       "types": "./dist/native/zstd.d.ts",
       "import": "./dist/native/zstd.js"
+    },
+    "./decoded-input": {
+      "types": "./dist/decoded-input.d.ts",
+      "import": "./dist/decoded-input.js"
     }
   },
   "files": [
@@ -95,6 +99,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-code/compression": "*"
+    "@poe-code/compression": "*",
+    "safe-bash-io-engine": "*"
   }
 }

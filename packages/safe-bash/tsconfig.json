@@ -1434,6 +1434,55 @@
       ],
       "safe-bash-command-stdbuf": [
         "../safe-bash-command-stdbuf/src/index.ts"
+      ],
+      "safe-bash-command-zgrep": [
+        "../safe-bash-command-zgrep/src/index.ts"
+      ],
+      "safe-bash-command-zgrep/*": [
+        "../safe-bash-command-zgrep/src/*.ts",
+        "../safe-bash-command-zgrep/src/*"
+      ],
+      "safe-bash-command-zegrep": [
+        "../safe-bash-command-zegrep/src/index.ts"
+      ],
+      "safe-bash-command-zegrep/*": [
+        "../safe-bash-command-zegrep/src/*.ts",
+        "../safe-bash-command-zegrep/src/*"
+      ],
+      "safe-bash-command-zfgrep": [
+        "../safe-bash-command-zfgrep/src/index.ts"
+      ],
+      "safe-bash-command-zfgrep/*": [
+        "../safe-bash-command-zfgrep/src/*.ts",
+        "../safe-bash-command-zfgrep/src/*"
+      ],
+      "safe-bash-command-zdiff": [
+        "../safe-bash-command-zdiff/src/index.ts"
+      ],
+      "safe-bash-command-zdiff/*": [
+        "../safe-bash-command-zdiff/src/*.ts",
+        "../safe-bash-command-zdiff/src/*"
+      ],
+      "safe-bash-command-zcmp": [
+        "../safe-bash-command-zcmp/src/index.ts"
+      ],
+      "safe-bash-command-zcmp/*": [
+        "../safe-bash-command-zcmp/src/*.ts",
+        "../safe-bash-command-zcmp/src/*"
+      ],
+      "safe-bash-command-zless": [
+        "../safe-bash-command-zless/src/index.ts"
+      ],
+      "safe-bash-command-zless/*": [
+        "../safe-bash-command-zless/src/*.ts",
+        "../safe-bash-command-zless/src/*"
+      ],
+      "safe-bash-command-zmore": [
+        "../safe-bash-command-zmore/src/index.ts"
+      ],
+      "safe-bash-command-zmore/*": [
+        "../safe-bash-command-zmore/src/*.ts",
+        "../safe-bash-command-zmore/src/*"
       ]
     },
     "baseUrl": "."

@@ -741,7 +741,14 @@
     "safe-bash-command-basenc": "*",
     "safe-bash-command-col": "*",
     "safe-bash-command-colrm": "*",
-    "safe-bash-command-stdbuf": "*"
+    "safe-bash-command-stdbuf": "*",
+    "safe-bash-command-zgrep": "*",
+    "safe-bash-command-zegrep": "*",
+    "safe-bash-command-zfgrep": "*",
+    "safe-bash-command-zdiff": "*",
+    "safe-bash-command-zcmp": "*",
+    "safe-bash-command-zless": "*",
+    "safe-bash-command-zmore": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

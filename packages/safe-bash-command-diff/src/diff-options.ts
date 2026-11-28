@@ -42,7 +42,7 @@ function contextLength(value: string): number {
   return Math.min(Number(value), Number.MAX_SAFE_INTEGER);
 }
 
-export function flags(args: readonly string[]): DiffFlags {
+export function flags(args: readonly string[], allowSingleFile = false): DiffFlags {
   const result: DiffFlags = { format: "normal", lineFormats: {}, groupFormats: {}, whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, unidirectionalNewFile: false, stripTrailingCr: false, ignoreFileNameCase: false, labels: [], files: [], optionArgs: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
@@ -194,7 +194,7 @@ export function flags(args: readonly string[]): DiffFlags {
   }
   if (result.fromFile !== undefined && result.toFile !== undefined) throw new ToolError("--from-file and --to-file may not both be specified");
   const multiple = result.fromFile !== undefined || result.toFile !== undefined;
-  if (multiple ? result.files.length === 0 : result.files.length !== 2) throw new ToolError(multiple ? "expected at least one file or directory" : "expected two files or directories");
+  if (multiple ? result.files.length === 0 : result.files.length !== 2 && !(allowSingleFile && result.files.length === 1)) throw new ToolError(multiple ? "expected at least one file or directory" : "expected two files or directories");
   if (selectedFormat === undefined && result.functions.length) { result.format = "context"; result.context = Math.max(3, result.context); }
   if (result.labels.length > 2) throw new ToolError("at most two labels are supported");
   for (const name of [...result.files, ...[result.fromFile, result.toFile].filter(name => name !== undefined)]) {

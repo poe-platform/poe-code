@@ -97,4 +97,12 @@ export {
   whichCommands,
 } from "./core.js";
 
+export { createZgrepCommand, createZgrepCommands, zgrepCommands, type ZgrepCommandsOptions, type ZgrepLimits } from "./commands/zgrep/index.js";
+export { createZegrepCommand, createZegrepCommands, zegrepCommands, type ZegrepCommandsOptions, type ZegrepLimits } from "./commands/zegrep/index.js";
+export { createZfgrepCommand, createZfgrepCommands, zfgrepCommands, type ZfgrepCommandsOptions, type ZfgrepLimits } from "./commands/zfgrep/index.js";
+export { createZdiffCommand, createZdiffCommands, zdiffCommands, type ZdiffCommandsOptions, type ZdiffLimits } from "./commands/zdiff/index.js";
+export { createZcmpCommand, createZcmpCommands, zcmpCommands, type ZcmpCommandsOptions, type ZcmpLimits } from "./commands/zcmp/index.js";
+export { createZlessCommand, createZlessCommands, zlessCommands, type ZlessCommandsOptions, type ZlessLimits } from "./commands/zless/index.js";
+export { createZmoreCommand, createZmoreCommands, zmoreCommands, type ZmoreCommandsOptions, type ZmoreLimits } from "./commands/zmore/index.js";
+
 export * from "./commands/stdbuf/index.js";

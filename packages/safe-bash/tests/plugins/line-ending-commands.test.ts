@@ -3,10 +3,7 @@ import test from "node:test";
 import * as entry from "../../src/index.js";
 
 const expectedPrefix = [
-  "gh",
-  "trash-put",
-  "trash-list",
-  "trash-restore",
+  "gh", "trash-put", "trash-list", "trash-restore",
   "true",
   "false",
   "echo",
@@ -47,8 +44,7 @@ const expectedPrefix = [
   "awk",
   "jq",
   "base64",
-  "base32",
-  "basenc",
+  "base32", "basenc",
   "xxd",
   "od",
   "sha512sum",
@@ -60,7 +56,7 @@ const expectedPrefix = [
   "cksum",
   "gzip",
   "gunzip",
-  "zcat",
+  "zcat", "zgrep", "zegrep", "zfgrep", "zdiff", "zcmp", "zless", "zmore",
   "bzip2",
   "bunzip2",
   "bzcat",
@@ -105,13 +101,11 @@ const expectedPrefix = [
   "egrep",
   "fgrep",
   "rgrep",
-  "col",
-  "colrm",
-  "column",
+  "col", "colrm", "column",
   "html-to-markdown",
   "du",
   "expr",
-  "which",
+  "which", "stdbuf",
   "timeout",
   "apply_patch",
   "xq",
@@ -130,7 +124,7 @@ const limitNames = ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOut
 test("default line-ending commands append to the independent 109-command prefix", () => {
   const names = entry.createAgentCommands().map(command => command.name);
   assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
-  assert.equal(new Set(names).size, 196);
+  assert.equal(new Set(names).size, 204);
   for (const name of ["createDos2unixCommand", "createUnix2dosCommand", "createLineEndingCommands", "lineEndingCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);
 });
 

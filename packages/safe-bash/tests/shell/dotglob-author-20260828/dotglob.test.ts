@@ -212,9 +212,9 @@ test("builtin discovery, function precedence, command bypass, registry unchanged
     assert.equal(result.stderr, "");
     assert.deepEqual(shell.commands.list().map(command => command.name), before);
     const names = createAgentCommands().map(command => command.name);
-    assert.equal(names.length, 190);
-    assert.equal(new Set(names).size, 190);
-    for (const name of ["which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "mdq"]) assert.ok(names.includes(name));
+    assert.equal(names.length, 204);
+    assert.equal(new Set(names).size, 204);
+    for (const name of ["basenc", "trash-put", "trash-list", "trash-restore", "which", "stdbuf", "zgrep", "zegrep", "zfgrep", "zdiff", "zcmp", "zless", "zmore", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "mdq"]) assert.ok(names.includes(name));
     for (const name of ["shopt", "curl", "safejs", "node", "npm", "npx"]) assert.equal(names.includes(name), false);
   } finally { await shell.dispose(); }
 });

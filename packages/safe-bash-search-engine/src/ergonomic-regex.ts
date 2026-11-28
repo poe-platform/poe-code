@@ -666,17 +666,13 @@ function parsePattern(
           throw new SearchError("invalid ERE: assertion cannot be quantified");
         }
         let lazy = false;
-        if (!bre && pos < pattern.length && pattern[pos] === "?") {
+        if (!bre && !grepEre && pos < pattern.length && pattern[pos] === "?") {
           pos++;
           lazy = true;
           needsVm = true;
-        } else if (bre && pos + 1 < pattern.length && pattern[pos] === "\\" && pattern[pos + 1] === "?") {
-          pos += 2;
-          lazy = true;
-          needsVm = true;
         }
+        atomEre = `${atomNode.type === "rep" ? `(${atomEre})` : atomEre}${qEre}`;
         atomNode = { type: "rep", child: atomNode, min, max, lazy };
-        atomEre = `${atomEre}${qEre}`;
       }
 
       nodes.push(atomNode);

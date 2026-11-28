@@ -18499,6 +18499,8 @@ enum SqlWinFn {
     RowNumber,
     Rank,
     DenseRank,
+    CumeDist,
+    PercentRank,
     Ntile(usize),
     Lag {
         col_idx: usize,
@@ -18533,6 +18535,33 @@ enum SqlWinFn {
     Min {
         col_idx: usize,
     },
+}
+
+fn sql_window_distribution(
+    indices: &[usize],
+    position: usize,
+    cumulative: bool,
+    compare: impl Fn(usize, usize) -> std::cmp::Ordering,
+) -> String {
+    let current = indices[position];
+    // Distribution functions use the entire partition, regardless of frame bounds.
+    let (numerator, denominator) = if cumulative {
+        (
+            indices.partition_point(|&row| compare(row, current) != std::cmp::Ordering::Greater),
+            indices.len(),
+        )
+    } else {
+        (
+            indices.partition_point(|&row| compare(row, current) == std::cmp::Ordering::Less),
+            indices.len().saturating_sub(1).max(1),
+        )
+    };
+    let value = numerator as f64 / denominator as f64;
+    if value.fract() == 0.0 {
+        format!("{value:.1}")
+    } else {
+        value.to_string()
+    }
 }
 
 fn strip_sql_comments(sql: &str) -> String {
@@ -25224,6 +25253,10 @@ fn exec_sql_select_with_mode(
                         SqlWinFn::DenseRank
                     } else if fn_up.starts_with("RANK(") {
                         SqlWinFn::Rank
+                    } else if fn_up.starts_with("CUME_DIST(") {
+                        SqlWinFn::CumeDist
+                    } else if fn_up.starts_with("PERCENT_RANK(") {
+                        SqlWinFn::PercentRank
                     } else if fn_up.starts_with("NTILE(") {
                         let n = inner.parse::<usize>().unwrap_or(1).max(1);
                         SqlWinFn::Ntile(n)
@@ -25533,6 +25566,15 @@ fn exec_sql_select_with_mode(
                             } else if fn_up.starts_with("RANK(") {
                                 let mut rank = 1usize;
                                 for k in 0..my_pos {
+                            } else if fn_up.starts_with("CUME_DIST(")
+                                || fn_up.starts_with("PERCENT_RANK(")
+                            {
+                                sql_window_distribution(
+                                    &p_indices,
+                                    my_pos,
+                                    fn_up.starts_with("CUME_DIST("),
+                                    cmp_rows,
+                                )
                                     if cmp_rows(p_indices[k], my_idx) != std::cmp::Ordering::Equal {
                                         rank = k + 2;
                                     }
@@ -25733,6 +25775,12 @@ fn exec_sql_select_with_mode(
                                     if cmp_rows(p_indices[k], my_idx) != std::cmp::Ordering::Equal {
                                         rank = k + 2;
                                     }
+                            SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
+                                &p_indices,
+                                my_pos,
+                                matches!(func, SqlWinFn::CumeDist),
+                                cmp_rows,
+                            ),
                                 }
                                 rank.to_string()
                             }
@@ -26179,25 +26227,26 @@ fn exec_sql_aggregate_select(
         let mut combined_order = Vec::new();
         let mut win_updates: Vec<(usize, String)> = Vec::new();
         for (_pk, mut p_indices) in partitions {
-            if !order_exprs.is_empty() {
-                p_indices.sort_by(|&a_i, &b_i| {
-                    for (oe, desc) in &order_exprs {
-                        let va = eval_grp_key(a_i, oe);
-                        let vb = eval_grp_key(b_i, oe);
-                        let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
-                            (Ok(na), Ok(nb)) => {
-                                na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-                            }
-                            _ => va.cmp(&vb),
-                        };
-                        let ord = if *desc { ord.reverse() } else { ord };
-                        if ord != std::cmp::Ordering::Equal {
-                            return ord;
+            let cmp_rows = |a_i: usize, b_i: usize| {
+                for (oe, desc) in &order_exprs {
+                    let va = eval_grp_key(a_i, oe);
+                    let vb = eval_grp_key(b_i, oe);
+                    let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
+                        (Ok(na), Ok(nb)) => {
+                            na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                         }
                     }
-                    a_i.cmp(&b_i)
-                });
+                }
+                std::cmp::Ordering::Equal
+            };
+            if !order_exprs.is_empty() {
+                p_indices.sort_by(|&a_i, &b_i| cmp_rows(a_i, b_i).then_with(|| a_i.cmp(&b_i)));
             }
+                        _ => va.cmp(&vb),
+                    };
+                    let ord = if *desc { ord.reverse() } else { ord };
+                    if ord != std::cmp::Ordering::Equal {
+                        return ord;
             let mut cur_rank = 1usize;
             let mut cur_dense = 1usize;
             for (pos, &row_i) in p_indices.iter().enumerate() {
@@ -26217,6 +26266,13 @@ fn exec_sql_aggregate_select(
                     cur_dense.to_string()
                 } else {
                     cur_rank.to_string()
+                } else if fn_up.starts_with("CUME_DIST(") || fn_up.starts_with("PERCENT_RANK(") {
+                    sql_window_distribution(
+                        &p_indices,
+                        pos,
+                        fn_up.starts_with("CUME_DIST("),
+                        cmp_rows,
+                    )
                 };
                 win_updates.push((row_i, val));
             }

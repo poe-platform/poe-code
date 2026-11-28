@@ -7522,77 +7522,8 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             return BcFlow::None;
         }
     }
-    for (op, bin_op) in [
-        ("+=", "+"),
-        ("-=", "-"),
-        ("*=", "*"),
-        ("/=", "/"),
-        ("%=", "%"),
-        ("^=", "^"),
-    ] {
-        if let Some((lhs, rhs)) = s.split_once(op) {
-            let key = resolve_bc_lvalue_key(lhs, bc, depth);
-            let rv = eval_bc_val(rhs.trim(), bc, depth + 1);
-            let cur = bc.vars.get(&key).cloned().unwrap_or_default();
-            let next = apply_bc_binop(&cur, &rv, bin_op, bc);
-            bc.vars.insert(key, next);
-            return BcFlow::None;
-        }
-    }
-    if let Some(rest) = s.strip_prefix("scale")
-        && let Some(val_s) = rest.trim().strip_prefix('=')
-        && !val_s.starts_with('=')
-    {
-        bc.scale = eval_bc_val(val_s.trim(), bc, depth + 1).val.max(0.0) as usize;
-        return BcFlow::None;
-    }
-    if let Some(rest) = s.strip_prefix("ibase")
-        && let Some(val_s) = rest.trim().strip_prefix('=')
-        && !val_s.starts_with('=')
-    {
-        let v = eval_bc_val(val_s.trim(), bc, depth + 1).val.round() as u32;
-        bc.ibase = v.clamp(2, 16);
-        return BcFlow::None;
-    }
-    if let Some(rest) = s.strip_prefix("obase")
-        && let Some(val_s) = rest.trim().strip_prefix('=')
-        && !val_s.starts_with('=')
-    {
-        let v = eval_bc_val(val_s.trim(), bc, depth + 1).val.round() as u32;
-        bc.obase = v.max(2);
-        return BcFlow::None;
-    }
-    if let Some((lhs, rhs)) = split_top_level_assign(s) {
-        let key = resolve_bc_lvalue_key(lhs, bc, depth);
-        bc.last_str_out = None;
-        let mut v = eval_bc_val(rhs.trim(), bc, depth + 1);
-        if let Some(str_out) = bc.last_str_out.take()
-            && let Ok(fv) = str_out.parse::<f64>()
-        {
-            let sc = str_out.split_once('.').map(|(_, f)| f.len()).unwrap_or(0);
-            let digits: Option<Vec<u8>> =
-                if (sc == 0 && str_out.bytes().all(|b| b.is_ascii_digit())) || sc > 12 {
-                    Some(
-                        str_out
-                            .bytes()
-                            .filter(|b| b.is_ascii_digit())
-                            .map(|b| b - b'0')
-                            .collect(),
-                    )
-                } else {
-                    None
-                };
-            v = BcVal {
-                val: fv,
-                coefficient: digits,
-                neg: fv < 0.0,
-                scale: sc,
-            };
-        }
-        if key == "last" {
-            bc.last = v.clone();
-        }
-        bc.vars.insert(key, v);
+    if split_top_level_assign(s).is_some() {
+        eval_bc_val(s, bc, depth + 1);
         return BcFlow::None;
     }
     bc.last_str_out = None;
@@ -7646,7 +7577,7 @@ fn split_bc_if_branches(after_cond: &str) -> (&str, Option<&str>) {
     (t, None)
 }
 
-fn split_top_level_assign(s: &str) -> Option<(&str, &str)> {
+fn split_top_level_assign(s: &str) -> Option<(&str, &str, &str)> {
     let bytes = s.as_bytes();
     let mut pdepth = 0i32;
     let mut bdepth = 0i32;
@@ -7659,12 +7590,13 @@ fn split_top_level_assign(s: &str) -> Option<(&str, &str)> {
             b'=' if pdepth == 0 && bdepth == 0 => {
                 let prev = if i > 0 { bytes[i - 1] } else { 0 };
                 let next = if i + 1 < bytes.len() { bytes[i + 1] } else { 0 };
-                if !matches!(
-                    prev,
-                    b'<' | b'>' | b'!' | b'=' | b'+' | b'-' | b'*' | b'/' | b'%'
-                ) && next != b'='
-                {
-                    return Some((&s[..i], &s[i + 1..]));
+                if !matches!(prev, b'<' | b'>' | b'!' | b'=') && next != b'=' {
+                    let op_start = if matches!(prev, b'+' | b'-' | b'*' | b'/' | b'%' | b'^') {
+                        i - 1
+                    } else {
+                        i
+                    };
+                    return Some((&s[..op_start], &s[op_start..i], &s[i + 1..]));
                 }
             }
             _ => {}
@@ -7996,6 +7928,54 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         && balanced_parens(inner)
     {
         return eval_bc_val(inner, bc, depth);
+    }
+    if let Some((lhs, op, rhs)) = split_top_level_assign(s) {
+        let key = resolve_bc_lvalue_key(lhs, bc, depth);
+        bc.last_str_out = None;
+        let mut v = eval_bc_val(rhs.trim(), bc, depth + 1);
+        if let Some(str_out) = bc.last_str_out.take()
+            && let Ok(fv) = str_out.parse::<f64>()
+        {
+            let sc = str_out.split_once('.').map(|(_, f)| f.len()).unwrap_or(0);
+            let digits: Option<Vec<u8>> =
+                if (sc == 0 && str_out.bytes().all(|b| b.is_ascii_digit())) || sc > 12 {
+                    Some(
+                        str_out
+                            .bytes()
+                            .filter(|b| b.is_ascii_digit())
+                            .map(|b| b - b'0')
+                            .collect(),
+                    )
+                } else {
+                    None
+                };
+            v = BcVal {
+                val: fv,
+                coefficient: digits,
+                neg: fv < 0.0,
+                scale: sc,
+            };
+        }
+        if !op.is_empty() {
+            let current = match key.as_str() {
+                "scale" => BcVal::from_i64(bc.scale as i64),
+                "ibase" => BcVal::from_i64(bc.ibase as i64),
+                "obase" => BcVal::from_i64(bc.obase as i64),
+                "last" => bc.last.clone(),
+                _ => bc.vars.get(&key).cloned().unwrap_or_default(),
+            };
+            v = apply_bc_binop(&current, &v, op, bc);
+        }
+        match key.as_str() {
+            "scale" => bc.scale = v.val.max(0.0) as usize,
+            "ibase" => bc.ibase = (v.val.round() as u32).clamp(2, 16),
+            "obase" => bc.obase = (v.val.round() as u32).max(2),
+            "last" => bc.last = v.clone(),
+            _ => {
+                bc.vars.insert(key, v.clone());
+            }
+        }
+        return v;
     }
     for cmp_op in ["==", "!=", "<=", ">=", "<", ">"] {
         if let Some((lhs, rhs)) = s.split_once(cmp_op) {

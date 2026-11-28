@@ -621,6 +621,7 @@ pub fn execute_git_cli_with_input(
             let mut msgs: Vec<String> = Vec::new();
             let mut quiet = false;
             let mut amend = false;
+            let mut only = false;
             let mut stage_all = false;
             let mut no_verify = false;
             let mut custom_author: Option<(String, String)> = None;
@@ -664,6 +665,11 @@ pub fn execute_git_cli_with_input(
                 }
                 if arg == "--amend" {
                     amend = true;
+                    i += 1;
+                    continue;
+                }
+                if matches!(arg, "-o" | "--only") {
+                    only = true;
                     i += 1;
                     continue;
                 }
@@ -721,6 +727,22 @@ pub fn execute_git_cli_with_input(
                 }
                 i += 1;
             }
+            if only && stage_all {
+                return CliResult::err(128, "fatal: options '-a' and '-o' cannot be used together\n");
+            }
+            if only && !amend && commit_paths.is_empty() {
+                return CliResult::err(128, "fatal: No paths with --include/--only does not make sense.\n");
+            }
+            let commit_tree = if only && amend && commit_paths.is_empty() {
+                match resolve_ref(fs, &gitdir, "HEAD", None)
+                    .and_then(|oid| crate::read_commit(fs, &gitdir, &oid))
+                {
+                    Ok(previous) => Some(previous.commit.tree),
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            } else {
+                None
+            };
             if stage_all {
                 let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
                 let mut to_add = Vec::new();
@@ -906,7 +928,7 @@ pub fn execute_git_cli_with_input(
                 false,
                 None,
                 merge_parents.as_deref(),
-                None,
+                commit_tree.as_deref(),
             );
             if let Some(original) = signing_config {
                 if let Some(bytes) = original { fs.write(&config_path, &bytes); }

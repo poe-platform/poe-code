@@ -8118,20 +8118,34 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
     if let Some(v) = bc.vars.get(s) {
         return v.clone();
     }
+    let sc = s.split_once('.').map(|(_, f)| f.len()).unwrap_or(0);
     if bc.ibase != 10
-        && s.chars()
-            .all(|c| c.is_ascii_digit() || ('A'..='F').contains(&c))
-        && let Ok(iv) = u128::from_str_radix(s, bc.ibase)
+        && s.chars().all(|c| {
+            c == '.' || (c.is_ascii_digit() || c.is_ascii_uppercase()) && c.is_digit(bc.ibase)
+        })
+        && s.bytes().filter(|&b| b == b'.').count() <= 1
     {
-        let digits = iv.to_string().bytes().map(|b| b - b'0').collect();
+        let base = [(bc.ibase / 10) as u8, (bc.ibase % 10) as u8];
+        let mut digits = vec![0];
+        for c in s.chars().filter(|&c| c != '.') {
+            let digit = c.to_digit(bc.ibase).unwrap() as u8;
+            digits = big_add(&big_mul(&digits, &base), &[digit / 10, digit % 10]);
+        }
+        if sc > 0 {
+            // bc keeps the input's fractional digit count, truncating in decimal.
+            digits.extend(std::iter::repeat_n(0, sc));
+            digits = big_div_rem(&digits, &big_pow(&base, sc as u32)).0;
+        }
+        let val = format_big_with_scale(&digits, sc, false)
+            .parse::<f64>()
+            .unwrap_or(0.0);
         return BcVal {
-            val: iv as f64,
+            val,
             coefficient: Some(digits),
             neg: false,
-            scale: 0,
+            scale: sc,
         };
     }
-    let sc = s.split_once('.').map(|(_, f)| f.len()).unwrap_or(0);
     if s.bytes().any(|b| b.is_ascii_digit())
         && s.bytes().all(|b| b.is_ascii_digit() || b == b'.')
         && s.bytes().filter(|&b| b == b'.').count() <= 1

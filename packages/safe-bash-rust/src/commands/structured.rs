@@ -28860,7 +28860,41 @@ fn apply_sql_datetime_modifiers(
     base: &str,
     modifiers: &[&str],
 ) -> Option<(i32, i32, i32, i32, i32, i32)> {
-    let (mut y, mut m, mut d, mut hh, mut mm, ss) = {
+    let mut modifiers = modifiers
+        .iter()
+        .map(|modifier| {
+            modifier
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"')
+                .to_ascii_lowercase()
+        })
+        .peekable();
+    let (mut y, mut m, mut d, mut hh, mut mm, ss) = if modifiers
+        .peek()
+        .is_some_and(|modifier| modifier == "unixepoch")
+    {
+        modifiers.next();
+        // SQLite rounds to milliseconds from the Julian epoch before formatting.
+        let millis = base.trim().parse::<f64>().ok()? * 1000.0 + 210_866_760_000_000.0;
+        if !(0.0..464_269_060_800_000.0).contains(&millis) {
+            return None;
+        }
+        let seconds = (millis + 0.5) as i64 / 1000 - 210_866_760_000;
+        let (year, month, day) = super::coreutils::civil_from_days(seconds.div_euclid(86400));
+        if year > 9999 {
+            return None;
+        }
+        let time = seconds.rem_euclid(86400);
+        (
+            year as i32,
+            month as i32,
+            day as i32,
+            (time / 3600) as i32,
+            (time / 60 % 60) as i32,
+            (time % 60) as i32,
+        )
+    } else {
         let norm = base.replace('T', " ");
         let mut parts = norm.split_whitespace();
         let date_part = parts.next()?;
@@ -28930,12 +28964,10 @@ fn apply_sql_datetime_modifiers(
         }
     };
 
-    for raw_mod in modifiers {
-        let md = raw_mod
-            .trim()
-            .trim_matches('\'')
-            .trim_matches('"')
-            .to_ascii_lowercase();
+    for md in modifiers {
+        if md == "unixepoch" {
+            return None;
+        }
         if md == "start of month" {
             d = 1;
         } else if md == "start of year" {
@@ -29026,7 +29058,11 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
             let Some((y, m, d, _, _, _)) = apply_sql_datetime_modifiers(base, &args[1..]) else {
                 return SQL_NULL.to_string();
             };
-            return format!("{y:04}-{m:02}-{d:02}");
+            return format!(
+                "{}{:04}-{m:02}-{d:02}",
+                if y < 0 { "-" } else { "" },
+                y.abs()
+            );
         }
     }
     if upper.starts_with("STRFTIME(") && s.ends_with(')') {

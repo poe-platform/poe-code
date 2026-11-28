@@ -3237,21 +3237,17 @@ fn try_eval_jq_builtin(
                 "any" | "all" => {
                     let is_any = fname == "any";
                     if let Some((gen_e, cond_e)) = split_jq_binary(arg_expr, ";") {
-                        let items = eval_jq(gen_e.trim(), input, vars)?;
                         let mut res = !is_any;
-                        for item in items {
-                            let ok = eval_jq(cond_e.trim(), &item, vars)?
-                                .into_iter()
-                                .any(|v| v.is_truthy());
-                            if is_any && ok {
-                                res = true;
-                                break;
-                            }
-                            if !is_any && !ok {
-                                res = false;
-                                break;
-                            }
-                        }
+                        let _ = visit_jq(gen_e.trim(), input, vars, &mut |item| {
+                            visit_jq(cond_e.trim(), &item, vars, &mut |value| {
+                                if value.is_truthy() == is_any {
+                                    res = is_any;
+                                    Ok(ControlFlow::Break(()))
+                                } else {
+                                    Ok(ControlFlow::Continue(()))
+                                }
+                            })
+                        })?;
                         return Ok(Some(vec![JVal::Bool(res)]));
                     } else if let JVal::Array(a) = input {
                         let mut res = !is_any;

@@ -1252,6 +1252,18 @@ function toSqlNumber(v: SqlValue): number {
   return 0;
 }
 
+// Math functions require a complete numeric argument, unlike SQL casts.
+function toMathNumber(value: SqlValue): number {
+  if (typeof value === "number" || value instanceof Number || typeof value === "bigint") {
+    return Number(value);
+  }
+  if (typeof value === "string" || value instanceof String) {
+    const text = String(value).trim();
+    if (text && [...text].every(char => "0123456789.+-eE".includes(char))) return Number(text);
+  }
+  return NaN;
+}
+
 const INT64_MIN = -9223372036854775808n;
 const INT64_MAX = 9223372036854775807n;
 
@@ -8457,6 +8469,7 @@ export class SqliteDatabase {
 
   private *evalScalarFunction(name: string, args: SqlValue[]): SqlSteps<SqlValue> {
     const value = yield* this.evalScalarFunctionValue(name, args);
+    if (typeof value === "number" && Number.isNaN(value)) return null;
     const u = name.toUpperCase();
     const jsonResult = ["JSON", "JSON_ARRAY", "JSON_OBJECT", "JSON_QUOTE", "JSON_PATCH", "JSON_REMOVE", "JSON_SET", "JSON_INSERT", "JSON_REPLACE"].includes(u);
     return jsonResult && typeof value === "string" ? new JsonText(value) : value;
@@ -8724,60 +8737,64 @@ export class SqliteDatabase {
       }
       case "CEIL":
       case "CEILING":
-        return a0 === null ? null : Math.ceil(toSqlNumber(a0));
+        return a0 === null ? null : Math.ceil(toMathNumber(a0));
       case "FLOOR":
-        return a0 === null ? null : Math.floor(toSqlNumber(a0));
+        return a0 === null ? null : Math.floor(toMathNumber(a0));
       case "TRUNC":
-        return a0 === null ? null : Math.trunc(toSqlNumber(a0));
+        return a0 === null ? null : Math.trunc(toMathNumber(a0));
       case "SIGN": {
         if (a0 === null) {
           return null;
         }
-        const n = toSqlNumber(a0);
-        return n > 0 ? 1 : n < 0 ? -1 : 0;
+        const n = toMathNumber(a0);
+        return Number.isNaN(n) ? null : n > 0 ? 1 : n < 0 ? -1 : 0;
       }
       case "SQRT":
-        return a0 === null ? null : Math.sqrt(toSqlNumber(a0));
+        return a0 === null ? null : Math.sqrt(toMathNumber(a0));
       case "POW":
-      case "POWER":
-        return a0 === null || a1 === null ? null : toSqlNumber(a0) ** toSqlNumber(a1);
+      case "POWER": {
+        const base = toMathNumber(a0);
+        const exponent = toMathNumber(a1);
+        return Number.isNaN(base) || Number.isNaN(exponent) ? null : base ** exponent;
+      }
       case "EXP":
-        return a0 === null ? null : Math.exp(toSqlNumber(a0));
+        return a0 === null ? null : Math.exp(toMathNumber(a0));
       case "LN":
-        return a0 === null ? null : Math.log(toSqlNumber(a0));
       case "LOG":
       case "LOG10":
-        return a0 === null
-          ? null
-          : a1 !== null && a1 !== undefined
-            ? Math.log(toSqlNumber(a1)) / Math.log(toSqlNumber(a0))
-            : Math.log10(toSqlNumber(a0));
-      case "LOG2":
-        return a0 === null ? null : Math.log2(toSqlNumber(a0));
+      case "LOG2": {
+        const n = toMathNumber(a0);
+        if (!(n > 0)) return null;
+        if (u === "LOG" && args.length === 2) {
+          const value = toMathNumber(a1);
+          return n === 1 || !(value > 0) ? null : Math.log(value) / Math.log(n);
+        }
+        return u === "LN" ? Math.log(n) : u === "LOG2" ? Math.log2(n) : Math.log10(n);
+      }
       case "SIN":
-        return a0 === null ? null : Math.sin(toSqlNumber(a0));
+        return a0 === null ? null : Math.sin(toMathNumber(a0));
       case "COS":
-        return a0 === null ? null : Math.cos(toSqlNumber(a0));
+        return a0 === null ? null : Math.cos(toMathNumber(a0));
       case "TAN":
-        return a0 === null ? null : Math.tan(toSqlNumber(a0));
+        return a0 === null ? null : Math.tan(toMathNumber(a0));
       case "ASIN":
-        return a0 === null ? null : Math.asin(toSqlNumber(a0));
+        return a0 === null ? null : Math.asin(toMathNumber(a0));
       case "ACOS":
-        return a0 === null ? null : Math.acos(toSqlNumber(a0));
+        return a0 === null ? null : Math.acos(toMathNumber(a0));
       case "ATAN":
-        return a0 === null ? null : Math.atan(toSqlNumber(a0));
+        return a0 === null ? null : Math.atan(toMathNumber(a0));
       case "ATAN2":
-        return a0 === null || a1 === null ? null : Math.atan2(toSqlNumber(a0), toSqlNumber(a1));
+        return a0 === null || a1 === null ? null : Math.atan2(toMathNumber(a0), toMathNumber(a1));
       case "PI":
         return Math.PI;
       case "DEGREES":
-        return a0 === null ? null : (toSqlNumber(a0) * 180) / Math.PI;
+        return a0 === null ? null : (toMathNumber(a0) * 180) / Math.PI;
       case "RADIANS":
-        return a0 === null ? null : (toSqlNumber(a0) * Math.PI) / 180;
+        return a0 === null ? null : (toMathNumber(a0) * Math.PI) / 180;
       case "MOD":
-        return a0 === null || a1 === null || toSqlNumber(a1) === 0
+        return a0 === null || a1 === null || toMathNumber(a1) === 0
           ? null
-          : toSqlNumber(a0) % toSqlNumber(a1);
+          : toMathNumber(a0) % toMathNumber(a1);
       case "MIN":
         if (
           args.some((x) => {

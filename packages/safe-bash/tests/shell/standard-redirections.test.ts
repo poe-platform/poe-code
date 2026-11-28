@@ -20,6 +20,11 @@ for (const middleware of [false, true]) for (const [source, stdout, stderr = ""]
   ["printf 'b\\na\\n' | sort -o /dev/stdout", "a\nb\n"],
   ["echo a | tee /dev/fd/2 >/dev/null", "", "a\n"],
   ["exec 3<<<hello; cat /dev/fd/3; exec 3<&-", "hello\n"],
+  ["echo abc > f; exec 3<>f; read -n1 c <&3; printf X >&3; exec 3>&-; cat f", "aXc\n"],
+  ["printf abcdef > g; exec 4<>g; printf 12 >&4; printf 34 >&4; exec 4>&-; cat g; echo", "1234ef\n"],
+  ["echo abc > f; exec 3<>f; read -n1 c <&3; printf X >&3; exec 3>&-; cat f; printf 'abcdef' > g; exec 4<>g; printf 12 >&4; printf 34 >&4; exec 4>&-; cat g; echo", "aXc\n1234ef\n"],
+  ["printf abcdef > f; exec 3<>f; read -n1 c <&3; printf XY >&3; read -n1 c <&3; printf '%s\\n' \"$c\"; cat f", "d\naXYdef"],
+  ["printf abcdef > f; exec 3<>f; exec 4>&3; read -n1 c <&4; printf XY >&3; exec 3>&-; cat <&4; cat f", "defaXYdef"],
   ["exec 3>out; echo hello | tee /dev/fd/3 >/dev/null; echo kept >&3; exec 3>&-; cat out", "hello\nkept\n"],
   ["echo a | cat /dev/stdin; echo b | cat /dev/stdin", "a\nb\n"],
   ["echo hello | tee /dev/stdout", "hello\nhello\n"],
@@ -128,13 +133,18 @@ test("command file APIs use current descriptors without creating backing files",
   }
 });
 
-for (const source of ["cat /dev/fd/9", "cat /dev/stdin 0<&-", "echo lost | tee /dev/fd/9", "echo lost | tee /dev/fd/3 3<<<input"]) {
+for (const [source, stderr] of [
+  ["cat /dev/fd/9", "cat: ENOENT: no such file or directory '/dev/fd/9'\n"],
+  ["cat /dev/stdin 0<&-", "cat: ENOENT: no such file or directory '/dev/stdin'\n"],
+  ["echo lost | tee /dev/fd/9", "tee: ENOENT: no such file or directory '/dev/fd/9'\n"],
+  ["echo lost | tee /dev/fd/3 3<<<input", "tee: EACCES: permission denied '/dev/fd/3'\n"],
+] as const) {
   test(`command descriptor operand rejects unavailable access: ${source}`, async t => {
     const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
     t.after(() => shell.dispose());
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /EBADF|Bad file descriptor/);
+    assert.equal(result.stderr, stderr);
   });
 }
 
@@ -350,6 +360,10 @@ test("readwrite redirection drains short descriptor writes", async () => {
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "abcdef\n");
     assert.equal(result.exitCode, 0);
+    const patched = await shell.exec('say abcdef > out; exec 3<>out; read -n1 first <&3; say XY >&3; read -n1 next <&3; say "$first/$next"; exec 3>&-; pass <out');
+    assert.equal(patched.stderr, "");
+    assert.equal(patched.stdout, "a/e\naXY\nef\n");
+    assert.equal(patched.exitCode, 0);
   } finally { await shell.dispose(); }
 });
 

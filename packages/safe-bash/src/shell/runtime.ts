@@ -5888,10 +5888,13 @@ export class Runtime {
           inputOwner.input = input;
           const file = prepared.options.descriptor;
           const output = readwrite && file ? this.budget.sink({ async write(chunk) {
+            // Reads can buffer ahead; writes must start at the consumed position.
+            const positioned = input.seek && file.capabilities.positionedWrite;
             let offset = 0;
             while (offset < chunk.length) {
-              const written = await file.write(chunk.subarray(offset), null, options);
+              const written = await file.write(chunk.subarray(offset), positioned ? input.position : null, options);
               if (written === 0) throw new FsError("EIO", { path, syscall: "write" });
+              if (positioned) await input.seek!(input.position + written, options.signal);
               offset += written;
             }
           } }, this.commandSignal) : undefined;

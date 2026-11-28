@@ -48,6 +48,12 @@ export function compileExpression(source: string, security: { readonly disableEn
     if (number) { tokens.push({ text: number[0], offset, kind: "number" }); offset += number[0].length; continue; }
     const name = /^[A-Za-z_][A-Za-z_0-9-]*/u.exec(source.slice(offset));
     if (name) { tokens.push({ text: name[0], offset, kind: "name" }); offset += name[0].length; continue; }
+    if (character === "*" && source[offset + 1] !== "=") {
+      offset++;
+      while (offset < source.length && "+d?n".includes(source[offset]!)) offset++;
+      tokens.push({ text: source.slice(start, offset), offset: start, kind: "symbol" });
+      continue;
+    }
     const symbol = /^(?:\|=|=c|\+=|-=|\*=|\/=|==|!=|>=|<=|\/\/|\.\.|[.[\]{}(),:|+*/%<>=-])/u.exec(source.slice(offset));
     if (!symbol) throw new MikeError(`1:${offset + 1}: lexer: invalid input text ${JSON.stringify(source.slice(offset))}`);
     tokens.push({ text: symbol[0], offset, kind: "symbol" }); offset += symbol[0].length;
@@ -187,7 +193,7 @@ export function compileExpression(source: string, security: { readonly disableEn
         continue;
       }
       const operator = peek().text;
-      const priority = priorities[operator];
+      const priority = priorities[operator] ?? (operator.startsWith("*") ? priorities["*"] : undefined);
       if (priority === undefined || priority < minimum) break;
       take();
       if (operator === "//" && peek().text === "=") throw new MikeError("'//' expects 2 args but there is 1");

@@ -460,17 +460,61 @@ export class Evaluator {
     return !omitMissing && this.yaml.isScalar(node) && node.value == null ? [this.child(scalar(this.yaml, this.work, null), base)] : [];
   }
 
+  async merge(left: Node, right: Node, flags: string, depth = 0): Promise<Node> {
+    this.work.depth(depth);
+    { const t = this.work.tick(); if (t) await t; }
+    const yaml = this.yaml;
+    const deepArray = flags.includes("d") && yaml.isSeq(left) && yaml.isSeq(right);
+    if (flags.includes("n") && nodeTag(left, yaml) !== "!!null" && !(yaml.isMap(left) && yaml.isMap(right)) && !deepArray) {
+      return cloneNode(left, yaml, this.work);
+    }
+    if (yaml.isMap(right)) {
+      const output = await cloneNode(yaml.isMap(left) ? left : right, yaml, this.work) as YAMLMap;
+      if (!yaml.isMap(left)) output.items = [];
+      for (const pair of right.items) {
+        { const t = this.work.tick(); if (t) await t; }
+        const key = yaml.isScalar(pair.key) ? String(pair.key.value) : "";
+        let existing: Pair | undefined;
+        for (const item of output.items) {
+          { const t = this.work.tick(); if (t) await t; }
+          if (yaml.isScalar(item.key) && String(item.key.value) === key) { existing = item; break; }
+        }
+        if (existing) existing.value = await this.merge(existing.value as Node, pair.value as Node, flags, depth + 1);
+        else if (!flags.includes("?")) output.items.push(new yaml.Pair(await cloneNode(pair.key as Node, yaml, this.work), await cloneNode(pair.value as Node, yaml, this.work)));
+      }
+      return output;
+    }
+    if (yaml.isSeq(left) && yaml.isSeq(right) && (flags.includes("+") || deepArray)) {
+      const output = await cloneNode(left, yaml, this.work) as YAMLSeq;
+      if (flags.includes("+") && !flags.includes("n")) {
+        for (const node of right.items) output.items.push(await cloneNode(node as Node, yaml, this.work));
+      }
+      if (deepArray) for (let index = 0; index < right.items.length; index++) {
+        output.items[index] = index < output.items.length
+          ? await this.merge(output.items[index] as Node, right.items[index] as Node, flags, depth + 1)
+          : await cloneNode(right.items[index] as Node, yaml, this.work);
+      }
+      return output;
+    }
+    return cloneNode(right, yaml, this.work);
+  }
+
   async binary(operator: string, left: Node, right: Node): Promise<Node> {
     { const t = this.work.tick(); if (t) await t; }
     const yaml = this.yaml;
     if (operator === "+" && nodeTag(left, yaml) === "!!null") return cloneNode(right, yaml, this.work);
-    if ((operator === "*" || operator === "+") && yaml.isMap(left) && yaml.isMap(right)) {
+    if (operator.startsWith("*")) {
+      if (yaml.isMap(left) && yaml.isMap(right) || yaml.isSeq(left) && yaml.isSeq(right) || nodeTag(left, yaml) === "!!null" && yaml.isCollection(right)) {
+        return this.merge(left, right, operator.slice(1));
+      }
+      operator = "*";
+    }
+    if (operator === "+" && yaml.isMap(left) && yaml.isMap(right)) {
       const output = await cloneNode(left, yaml, this.work) as YAMLMap;
       for (const pair of right.items) {
         const key = yaml.isScalar(pair.key) ? String(pair.key.value) : "";
         const existing = output.items.find(item => yaml.isScalar(item.key) && String(item.key.value) === key);
-        if (existing) existing.value = operator === "*" && yaml.isMap(existing.value) && yaml.isMap(pair.value)
-          ? await this.binary("*", existing.value, pair.value) : await cloneNode(pair.value as Node, yaml, this.work);
+        if (existing) existing.value = await cloneNode(pair.value as Node, yaml, this.work);
         else output.items.push(new yaml.Pair(await cloneNode(pair.key as Node, yaml, this.work), await cloneNode(pair.value as Node, yaml, this.work)));
       }
       return output;
@@ -744,14 +788,15 @@ export class Evaluator {
         return inputs.map(input => input.isDocumentRoot ? { ...input, node: input.document.doc.contents! } : input);
       }
       const output: Candidate[] = [];
-      for (const input of inputs) {
+      const groups = inputs.length > 1 && inputs.every(input => input.isDocumentRoot) ? [inputs] : inputs.map(input => [input]);
+      for (const group of groups) {
         const readOnly = omitMissing || ["+", "==", "!="].includes(operator);
-        const left = await next(expression.left, [input], false, readOnly);
-        if (operator === "//") { const matches = left.filter(candidate => truth(candidate.node, yaml)); output.push(...(matches.length ? matches : await next(expression.right, [input], false))); continue; }
-        const right = await next(expression.right, [input], false, readOnly);
+        const left = await next(expression.left, group, false, readOnly);
+        if (operator === "//") { const matches = left.filter(candidate => truth(candidate.node, yaml)); output.push(...(matches.length ? matches : await next(expression.right, group, false))); continue; }
+        const right = await next(expression.right, group, false, readOnly);
         if (operator === "+" && (!left.length || !right.length)) { output.push(...(left.length ? left : right)); continue; }
         if ((operator === "==" || operator === "!=") && (!left.length || !right.length)) {
-          const candidates = left.length ? left : right.length ? right : [input];
+          const candidates = left.length ? left : right.length ? right : group;
           for (const candidate of candidates) {
             const equal = !left.length && !right.length || nodeTag(candidate.node, yaml) === "!!null";
             output.push(this.child(scalar(yaml, this.work, operator === "==" ? equal : !equal), candidate));

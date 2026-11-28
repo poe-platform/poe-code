@@ -40,6 +40,9 @@ Join array values into a string with `join(", ")`, or select names first with
 `.items | map(.name) | join(",")`.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.
+Merge flags append arrays (`*+`), merge arrays by index (`*d`), update only existing
+keys (`*?`), or add only new keys (`*n`). Combine flags, for example
+`yq ea 'select(fi == 0) *?+ select(fi == 1)' a.yml b.yml`.
 Use `.a |= sub("o", "0")` to replace every regex match in a string while preserving
 its YAML style and comments. Replacements support `$1`, `${name}`, and `$$` for a
 literal dollar sign, using the shared bounded regex engine and configured work

@@ -2701,15 +2701,15 @@ export class Runtime {
   extractSimpleErePattern(_pattern: Word, _state?: State): { text: string; literal: boolean; isVar?: string } | undefined { return undefined; }
   trySyncEre(_subject: string, _pattern: Word, _state: State, _ignoreYield = false): number | undefined { return undefined; }
   private tryFastExecuteCommandSync(_command: Command, _state: State, _originalIO: IO, _fileShortcut: boolean, _terminal: any, _diagnosticLine: number): number | Promise<number> | undefined { return undefined; }
-  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
+  private async ere(subject: string, pattern: Word, state: State, io: IO, negated = false): Promise<number> {
     const scope = io[invocationScope];
     scope.assertOpen();
-    const syncRes = this.trySyncEre(subject, pattern, state, true);
+    const syncRes = state.xtrace ? undefined : this.trySyncEre(subject, pattern, state, true);
     if (syncRes !== undefined) return syncRes;
     const monitor = stateMonitor(state);
     const existingStore = monitor?.store;
     const existingRematch = existingStore?.get("BASH_REMATCH");
-    const simplePat = this.extractSimpleErePattern(pattern);
+    const simplePat = state.xtrace ? undefined : this.extractSimpleErePattern(pattern);
     if ( monitor && existingStore && existingRematch && !existingRematch.associative && existingRematch.references === 1 && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && !state.readonlyVariables?.has("BASH_REMATCH") && !state.exported.has("BASH_REMATCH") && simplePat) {
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
@@ -2777,6 +2777,7 @@ export class Runtime {
           operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(text), work: text.length + 2 });
           fragments.push({ text, literal });});
       }
+      if (state.xtrace) await this.trace(`[[ ${negated ? "! " : ""}${subject || "''"} =~ ${fragments.map(fragment => fragment.text).join("") || "''"} ]]`, state, io);
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
       if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
@@ -3114,7 +3115,8 @@ export class Runtime {
       }, };
     return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
-  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
+  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO, trace = false): Promise<bigint> {
+    if (trace && state.xtrace && !program.error) await this.trace(`(( ${program.source} ))`, state, io);
     if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
       try {
@@ -3137,6 +3139,7 @@ export class Runtime {
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
         if (typeof fastSource === "string") {
           program = prepareArithmetic(fastSource, this.budget.parsing);
+          if (trace && state.xtrace) await this.trace(`(( ${program.source} ))`, state, io);
           if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
             const snap = this.budget.parsing.snapshot();
             try {
@@ -3152,6 +3155,7 @@ export class Runtime {
           const source = shellValueText(concatShellValues(fields, allocation));
           this.signal.throwIfAborted();
           program = prepareArithmetic(source, this.budget.parsing);
+          if (trace && state.xtrace) await this.trace(`(( ${program.source} ))`, state, io);
         }
       }
       return await this.shellArithmetic(program, state, { ...io, [valueScope]: allocation });
@@ -5234,6 +5238,7 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
         try {
           status = await evaluateConditional(command.expression, {
+            ...(state.xtrace ? { trace: async (expression: string) => this.trace(`[[ ${expression} ]]`, state, io) } : {}),
             shellPredicates: { descriptorStat: async number => {
               const descriptor = io.descriptors?.get(number);
               if (!descriptor || descriptor.closed) return undefined;
@@ -5244,7 +5249,7 @@ export class Runtime {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => shellOptions(state, true).get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern, negated) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }, negated), option: name => shellOptions(state, true).get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -5268,7 +5273,7 @@ export class Runtime {
       } else if (command.kind === "arithmetic") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
         try {
-          status = Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
+          status = Number(await this.expandedArithmeticValue(command.expression, state, io, true) === 0n);
         }
         catch (error) {
           this.rethrowArithmeticControl(error);
@@ -5328,6 +5333,7 @@ export class Runtime {
           if (!matchedBranch) status = command.otherwise ? await this.script(command.otherwise, state, io) : 0;
         }
       } else if (command.kind === "case") {
+        if (state.xtrace) await this.trace(`case ${command.subject.spelling ?? command.subject.plain ?? ""} in`, state, io);
         const caseResumeSlow = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
         if (caseResumeSlow) {
           (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
@@ -5400,6 +5406,7 @@ export class Runtime {
               publishVariable(rawLoopState, command.name, value);
               if (rawLoopState.allexport) state.exported.add(command.name);
             } else await this.assignVariable(state, command.name, value, io);
+            if (state.xtrace) await this.trace(`for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`, state, io);
             if (hasActiveExtensions(rawLoopState)) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
               if (!rawLoopState.extensions?.eventDepth) publishCommandSpelling(state, description);
@@ -6062,7 +6069,7 @@ export class Runtime {
     assignmentCache.set(word, result);
     return result;
   }
-  private async trace(words: readonly string[], state: State, io: IO, assignment?: string): Promise<void> {
+  private async trace(words: readonly string[] | string, state: State, io: IO, assignment?: string): Promise<void> {
     const quote = (value: string): string => {
       if (value.length && [...value].every(character => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_@%+=:,./-".includes(character))) return value;
       if (!value.includes("'")) return `'${value}'`;
@@ -6087,7 +6094,7 @@ export class Runtime {
       state.substitutionStatus = substitutionStatus;
     }
     try {
-      await writeText(io.stderr, `${(prefix[0] ?? "").repeat(state.xtraceDepth ?? 0)}${prefix}${assignment === undefined ? "" : `${assignment}=`}${words.map(quote).join(" ")}\n`);
+      await writeText(io.stderr, `${(prefix[0] ?? "").repeat(state.xtraceDepth ?? 0)}${prefix}${assignment === undefined ? "" : `${assignment}=`}${typeof words === "string" ? words : words.map(quote).join(" ")}\n`);
     } catch (error) {
       this.signal.throwIfAborted();
       if (!(error instanceof PublicDiagnostic || error instanceof FsError) || (error as { code?: string }).code !== "EBADF") throw error;
@@ -6343,6 +6350,7 @@ export class Runtime {
         await terminal.frame.reconcile(io.descriptors!);
       }
       if (!inlineInput && assignments.length > 0) await assign();
+      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
       if (fileShortcut) {
         const descriptor = command.redirects[0]!.descriptor;
         const input = typeof descriptor === "number" ? io.descriptors?.get(descriptor)?.input : undefined;
@@ -6359,7 +6367,6 @@ export class Runtime {
         }
       }
       if (!words.length) return state.substitutionStatus;
-      if (state.xtrace && words.length) await this.trace(words, state, io.stderr === closedSink ? { ...io, stderr: originalIO.stderr } : io);
       if (persistentRedirects) {
         snapshotHolder.persistentRedirects = true;
         for (const redirect of command.redirects) {

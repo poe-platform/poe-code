@@ -5,6 +5,15 @@ import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 
 const names = ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"];
+test("xtrace includes conditions, arithmetic, for iterations and case selection", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("set -x; x=1; [[ $x == 1 ]]; (( x++ )); for i in a b; do :; done; case $x in 2) :;; esac");
+  assert.equal(result.stdout, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "+ x=1\n+ [[ 1 == 1 ]]\n+ ((  x++  ))\n+ for i in a b\n+ :\n+ for i in a b\n+ :\n+ case $x in\n+ :\n");
+});
+
 for (const source of [
   "set -ex; echo hello; echo world",
   "set -euxo pipefail; echo hello; echo world",
@@ -43,6 +52,13 @@ test("xtrace uses PS4 and restores local options", async context => {
 });
 
 for (const source of [
+  `set -x; x=1; [[ $x == 1 ]]; (( x++ )); for i in a b; do :; done; case $x in 2) :;; esac`,
+  `set -x; [[ -n foo && ! -z bar ]]; [[ '' && $(echo unreachable) ]]; [[ a == b || a == a ]]`,
+  `set -x; x='a b'; for i in "$x" c; do [[ $i == "$x" ]]; done; case "$x" in *) :;; esac`,
+  `PS4='trace: '; set -x; x=1; (( $x + 2 )); (( x++ )); [[ $x -eq 2 ]]; for i; do :; done`,
+  `set -x; [[ abc =~ a.c ]]; [[ abc =~ "abc" ]]`,
+  `set -x; [[ ! abc =~ x ]]; [[ $(echo once) == once ]]; (( $(echo 1) )); for i in; do :; done; case $(echo x) in y) :;; esac`,
+  `set -- a b; set -x; for i; do :; done; set +x; [[ a == a ]]; (( 1 )); for i in a; do :; done; case a in a) :;; esac`,
   `set -x; echo "$(echo inner)"; set +x`,
   `PS4='line $LINENO: '; set -x; echo hello; set +x`,
   `set -x; f() { echo "$1"; }; f 'hello world'; (echo subshell); set +x`,

@@ -36,10 +36,11 @@ interface ConditionalContext {
   readonly predicateIdentity?: PredicateIdentity | undefined;
   expand(word: Word, pattern?: boolean): Promise<string>;
   arithmetic(value: string): bigint | Promise<bigint>;
-  regex?(subject: string, pattern: Word): Promise<number>;
+  regex?(subject: string, pattern: Word, negated: boolean): Promise<number>;
   present(name: string): Promise<boolean>;
   option(name: string): boolean;
   reference(name: string): boolean;
+  trace?(expression: string): Promise<void>;
 }
 
 function unsupported(detail: string): never { throw new ConditionalUnsupported(`[[ ${detail}: unsupported conditional profile`); }
@@ -135,13 +136,19 @@ async function unary(operator: string, value: string, context: ConditionalContex
   }
 }
 
-async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "unary" | "binary" }>, context: ConditionalContext): Promise<boolean | number> {
-  if (node.kind === "nonempty") return (await context.expand(node.operand)).length > 0;
-  if (node.kind === "unary") return unary(node.operator, await context.expand(node.operand), context);
+async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "unary" | "binary" }>, context: ConditionalContext, negated: boolean): Promise<boolean | number> {
+  const prefix = negated ? "! " : "";
+  if (node.kind === "nonempty" || node.kind === "unary") {
+    const value = await context.expand(node.operand);
+    const operator = node.kind === "unary" ? node.operator : "-n";
+    await context.trace?.(`${prefix}${operator} ${value || "''"}`);
+    return node.kind === "nonempty" ? value.length > 0 : unary(operator, value, context);
+  }
   const left = await context.expand(node.left);
-  if (node.operator === "=~" && context.regex) return context.regex(left, node.right);
+  if (node.operator === "=~" && context.regex) return context.regex(left, node.right, negated);
   const pattern = ["=", "==", "!="].includes(node.operator);
   const right = await context.expand(node.right, pattern);
+  await context.trace?.(`${prefix}${left || "''"} ${node.operator} ${right || "''"}`);
   if (node.operator === "=~") unsupported(node.operator);
   if (["-nt", "-ot", "-ef"].includes(node.operator)) {
     try { return await evaluateFilePredicate(context, node.operator, left, right); }
@@ -197,7 +204,7 @@ export async function evaluateConditional(expression: ConditionalExpression, con
       if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }
       else if (frame.stage === 1 && (node.kind === "and" ? result === 0 : result !== 0)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }
       else stack.pop();
-    } else { const value = await leaf(node, context); result = typeof value === "number" ? value : Number(!value); stack.pop(); }
+    } else { const value = await leaf(node, context, !!context.trace && stack.filter(frame => frame.node.kind === "not").length % 2 === 1); result = typeof value === "number" ? value : Number(!value); stack.pop(); }
   }
   context.signal.throwIfAborted();
   return result;

@@ -39263,7 +39263,23 @@ fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
             PandocInline::NoteReference(label) => out.push_str(&format!("[^{label}]")),
             PandocInline::Space | PandocInline::SoftBreak => out.push(' '),
             PandocInline::LineBreak => out.push_str("\\line "),
-            PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
+            PandocInline::Text(s) | PandocInline::Code(_, s) => {
+                for ch in s.chars() {
+                    match ch {
+                        '\\' | '{' | '}' => {
+                            out.push('\\');
+                            out.push(ch);
+                        }
+                        ch if ch.is_ascii() => out.push(ch),
+                        _ => {
+                            // RTF uses signed UTF-16 units with one fallback byte by default.
+                            for unit in ch.encode_utf16(&mut [0; 2]) {
+                                out.push_str(&format!("\\u{}?", *unit as i16));
+                            }
+                        }
+                    }
+                }
+            }
             PandocInline::Raw(format, text) => {
                 if format == "rtf" {
                     out.push_str(text);

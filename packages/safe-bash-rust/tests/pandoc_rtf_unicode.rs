@@ -58,3 +58,68 @@ fn rtf_unicode_counts_fallback_tokens_and_preserves_surrounding_text() {
         assert_eq!(result.stdout, expected, "{source}");
     }
 }
+
+#[test]
+fn rtf_export_round_trips_accented_prose() {
+    let mut shell = Shell::new(
+        Arc::new(MemoryVfs::new()),
+        ShellOptions {
+            cwd: Some("/".into()),
+            env: [("LC_ALL".into(), "C".into()), ("TZ".into(), "UTC".into())].into(),
+            mode: BackendMode::NativeOnly,
+        },
+    );
+    let result = shell
+        .exec_with_options(
+            r#"printf %s 'Résumé, café and Zürich.
+' | pandoc -f markdown -t rtf -o a.rtf && pandoc -f rtf -t json a.rtf | jq -c '[..|objects|select(.t?=="Str")|.c]'"#,
+            ExecOptions::default(),
+        )
+        .unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stderr, "");
+    assert_eq!(
+        result.stdout,
+        "[\"Résumé,\",\"café\",\"and\",\"Zürich.\"]\n"
+    );
+}
+
+#[test]
+fn rtf_export_encodes_unicode_and_literal_syntax() {
+    let mut shell = Shell::new(
+        Arc::new(MemoryVfs::new()),
+        ShellOptions {
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+    let exported = shell
+        .exec_with_options(
+            "pandoc -f markdown -t rtf",
+            ExecOptions {
+                stdin: Some(
+                    "# Résumé\n\n**café** *Zürich* `é{\\path}` 中文！ 😀 e\u{301}\n".into(),
+                ),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(exported.exit_code, 0, "{}", exported.stderr);
+    assert_eq!(exported.stderr, "");
+    assert!(exported.stdout.is_ascii(), "{}", exported.stdout);
+    let imported = shell
+        .exec_with_options(
+            "pandoc -f rtf -t plain",
+            ExecOptions {
+                stdin: Some(exported.stdout),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(imported.exit_code, 0, "{}", imported.stderr);
+    assert_eq!(imported.stderr, "");
+    assert_eq!(
+        imported.stdout,
+        "Résumé\n\ncafé Zürich é{\\path} 中文！ 😀 e\u{301}\n"
+    );
+}

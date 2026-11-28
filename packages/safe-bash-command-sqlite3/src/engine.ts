@@ -1437,20 +1437,23 @@ function parseSqliteDateTime(args: SqlValue[]): { date: Date; seconds: number } 
     if (secondArg === "unixepoch") {
       d = new Date(num * 1000);
       modStart = 2;
-    } else if (num > 1000000 && num < 5373484.5) {
+    } else if (num >= 0 && num < 5373484.5) {
       // Julian day
       d = new Date((num - 2440587.5) * 86400000);
     } else {
-      d = new Date(num * 1000);
+      return null;
     }
   } else {
     let str = String(first).trim();
-    if (/^\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(str)) {
-      str = `2000-01-01T${str}Z`;
-    } else if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(str);
+    if (dateOnly) {
       str = `${str}T00:00:00Z`;
-    } else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(str) && !str.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(str)) {
-      str = `${str.replace(" ", "T")}Z`;
+    } else {
+      const parts = /^(?:(\d{4}-\d{2}-\d{2})[ T]+)?(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s*([Zz]|[+-]\d{2}:\d{2})?$/.exec(str);
+      if (!parts) {
+        return null;
+      }
+      str = `${parts[1] ?? "2000-01-01"}T${parts[2]}${parts[3]?.toUpperCase() ?? "Z"}`;
     }
     d = new Date(str);
     if (str[16] === ":" && str[19] === ".") {

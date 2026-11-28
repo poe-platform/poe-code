@@ -391,12 +391,14 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     if (isDevicePath(resolved)) return openFileDescriptor<FileStat>(path, options, {
       noFollow: true, position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
+      readObservation: resolved === nullPath,
       openTruncate: true, delegateZeroLengthWrite: true, truncate: false, synchronization: "none",
     }, async admitted => {
       if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
       const yieldAfterWrite = createDeviceYield();
       return {
         resource: this.#deviceStat(resolved),
+        probeRead: async () => "ready",
         getPosition: async () => 0,
         stat: async stat => ({ ...stat }),
         read: async (_stat, buffer, _position, forwarded) => {

@@ -21,6 +21,15 @@ function setup(transform?: (context: ShellExtensionContext) => ShellExtensionCon
 }
 
 for (const command of ["read", "read_probe"]) {
+  test(`${command} -t 0 reports /dev/null ready without consuming or assigning`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const actual = await shell.exec(`value=keep; ${command} -t 0 value < /dev/null; echo $?; if ${command} -t 0 < /dev/null; then echo ready; else echo not-ready; fi; echo "$value"`);
+    assert.equal(actual.stdout, "0\nready\nkeep\n");
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.exitCode, 0);
+  });
+
   for (const options of ["", "-u0", "-t1"]) {
     test(`${command} ${options} preserves associative targets after consuming input`, async context => {
       const { shell, fs } = setup();

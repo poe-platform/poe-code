@@ -7,6 +7,22 @@ import type { FileSystem, FileSystemCapabilities } from "../src/contracts/filesy
 import { FsError } from "../src/contracts/errors.js";
 import { dirname } from "../src/contracts/virtual-path.js";
 
+it("observes null-device EOF as ready through descriptor aliases", async () => {
+  const memory = new MemoryFileSystem();
+  await memory.symlink("/dev/null", "/null-alias");
+  const view = createDeviceFileSystem(memory);
+  for (const path of ["/dev/null", "/null-alias"]) {
+    const descriptor = await view.open(path, { access: "read", creation: "never" });
+    try {
+      expect(descriptor.capabilities.readObservation).toBe(true);
+      expect(await descriptor.probeRead!()).toBe("ready");
+      expect(await descriptor.read(new Uint8Array(1), null)).toBe(0);
+      expect(await descriptor.probeRead!()).toBe("ready");
+    } finally { await descriptor.close(); }
+    await expect(descriptor.probeRead!()).rejects.toMatchObject({ code: "EBADF" });
+  }
+});
+
 function implicitFixture(aggregate = true, selected?: boolean) {
   const memory = new MemoryFileSystem();
   const capabilities: FileSystemCapabilities = { ...memory.capabilities, implicitDirectories: aggregate };

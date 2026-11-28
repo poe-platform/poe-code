@@ -27814,6 +27814,13 @@ fn eval_sql_row_expr(
                 return SQL_NULL.to_string();
             }
             let target_t = inner[ap + 4..].trim().to_ascii_uppercase();
+            if target_t == "BLOB" {
+                return if val.starts_with(SQL_BLOB_PREFIX) {
+                    val
+                } else {
+                    sql_blob_value(val.as_bytes())
+                };
+            }
             if target_t.starts_with("INT") {
                 let prefix_num: String = val
                     .trim_start()

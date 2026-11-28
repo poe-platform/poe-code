@@ -577,6 +577,47 @@ test("head stops reading when satisfied and multiple input headers are controlla
   assert.equal((await run("tail", ["-q", "first", "second"], { fs })).stdout, "one\ntwo\n");
 });
 
+test("head and tail preserve directory headers and statuses in shell scripts", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  const result = await shell.exec("mkdir d; printf 'a\\n' > f; head -n1 f d f 2>/dev/null; echo \"rc=$?\"; tail -n1 f d 2>/dev/null; echo \"rc=$?\"");
+  assert.equal(result.stdout, "==> f <==\na\n\n==> d <==\n\n==> f <==\na\nrc=1\n==> f <==\na\n\n==> d <==\nrc=1\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+for (const command of ["head", "tail"]) {
+  test(`${command} preserves directory header ordering and quiet/verbose modes`, async () => {
+    const fs = await fixture({ f: "a\n" });
+    await fs.mkdir("/work/d");
+    for (const [args, expected] of [
+      [["-n1", "d", "f", "d"], "==> d <==\n\n==> f <==\na\n\n==> d <==\n"],
+      [["-c2", "f", "d"], "==> f <==\na\n\n==> d <==\n"],
+      [["-v", "d"], "==> d <==\n"],
+      [["-q", "f", "d", "f"], "a\na\n"],
+      [["d"], ""],
+    ] as const) {
+      const result = await run(command, args, { fs });
+      assert.equal(result.stdout, expected);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("EISDIR"), result.stderr);
+    }
+  });
+
+  test(`${command} omits headers for missing or unreadable operands`, async () => {
+    const fs = await fixture({ f: "a\n", denied: "private\n" });
+    const access = fs.access.bind(fs);
+    fs.access = async (path, mode, options) => {
+      if (path === "/work/denied") throw new FsError("EACCES", { path });
+      return access(path, mode, options);
+    };
+    const result = await run(command, ["missing", "denied", "f"], { fs });
+    assert.equal(result.stdout, "==> f <==\na\n");
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("ENOENT"), result.stderr);
+    assert.ok(result.stderr.includes("EACCES"), result.stderr);
+  });
+}
+
 test("wc reads NUL-delimited filenames from asynchronous stdin", async () => {
   const fs = await fixture({ "first file": "one\n", second: "two\nthree\n" });
   const result = await run("wc", ["-l", "--total=only", "--files0-from=-"], {

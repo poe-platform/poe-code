@@ -430,16 +430,18 @@ async function executeHeadTailSlow(
     let headerWritten = false;
     for (const file of names) {
       try {
+        let directoryPath: string | undefined;
         if (file !== "-") {
           const path = pathOf(context, file);
           assertCommandRequirements(context, inspectedInputRequirements, ["file"], await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
-          if ((await context.fs.stat(path, { signal: context.signal })).type === "directory") throw new FsError("EISDIR", { path });
+          if ((await context.fs.stat(path, { signal: context.signal })).type === "directory") directoryPath = path;
           await context.fs.access(path, 4, { signal: context.signal });
         }
         if (showHeaders) {
           await output(context, `${headerWritten ? "\n" : ""}==> ${file === "-" ? "standard input" : file} <==\n`);
           headerWritten = true;
         }
+        if (directoryPath !== undefined) throw new FsError("EISDIR", { path: directoryPath });
         if (name === "head" && !negative) await prefix(context, input(context, file), count, bytes, false, delimiter, file === "-");
         else if (name === "tail" && positive) await prefix(context, input(context, file), Math.max(0, count - 1), bytes, true, delimiter);
         else await suffix(context, input(context, file), count, bytes, name === "head", delimiter);

@@ -5,13 +5,13 @@ import { Interpreter } from "./interpreter.js";
 import { Budget, resolveJqLimits } from "./limits.js";
 import { parse } from "./parser.js";
 
-test("localtime defaults to the host timezone for standalone sessions", async () => {
+test("localtime defaults to UTC for standalone sessions", async () => {
   const previous = process.env.TZ;
   process.env.TZ = "Asia/Tokyo";
   const session = createYqQuerySession({ signal: new AbortController().signal });
   try {
     session.compileOnce("localtime");
-    assert.deepEqual((await session.run(1700000000).next()).value, [2023, 10, 15, 7, 13, 20, 3, 318]);
+    assert.deepEqual((await session.run(1700000000).next()).value, [2023, 10, 14, 22, 13, 20, 2, 317]);
   } finally {
     await session.close();
     if (previous === undefined) delete process.env.TZ;

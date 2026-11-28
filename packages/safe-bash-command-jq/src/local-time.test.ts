@@ -14,13 +14,14 @@ for (const [zone, expected] of [
   });
 }
 
-test("strflocaltime defaults to UTC independently of the host timezone", async () => {
+test("local date operations default to UTC independently of the host timezone", async () => {
   const previous = process.env.TZ;
   process.env.TZ = "America/Chicago";
   try {
-    const result = await run(["-nc", '1700000000 | strflocaltime("%H:%M %Z")']);
+    const result = await run(["-nc", '0 | localtime, strflocaltime("%H:%M %Z"), (localtime | mktime)']);
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, '"22:13 UTC"\n');
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, '[1970,0,1,0,0,0,4,0]\n"00:00 UTC"\n0\n');
     assert.equal(process.env.TZ, "America/Chicago");
   } finally {
     if (previous === undefined) delete process.env.TZ;

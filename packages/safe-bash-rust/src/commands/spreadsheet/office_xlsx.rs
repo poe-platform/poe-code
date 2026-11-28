@@ -4,6 +4,8 @@ pub(super) mod colors;
 pub(super) mod layout;
 #[path = "office_xlsx_pivot.rs"]
 mod pivot;
+#[path = "office_xlsx_rich_text.rs"]
+mod rich_text;
 use super::formula_arguments::{self, Syntax};
 use super::model::{ArrayFormula, Iteration, NamedExpression, Sheet, TypedCell, Value, Workbook};
 use super::{
@@ -1088,6 +1090,7 @@ struct Imported {
     workbook_path: String,
     #[cfg(test)]
     app_path: Option<String>,
+    shared_path: Option<String>,
     style_path: Option<String>,
     theme_path: Option<String>,
     sources: Vec<(String, String)>,
@@ -1944,6 +1947,7 @@ fn read(
         workbook_path,
         #[cfg(test)]
         app_path,
+        shared_path,
         style_path,
         theme_path,
         sources,
@@ -3082,3 +3086,7 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "office_xlsx_rich_text_tests.rs"]
+mod rich_text_tests;

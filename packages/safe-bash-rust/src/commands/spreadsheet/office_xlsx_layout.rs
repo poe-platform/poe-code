@@ -501,6 +501,25 @@ pub(super) fn retain(
         .and_then(|path| load(entries, path).ok())
         .unwrap_or_default();
     let colors = super::colors::Palette::read(&theme_nodes, &style_nodes, &mut imported.remaining)?;
+    let shared_nodes = if let Some(path) = &imported.shared_path
+        && let Some(bytes) = entries.get(path.trim_start_matches('/'))
+    {
+        let bytes = bytes.len();
+        imported.remaining = imported
+            .remaining
+            .checked_sub(bytes.checked_mul(16).ok_or(LIMIT)?)
+            .ok_or(LIMIT)?;
+        load(entries, path)?
+    } else {
+        Vec::new()
+    };
+    let shared = elements(&shared_nodes, "si")
+        .into_iter()
+        .map(|item| {
+            imported.remaining = imported.remaining.checked_sub(32).ok_or(LIMIT)?;
+            super::rich_text::read(&item.children, &colors, &mut imported.remaining)
+        })
+        .collect::<Result<Vec<_>, String>>()?;
     let styles = styles(&style_nodes, &colors, &mut imported.remaining)?;
     imported.book.default_style = styles.first().cloned();
     let differential = differential_styles(&style_nodes, &colors, &mut imported.remaining)?;
@@ -568,6 +587,40 @@ pub(super) fn retain(
                         .cloned();
                     if let Some(typed) = sheet.cells.get_mut(&position) {
                         typed.style = style;
+                        if typed.formula.is_none() {
+                            let runs = match attr(cell, "t") {
+                                Some("inlineStr") => child(cell, "is")
+                                    .map(|item| {
+                                        super::rich_text::read(
+                                            &item.children,
+                                            &colors,
+                                            &mut imported.remaining,
+                                        )
+                                    })
+                                    .transpose()?
+                                    .flatten(),
+                                Some("s") => child(cell, "v")
+                                    .and_then(|v| super::text(v).parse::<usize>().ok())
+                                    .and_then(|i| shared.get(i))
+                                    .cloned()
+                                    .flatten(),
+                                _ => None,
+                            };
+                            if let Some(runs) = runs {
+                                // Keep the scalar value identical to the authored runs,
+                                // including escaped controls and significant whitespace.
+                                for run in runs.iter() {
+                                    imported.remaining = imported
+                                        .remaining
+                                        .checked_sub(run.text.len())
+                                        .ok_or(LIMIT)?;
+                                }
+                                typed.value = Some(super::super::model::Value::Text(
+                                    runs.iter().map(|r| r.text.as_str()).collect(),
+                                ));
+                                typed.rich_text = Some(runs);
+                            }
+                        }
                     }
                 }
             }

@@ -3,7 +3,14 @@ import { Budget, HexdumpError, type HexdumpCommandsOptions } from "./internal.js
 
 const usage = "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]";
 
-export type Format = "default" | "C" | "b" | "c" | "d" | "o" | "x";
+export type Format = "default" | "C" | "b" | "c" | "d" | "o" | "x" | "X";
+
+const longOptions: Readonly<Record<string, string>> = {
+  "--one-byte-octal": "b", "--one-byte-char": "c", "--canonical": "C",
+  "--two-bytes-decimal": "d", "--two-bytes-octal": "o", "--two-bytes-hex": "x",
+  "--one-byte-hex": "X", "--no-squeezing": "v",
+  "--length": "n", "--skip": "s", "--format": "e", "--format-file": "f",
+};
 
 export interface Parsed {
   readonly ordered: readonly (Format | CustomFormat)[];
@@ -59,30 +66,43 @@ export function parse(budget: Budget, name: string, dialect: HexdumpCommandsOpti
   const ordered: (Format | CustomFormat)[] = [...formats];
   let verbose = false, ended = false, skip = 0, count = Infinity;
   for (let index = 0; index < args.length; index++) {
-    const argument = args[index]!;
+    let argument = args[index]!;
     if (!ended && argument === "--") { ended = true; continue; }
     if (ended || argument === "-" || !argument.startsWith("-")) {
       files.push(argument);
       if (budget.context.env.POSIXLY_CORRECT !== undefined) ended = true;
       continue;
     }
+    let longParameter: string | undefined;
+    if (argument.startsWith("--")) {
+      const equals = argument.indexOf("=");
+      const option = equals < 0 ? argument : argument.slice(0, equals);
+      const flag = Object.hasOwn(longOptions, option) ? longOptions[option] : undefined;
+      if (!flag) throw new HexdumpError(`unrecognized option '${option}'`);
+      if (equals >= 0) {
+        if (!"nsef".includes(flag)) throw new HexdumpError(`option '${option}' does not allow an argument`);
+        longParameter = argument.slice(equals + 1);
+        if (longParameter === "" && (flag === "n" || flag === "s")) throw new HexdumpError(`option '${option}' requires a number`);
+      }
+      argument = "-" + flag;
+    }
     for (let offset = 1; offset < argument.length; offset++) {
       budget.charge();
       const flag = argument[offset]!;
       if (flag === "v") verbose = true;
-      else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "o" || flag === "x") {
+      else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "o" || flag === "x" || flag === "X") {
         if (name === "hd" && flag === "C") throw new HexdumpError(usage, true);
         budget.check(custom.length + formats.length + 1, budget.limits.maxFormats, "format count");
         formats.push(flag);
         ordered.push(flag);
       } else if (flag === "n" || flag === "s") {
-        const parameter = argument.slice(offset + 1) || args[++index];
+        const parameter = longParameter ?? (argument.slice(offset + 1) || args[++index]);
         if (parameter === undefined) throw new HexdumpError(`${name}: option requires an argument -- '${flag}'\n${usage}`, true);
         if (flag === "n") count = number(parameter, false, dialect);
         else skip = number(parameter, true, dialect);
         break;
       } else if (flag === "e") {
-        const parameter = argument.slice(offset + 1) || args[++index];
+        const parameter = longParameter ?? (argument.slice(offset + 1) || args[++index]);
         if (parameter === undefined) throw new HexdumpError("-e requires a format");
         budget.check(custom.length + formats.length + 1, budget.limits.maxFormats, "format count");
         const format = parseCustom(parameter, budget);

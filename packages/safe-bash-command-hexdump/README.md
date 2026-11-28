@@ -20,12 +20,16 @@ Also available: `createHexdumpCommand`, `createHexdumpCommands`, and typed optio
 Use `-e` for custom byte layouts, for example `hexdump -e '4/1 "%02x " "\n"'`.
 Formats support repetition and byte counts, integer and floating-point conversions,
 strings and characters, address conversions, and multiple `-e` options in order.
-Format files (`-f`) are not supported. Configure `limits` to bound input, output,
+Format files (`-f` / `--format-file`) are not supported. Configure `limits` to bound input, output,
 buffered memory, format counts, and work when processing untrusted formats.
 
-Use `-C` for canonical hex/ASCII, `-b`, `-c`, `-d`, `-o` or `-x` for
+Use `-C` for canonical hex/ASCII, `-b`, `-c`, `-d`, `-o`, `-x` or `-X` (one-byte hex) for
 standard display units, `-s` to skip bytes, `-n` to limit input and `-v` to
-disable repeated-row squeezing. Multiple files form one input stream. `hd`
+disable repeated-row squeezing. Long aliases are also accepted: `--canonical`,
+`--one-byte-octal`, `--one-byte-char`, `--one-byte-hex`,
+`--two-bytes-decimal`, `--two-bytes-octal`, `--two-bytes-hex`,
+`--skip`, `--length`, `--format` and `--no-squeezing`. Value options
+accept both `--length 2` and `--length=2` forms. Multiple files form one input stream. `hd`
 selects canonical display by default. The plugin registers both names and
 rejects collisions before registration; pass `replace: true` to replace both.
 

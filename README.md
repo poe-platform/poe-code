@@ -162,7 +162,7 @@ poe-code models --search claude
 
 ## SDK
 
-Safe Bash `col -b` removes backspace overstrikes, `col -bx` also expands tabs, and `colrm START [END]` removes display columns.
+Safe Bash `col -b` removes backspace overstrikes, `col -bx` also expands tabs, and `colrm START [END]` removes display columns. `file --mime-type` recognizes SVG, WAV, WebP, BMP, MP4, ELF, 7z, and RAR from their contents.
 
 Safe Bash `sed` supports GNU buffer anchors in basic and extended regular expressions, including multi-line pattern spaces. Safe Bash tar supports `--one-top-level[=DIR]` to extract beneath DIR or a directory named after the archive, and `--ignore-failed-read` to create archives successfully while warning about missing inputs.
 

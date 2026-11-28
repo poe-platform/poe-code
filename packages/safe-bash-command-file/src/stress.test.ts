@@ -126,7 +126,8 @@ test("chunk partitioning and reused Buffer ownership do not change complete clas
 });
 
 test("signature truncation, invalid PNG dimensions, invalid tar checksum and oversized PE offset stay bounded", () => {
-  for (const [name, minimum] of [["png", 33], ["gif", 13], ["gzip", 10], ["sqlite-header", 100], ["elf-header", 64], ["zip-empty", 22]] as const) {
+  for (const [name, minimum] of [["png", 33], ["gif", 13], ["gzip", 10], ["sqlite-header", 100], ["elf-header", 18], ["zip-empty", 22],
+    ["wav-header", 12], ["webp-header", 16], ["bmp-header", 18], ["mp4-header", 16], ["7z-header", 8], ["rar-header", 7]] as const) {
     const specimen = fixtures.find(value => value.name === name)!;
     for (let length = 0; length < minimum; length++) assert.notEqual(classify(specimen.bytes.subarray(0, length), true).mime, specimen.mime, `${name} at ${length}`);
   }

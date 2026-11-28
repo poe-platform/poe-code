@@ -91,6 +91,28 @@ test("missing operands use native stdout diagnostics through Shell pipelines and
   } finally { await shell.dispose(); }
 });
 
+test("file detects media, executable and archive headers written by shell printf", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work", { recursive: true });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(fileCommands());
+  try {
+    const result = await shell.exec(String.raw`
+printf '<svg xmlns="http://www.w3.org/2000/svg"></svg>\n' > s.svg
+printf 'RIFF\x24\0\0\0WAVEfmt \x10\0\0\0\x01\0\x01\0\x44\xac\0\0\x88\x58\x01\0\x02\0\x10\0data\0\0\0\0' > w.wav
+printf 'RIFF\x24\0\0\0WEBPVP8 ' > w.webp
+printf 'BM\x46\0\0\0\0\0\0\0\x36\0\0\0\x28\0\0\0' > b.bmp
+printf '\0\0\0\x18ftypmp42\0\0\0\0mp42isom' > v.mp4
+printf '\x7fELF\x02\x01\x01\0\0\0\0\0\0\0\0\0\x03\0\xb7\0\x01\0\0\0' > e
+printf '7z\xbc\xaf\x27\x1c\0\x04' > s.7z
+printf 'Rar!\x1a\x07\0' > r.rar
+file -b --mime-type s.svg w.wav w.webp b.bmp v.mp4 e s.7z r.rar
+`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "image/svg+xml\naudio/x-wav\nimage/webp\nimage/bmp\nvideo/mp4\napplication/x-sharedlib\napplication/x-7z-compressed\napplication/vnd.rar\n");
+  } finally { await shell.dispose(); }
+});
+
 test("manual plugin registration works in actual binary/stdin/output/error Shell pipelines", async () => {
   const fs = createMemoryFileSystem(); const shell = new Shell({ fs });
   assert.equal(shell.commands.has("file"), false);

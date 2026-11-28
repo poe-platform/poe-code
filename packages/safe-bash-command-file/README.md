@@ -1,6 +1,6 @@
 # file
 
-Run `file` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs.
+Run `file` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Use `file -b --mime-type PATH` to identify content, including SVG, WAV, WebP, BMP, MP4, ELF, 7z, and RAR headers, regardless of the filename. Enable only the commands your application needs.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

@@ -27172,6 +27172,7 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
         }
         i += 1;
     }
+<<<<<<< HEAD
     bitwise.or(additive).or(multiplicative).or(concat)
 }
 
@@ -27185,6 +27186,24 @@ fn sql_bitwise_and(left: &str, right: &str) -> String {
             .unwrap_or_else(|_| value.parse::<f64>().unwrap_or(0.0) as i64)
     };
     (integer(left) & integer(right)).to_string()
+||||||| parent of 08178d2 (fix(safe-bash): evaluate SQLite integer bit masks)
+    additive.or(multiplicative).or(concat)
+=======
+    bitwise.or(additive).or(multiplicative).or(concat)
+}
+
+fn sql_bitwise_and(left: &str, right: &str) -> String {
+    if left == SQL_NULL || right == SQL_NULL {
+        return SQL_NULL.to_string();
+    }
+    let integer = |value: &str| {
+        let value = sql_value_text(value);
+        value
+            .parse::<i64>()
+            .unwrap_or_else(|_| value.parse::<f64>().unwrap_or(0.0) as i64)
+    };
+    (integer(left) & integer(right)).to_string()
+>>>>>>> 08178d2 (fix(safe-bash): evaluate SQLite integer bit masks)
 }
 
 fn eval_sql_row_expr(

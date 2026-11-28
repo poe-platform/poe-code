@@ -904,7 +904,7 @@ class ExprParser {
   private parsePrimary(): ExprNode {
     const tok = this.peek();
     if (!tok) {
-      return { kind: "literal", value: null };
+      throw new Error("incomplete input");
     }
 
     if (this.matchWord("EXISTS")) {
@@ -962,10 +962,10 @@ class ExprParser {
       if (this.matchValue(",")) {
         const items = [expr];
         do { items.push(this.parseExpression()); } while (this.matchValue(","));
-        this.matchValue(")");
+        if (!this.matchValue(")")) throw new Error("incomplete input");
         return { kind: "row", items };
       }
-      this.matchValue(")");
+      if (!this.matchValue(")")) throw new Error("incomplete input");
       return expr;
     }
 
@@ -5335,6 +5335,7 @@ export class SqliteDatabase {
         windows.set(foldAsciiCase(name), window);
       }
       const fromTokens = getClauseTokens("FROM");
+      if (fromTokens?.length === 0) throw new Error("incomplete input");
       const whereTokens = getClauseTokens("WHERE");
       const groupByTokens = getClauseTokens("GROUP BY");
       const havingTokens = getClauseTokens("HAVING");

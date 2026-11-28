@@ -1830,6 +1830,7 @@ export class Interpreter {
       for await (const [, item] of entries(input, budget)) { { const _p = budget.tickSync(); if (_p) await _p; } result = await binary("+", result, item, budget); budget.value(result); }
       yield result; return;
     }
+    if (name === "reverse" && input === null) { yield []; return; }
     if (!Array.isArray(input)) {
       if (name === "sort") throw new JqError(`${describe(input, budget)} cannot be sorted, as it is not an array`);
       if (name === "min" || name === "max") {

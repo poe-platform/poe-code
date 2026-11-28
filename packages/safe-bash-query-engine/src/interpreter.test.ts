@@ -4,6 +4,16 @@ import { Interpreter } from "./interpreter.js";
 import { Budget, resolveJqLimits, type Json } from "./limits.js";
 import { parse } from "./parser.js";
 
+for (const [filter, input] of [["null | reverse", null], [".missing | reverse", {}]] as const) {
+  test(`${filter} yields an empty array`, async () => {
+    const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+    const interpreter = new Interpreter(budget, new Map());
+    const results: Json[] = [];
+    for await (const value of interpreter.run(parse(filter, new Map(), budget), input)) results.push(value);
+    assert.deepEqual(results, [[]]);
+  });
+}
+
 for (const name of ["sort_by", "group_by"]) test(`${name} preserves Unicode code point order and stable ties`, async () => {
   const budget = new Budget(resolveJqLimits(), new AbortController().signal);
   const interpreter = new Interpreter(budget, new Map());

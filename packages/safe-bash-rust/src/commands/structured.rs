@@ -22323,25 +22323,43 @@ fn sql_foreign_key_satisfied(
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
 ) -> bool {
-    let Some(c_idx) = find_sql_col(columns, &fk.child_col) else {
-        return true;
+    let child_values: Option<Vec<_>> = split_top_level_comma(&fk.child_col)
+        .into_iter()
+        .map(|col| {
+            find_sql_col(columns, col)
+                .map(|index| row.get(index).map(String::as_str).unwrap_or(SQL_NULL))
+        })
+        .collect();
+    let Some(child_values) = child_values else {
+        return false;
     };
-    let cval = row.get(c_idx).map(|s| s.as_str()).unwrap_or(SQL_NULL);
-    if cval == SQL_NULL {
+    // SQLite exempts the entire child key when any component is NULL.
+    if child_values.contains(&SQL_NULL) {
         return true;
     }
     tables
         .get(resolve_sql_table_name(tables, &fk.parent_table))
         .is_some_and(|parent| {
-            let p_idx = if fk.parent_col.is_empty() {
-                0
+            let parent_indices: Option<Vec<_>> = if fk.parent_col.is_empty() {
+                Some(vec![0])
             } else {
-                find_sql_col(&parent.columns, &fk.parent_col).unwrap_or(0)
+                split_top_level_comma(&fk.parent_col)
+                    .into_iter()
+                    .map(|col| find_sql_col(&parent.columns, col))
+                    .collect()
             };
-            parent
-                .rows
-                .iter()
-                .any(|r| r.get(p_idx).map(|s| s.as_str()) == Some(cval))
+            let Some(parent_indices) = parent_indices else {
+                return false;
+            };
+            parent_indices.len() == child_values.len()
+                && parent.rows.iter().any(|parent_row| {
+                    parent_indices
+                        .iter()
+                        .zip(&child_values)
+                        .all(|(index, value)| {
+                            parent_row.get(*index).map(String::as_str) == Some(*value)
+                        })
+                })
         })
 }
 
@@ -22369,7 +22387,7 @@ fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
         let head = &clause[..ref_pos];
         let open = head.find('(')?;
         let close = head.rfind(')')?;
-        head[open + 1..close].trim().trim_matches('"').to_string()
+        head[open + 1..close].trim().to_string()
     };
     let after_ref = clause[ref_pos + 12..].trim();
     let after_up = after_ref.to_ascii_uppercase();
@@ -22378,10 +22396,7 @@ fn parse_sql_fk_clause(col_name: &str, clause: &str) -> Option<SqlForeignKey> {
     let (parent_table, parent_col) = if let Some(open) = target_part.find('(') {
         let pt = target_part[..open].trim().trim_matches('"').to_string();
         let close = target_part.rfind(')').unwrap_or(target_part.len());
-        let pc = target_part[open + 1..close]
-            .trim()
-            .trim_matches('"')
-            .to_string();
+        let pc = target_part[open + 1..close].trim().to_string();
         (pt, pc)
     } else {
         (

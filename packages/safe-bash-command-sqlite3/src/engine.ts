@@ -4042,7 +4042,8 @@ export class SqliteDatabase {
     let targetCols = tbl.columns.map((c) => {
       return c.name;
     });
-    if (tokens[idx]?.value === "(") {
+    const hasTargetColumns = tokens[idx]?.value === "(";
+    if (hasTargetColumns) {
       targetCols = [];
       idx += 1;
       while (idx < tokens.length && tokens[idx]?.value !== ")") {
@@ -4117,6 +4118,11 @@ export class SqliteDatabase {
             } else {
               cur.push(t);
             }
+          }
+          if (rowToks.length !== targetCols.length) {
+            throw new Error(hasTargetColumns
+              ? `in prepare, ${rowToks.length} values for ${targetCols.length} columns`
+              : `in prepare, table ${tbl.name} has ${targetCols.length} columns but ${rowToks.length} values were supplied`);
           }
           const evaledRow = yield* stepMap(rowToks, function* (rt) {
             return yield* this.evalExprSteps(

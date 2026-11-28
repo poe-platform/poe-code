@@ -1092,6 +1092,17 @@ for (const [value, digits, expected] of [
   [-123.5, -1, "-124.0"],
   [123.456, 0, "123.0"],
   [123.456, 1, "123.5"],
+  [2.675, 2, "2.67"],
+  [1.45, 1, "1.4"],
+  [1.005, 2, "1.0"],
+  [-2.675, 2, "-2.67"],
+  [-1.45, 1, "-1.4"],
+  [-1.005, 2, "-1.0"],
+  [1.25, 1, "1.3"],
+  [-1.25, 1, "-1.3"],
+  [-0.001, 2, "0.0"],
+  [1.25, 1000, "1.25"],
+  [1e300, 30, "1.0e+300"],
 ] as const) {
   test(`sqlite3 ROUND(${value}, ${digits}) matches native value and REAL type`, async () => {
     const sql = `SELECT round(${value}, ${digits}), typeof(round(${value}, ${digits}));`;

@@ -8708,10 +8708,12 @@ export class SqliteDatabase {
           return null;
         }
         const num = toSqlNumber(a0);
-        const digits = a1 !== null && a1 !== undefined ? Math.max(0, Math.trunc(toSqlNumber(a1))) : 0;
-        const factor = 10 ** digits;
-        const scaled = num * factor;
-        const rounded = (scaled < 0 ? -Math.round(-scaled) : Math.round(scaled)) / factor;
+        const digits = a1 !== null && a1 !== undefined ? Math.min(30, Math.max(0, Math.trunc(toSqlNumber(a1)))) : 0;
+        // Format the binary value directly: scaling can turn 2.675 into the
+        // exact tie 267.5 and round it up instead of SQLite's 2.67.
+        const rounded = digits === 0
+          ? (num < 0 ? -Math.round(-num) : Math.round(num))
+          : Number(num.toFixed(digits));
         return new Number(Object.is(rounded, -0) ? 0 : rounded);
       }
       case "CEIL":

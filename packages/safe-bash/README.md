@@ -285,7 +285,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
 Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
 `shift`, `export`, `local`, `declare`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`, `umask`,
 `exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
-`eval`, `alias`, `unalias`. `alias name='command args'` defines an alias;
+`eval`, `alias`, `unalias`, `enable`. `enable -n NAME` disables a builtin so command
+lookup uses executables; `enable NAME` restores it, and `enable -a` lists both states.
+`alias name='command args'` defines an alias;
 `alias -p` lists definitions, and `unalias name` or `unalias -a` removes them.
 `pwd`, `true`, and `false` also work without a command bundle.
 `command -p` bypasses functions and searches `/bin:/usr/bin` in the supplied

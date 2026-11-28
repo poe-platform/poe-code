@@ -736,7 +736,8 @@
     "@poe-code/document-converter-rust": "*",
     "safe-bash-command-tesseract": "*",
     "safe-bash-command-ocrmypdf": "*",
-    "safe-bash-command-trash": "*"
+    "safe-bash-command-trash": "*",
+    "safe-bash-command-enable": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

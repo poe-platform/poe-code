@@ -39,6 +39,7 @@ import { evaluateArithmeticReferences, prepareArithmetic, type Arithmetic, type 
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { createAliasCommand } from "safe-bash-command-alias";
+import { createEnableCommand } from "safe-bash-command-enable";
 import { createCallerCommand, type CallerFrame } from "safe-bash-command-caller";
 import { createUnaliasCommand } from "safe-bash-command-unalias";
 import { expandTildes, resolveTildePrefix } from "./tilde-expansion.js";
@@ -156,7 +157,7 @@ export const defaultLimits: ResolvedShellLimits = {
 };
 
 export const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", "caller", "print", "functions", "setopt", "unsetopt", ]);
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "enable", "alias", "unalias", "caller", "print", "functions", "setopt", "unsetopt", ]);
 export const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
@@ -921,6 +922,7 @@ export const invokedValues = new WeakMap<WordPart, ShellValue>();
 export const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
 const childIdentities = new WeakMap<object, number>();
 export interface State extends DynamicVariableState {
+  disabledBuiltins?: Set<string>;
   subshellEnvironment?: boolean;
   variableAttributes?: Map<string, string>;
   namerefVariables?: Set<string> | undefined;
@@ -1701,6 +1703,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.sourceNames) cloned.sourceNames = [...raw.sourceNames];
   if (raw.callerFrames) cloned.callerFrames = [...raw.callerFrames];
   if (raw.aliases) cloned.aliases = new Map(raw.aliases);
+  if (raw.disabledBuiltins) cloned.disabledBuiltins = new Set(raw.disabledBuiltins);
   if (raw.hashedCommands) cloned.hashedCommands = new Map([...raw.hashedCommands].map(([name, entry]) => [name, { ...entry }]));
   if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
     (cloned as { _subshellInLoop?: boolean })._subshellInLoop = true;
@@ -6446,7 +6449,7 @@ export class Runtime {
     if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !bypassFunctions && state.functions.has(name) && this.firstInternalDiscovery(name, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state) && assignments.size === 0 && !temporaryEnvironment && (values === args || !values.some(value => typeof value !== "string"))) {
       if (this.dispatchFastFunction) return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
     }
-    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !(!bypassFunctions && state.functions.has(name)) && (values === args || !values.some(value => typeof value !== "string"))) {
+    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.disabledBuiltins?.has(name) && !state.extensions?.builtins.has(name) && !(!bypassFunctions && state.functions.has(name)) && (values === args || !values.some(value => typeof value !== "string"))) {
       if (name === "[" || name === "test") {
         const def = this.commands.get(name);
         if (def && defaultPredicateExecutors.has(def.execute)) {
@@ -6514,7 +6517,7 @@ export class Runtime {
     }
     const scope = io[invocationScope].child();
     const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
-    const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
+    const fastInline = !(typeof name === "string" && state.disabledBuiltins?.has(name)) && !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
     if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && (args.length === 0 || args[0]?.startsWith("-") || args[0]?.includes("n")))) {
       try {
         return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
@@ -6949,9 +6952,12 @@ export class Runtime {
             return { exitCode: builtin };
           }
         }
-        const virtualName = context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
-        const definition = this.commands.get(virtualName ?? context.command);
-        if (context.command === "printf" && definition?.execute === printfCommand.execute && (context.args.length === 0 || context.args[0]?.startsWith("-") || context.args[0]?.includes("n"))) {
+        const disabled = state.disabledBuiltins?.has(context.command);
+        const externalPath = disabled ? (await this.searchPaths(context.command, state, false, false, defaultPath))[0] : undefined;
+        const virtualName = externalPath !== undefined ? this.virtualExecutable(pathOf(state, externalPath))
+          : context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
+        const definition = disabled && virtualName === undefined ? undefined : this.commands.get(virtualName ?? context.command);
+        if (!state.externalInvocation && !state.disabledBuiltins?.has("printf") && context.command === "printf" && definition?.execute === printfCommand.execute && (context.args.length === 0 || context.args[0]?.startsWith("-") || context.args[0]?.includes("n"))) {
           ensureRuntimeContext();
           return { exitCode: await this.printfBuiltin(context, state, assignments) };
         }
@@ -7065,9 +7071,11 @@ export class Runtime {
   internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
-    if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
-    else if (this.commands.has(name)) matches.push({ kind: "command", name });
-    else if (name === "bash" || name === "sh" || name === "zsh") matches.push({ kind: "interpreter", name });
+    if (!state.disabledBuiltins?.has(name)) {
+      if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
+      else if (this.commands.has(name)) matches.push({ kind: "command", name });
+      else if (name === "bash" || name === "sh" || name === "zsh") matches.push({ kind: "interpreter", name });
+    }
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
@@ -7077,11 +7085,12 @@ export class Runtime {
     return definition !== undefined && replacedBuiltinCommands.has(definition.execute);
   }
   firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
-    const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));
+    const disabled = state.disabledBuiltins?.has(name);
+    const isBuiltin = !disabled && (implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name)));
     if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) return "builtin";
     if (!bypassFunctions && state.functions.has(name)) return "function";
     if (isBuiltin) return "builtin";
-    if (this.commands.has(name)) return "command";
+    if (!disabled && this.commands.has(name)) return "command";
     if (name === "bash" || name === "sh" || name === "zsh") return "interpreter";
     return undefined;
   }
@@ -7121,7 +7130,7 @@ export class Runtime {
       const target = args.shift();
       if (target === undefined) return 0;
       const targetValue = getCommandArguments(context).values[targetIndex]!;
-      if (builtin && !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target)) {
+      if (builtin && (state.disabledBuiltins?.has(target) || !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target))) {
         await this.diagnostic(forwardedIO, concatShellValues(["builtin: ", targetValue, ": not a shell builtin"], io[valueScope]));
         return 1;
       }
@@ -9081,6 +9090,13 @@ export class Runtime {
       return status;
     }
     if (command === "shopt") return this.shoptBuiltin(context, state);
+    if (command === "enable") {
+      return (await createEnableCommand({
+        builtins: new Set([...shellBuiltinNames, ...state.extensions?.builtins.keys() ?? []]),
+        disabled: state.disabledBuiltins ??= new Set(),
+        limits: { maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxOutputBytes: this.budget.limits.maxOutputBytes },
+      }).execute(context)).exitCode;
+    }
     if (command === "caller") {
       return (await createCallerCommand({ frames: state.callerFrames ?? [], limits: {
         maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxOutputBytes: this.budget.limits.maxExpansionBytes,
@@ -11807,6 +11823,7 @@ Object.assign(Budget.prototype, {
 Object.assign(Runtime.prototype, {
   outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
+  declare disabledBuiltins?: Set<string>;
   shellStartedAt = Date.now();
   declare expand_aliases?: boolean;
   declare aliases?: Map<string, string>;

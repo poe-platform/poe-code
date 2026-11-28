@@ -107,6 +107,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
   };
 
   const snapshot: ShellSessionState = {
+    disabledBuiltins: [...state.disabledBuiltins ?? []],
     aliases: Object.fromEntries(state.aliases ?? []),
     positionalParams: [...state.positional],
     cwd: state.logicalCwd ?? state.cwd,
@@ -161,6 +162,17 @@ export async function restoreShellSessionState(
       aliases.set(name, value);
     }
     state.aliases = aliases;
+  }
+  if (snapshot.disabledBuiltins) {
+    let bytes = 0;
+    const disabled = new Set<string>();
+    for (const name of snapshot.disabledBuiltins) {
+      budget.signal.throwIfAborted();
+      bytes += shellValueByteLength(name);
+      if (bytes > budget.limits.maxExpansionBytes) budget.fail("maxExpansionBytes");
+      disabled.add(name);
+    }
+    state.disabledBuiltins = disabled;
   }
   if (typeof snapshot.umask === "number") {
     state.umask = snapshot.umask & 0o777;

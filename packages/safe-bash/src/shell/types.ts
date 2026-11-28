@@ -146,6 +146,7 @@ export interface ShellSessionOptionsSnapshot {
 }
 
 export interface ShellSessionState {
+  readonly disabledBuiltins?: readonly string[] | undefined;
   readonly positionalParams?: readonly string[] | undefined;
   readonly aliases?: Readonly<Record<string, string>> | undefined;
   readonly cwd: string;

@@ -1418,6 +1418,13 @@
       ],
       "safe-bash-command-trash": [
         "../safe-bash-command-trash/src/index.ts"
+      ],
+      "safe-bash-command-enable": [
+        "../safe-bash-command-enable/src/index.ts"
+      ],
+      "safe-bash-command-enable/*": [
+        "../safe-bash-command-enable/src/*.ts",
+        "../safe-bash-command-enable/src/*"
       ]
     },
     "baseUrl": "."

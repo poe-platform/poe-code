@@ -135,6 +135,11 @@ test("hash query regression remains in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/hash-query.test.ts"));
 });
 
+test("enable builtin regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/enable.test.ts"));
+});
+
 test("openssl workflows remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/plugins/openssl-commands.test.ts"));

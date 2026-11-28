@@ -3368,6 +3368,7 @@ const syncExtraRuntimeMethods = {
       rawRoot.cwd !== expectedCwd ||
       rawRoot.globskipdots === false ||
       Boolean(rawRoot.aliases?.size) ||
+      Boolean(rawRoot.disabledBuiltins?.size) ||
       Boolean(rawRoot._locals?.length) ||
       Boolean(rawRoot.readonlyVariables && [...rawRoot.readonlyVariables].some(name => name !== "SHELLOPTS" && name !== "BASHOPTS")) ||
       Boolean(rawRoot.readonlyFunctions?.size) ||
@@ -4241,6 +4242,7 @@ const syncExtraRuntimeMethods = {
     return entries ? entries[index] !== undefined : binding ? binding.getValue(index) !== undefined : index === 0 && this.variable(state, base) !== undefined;
   },
   tryFastExecuteCommandSync(this: any, command: Command, state: State, originalIO: IO, fileShortcut: boolean, terminal: any, diagnosticLine: number): number | Promise<number> | undefined {
+    if (state.disabledBuiltins?.size) return undefined;
     if (state.xtrace) return undefined;
     if (command.kind === "simple") {
       const _pendingFnList = ((stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: Array<Parameters<NonNullable<Runtime["dispatchFastFunction"]>>[5]> })._syncPendingFunctionResumes;
@@ -7046,6 +7048,7 @@ const syncExtraRuntimeMethods = {
     return false;
   },
   tryRunCachedSyncForScript( script: Script, monitor: ReturnType<typeof ensureStateMonitor>, io: IO, ): { exitCode: number; terminated: boolean } | undefined {
+    if (monitor.raw.disabledBuiltins?.size) return undefined;
     if (monitor.raw.xtrace) return undefined;
     type SyncForScriptPlan = {
       initAssigns: { name: string; strVal: string; intVal: number }[];
@@ -7225,6 +7228,7 @@ const syncExtraRuntimeMethods = {
     return SYNC_UNIT_ZERO;
   },
   tryFastSinglePipelineUnit( pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (state.disabledBuiltins?.size) return undefined;
     if (pipeline.timing) return undefined;
     if (state.xtrace) return undefined;
     // Cached argv bypasses word admission. Keep finite budgets on the standard
@@ -7504,6 +7508,7 @@ const syncExtraRuntimeMethods = {
     return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
   },
   tryExecuteSyncPurePipelineUnit( pipeline: Pipeline, state: State, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    if (rawState.disabledBuiltins?.size) return undefined;
     const backing = this.backingFs;
     if ( syncPurePipelineSlotState.inUse || !this._isMemoryBackingFs || !backing || backing.capabilitiesFor !== undefined || this.middleware.length > 0 || customRegisteredRegistries.has(this.commands) || !io.stdinIsDefault || this.signal.aborted || hasYieldCheckpoint(this.signal) || !this.budget.canSyncPurePipe || !(io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write) || !(io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write)) {
       return undefined;
@@ -7665,6 +7670,7 @@ const syncExtraRuntimeMethods = {
     return finish();
   },
   trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
+    if (state.disabledBuiltins?.size) return undefined;
     if (pipeline.timing) return undefined;
     io = this.persistentIO(state, io);
     if (state.xtrace) return undefined;
@@ -17953,6 +17959,7 @@ const syncExtraRuntimeMethods = {
     return progress;
   },
   tryFastPureSubstitution(this: any, part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    if (rawState.disabledBuiltins?.size) return undefined;
     if (rawState.xtrace) return undefined;
     // These evaluators read the visible exports directly. Dispatch normally
     // when a child must instead inherit an exported value hidden by a local.

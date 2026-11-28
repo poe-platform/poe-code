@@ -830,6 +830,24 @@ export class Evaluator {
         output.push(input.isDocumentRoot ? { ...input, node: input.document.doc.contents! } : input);
         continue;
       }
+      if (name === "parent") {
+        const argument = expression.args[0];
+        const level = argument?.kind === "literal" && typeof argument.value === "bigint" ? argument.value : 1n;
+        let candidate: Candidate | undefined = input;
+        for (let remaining = level; remaining > 0n && candidate; remaining--) {
+          { const t = this.work.tick(); if (t) await t; }
+          candidate = candidate.ancestry?.parent;
+        }
+        if (candidate) output.push(candidate);
+        continue;
+      }
+      if (name === "key") {
+        if (input.ancestry) {
+          const { key } = input.ancestry;
+          output.push(this.child(typeof key === "number" ? scalar(yaml, this.work, BigInt(key)) : await cloneNode(key, yaml, this.work), input));
+        }
+        continue;
+      }
       if (name === "path") {
         this.work.node();
         const node = new yaml.YAMLSeq();

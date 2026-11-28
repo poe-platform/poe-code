@@ -34,6 +34,8 @@ Use optional traversal such as `.a?`, `.a.b.c?`, or `.["a"]?` to skip incompatib
 values. Missing map keys still produce `null`; optional iteration uses `.[]?`.
 Pipe binds more tightly than union: `.a | upcase, length` applies `length` to the
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
+Use `key` to get a selected node's map key or array index, and `parent` or
+`parent(n)` to select its containing node or an ancestor `n` levels up.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
 array subsets, and recursively contained map values.
 Decode embedded documents with `.c | from_json | .d` or `.a | from_yaml | .b`.

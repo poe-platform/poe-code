@@ -24257,6 +24257,7 @@ fn exec_sql_delete(
                     let Some(c_idx) = find_sql_col(&c_cols, &fk.child_col) else {
                         continue;
                     };
+                    let mut cascaded_rows = Vec::new();
                     if let Some(ctbl) = tables.get_mut(&ctname) {
                         match fk.on_delete.as_str() {
                             "NO ACTION" | "RESTRICT" => {
@@ -24277,8 +24278,12 @@ fn exec_sql_delete(
                             }
                             "CASCADE" => {
                                 ctbl.retain_rows(|cr| {
-                                    cr.get(c_idx).map(|s| sql_value_text(s))
-                                        != Some(sql_value_text(&pval))
+                                    let keep = cr.get(c_idx).map(|s| sql_value_text(s))
+                                        != Some(sql_value_text(&pval));
+                                    if !keep {
+                                        cascaded_rows.push(cr.clone());
+                                    }
+                                    keep
                                 });
                             }
                             "SET NULL" => {
@@ -24314,6 +24319,21 @@ fn exec_sql_delete(
                             }
                             _ => {}
                         }
+                    }
+                    for row in cascaded_rows {
+                        fire_sql_triggers(
+                            &ctname,
+                            SqlTriggerOp::Delete,
+                            &[],
+                            SqlTriggerTiming::After,
+                            &c_cols,
+                            Some(&row),
+                            None,
+                            tables,
+                            views,
+                            triggers,
+                        )
+                        .inspect_err(|_| *tables = tables_snap.clone())?;
                     }
                 }
             }

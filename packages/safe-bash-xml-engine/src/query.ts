@@ -142,6 +142,8 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
         at++;
         descendant = source[at] === "/";
         if (descendant) at++;
+        space();
+        if (!descendant && steps.length === 0 && (at === source.length || source[at] === "|")) break;
       }
       space();
       let kind: QueryStep["kind"] = "element";

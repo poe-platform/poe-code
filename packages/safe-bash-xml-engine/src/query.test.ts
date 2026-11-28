@@ -5,6 +5,21 @@ import { XmlBudget, resolveXmlQueryLimits, XmlQueryLimitError } from "./limits.j
 import { parseQuery } from "./query.js";
 import { evaluate, evaluateScalar } from "./evaluate.js";
 
+for (const source of ["/", " / \n", "/ | /r", "/r | /"]) {
+  test(`XPath document root selection: ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    const nodes = await evaluate(await parseQuery(source, budget), parseXml("<r><a>1</a></r>"), budget);
+    assert.deepEqual(nodes.map(node => node.kind), source.includes("|") ? ["document", "element"] : ["document"]);
+  });
+}
+
+for (const source of ["", "//", "/r/", "/r//", "/ |", "| /"]) {
+  test(`rejects incomplete XPath: ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    await assert.rejects(parseQuery(source, budget), /unsupported XPath syntax/);
+  });
+}
+
 test("shared engine evaluates bounded XPath with the canonical XML tree", async () => {
   const budget = new XmlBudget(
     resolveXmlQueryLimits(),

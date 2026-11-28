@@ -4,6 +4,22 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, xmllintCommands } from "./index.js";
 
+test("xmllint selects the whole document with the root XPath", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/f.xml", new TextEncoder().encode("<r><a>1</a></r>\n"));
+  let output = "", errors = "";
+  const context: CommandContext = {
+    ...createCommandArguments(["--xpath", "/", "f.xml"]),
+    command: "xmllint", cwd: "/", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { errors += new TextDecoder().decode(bytes); } },
+  };
+  assert.equal((await createXmllintCommand().execute(context)).exitCode, 0, errors);
+  assert.equal(output, '<?xml version="1.0" encoding="UTF-8"?>\n<r><a>1</a></r>\n\n');
+  assert.equal(errors, "");
+});
+
 for (const little of [true, false]) for (const args of [[], ["--format"], ["--encode", "UTF-8"], ["--c14n"], ["--exc-c14n"], ["--noout"], ["--xpath", "string(/r)"]]) {
   test(`xmllint reads UTF-16 input (little=${little}, args=${args})`, async () => {
     const xml = '<?xml version="1.0" encoding="UTF-16"?><r>é😀</r>';

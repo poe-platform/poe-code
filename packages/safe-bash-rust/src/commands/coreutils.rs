@@ -6951,6 +6951,7 @@ fn format_bc_base(digits: &[u8], scale: usize, obase: u32) -> String {
         return "0".to_string();
     }
     let alphabet = b"0123456789ABCDEF";
+    let width = (obase - 1).to_string().len();
     let base = obase
         .to_string()
         .bytes()
@@ -6959,16 +6960,23 @@ fn format_bc_base(digits: &[u8], scale: usize, obase: u32) -> String {
     let split = digits.len().saturating_sub(scale);
     let mut integer = digits[..split].to_vec();
     big_trim(&mut integer);
-    let mut chars = Vec::new();
+    let mut integer_digits = Vec::new();
     while integer != [0] {
         let (quotient, remainder) = big_div_rem(&integer, &base);
         let digit = remainder.iter().fold(0, |n, &d| n * 10 + usize::from(d));
-        chars.push(alphabet[digit] as char);
+        integer_digits.push(digit);
         integer = quotient;
     }
-    chars.reverse();
+    let mut output = String::new();
+    for digit in integer_digits.into_iter().rev() {
+        if obase <= 16 {
+            output.push(alphabet[digit] as char);
+        } else {
+            output.push_str(&format!(" {digit:0width$}"));
+        }
+    }
     if scale > 0 {
-        chars.push('.');
+        output.push('.');
         let mut denominator = vec![1];
         denominator.extend(std::iter::repeat_n(0, scale));
         let mut remainder = digits[split..].to_vec();
@@ -6978,11 +6986,18 @@ fn format_bc_base(digits: &[u8], scale: usize, obase: u32) -> String {
             precision = big_mul(&precision, &base);
             let (digit, rest) = big_div_rem(&big_mul(&remainder, &base), &denominator);
             let digit = digit.iter().fold(0, |n, &d| n * 10 + usize::from(d));
-            chars.push(alphabet[digit] as char);
+            if obase <= 16 {
+                output.push(alphabet[digit] as char);
+            } else {
+                if !output.ends_with('.') {
+                    output.push(' ');
+                }
+                output.push_str(&format!("{digit:0width$}"));
+            }
             remainder = rest;
         }
     }
-    chars.into_iter().collect()
+    output
 }
 
 fn extract_bc_defines(input: &str, bc: &mut BcEnv) -> String {
@@ -7551,7 +7566,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         && !val_s.starts_with('=')
     {
         let v = eval_bc_val(val_s.trim(), bc, depth + 1).val.round() as u32;
-        bc.obase = v.clamp(2, 16);
+        bc.obase = v.max(2);
         return BcFlow::None;
     }
     if let Some((lhs, rhs)) = split_top_level_assign(s) {

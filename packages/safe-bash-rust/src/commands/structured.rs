@@ -26755,6 +26755,46 @@ fn eval_sql_row_expr(
     if s.is_empty() {
         return SQL_NULL.to_string();
     }
+    let upper = s.to_ascii_uppercase();
+    if !upper.starts_with("CASE ") {
+        for (keyword, decisive) in [(" OR ", true), (" AND ", false)] {
+            if let Some((lhs, _)) = split_top_level_sql_cmp(&upper, keyword) {
+                let position = lhs.len();
+                // BETWEEN owns its first AND; it is not a boolean operator.
+                if keyword == " AND " && upper[..position].contains(" BETWEEN ") {
+                    continue;
+                }
+                let lhs = eval_sql_row_expr(&s[..position], cols, row, tables);
+                let rhs = eval_sql_row_expr(&s[position + keyword.len()..], cols, row, tables);
+                let truth = |value: &str| {
+                    (value != SQL_NULL).then(|| value.trim().parse::<f64>().unwrap_or(0.0) != 0.0)
+                };
+                let lhs = truth(&lhs);
+                let rhs = truth(&rhs);
+                return if lhs == Some(decisive) || rhs == Some(decisive) {
+                    if decisive { "1" } else { "0" }
+                } else if lhs.is_none() || rhs.is_none() {
+                    SQL_NULL
+                } else if decisive {
+                    "0"
+                } else {
+                    "1"
+                }
+                .to_string();
+            }
+        }
+        if upper.starts_with("NOT ") {
+            let value = eval_sql_row_expr(&s[4..], cols, row, tables);
+            return if value == SQL_NULL {
+                SQL_NULL
+            } else if value.trim().parse::<f64>().unwrap_or(0.0) == 0.0 {
+                "1"
+            } else {
+                "0"
+            }
+            .to_string();
+        }
+    }
     // Split the lowest-precedence operator; concatenation binds above arithmetic.
     if let Some((sp, op)) = find_sql_binary_operator(s) {
         let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
@@ -26821,7 +26861,6 @@ fn eval_sql_row_expr(
     if s.parse::<f64>().is_ok() {
         return s.to_string();
     }
-    let upper = s.to_ascii_uppercase();
     if let Some(hex) = upper.strip_prefix("X'").and_then(|s| s.strip_suffix('\''))
         && hex.len().is_multiple_of(2)
         && hex.bytes().all(|b| b.is_ascii_hexdigit())

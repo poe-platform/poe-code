@@ -113,7 +113,14 @@ export function createPagerCommand(name: "less" | "more", options: LessCommandsO
           continue;
         }
         if (!endOfOptions && arg.startsWith("--")) {
-          if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
+          if (name === "more" && (arg === "--lines" || arg.startsWith("--lines="))) {
+            const value = arg === "--lines" ? args[++i] : arg.slice(8);
+            if (value === undefined || !/^\d+$/u.test(value)) {
+              await writeText(context.stderr, `${name}: numeric value required after --lines\n`);
+              return { exitCode: 1 };
+            }
+          }
+          else if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
           else if (arg === "--squeeze-blank-lines") squeezeBlank = true;
           else if (arg === "--ignore-case" || arg === "--IGNORE-CASE") ignoreCase = true;
           else if (arg === "--pattern" || arg.startsWith("--pattern=")) startSearch = arg === "--pattern" ? (args[++i] ?? "") : arg.slice(10);
@@ -123,13 +130,13 @@ export function createPagerCommand(name: "less" | "more", options: LessCommandsO
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
             if (ch === "N") lineNumbers = true;
-            else if (ch === "n") lineNumbers = false;
+            else if (ch === "n" && name === "less") lineNumbers = false;
             else if (ch === "s") squeezeBlank = true;
             else if (ch === "i" || ch === "I") ignoreCase = true;
             else if (ch === "p") {
               startSearch = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
               break;
-            } else if ("Pxz".includes(ch)) {
+            } else if ("Pxz".includes(ch) || (ch === "n" && name === "more")) {
               const value = j < arg.length - 1 ? arg.slice(j + 1) : args[++i];
               if (value === undefined || (ch !== "P" && !(ch === "x" ? /^\d+(,\d+)*$/u : /^[+-]?\d+$/u).test(value))) {
                 await writeText(context.stderr, `${name}: numeric value required after -${ch}\n`);

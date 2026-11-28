@@ -2313,7 +2313,7 @@ pub fn execute_git_cli_with_input(
                     true,
                     true,
                 );
-                return match stash(fs, &repo_root, Some(&gitdir), Some("pop"), None, ref_idx) {
+                return match stash(fs, &repo_root, Some(&gitdir), Some("pop"), None, ref_idx, None) {
                     Ok(_) => CliResult::ok(format!("Switched to a new branch '{new_branch}'\n")),
                     Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
                 };
@@ -2328,15 +2328,26 @@ pub fn execute_git_cli_with_input(
                 _ => Some("push"),
             };
             let mut msg: Option<&str> = None;
-            let mut i = 0;
+            let mut paths = Vec::new();
+            let mut i = usize::from(sub_args.first() == Some(&"push"));
             while i < sub_args.len() {
-                if (sub_args[i] == "-m" || sub_args[i] == "--message") && i + 1 < sub_args.len() {
-                    msg = Some(sub_args[i + 1]);
-                    break;
+                match sub_args[i] {
+                    "--" => {
+                        paths.extend(sub_args[i + 1..].iter().map(|path| repository_path(&repo_root, &effective_cwd, path)));
+                        break;
+                    }
+                    "-m" | "--message" if i + 1 < sub_args.len() => {
+                        i += 1;
+                        msg = Some(sub_args[i]);
+                    }
+                    path if op == Some("push") && !path.starts_with('-') => {
+                        paths.push(repository_path(&repo_root, &effective_cwd, path));
+                    }
+                    _ => {}
                 }
                 i += 1;
             }
-            match stash(fs, &repo_root, Some(&gitdir), op, msg, ref_idx) {
+            match stash(fs, &repo_root, Some(&gitdir), op, msg, ref_idx, if paths.is_empty() { None } else { Some(&paths) }) {
                 Ok(Some(out)) => CliResult::ok(format!("{out}\n")),
                 Ok(None) => CliResult::ok(""),
                 Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),

@@ -1644,6 +1644,7 @@ pub fn stash(
     op: Option<&str>,
     message: Option<&str>,
     ref_idx: usize,
+    filepaths: Option<&[String]>,
 ) -> Result<Option<String>, GitError> {
     let raw_gdir = gitdir
         .map(|s| s.to_string())
@@ -1660,13 +1661,18 @@ pub fn stash(
             let head_oid = GitRefManager::resolve(fs, &gdir, "HEAD", None)?;
             let head_commit = read_commit(fs, &gdir, &head_oid)?;
 
-            let matrix = status_matrix(fs, dir, Some(&gdir), None, None)?;
+            let matrix = status_matrix(fs, dir, Some(&gdir), None, filepaths)?;
             let has_changes = matrix.iter().any(|(_, h, w, s)| !(*h == 1 && *w == 1 && *s == 1));
             if !has_changes {
                 return Err(GitError::not_found("changes, nothing to stash"));
             }
 
-            let mut workdir_entries = Vec::new();
+            let head_map = get_head_tree_map(fs, &gdir, "HEAD")?;
+            let selected: BTreeSet<_> = matrix.iter().map(|(path, _, _, _)| path.clone()).collect();
+            let mut workdir_entries: Vec<_> = head_map.iter()
+                .filter(|(path, _)| !selected.contains(*path))
+                .map(|(path, entry)| (path.clone(), entry.clone()))
+                .collect();
             for (path, _, w, _) in &matrix {
                 if *w != 0
                     && let Some((_, st)) = compute_workdir_oid(fs, dir, &gdir, path) {
@@ -1712,7 +1718,7 @@ pub fn stash(
                     dir,
                     Some(&gdir),
                     Some(&branch),
-                    None,
+                    filepaths.map(|_| selected.iter().cloned().collect::<Vec<_>>()).as_deref(),
                     None,
                     false,
                     false,
@@ -1720,6 +1726,17 @@ pub fn stash(
                     true,
                     false,
                 )?;
+                if filepaths.is_some() {
+                    GitIndexManager::acquire(fs, &gdir, |index| {
+                        for path in &selected {
+                            if !head_map.contains_key(path) {
+                                index.delete(path);
+                                let _ = fs.unlink(&join(&[dir, path]));
+                            }
+                        }
+                        Ok(())
+                    })?;
+                }
             }
             Ok(Some(stash_commit_oid))
         }
@@ -1770,8 +1787,8 @@ pub fn stash(
             Ok(None)
         }
         "pop" => {
-            stash(fs, dir, Some(&gdir), Some("apply"), None, ref_idx)?;
-            stash(fs, dir, Some(&gdir), Some("drop"), None, ref_idx)?;
+            stash(fs, dir, Some(&gdir), Some("apply"), None, ref_idx, None)?;
+            stash(fs, dir, Some(&gdir), Some("drop"), None, ref_idx, None)?;
             Ok(None)
         }
         "clear" => {

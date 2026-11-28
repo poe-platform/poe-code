@@ -425,7 +425,7 @@ dual_fixture_test!(stash_push_and_restore_clean_worktree, stash_push_and_restore
     let orig_a = f.fs.read_str(&join(&[&f.dir, "a.txt"])).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "staged changes - a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("custom stash msg"), 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("custom stash msg"), 0, None).unwrap();
     assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "a.txt").unwrap(), "unmodified");
     assert_eq!(f.fs.read_str(&join(&[&f.dir, "a.txt"])).unwrap(), orig_a);
 });
@@ -435,8 +435,8 @@ dual_fixture_test!(stash_list_shows_saved_entries, stash_list_shows_saved_entrie
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "staged changes - a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("custom stash msg"), 0).unwrap();
-    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("custom stash msg"), 0, None).unwrap();
+    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap();
     assert!(list_out.contains("stash@{0}"));
     assert!(list_out.contains("custom stash msg"));
 });
@@ -446,10 +446,10 @@ dual_fixture_test!(stash_apply_restores_changes_without_dropping, stash_apply_re
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "staged changes - a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("apply msg"), 0).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("apply"), None, 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("apply msg"), 0, None).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("apply"), None, 0, None).unwrap();
     assert_eq!(f.fs.read_str(&join(&[&f.dir, "a.txt"])).unwrap(), "staged changes - a");
-    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap();
+    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap();
     assert!(list_out.contains("stash@{0}"));
 });
 
@@ -458,8 +458,8 @@ dual_fixture_test!(stash_pop_restores_and_removes_entry, stash_pop_restores_and_
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "staged changes - a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("pop msg"), 0).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("pop"), None, 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("pop msg"), 0, None).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("pop"), None, 0, None).unwrap();
     assert_eq!(f.fs.read_str(&join(&[&f.dir, "a.txt"])).unwrap(), "staged changes - a");
 });
 
@@ -468,10 +468,10 @@ dual_fixture_test!(stash_drop_and_clear, stash_drop_and_clear_sub, "test-stash",
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "staged changes - a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("drop msg"), 0).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("drop"), None, 0).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("clear"), None, 0).unwrap();
-    let empty_list = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap_or_default();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("drop msg"), 0, None).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("drop"), None, 0, None).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("clear"), None, 0, None).unwrap();
+    let empty_list = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap_or_default();
     assert!(empty_list.trim().is_empty());
 });
 
@@ -571,8 +571,8 @@ dual_fixture_test!(stash_push_default_message_when_none_provided, stash_push_def
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "modified a");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), None, 0).unwrap();
-    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), None, 0, None).unwrap();
+    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap();
     assert!(list_out.contains("stash@{0}"));
     assert!(list_out.contains("WIP on"));
 });
@@ -582,13 +582,13 @@ dual_fixture_test!(stash_multiple_entries_indexed_order, stash_multiple_entries_
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "first stash");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("first msg"), 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("first msg"), 0, None).unwrap();
 
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "second stash");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("second msg"), 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("second msg"), 0, None).unwrap();
 
-    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap();
+    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap();
     assert!(list_out.contains("stash@{0}"));
     assert!(list_out.contains("stash@{1}"));
     assert!(list_out.contains("second msg"));
@@ -855,14 +855,14 @@ dual_fixture_test!(stash_drop_specific_index_entry, stash_drop_specific_index_en
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "stash 1");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("s1"), 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("s1"), 0, None).unwrap();
 
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "stash 2");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("s2"), 0).unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("push"), Some("s2"), 0, None).unwrap();
 
-    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("drop"), None, 1).unwrap();
-    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0).unwrap().unwrap();
+    stash(&f.fs, &f.dir, Some(&f.gitdir), Some("drop"), None, 1, None).unwrap();
+    let list_out = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("list"), None, 0, None).unwrap().unwrap();
     assert!(list_out.contains("s2"));
     assert!(!list_out.contains("s1"));
 });
@@ -870,6 +870,6 @@ dual_fixture_test!(stash_drop_specific_index_entry, stash_drop_specific_index_en
 dual_fixture_test!(stash_apply_out_of_bounds_index_returns_error, stash_apply_out_of_bounds_index_returns_error_sub, "test-stash", |f| {
     set_config(&f.fs, &f.gitdir, "user.name", Some("stash tester"), false).unwrap();
     set_config(&f.fs, &f.gitdir, "user.email", Some("test@stash.com"), false).unwrap();
-    let err = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("apply"), None, 99).unwrap_err();
+    let err = stash(&f.fs, &f.dir, Some(&f.gitdir), Some("apply"), None, 99, None).unwrap_err();
     assert_eq!(err.code, ErrorCode::InvalidRefNameError);
 });

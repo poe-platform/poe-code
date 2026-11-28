@@ -297,14 +297,15 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
             Some("push"),
             Some("custom stash msg"),
             0,
+            None,
         )
         .unwrap();
         assert!(stash_sha.is_some());
-        let list_out = stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("list"), None, 0)
+        let list_out = stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("list"), None, 0, None)
             .unwrap()
             .unwrap_or_default();
         assert!(list_out.contains("custom stash msg"));
-        stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("pop"), None, 0).unwrap();
-        stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("clear"), None, 0).unwrap();
+        stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("pop"), None, 0, None).unwrap();
+        stash(&fst.fs, &fst.dir, Some(&fst.gitdir), Some("clear"), None, 0, None).unwrap();
     }
 }

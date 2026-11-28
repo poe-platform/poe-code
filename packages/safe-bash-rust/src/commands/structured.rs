@@ -25811,50 +25811,43 @@ fn exec_sql_select_with_mode(
     }
 
     if let Some(oc) = order_clause {
-        enum OrderKeyLoc {
-            RawCol(usize),
-            ProjCol(usize),
-        }
-        let mut order_keys: Vec<(OrderKeyLoc, bool, bool)> = Vec::new();
-        for item in split_top_level_comma(oc) {
-            let (mut col_part, desc, nulls_first) = parse_sql_order_term(&item);
-            if col_part.to_ascii_uppercase().starts_with("CAST(") && col_part.ends_with(')') {
-                let inner = &col_part[5..col_part.len() - 1];
-                if let Some(ap) = inner.to_ascii_uppercase().find(" AS ") {
-                    col_part = inner[..ap].trim();
+        let order_keys: Vec<_> = split_top_level_comma(oc)
+            .into_iter()
+            .map(|item| {
+                let (expr, desc, nulls_first) = parse_sql_order_term(item);
+                let projected = proj_headers
+                    .iter()
+                    .position(|h| h.eq_ignore_ascii_case(expr.trim_matches('"')));
+                (expr, projected, desc, nulls_first)
+            })
+            .collect();
+        // Evaluate each key once per row, including expressions outside the projection.
+        let mut keyed_rows: Vec<_> = proj_rows
+            .into_iter()
+            .map(|(row, values)| {
+                let keys: Vec<_> = order_keys
+                    .iter()
+                    .map(|(expr, projected, _, _)| match projected {
+                        Some(index) => values[*index].clone(),
+                        None => eval_sql_row_expr(expr, &tbl.columns, row, tables),
+                    })
+                    .collect();
+                (row, values, keys)
+            })
+            .collect();
+        keyed_rows.sort_by(|(_, _, a), (_, _, b)| {
+            for ((va, vb), (_, _, desc, nulls_first)) in a.iter().zip(b).zip(&order_keys) {
+                let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
+                if ord != std::cmp::Ordering::Equal {
+                    return ord;
                 }
             }
-            let col_name = col_part.trim_matches('"');
-            if let Some(p_idx) = proj_headers
-                .iter()
-                .position(|h| h.eq_ignore_ascii_case(col_name))
-            {
-                order_keys.push((OrderKeyLoc::ProjCol(p_idx), desc, nulls_first));
-            } else if let Some(c_idx) = find_sql_col(&tbl.columns, col_name) {
-                order_keys.push((OrderKeyLoc::RawCol(c_idx), desc, nulls_first));
-            }
-        }
-        if !order_keys.is_empty() {
-            proj_rows.sort_by(|(a, pa), (b, pb)| {
-                for (loc, desc, nulls_first) in &order_keys {
-                    let (va, vb) = match loc {
-                        OrderKeyLoc::ProjCol(pi) => (
-                            pa.get(*pi).map(|s| s.as_str()).unwrap_or(""),
-                            pb.get(*pi).map(|s| s.as_str()).unwrap_or(""),
-                        ),
-                        OrderKeyLoc::RawCol(ci) => (
-                            a.get(*ci).map(|s| s.as_str()).unwrap_or(""),
-                            b.get(*ci).map(|s| s.as_str()).unwrap_or(""),
-                        ),
-                    };
-                    let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
-                    if ord != std::cmp::Ordering::Equal {
-                        return ord;
-                    }
-                }
-                std::cmp::Ordering::Equal
-            });
-        }
+            std::cmp::Ordering::Equal
+        });
+        proj_rows = keyed_rows
+            .into_iter()
+            .map(|(row, values, _)| (row, values))
+            .collect();
     }
 
     let only_rows: Vec<Vec<String>> = proj_rows

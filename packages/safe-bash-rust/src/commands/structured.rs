@@ -19222,6 +19222,11 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     };
 
     let (mut cur_hdr, mut cur_rows) = tables[0].clone();
+    for row in &mut cur_rows {
+        if row.len() < cur_hdr.len() {
+            row.resize_with(cur_hdr.len(), String::new);
+        }
+    }
     let left_key = keys[0];
     let full = names.is_empty() || (outer_join && !left_join && !right_join);
     let inner = !names.is_empty() && !outer_join && !left_join && !right_join;

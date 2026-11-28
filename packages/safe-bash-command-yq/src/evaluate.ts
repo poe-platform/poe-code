@@ -886,6 +886,12 @@ export class Evaluator {
         }
         output.push(input); continue;
       }
+      if (name === "from_json" || name === "from_yaml") {
+        if (!yaml.isScalar(base.node) || typeof base.node.value !== "string") throw new MikeError(`cannot decode ${nodeTag(base.node, yaml)}, can only decode strings`);
+        const documents = await decodeDocuments(base.node.value, input.document.filename, input.document.fileIndex, name === "from_json" ? "json" : "yaml", yaml, this.work);
+        for (const document of documents) output.push({ ...this.child(document.doc.contents!, input), document: { ...input.document, doc: document.doc } });
+        continue;
+      }
       if (name === "env" || name === "strenv") {
         const key = expression.args[0];
         if (key?.kind !== "literal") throw new MikeError("bad expression, please check expression syntax");

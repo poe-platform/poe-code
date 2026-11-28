@@ -34,6 +34,7 @@ Pipe binds more tightly than union: `.a | upcase, length` applies `length` to th
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
 array subsets, and recursively contained map values.
+Decode embedded documents with `.c | from_json | .d` or `.a | from_yaml | .b`.
 Format values with string interpolation, for example `"name=\(.name)"`.
 Join array values into a string with `join(", ")`, or select names first with
 `.items | map(.name) | join(",")`.

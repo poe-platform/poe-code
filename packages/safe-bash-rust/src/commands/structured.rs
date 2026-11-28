@@ -23721,8 +23721,17 @@ fn exec_sql_update(
     let Some(set_pos) = upper.find(" SET ") else {
         return Ok(String::new());
     };
-    let tname =
-        resolve_sql_table_name(tables, stmt_norm[6..set_pos].trim().trim_matches('"')).to_owned();
+    let is_or_ignore = upper.starts_with("UPDATE OR IGNORE ");
+    let table_start = if is_or_ignore {
+        "UPDATE OR IGNORE ".len()
+    } else {
+        "UPDATE ".len()
+    };
+    let tname = resolve_sql_table_name(
+        tables,
+        stmt_norm[table_start..set_pos].trim().trim_matches('"'),
+    )
+    .to_owned();
     let ret_pos = upper.rfind(" RETURNING ");
     let returning_cols: Option<Vec<String>> = ret_pos.map(|rp| {
         split_top_level_comma(&stmt_norm[rp + 11..])
@@ -23880,6 +23889,9 @@ fn exec_sql_update(
             if let Some(pos) = find_sql_col(&t_cols, nn_col)
                 && ur[pos] == SQL_NULL
             {
+                if is_or_ignore {
+                    continue 'rows;
+                }
                 let error = format!("Error: NOT NULL constraint failed: {tname}.{nn_col}\n");
                 *tables = tables_snap;
                 return Err(error);
@@ -23889,6 +23901,9 @@ fn exec_sql_update(
             if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables)
                 .inspect_err(|_| *tables = tables_snap.clone())?
             {
+                if is_or_ignore {
+                    continue 'rows;
+                }
                 *tables = tables_snap;
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
@@ -23897,7 +23912,7 @@ fn exec_sql_update(
             let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables)
                 .inspect_err(|_| *tables = tables_snap.clone())?;
             if !conflicts.is_empty() {
-                if ignore {
+                if is_or_ignore || ignore {
                     continue 'rows;
                 }
                 let error = sql_unique_error(&tname, &tables[&tname], &name, &terms);

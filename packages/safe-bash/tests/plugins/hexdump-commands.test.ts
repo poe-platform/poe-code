@@ -34,7 +34,7 @@ test("hexdump dialect selection preserves the default BSD profile", async () => 
     try {
       assert.equal((await shell.exec("hexdump -C -n0x1", { stdin: "abc" })).stdout, "");
       const result = await shell.exec("hd", { stdin: "abcdefghijklmnopabc" });
-      assert.equal(result.stdout, "00000000  61 62 63 64 65 66 67 68  69 6a 6b 6c 6d 6e 6f 70  |abcdefghijklmnop|\n*\n00000013\n");
+      assert.equal(result.stdout, "00000000  61 62 63 64 65 66 67 68  69 6a 6b 6c 6d 6e 6f 70  |abcdefghijklmnop|\n00000010  61 62 63                                          |abc|\n00000013\n");
     } finally { await shell.dispose(); }
   }
 });

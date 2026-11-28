@@ -37438,17 +37438,28 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
     let mut md_lines = Vec::new();
     for line in text.lines() {
         let mut s = line.trim().to_string();
-        if let Some(rest) = s.strip_prefix("\\section{")
-            && let Some(end) = rest.find('}')
-        {
-            md_lines.push(format!("# {}", &rest[..end]));
-            continue;
-        }
-        if let Some(rest) = s.strip_prefix("\\subsection{")
-            && let Some(end) = rest.find('}')
-        {
-            md_lines.push(format!("## {}", &rest[..end]));
-            continue;
+        for (command, heading) in [("\\section{", "#"), ("\\subsection{", "##")] {
+            if let Some(rest) = s.strip_prefix(command) {
+                let mut depth = 1;
+                let mut chars = rest.char_indices();
+                while let Some((end, ch)) = chars.next() {
+                    match ch {
+                        '\\' => {
+                            chars.next();
+                        }
+                        '{' => depth += 1,
+                        '}' => {
+                            depth -= 1;
+                            if depth == 0 {
+                                s = format!("{heading} {}\n\n{}", &rest[..end], &rest[end + 1..]);
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                break;
+            }
         }
         while let Some(pos) = s.find("\\textbf{") {
             let after = &s[pos + 8..];

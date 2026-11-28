@@ -496,6 +496,7 @@ enum CopyRotation {
 struct Form {
     number: usize,
     fields: Vec<usize>,
+    names: BTreeMap<String, usize>,
     defaults: Vec<(&'static [u8], Vec<u8>)>,
 }
 
@@ -905,7 +906,7 @@ impl PageOutput {
             let n = self.bodies.len() + 1;
             let id = *source.pages.get(i)?;
             if source.objects.xref.contains_key(&id) {
-                ids.insert(id, n);
+                ids.entry(id).or_insert(n);
             }
             self.pages.push(n);
             self.bodies.push(vec![]);
@@ -956,19 +957,28 @@ impl PageOutput {
                 copy.output.labels.extend_from_slice(&pair);
             }
         }
+        let mut seen = BTreeSet::new();
+        let mut duplicates = Vec::new();
         for (position, i) in selection.enumerate() {
             let id = source.pages[i];
-            let page = copy.page(
-                id,
-                rotation(i),
-                materialized.as_mut().is_some_and(|seen| !seen.insert(i)),
-            )?;
+            let repeated = materialized.as_mut().is_some_and(|seen| !seen.insert(i));
+            let number = copy.output.pages[page_offset + position];
+            if !seen.insert(id) {
+                duplicates.push((i, number, repeated));
+                continue;
+            }
+            let page = copy.page(id, rotation(i), repeated)?;
             let mut body = Vec::new();
             copy.value(&page, &mut body, 0)?;
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
-            copy.output.bodies[copy.output.pages[page_offset + position] - 1] = body;
+            copy.output.bodies[number - 1] = body;
         }
         copy.catalog_fields(&source.catalog)?;
+        for (i, number, repeated) in duplicates {
+            let id = source.pages[i];
+            let page = copy.page(id, rotation(i), repeated)?;
+            copy.duplicate_page(id, number, page)?;
+        }
         Some(())
     }
 
@@ -1110,6 +1120,102 @@ struct Copy<'c, 'a> {
 }
 
 impl<'a> Copy<'_, 'a> {
+    fn duplicate_page(&mut self, id: ObjectId, number: usize, mut page: Value<'a>) -> Option<()> {
+        let mut fields = BTreeMap::new();
+        if self.output.form.is_some()
+            && let Some(Value::Array(annotations)) =
+                page.get(b"Annots").and_then(|v| self.objects.resolve(v))
+        {
+            for annotation in &annotations {
+                let Some(dict) = self.objects.resolve(annotation) else {
+                    continue;
+                };
+                if dict.get(b"Subtype").and_then(Value::word) != Some(b"/Widget") {
+                    continue;
+                }
+                let mut parent = annotation.reference();
+                let mut depth = 0;
+                while let Some(id) = parent {
+                    if fields.contains_key(&id) {
+                        break;
+                    }
+                    if depth >= 128 {
+                        return None;
+                    }
+                    depth += 1;
+                    let (dict, _) = self.objects.object(id)?;
+                    parent = dict.get(b"Parent").and_then(Value::reference);
+                    fields.insert(id, dict);
+                }
+            }
+            // An indirect Annots array must not reuse the first page's widget references.
+            if let Value::Dict(entries) = &mut page {
+                set(entries, b"Annots", Value::Array(annotations));
+            }
+        }
+        // Only widgets and their field ancestors need new identities; resources stay shared.
+        let mut saved = vec![(id, self.ids.insert(id, number))];
+        for &id in fields.keys() {
+            let number = self.output.bodies.len() + 1;
+            self.output.bodies.push(vec![]);
+            saved.push((id, self.ids.insert(id, number)));
+        }
+        for (&id, dict) in &fields {
+            let Value::Dict(mut entries) = dict.clone() else {
+                return None;
+            };
+            if let Some(Value::Array(kids)) =
+                dict.get(b"Kids").and_then(|v| self.objects.resolve(v))
+            {
+                let kids = kids
+                    .into_iter()
+                    .filter(|kid| kid.reference().is_some_and(|id| fields.contains_key(&id)))
+                    .collect();
+                set(&mut entries, b"Kids", Value::Array(kids));
+            }
+            if dict.get(b"Parent").is_none() {
+                let form = self.output.form.as_mut()?;
+                if let Some(Value::String { bytes, .. }) =
+                    dict.get(b"T").and_then(|v| self.objects.resolve(v))
+                {
+                    let name = super::pdf_string::decode(&bytes);
+                    let unique = loop {
+                        let suffix = form.names.entry(name.clone()).or_insert(1);
+                        let candidate = format!("{name}+{suffix}");
+                        *suffix += 1;
+                        if let std::collections::btree_map::Entry::Vacant(entry) =
+                            form.names.entry(candidate.clone())
+                        {
+                            entry.insert(1);
+                            break candidate;
+                        }
+                    };
+                    set(&mut entries, b"T", super::pdf_string::encode(&unique));
+                }
+                form.fields.push(self.ids[&id]);
+            }
+            let mut body = Vec::new();
+            self.value(&Value::Dict(entries), &mut body, 0)?;
+            self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+            self.output.bodies[self.ids[&id] - 1] = body;
+        }
+        let mut body = Vec::new();
+        self.value(&page, &mut body, 0)?;
+        self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+        self.output.bodies[number - 1] = body;
+        for (id, previous) in saved {
+            match previous {
+                Some(previous) => {
+                    self.ids.insert(id, previous);
+                }
+                None => {
+                    self.ids.remove(&id);
+                }
+            }
+        }
+        Some(())
+    }
+
     // A root field can own a selected widget without itself being referenced by the page.
     fn has_copied_field(
         &mut self,
@@ -1199,10 +1305,23 @@ impl<'a> Copy<'_, 'a> {
                         Form {
                             number,
                             fields: vec![],
+                            names: BTreeMap::new(),
                             defaults: vec![],
                         }
                     }
                 };
+                // Reserve source names before naming any repeated page's fields.
+                if let Some(Value::Array(fields)) =
+                    form.get(b"Fields").and_then(|v| self.objects.resolve(v))
+                {
+                    for field in fields {
+                        if let Some(Value::String { bytes, .. }) = self.objects.resolve(&field)
+                            .and_then(|v| v.get(b"T").and_then(|v| self.objects.resolve(v)))
+                        {
+                            target.names.entry(super::pdf_string::decode(&bytes)).or_insert(1);
+                        }
+                    }
+                }
                 target.fields.extend(roots);
                 for key in [b"DR".as_slice(), b"DA"] {
                     if let Some(v) = form.get(key)

@@ -11140,8 +11140,10 @@ export class Runtime {
       const defaultMembers = part.kind === "variable" && defaultParameterOperators.includes(part.operator ?? "")
         ? selector?.kind === "members" ? await this.arrayMembers(part.name, state, partIO) : part.name === "@" ? this.positionalValues(state) : undefined : undefined;
       const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
-      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && (part.name === "@" || /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name))) {
-        let value: ShellValue | undefined = part.indirect && state.variableAttributes?.get(part.name)?.includes("n")
+      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && (part.name === "@" || /^\d+$/u.test(part.name) || /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name))) {
+        let value: ShellValue | undefined = /^\d+$/u.test(part.name)
+          ? Number(part.name) === 0 ? state.arg0 ?? "virtual-bash" : state.positional[Number(part.name) - 1]
+          : part.indirect && state.variableAttributes?.get(part.name)?.includes("n")
           ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
           : this.variable(state, part.name);
         if (defaultMembers) {

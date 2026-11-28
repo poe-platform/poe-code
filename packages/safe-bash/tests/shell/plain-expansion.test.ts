@@ -6,6 +6,37 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("alternate parameter operands preserve quoted positional arguments", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work", { recursive: true });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('set -- "a b" c; printf \'<%s>\' ${1+"$@"}; echo; for x in ${1+"$@"}; do echo "[$x]"; done; f(){ echo $#; }; f ${1+"$@"}; v=1; f ${v:+"x y" z}');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "<a b><c>\n[a b]\n[c]\n2\n2\n");
+});
+
+for (const [source, expected] of [
+  ['set --; f ${1+"$@"}', '0\n'],
+  ['set -- "" "a b"; f ${1+"$@"}', '2\n<>\n<a b>\n'],
+  ['set -- "" "a b"; f ${1:+"$@"}', '0\n'],
+  ['set -- "a b" c; f pre${1+"$@"}post', '2\n<prea b>\n<cpost>\n'],
+  ['set -- 1 2 3 4 5 6 7 8 9 ten; f ${10+"x y" z}', '2\n<x y>\n<z>\n'],
+  ['set --; f ${1-"x y" z}', '2\n<x y>\n<z>\n'],
+  ['set -- ""; f ${1:-"x y" z}', '2\n<x y>\n<z>\n'],
+  ['set -- ""; f ${1-"x y" z}', '0\n'],
+  ['set -- "a b"; f ${0+"$@"}', '1\n<a b>\n'],
+  ['set -- "a b" c; v=1; f ${v:+${1+"$@"}}', '2\n<a b>\n<c>\n'],
+] as const) test(`numbered alternate operand quoting: ${source}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`f(){ echo $#; for x; do printf '<%s>\\n' "$x"; done; }; ${source}`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, expected);
+});
+
 test("shell PID expands in temporary filenames and quoted pipelines", async context => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work", { recursive: true });

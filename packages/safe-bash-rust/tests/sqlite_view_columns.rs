@@ -142,3 +142,49 @@ fn sqlite_legacy_json_view_queries_remain_readable() {
         assert_eq!(result.stdout, "2|hi\n");
     }
 }
+
+#[test]
+fn sqlite_imported_quoted_and_commented_view_declarations_survive_rewriting() {
+    let fixture = sqlite_python(
+        r#"
+import sqlite3, sys
+db = sqlite3.connect(':memory:')
+db.executescript('''
+CREATE TABLE t(k,v);
+INSERT INTO t VALUES(2,'hi');
+CREATE VIEW v(k,n) AS SELECT k,v FROM t;
+CREATE VIEW "quoted view"("key column", "name AS column") AS SELECT k,v FROM t;
+CREATE VIEW plain AS SELECT k,v FROM t;
+CREATE VIEW commented /* named outputs */ (k,n) AS SELECT k,v FROM t;
+CREATE VIEW escaped("a""b", `c,d`) AS SELECT k,v FROM t;
+CREATE VIEW bracketed([key], [value]) AS SELECT k,v FROM t;
+''')
+sys.stdout.buffer.write(db.serialize())
+"#,
+        b"",
+    );
+    let (mut shell, fs) = Shell::with_memory_fs();
+    fs.write_file("/records.db", &fixture).unwrap();
+    let result = shell.exec("sqlite3 /records.db 'CREATE TABLE separate(note TEXT); INSERT INTO separate VALUES(7); CREATE VIEW created(k,n) AS SELECT k,v FROM t;'").unwrap();
+    assert_eq!(result.exit_code, 0, "{result:?}");
+    assert_eq!(result.stdout, "");
+    assert_eq!(result.stderr, "");
+    assert!(!result.used_typescript_bridge);
+    sqlite_python(
+        r#"
+import sqlite3, sys
+db = sqlite3.connect(':memory:')
+db.deserialize(sys.stdin.buffer.read())
+assert db.execute('SELECT k,n FROM v').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT "key column", "name AS column" FROM "quoted view"').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT k,v FROM plain').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT "a""b", `c,d` FROM escaped').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT key,value FROM bracketed').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT k,n FROM created').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT k,n FROM commented').fetchall() == [(2, 'hi')]
+assert db.execute('SELECT * FROM separate').fetchall() == [('7',)]
+assert db.execute('PRAGMA integrity_check').fetchall() == [('ok',)]
+"#,
+        &fs.read_file("/records.db").unwrap(),
+    );
+}

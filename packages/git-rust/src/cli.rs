@@ -2365,6 +2365,7 @@ pub fn execute_git_cli_with_input(
             let mut msg: Option<&str> = None;
             let mut paths = Vec::new();
             let mut staged_only = false;
+            let mut include_untracked = false;
             let mut i = usize::from(sub_args.first() == Some(&"push"));
             while i < sub_args.len() {
                 match sub_args[i] {
@@ -2373,6 +2374,7 @@ pub fn execute_git_cli_with_input(
                         break;
                     }
                     "--staged" | "-S" => staged_only = true,
+                    "--include-untracked" | "-u" => include_untracked = true,
                     "-m" | "--message" if i + 1 < sub_args.len() => {
                         i += 1;
                         msg = Some(sub_args[i]);
@@ -2384,7 +2386,13 @@ pub fn execute_git_cli_with_input(
                 }
                 i += 1;
             }
-            let op = if op == Some("push") && staged_only { Some("push-staged") } else { op };
+            let op = if op == Some("push") && staged_only {
+                Some("push-staged")
+            } else if op == Some("push") && include_untracked {
+                Some("push-untracked")
+            } else {
+                op
+            };
             match stash(fs, &repo_root, Some(&gitdir), op, msg, ref_idx, if paths.is_empty() { None } else { Some(&paths) }) {
                 Ok(Some(out)) => CliResult::ok(format!("{out}\n")),
                 Ok(None) => CliResult::ok(""),

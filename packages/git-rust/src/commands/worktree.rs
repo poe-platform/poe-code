@@ -1714,7 +1714,7 @@ pub fn stash(
     let operation = op.unwrap_or("push");
 
     match operation {
-        "push" | "push-staged" | "create" => {
+        "push" | "push-staged" | "push-untracked" | "create" => {
             let staged_only = operation == "push-staged";
             let author = stash_mgr.get_author(fs)?;
             let branch = crate::current_branch(fs, &gdir, false, false)?
@@ -1722,7 +1722,10 @@ pub fn stash(
             let head_oid = GitRefManager::resolve(fs, &gdir, "HEAD", None)?;
             let head_commit = read_commit(fs, &gdir, &head_oid)?;
 
-            let matrix = status_matrix(fs, dir, Some(&gdir), None, filepaths)?;
+            let mut matrix = status_matrix(fs, dir, Some(&gdir), None, filepaths)?;
+            if operation != "push-untracked" {
+                matrix.retain(|(_, h, _, s)| *h != 0 || *s != 0);
+            }
             let has_changes = matrix.iter().any(|(_, h, w, s)| {
                 if staged_only { h != s } else { !(*h == 1 && *w == 1 && *s == 1) }
             });
@@ -1778,7 +1781,7 @@ pub fn stash(
                 gpgsig: None,
             };
             let stash_commit_oid = write_commit(fs, &gdir, &stash_commit_obj)?;
-            if operation == "push" || staged_only {
+            if operation != "create" {
                 stash_mgr.write_stash_ref(fs, &stash_commit_oid)?;
                 stash_mgr.write_stash_reflog_entry(fs, &stash_commit_oid, &stash_msg)?;
                 if staged_only {
@@ -1828,17 +1831,15 @@ pub fn stash(
                         true,
                         false,
                     )?;
-                    if filepaths.is_some() {
-                        GitIndexManager::acquire(fs, &gdir, |index| {
-                            for path in &selected {
-                                if !head_map.contains_key(path) {
-                                    index.delete(path);
-                                    let _ = fs.unlink(&join(&[dir, path]));
-                                }
+                    GitIndexManager::acquire(fs, &gdir, |index| {
+                        for path in &selected {
+                            if !head_map.contains_key(path) {
+                                index.delete(path);
+                                let _ = fs.unlink(&join(&[dir, path]));
                             }
-                            Ok(())
-                        })?;
-                    }
+                        }
+                        Ok(())
+                    })?;
                 }
             }
             Ok(Some(stash_commit_oid))
@@ -1854,19 +1855,42 @@ pub fn stash(
             }
             let line = &entries[ref_idx];
             if let Some(sha) = line.split_whitespace().nth(1) {
-                checkout(
+                let saved = read_commit(fs, &gdir, sha)?;
+                let (our_tree, original_entries) = GitIndexManager::acquire(fs, &gdir, |index| {
+                    if !index.unmerged_paths().is_empty() {
+                        return Err(GitError::unmerged_paths(index.unmerged_paths()));
+                    }
+                    Ok((construct_index_tree(fs, &gdir, index, false)?, index.entries()))
+                })?;
+                let (_, conflicts) = merge_trees_3way(
                     fs,
-                    dir,
-                    Some(&gdir),
-                    Some(sha),
-                    None,
-                    None,
+                    Some(dir),
+                    &gdir,
+                    &our_tree,
+                    saved.commit.parent.first().map(String::as_str),
+                    sha,
+                    "Updated upstream",
+                    "Stash base",
+                    "Stashed changes",
                     false,
-                    true,
-                    false,
-                    true,
                     false,
                 )?;
+                if !conflicts.is_empty() {
+                    return Err(GitError::merge_conflict(
+                        conflicts, Vec::new(), Vec::new(), Vec::new(),
+                    ));
+                }
+                // A successful apply leaves tracked edits unstaged, retaining the
+                // original index and staging only newly restored paths.
+                let changed_paths = GitIndexManager::acquire(fs, &gdir, |index| {
+                    Ok(original_entries.iter().filter(|entry| {
+                        index.entries_map().get(&entry.path).is_none_or(|merged|
+                            merged.oid != entry.oid || merged.mode != entry.mode)
+                    }).map(|entry| entry.path.clone()).collect::<Vec<_>>())
+                })?;
+                for path in changed_paths {
+                    reset_index(fs, Some(dir), &gdir, &path, Some(&our_tree))?;
+                }
             }
             Ok(None)
         }

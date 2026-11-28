@@ -1,6 +1,6 @@
 # Git in your virtual filesystem
 
-Run Git against `@poe-code/safe-fs` in Safe Bash, including Cloudflare Workers without `nodejs_compat`. The command uses the Rust Git engine compiled to WebAssembly and never starts a host process. Merging histories without a common ancestor requires `git merge --allow-unrelated-histories`; the default refusal leaves HEAD, index, and worktree unchanged.
+Run Git against `@poe-code/safe-fs` in Safe Bash, including Cloudflare Workers without `nodejs_compat`. The command uses the Rust Git engine compiled to WebAssembly and never starts a host process. Merging histories without a common ancestor requires `git merge --allow-unrelated-histories`; the default refusal leaves HEAD, index, and worktree unchanged. `git stash push -u` includes and removes untracked files; `stash apply` and `stash pop` refuse untracked-file collisions and retain the stash on failure.
 
 ```ts
 import { gitCommands } from '@poe-platform/safe-bash/commands/git';

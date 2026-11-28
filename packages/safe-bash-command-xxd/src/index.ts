@@ -312,6 +312,9 @@ const HEX_UPPER = HEX_LOWER.map(s => s.toUpperCase());
 const BIN_TABLE = Array.from({ length: 256 }, (_, i) => i.toString(2).padStart(8, "0"));
 const ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
 
+// Printable EBCDIC characters used by xxd; all other bytes display as dots.
+const EBCDIC_CHAR = "................................................................ ...........<(+|&.........!$*);~-/.........,%_>?.........`:#@'=\".abcdefghi.......jklmnopqr^.......stuvwxyz...[...............]..{ABCDEFGHI......}JKLMNOPQR......\\.STUVWXYZ......0123456789......";
+
 function hexDigit(byte: number): number {
   if (byte >= 48 && byte <= 57) return byte - 48;
   if (byte >= 65 && byte <= 70) return byte - 55;
@@ -491,6 +494,8 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       "-cols": "-c",
       "-groupsize": "-g",
       "-len": "-l",
+      "-seek": "-s",
+      "-skip": "-s",
       "-bits": "-b",
       "-include": "-i",
       "-name": "-n",
@@ -503,8 +508,14 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       if (argument === "--") ended = true;
       return aliases[argument] ?? argument;
     });
-    const parsed = parseOptions(args, "aCprdubiec:g:l:s:o:n:");
+    const parsed = parseOptions(args, "aCEprdubiec:g:l:s:o:n:R:");
     requireOperands(parsed.operands, 0, 2);
+    const colorMode = validatedOption(parsed, "R", text => {
+      if (text !== "never" && text !== "auto" && text !== "always") throw new UsageError(`invalid color mode '${text}'`);
+      return text;
+    }, "never");
+    const color = colorMode === "always" || (colorMode === "auto" &&
+      (parsed.operands[1] === undefined || parsed.operands[1] === "-") && context.shellPredicates?.terminal(1) === true);
     if (!parsed.flags.has("r") && parsed.operands[1] !== undefined && parsed.operands[1] !== "-") {
       const original = context;
       const path = pathOf(context, parsed.operands[1]);
@@ -609,8 +620,15 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     }
     if (parsed.flags.has("C")) identifier = identifier.toUpperCase();
     const upper = parsed.flags.has("u");
-    const hexTable = upper ? HEX_UPPER : HEX_LOWER;
-    const byteTable = binary ? BIN_TABLE : hexTable;
+    const colorize = (text: string, byte: number) => {
+      const code = byte === 0 ? 37 : byte === 255 ? 34 : byte >= 32 && byte <= 126 ? 32 : byte >= 9 && byte <= 13 ? 33 : 31;
+      return `\x1b[1;${code}m${text}\x1b[0m`;
+    };
+    const hex = upper ? HEX_UPPER : HEX_LOWER;
+    const hexTable = color && !plain && !include ? hex.map(colorize) : hex;
+    const byteTable = binary ? (color ? BIN_TABLE.map(colorize) : BIN_TABLE) : hexTable;
+    const characters = parsed.flags.has("E") ? Array.from(EBCDIC_CHAR) : ASCII_CHAR;
+    const charTable = color ? characters.map(colorize) : characters;
     const decimalAddress = parsed.flags.has("d");
     const octets = Math.min(group || columns, columns);
     const width = littleEndian
@@ -653,13 +671,13 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
             if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
             continue;
           }
-          if (!parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
+          if (!color && !parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
             const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
             const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
             const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
             const b12 = row[12]!, b13 = row[13]!, b14 = row[14]!, b15 = row[15]!;
             const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-            outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}\n`;
+            outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${charTable[b0]}${charTable[b1]}${charTable[b2]}${charTable[b3]}${charTable[b4]}${charTable[b5]}${charTable[b6]}${charTable[b7]}${charTable[b8]}${charTable[b9]}${charTable[b10]}${charTable[b11]}${charTable[b12]}${charTable[b13]}${charTable[b14]}${charTable[b15]}\n`;
             offset = addOffset(offset, 16);
             if (!flushedFirst || outBuf.length >= 16384) await flushOut();
             continue;
@@ -670,7 +688,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
             if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
             const byte = row[index]!;
             if (!littleEndian) data += byteTable[byte]!;
-            if (!plain) ascii += ASCII_CHAR[byte]!;
+            if (!plain) ascii += charTable[byte]!;
           }
           if (littleEndian) {
             for (let start = 0; start < row.length; start += octets) {
@@ -683,7 +701,8 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
           if (plain) outBuf += data + (columns ? "\n" : "");
           else {
             const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-            const formatted = `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+            // Each colored byte adds an 11-character ANSI prefix/reset pair.
+            const formatted = `${address}: ${data.padEnd(width + (color ? row.length * 11 : 0))}  ${ascii}\n`;
             if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
               if (zeroRun === 0) outBuf += formatted;
               if (zeroRun === 1) zeroSecond = formatted;

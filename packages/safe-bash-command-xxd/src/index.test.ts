@@ -71,8 +71,29 @@ async function runParity(args: string[], input = new Uint8Array(), fs = createMe
     signal: new AbortController().signal,
   });
   assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
+  assert.equal(Buffer.concat(stderr).toString(), "");
   return Buffer.concat(stdout).toString();
 }
+
+for (const seek of ["-seek", "-skip"]) test(`xxd accepts ${seek} with -len`, async () => {
+  assert.equal(await runParity([seek, "2", "-len", "3"], new TextEncoder().encode("abcdefgh")),
+    "00000002: 6364 65                                  cde\n");
+});
+
+for (const when of ["never", "auto"]) test(`xxd accepts -R ${when} on captured output`, async () => {
+  assert.equal(await runParity(["-R", when, "-l", "4"], new TextEncoder().encode("abcdefgh")),
+    "00000000: 6162 6364                                abcd\n");
+});
+
+test("xxd displays EBCDIC without changing the hex bytes", async () => {
+  assert.equal(await runParity(["-E"], new TextEncoder().encode("abcd")),
+    "00000000: 6162 6364                                /...\n");
+  const input = Uint8Array.from({ length: 256 }, (_, index) => index);
+  for (const mode of [[], ["-b"], ["-e"], ["-p"]]) {
+    assert.equal(await runParity(["-E", ...mode], input),
+      execFileSync("/usr/bin/xxd", ["-E", ...mode], { input }).toString());
+  }
+});
 
 test("xxd writes output operands and reverses them", async () => {
   const fs = createMemoryFileSystem();
@@ -189,4 +210,19 @@ test("xxd reverse retains decoded rows before malformed input", async () => {
 test("xxd reverses rows larger than its output buffer", async () => {
   const input = new TextEncoder().encode("00000000: " + "41".repeat(9000) + "\n");
   assert.equal(await runParity(["-r", "-c", "9000"], input), "A".repeat(9000));
+});
+
+test("xxd forced color preserves dump content and validates WHEN", async () => {
+  const input = new Uint8Array([0, 9, 65, 255]);
+  for (const mode of [[], ["-b"], ["-e"], ["-E"]]) {
+    let colored = await runParity(["-R", "always", ...mode], input);
+    assert.ok(colored.includes("\x1b[1;32m"));
+    for (const code of ["\x1b[0m", ...[31, 32, 33, 34, 37].map(color => `\x1b[1;${color}m`)]) {
+      colored = colored.split(code).join("");
+    }
+    assert.equal(colored, await runParity(mode, input));
+  }
+  for (const args of [["-R"], ["-R", "invalid"]]) {
+    assert.equal((await run(args, createMemoryFileSystem())).exitCode, 2);
+  }
 });

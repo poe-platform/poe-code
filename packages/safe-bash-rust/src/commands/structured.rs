@@ -11,6 +11,8 @@ mod in2csv_json;
 mod jq_generator;
 mod sheet_name_fold;
 #[cfg(test)]
+mod sqlite_trigger_tests;
+#[cfg(test)]
 mod xlsx_import_tests;
 #[cfg(test)]
 mod xlsx_rows_tests;
@@ -18676,12 +18678,38 @@ enum SqlTriggerTiming {
 
 #[derive(Clone)]
 struct SqlTrigger {
+    name: String,
     table: String,
     op: SqlTriggerOp,
     update_of: Vec<String>,
     timing: SqlTriggerTiming,
     when_expr: Option<String>,
     body: String,
+}
+
+fn sql_trigger_name(source: &str) -> String {
+    let source = source.trim();
+    let mut chars = source.chars().peekable();
+    let Some(first) = chars.next() else {
+        return String::new();
+    };
+    let closing = match first {
+        '"' | '\'' | '`' => first,
+        '[' => ']',
+        _ => return source.split_whitespace().next().unwrap_or("").to_string(),
+    };
+    let mut name = String::new();
+    while let Some(ch) = chars.next() {
+        if ch == closing {
+            if closing != ']' && chars.peek() == Some(&closing) {
+                chars.next();
+            } else {
+                break;
+            }
+        }
+        name.push(ch);
+    }
+    name
 }
 
 fn sql_trigger_update_columns(header: &str) -> Vec<String> {
@@ -20581,7 +20609,7 @@ fn serialize_sql_db(
         });
     }
 
-    for (i, tr) in triggers.iter().enumerate() {
+    for tr in triggers {
         let op_s = match tr.op {
             SqlTriggerOp::Insert => "INSERT",
             SqlTriggerOp::Update => "UPDATE",
@@ -20601,10 +20629,9 @@ fn serialize_sql_db(
             Some(w) if !w.trim().is_empty() => format!(" WHEN {}", w.trim()),
             _ => String::new(),
         };
-        let tr_name = format!("tr_{}_{}", tr.table, i + 1);
         let tr_sql = format!(
-            "CREATE TRIGGER {} {} {}{} ON {}{} BEGIN {}; END",
-            tr_name,
+            "CREATE TRIGGER \"{}\" {} {}{} ON {}{} BEGIN {}; END",
+            tr.name.replace('"', "\"\""),
             timing_s,
             op_s,
             update_of,
@@ -20614,7 +20641,7 @@ fn serialize_sql_db(
         );
         master_entries.push(MasterEntry {
             m_type: "trigger".to_string(),
-            name: tr_name,
+            name: tr.name.clone(),
             tbl_name: tr.table.clone(),
             rootpage: 0,
             sql: tr_sql,
@@ -20858,6 +20885,7 @@ fn deserialize_sql_db(
                             .trim()
                             .to_string();
                         triggers.push(SqlTrigger {
+                            name: m_name,
                             table: tname,
                             op,
                             update_of: sql_trigger_update_columns(hdr),
@@ -21001,6 +21029,7 @@ fn deserialize_sql_db(
                             }
                         }
                         triggers.push(SqlTrigger {
+                            name: format!("tr_{}_{}", table, triggers.len() + 1),
                             table,
                             op,
                             update_of: Vec::new(),
@@ -22191,6 +22220,22 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             triggers = remaining_triggers;
             continue;
         }
+        if upper.starts_with("DROP TRIGGER ") {
+            let rest = stmt["DROP TRIGGER".len()..].trim();
+            let if_exists = rest.to_ascii_uppercase().starts_with("IF EXISTS ");
+            let name = sql_trigger_name(if if_exists {
+                rest["IF EXISTS".len()..].trim()
+            } else {
+                rest
+            });
+            let count = triggers.len();
+            triggers.retain(|trigger| !trigger.name.eq_ignore_ascii_case(&name));
+            if triggers.len() == count && !if_exists {
+                errors.push_str(&format!("Error: no such trigger: {name}\n"));
+                break;
+            }
+            continue;
+        }
         if upper.starts_with("DROP INDEX ") {
             let idx_name = stmt
                 .split_whitespace()
@@ -22571,7 +22616,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         .trim_end_matches(';')
                         .trim()
                         .to_string();
+                    let name = hdr["CREATE TRIGGER".len()..].trim();
+                    let name = if name.to_ascii_uppercase().starts_with("IF NOT EXISTS ") {
+                        &name["IF NOT EXISTS".len()..]
+                    } else {
+                        name
+                    };
                     triggers.push(SqlTrigger {
+                        active: false,
+                        name: sql_trigger_name(name),
                         table: tname,
                         op,
                         update_of: sql_trigger_update_columns(hdr),

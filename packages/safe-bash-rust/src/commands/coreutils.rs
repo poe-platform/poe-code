@@ -7988,6 +7988,14 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
         }
         return v;
     }
+    if let Some(idx) = find_top_level(s, '|')
+        && s[idx..].starts_with("||")
+    {
+        let l = eval_bc_val(&s[..idx], bc, depth);
+        let r = eval_bc_val(&s[idx + 2..], bc, depth);
+        bc.last_str_out = None;
+        return BcVal::from_i64(i64::from(l.is_truthy() || r.is_truthy()));
+    }
     for cmp_op in ["==", "!=", "<=", ">=", "<", ">"] {
         if let Some((lhs, rhs)) = s.split_once(cmp_op) {
             let l = eval_bc_val(lhs, bc, depth);

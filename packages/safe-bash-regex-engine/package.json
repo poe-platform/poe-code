@@ -94,6 +94,10 @@
     "./python-glob": {
       "types": "./dist/python-glob.d.ts",
       "import": "./dist/python-glob.js"
+    },
+    "./text/byte-text": {
+      "types": "./dist/text/byte-text.d.ts",
+      "import": "./dist/text/byte-text.js"
     }
   },
   "files": [

@@ -17,6 +17,45 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
   return { ...result, stdout, stderr };
 }
 
+for (const [program, input, expected] of [
+  ["y/é/e/", "aéb\n", "aeb\n"],
+  ["y/ÀÉ/ae/", "ÀÉ x\n", "ae x\n"],
+  ["y/abc/αβγ/", "abc\n", "αβγ\n"],
+  ["y/😀é/e🦊/", "😀é界\n", "e🦊界\n"],
+] as const) {
+  test(`sed transliterates UTF-8 characters: ${program}`, async () => {
+    const result = await run(createSedCommand(), [program], input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+test("sed translation cache respects locale and character counts", async () => {
+  for (const locale of ["C.UTF-8", "C", "POSIX", "C.UTF-8"]) {
+    const result = await run(createSedCommand(), ["y/é/e/"], "é\n", undefined, { LC_ALL: locale });
+    assert.equal(result.exitCode, locale === "C.UTF-8" ? 0 : 2);
+  }
+  const result = await run(createSedCommand(), ["y/é/ab/"], "é\n");
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /translation sets have different lengths/);
+});
+
+test("sed bounds expanding UTF-8 translations", async () => {
+  const result = await run(createSedCommand({ maxBufferBytes: 16 }), ["y/a/😀/"], "aaaaa\n");
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /buffer limit exceeded/);
+});
+
+test("sed transliteration preserves malformed bytes and reads UTF-8 program files", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new Uint8Array([0xff, 0xc3, 0xa9, 0xc3, 0x0a]));
+  await fs.writeFile("/program", new TextEncoder().encode("y/é/e/;w /output"));
+  const result = await run(createSedCommand(), ["-n", "-f", "/program", "/input"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await fs.readFile("/output"), new Uint8Array([0xff, 0x65, 0xc3, 0x0a]));
+});
+
 for (const [args, input, stdout, stderr] of [
   [["-n", "s/a/X/w /dev/stdout"], "ab\ncd\n", "Xb\n", ""],
   [["w /dev/stderr"], "ab\n", "ab\n", "ab\n"],

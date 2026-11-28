@@ -5,6 +5,7 @@ import { decodeBytes,encodeBytes,writeEncodedBytes } from "safe-bash-io-engine/b
 import { assertPathRequirements,requiredFileInput,sedRequirements } from "safe-bash-io-engine/commands/search/requirements";
 import { Budget,ProgramError,byteString,bytes,command,input,lineRecordBatches,readProgram,virtualPath,type LineRecordBatch,type RecordLine,type TextProgramOptions } from "safe-bash-io-engine/commands/text-programs/shared";
 import { BytePattern as Pattern,trySubstitutePairSync,trySubstitutePairToBufferSync,trySubstituteSync } from "safe-bash-regex-engine/text/regex";
+import { decodeByteText,encodeByteText } from "safe-bash-regex-engine/text/byte-text";
 
 type Address = { kind: "number"; number: number } | { kind: "step"; first: number; step: number } | { kind: "plus"; count: number } | { kind: "tilde"; count: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {
@@ -88,7 +89,7 @@ function normalizeEscapes(source: string, replacement = false): string {
   return result;
 }
 
-async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
+async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget, unicode: boolean): Promise<Instruction[]> {
   const result: Instruction[] = [];
   const groups: number[] = [];
   const labels = new Map<string, number>();
@@ -303,10 +304,12 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       const delimiter = source[offset++];
       if (!delimiter || delimiter === "\\" || delimiter === "\n") throw new ProgramError("invalid translation delimiter");
       const decode = (text: string) => text.replace(/\\(.)/gsu, (_whole, escaped: string) => escaped === "n" ? "\n" : escaped === "t" ? "\t" : escaped);
-      const from = decode(delimited(delimiter));
-      const to = decode(delimited(delimiter));
+      const fromBytes = decode(delimited(delimiter));
+      const toBytes = decode(delimited(delimiter));
+      const from = [...(unicode ? decodeByteText(fromBytes).text : fromBytes)];
+      const to = [...(unicode ? decodeByteText(toBytes).text : toBytes)];
       if (from.length !== to.length) throw new ProgramError("translation sets have different lengths");
-      instruction.translation = new Map([...from].map((character, index) => [character, to[index]!]));
+      instruction.translation = new Map(from.map((character, index) => [character, unicode ? encodeByteText(to[index]!) : to[index]!]));
     } else if (!"pdDPhHgGxnN=lzF".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
     result.push(instruction);
     horizontal();
@@ -938,12 +941,16 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "y": {
             // Interpreter strings contain one Latin-1 code unit per input byte.
             budget.step(pattern.length);
-            const translated = new Uint8Array(pattern.length);
-            for (let index = 0; index < pattern.length; index++) {
-              if (index % 256 === 0) await budget.checkpointSync();
-              translated[index] = (instruction.translation!.get(pattern[index]!) ?? pattern[index]!).charCodeAt(0);
+            const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+            const text = locale === "C" || locale === "POSIX" ? pattern : decodeByteText(pattern, budget).text;
+            let translated = "";
+            let offset = 0;
+            for (const character of text) {
+              if (offset++ % 256 === 0) await budget.checkpointSync();
+              translated = budget.check(translated + (instruction.translation!.get(character)
+                ?? (locale === "C" || locale === "POSIX" ? character : encodeByteText(character))));
             }
-            pattern = decodeBytes(translated, "latin1");
+            pattern = translated;
             break;
           }
           case "b": pc = instruction.jump!; continue;
@@ -1149,14 +1156,16 @@ async function executeSedGeneral(
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
     const sourceText = sources.length === 1 ? sources[0]! : sources.join("\n");
+    const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+    const unicode = locale !== "C" && locale !== "POSIX";
     const canCache = sourceText.length <= 8192;
-    const cacheKey = canCache ? `${extended ? 1 : 0}:${separator}:${maxProgramInstructions}:${sourceText}` : "";
+    const cacheKey = canCache ? `${unicode ? 1 : 0}:${extended ? 1 : 0}:${separator}:${maxProgramInstructions}:${sourceText}` : "";
     let cached = canCache ? sedProgramCache.get(cacheKey) : undefined;
     if (cached) {
       if (cached.steps > 0) budget.step(cached.steps);
     } else {
       const stepsBefore = budget.stepsUsed;
-      const parsedProgram = await parse(sourceText, extended, separator, maxProgramInstructions, budget);
+      const parsedProgram = await parse(sourceText, extended, separator, maxProgramInstructions, budget, unicode);
       const steps = budget.stepsUsed - stepsBefore;
       let outFiles: string[] | undefined;
       let rdFiles: string[] | undefined;

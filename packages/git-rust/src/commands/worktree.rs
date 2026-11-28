@@ -1654,7 +1654,8 @@ pub fn stash(
     let operation = op.unwrap_or("push");
 
     match operation {
-        "push" | "create" => {
+        "push" | "push-staged" | "create" => {
+            let staged_only = operation == "push-staged";
             let author = stash_mgr.get_author(fs)?;
             let branch = crate::current_branch(fs, &gdir, false, false)?
                 .unwrap_or_else(|| "HEAD".to_string());
@@ -1662,7 +1663,9 @@ pub fn stash(
             let head_commit = read_commit(fs, &gdir, &head_oid)?;
 
             let matrix = status_matrix(fs, dir, Some(&gdir), None, filepaths)?;
-            let has_changes = matrix.iter().any(|(_, h, w, s)| !(*h == 1 && *w == 1 && *s == 1));
+            let has_changes = matrix.iter().any(|(_, h, w, s)| {
+                if staged_only { h != s } else { !(*h == 1 && *w == 1 && *s == 1) }
+            });
             if !has_changes {
                 return Err(GitError::not_found("changes, nothing to stash"));
             }
@@ -1689,7 +1692,12 @@ pub fn stash(
                         ));
                     }
             }
-            let stash_tree = write_directory_tree_recursive(fs, &gdir, &workdir_entries, "", false)?;
+            let workdir_tree = write_directory_tree_recursive(fs, &gdir, &workdir_entries, "", false)?;
+            let stash_tree = if staged_only {
+                GitIndexManager::acquire(fs, &gdir, |index| construct_index_tree(fs, &gdir, index, false))?
+            } else {
+                workdir_tree.clone()
+            };
             let msg_prefix = message.unwrap_or("").trim();
             let stash_msg = format!(
                 "{}: {} {}",
@@ -1703,39 +1711,74 @@ pub fn stash(
             );
             let stash_commit_obj = CommitObject {
                 message: format!("{stash_msg}\n"),
-                tree: stash_tree,
-                parent: vec![head_oid],
+                tree: stash_tree.clone(),
+                parent: vec![head_oid.clone()],
                 author: author.clone(),
                 committer: author,
                 gpgsig: None,
             };
             let stash_commit_oid = write_commit(fs, &gdir, &stash_commit_obj)?;
-            if operation == "push" {
+            if operation == "push" || staged_only {
                 stash_mgr.write_stash_ref(fs, &stash_commit_oid)?;
                 stash_mgr.write_stash_reflog_entry(fs, &stash_commit_oid, &stash_msg)?;
-                checkout(
-                    fs,
-                    dir,
-                    Some(&gdir),
-                    Some(&branch),
-                    filepaths.map(|_| selected.iter().cloned().collect::<Vec<_>>()).as_deref(),
-                    None,
-                    false,
-                    false,
-                    false,
-                    true,
-                    false,
-                )?;
-                if filepaths.is_some() {
-                    GitIndexManager::acquire(fs, &gdir, |index| {
-                        for path in &selected {
-                            if !head_map.contains_key(path) {
-                                index.delete(path);
-                                let _ = fs.unlink(&join(&[dir, path]));
+                if staged_only {
+                    // Remove the index delta from the working tree, retaining later edits.
+                    // Compute the whole result before touching files so conflicts cannot lose work.
+                    let (remaining_tree, conflicts) = merge_trees_3way(
+                        fs, None, &gdir, &workdir_tree, Some(&stash_tree), &head_oid,
+                        "Working tree", "Index", "HEAD", true, false,
+                    )?;
+                    if !conflicts.is_empty() {
+                        return Err(GitError::checkout_conflict(conflicts));
+                    }
+                    let mut remaining = BTreeMap::new();
+                    collect_tree_map(fs, &gdir, &remaining_tree, "", &mut remaining)?;
+                    for (path, h, _, s) in &matrix {
+                        if h == s { continue; }
+                        assert_no_symlink_in_leading_path(fs, dir, path)?;
+                    }
+                    for (path, h, _, s) in &matrix {
+                        if h == s { continue; }
+                        let full = join(&[dir, path]);
+                        if let Some(entry) = remaining.get(path) {
+                            if entry.entry_type != "commit" {
+                                let blob = read_blob(fs, &gdir, &entry.oid, None)?.blob;
+                                if entry.mode == "120000" {
+                                    fs.writelink(&full, &blob).map_err(|e| GitError::internal(&e.message))?;
+                                } else {
+                                    fs.write_with_mode(&full, &blob, u32::from_str_radix(&entry.mode, 8).unwrap_or(0o100644));
+                                }
                             }
+                        } else {
+                            let _ = fs.unlink(&full);
                         }
-                        Ok(())
-                    })?;
+                        reset_index(fs, Some(dir), &gdir, path, Some("HEAD"))?;
+                    }
+                } else {
+                    checkout(
+                        fs,
+                        dir,
+                        Some(&gdir),
+                        Some(&branch),
+                        filepaths.map(|_| selected.iter().cloned().collect::<Vec<_>>()).as_deref(),
+                        None,
+                        false,
+                        false,
+                        false,
+                        true,
+                        false,
+                    )?;
+                    if filepaths.is_some() {
+                        GitIndexManager::acquire(fs, &gdir, |index| {
+                            for path in &selected {
+                                if !head_map.contains_key(path) {
+                                    index.delete(path);
+                                    let _ = fs.unlink(&join(&[dir, path]));
+                                }
+                            }
+                            Ok(())
+                        })?;
+                    }
                 }
             }
             Ok(Some(stash_commit_oid))
